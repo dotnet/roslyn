@@ -152,10 +152,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return _hostServices;
             }
 
-            var catalog = ExportProviderCache.CreateAssemblyCatalog(assemblies);
+            var catalog = ExportProviderCache.GetOrCreateAssemblyCatalog(assemblies);
             Interlocked.CompareExchange(
                 ref _hostServices,
-                new ExportProviderMefHostServices(ExportProviderCache.CreateExportProviderFactory(catalog).CreateExportProvider()),
+                new ExportProviderMefHostServices(ExportProviderCache.GetOrCreateExportProviderFactory(catalog).CreateExportProvider()),
                 null);
 
             return _hostServices;
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     if (s_remoteHostExportProviderFactory == null)
                     {
-                        var configuration = CompositionConfiguration.Create(ExportProviderCache.CreateAssemblyCatalog(RoslynServices.RemoteHostAssemblies).WithCompositionService());
+                        var configuration = CompositionConfiguration.Create(ExportProviderCache.GetOrCreateAssemblyCatalog(RoslynServices.RemoteHostAssemblies).WithCompositionService());
                         var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
                         s_remoteHostExportProviderFactory = runtimeComposition.CreateExportProviderFactory();
                     }

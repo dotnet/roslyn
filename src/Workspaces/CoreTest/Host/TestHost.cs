@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 if (s_catalog == null)
                 {
-                    var tmp = ExportProviderCache.CreateAssemblyCatalog(Assemblies);
+                    var tmp = ExportProviderCache.GetOrCreateAssemblyCatalog(Assemblies);
                     System.Threading.Interlocked.CompareExchange(ref s_catalog, tmp, null);
                 }
 

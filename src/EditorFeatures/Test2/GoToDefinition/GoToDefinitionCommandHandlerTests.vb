@@ -56,7 +56,7 @@ class C
 
             Using workspace = TestWorkspace.Create(
                     definition,
-                    exportProvider:=ExportProviderCache.CreateExportProviderFactory(GoToTestHelpers.Catalog.WithPart(GetType(CSharpGoToDefinitionService))).CreateExportProvider())
+                    exportProvider:=ExportProviderCache.GetOrCreateExportProviderFactory(GoToTestHelpers.Catalog.WithPart(GetType(CSharpGoToDefinitionService))).CreateExportProvider())
 
                 Dim baseDocument = workspace.Documents.First(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.First(Function(d) d.IsLinkFile)

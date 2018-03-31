@@ -1262,7 +1262,7 @@ End Namespace
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub TestExtractInterfaceCommandDisabledInSubmission()
             Dim exportProvider = ExportProviderCache _
-                .CreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService))) _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService))) _
                 .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigableSymbols
     Public Class NavigableSymbolsTest
 
         Private Shared ReadOnly s_exportProviderFactory As IExportProviderFactory =
-            ExportProviderCache.CreateExportProviderFactory(
+            ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
                     GetType(MockDocumentNavigationServiceProvider),
                     GetType(MockSymbolNavigationServiceProvider)))

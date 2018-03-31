@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         }
 
         private static readonly IExportProviderFactory s_exportProviderFactory =
-            ExportProviderCache.CreateExportProviderFactory(
+            ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                     typeof(TestGenerateTypeOptionsService),
                     typeof(TestProjectManagementService),

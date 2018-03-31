@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         }
 
         private static readonly IExportProviderFactory s_exportProviderFactory =
-            ExportProviderCache.CreateExportProviderFactory(
+            ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
                     .WithPart(typeof(TestChangeSignatureOptionsService))
                     .WithPart(typeof(CSharpChangeSignatureService))

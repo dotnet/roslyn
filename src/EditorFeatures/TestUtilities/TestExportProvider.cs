@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             new Lazy<ComposableCatalog>(() => CreateAssemblyCatalogWithCSharpAndVisualBasic());
 
         private static Lazy<IExportProviderFactory> s_lazyExportProviderFactoryWithCSharpAndVisualBasic =
-            new Lazy<IExportProviderFactory>(() => ExportProviderCache.CreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic));
+            new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic));
 
         public static ComposableCatalog EntireAssemblyCatalogWithCSharpAndVisualBasic
             => s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic.Value;
@@ -36,10 +36,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         private static Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => ExportProviderCache.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
-                        .WithParts(ExportProviderCache.CreateAssemblyCatalog(MinimalTestExportProvider.GetEditorAssemblies())));
+                        .WithParts(ExportProviderCache.GetOrCreateAssemblyCatalog(MinimalTestExportProvider.GetEditorAssemblies())));
 
         private static Lazy<IExportProviderFactory> s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic =
-            new Lazy<IExportProviderFactory>(() => ExportProviderCache.CreateExportProviderFactory(MinimumCatalogWithCSharpAndVisualBasic));
+            new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(MinimumCatalogWithCSharpAndVisualBasic));
 
         public static ComposableCatalog MinimumCatalogWithCSharpAndVisualBasic
             => s_lazyMinimumCatalogWithCSharpAndVisualBasic.Value;
@@ -116,13 +116,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         private static IExportProviderFactory CreateExportProviderFactoryWithCSharpAndVisualBasic()
         {
-            return ExportProviderCache.CreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic);
+            return ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic);
         }
 
         private static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()
         {
             return ExportProviderCache
-                .CreateAssemblyCatalog(GetCSharpAndVisualBasicAssemblies(), ExportProviderCache.CreateResolver())
+                .GetOrCreateAssemblyCatalog(GetCSharpAndVisualBasicAssemblies(), ExportProviderCache.CreateResolver())
                 .WithCompositionService();
         }
 

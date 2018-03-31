@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 ? TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
                 : TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic;
 
-            return ExportProviderCache.CreateExportProviderFactory(baseCatalog.WithParts(extraParts)).CreateExportProvider();
+            return ExportProviderCache.GetOrCreateExportProviderFactory(baseCatalog.WithParts(extraParts)).CreateExportProvider();
         }
 
         public virtual ITextView TextView

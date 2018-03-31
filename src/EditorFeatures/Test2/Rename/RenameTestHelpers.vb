@@ -21,7 +21,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Friend Module RenameTestHelpers
 
-        Friend _exportProviderFactory As IExportProviderFactory = ExportProviderCache.CreateExportProviderFactory(
+        Friend _exportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
             TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory)))
 
         Friend ReadOnly Property ExportProviderFactory As IExportProviderFactory

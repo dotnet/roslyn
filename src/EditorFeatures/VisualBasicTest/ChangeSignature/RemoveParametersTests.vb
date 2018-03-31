@@ -96,7 +96,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub TestChangeSignatureCommandDisabledInSubmission()
             Dim exportProvider = ExportProviderCache _
-                .CreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService))) _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService))) _
                 .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(

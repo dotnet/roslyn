@@ -1061,7 +1061,7 @@ class $$Test<T, U>
         public void ExtractInterfaceCommandDisabledInSubmission()
         {
             var exportProvider = ExportProviderCache
-                .CreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)))
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)))
                 .CreateExportProvider();
 
             using (var workspace = TestWorkspace.Create(XElement.Parse(@"

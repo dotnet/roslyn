@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         private readonly System.ComponentModel.Composition.Hosting.ExportProvider _exportProvider;
 
-        internal static readonly IExportProviderFactory ExportProviderFactory = ExportProviderCache.CreateExportProviderFactory(
-            ExportProviderCache.CreateAssemblyCatalog(
+        internal static readonly IExportProviderFactory ExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
+            ExportProviderCache.GetOrCreateAssemblyCatalog(
                 new[]
                 {
                     typeof(TestWaitIndicator).Assembly,

@@ -193,7 +193,7 @@ class Program
         public void EncapsulateFieldCommandDisabledInSubmission()
         {
             var exportProvider = ExportProviderCache
-                .CreateExportProviderFactory(
+                .GetOrCreateExportProviderFactory(
                     TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)))
                 .CreateExportProvider();
 

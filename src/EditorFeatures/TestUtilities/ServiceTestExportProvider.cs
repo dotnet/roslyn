@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     {
         public static ComposableCatalog CreateAssemblyCatalog()
         {
-            return ExportProviderCache.CreateAssemblyCatalog(
+            return ExportProviderCache.GetOrCreateAssemblyCatalog(
                 GetLanguageNeutralTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetEditorAssemblies()), ExportProviderCache.CreateResolver());
         }
 

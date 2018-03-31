@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var assemblies = TestExportProvider
                 .GetCSharpAndVisualBasicAssemblies()
                 .Concat(new[] { typeof(EditorServicesUtil).Assembly });
-            return ExportProviderCache.CreateExportProviderFactory(ExportProviderCache.CreateAssemblyCatalog(assemblies, ExportProviderCache.CreateResolver()));
+            return ExportProviderCache.GetOrCreateExportProviderFactory(ExportProviderCache.GetOrCreateAssemblyCatalog(assemblies, ExportProviderCache.CreateResolver()));
         }
     }
 }

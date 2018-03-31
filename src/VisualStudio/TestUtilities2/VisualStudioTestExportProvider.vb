@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Dim additionalAssemblies = {GetType(CSharpCodeModelService).Assembly,
                                         GetType(VisualBasicCodeModelService).Assembly}
 
-            Factory = ExportProviderCache.CreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(ExportProviderCache.CreateAssemblyCatalog(additionalAssemblies)))
+            Factory = ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(ExportProviderCache.GetOrCreateAssemblyCatalog(additionalAssemblies)))
         End Sub
 
         Public ReadOnly Property Factory As IExportProviderFactory

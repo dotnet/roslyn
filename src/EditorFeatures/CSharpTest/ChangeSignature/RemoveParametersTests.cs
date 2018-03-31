@@ -272,7 +272,7 @@ class C{i}
         public void ChangeSignatureCommandDisabledInSubmission()
         {
             var exportProvider = ExportProviderCache
-                .CreateExportProviderFactory(
+                .GetOrCreateExportProviderFactory(
                     TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)))
                 .CreateExportProvider();
 

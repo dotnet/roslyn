@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
         public string NotificationMessage { get; private set; }
 
         private static readonly IExportProviderFactory s_exportProviderFactory =
-            ExportProviderCache.CreateExportProviderFactory(
+            ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                     typeof(CSharpEncapsulateFieldService),
                     typeof(EditorNotificationServiceFactory),

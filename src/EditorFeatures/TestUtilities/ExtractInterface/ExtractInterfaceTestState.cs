@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         }
 
         public static readonly IExportProviderFactory ExportProviderFactory =
-            ExportProviderCache.CreateExportProviderFactory(
+            ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
                     .WithPart(typeof(TestExtractInterfaceOptionsService))
                     .WithPart(typeof(CSharpExtractInterfaceService))

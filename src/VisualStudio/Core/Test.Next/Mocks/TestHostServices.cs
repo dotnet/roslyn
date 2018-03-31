@@ -19,14 +19,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
         public static ExportProvider CreateMinimalExportProvider()
         {
             return ExportProviderCache
-                .CreateExportProviderFactory(ServiceTestExportProvider.CreateAssemblyCatalog().WithPart(typeof(InProcRemoteHostClientFactory)))
+                .GetOrCreateExportProviderFactory(ServiceTestExportProvider.CreateAssemblyCatalog().WithPart(typeof(InProcRemoteHostClientFactory)))
                 .CreateExportProvider();
         }
 
         public static ExportProvider CreateExportProvider()
         {
             return ExportProviderCache
-                .CreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(InProcRemoteHostClientFactory)))
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(InProcRemoteHostClientFactory)))
                 .CreateExportProvider();
         }
     }

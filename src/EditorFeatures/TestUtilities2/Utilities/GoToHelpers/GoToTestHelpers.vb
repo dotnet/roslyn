@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
                         GetType(CSharpGeneratedCodeRecognitionService),
                         GetType(VisualBasicGeneratedCodeRecognitionService))
 
-        Public ReadOnly ExportProviderFactory As IExportProviderFactory = ExportProviderCache.CreateExportProviderFactory(Catalog)
+        Public ReadOnly ExportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(Catalog)
     End Module
 
     Friend Structure FilePathAndSpan

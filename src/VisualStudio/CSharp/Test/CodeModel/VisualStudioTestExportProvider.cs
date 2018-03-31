@@ -13,9 +13,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
         static VisualStudioTestExportProvider()
         {
-            Factory = ExportProviderCache.CreateExportProviderFactory(
+            Factory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
-                    ExportProviderCache.CreateAssemblyCatalog(typeof(CSharpCodeModelService).Assembly)));
+                    ExportProviderCache.GetOrCreateAssemblyCatalog(typeof(CSharpCodeModelService).Assembly)));
         }
     }
 }

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
         Public TargetDocument As Document
 
         Private Shared ReadOnly s_exportProviderFactory As IExportProviderFactory =
-            ExportProviderCache.CreateExportProviderFactory(
+            ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                     GetType(VisualBasicEncapsulateFieldService),
                     GetType(DefaultDocumentSupportsFeatureService)))

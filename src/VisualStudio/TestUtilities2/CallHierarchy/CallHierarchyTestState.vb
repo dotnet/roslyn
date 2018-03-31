@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
                 .WithPart(GetType(CallHierarchyProvider)) _
                 .WithPart(GetType(DefaultSymbolMappingService)) _
                 .WithPart(GetType(EditorNotificationServiceFactory))
-        Private Shared ReadOnly ExportProviderFactory As IExportProviderFactory = ExportProviderCache.CreateExportProviderFactory(DefaultCatalog)
+        Private Shared ReadOnly ExportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(DefaultCatalog)
 
         Private ReadOnly _commandHandler As CallHierarchyCommandHandler
         Private ReadOnly _presenter As MockCallHierarchyPresenter
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             End If
 
             Dim catalog = DefaultCatalog.WithParts(additionalTypes)
-            Return ExportProviderCache.CreateExportProviderFactory(catalog).CreateExportProvider()
+            Return ExportProviderCache.GetOrCreateExportProviderFactory(catalog).CreateExportProvider()
         End Function
 
         Public Shared Function Create(markup As String, ParamArray additionalTypes As Type()) As CallHierarchyTestState

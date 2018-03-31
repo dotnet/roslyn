@@ -19,24 +19,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         // Cache the catalog and export provider factory for MefHostServices.DefaultAssemblies
         private static readonly ComposableCatalog s_defaultHostCatalog =
-            CreateAssemblyCatalogNoCache(MefHostServices.DefaultAssemblies);
+            CreateAssemblyCatalog(MefHostServices.DefaultAssemblies);
 
         private static readonly IExportProviderFactory s_defaultHostExportProviderFactory =
-            CreateExportProviderFactoryNoCache(s_defaultHostCatalog);
+            CreateExportProviderFactory(s_defaultHostCatalog);
 
         // Cache the catalog and export provider factory for DesktopMefHostServices.DefaultAssemblies
         private static readonly ComposableCatalog s_desktopHostCatalog =
-            CreateAssemblyCatalogNoCache(DesktopMefHostServices.DefaultAssemblies);
+            CreateAssemblyCatalog(DesktopMefHostServices.DefaultAssemblies);
 
         private static readonly IExportProviderFactory s_desktopHostExportProviderFactory =
-            CreateExportProviderFactoryNoCache(s_desktopHostCatalog);
+            CreateExportProviderFactory(s_desktopHostCatalog);
 
         // Cache the catalog and export provider factory for RoslynServices.RemoteHostAssemblies
         private static readonly ComposableCatalog s_remoteHostCatalog =
-            CreateAssemblyCatalogNoCache(RoslynServices.RemoteHostAssemblies);
+            CreateAssemblyCatalog(RoslynServices.RemoteHostAssemblies);
 
         private static readonly IExportProviderFactory s_remoteHostExportProviderFactory =
-            CreateExportProviderFactoryNoCache(s_remoteHostCatalog);
+            CreateExportProviderFactory(s_remoteHostCatalog);
 
         private static bool _enabled;
 
@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static ComposableCatalog CreateAssemblyCatalog(Assembly assembly)
+        public static ComposableCatalog GetOrCreateAssemblyCatalog(Assembly assembly)
         {
-            return CreateAssemblyCatalog(SpecializedCollections.SingletonEnumerable(assembly));
+            return GetOrCreateAssemblyCatalog(SpecializedCollections.SingletonEnumerable(assembly));
         }
 
-        public static ComposableCatalog CreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver resolver = null)
+        public static ComposableCatalog GetOrCreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver resolver = null)
         {
             if (assemblies is ImmutableArray<Assembly> assembliesArray)
             {
@@ -82,10 +82,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            return CreateAssemblyCatalogNoCache(assemblies, resolver);
+            return CreateAssemblyCatalog(assemblies, resolver);
         }
 
-        private static ComposableCatalog CreateAssemblyCatalogNoCache(IEnumerable<Assembly> assemblies, Resolver resolver = null)
+        private static ComposableCatalog CreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver resolver = null)
         {
             var discovery = resolver == null ? s_partDiscovery : CreatePartDiscovery(resolver);
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return catalog.WithParts(CreateTypeCatalog(SpecializedCollections.SingletonEnumerable(t)));
         }
 
-        public static IExportProviderFactory CreateExportProviderFactory(ComposableCatalog catalog)
+        public static IExportProviderFactory GetOrCreateExportProviderFactory(ComposableCatalog catalog)
         {
             if (s_defaultHostExportProviderFactory != null && catalog == s_defaultHostCatalog)
             {
@@ -153,10 +153,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return s_remoteHostExportProviderFactory;
             }
 
-            return CreateExportProviderFactoryNoCache(catalog);
+            return CreateExportProviderFactory(catalog);
         }
 
-        private static IExportProviderFactory CreateExportProviderFactoryNoCache(ComposableCatalog catalog)
+        private static IExportProviderFactory CreateExportProviderFactory(ComposableCatalog catalog)
         {
             var configuration = CompositionConfiguration.Create(catalog.WithCompositionService());
             var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 _exportProviderFactory = exportProviderFactory;
             }
 
-            public ExportProvider CreateExportProvider()
+            public ExportProvider GetOrCreateExportProvider()
             {
                 if (!Enabled)
                 {
@@ -199,6 +199,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 RequireForSingleExportProvider(exportProvider == expected);
 
                 return exportProvider;
+            }
+
+            ExportProvider IExportProviderFactory.CreateExportProvider()
+            {
+                // Currently this implementation deviates from the typical behavior of IExportProviderFactory. For the
+                // duration of a single test, an instance of SingleExportProviderFactory will continue returning the
+                // same ExportProvider instance each time this method is called.
+                //
+                // It may be clearer to refactor the implementation to only allow one call to CreateExportProvider in
+                // the context of a single test. https://github.com/dotnet/roslyn/issues/25863
+                return GetOrCreateExportProvider();
             }
 
             private static void RequireForSingleExportProvider(bool condition)
