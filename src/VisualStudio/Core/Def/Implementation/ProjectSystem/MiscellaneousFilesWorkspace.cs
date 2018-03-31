@@ -353,7 +353,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var languageServices = Services.GetLanguageServices(languageInformation.LanguageName);
             var compilationOptionsOpt = languageServices.GetService<ICompilationFactoryService>()?.GetDefaultCompilationOptions();
-            var parseOptionsOpt = languageServices.GetService<ISyntaxTreeFactoryService>()?.GetDefaultParseOptions();
+
+            // We only have one code file without project file here, so we cannot find out language version of the project  
+            // Use latest language version which is more permissive. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/575761  
+            var parseOptionsOpt = languageServices.GetService<ISyntaxTreeFactoryService>()?.GetDefaultParseOptionsWithLatestLanguageVersion();
 
             if (parseOptionsOpt != null &&
                 compilationOptionsOpt != null &&

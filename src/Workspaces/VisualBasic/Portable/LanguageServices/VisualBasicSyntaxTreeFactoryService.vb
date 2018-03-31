@@ -14,6 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class VisualBasicSyntaxTreeFactoryServiceFactory
         Implements ILanguageServiceFactory
 
+        Private Shared _parseOptionsWithLatestLanguageVersion As VisualBasicParseOptions = New VisualBasicParseOptions(LanguageVersion.Latest)
+
+
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return New VisualBasicSyntaxTreeFactoryService(provider)
         End Function
@@ -27,6 +30,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overloads Overrides Function GetDefaultParseOptions() As ParseOptions
                 Return VisualBasicParseOptions.Default
+            End Function
+
+            Public Overloads Overrides Function GetDefaultParseOptionsWithLatestLanguageVersion() As ParseOptions
+                Return _parseOptionsWithLatestLanguageVersion
             End Function
 
             Public Overloads Overrides Function ParseSyntaxTree(fileName As String, options As ParseOptions, text As SourceText, cancellationToken As CancellationToken) As SyntaxTree
