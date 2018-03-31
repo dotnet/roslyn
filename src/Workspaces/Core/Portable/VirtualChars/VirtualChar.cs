@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.VirtualChars
     /// and 'z' ) back to the  ranges of characters the user wrote.  
     ///
     /// VirtualChar serves this purpose.  It contains the interpreted value of any language
-    /// character/ character-escape-sequence, as well as the original SourceText span where that
+    /// character/character-escape-sequence, as well as the original SourceText span where that
     /// interpreted character was created from.  This allows the regex and json parsers to both
     /// process input from any language uniformly, but then also produce trees and diagnostics that
     /// map back properly to the original source text locations that make sense to the user.
