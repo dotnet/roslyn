@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -691,13 +692,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var memberAccess = (MemberAccessExpressionSyntax)expression;
                 return memberAccess.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
             }
-            else if (expression is NameSyntax name)
+
+            if (expression is TypeSyntax typeName)
             {
-                return name.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
-            }
-            else if (expression is TypeSyntax typeName)
-            {
-                return typeName.IsReplaceableByVar(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
+                // First, see if we can replace this type with var if that's what the user prefers.
+                // That always overrides all other simplification.
+                if (typeName.IsReplaceableByVar(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken))
+                {
+                    return true;
+                }
+
+                if (expression is NameSyntax name)
+                {
+                    return name.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
+                }
             }
 
             return false;
@@ -2272,20 +2280,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             replacementNode = null;
             issueSpan = default;
 
-            if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration))
-            {
-                return false;
-            }
-
             // If it is already var
             if (simpleName.IsVar)
             {
                 return false;
             }
 
+            if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration))
+            {
+                return false;
+            }
+
             var candidateReplacementNode = SyntaxFactory.IdentifierName("var")
-                                            .WithLeadingTrivia(simpleName.GetLeadingTrivia())
-                                            .WithTrailingTrivia(simpleName.GetTrailingTrivia());
+                .WithLeadingTrivia(simpleName.GetLeadingTrivia())
+                .WithTrailingTrivia(simpleName.GetTrailingTrivia());
             var candidateIssueSpan = simpleName.Span;
 
             // If there exists a Type called var , fail.
@@ -2303,6 +2311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (simpleName.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement) &&
                     ((LocalDeclarationStatementSyntax)simpleName.Parent.Parent).Modifiers.Any(n => n.Kind() == SyntaxKind.ConstKeyword))
                 {
+                    // 'const var' not allowed in the language.
                     return false;
                 }
 
@@ -2324,6 +2333,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return false;
                 }
 
+                // Make sure we do this only if the user prefers 'var'.
+                if (!TypeStyleHelper.IsImplicitTypePreferred(
+                        initializer.Value, semanticModel, optionSet, cancellationToken))
+                {
+                    return false;
+                }
+
                 replacementNode = candidateReplacementNode;
                 issueSpan = candidateIssueSpan;
                 return true;
@@ -2332,6 +2348,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (simpleName.IsParentKind(SyntaxKind.ForEachStatement) &&
                 ((ForEachStatementSyntax)simpleName.Parent).Type == simpleName)
             {
+                // Make sure we do this only if the user prefers 'var'.
+                if (!TypeStyleHelper.IsImplicitStylePreferred(
+                        optionSet, 
+                        TypeStyleHelper.IsBuiltInType(semanticModel.GetTypeInfo(simpleName).Type), 
+                        isTypeApparentContext: false))
+                {
+                    return false;
+                }
+
                 replacementNode = candidateReplacementNode;
                 issueSpan = candidateIssueSpan;
                 return true;

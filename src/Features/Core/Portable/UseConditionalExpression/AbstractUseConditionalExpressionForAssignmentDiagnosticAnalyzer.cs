@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -13,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -177,9 +174,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
     }
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal class UseConditionalExpressionForAssignmentCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractUseConditionalExpressionForAssignmentCodeFixProvider<
+        TLocalDeclarationStatement>
+        : SyntaxEditorBasedCodeFixProvider
+        where TLocalDeclarationStatement : SyntaxNode
     {
+        protected abstract TLocalDeclarationStatement AddSimplificationToType(TLocalDeclarationStatement updatedLocalDeclaration);
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId);
 
@@ -212,14 +213,15 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement);
 
             if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(ifOperation, 
-                    out var localDeclaration, 
+                    out var localDeclarationOperation, 
                     out var trueAssignment, 
                     out var falseAssignment))
             {
                 return;
             }
 
-            var declarator = localDeclaration.Declarations[0].Declarators[0];
+            var localDeclaration = localDeclarationOperation.Syntax;
+            var declarator = localDeclarationOperation.Declarations[0].Declarators[0];
             var variable = declarator.Syntax;
             var generator = editor.Generator;
 
@@ -229,12 +231,15 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 generator.CastExpression(declarator.Symbol.Type, falseAssignment.Value.Syntax));
 
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
-            var updatedVariable = generator.WithInitializer(variable, 
-                generator.EqualsValueClause(conditionalExpression));
 
-            var updatedLocalDeclaration = localDeclaration.Syntax.ReplaceNode(variable, updatedVariable);
-            editor.ReplaceNode(localDeclaration.Syntax, updatedLocalDeclaration);
-            editor.RemoveNode(ifStatement);
+            var updatedVariable = generator.WithInitializer(
+                variable, generator.EqualsValueClause(conditionalExpression));
+
+            var updatedLocalDeclaration = localDeclaration.ReplaceNode(variable, updatedVariable);
+            updatedLocalDeclaration = AddSimplificationToType((TLocalDeclarationStatement)updatedLocalDeclaration);
+
+            editor.ReplaceNode(localDeclaration, updatedLocalDeclaration);
+            editor.RemoveNode(ifStatement, SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepExteriorTrivia);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

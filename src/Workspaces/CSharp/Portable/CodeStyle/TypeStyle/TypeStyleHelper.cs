@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
@@ -16,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
     internal static class TypeStyleHelper
     {
         /// <summary>
-        /// Given an expression of assignment, answers whether the declaration
-        /// can use var keyword, by looking at the user's style preferences 
-        /// obtained from options and the context obtained from the expression.
+        /// Given an expression or assignment, answers whether the declaration can use var keyword,
+        /// by looking at the user's style preferences obtained from options and the context
+        /// obtained from the expression.
         /// </summary>
         public static bool IsImplicitTypePreferred(
             ExpressionSyntax initializerExpression,
@@ -30,10 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             var isBuiltInTypeContext = IsBuiltInType(initializerExpression, semanticModel, cancellationToken);
 
-            var isTypeApparentContext = IsTypeApparentInAssignmentExpression(stylePreferences,
-                                            initializerExpression,
-                                            semanticModel,
-                                            cancellationToken);
+            var isTypeApparentContext = IsTypeApparentInAssignmentExpression(
+                stylePreferences, initializerExpression, semanticModel, cancellationToken);
 
             return IsImplicitStylePreferred(stylePreferences, isBuiltInTypeContext, isTypeApparentContext);
         }
@@ -132,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             // other Conversion cases:
             //      a. conversion with helpers like: int.Parse methods
             //      b. types that implement IConvertible and then invoking .ToType()
-            //      c. System.Convert.Totype()
+            //      c. System.Convert.ToType()
             var memberName = GetRightmostInvocationExpression(initializerExpression).GetRightmostName();
             if (memberName == null)
             {
