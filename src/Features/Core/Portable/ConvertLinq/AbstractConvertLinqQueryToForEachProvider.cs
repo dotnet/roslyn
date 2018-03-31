@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var queryExpression = FindNodeToRefactor(root, context.Span);
-            if (queryExpression == null || queryExpression.ContainsDiagnostics)
+            if (queryExpression == null)
             {
                 return;
             }

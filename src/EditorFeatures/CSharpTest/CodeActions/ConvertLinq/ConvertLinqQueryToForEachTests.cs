@@ -152,8 +152,9 @@ class Program
     static void Main(string[] args)
     {
         var q1 = [|from num in new int[] { 1, 2 }
-                 join x1 in new int[] { 3, 4 } on num equals x1
-                 select x1 + 5|];
+                    from a in new int[] { 5, 6 }
+                    join x1 in new int[] { 3, 4 } on num equals x1
+                    select x1 + 5|];
     }
 }";
             string output = @"
@@ -165,14 +166,74 @@ class Program
     {
         System.Collections.Generic.IEnumerable<int> enumerable()
         {
+            var v1 = new int[] { 1, 2 };
             var v = new int[] { 3, 4 };
-            foreach (var num in new int[] { 1, 2 })
+            foreach (var num in v1)
             {
-                foreach (var x1 in v)
+                foreach (var a in new int[] { 5, 6 })
                 {
-                    if (object.Equals(num, x1))
+                    foreach (var x1 in v)
                     {
-                        yield return x1 + 5;
+                        if (object.Equals(num, x1))
+                        {
+                            yield return x1 + 5;
+                        }
+                    }
+                }
+            }
+        }
+
+        var q1 = enumerable();
+    }
+}";
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task FromJoinSelect03()
+        {
+            string source = @"
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var q1 = [|from num in new int[] { 1, 2 }
+                    from a in new int[] { 5, 6 }
+                    join x1 in new int[] { 3, 4 } on num equals x1
+                    join x2 in new int[] { 7, 8 } on num equals x2
+                    select x1 + 5|];
+    }
+}";
+            string output = @"
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Collections.Generic.IEnumerable<int> enumerable()
+        {
+            var v2 = new int[] { 1, 2 };
+            var v1 = new int[] { 3, 4 };
+            var v = new int[] { 7, 8 };
+            foreach (var num in v2)
+            {
+                foreach (var a in new int[] { 5, 6 })
+                {
+                    foreach (var x1 in v1)
+                    {
+                        if (object.Equals(num, x1))
+                        {
+                            foreach (var x2 in v)
+                            {
+                                if (object.Equals(num, x2))
+                                {
+                                    yield return x1 + 5;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -363,7 +424,7 @@ class Program
     static void Main()
     {
         var q2 =
-           [|from a in Enumerable.Range(1, 13)
+           [|from a in Enumerable.Range(1, 2)
            join b in Enumerable.Range(1, 13) on 4 * a equals b
            select a|];
 
@@ -380,10 +441,11 @@ class Program
 {
     static void Main()
     {
-        System.Collections.Generic.IEnumerable<int> enumerable1()
+        System.Collections.Generic.IEnumerable<int> enumerable2()
         {
+            var enumerable1 = Enumerable.Range(1, 2);
             var enumerable = Enumerable.Range(1, 13);
-            foreach (var a in Enumerable.Range(1, 13))
+            foreach (var a in enumerable1)
             {
                 foreach (var b in enumerable)
                 {
@@ -395,7 +457,7 @@ class Program
             }
         }
 
-        var q2 = enumerable1();
+        var q2 = enumerable2();
 
         foreach (var q in q2)
         {
@@ -997,7 +1059,7 @@ using System.Linq;
 public class Test
 {
     private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
-    public IEnumerable<int> Query1 { get { foreach (var x in _nums) { yield return x + 1; } } }
+    public IEnumerable<int> Query1 { get { foreach (var x in _nums) { yield return x + 1; } yield break; } }
 }
 ";
             await TestInRegularAndScriptAsync(source, output);
@@ -1070,6 +1132,8 @@ class C
                 yield return n1;
             }
         }
+
+        yield break;
     }
 }
 ";
@@ -1110,15 +1174,18 @@ class C
     {
         if (nums.Any())
         {
-            foreach (int n1 in nums)
+            IEnumerable<int> enumerable()
             {
-                foreach (int n2 in nums)
+                foreach (int n1 in nums)
                 {
-                    yield return n1;
+                    foreach (int n2 in nums)
+                    {
+                        yield return n1;
+                    }
                 }
             }
 
-            yield break;
+            return enumerable();
         }
         else
         {
@@ -1201,6 +1268,8 @@ public class Test
         {
             yield return x + 1;
         }
+
+        yield break;
     }
 }";
             await TestInRegularAndScriptAsync(source, output);
@@ -2023,7 +2092,6 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
         public async Task QueryInForEachVariableUsedInBody()
         {
@@ -2077,6 +2145,161 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task QueryInForEachWithConvertedType()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+
+static class Extensions
+{
+    public static IEnumerable<C> Select(this int[] x, Func<int, C> predicate) => throw null;
+}
+
+class C
+{
+    public static implicit operator int(C x)
+    {
+        throw null;
+    }
+
+    public static implicit operator C(int x)
+    {
+        throw null;
+    }
+
+
+    void Test()
+    {
+        foreach (int x in [|from y in new[] { 1, 2, 3, } select y|])
+        {
+            Console.Write(x);
+        }
+    }
+}
+";
+
+            string output = @"
+using System;
+using System.Collections.Generic;
+
+static class Extensions
+{
+    public static IEnumerable<C> Select(this int[] x, Func<int, C> predicate) => throw null;
+}
+
+class C
+{
+    public static implicit operator int(C x)
+    {
+        throw null;
+    }
+
+    public static implicit operator C(int x)
+    {
+        throw null;
+    }
+
+
+    void Test()
+    {
+        IEnumerable<C> enumerable ()
+        {
+            foreach(var y in new[] { 1, 2, 3, })
+            {
+                yield return y;
+            }
+        }
+
+        foreach (int x in enumerable())
+        {
+            Console.Write(x);
+        }
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task QueryInForEachWithSelectIdentifierButNotVariable()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+
+static class Extensions
+{
+    public static IEnumerable<C> Select(this int[] x, Func<int, Action> predicate) => throw null;
+}
+
+class C
+{
+    public static implicit operator int(C x)
+    {
+        throw null;
+    }
+
+    public static implicit operator C(int x)
+    {
+        throw null;
+    }
+
+    void Test()
+    {
+        foreach (int x in [|from y in new[] { 1, 2, 3, } select Test|])
+        {
+            Console.Write(x);
+        }
+    }
+}
+";
+
+            string output = @"
+using System;
+using System.Collections.Generic;
+
+static class Extensions
+{
+    public static IEnumerable<C> Select(this int[] x, Func<int, Action> predicate) => throw null;
+}
+
+class C
+{
+    public static implicit operator int(C x)
+    {
+        throw null;
+    }
+
+    public static implicit operator C(int x)
+    {
+        throw null;
+    }
+
+    void Test()
+    {
+        IEnumerable<C> enumerable()
+        {
+            foreach (var y in new[] { 1, 2, 3, })
+            {
+                yield return y;
+            }
+        }
+
+        foreach (int x in enumerable())
+        {
+            Console.Write(x);
+        }
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+
         #endregion
 
         #region In ToList
@@ -2111,11 +2334,13 @@ public class Test
     {
         var nums = new int[] { 1, 2, 3, 4 };
         var c = new C();
-        c.A = new List<int>();
+        var list = new List<int>();
         foreach (var x in nums)
         {
-            c.A.Add(x + 1);
+            list.Add(x + 1);
         }
+
+        c.A = list;
     }
 
     class C
@@ -2157,11 +2382,13 @@ public class Test
     {
         var nums = new int[] { 1, 2, 3, 4 };
         var c = new C();
-        c?.A = new List<int>();
+        var list = new List<int>();
         foreach (var x in nums)
         {
-            c?.A.Add(x + 1);
+            list.Add(x + 1);
         }
+
+        c?.A = list;
     }
 
     class C
@@ -2216,6 +2443,89 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task AssignToListToParameter()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums, List<int> list)
+    {
+        list = ([|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|]).ToList();
+        return list;
+    }
+}
+";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums, List<int> list)
+    {
+        list = new List<int>();
+        foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                list.Add(n1);
+            }
+        }
+
+        return list;
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task AssignToListToArrayElement()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums, List<int>[] lists)
+    {
+        lists[0] = ([|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|]).ToList();
+    }
+}
+";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums, List<int>[] lists)
+    {
+        var list = new List<int>();
+        foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                list.Add(n1);
+            }
+        }
+
+        lists[0] = list;
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
         public async Task AssignListWithTypeArgument()
         {
             string source = @"
@@ -2249,6 +2559,49 @@ class C
             }
         }
 
+        return list;
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task AssignListToObject()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    object M(IEnumerable<int> nums)
+    {
+        object list = ([|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|]).ToList<int>();
+        return list;
+    }
+}
+";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    object M(IEnumerable<int> nums)
+    {
+        var list1 = new List<int>();
+        foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                list1.Add(n1);
+            }
+        }
+
+        object list = list1;
         return list;
     }
 }
@@ -2607,7 +2960,103 @@ namespace Test
         #region In Count
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
-        public async Task AssignCount()
+        public async Task CountInMultipleDeclaration()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int M(IEnumerable<int> nums)
+    {
+        int i = 0, cnt = ([|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|]).Count();
+        return cnt;
+    }
+}
+";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int M(IEnumerable<int> nums)
+    {
+        IEnumerable<int> enumerable()
+        {
+            foreach (int n1 in nums)
+            {
+                foreach (int n2 in nums)
+                {
+                    yield return n1;
+                }
+            }
+        }
+
+        int i = 0, cnt = enumerable().Count();
+        return cnt;
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task CountInNonLocalDeclaration()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void M(IEnumerable<int> nums)
+    {
+        for(int i = ([|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|]).Count(), i < 5; i++)
+        {
+            Console.WriteLine(i);
+        }
+    }
+}
+";
+
+            string output = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void M(IEnumerable<int> nums)
+    {
+        IEnumerable<int> enumerable()
+        {
+            foreach (int n1 in nums)
+            {
+                foreach (int n2 in nums)
+                {
+                    yield return n1;
+                }
+            }
+        }
+
+        for (int i = enumerable().Count(), i < 5; i++)
+        {
+            Console.WriteLine(i);
+        }
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task CountInDeclaration()
         {
             string source = @"
 using System.Collections.Generic;
@@ -2715,16 +3164,18 @@ class C
     void N(int value) { }
     void M(IEnumerable<int> nums)
     {
-        var count = 0;
-        foreach (int n1 in nums)
+        IEnumerable<int> enumerable()
         {
-            foreach (int n2 in nums)
+            foreach (int n1 in nums)
             {
-                count++;
+                foreach (int n2 in nums)
+                {
+                    yield return n1;
+                }
             }
         }
 
-        N(count);
+        N(enumerable().Count());
     }
 }
 ";
@@ -2794,7 +3245,6 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
         public async Task CountNameUsedAfter()
         {
@@ -2803,17 +3253,17 @@ using System.Collections.Generic;
 using System.Linq;
 class C
 {
-    void N(int c) {}
-    void M(IEnumerable<int> nums)
+    int M(IEnumerable<int> nums)
     {
-        N(([|from int n1 in nums 
-                 from int n2 in nums
-                 select n1|]).Count());
-
         if (true)
         {
-            int count = 1;
+            return ([|from int n1 in nums 
+                        from int n2 in nums
+                        select n1|]).Count();
         }
+
+        int count = 1;
+        return count;
     }
 }
 ";
@@ -2823,31 +3273,30 @@ using System.Collections.Generic;
 using System.Linq;
 class C
 {
-    void N(int c) {}
-    void M(IEnumerable<int> nums)
+    int M(IEnumerable<int> nums)
     {
-        var count1 = 0;
-        foreach (int n1 in nums)
-        {
-            foreach (int n2 in nums)
-            {
-                count1++;
-            }
-        }
-
-        N(count1);
-
         if (true)
         {
-            int count = 1;
+            var count1 = 0;
+            foreach (int n1 in nums)
+            {
+                foreach (int n2 in nums)
+                {
+                    count1++;
+                }
+            }
+
+            return count1;
         }
+
+        int count = 1;
+        return count;
     }
 }
 ";
 
             await TestInRegularAndScriptAsync(source, output);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
         public async Task ReturnCountNameUsedBefore()
