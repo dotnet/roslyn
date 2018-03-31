@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 var view = GetActiveTextView();
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view).ConfigureAwait(false);
+                await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view);
             });
         }
 
@@ -288,12 +288,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 var view = GetActiveTextView();
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                return (await GetLightBulbActionsAsync(broker, view).ConfigureAwait(false)).Select(a => a.DisplayText).ToArray();
+                return (await GetLightBulbActionsAsync(broker, view)).Select(a => a.DisplayText).ToArray();
             });
         }
 
         private async Task<IEnumerable<ISuggestedAction>> GetLightBulbActionsAsync(ILightBulbBroker broker, IWpfTextView view)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             if (!broker.IsLightBulbSessionActive(view))
             {
                 var bufferType = view.TextBuffer.ContentType.DisplayName;
@@ -312,7 +314,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 actionSets = Array.Empty<SuggestedActionSet>();
             }
 
-            return await SelectActionsAsync(actionSets).ConfigureAwait(false);
+            return await SelectActionsAsync(actionSets);
         }
 
         public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
@@ -323,7 +325,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var activeTextView = GetActiveTextView();
-                await lightBulbAction(activeTextView).ConfigureAwait(false);
+                await lightBulbAction(activeTextView);
             });
 
             if (blockUntilComplete)
@@ -342,9 +344,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             return async view =>
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
 
-                var actions = (await GetLightBulbActionsAsync(broker, view).ConfigureAwait(true)).ToArray();
+                var actions = (await GetLightBulbActionsAsync(broker, view)).ToArray();
                 var action = actions.FirstOrDefault(a => a.DisplayText == actionName);
 
                 if (action == null)
@@ -367,8 +371,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         throw new InvalidOperationException($"Suggested action '{action.DisplayText}' does not support FixAllOccurrences.");
                     }
 
-                    var actionSetsForAction = await action.GetActionSetsAsync(CancellationToken.None).ConfigureAwait(true);
-                    action = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value).ConfigureAwait(true);
+                    var actionSetsForAction = await action.GetActionSetsAsync(CancellationToken.None);
+                    action = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value);
                     if (action == null)
                     {
                         throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
@@ -389,6 +393,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private async Task<IEnumerable<ISuggestedAction>> SelectActionsAsync(IEnumerable<SuggestedActionSet> actionSets)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             var actions = new List<ISuggestedAction>();
 
             if (actionSets != null)
@@ -400,7 +406,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         foreach (var action in actionSet.Actions)
                         {
                             actions.Add(action);
-                            actions.AddRange(await SelectActionsAsync(await action.GetActionSetsAsync(CancellationToken.None).ConfigureAwait(false)).ConfigureAwait(false));
+                            var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None);
+                            var nestedActions = await SelectActionsAsync(nestedActionSets);
+                            actions.AddRange(nestedActions);
                         }
                     }
                 }
@@ -411,6 +419,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private static async Task<FixAllSuggestedAction> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             foreach (var actionSet in actionSets)
             {
                 foreach (var action in actionSet.Actions)
@@ -426,8 +436,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                     if (action.HasActionSets)
                     {
-                        var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None).ConfigureAwait(false);
-                        fixAllSuggestedAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope).ConfigureAwait(false);
+                        var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None);
+                        fixAllSuggestedAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope);
                         if (fixAllSuggestedAction != null)
                         {
                             return fixAllSuggestedAction;
