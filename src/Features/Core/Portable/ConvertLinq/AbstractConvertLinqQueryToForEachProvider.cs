@@ -74,6 +74,9 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             /// </summary>
             public SyntaxNode UpdateRoot(SyntaxNode root)
             {
+                // There are two overloads of ReplaceNode: one accepts a collection of nodes and another a single node.
+                // If we replace a node, e.g. in statement of an if-statement(without block),
+                // it cannot replace it with collection even if there is a just 1 element in it.
                 if (Destinations.Length == 1)
                 {
                     return root.ReplaceNode(Source, Destinations[0]);

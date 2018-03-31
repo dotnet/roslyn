@@ -1161,6 +1161,54 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task ReturnIEnumerablePartialMethod()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        return [|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|];
+    }
+}
+";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+partial class C
+{
+    partial IEnumerable<int> M(IEnumerable<int> nums);
+}
+partial class C
+{
+    partial IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                yield return n1;
+            }
+        }
+
+        yield break;
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
         public async Task ReturnIEnumerableWithOtherReturn()
         {
             string source = @"
@@ -3192,6 +3240,47 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task ReturnCountExtraParethesis()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int M(IEnumerable<int> nums)
+    {
+        return (([|from int n1 in nums 
+                 from int n2 in nums
+                 select n1|]).Count());
+    }
+}
+";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int M(IEnumerable<int> nums)
+    {
+        var count = 0;
+        foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
         public async Task CountAsArgument()
         {
             string source = @"
@@ -3498,7 +3587,6 @@ namespace Test
 ";
             await TestInRegularAndScriptAsync(source, output);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
         public async Task CountRefOverload()
