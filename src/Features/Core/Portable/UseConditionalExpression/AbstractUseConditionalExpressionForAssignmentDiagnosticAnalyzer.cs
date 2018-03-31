@@ -84,15 +84,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var trueStatement = ifOperation.WhenTrue;
             var falseStatement = ifOperation.WhenFalse;
 
-            if (trueStatement is IBlockOperation trueBlock)
-            {
-                trueStatement = trueBlock.Operations.FirstOrDefault();
-            }
-
-            if (falseStatement is IBlockOperation falseBlock)
-            {
-                falseStatement = falseBlock.Operations.FirstOrDefault();
-            }
+            trueStatement = UnwrapSingleStatementBlock(trueStatement);
+            falseStatement = UnwrapSingleStatementBlock(falseStatement);
 
             if (!(trueStatement is IExpressionStatementOperation trueExprStatement) ||
                 !(falseStatement is IExpressionStatementOperation falseExprStatement) ||
@@ -110,6 +103,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             falseAssignmentOperation = falseAssignment;
             return true;
         }
+
+        private static IOperation UnwrapSingleStatementBlock(IOperation statement)
+            => statement is IBlockOperation block && block.Operations.Length == 1
+                ? block.Operations[0]
+                : statement;
 
         private static IOperation UnwrapImplicitConversion(IOperation value)
             => value is IConversionOperation conversion && conversion.IsImplicit
