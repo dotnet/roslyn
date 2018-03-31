@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            F.CurrentMethodOrNestedFunction = this;
+            F.CurrentFunction = this;
 
             try
             {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            F.CurrentMethodOrNestedFunction = (MethodSymbol)this.OriginalDefinition;
+            F.CurrentFunction = (MethodSymbol)this.OriginalDefinition;
 
             try
             {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            F.CurrentMethodOrNestedFunction = (MethodSymbol)this.OriginalDefinition;
+            F.CurrentFunction = (MethodSymbol)this.OriginalDefinition;
 
             try
             {
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
             {
                 SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-                F.CurrentMethodOrNestedFunction = this.OriginalDefinition;
+                F.CurrentFunction = this.OriginalDefinition;
 
                 try
                 {
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var argBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             //var refKindBuilder = ArrayBuilder<RefKind>.GetInstance();
 
-            foreach (var param in F.CurrentMethodOrNestedFunction.Parameters)
+            foreach (var param in F.CurrentFunction.Parameters)
             {
                 argBuilder.Add(F.Parameter(param));
                 //refKindBuilder.Add(param.RefKind);
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 methodToInvoke,
                                                 argBuilder.ToImmutableAndFree());
 
-            return F.CurrentMethodOrNestedFunction.ReturnsVoid
+            return F.CurrentFunction.ReturnsVoid
                         ? F.Block(F.ExpressionStatement(invocation), F.Return())
                         : F.Block(F.Return(invocation));
         }

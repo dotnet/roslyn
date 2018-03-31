@@ -201,6 +201,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
+        Public Function IsLocalFunction(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalFunction
+            Return False
+        End Function
+
         Public Function IsGenericName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsGenericName
             Return TypeOf node Is GenericNameSyntax
         End Function
@@ -637,9 +641,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return RefKind.None
         End Function
 
+        Public Function IsArgument(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsArgument
+            Return TypeOf node Is ArgumentSyntax
+        End Function
+
         Public Function IsSimpleArgument(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleArgument
-            Dim argument = DirectCast(node, ArgumentSyntax)
-            Return Not argument.IsNamed AndAlso Not argument.IsOmitted
+            Dim argument = TryCast(node, ArgumentSyntax)
+            Return argument IsNot Nothing AndAlso Not argument.IsNamed AndAlso Not argument.IsOmitted
         End Function
 
         Public Function IsArgument(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsArgument
@@ -1481,6 +1489,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.IsKind(SyntaxKind.LocalDeclarationStatement)
         End Function
 
+        Public Function IsLocalFunctionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalFunctionStatement
+            ' VB does not have local funtions
+            Return False
+        End Function
+
         Public Function IsDeclaratorOfLocalDeclarationStatement(declarator As SyntaxNode, localDeclarationStatement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDeclaratorOfLocalDeclarationStatement
             Return DirectCast(localDeclarationStatement, LocalDeclarationStatementSyntax).Declarators.
                 Contains(DirectCast(declarator, VariableDeclaratorSyntax))
@@ -1721,6 +1734,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetInitializerOfVariableDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetInitializerOfVariableDeclarator
             Return DirectCast(node, VariableDeclaratorSyntax).Initializer
+        End Function
+
+        Public Function GetTypeOfVariableDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetTypeOfVariableDeclarator
+            Dim declarator = DirectCast(node, VariableDeclaratorSyntax)
+            Return TryCast(declarator.AsClause, SimpleAsClauseSyntax)?.Type
         End Function
 
         Public Function GetValueOfEqualsValueClause(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetValueOfEqualsValueClause

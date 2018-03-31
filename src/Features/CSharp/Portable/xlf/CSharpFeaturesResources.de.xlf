@@ -632,6 +632,11 @@
         <target state="translated">Klammern hinzufügen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_for_to_foreach">
+        <source>Convert 'for' to 'foreach'</source>
+        <target state="new">Convert 'for' to 'foreach'</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

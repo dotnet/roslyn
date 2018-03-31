@@ -291,6 +291,7 @@
     <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote" />
     <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
+    <InternalsVisibleToVisualStudio Include="Microsoft.Test.Apex.VisualStudio" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">

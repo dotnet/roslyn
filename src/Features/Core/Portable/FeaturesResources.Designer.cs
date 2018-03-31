@@ -252,6 +252,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add readonly modifier.
+        /// </summary>
+        internal static string Add_readonly_modifier {
+            get {
+                return ResourceManager.GetString("Add_readonly_modifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add reference to &apos;{0}&apos;..
         /// </summary>
         internal static string Add_reference_to_0 {
@@ -2008,6 +2017,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make field readonly.
+        /// </summary>
+        internal static string Make_field_readonly {
+            get {
+                return ResourceManager.GetString("Make_field_readonly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Make method synchronous.
         /// </summary>
         internal static string Make_method_synchronous {
@@ -3708,11 +3726,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Collection may be modified during iteration..
+        /// </summary>
+        internal static string Warning_colon_Collection_may_be_modified_during_iteration {
+            get {
+                return ResourceManager.GetString("Warning_colon_Collection_may_be_modified_during_iteration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Collection was modified during iteration..
+        /// </summary>
+        internal static string Warning_colon_Collection_was_modified_during_iteration {
+            get {
+                return ResourceManager.GetString("Warning_colon_Collection_was_modified_during_iteration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warning: Declaration changes scope and may change meaning..
         /// </summary>
         internal static string Warning_colon_Declaration_changes_scope_and_may_change_meaning {
             get {
                 return ResourceManager.GetString("Warning_colon_Declaration_changes_scope_and_may_change_meaning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Iteration variable crossed function boundary..
+        /// </summary>
+        internal static string Warning_colon_Iteration_variable_crossed_function_boundary {
+            get {
+                return ResourceManager.GetString("Warning_colon_Iteration_variable_crossed_function_boundary", resourceCulture);
             }
         }
         

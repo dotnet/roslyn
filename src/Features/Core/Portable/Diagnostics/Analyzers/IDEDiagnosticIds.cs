@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string ValidateFormatStringDiagnosticID = "IDE0043";
 
-        public const string RegexPatternDiagnosticId = "IDE0044";
+        public const string MakeFieldReadonlyDiagnosticId = "IDE0044";
+
+        public const string RegexPatternDiagnosticId = "IDE0045";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
