@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexExpressionNode Expression { get; }
         public RegexToken EndOfFileToken { get; }
 
-        public override int ChildCount => 2;
+        internal override int ChildCount => 2;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -43,20 +43,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
     /// <summary>
     /// Represents a possibly-empty sequence of regex expressions.  For example, the regex ""
-    /// will produe an empty RegexSequence nodes, and "a|" will produce an alternation with an
+    /// will produce an empty RegexSequence nodes, and "a|" will produce an alternation with an
     /// empty sequence on the right side.  Having a node represent the empty sequence is actually
     /// appropriate as these are legal regexes and the empty sequence represents 'a pattern
     /// that will match any position'.  Not having a node for this would actually end up 
     /// complicating things in terms of dealing with nulls in the tree.
     /// 
-    /// This does not deviate from roslyn principles.  While nodes for empty text are rare, they
+    /// This does not deviate from Roslyn principles.  While nodes for empty text are rare, they
     /// are allowed (for example, OmittedTypeArgument in C#).
     /// </summary>
     internal sealed class RegexSequenceNode : RegexExpressionNode
     {
         public ImmutableArray<RegexExpressionNode> Children { get; }
 
-        public override int ChildCount => Children.Length;
+        internal override int ChildCount => Children.Length;
 
         public RegexSequenceNode(ImmutableArray<RegexExpressionNode> children)
             : base(RegexKind.Sequence)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             this.Children = children;
         }
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
             => Children[index];
 
         public override void Accept(IRegexNodeVisitor visitor)
@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         public RegexToken TextToken { get; }
 
-        public override int ChildCount => 1;
+        internal override int ChildCount => 1;
 
-        public override RegexNodeOrToken ChildAt(int index) => TextToken;
+        internal override RegexNodeOrToken ChildAt(int index) => TextToken;
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -126,9 +126,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
         }
 
-        public override int ChildCount => 3;
+        internal override int ChildCount => 3;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -159,9 +159,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         public RegexToken CaretToken { get; }
 
-        public override int ChildCount => 4;
+        internal override int ChildCount => 4;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -199,9 +199,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken MinusToken { get; }
         public RegexExpressionNode Right { get; }
 
-        public override int ChildCount => 3;
+        internal override int ChildCount => 3;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -237,9 +237,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken MinusToken { get; }
         public RegexBaseCharacterClassNode CharacterClass { get; }
 
-        public override int ChildCount => 2;
+        internal override int ChildCount => 2;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -270,9 +270,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         public RegexToken TextToken { get; }
 
-        public override int ChildCount => 1;
+        internal override int ChildCount => 1;
 
-        public override RegexNodeOrToken ChildAt(int index) => TextToken;
+        internal override RegexNodeOrToken ChildAt(int index) => TextToken;
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     }
 
     /// <summary>
-    /// Root of all the primary nodes (simular to unary nodes in C#).
+    /// Root of all the primary nodes (similar to unary nodes in C#).
     /// </summary>
     internal abstract class RegexPrimaryExpressionNode : RegexExpressionNode
     {
@@ -314,9 +314,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         public RegexToken DotToken { get; }
 
-        public override int ChildCount => 1;
+        internal override int ChildCount => 1;
 
-        public override RegexNodeOrToken ChildAt(int index) => DotToken;
+        internal override RegexNodeOrToken ChildAt(int index) => DotToken;
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -351,9 +351,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexExpressionNode Expression { get; }
         public RegexToken AsteriskToken { get; }
 
-        public override int ChildCount => 2;
+        internal override int ChildCount => 2;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -386,9 +386,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexExpressionNode Expression { get; }
         public RegexToken PlusToken { get; }
 
-        public override int ChildCount => 2;
+        internal override int ChildCount => 2;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -421,9 +421,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexExpressionNode Expression { get; }
         public RegexToken QuestionToken { get; }
 
-        public override int ChildCount => 2;
+        internal override int ChildCount => 2;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
     /// <summary>
     /// Quantifiers can be optionally followed by a ? to make them lazy.  i.e. ```a*?``` or ```a+?```.
-    /// You can even have ```a??```  (zero or one 'a', lazy).  However, only one lazy modifier is alloed
+    /// You can even have ```a??```  (zero or one 'a', lazy).  However, only one lazy modifier is allowed
     /// ```a*??``` or ```a???``` is not allowed.
     /// </summary>
     internal sealed class RegexLazyQuantifierNode : RegexExpressionNode
@@ -458,9 +458,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexQuantifierNode Quantifier { get; }
         public RegexToken QuestionToken { get; }
 
-        public override int ChildCount => 2;
+        internal override int ChildCount => 2;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -511,9 +511,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
         }
 
-        public override int ChildCount => 4;
+        internal override int ChildCount => 4;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -547,9 +547,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         public RegexToken CommaToken { get; }
 
-        public override int ChildCount => 5;
+        internal override int ChildCount => 5;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -587,9 +587,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken CommaToken { get; }
         public RegexToken SecondNumberToken { get; }
 
-        public override int ChildCount => 6;
+        internal override int ChildCount => 6;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -622,9 +622,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         public RegexToken AnchorToken { get; }
 
-        public override int ChildCount => 1;
+        internal override int ChildCount => 1;
 
-        public override RegexNodeOrToken ChildAt(int index) => AnchorToken;
+        internal override RegexNodeOrToken ChildAt(int index) => AnchorToken;
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -651,9 +651,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken BarToken { get; }
         public RegexSequenceNode Right { get; }
 
-        public override int ChildCount => 3;
+        internal override int ChildCount => 3;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -701,9 +701,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         public RegexExpressionNode Expression { get; }
 
-        public override int ChildCount => 3;
+        internal override int ChildCount => 3;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -759,9 +759,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
         }
 
-        public override int ChildCount => 4;
+        internal override int ChildCount => 4;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -797,9 +797,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken ColonToken { get; }
         public RegexExpressionNode Expression { get; }
 
-        public override int ChildCount => 6;
+        internal override int ChildCount => 6;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -837,9 +837,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken ColonToken { get; }
         public RegexExpressionNode Expression { get; }
 
-        public override int ChildCount => 5;
+        internal override int ChildCount => 5;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -876,9 +876,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken EqualsToken { get; }
         public RegexExpressionNode Expression { get; }
 
-        public override int ChildCount => 5;
+        internal override int ChildCount => 5;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -915,9 +915,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken ExclamationToken { get; }
         public RegexExpressionNode Expression { get; }
 
-        public override int ChildCount => 5;
+        internal override int ChildCount => 5;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -968,9 +968,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken EqualsToken { get; }
         public RegexExpressionNode Expression { get; }
 
-        public override int ChildCount => 6;
+        internal override int ChildCount => 6;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1008,9 +1008,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken ExclamationToken { get; }
         public RegexExpressionNode Expression { get; }
 
-        public override int ChildCount => 6;
+        internal override int ChildCount => 6;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1048,9 +1048,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken GreaterThanToken { get; }
         public RegexExpressionNode Expression { get; }
 
-        public override int ChildCount => 5;
+        internal override int ChildCount => 5;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1091,9 +1091,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken CloseToken { get; }
         public RegexExpressionNode Expression { get; }
 
-        public override int ChildCount => 7;
+        internal override int ChildCount => 7;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1141,9 +1141,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken CloseToken { get; }
         public RegexExpressionNode Expression { get; }
 
-        public override int ChildCount => 9;
+        internal override int ChildCount => 9;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1201,9 +1201,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken CaptureToken { get; }
         public RegexToken InnerCloseParenToken { get; }
 
-        public override int ChildCount => 7;
+        internal override int ChildCount => 7;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1238,11 +1238,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Grouping = grouping;
         }
 
-        public override int ChildCount => 5;
+        internal override int ChildCount => 5;
 
         public RegexGroupingNode Grouping { get; }
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1299,9 +1299,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Debug.Assert(typeToken.Kind == RegexKind.TextToken);
         }
 
-        public override int ChildCount => 2;
+        internal override int ChildCount => 2;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1327,9 +1327,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
         }
 
-        public override int ChildCount => 2;
+        internal override int ChildCount => 2;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1354,9 +1354,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
         }
 
-        public override int ChildCount => 2;
+        internal override int ChildCount => 2;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1382,11 +1382,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             ControlToken = controlToken;
         }
 
-        public override int ChildCount => 3;
+        internal override int ChildCount => 3;
 
         public RegexToken ControlToken { get; }
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1413,11 +1413,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             HexText = hexText;
         }
 
-        public override int ChildCount => 3;
+        internal override int ChildCount => 3;
 
         public RegexToken HexText { get; }
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1444,11 +1444,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             HexText = hexText;
         }
 
-        public override int ChildCount => 3;
+        internal override int ChildCount => 3;
 
         public RegexToken HexText { get; }
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1478,13 +1478,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             CloseToken = closeToken;
         }
 
-        public override int ChildCount => 4;
+        internal override int ChildCount => 4;
 
         public RegexToken OpenToken { get; }
         public RegexToken CaptureToken { get; }
         public RegexToken CloseToken { get; }
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1516,13 +1516,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             CloseToken = closeToken;
         }
 
-        public override int ChildCount => 5;
+        internal override int ChildCount => 5;
 
         public RegexToken OpenToken { get; }
         public RegexToken CaptureToken { get; }
         public RegexToken CloseToken { get; }
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1541,7 +1541,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     }
 
     /// <summary>
-    /// ```\1``` escape. In contexts where backreferences are not allowed.
+    /// ```\1``` escape. In contexts where back-references are not allowed.
     /// </summary>
     internal sealed class RegexOctalEscapeNode : RegexEscapeNode
     {
@@ -1551,11 +1551,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             OctalText = octalText;
         }
 
-        public override int ChildCount => 2;
+        internal override int ChildCount => 2;
 
         public RegexToken OctalText { get; }
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1581,11 +1581,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             NumberToken = numberToken;
         }
 
-        public override int ChildCount => 2;
+        internal override int ChildCount => 2;
 
         public RegexToken NumberToken { get; }
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1622,9 +1622,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexToken CategoryToken { get; }
         public RegexToken CloseBraceToken { get; }
 
-        public override int ChildCount => 5;
+        internal override int ChildCount => 5;
 
-        public override RegexNodeOrToken ChildAt(int index)
+        internal override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
