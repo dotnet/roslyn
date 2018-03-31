@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         }
 
         public override bool Equals(object obj)
-            => obj is EmbeddedDiagnostic rd && Equals(rd);
+            => obj is EmbeddedDiagnostic diagnostic && Equals(diagnostic);
 
         public bool Equals(EmbeddedDiagnostic other)
             => Message == other.Message &&
