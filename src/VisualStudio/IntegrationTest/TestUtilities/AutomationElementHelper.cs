@@ -4,7 +4,6 @@ using System;
 using System.Threading.Tasks;
 using UIAutomationClient;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
-using InvokePatternIdentifiers = System.Windows.Automation.InvokePatternIdentifiers;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
@@ -23,17 +22,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var tcs = new TaskCompletionSource<object>();
 
                 Helper.Automation.AddAutomationEventHandler(
-                    InvokePatternIdentifiers.InvokedEvent.Id,
+                    UIA_EventIds.UIA_Invoke_InvokedEventId,
                     element,
                     TreeScope.TreeScope_Element,
                     cacheRequest: null,
                     new AutomationEventHandler((src, e) => tcs.SetResult(null)));
 
-                if (element.GetCurrentPattern(InvokePatternIdentifiers.Pattern.Id) is IUIAutomationInvokePattern invokePattern)
-                {
-                    invokePattern.Invoke();
-                }
-
+                element.Invoke();
                 await tcs.Task;
             }
         }
