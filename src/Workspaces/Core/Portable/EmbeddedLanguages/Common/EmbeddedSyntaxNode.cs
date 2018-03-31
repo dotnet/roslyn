@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             Kind = kind;
         }
 
-        public abstract int ChildCount { get; }
-        public abstract EmbeddedSyntaxNodeOrToken<TSyntaxKind, TNode> ChildAt(int index);
+        internal abstract int ChildCount { get; }
+        internal abstract EmbeddedSyntaxNodeOrToken<TSyntaxKind, TNode> ChildAt(int index);
 
         public TextSpan GetSpan()
         {
