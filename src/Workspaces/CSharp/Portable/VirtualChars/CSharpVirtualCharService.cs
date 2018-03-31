@@ -96,22 +96,22 @@ namespace Microsoft.CodeAnalysis.CSharp.VirtualChars
             var ch = tokenText[index + 1];
             switch (ch)
             {
-            // escaped characters that translate to themselves
-            case '\'':
-            case '"':
-            case '\\':
-                break;
-            // translate escapes as per C# spec 2.4.4.4
-            case '0': ch = '\0'; break;
-            case 'a': ch = '\a'; break;
-            case 'b': ch = '\b'; break;
-            case 'f': ch = '\f'; break;
-            case 'n': ch = '\n'; break;
-            case 'r': ch = '\r'; break;
-            case 't': ch = '\t'; break;
-            case 'v': ch = '\v'; break;
-            default:
-                return false;
+                // escaped characters that translate to themselves
+                case '\'':
+                case '"':
+                case '\\':
+                    break;
+                // translate escapes as per C# spec 2.4.4.4
+                case '0': ch = '\0'; break;
+                case 'a': ch = '\a'; break;
+                case 'b': ch = '\b'; break;
+                case 'f': ch = '\f'; break;
+                case 'n': ch = '\n'; break;
+                case 'r': ch = '\r'; break;
+                case 't': ch = '\t'; break;
+                case 'v': ch = '\v'; break;
+                default:
+                    return false;
             }
 
             result.Add(new VirtualChar(ch, new TextSpan(offset + index, 2)));
@@ -127,13 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp.VirtualChars
             var ch = tokenText[index + 1];
             switch (ch)
             {
-            case 'x':
-            case 'u':
-            case 'U':
-                return TryAddMultiCharacterEscape(result, tokenText, offset, index, ch);
-            default:
-                Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
-                return false;
+                case 'x':
+                case 'u':
+                case 'U':
+                    return TryAddMultiCharacterEscape(result, tokenText, offset, index, ch);
+                default:
+                    Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
+                    return false;
             }
         }
 
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.VirtualChars
             else
             {
                 Debug.Assert(character == 'x');
-                // Variable length (up to 4 chars) hexidecimal escape.
+                // Variable length (up to 4 chars) hexadecimal escape.
 
                 var intChar = 0;
                 if (!IsHexDigit(tokenText[index]))
