@@ -53,16 +53,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static readonly TimeSpan CleanupTimeout = TimeSpan.FromSeconds(15);
 
         // Cache the export provider factory for RoslynServices.RemoteHostAssemblies
-        private static readonly object s_remoteHostServicesCreationLock = new object();
-        private static IExportProviderFactory s_remoteHostExportProviderFactory;
+        private static readonly Lazy<IExportProviderFactory> s_remoteHostExportProviderFactory = new Lazy<IExportProviderFactory>(
+            CreateRemoteHostExportProviderFactory,
+            LazyThreadSafetyMode.ExecutionAndPublication);
+
+        private readonly Lazy<MefHostServices> _remoteHostServices = new Lazy<MefHostServices>(
+            CreateRemoteHostServices,
+            LazyThreadSafetyMode.ExecutionAndPublication);
 
         private MefHostServices _hostServices;
-        private MefHostServices _remoteHostServices;
 
         public override void Before(MethodInfo methodUnderTest)
         {
             MefHostServices.HookServiceCreation(CreateMefHostServices);
-            RoslynServices.HookHostServices(GetOrCreateRemoteHostServices);
+            RoslynServices.HookHostServices(() => _remoteHostServices.Value);
             DesktopMefHostServices.ResetHostServicesTestOnly();
 
             // make sure we enable this for all unit tests
@@ -174,29 +178,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             throw new InvalidOperationException("Cannot create host services after test tear down.");
         }
 
-        private HostServices GetOrCreateRemoteHostServices()
+        private static IExportProviderFactory CreateRemoteHostExportProviderFactory()
         {
-            if (_remoteHostServices != null)
-            {
-                return _remoteHostServices;
-            }
+            var configuration = CompositionConfiguration.Create(ExportProviderCache.GetOrCreateAssemblyCatalog(RoslynServices.RemoteHostAssemblies).WithCompositionService());
+            var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
+            return runtimeComposition.CreateExportProviderFactory();
+        }
 
-            lock (s_remoteHostServicesCreationLock)
-            {
-                if (_remoteHostServices == null)
-                {
-                    if (s_remoteHostExportProviderFactory == null)
-                    {
-                        var configuration = CompositionConfiguration.Create(ExportProviderCache.GetOrCreateAssemblyCatalog(RoslynServices.RemoteHostAssemblies).WithCompositionService());
-                        var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-                        s_remoteHostExportProviderFactory = runtimeComposition.CreateExportProviderFactory();
-                    }
-
-                    _remoteHostServices = new ExportProviderMefHostServices(s_remoteHostExportProviderFactory.CreateExportProvider());
-                }
-            }
-
-            return _remoteHostServices;
+        private static MefHostServices CreateRemoteHostServices()
+        {
+            return new ExportProviderMefHostServices(s_remoteHostExportProviderFactory.Value.CreateExportProvider());
         }
 
         private class ExportProviderMefHostServices : MefHostServices, IMefHostExportProvider
