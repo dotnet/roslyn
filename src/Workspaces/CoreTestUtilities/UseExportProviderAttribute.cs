@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 // Replace hooks with ones that always throw exceptions. These hooks detect cases where code executing
                 // after the end of a test attempts to create an ExportProvider.
-                MefHostServices.HookServiceCreation((_, __) => throw new InvalidOperationException("Cannot create host services after test tear down."));
+                MefHostServices.HookServiceCreation(DenyMefHostServicesCreationBetweenTests);
                 RoslynServices.HookHostServices(() => throw new InvalidOperationException("Cannot create host services after test tear down."));
 
                 // Reset static state variables.
@@ -159,6 +159,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 null);
 
             return _hostServices;
+        }
+
+        private static MefHostServices DenyMefHostServicesCreationBetweenTests(IEnumerable<Assembly> assemblies, bool requestingDefaultAssemblies)
+        {
+            // If you hit this, one of three situations occurred:
+            //
+            // 1. A test method that uses ExportProvider is not marked with UseExportProviderAttribute (can also be
+            //    applied to the containing type or a base type.
+            // 2. A test attempted to create an ExportProvider during the test cleanup operations after the
+            //    ExportProvider was already disposed.
+            // 3. A test attempted to use an ExportProvider in the constructor of the test, or during the initialization
+            //    of a field in the test class.
+            throw new InvalidOperationException("Cannot create host services after test tear down.");
         }
 
         private HostServices GetOrCreateRemoteHostServices()
