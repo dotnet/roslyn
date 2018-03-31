@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
+    <[UseExportProvider]>
     Public Class CommitOnEnterTests
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
