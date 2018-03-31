@@ -549,40 +549,40 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     //   }
                     // }
                     //  statement ... localFunction();
-                    var lastSelectExpression = ((SelectClauseSyntax)queryExpressionProcessingInfo.Stack.Peek()).Expression;
-                    var lastSelectExpressionTypeInfo = _semanticModel.GetTypeInfo(lastSelectExpression, _cancellationToken);
-                    var iEnumerableTypeSyntax = _semanticModel.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(lastSelectExpressionTypeInfo.ConvertedType).GenerateTypeSyntax();
+                    var returnedType = _semanticModel.GetTypeInfo((SelectClauseSyntax)queryExpressionProcessingInfo.Stack.Peek()).ConvertedType;
+                    if (returnedType.OriginalDefinition?.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
+                    {
+                        StatementSyntax internalNodeMethod(ExpressionSyntax expression)
+                            => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, expression);
 
-                    StatementSyntax internalNodeMethod(ExpressionSyntax expression)
-                        => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, expression);
+                        var statements = GenerateStatements(internalNodeMethod, queryExpressionProcessingInfo);
+                        string localFunctionNamePrefix = _semanticFacts.GenerateNameForExpression(
+                            _semanticModel,
+                            _source,
+                            capitalize: false,
+                            _cancellationToken);
+                        SyntaxToken localFunctionToken = GetFreeSymbolNameAndMarkUsed(localFunctionNamePrefix);
+                        var localFunctionDeclaration = SyntaxFactory.LocalFunctionStatement(
+                            modifiers: default,
+                            returnType: returnedType.GenerateTypeSyntax().WithAdditionalAnnotations(Simplifier.Annotation),
+                            identifier: localFunctionToken,
+                            typeParameterList: null,
+                            parameterList: SyntaxFactory.ParameterList(),
+                            constraintClauses: default,
+                            body: SyntaxFactory.Block(
+                                SyntaxFactory.Token(
+                                    SyntaxFactory.TriviaList(),
+                                    SyntaxKind.OpenBraceToken,
+                                    SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Environment.NewLine))),
+                                SyntaxFactory.List(statements),
+                                SyntaxFactory.Token(SyntaxKind.CloseBraceToken)),
+                            expressionBody: null);
 
-                    var statements = GenerateStatements(internalNodeMethod, queryExpressionProcessingInfo);
-                    string localFunctionNamePrefix = _semanticFacts.GenerateNameForExpression(
-                        _semanticModel,
-                        _source,
-                        capitalize: false,
-                        _cancellationToken);
-                    SyntaxToken localFunctionToken = GetFreeSymbolNameAndMarkUsed(localFunctionNamePrefix);
-                    var localFunctionDeclaration = SyntaxFactory.LocalFunctionStatement(
-                        modifiers: default,
-                        returnType: iEnumerableTypeSyntax.WithAdditionalAnnotations(Simplifier.Annotation),// typeSyntax.WithAdditionalAnnotations(Simplifier.SpecialTypeAnnotation),
-                        identifier: localFunctionToken,
-                        typeParameterList: null,
-                        parameterList: SyntaxFactory.ParameterList(),
-                        constraintClauses: default,
-                        body: SyntaxFactory.Block(
-                            SyntaxFactory.Token(
-                                SyntaxFactory.TriviaList(),
-                                SyntaxKind.OpenBraceToken,
-                                SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Environment.NewLine))),
-                            SyntaxFactory.List(statements),
-                            SyntaxFactory.Token(SyntaxKind.CloseBraceToken)),
-                        expressionBody: null);
-
-                    var localFunctionInvocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(localFunctionToken)).WithAdditionalAnnotations(Simplifier.Annotation);
-                    StatementSyntax newParentExpressionStatement = parentStatement.ReplaceNode(_source.WalkUpParentheses(), localFunctionInvocation.WithAdditionalAnnotations(Simplifier.Annotation));
-                    documentUpdateInfo = new DocumentUpdateInfo(parentStatement, new[] { localFunctionDeclaration, newParentExpressionStatement });
-                    return true;
+                        var localFunctionInvocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(localFunctionToken)).WithAdditionalAnnotations(Simplifier.Annotation);
+                        StatementSyntax newParentExpressionStatement = parentStatement.ReplaceNode(_source.WalkUpParentheses(), localFunctionInvocation.WithAdditionalAnnotations(Simplifier.Annotation));
+                        documentUpdateInfo = new DocumentUpdateInfo(parentStatement, new[] { localFunctionDeclaration, newParentExpressionStatement });
+                        return true;
+                    }
                 }
 
                 documentUpdateInfo = default;

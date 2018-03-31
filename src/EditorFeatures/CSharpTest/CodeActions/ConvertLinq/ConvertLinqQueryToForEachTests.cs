@@ -2401,6 +2401,24 @@ class C
             await TestAsync(source, output, parseOptions: null);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task AsQueryable()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    IQueryable<int> M(IEnumerable<int> nums)
+    {
+        return [|from int n1 in nums.AsQueryable() select n1|];
+    }
+}";
+
+            await TestMissingAsync(source);
+        }
+
         #endregion
 
         #region In ToList
