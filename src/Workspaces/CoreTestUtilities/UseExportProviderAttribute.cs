@@ -102,27 +102,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     var foregroundNotificationService = exportProvider?.GetExportedValues<IForegroundNotificationService>().SingleOrDefault() as ForegroundNotificationService;
                     foregroundNotificationService?.ReleaseCancelledItems();
 
-                    var stopwatch = Stopwatch.StartNew();
-
-                    var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync();
-                    var timeoutTokenSource = new CancellationTokenSource(CleanupTimeout);
-                    Func<CancellationToken, Task<bool>> continueUntilAsync =
-                        async cancellationToken =>
-                        {
-                            await Task.WhenAny(waiter, Task.Delay(CleanupTimeout, cancellationToken)).ConfigureAwait(false);
-                            return false;
-                        };
-                    while (!waiter.IsCompleted)
+                    // Join remaining operations with a timeout
+                    using (var timeoutTokenSource = new CancellationTokenSource(CleanupTimeout))
                     {
-                        if (stopwatch.Elapsed >= CleanupTimeout)
+                        try
                         {
-                            throw new XunitException("Failed to clean up listeners in a timely manner.");
+                            var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync();
+                            waiter.JoinUsingDispatcher(timeoutTokenSource.Token);
                         }
-
-                        Dispatcher.CurrentDispatcher.DoEvents(continueUntilAsync, timeoutTokenSource.Token);
+                        catch (OperationCanceledException ex) when (timeoutTokenSource.IsCancellationRequested)
+                        {
+                            throw new TimeoutException("Failed to clean up listeners in a timely manner.", ex);
+                        }
                     }
-
-                    waiter.GetAwaiter().GetResult();
                 }
             }
             finally
