@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.VirtualChars
                     }
 
                     var lastVC = result.Last();
-                    Debug.Assert(lastVC.Span.End == token.Span.End - 1, "Last span has to end right before the end of hte string token (including its trailing delimeter).");
+                    Debug.Assert(lastVC.Span.End == token.Span.End - 1, "Last span has to end right before the end of the string token (including its trailing delimeter).");
                 }
             }
 #endif
