@@ -13,8 +13,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq
 {
-    internal abstract class AbstractConvertLinqQueryToForEachProvider<TQueryExpression> : CodeRefactoringProvider
+    internal abstract class AbstractConvertLinqQueryToForEachProvider<TQueryExpression, TStatement> : CodeRefactoringProvider
         where TQueryExpression : SyntaxNode
+        where TStatement : SyntaxNode
     {
         protected abstract string Title { get; }
 
@@ -55,17 +56,17 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
         /// </summary>
         internal sealed class DocumentUpdateInfo
         {
-            private readonly SyntaxNode _source;
-            private readonly ImmutableArray<SyntaxNode> _destinations;
+            public readonly TStatement Source;
+            public readonly ImmutableArray<TStatement> Destinations;
 
-            public DocumentUpdateInfo(SyntaxNode source, SyntaxNode destination) : this(source, new[] { destination })
+            public DocumentUpdateInfo(TStatement source, TStatement destination) : this(source, new[] { destination })
             {
             }
 
-            public DocumentUpdateInfo(SyntaxNode source, IEnumerable<SyntaxNode> destinations)
+            public DocumentUpdateInfo(TStatement source, IEnumerable<TStatement> destinations)
             {
-                _source = source;
-                _destinations = ImmutableArray.CreateRange(destinations);
+                Source = source;
+                Destinations = ImmutableArray.CreateRange(destinations);
             }
 
             /// <summary>
@@ -73,7 +74,14 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             /// </summary>
             public SyntaxNode UpdateRoot(SyntaxNode root)
             {
-                return root.ReplaceNode(_source, _destinations);
+                if (Destinations.Length == 1)
+                {
+                    return root.ReplaceNode(Source, Destinations[0]);
+                }
+                else
+                {
+                    return root.ReplaceNode(Source, Destinations);
+                }
             }
         }
 

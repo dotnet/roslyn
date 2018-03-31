@@ -584,7 +584,7 @@ public class Test
         {
             foreach (var x in nums)
             {
-                var w = x;
+                int w = x;
                 yield return w;
             }
         }
@@ -624,7 +624,7 @@ public class Test
         {
             foreach (var x in nums)
             {
-                var w = x + 1;
+                int w = x + 1;
                 yield return w + 1;
             }
         }
@@ -1073,7 +1073,7 @@ using System.Collections.Generic;
 using System.Linq;
 class C
 {
-    bool M(IEnumerable<int> nums)
+    void M(IEnumerable<int> nums)
     {
         var q = [|from a in nums from b in nums select new { a, b }|];
     }
@@ -1082,6 +1082,25 @@ class C
             // No conversion can be made because it expects to introduce a local function but the return type contains anonymous.
             await TestMissingAsync(source);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task AnonymousTypeInternally()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void M(IEnumerable<int> nums)
+    {
+        var q = [|from a in nums from b in nums select new { a, b } into c select c.a|];
+    }
+}
+";
+            // No conversion can be made because it expects to introduce a local function but the return type contains anonymous.
+            await TestMissingAsync(source);
+        }
+
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
         public async Task DuplicateIdentifiers()
@@ -1758,6 +1777,51 @@ public class Test
             await TestMissingAsync(source);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task IninlineIf()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    List<int> M(IEnumerable<int> q)
+    {
+        if (true)
+            return new List<int>([|from a in q select a * a|]);
+        else
+            return null;
+    }
+}
+";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    List<int> M(IEnumerable<int> q)
+    {
+        if (true)
+        {
+            IEnumerable<int> collection()
+            {
+                foreach (var a in q)
+                {
+                    yield return a * a;
+                }
+            }
+
+            return new List<int>(collection());
+        }
+        else
+            return null;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
         #endregion
 
         #region In foreach
@@ -2169,10 +2233,9 @@ class C
         throw null;
     }
 
-
     void Test()
     {
-        foreach (int x in [|from y in new[] { 1, 2, 3, } select y|])
+        foreach (int x in [|from x in new[] { 1, 2, 3, } select x|])
         {
             Console.Write(x);
         }
@@ -2201,14 +2264,13 @@ class C
         throw null;
     }
 
-
     void Test()
     {
-        IEnumerable<C> enumerable ()
+        IEnumerable<C> enumerable()
         {
-            foreach(var y in new[] { 1, 2, 3, })
+            foreach (var x in new[] { 1, 2, 3, })
             {
-                yield return y;
+                yield return x;
             }
         }
 
@@ -2219,8 +2281,7 @@ class C
     }
 }
 ";
-
-            await TestInRegularAndScriptAsync(source, output);
+            await TestAsync(source, output, parseOptions: null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
@@ -2249,9 +2310,9 @@ class C
 
     void Test()
     {
-        foreach (int x in [|from y in new[] { 1, 2, 3, } select Test|])
+        foreach (int Test in [|from y in new[] { 1, 2, 3, } select Test|])
         {
-            Console.Write(x);
+            Console.Write(Test);
         }
     }
 }
@@ -2280,25 +2341,17 @@ class C
 
     void Test()
     {
-        IEnumerable<C> enumerable()
+        foreach (var y in new[] { 1, 2, 3, })
         {
-            foreach (var y in new[] { 1, 2, 3, })
-            {
-                yield return y;
-            }
-        }
-
-        foreach (int x in enumerable())
-        {
-            Console.Write(x);
+            int Test = Test;
+            Console.Write(Test);
         }
     }
 }
 ";
 
-            await TestInRegularAndScriptAsync(source, output);
+            await TestAsync(source, output, parseOptions: null);
         }
-
 
         #endregion
 
