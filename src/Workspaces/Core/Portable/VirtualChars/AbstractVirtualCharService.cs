@@ -60,23 +60,23 @@ namespace Microsoft.CodeAnalysis.VirtualChars
         /// Helper to convert simple string literals that escape quotes by doubling them.  This is 
         /// how normal VB literals and c# verbatim string literals work.
         /// </summary>
-        /// <param name="startDelimeter">The start characters string.  " in VB and @" in C#</param>
+        /// <param name="startDelimiter">The start characters string.  " in VB and @" in C#</param>
         protected static ImmutableArray<VirtualChar> TryConvertSimpleDoubleQuoteString(
-            SyntaxToken token, string startDelimeter)
+            SyntaxToken token, string startDelimiter)
         {
             Debug.Assert(!token.ContainsDiagnostics);
-            const string endDelimeter = "\"";
+            const string endDelimiter = "\"";
 
             var tokenText = token.Text;
-            if (!tokenText.StartsWith(startDelimeter) ||
-                !tokenText.EndsWith(endDelimeter))
+            if (!tokenText.StartsWith(startDelimiter) ||
+                !tokenText.EndsWith(endDelimiter))
             {
                 Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
                 return default;
             }
 
-            var startIndexInclusive = startDelimeter.Length;
-            var endIndexExclusive = tokenText.Length - endDelimeter.Length;
+            var startIndexInclusive = startDelimiter.Length;
+            var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
             var result = ArrayBuilder<VirtualChar>.GetInstance();
 
