@@ -44,26 +44,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static ComposableCatalog _expectedCatalog;
         private static ExportProvider _expectedProviderForCatalog;
 
-        internal static bool EnabledViaUseExportProviderAttributeOnly
-        {
-            get
-            {
-                return _enabled;
-            }
-
-            set
-            {
-                _enabled = value;
-                if (!_enabled)
-                {
-                    _currentExportProvider = null;
-                    _expectedCatalog = null;
-                    _expectedProviderForCatalog = null;
-                }
-            }
-        }
+        internal static bool Enabled => _enabled;
 
         internal static ExportProvider ExportProviderForCleanup => _currentExportProvider;
+
+        internal static void SetEnabled_OnlyUseExportProviderAttributeCanCall(bool value)
+        {
+            _enabled = value;
+            if (!_enabled)
+            {
+                _currentExportProvider = null;
+                _expectedCatalog = null;
+                _expectedProviderForCatalog = null;
+            }
+        }
 
         public static ComposableCatalog CreateAssemblyCatalog(Assembly assembly)
         {
@@ -183,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public ExportProvider CreateExportProvider()
             {
-                if (!_enabled)
+                if (!Enabled)
                 {
                     // The [UseExportProvider] attribute on tests ensures that the pre- and post-conditions of methods
                     // in this type are met during test conditions.

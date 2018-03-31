@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // make sure we enable this for all unit tests
             AsynchronousOperationListenerProvider.Enable(true);
-            ExportProviderCache.EnabledViaUseExportProviderAttributeOnly = true;
+            ExportProviderCache.SetEnabled_OnlyUseExportProviderAttributeCanCall(true);
         }
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // Reset static state variables.
                 DesktopMefHostServices.ResetHostServicesTestOnly();
                 _hostServices = null;
-                ExportProviderCache.EnabledViaUseExportProviderAttributeOnly = false;
+                ExportProviderCache.SetEnabled_OnlyUseExportProviderAttributeCanCall(false);
             }
         }
 
