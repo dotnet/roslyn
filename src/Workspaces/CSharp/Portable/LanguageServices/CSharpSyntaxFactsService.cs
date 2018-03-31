@@ -698,11 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => (node as ArgumentSyntax).GetRefKind();
 
         public bool IsArgument(SyntaxNode node)
-<<<<<<< HEAD
             => node.IsKind(SyntaxKind.Argument);
-=======
-            => node.Kind() == SyntaxKind.Argument;
->>>>>>> regexParsing4
 
         public bool IsSimpleArgument(SyntaxNode node)
         {

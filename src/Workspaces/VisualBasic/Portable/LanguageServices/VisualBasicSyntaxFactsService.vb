@@ -650,10 +650,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return argument IsNot Nothing AndAlso Not argument.IsNamed AndAlso Not argument.IsOmitted
         End Function
 
-        Public Function IsArgument(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsArgument
-            Return TypeOf node Is ArgumentSyntax
-        End Function
-
         Public Function IsInConstantContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInConstantContext
             Return node.IsInConstantContext()
         End Function
