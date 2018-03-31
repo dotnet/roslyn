@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             /// <typeparamref name="TException"/>. any other exception from the call won't be handled here.
             /// </summary>
             public static async Task<TResult> RetryRemoteCallAsync<TException, TResult>(
+                Workspace workspace,
                 Func<Task<TResult>> funcAsync,
                 TimeSpan timeout,
                 CancellationToken cancellationToken) where TException : Exception
@@ -57,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
 
                 // operation timed out, more than we are willing to wait
-                RemoteHostCrashInfoBar.ShowInfoBar();
+                RemoteHostCrashInfoBar.ShowInfoBar(workspace);
 
                 // throw soft crash exception to minimize hard crash. it doesn't
                 // gurantee 100% hard crash free. but 99% it doesn't cause
@@ -66,6 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
 
             public static async Task<Stream> RequestServiceAsync(
+                Workspace workspace,
                 HubClient client,
                 string serviceName,
                 HostGroup hostGroup,
@@ -98,6 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         // first retry most likely deal with real issue on servicehub, second retry (cancellation) is to deal with
                         // by design servicehub behavior we don't want to use.
                         return await RetryRemoteCallAsync<OperationCanceledException, Stream>(
+                            workspace,
                             () => client.RequestServiceAsync(descriptor, cancellationToken),
                             timeout,
                             cancellationToken).ConfigureAwait(false);

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
@@ -26,6 +25,9 @@ using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Text.Classification;
+using UIAutomationClient;
+using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
+using ControlType = System.Windows.Automation.ControlType;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -354,7 +356,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void VerifyDialog(string dialogAutomationId, bool isOpen)
         {
-            var dialogAutomationElement = DialogHelpers.FindDialogByAutomationId(GetDTE().MainWindow.HWnd, dialogAutomationId, isOpen);
+            var dialogAutomationElement = DialogHelpers.FindDialogByAutomationId((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationId, isOpen);
 
             if ((isOpen && dialogAutomationElement == null) ||
                 (!isOpen && dialogAutomationElement != null))
@@ -365,7 +367,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void DialogSendKeys(string dialogAutomationName, string keys)
         {
-            var dialogAutomationElement = DialogHelpers.GetOpenDialogById(GetDTE().MainWindow.HWnd, dialogAutomationName);
+            var dialogAutomationElement = DialogHelpers.GetOpenDialogById((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName);
 
             dialogAutomationElement.SetFocus();
             SendKeys.SendWait(keys);
@@ -385,10 +387,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
-            DialogHelpers.PressButton(GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
+            DialogHelpers.PressButton((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
         }
 
-        private AutomationElement FindDialog(string dialogAutomationName, bool isOpen)
+        private IUIAutomationElement FindDialog(string dialogAutomationName, bool isOpen)
         {
             return Retry(
                 () => FindDialogWorker(dialogAutomationName),
@@ -396,20 +398,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 delay: TimeSpan.FromMilliseconds(250));
         }
 
-        private static AutomationElement FindDialogWorker(string dialogAutomationName)
+        private static IUIAutomationElement FindDialogWorker(string dialogAutomationName)
         {
-            var vsAutomationElement = AutomationElement.FromHandle(new IntPtr(GetDTE().MainWindow.HWnd));
+            var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
 
-            System.Windows.Automation.Condition elementCondition = new AndCondition(
-                new PropertyCondition(AutomationElement.AutomationIdProperty, dialogAutomationName),
-                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
+            var elementCondition = Helper.Automation.CreateAndConditionFromArray(
+                new[]
+                {
+                    Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.AutomationIdProperty.Id, dialogAutomationName),
+                    Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.ControlTypeProperty.Id, ControlType.Window.Id),
+                });
 
-            return vsAutomationElement.FindFirst(TreeScope.Descendants, elementCondition);
+            return vsAutomationElement.FindFirst(TreeScope.TreeScope_Descendants, elementCondition);
         }
 
-        private static AutomationElement FindNavigateTo()
+        private static IUIAutomationElement FindNavigateTo()
         {
-            var vsAutomationElement = AutomationElement.FromHandle(new IntPtr(GetDTE().MainWindow.HWnd));
+            var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
             return vsAutomationElement.FindDescendantByAutomationId("PART_SearchBox");
         }
 

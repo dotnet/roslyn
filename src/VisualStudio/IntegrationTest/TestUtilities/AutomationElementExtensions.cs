@@ -2,25 +2,32 @@
 
 using System;
 using System.Collections.Generic;
-using System.Windows.Automation;
+using UIAutomationClient;
+using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
+using ExpandCollapsePatternIdentifiers = System.Windows.Automation.ExpandCollapsePatternIdentifiers;
+using InvokePatternIdentifiers = System.Windows.Automation.InvokePatternIdentifiers;
+using SelectionItemPatternIdentifiers = System.Windows.Automation.SelectionItemPatternIdentifiers;
+using TogglePatternIdentifiers = System.Windows.Automation.TogglePatternIdentifiers;
+using ValuePatternIdentifiers = System.Windows.Automation.ValuePatternIdentifiers;
+using ControlType = System.Windows.Automation.ControlType;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class AutomationElementExtensions
     {
         /// <summary>
-        /// Given an <see cref="AutomationElement"/>, returns a descendant with the automation ID specified by <paramref name="automationId"/>.
+        /// Given an <see cref="IUIAutomationElement"/>, returns a descendant with the automation ID specified by <paramref name="automationId"/>.
         /// Throws an <see cref="InvalidOperationException"/> if no such descendant is found.
         /// </summary>
-        public static AutomationElement FindDescendantByAutomationId(this AutomationElement parent, string automationId)
+        public static IUIAutomationElement FindDescendantByAutomationId(this IUIAutomationElement parent, string automationId)
         {
             if (parent == null)
             {
                 throw new ArgumentNullException(nameof(parent));
             }
 
-            var condition = new PropertyCondition(AutomationElement.AutomationIdProperty, automationId);
-            var child = parent.FindFirst(TreeScope.Descendants, condition);
+            var condition = Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.AutomationIdProperty.Id, automationId);
+            var child = parent.FindFirst(TreeScope.TreeScope_Descendants, condition);
 
             if (child == null)
             {
@@ -31,18 +38,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
-        /// Given an <see cref="AutomationElement"/>, returns a descendant with the automation ID specified by <paramref name="name"/>.
+        /// Given an <see cref="IUIAutomationElement"/>, returns a descendant with the automation ID specified by <paramref name="name"/>.
         /// Throws an <see cref="InvalidOperationException"/> if no such descendant is found.
         /// </summary>
-        public static AutomationElement FindDescendantByName(this AutomationElement parent, string name)
+        public static IUIAutomationElement FindDescendantByName(this IUIAutomationElement parent, string name)
         {
             if (parent == null)
             {
                 throw new ArgumentNullException(nameof(parent));
             }
 
-            var condition = new PropertyCondition(AutomationElement.NameProperty, name);
-            var child = parent.FindFirst(TreeScope.Descendants, condition);
+            var condition = Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.NameProperty.Id, name);
+            var child = parent.FindFirst(TreeScope.TreeScope_Descendants, condition);
 
             if (child == null)
             {
@@ -53,18 +60,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
-        /// Given an <see cref="AutomationElement"/>, returns a descendant with the className specified by <paramref name="className"/>.
+        /// Given an <see cref="IUIAutomationElement"/>, returns a descendant with the className specified by <paramref name="className"/>.
         /// Throws an <see cref="InvalidOperationException"/> if no such descendant is found.
         /// </summary>
-        public static AutomationElement FindDescendantByClass(this AutomationElement parent, string className)
+        public static IUIAutomationElement FindDescendantByClass(this IUIAutomationElement parent, string className)
         {
             if (parent == null)
             {
                 throw new ArgumentNullException(nameof(parent));
             }
 
-            var condition = new PropertyCondition(AutomationElement.ClassNameProperty, className);
-            var child = parent.FindFirst(TreeScope.Descendants, condition);
+            var condition = Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.ClassNameProperty.Id, className);
+            var child = parent.FindFirst(TreeScope.TreeScope_Descendants, condition);
 
             if (child == null)
             {
@@ -75,31 +82,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
-        /// Given an <see cref="AutomationElement"/>, returns all descendants with the given <paramref name="className"/>.
+        /// Given an <see cref="IUIAutomationElement"/>, returns all descendants with the given <paramref name="className"/>.
         /// If none are found, the resulting collection will be empty.
         /// </summary>
         /// <returns></returns>
-        public static AutomationElementCollection FindDescendantsByClass(this AutomationElement parent, string className)
+        public static IUIAutomationElementArray FindDescendantsByClass(this IUIAutomationElement parent, string className)
         {
             if (parent == null)
             {
                 throw new ArgumentNullException(nameof(parent));
             }
 
-            var condition = new PropertyCondition(AutomationElement.ClassNameProperty, className);
-            return parent.FindAll(TreeScope.Descendants, condition);
+            var condition = Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.ClassNameProperty.Id, className);
+            return parent.FindAll(TreeScope.TreeScope_Descendants, condition);
         }
 
         /// <summary>
-        /// Invokes an <see cref="AutomationElement"/>.
+        /// Invokes an <see cref="IUIAutomationElement"/>.
         /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
-        /// support the <see cref="InvokePattern"/>.
+        /// support the <see cref="IUIAutomationInvokePattern"/>.
         /// </summary>
-        public static void Invoke(this AutomationElement element)
+        public static void Invoke(this IUIAutomationElement element)
         {
-            if (element.TryGetCurrentPattern(InvokePattern.Pattern, out var invokePattern))
+            if (element.GetCurrentPattern(InvokePatternIdentifiers.Pattern.Id) is IUIAutomationInvokePattern invokePattern)
             {
-                (invokePattern as InvokePattern).Invoke();
+                invokePattern.Invoke();
             }
             else
             {
@@ -108,15 +115,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
-        /// Expands an <see cref="AutomationElement"/>.
+        /// Expands an <see cref="IUIAutomationElement"/>.
         /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
-        /// support the <see cref="ExpandCollapsePattern"/>.
+        /// support the <see cref="IUIAutomationExpandCollapsePattern"/>.
         /// </summary>
-        public static void Expand(this AutomationElement element)
+        public static void Expand(this IUIAutomationElement element)
         {
-            if (element.TryGetCurrentPattern(ExpandCollapsePattern.Pattern, out var expandCollapsePattern))
+            if (element.GetCurrentPattern(ExpandCollapsePatternIdentifiers.Pattern.Id) is IUIAutomationExpandCollapsePattern expandCollapsePattern)
             {
-                (expandCollapsePattern as ExpandCollapsePattern).Expand();
+                expandCollapsePattern.Expand();
             }
             else
             {
@@ -125,15 +132,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
-        /// Collapses an <see cref="AutomationElement"/>.
+        /// Collapses an <see cref="IUIAutomationElement"/>.
         /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
-        /// support the <see cref="ExpandCollapsePattern"/>.
+        /// support the <see cref="IUIAutomationExpandCollapsePattern"/>.
         /// </summary>
-        public static void Collapse(this AutomationElement element)
+        public static void Collapse(this IUIAutomationElement element)
         {
-            if (element.TryGetCurrentPattern(ExpandCollapsePattern.Pattern, out var expandCollapsePattern))
+            if (element.GetCurrentPattern(ExpandCollapsePatternIdentifiers.Pattern.Id) is IUIAutomationExpandCollapsePattern expandCollapsePattern)
             {
-                (expandCollapsePattern as ExpandCollapsePattern).Collapse();
+                expandCollapsePattern.Collapse();
             }
             else
             {
@@ -142,15 +149,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
-        /// Selects an <see cref="AutomationElement"/>.
+        /// Selects an <see cref="IUIAutomationElement"/>.
         /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
-        /// support the <see cref="SelectionItemPattern"/>.
+        /// support the <see cref="IUIAutomationSelectionItemPattern"/>.
         /// </summary>
-        public static void Select(this AutomationElement element)
+        public static void Select(this IUIAutomationElement element)
         {
-            if (element.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var selectionItemPattern))
+            if (element.GetCurrentPattern(SelectionItemPatternIdentifiers.Pattern.Id) is IUIAutomationSelectionItemPattern selectionItemPattern)
             {
-                (selectionItemPattern as SelectionItemPattern).Select();
+                selectionItemPattern.Select();
             }
             else
             {
@@ -159,15 +166,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
-        /// Gets the value of the given <see cref="AutomationElement"/>.
+        /// Gets the value of the given <see cref="IUIAutomationElement"/>.
         /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
-        /// support the <see cref="ValuePattern"/>.
+        /// support the <see cref="IUIAutomationValuePattern"/>.
         /// </summary>
-        public static string GetValue(this AutomationElement element)
+        public static string GetValue(this IUIAutomationElement element)
         {
-            if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var valuePattern))
+            if (element.GetCurrentPattern(ValuePatternIdentifiers.Pattern.Id) is IUIAutomationValuePattern valuePattern)
             {
-                return (valuePattern as ValuePattern).Current.Value;
+                return valuePattern.CurrentValue;
             }
             else
             {
@@ -176,15 +183,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
-        /// Sets the value of the given <see cref="AutomationElement"/>.
+        /// Sets the value of the given <see cref="IUIAutomationElement"/>.
         /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
-        /// support the <see cref="ValuePattern"/>.
+        /// support the <see cref="IUIAutomationValuePattern"/>.
         /// </summary>
-        public static void SetValue(this AutomationElement element, string value)
+        public static void SetValue(this IUIAutomationElement element, string value)
         {
-            if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var valuePattern))
+            if (element.GetCurrentPattern(ValuePatternIdentifiers.Pattern.Id) is IUIAutomationValuePattern valuePattern)
             {
-                (valuePattern as ValuePattern).SetValue(value);
+                valuePattern.SetValue(value);
             }
             else
             {
@@ -193,21 +200,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
-        /// Given an <see cref="AutomationElement"/>, returns a descendent following the <paramref name="path"/>.
+        /// Given an <see cref="IUIAutomationElement"/>, returns a descendent following the <paramref name="path"/>.
         /// Throws an <see cref="InvalidOperationException"/> if no such descendant is found.
         /// </summary>
 
-        public static AutomationElement FindDescendantByPath(this AutomationElement element, string path)
+        public static IUIAutomationElement FindDescendantByPath(this IUIAutomationElement element, string path)
         {
             string[] pathParts = path.Split(".".ToCharArray());
 
             // traverse the path
-            AutomationElement item = element;
-            AutomationElement next = null;
+            IUIAutomationElement item = element;
+            IUIAutomationElement next = null;
 
             foreach (string pathPart in pathParts)
             {
-                next = item.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.LocalizedControlTypeProperty, pathPart));
+                next = item.FindFirst(TreeScope.TreeScope_Descendants, Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.LocalizedControlTypeProperty.Id, pathPart));
                 
                 if (next == null)
                 {
@@ -220,16 +227,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return item;
         }
 
-        private static void ThrowUnableToFindChildException(string path, AutomationElement item)
+        private static void ThrowUnableToFindChildException(string path, IUIAutomationElement item)
         {
             // if not found, build a list of available children for debugging purposes
             var validChildren = new List<string>();
 
             try
             {
-                foreach (AutomationElement sub in item.CachedChildren)
+                var children = item.GetCachedChildren();
+                for (int i = 0; i < children.Length; i++)
                 {
-                    validChildren.Add(SimpleControlTypeName(sub));
+                    validChildren.Add(SimpleControlTypeName(children.GetElement(i)));
                 }
             }
             catch (InvalidOperationException)
@@ -242,24 +250,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 string.Join(", ", validChildren)));
         }
 
-        private static string SimpleControlTypeName(AutomationElement element)
+        private static string SimpleControlTypeName(IUIAutomationElement element)
         {
-            ControlType type = element.GetCurrentPropertyValue(AutomationElement.ControlTypeProperty, true) as ControlType;
-            return type == null ? null : type.LocalizedControlType;
+            var type = ControlType.LookupById((int)element.GetCurrentPropertyValue(AutomationElementIdentifiers.ControlTypeProperty.Id));
+            return type?.LocalizedControlType;
         }
 
         /// <summary>
-        /// Returns true if the given <see cref="AutomationElement"/> is in the <see cref="ToggleState.On"/> state.
+        /// Returns true if the given <see cref="IUIAutomationElement"/> is in the <see cref="ToggleState.ToggleState_On"/> state.
         /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
-        /// support the <see cref="TogglePattern"/>.
+        /// support the <see cref="IUIAutomationTogglePattern"/>.
         /// </summary>
         /// <param name="element"></param>
         /// <returns></returns>
-        public static bool IsToggledOn(this AutomationElement element)
+        public static bool IsToggledOn(this IUIAutomationElement element)
         {
-            if (element.TryGetCurrentPattern(TogglePattern.Pattern, out var togglePattern))
+            if (element.GetCurrentPattern(TogglePatternIdentifiers.Pattern.Id) is IUIAutomationTogglePattern togglePattern)
             {
-                return (togglePattern as TogglePattern).Current.ToggleState == ToggleState.On;
+                return togglePattern.CurrentToggleState == ToggleState.ToggleState_On;
             }
             else
             {
@@ -268,15 +276,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
-        /// Cycles through the <see cref="ToggleState"/>s of the given <see cref="AutomationElement"/>.
+        /// Cycles through the <see cref="ToggleState"/>s of the given <see cref="IUIAutomationElement"/>.
         /// </summary>
         /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
-        /// support the <see cref="TogglePattern"/>.
-        public static void Toggle(this AutomationElement element)
+        /// support the <see cref="IUIAutomationTogglePattern"/>.
+        public static void Toggle(this IUIAutomationElement element)
         {
-            if (element.TryGetCurrentPattern(TogglePattern.Pattern, out var togglePattern))
+            if (element.GetCurrentPattern(TogglePatternIdentifiers.Pattern.Id) is IUIAutomationTogglePattern togglePattern)
             {
-                (togglePattern as TogglePattern).Toggle();
+                togglePattern.Toggle();
             }
             else
             {
@@ -285,11 +293,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
-        /// Given an <see cref="AutomationElement"/> returns a string representing the "name" of the element, if it has one.
+        /// Given an <see cref="IUIAutomationElement"/> returns a string representing the "name" of the element, if it has one.
         /// </summary>
-        private static string GetNameForExceptionMessage(this AutomationElement element)
+        private static string GetNameForExceptionMessage(this IUIAutomationElement element)
         {
-            return element.Current.AutomationId ?? element.Current.Name ?? "<unnamed>";
+            return element.CurrentAutomationId ?? element.CurrentName ?? "<unnamed>";
         }
     }
 }
