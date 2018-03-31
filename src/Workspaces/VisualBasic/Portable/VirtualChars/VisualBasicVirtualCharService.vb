@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VirtualChars
 
         Protected Overrides Function TryConvertToVirtualCharsWorker(token As SyntaxToken) As ImmutableArray(Of VirtualChar)
             Debug.Assert(Not token.ContainsDiagnostics)
-            Return TryConvertSimpleDoubleQuoteString(token, """", """")
+            Return TryConvertSimpleDoubleQuoteString(token, """")
         End Function
     End Class
 End Namespace
