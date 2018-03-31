@@ -286,6 +286,10 @@ function Build-ExtraSignArtifacts() {
         Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
         Write-Host "Publishing MSBuildTask"
         Run-MSBuild "..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
+        Write-Host "Building PortableFacades Swix"
+        Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.swixproj"
+        Write-Host "Building CompilersCodeAnalysis Swix"
+        Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.swixproj"
 
         $dest = @($configDir)
         foreach ($dir in $dest) { 
