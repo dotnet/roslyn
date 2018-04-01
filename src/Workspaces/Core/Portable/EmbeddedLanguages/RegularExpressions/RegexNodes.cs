@@ -474,6 +474,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             : base(RegexKind.LazyQuantifier)
         {
             Debug.Assert(quantifier != null);
+            Debug.Assert(quantifier.Kind != RegexKind.LazyQuantifier);
             Debug.Assert(questionToken.Kind == RegexKind.QuestionToken);
             Quantifier = quantifier;
             QuestionToken = questionToken;
