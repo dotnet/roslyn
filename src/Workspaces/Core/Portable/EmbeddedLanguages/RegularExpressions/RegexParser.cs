@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// and our parser mimics that behavior.  Note that even if trivia is allowed,
         /// the type of trivia that can be scanned depends on the current RegexOptions.
         /// For example, if <see cref="RegexOptions.IgnorePatternWhitespace"/> is currently
-        /// enabled, then '#...' comments are allowed.  Otherwise, only '(?#...)' comemnts
+        /// enabled, then '#...' comments are allowed.  Otherwise, only '(?#...)' comments
         /// are allowed.</param>
         private RegexToken ConsumeCurrentToken(bool allowTrivia)
         {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         /// <summary>
         /// Given an input text, and set of options, parses out a fully representative syntax tree 
-        /// and list of diagnotics.  Parsing should always succeed, except in the case of the stack 
+        /// and list of diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
         public static RegexTree TryParse(ImmutableArray<VirtualChar> text, RegexOptions options)
@@ -640,14 +640,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 RegexToken innerCloseParenToken;
                 if (capture.Kind == RegexKind.NumberToken)
                 {
-                    // If it's a numeric group, it has to be immediately followed by a )
-                    // and the numeric reference has to exist.
+                    // If it's a numeric group, it has to be immediately followed by a ) and the
+                    // numeric reference has to exist.
                     //
-                    // That means that (?(4 ) is not treated as an embedded expression but as
-                    // an error.  This is different from (?(a ) which will be treated as an 
-                    // embedded expression, and different from (?(a) will will be treated as
-                    // an embedded expression or capture group depending on if 'a' is a existing
-                    // capture name.
+                    // That means that (?(4 ) is not treated as an embedded expression but as an
+                    // error.  This is different from (?(a ) which will be treated as an embedded
+                    // expression, and different from (?(a) will be treated as an embedded
+                    // expression or capture group depending on if 'a' is a existing capture name.
 
                     ConsumeCurrentToken(allowTrivia: false);
                     if (_currentToken.Kind == RegexKind.CloseParenToken)
@@ -671,7 +670,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 }
                 else
                 {
-                    // If its a capture name, its ok if it that capture doesn't exist.  In that
+                    // If its a capture name, it's ok if it that capture doesn't exist.  In that
                     // case we will just treat this as an conditional expression.
                     if (!HasCapture((string)capture.Value))
                     {
@@ -715,7 +714,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             if (_currentToken.Kind != RegexKind.EndOfFile)
             {
-                // Move back to unconsume whatever we just consumed.
+                // Move back to un-consume whatever we just consumed.
                 _lexer.Position--;
             }
         }
@@ -767,7 +766,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             ConsumeCurrentToken(allowTrivia: false);
             Debug.Assert(_currentToken.Kind == RegexKind.OpenParenToken);
 
-            // Parse out the grouping that starts with teh second open paren in (?(
+            // Parse out the grouping that starts with the second open paren in (?(
             // this will get us to (?(...)
             var grouping = ParseGrouping();
 
@@ -775,7 +774,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // (?(...)...
             var result = ParseConditionalGroupingResult();
 
-            // Finallyy, grab the close paren and produce (?(...)...)
+            // Finally, grab the close paren and produce (?(...)...)
             return new RegexConditionalExpressionGroupingNode(
                 openParenToken, questionToken,
                 grouping, result, ParseGroupingCloseParen());
@@ -1563,9 +1562,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private RegexEscapeNode ParsePossibleEcmascriptBackreferenceEscape(
             RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
-            // Small deviation: Ecmascript allows references only to captures that preceed
+            // Small deviation: Ecmascript allows references only to captures that precede
             // this position (unlike .net which allows references in any direction).  However,
-            // because we don't track position, we just consume the entire backreference.
+            // because we don't track position, we just consume the entire back-reference.
             //
             // This is addressable if we add position tracking when we locate all the captures.
 
@@ -1661,10 +1660,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             if (capture.IsMissing || closeToken.IsMissing)
             {
-                // Native parser falls back to normal escape scanning, if it doesn't see 
-                // a capture, or close brace.  For normal .net regexes, this will then 
-                // fail later (as \k is not a legal escape), but will succeed for for
-                // ecmascript regexes.
+                // Native parser falls back to normal escape scanning, if it doesn't see a capture,
+                // or close brace.  For normal .net regexes, this will then fail later (as \k is not
+                // a legal escape), but will succeed for ecmascript regexes.
                 _lexer.Position = afterBackslashPosition;
                 return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
             }
