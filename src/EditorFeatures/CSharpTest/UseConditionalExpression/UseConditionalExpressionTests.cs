@@ -125,5 +125,38 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnAssignmentToDefinedField()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int i;
+
+    void M()
+    {
+        [||]if (true)
+        {
+            this.i = 0;
+        }
+        else
+        {
+            this.i = 1;
+        }
+    }
+}",
+@"
+class C
+{
+    int i;
+
+    void M()
+    {
+        this.i = true ? 0 : 1;
+    }
+}");
+        }
     }
 }
