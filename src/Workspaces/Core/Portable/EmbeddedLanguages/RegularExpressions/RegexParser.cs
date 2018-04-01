@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
+    using System.Collections.Generic;
     using static EmbeddedSyntaxHelpers;
     using static RegexHelpers;
 
@@ -109,33 +110,35 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             var root = new RegexCompilationUnit(expression, _currentToken);
 
+            var seenDiagnostics = new HashSet<EmbeddedDiagnostic>();
             var diagnostics = ArrayBuilder<EmbeddedDiagnostic>.GetInstance();
-            CollectDiagnostics(root, diagnostics);
+            CollectDiagnostics(root, seenDiagnostics, diagnostics);
 
             return new RegexTree(
                 _lexer.Text, root, diagnostics.ToImmutableAndFree(),
                 _captureNamesToSpan, _captureNumbersToSpan);
         }
 
-        private static void CollectDiagnostics(RegexNode node, ArrayBuilder<EmbeddedDiagnostic> diagnostics)
+        private static void CollectDiagnostics(
+            RegexNode node, HashSet<EmbeddedDiagnostic> seenDiagnostics, ArrayBuilder<EmbeddedDiagnostic> diagnostics)
         {
             foreach (var child in node)
             {
                 if (child.IsNode)
                 {
-                    CollectDiagnostics(child.Node, diagnostics);
+                    CollectDiagnostics(child.Node, seenDiagnostics, diagnostics);
                 }
                 else
                 {
                     var token = child.Token;
                     foreach (var trivia in token.LeadingTrivia)
                     {
-                        AddUniqueDiagnostics(trivia.Diagnostics, diagnostics);
+                        AddUniqueDiagnostics(seenDiagnostics, trivia.Diagnostics, diagnostics);
                     }
 
                     // We never place trailing trivia on regex tokens.
                     Debug.Assert(token.TrailingTrivia.IsEmpty);
-                    AddUniqueDiagnostics(token.Diagnostics, diagnostics);
+                    AddUniqueDiagnostics(seenDiagnostics, token.Diagnostics, diagnostics);
                 }
             }
         }
@@ -145,11 +148,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// have two 'missing )' diagnostics, both at the end.  Reporting both isn't helpful, so we
         /// filter duplicates out here.
         /// </summary>
-        private static void AddUniqueDiagnostics(ImmutableArray<EmbeddedDiagnostic> from, ArrayBuilder<EmbeddedDiagnostic> to)
+        private static void AddUniqueDiagnostics(
+            HashSet<EmbeddedDiagnostic> seenDiagnostics, ImmutableArray<EmbeddedDiagnostic> from, ArrayBuilder<EmbeddedDiagnostic> to)
         {
             foreach (var diagnostic in from)
             {
-                if (!to.Contains(diagnostic))
+                if (!seenDiagnostics.Add(diagnostic))
                 {
                     to.Add(diagnostic);
                 }
