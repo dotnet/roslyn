@@ -87,7 +87,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         internal override int ChildCount => 1;
 
-        internal override RegexNodeOrToken ChildAt(int index) => TextToken;
+        internal override RegexNodeOrToken ChildAt(int index)
+        {
+            switch (index)
+            {
+                case 0: return TextToken;
+            }
+
+            throw new InvalidOperationException();
+        }
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -272,7 +280,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         internal override int ChildCount => 1;
 
-        internal override RegexNodeOrToken ChildAt(int index) => TextToken;
+        internal override RegexNodeOrToken ChildAt(int index)
+        {
+            switch (index)
+            {
+                case 0: return TextToken;
+            }
+
+            throw new InvalidOperationException();
+        }
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -316,7 +332,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         internal override int ChildCount => 1;
 
-        internal override RegexNodeOrToken ChildAt(int index) => DotToken;
+        internal override RegexNodeOrToken ChildAt(int index)
+        {
+            switch (index)
+            {
+                case 0: return DotToken;
+            }
+
+            throw new InvalidOperationException();
+        }
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -624,7 +648,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         internal override int ChildCount => 1;
 
-        internal override RegexNodeOrToken ChildAt(int index) => AnchorToken;
+        internal override RegexNodeOrToken ChildAt(int index)
+        {
+            switch (index)
+            {
+                case 0: return AnchorToken;
+            }
+
+            throw new InvalidOperationException();
+        }
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
