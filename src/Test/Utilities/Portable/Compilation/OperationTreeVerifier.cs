@@ -943,6 +943,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.RightOperand, "Right");
         }
 
+        public override void VisitTupleBinaryOperator(ITupleBinaryOperation operation)
+        {
+            LogString(nameof(ITupleBinaryOperation));
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.OperatorKind}";
+
+            LogString($" ({kindStr})");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.LeftOperand, "Left");
+            Visit(operation.RightOperand, "Right");
+        }
+
         private void LogHasOperatorMethodExpressionCommon(IMethodSymbol operatorMethodOpt)
         {
             if (operatorMethodOpt != null)
@@ -1198,6 +1210,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Unindent();
             }
 
+            LogLocals(operation.Locals);
             base.VisitFieldInitializer(operation);
         }
 
@@ -1205,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IVariableInitializerOperation));
             LogCommonPropertiesAndNewLine(operation);
-
+            Assert.Empty(operation.Locals);
             base.VisitVariableInitializer(operation);
         }
 
@@ -1239,7 +1252,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 Unindent();
             }
-            
+
+            LogLocals(operation.Locals);
             base.VisitPropertyInitializer(operation);
         }
 
@@ -1250,6 +1264,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
+            LogLocals(operation.Locals);
             base.VisitParameterInitializer(operation);
         }
 
@@ -1408,7 +1423,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Body);
+            if (operation.Body != null)
+            {
+                if (operation.IgnoredBody != null)
+                {
+                    Visit(operation.Body, "Body");
+                    Visit(operation.IgnoredBody, "IgnoredBody");
+
+                }
+                else
+                {
+                    Visit(operation.Body);
+                }
+            }
+            else
+            {
+                Assert.Null(operation.IgnoredBody);
+            }
         }
 
         private void LogCaseClauseCommon(ICaseClauseOperation operation)
@@ -1540,6 +1571,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.EventReference, header: "Event Reference");
             VisitArguments(operation.Arguments);
+        }
+
+        public override void VisitConstructorBodyOperation(IConstructorBodyOperation operation)
+        {
+            LogString(nameof(IConstructorBodyOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            LogLocals(operation.Locals);
+            Visit(operation.Initializer, "Initializer");
+            Visit(operation.BlockBody, "BlockBody");
+            Visit(operation.ExpressionBody, "ExpressionBody");
+        }
+
+        public override void VisitMethodBodyOperation(IMethodBodyOperation operation)
+        {
+            LogString(nameof(IMethodBodyOperation));
+            LogCommonPropertiesAndNewLine(operation);
+            Visit(operation.BlockBody, "BlockBody");
+            Visit(operation.ExpressionBody, "ExpressionBody");
         }
 
         #endregion

@@ -99,15 +99,15 @@ End Namespace
                 "System.Collections.Generic.List(Of String)",
                 "System.Collections.ArrayList")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 source,
                 TestOptions.DebugExe.WithGlobalImports(globalImports).WithRootNamespace(""))
 
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="40, 26, 2D, BC, C1, 9A,  B, B7, 68, F0, ED, 8E, CA, 70, 22, 73, 78, 33, EA, C0, "/>
-        <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="94, 7A, FB,  B, 3B, B0, EF, 63, B9, ED, E8, A9, D0, 58, BA, D0, 21,  7, C2, CE, "/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="40-26-2D-BC-C1-9A-0B-B7-68-F0-ED-8E-CA-70-22-73-78-33-EA-C0"/>
+        <file id="2" name="b.vb" language="VB" checksumAlgorithm="SHA1" checksum="94-7A-FB-0B-3B-B0-EF-63-B9-ED-E8-A9-D0-58-BA-D0-21-07-C2-CE"/>
     </files>
     <entryPoint declaringType="Boo.C1" methodName="Main"/>
     <methods>
@@ -272,15 +272,15 @@ End Namespace
                 "System.Collections.Generic.List(Of String)",
                 "System.Collections.ArrayList")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 source,
                 TestOptions.DebugExe.WithGlobalImports(globalImports).WithRootNamespace("DefaultNamespace"))
 
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="93, 20, A5, 3E, 2C, 50, B2,  E, 7C, D6, 29, 3F, E9, 9E, 33, 72, A6, 21, FD, 3F, "/>
-        <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="94, 7A, FB,  B, 3B, B0, EF, 63, B9, ED, E8, A9, D0, 58, BA, D0, 21,  7, C2, CE, "/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="93-20-A5-3E-2C-50-B2-0E-7C-D6-29-3F-E9-9E-33-72-A6-21-FD-3F"/>
+        <file id="2" name="b.vb" language="VB" checksumAlgorithm="SHA1" checksum="94-7A-FB-0B-3B-B0-EF-63-B9-ED-E8-A9-D0-58-BA-D0-21-07-C2-CE"/>
     </files>
     <entryPoint declaringType="DefaultNamespace.Boo.C1" methodName="Main"/>
     <methods>
@@ -375,7 +375,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll)
+            Dim c = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
 
             Dim peStream1 = New MemoryStream()
             Dim peStream2 = New MemoryStream()
@@ -463,8 +463,8 @@ End Class
                 "GlobalZBad = N.SBad",
                 "GlobalNI = N.I")
 
-            Dim libRef = CreateCompilationWithMscorlib(sourceLib).EmitToImageReference(embedInteropTypes:=True)
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {libRef}, options:=TestOptions.DebugDll.WithGlobalImports(globalImports))
+            Dim libRef = CreateCompilationWithMscorlib40(sourceLib).EmitToImageReference(embedInteropTypes:=True)
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(source, {libRef}, options:=TestOptions.DebugDll.WithGlobalImports(globalImports))
             Dim v = CompileAndVerify(compilation)
 
             v.Diagnostics.Verify(
@@ -476,7 +476,7 @@ End Class
             v.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+      <file id="1" name="" language="VB" />
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -534,9 +534,9 @@ End Class
     </file>
 </compilation>
 
-            Dim libRef1 = CreateCompilationWithMscorlib(sourceLib1).EmitToImageReference()
-            Dim libRef2 = CreateCompilationWithMscorlibAndReferences(sourceLib2, {libRef1}).EmitToImageReference()
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {libRef2})
+            Dim libRef1 = CreateCompilationWithMscorlib40(sourceLib1).EmitToImageReference()
+            Dim libRef2 = CreateCompilationWithMscorlib40AndReferences(sourceLib2, {libRef1}).EmitToImageReference()
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(source, {libRef2})
 
             Dim v = CompileAndVerify(compilation)
 
@@ -546,7 +546,7 @@ End Class
             v.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+      <file id="1" name="" language="VB" />
     </files>
     <methods>
         <method containingType="C" name="M">

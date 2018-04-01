@@ -1078,11 +1078,12 @@ static class C
     static void F(this object o) { }
     static void F<T>(this T t) where T : struct { }
 }";
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (7,9): error CS0310: 'I' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C.E<T>(T)'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "i.E").WithArguments("C.E<T>(T)", "T", "I").WithLocation(7, 9),
                 // (9,9): error CS0453: The type 'I' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.F<T>(T)'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "i.F").WithArguments("C.F<T>(T)", "T", "I").WithLocation(9, 9));
+            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics();
         }
 
         [ClrOnlyFact]
@@ -2701,9 +2702,9 @@ class C<T> where T : IA, IB
                 // (3,29): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 //     static void M(A<object> a) { }
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "a").WithArguments("T", "T").WithLocation(3, 29),
-                // (6,9): error CS0454: Circular constraint dependency involving 'T' and 'U'
+                // (6,11): error CS0454: Circular constraint dependency involving 'T' and 'U'
                 //         B.M<string, string>();
-                Diagnostic(ErrorCode.ERR_CircularConstraint, "B.M<string, string>").WithArguments("T", "U").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "M<string, string>").WithArguments("T", "U").WithLocation(6, 11));
         }
 
         /// <summary>
@@ -2733,18 +2734,18 @@ class C<T> where T : IA, IB
             // Note: for method overload resolution, methods with use-site errors
             // are ignored so there is no constraint error for B.M<string>().
             CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics(
-                // (3,29): error CS0012: The type 'C' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //     static void M(A<object> a) { }
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("C", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 29),
                 // (3,29): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A<T>'. There is no implicit reference conversion from 'object' to 'C'.
                 //     static void M(A<object> a) { }
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "a").WithArguments("A<T>", "C", "T", "object").WithLocation(3, 29),
-                // (6,9): error CS0311: The type 'string' cannot be used as type parameter 'U' in the generic type or method 'B.M<U>()'. There is no implicit reference conversion from 'string' to 'C'.
+                // (3,29): error CS0012: The type 'C' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     static void M(A<object> a) { }
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("C", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 29),
+                // (6,11): error CS0311: The type 'string' cannot be used as type parameter 'U' in the generic type or method 'B.M<U>()'. There is no implicit reference conversion from 'string' to 'C'.
                 //         B.M<string>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "B.M<string>").WithArguments("B.M<U>()", "C", "U", "string").WithLocation(6, 9),
-                // (6,9): error CS0012: The type 'C' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<string>").WithArguments("B.M<U>()", "C", "U", "string").WithLocation(6, 11),
+                // (6,11): error CS0012: The type 'C' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         B.M<string>();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "B.M<string>").WithArguments("C", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M<string>").WithArguments("C", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 11));
         }
 
         [Fact]
@@ -2894,36 +2895,36 @@ class C5B : B5
     }
 }";
             CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics(
-                // (3,30): error CS0012: The type 'B1' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //     static void M(A1<object> a) { }
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("B1", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 30),
-                // (4,30): error CS0012: The type 'B2' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //     static void M(A2<object> a) { }
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("B2", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 30),
-                // (3,30): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A1<T>'. There is no implicit reference conversion from 'object' to 'B1'.
-                //     static void M(A1<object> a) { }
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "a").WithArguments("A1<T>", "B1", "T", "object").WithLocation(3, 30),
                 // (4,30): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A2<T>'. There is no implicit reference conversion from 'object' to 'B2'.
                 //     static void M(A2<object> a) { }
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "a").WithArguments("A2<T>", "B2", "T", "object").WithLocation(4, 30),
                 // (4,30): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A2<T>'. There is no implicit reference conversion from 'object' to 'I'.
                 //     static void M(A2<object> a) { }
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "a").WithArguments("A2<T>", "I", "T", "object").WithLocation(4, 30),
+                // (4,30): error CS0012: The type 'B2' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     static void M(A2<object> a) { }
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("B2", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 30),
                 // (4,30): error CS0012: The type 'I' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     static void M(A2<object> a) { }
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("I", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 30),
+                // (3,30): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A1<T>'. There is no implicit reference conversion from 'object' to 'B1'.
+                //     static void M(A1<object> a) { }
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "a").WithArguments("A1<T>", "B1", "T", "object").WithLocation(3, 30),
                 // (3,30): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 //     static void M(A1<object> a) { }
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "a").WithArguments("T", "T").WithLocation(3, 30),
-                // (7,9): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A3.M<T>()'. There is no implicit reference conversion from 'object' to 'B3'.
+                // (3,30): error CS0012: The type 'B1' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     static void M(A1<object> a) { }
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("B1", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 30),
+                // (7,12): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A3.M<T>()'. There is no implicit reference conversion from 'object' to 'B3'.
                 //         A3.M<object>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "A3.M<object>").WithArguments("A3.M<T>()", "B3", "T", "object").WithLocation(7, 9),
-                // (7,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<object>").WithArguments("A3.M<T>()", "B3", "T", "object").WithLocation(7, 12),
+                // (7,12): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 //         A3.M<object>();
-                Diagnostic(ErrorCode.ERR_CircularConstraint, "A3.M<object>").WithArguments("T", "T").WithLocation(7, 9),
-                // (7,9): error CS0012: The type 'B3' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "M<object>").WithArguments("T", "T").WithLocation(7, 12),
+                // (7,12): error CS0012: The type 'B3' is defined in an assembly that is not referenced. You must add a reference to assembly 'other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         A3.M<object>();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "A3.M<object>").WithArguments("B3", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M<object>").WithArguments("B3", "other, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 12));
         }
 
         // Same as UseSiteErrorMissingConstraintTypeAndCircularConstraint but
@@ -2963,30 +2964,30 @@ public class A3
 }";
             var compilation3 = CreateCompilation(source3, references: new MetadataReference[] { new CSharpCompilationReference(compilation2) });
             compilation3.VerifyDiagnostics(
-                // (3,30): error CS0012: The type 'B1' is defined in an assembly that is not referenced. You must add a reference to assembly 'd521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //     static void M(A1<object> a) { }
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("B1", "d521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 30),
-                // (4,30): error CS0012: The type 'B2' is defined in an assembly that is not referenced. You must add a reference to assembly 'd521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //     static void M(A2<object> a) { }
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("B2", "d521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 30),
-                // (3,30): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A1<T>'. There is no implicit reference conversion from 'object' to 'B1'.
-                //     static void M(A1<object> a) { }
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "a").WithArguments("A1<T>", "B1", "T", "object").WithLocation(3, 30),
                 // (4,30): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A2<T>'. There is no implicit reference conversion from 'object' to 'B2'.
                 //     static void M(A2<object> a) { }
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "a").WithArguments("A2<T>", "B2", "T", "object").WithLocation(4, 30),
                 // (4,30): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A2<T>'. There is no implicit reference conversion from 'object' to 'I'.
                 //     static void M(A2<object> a) { }
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "a").WithArguments("A2<T>", "I", "T", "object").WithLocation(4, 30),
+                // (4,30): error CS0012: The type 'B2' is defined in an assembly that is not referenced. You must add a reference to assembly 'd521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     static void M(A2<object> a) { }
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("B2", "d521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 30),
                 // (4,30): error CS0012: The type 'I' is defined in an assembly that is not referenced. You must add a reference to assembly 'd521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     static void M(A2<object> a) { }
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("I", "d521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 30),
-                // (7,9): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A3.M<T>()'. There is no implicit reference conversion from 'object' to 'B3'.
+                // (3,30): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A1<T>'. There is no implicit reference conversion from 'object' to 'B1'.
+                //     static void M(A1<object> a) { }
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "a").WithArguments("A1<T>", "B1", "T", "object").WithLocation(3, 30),
+                // (3,30): error CS0012: The type 'B1' is defined in an assembly that is not referenced. You must add a reference to assembly 'd521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     static void M(A1<object> a) { }
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "a").WithArguments("B1", "d521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 30),
+                // (7,12): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A3.M<T>()'. There is no implicit reference conversion from 'object' to 'B3'.
                 //         A3.M<object>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "A3.M<object>").WithArguments("A3.M<T>()", "B3", "T", "object").WithLocation(7, 9),
-                // (7,9): error CS0012: The type 'B3' is defined in an assembly that is not referenced. You must add a reference to assembly 'd521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<object>").WithArguments("A3.M<T>()", "B3", "T", "object").WithLocation(7, 12),
+                // (7,12): error CS0012: The type 'B3' is defined in an assembly that is not referenced. You must add a reference to assembly 'd521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         A3.M<object>();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "A3.M<object>").WithArguments("B3", "d521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "M<object>").WithArguments("B3", "d521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 12));
         }
 
         [WorkItem(542753, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542753")]
@@ -3258,6 +3259,11 @@ class C<T> : IT<T>
                 // (8,7): error CS0648: '' is a type not supported by the language
                 // class C<T> : IT<T>
                 Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7));
+
+            var m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
+            var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0];
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(constraintType);
+            Assert.False(((INamedTypeSymbol)constraintType).IsSerializable);
         }
 
         /// <summary>
@@ -3315,24 +3321,24 @@ class P
                 // (7,17): error CS0648: '' is a type not supported by the language
                 //     void I<A>.M<T>() { }
                 Diagnostic(ErrorCode.ERR_BogusType, "T").WithArguments("").WithLocation(7, 17),
-                // (13,9): error CS0311: The type 'A' cannot be used as type parameter 'T' in the generic type or method 'A.M<T>()'. There is no implicit reference conversion from 'A' to '?'.
+                // (13,17): error CS0311: The type 'A' cannot be used as type parameter 'T' in the generic type or method 'A.M<T>()'. There is no implicit reference conversion from 'A' to '?'.
                 //         new A().M<A>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "new A().M<A>").WithArguments("A.M<T>()", "?", "T", "A").WithLocation(13, 9),
-                // (13,9): error CS0648: '' is a type not supported by the language
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<A>").WithArguments("A.M<T>()", "?", "T", "A").WithLocation(13, 17),
+                // (13,17): error CS0648: '' is a type not supported by the language
                 //         new A().M<A>();
-                Diagnostic(ErrorCode.ERR_BogusType, "new A().M<A>").WithArguments("").WithLocation(13, 9),
+                Diagnostic(ErrorCode.ERR_BogusType, "M<A>").WithArguments("").WithLocation(13, 17),
                 // (15,13): error CS0311: The type 'A' cannot be used as type parameter 'T' in the generic type or method 'I<T>'. There is no implicit reference conversion from 'A' to '?'.
                 //         ((I<A>)new C()).M<A>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "A").WithArguments("I<T>", "?", "T", "A").WithLocation(15, 13),
                 // (15,13): error CS0648: '' is a type not supported by the language
                 //         ((I<A>)new C()).M<A>();
                 Diagnostic(ErrorCode.ERR_BogusType, "A").WithArguments("").WithLocation(15, 13),
-                // (15,9): error CS0311: The type 'A' cannot be used as type parameter 'U' in the generic type or method 'I<A>.M<U>()'. There is no implicit reference conversion from 'A' to '?'.
+                // (15,25): error CS0311: The type 'A' cannot be used as type parameter 'U' in the generic type or method 'I<A>.M<U>()'. There is no implicit reference conversion from 'A' to '?'.
                 //         ((I<A>)new C()).M<A>();
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "((I<A>)new C()).M<A>").WithArguments("I<A>.M<U>()", "?", "U", "A").WithLocation(15, 9),
-                // (15,9): error CS0648: '' is a type not supported by the language
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<A>").WithArguments("I<A>.M<U>()", "?", "U", "A").WithLocation(15, 25),
+                // (15,25): error CS0648: '' is a type not supported by the language
                 //         ((I<A>)new C()).M<A>();
-                Diagnostic(ErrorCode.ERR_BogusType, "((I<A>)new C()).M<A>").WithArguments("").WithLocation(15, 9));
+                Diagnostic(ErrorCode.ERR_BogusType, "M<A>").WithArguments("").WithLocation(15, 25));
         }
 
         /// <summary>
@@ -5034,12 +5040,16 @@ class C
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (11,26): error CS0311: The type 'object' cannot be used as type parameter 'U' in the generic type or method 'A<T, U>'. There is no implicit reference conversion from 'object' to 'I<object>'.
+                //         new A<I<object>, object>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "object").WithArguments("A<T, U>", "I<object>", "U", "object").WithLocation(11, 26),
-                // (12,9): error CS0311: The type 'string' cannot be used as type parameter 'U' in the generic type or method 'B<I<object>>.M<U>()'. There is no implicit reference conversion from 'string' to 'I<object>'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "B<I<object>>.M<string>").WithArguments("B<I<object>>.M<U>()", "I<object>", "U", "string").WithLocation(12, 9),
-                // (12,9): error CS0311: The type 'string' cannot be used as type parameter 'U' in the generic type or method 'B<I<object>>.M<U>()'. There is no implicit reference conversion from 'string' to 'I<string>'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "B<I<object>>.M<string>").WithArguments("B<I<object>>.M<U>()", "I<string>", "U", "string").WithLocation(12, 9),
+                // (12,22): error CS0311: The type 'string' cannot be used as type parameter 'U' in the generic type or method 'B<I<object>>.M<U>()'. There is no implicit reference conversion from 'string' to 'I<object>'.
+                //         B<I<object>>.M<string>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<string>").WithArguments("B<I<object>>.M<U>()", "I<object>", "U", "string").WithLocation(12, 22),
+                // (12,22): error CS0311: The type 'string' cannot be used as type parameter 'U' in the generic type or method 'B<I<object>>.M<U>()'. There is no implicit reference conversion from 'string' to 'I<string>'.
+                //         B<I<object>>.M<string>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<string>").WithArguments("B<I<object>>.M<U>()", "I<string>", "U", "string").WithLocation(12, 22),
                 // (13,9): error CS0311: The type 'object' cannot be used as type parameter 'T2' in the generic type or method 'C.M<T1, T2>()'. There is no implicit reference conversion from 'object' to 'I<object>'.
+                //         M<object, object>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<object, object>").WithArguments("C.M<T1, T2>()", "I<object>", "T2", "object").WithLocation(13, 9));
         }
 
@@ -5758,10 +5768,12 @@ class B : A<int, object>
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (23,9): error CS0314: The type 'U' cannot be used as type parameter 'U' in the generic type or method 'A<int, object>.M0<U>()'. There is no boxing conversion or type parameter conversion from 'U' to 'int'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "base.M0<U>").WithArguments("A<int, object>.M0<U>()", "int", "U", "U").WithLocation(23, 9),
-                // (24,9): error CS0314: The type 'U' cannot be used as type parameter 'U' in the generic type or method 'A<int, object>.M1<U>()'. There is no boxing conversion or type parameter conversion from 'U' to 'int'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "base.M1<U>").WithArguments("A<int, object>.M1<U>()", "int", "U", "U").WithLocation(24, 9));
+                // (23,14): error CS0314: The type 'U' cannot be used as type parameter 'U' in the generic type or method 'A<int, object>.M0<U>()'. There is no boxing conversion or type parameter conversion from 'U' to 'int'.
+                //         base.M0<U>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "M0<U>").WithArguments("A<int, object>.M0<U>()", "int", "U", "U").WithLocation(23, 14),
+                // (24,14): error CS0314: The type 'U' cannot be used as type parameter 'U' in the generic type or method 'A<int, object>.M1<U>()'. There is no boxing conversion or type parameter conversion from 'U' to 'int'.
+                //         base.M1<U>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "M1<U>").WithArguments("A<int, object>.M1<U>()", "int", "U", "U").WithLocation(24, 14));
         }
 
         [WorkItem(545588, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545588")]
@@ -5787,8 +5799,9 @@ class B : A<object[]>
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (12,9): error CS0311: The type 'U' cannot be used as type parameter 'V' in the generic type or method 'A<object[]>.M1<U, V>()'. There is no implicit reference conversion from 'U' to 'V'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "base.M1<V, U>").WithArguments("A<object[]>.M1<U, V>()", "V", "V", "U").WithLocation(12, 9));
+                // (12,14): error CS0311: The type 'U' cannot be used as type parameter 'V' in the generic type or method 'A<object[]>.M1<U, V>()'. There is no implicit reference conversion from 'U' to 'V'.
+                //         base.M1<V, U>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M1<V, U>").WithArguments("A<object[]>.M1<U, V>()", "V", "V", "U").WithLocation(12, 14));
         }
 
         [Fact]

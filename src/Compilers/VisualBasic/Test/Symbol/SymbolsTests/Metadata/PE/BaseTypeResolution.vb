@@ -318,7 +318,7 @@ End Class
             Dim crossRefModule2 = TestReferences.SymbolsTests.netModule.CrossRefModule2
             Dim crossRefLib = TestReferences.SymbolsTests.netModule.CrossRefLib
 
-            Dim compilation1 = CreateCompilationWithMscorlibAndReferences(compilationDef1, {crossRefLib}, TestOptions.ReleaseDll)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndReferences(compilationDef1, {crossRefLib}, TestOptions.ReleaseDll)
 
             AssertNoErrors(compilation1)
 
@@ -344,7 +344,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(compilationDef2, {crossRefModule1, crossRefModule2}, TestOptions.ReleaseDll)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(compilationDef2, {crossRefModule1, crossRefModule2}, TestOptions.ReleaseDll)
 
             AssertNoErrors(compilation2)
 
@@ -356,7 +356,7 @@ End Class
             Assert.False(m4.BaseType.IsErrorType())
             Assert.False(m4.BaseType.BaseType.IsErrorType())
 
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(compilationDef2, {crossRefModule2}, TestOptions.ReleaseDll)
+            Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(compilationDef2, {crossRefModule2}, TestOptions.ReleaseDll)
 
             m3 = compilation3.GetTypeByMetadataName("M3")
             m4 = compilation3.GetTypeByMetadataName("M4")

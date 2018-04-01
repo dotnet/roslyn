@@ -30,7 +30,7 @@ End Interface
 ]]>
                            </file>
                        </compilation>
-            Dim comp1 = CreateCompilationWithReferences(text, references:={MscorlibRef_v20})
+            Dim comp1 = CreateEmptyCompilationWithReferences(text, references:={MscorlibRef_v20})
             Dim ref1 = comp1.EmitToImageReference()
             Dim text2 =
 <compilation>
@@ -44,13 +44,13 @@ End Class]]>
     </file>
 </compilation>
 
-            Dim comp2 = CreateCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, ref1})
+            Dim comp2 = CreateEmptyCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, ref1})
 
             Dim it = comp2.SourceModule.GlobalNamespace.GetTypeMember("C").Interfaces.Single()
             Assert.False(it.CoClassType.IsErrorType())
 
             ' Test retargeting symbols by using the compilation itself as a reference
-            Dim comp3 = CreateCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, comp1.ToMetadataReference()})
+            Dim comp3 = CreateEmptyCompilationWithReferences(text2, references:={MscorlibRef_v4_0_30316_17626, comp1.ToMetadataReference()})
             Dim it2 = comp3.SourceModule.GlobalNamespace.GetTypeMember("C").Interfaces.Single()
             Assert.Same(comp3.SourceModule.GetReferencedAssemblySymbols()(0), it2.CoClassType.ContainingAssembly)
             Assert.False(it2.CoClassType.IsErrorType())
@@ -1472,7 +1472,7 @@ End Class]]>
 } // end of class Class1
 ]]>.Value
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40(
                 <compilation>
                     <file name="a.vb">
                         <![CDATA[

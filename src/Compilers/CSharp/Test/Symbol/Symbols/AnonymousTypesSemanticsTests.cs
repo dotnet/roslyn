@@ -73,6 +73,9 @@ public class ClassA
                             data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 5).Span,
                             9, 10, 11);
 
+            Assert.Equal("AnonymousTypePublicSymbol", info0.Type.GetType().Name);
+            Assert.False(((INamedTypeSymbol)info0.Type).IsSerializable);
+
             Assert.Equal(info0.Type, info2.Type);
             Assert.NotEqual(info0.Type, info1.Type);
 

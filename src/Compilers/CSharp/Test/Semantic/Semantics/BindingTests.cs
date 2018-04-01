@@ -2406,6 +2406,11 @@ class C
 }
 ";
 
+            CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+                // (15,15): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
+                //         new D(M)();
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(15, 15)
+                );
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
                 // (15,15): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
                 //         new D(M)();
@@ -2468,6 +2473,11 @@ class C
 }
 ";
 
+            CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+                // (19,11): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
+                //         M(M);
+                Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(19, 11)
+                );
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
                 // (19,11): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
                 //         M(M);
