@@ -1181,7 +1181,9 @@ namespace Microsoft.CodeAnalysis
         private void CheckAllowedProjectChanges(ProjectChanges projectChanges)
         {
             if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions
-                && !this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions))
+                && !this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions)
+                && !this.CanApplyCompilationOptionChange(
+                    projectChanges.OldProject.CompilationOptions, projectChanges.NewProject.CompilationOptions, projectChanges.NewProject))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_compilation_options_is_not_supported);
             }
@@ -1261,6 +1263,9 @@ namespace Microsoft.CodeAnalysis
                 throw new NotSupportedException(WorkspacesResources.Removing_analyzer_references_is_not_supported);
             }
         }
+
+        protected virtual bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
+            => false;
 
         protected virtual bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
             => false;

@@ -206,6 +206,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return false;
         }
 
+        protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
+        {
+            if (!(oldOptions is CSharpCompilationOptions oldCSharpOptions))
+            {
+                return false;
+            }
+
+            // Currently, only changes to AllowUnsafe of C# compilation options are supported.
+            return oldCSharpOptions.WithAllowUnsafe(((CSharpCompilationOptions)newOptions).AllowUnsafe) == newOptions;
+        }
+
         protected override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
         {
             var parseOptionsService = project.LanguageServices.GetService<IParseOptionsService>();
