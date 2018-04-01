@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (_lexer.IsAt("(?#"))
             {
                 var pos = _lexer.Position;
-                var comment = _lexer.ScanComment(default);
+                var comment = _lexer.ScanComment(options: default);
                 _lexer.Position = pos;
 
                 if (comment.Value.Diagnostics.Length > 0)
