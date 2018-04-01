@@ -486,8 +486,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexPrimaryExpressionNode ParseText()
         {
+            var token = ConsumeCurrentToken(allowTrivia: true);
+            Debug.Assert(token.Value == null);
+
             // Allow trivia between this piece of text and the next sequence element
-            return new RegexTextNode(ConsumeCurrentToken(allowTrivia: true).With(kind: RegexKind.TextToken));
+            return new RegexTextNode(token.With(kind: RegexKind.TextToken));
         }
 
         private RegexPrimaryExpressionNode ParseEndAnchor()
