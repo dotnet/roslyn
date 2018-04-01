@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -241,6 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.AddAdditionalDocument:
                 case ApplyChangesKind.RemoveAdditionalDocument:
                 case ApplyChangesKind.ChangeAdditionalDocument:
+                case ApplyChangesKind.ChangeCompilationOptions:
                 case ApplyChangesKind.ChangeParseOptions:
                     return true;
 
@@ -302,6 +304,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return analyzerReference.FullPath;
         }
 
+        protected override void ApplyCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
+            foreach (string configurationName in (object[])project.ConfigurationManager.ConfigurationRowNames)
+            {
+                switch (hostProject.Language)
+                {
+                    case LanguageNames.CSharp:
+                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)project.ConfigurationManager
+                            .ConfigurationRow(configurationName).Item(1).Object;
+
+                        csharpProperties.AllowUnsafeBlocks = ((CSharpCompilationOptions)options).AllowUnsafe;
+                        break;
+
+                    case LanguageNames.VisualBasic:
+                        throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_parse_options);
+                }
+            }
+        }
+
         protected override void ApplyParseOptionsChanged(ProjectId projectId, ParseOptions options)
         {
             if (projectId == null)
@@ -316,7 +348,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<IParseOptionsService>();
             Contract.ThrowIfNull(parseOptionsService, nameof(parseOptionsService));
-
+            
             string newVersion = parseOptionsService.GetLanguageVersion(options);
 
             GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
