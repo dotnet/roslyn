@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 // TODO likely adding more semantic checks will perform checks we expect from GetDiagnostics
                 // We may consider removing GetDiagnostics.
                 // https://github.com/dotnet/roslyn/issues/25639
-                if (TryConvertInternal(queryExpressionProcessingInfo, out documentUpdateInfo) &&
+                if ((TryConvertInternal(queryExpressionProcessingInfo, out documentUpdateInfo) ||
+                    TryReplaceWithLocalFunction(queryExpressionProcessingInfo, out documentUpdateInfo)) &&  // second attempt: at least to a local function
                     !_semanticModel.GetDiagnostics(_source.Span, _cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
                 {
                     if (!documentUpdateInfo.Source.IsParentKind(SyntaxKind.Block) &&
@@ -221,32 +222,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     // return from a in b select a;
                     case SyntaxKind.ReturnStatement:
-                        if (TryConvertIfInReturnStatement((ReturnStatementSyntax)parent, queryExpressionProcessingInfo, out documentUpdateInfo))
-                        {
-                            return true;
-                        }
-
-                        break;
+                        return TryConvertIfInReturnStatement((ReturnStatementSyntax)parent, queryExpressionProcessingInfo, out documentUpdateInfo);
                     // foreach(var x in from a in b select a)
                     case SyntaxKind.ForEachStatement:
-                        if (TryConvertIfInForEach((ForEachStatementSyntax)parent, queryExpressionProcessingInfo, out documentUpdateInfo))
-                        {
-                            return true;
-                        }
-
-                        break;
+                        return TryConvertIfInForEach((ForEachStatementSyntax)parent, queryExpressionProcessingInfo, out documentUpdateInfo);
                     // (from a in b select a).ToList(), (from a in b select a).Count(), etc.
                     case SyntaxKind.SimpleMemberAccessExpression:
-                        if (TryConvertIfInMemberAccessExpression((MemberAccessExpressionSyntax)parent, queryExpressionProcessingInfo, out documentUpdateInfo))
-                        {
-                            return true;
-                        }
-
-                        break;
+                        return TryConvertIfInMemberAccessExpression((MemberAccessExpressionSyntax)parent, queryExpressionProcessingInfo, out documentUpdateInfo);
                 }
 
-                // second attempt: at least to a local function
-                return TryReplaceWithLocalFunction(queryExpressionProcessingInfo, out documentUpdateInfo);
+                documentUpdateInfo = default;
+                return false;
             }
 
             /// <summary>
@@ -537,56 +523,72 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             private bool TryReplaceWithLocalFunction(QueryExpressionProcessingInfo queryExpressionProcessingInfo, out DocumentUpdateInfo documentUpdateInfo)
             {
                 var parentStatement = _source.GetAncestorOrThis<StatementSyntax>();
-                if (parentStatement != null)
+                if (parentStatement == null)
                 {
-                    // before statement ... from a in select b ...
-                    // after
-                    // IEnumerable<T> localFunction()
-                    // {
-                    //   foreach(var a in b)
-                    //   {
-                    //       yield return a;
-                    //   }
-                    // }
-                    //  statement ... localFunction();
-                    var returnedType = _semanticModel.GetTypeInfo((SelectClauseSyntax)queryExpressionProcessingInfo.Stack.Peek()).ConvertedType;
-                    if (returnedType.OriginalDefinition?.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
+                    documentUpdateInfo = default;
+                    return false;
+                }
+
+                // before statement ... from a in select b ...
+                // after
+                // IEnumerable<T> localFunction()
+                // {
+                //   foreach(var a in b)
+                //   {
+                //       yield return a;
+                //   }
+                // }
+                //  statement ... localFunction();
+                var returnTypeInfo = _semanticModel.GetTypeInfo(_source, _cancellationToken);
+                ITypeSymbol returnedType;
+
+                if (returnTypeInfo.Type.OriginalDefinition?.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
+                {
+                    returnedType = returnTypeInfo.Type;
+                }
+                else
+                {
+                    if (returnTypeInfo.ConvertedType.OriginalDefinition?.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
                     {
-                        StatementSyntax internalNodeMethod(ExpressionSyntax expression)
-                            => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, expression);
-
-                        var statements = GenerateStatements(internalNodeMethod, queryExpressionProcessingInfo);
-                        string localFunctionNamePrefix = _semanticFacts.GenerateNameForExpression(
-                            _semanticModel,
-                            _source,
-                            capitalize: false,
-                            _cancellationToken);
-                        SyntaxToken localFunctionToken = GetFreeSymbolNameAndMarkUsed(localFunctionNamePrefix);
-                        var localFunctionDeclaration = SyntaxFactory.LocalFunctionStatement(
-                            modifiers: default,
-                            returnType: returnedType.GenerateTypeSyntax().WithAdditionalAnnotations(Simplifier.Annotation),
-                            identifier: localFunctionToken,
-                            typeParameterList: null,
-                            parameterList: SyntaxFactory.ParameterList(),
-                            constraintClauses: default,
-                            body: SyntaxFactory.Block(
-                                SyntaxFactory.Token(
-                                    SyntaxFactory.TriviaList(),
-                                    SyntaxKind.OpenBraceToken,
-                                    SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Environment.NewLine))),
-                                SyntaxFactory.List(statements),
-                                SyntaxFactory.Token(SyntaxKind.CloseBraceToken)),
-                            expressionBody: null);
-
-                        var localFunctionInvocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(localFunctionToken)).WithAdditionalAnnotations(Simplifier.Annotation);
-                        StatementSyntax newParentExpressionStatement = parentStatement.ReplaceNode(_source.WalkUpParentheses(), localFunctionInvocation.WithAdditionalAnnotations(Simplifier.Annotation));
-                        documentUpdateInfo = new DocumentUpdateInfo(parentStatement, new[] { localFunctionDeclaration, newParentExpressionStatement });
-                        return true;
+                        returnedType = returnTypeInfo.ConvertedType;
+                    }
+                    else
+                    {
+                        documentUpdateInfo = default;
+                        return false;
                     }
                 }
 
-                documentUpdateInfo = default;
-                return false;
+                StatementSyntax internalNodeMethod(ExpressionSyntax expression)
+                    => SyntaxFactory.YieldStatement(SyntaxKind.YieldReturnStatement, expression);
+
+                var statements = GenerateStatements(internalNodeMethod, queryExpressionProcessingInfo);
+                string localFunctionNamePrefix = _semanticFacts.GenerateNameForExpression(
+                    _semanticModel,
+                    _source,
+                    capitalize: false,
+                    _cancellationToken);
+                SyntaxToken localFunctionToken = GetFreeSymbolNameAndMarkUsed(localFunctionNamePrefix);
+                var localFunctionDeclaration = SyntaxFactory.LocalFunctionStatement(
+                    modifiers: default,
+                    returnType: returnedType.GenerateTypeSyntax().WithAdditionalAnnotations(Simplifier.Annotation),
+                    identifier: localFunctionToken,
+                    typeParameterList: null,
+                    parameterList: SyntaxFactory.ParameterList(),
+                    constraintClauses: default,
+                    body: SyntaxFactory.Block(
+                        SyntaxFactory.Token(
+                            SyntaxFactory.TriviaList(),
+                            SyntaxKind.OpenBraceToken,
+                            SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Environment.NewLine))),
+                        SyntaxFactory.List(statements),
+                        SyntaxFactory.Token(SyntaxKind.CloseBraceToken)),
+                    expressionBody: null);
+
+                var localFunctionInvocation = SyntaxFactory.InvocationExpression(SyntaxFactory.IdentifierName(localFunctionToken)).WithAdditionalAnnotations(Simplifier.Annotation);
+                StatementSyntax newParentExpressionStatement = parentStatement.ReplaceNode(_source.WalkUpParentheses(), localFunctionInvocation.WithAdditionalAnnotations(Simplifier.Annotation));
+                documentUpdateInfo = new DocumentUpdateInfo(parentStatement, new[] { localFunctionDeclaration, newParentExpressionStatement });
+                return true;
             }
 
             private SyntaxToken GetFreeSymbolNameAndMarkUsed(string prefix)
@@ -719,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 QueryExpressionProcessingInfo queryExpressionProcessingInfo,
                 out DocumentUpdateInfo documentUpdateInfo)
             {
-                // The conversion requires yield return which cSnnot be added to lambdas and anonymous method declarations.
+                // The conversion requires yield return which cannot be added to lambdas and anonymous method declarations.
                 if (IsWithinImmediateLambdaOrAnonymousMethod(returnStatement))
                 {
                     documentUpdateInfo = default;

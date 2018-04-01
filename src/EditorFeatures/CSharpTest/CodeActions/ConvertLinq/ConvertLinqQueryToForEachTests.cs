@@ -2402,7 +2402,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
-        public async Task AsQueryable()
+        public async Task IQueryable()
         {
             string source = @"
 using System.Collections.Generic;
@@ -2417,6 +2417,112 @@ class C
 }";
 
             await TestMissingAsync(source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task IQueryableConvertedToIEnumerableInReturn()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        return [|from int n1 in nums.AsQueryable() select n1|];
+    }
+}";
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        foreach (int n1 in nums.AsQueryable())
+        {
+            yield return n1;
+        }
+
+        yield break;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task IQueryableConvertedToIEnumerableInAssignment()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(IEnumerable<int> nums)
+    {
+        IEnumerable<int> q = [|from int n1 in nums.AsQueryable() select n1|];
+    }
+}";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(IEnumerable<int> nums)
+    {
+        IEnumerable<int> queryable()
+        {
+            foreach (int n1 in nums.AsQueryable())
+            {
+                yield return n1;
+            }
+        }
+
+        IEnumerable<int> q = queryable();
+    }
+}";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertQueryToForEach)]
+        public async Task IQueryableInInvocation()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(IEnumerable<int> nums)
+    {
+        int c = ([|from int n1 in nums.AsQueryable() select n1|]).Count();
+    }
+}";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(IEnumerable<int> nums)
+    {
+        int c = 0;
+        foreach (int n1 in nums.AsQueryable())
+        {
+            c++;
+        }
+    }
+}";
+
+            await TestInRegularAndScriptAsync(source, output);
         }
 
         #endregion
