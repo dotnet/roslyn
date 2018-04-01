@@ -329,7 +329,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         break;
 
                     case LanguageNames.VisualBasic:
-                        throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_parse_options);
+                        throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_compilation_options);
                 }
             }
         }

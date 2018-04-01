@@ -1528,6 +1528,11 @@ L'utente accetta le condizioni sopra riportate:</target>
         <target state="new">Live code analysis</target>
         <note />
       </trans-unit>
+      <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
+        <source>This workspace does not support updating Visual Basic compilation options.</source>
+        <target state="new">This workspace does not support updating Visual Basic compilation options.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
