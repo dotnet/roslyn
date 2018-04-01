@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         {
             var generator = editor.Generator;
             var assignment = generator.ExpressionStatement(generator.AssignmentStatement(
-                trueAssignment.Target.Syntax, conditionalExpression).WithTriviaFrom(ifOperation.Syntax));
+                trueAssignment.Target.Syntax, conditionalExpression)).WithTriviaFrom(ifOperation.Syntax);
             editor.ReplaceNode(ifOperation.Syntax, assignment);
         }
 
