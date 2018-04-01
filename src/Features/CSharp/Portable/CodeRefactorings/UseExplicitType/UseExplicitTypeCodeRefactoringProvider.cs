@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseExplicitType), Shared]
     internal partial class UseExplicitTypeCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private static readonly CSharpUseExplicitTypeHelper s_useExplicitTypeHelper = CSharpUseExplicitTypeHelper.Instance;
-
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
 
             Debug.Assert(declaration.IsKind(SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression));
 
-            var declaredType = s_useExplicitTypeHelper.FindAnalyzableType(declaration, semanticModel, cancellationToken);
+            var declaredType = CSharpUseExplicitTypeHelper.Instance.FindAnalyzableType(declaration, semanticModel, cancellationToken);
             if (declaredType == null)
             {
                 return;
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
                 return;
             }
 
-            var typeStyle = s_useExplicitTypeHelper.AnalyzeTypeName(
+            var typeStyle = CSharpUseExplicitTypeHelper.Instance.AnalyzeTypeName(
                 declaredType, semanticModel, optionSet, cancellationToken);
             if (!typeStyle.CanConvert)
             {
