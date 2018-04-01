@@ -338,5 +338,29 @@ class C
     {  CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithNoneEnforcement }
 }));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestUseImplicitTypeWherePossible()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M()
+    {
+        int i = 0;
+        [||]if (true)
+        {
+            i = 0;
+        }
+        else
+        {
+            i = 1;
+        }
+    }
+}", new TestParameters(options: new Dictionary<OptionKey, object> {
+    {  CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement }
+}));
+        }
     }
 }
