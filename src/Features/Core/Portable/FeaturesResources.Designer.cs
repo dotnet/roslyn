@@ -2811,6 +2811,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Return statement can be simplified.
+        /// </summary>
+        internal static string Return_statement_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Return statement can be simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Returns:.
         /// </summary>
         internal static string Returns_colon {
@@ -2924,6 +2933,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Simplify_object_initialization {
             get {
                 return ResourceManager.GetString("Simplify_object_initialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Simplify return statement.
+        /// </summary>
+        internal static string Simplify_return_statement {
+            get {
+                return ResourceManager.GetString("Simplify_return_statement", resourceCulture);
             }
         }
         

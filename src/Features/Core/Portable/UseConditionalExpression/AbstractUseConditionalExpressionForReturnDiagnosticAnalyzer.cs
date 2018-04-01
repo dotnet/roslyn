@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
-    internal abstract class AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer<
+    internal abstract class AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer<
         TSyntaxKind>
         : AbstractCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_assignment), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Assignment_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+        protected AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId,
+                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_return_statement), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.Return_statement_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
          
@@ -46,15 +46,15 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return;
             }
 
-            var option = optionSet.GetOption(CodeStyleOptions.PreferConditionalExpressionOverAssignment, language);
+            var option = optionSet.GetOption(CodeStyleOptions.PreferConditionalExpressionOverReturn, language);
             if (!option.Value)
             {
                 return;
             }
 
             var ifOperation = (IConditionalOperation)context.SemanticModel.GetOperation(ifStatement);
-            if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
-                    ifOperation, out _, out _, out _))
+            if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
+                    ifOperation))
             {
                 return;
             }

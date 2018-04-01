@@ -1358,4 +1358,10 @@ This version used in: {2}</value>
   <data name="Simplify_assignment" xml:space="preserve">
     <value>Simplify assignment</value>
   </data>
+  <data name="Return statement can be simplified" xml:space="preserve">
+    <value>Return statement can be simplified</value>
+  </data>
+  <data name="Simplify_return_statement" xml:space="preserve">
+    <value>Simplify return statement</value>
+  </data>
 </root>

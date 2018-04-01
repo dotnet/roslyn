@@ -98,6 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 }
 
                 var variable = variableDeclaration.Variables.Single();
+                if (variable.Initializer == null)
+                {
+                    return false;
+                }
+
                 var initializer = variable.Initializer.Value;
 
                 // Do not suggest var replacement for stackalloc span expressions.
@@ -168,11 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             // Do the expensive check.  Note: we can't use the SpeculationAnalyzer (or any
-            // speculative analyzers) here.  This is due to https://github.com/dotnet/roslyn/issues/20724.
-            // Specifically, all the speculative helpers do not deal with with changes to code that
-            // introduces a variable (in this case, the declaration expression).  The compiler sees
-            // this as an error because there are now two colliding variables, which causes all sorts
-            // of errors to be reported.
+            // speculative analyzers) here.  This is due to
+            // https://github.com/dotnet/roslyn/issues/20724. Specifically, all the speculative
+            // helpers do not deal with  changes to code that introduces a variable (in this case,
+            // the declaration expression).  The compiler sees this as an error because there are
+            // now two colliding variables, which causes all sorts of errors to be reported.
             var tree = semanticModel.SyntaxTree;
             var root = tree.GetRoot(cancellationToken);
             var annotation = new SyntaxAnnotation();

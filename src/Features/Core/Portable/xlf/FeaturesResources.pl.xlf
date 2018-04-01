@@ -2025,6 +2025,16 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="new">Simplify assignment</target>
         <note />
       </trans-unit>
+      <trans-unit id="Return statement can be simplified">
+        <source>Return statement can be simplified</source>
+        <target state="new">Return statement can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_return_statement">
+        <source>Simplify return statement</source>
+        <target state="new">Simplify return statement</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
