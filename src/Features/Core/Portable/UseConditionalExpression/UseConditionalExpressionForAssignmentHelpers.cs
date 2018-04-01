@@ -16,19 +16,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             trueAssignment = null;
             falseAssignment = null;
 
-            var parentBlock = ifOperation.Parent as IBlockOperation;
-            if (parentBlock == null)
-            {
-                return false;
-            }
-
-            // var syntaxFacts = GetSyntaxFactsService();
-            var ifIndex = parentBlock.Operations.IndexOf(ifOperation);
-            if (ifIndex < 0)
-            {
-                return false;
-            }
-
             var trueStatement = ifOperation.WhenTrue;
             var falseStatement = ifOperation.WhenFalse;
 
