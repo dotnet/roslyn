@@ -140,45 +140,47 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         public RegexTrivia? ScanComment(RegexOptions options)
         {
-            if (Position < Text.Length)
+            if (Position >= Text.Length)
             {
-                if (HasOption(options, RegexOptions.IgnorePatternWhitespace))
-                {
-                    if (Text[Position] == '#')
-                    {
-                        var start = Position;
+                return null;
+            }
 
-                        // Note: \n is the only newline the native regex parser looks for.
-                        while (Position < Text.Length &&
-                               Text[Position] != '\n')
-                        {
-                            Position++;
-                        }
-
-                        return CreateTrivia(RegexKind.CommentTrivia, GetSubPatternToCurrentPos(start));
-                    }
-                }
-
-                if (IsAt("(?#"))
+            if (HasOption(options, RegexOptions.IgnorePatternWhitespace))
+            {
+                if (Text[Position] == '#')
                 {
                     var start = Position;
+
+                    // Note: \n is the only newline the native regex parser looks for.
                     while (Position < Text.Length &&
-                           Text[Position] != ')')
+                            Text[Position] != '\n')
                     {
                         Position++;
                     }
 
-                    if (Position == Text.Length)
-                    {
-                        var diagnostics = ImmutableArray.Create(new EmbeddedDiagnostic(
-                            WorkspacesResources.Unterminated_regex_comment,
-                            GetTextSpan(start, Position)));
-                        return CreateTrivia(RegexKind.CommentTrivia, GetSubPatternToCurrentPos(start), diagnostics);
-                    }
-
-                    Position++;
                     return CreateTrivia(RegexKind.CommentTrivia, GetSubPatternToCurrentPos(start));
                 }
+            }
+
+            if (IsAt("(?#"))
+            {
+                var start = Position;
+                while (Position < Text.Length &&
+                        Text[Position] != ')')
+                {
+                    Position++;
+                }
+
+                if (Position == Text.Length)
+                {
+                    var diagnostics = ImmutableArray.Create(new EmbeddedDiagnostic(
+                        WorkspacesResources.Unterminated_regex_comment,
+                        GetTextSpan(start, Position)));
+                    return CreateTrivia(RegexKind.CommentTrivia, GetSubPatternToCurrentPos(start), diagnostics);
+                }
+
+                Position++;
+                return CreateTrivia(RegexKind.CommentTrivia, GetSubPatternToCurrentPos(start));
             }
 
             return null;
