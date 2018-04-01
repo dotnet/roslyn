@@ -73,8 +73,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var conditionalExpression = (TExpressionSyntax)generator.ConditionalExpression(
                 ifOperation.Condition.Syntax.WithoutTrivia(),
-                generator.CastExpression(trueAssignment.Target.Type, trueAssignment.Value.Syntax.WithoutTrivia()),
-                generator.CastExpression(falseAssignment.Target.Type, falseAssignment.Value.Syntax.WithoutTrivia()));
+                GetValueFromAssignment(generator, trueAssignment),
+                GetValueFromAssignment(generator, falseAssignment));
 
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
 
@@ -88,14 +88,19 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 editor, ifOperation, trueAssignment, falseAssignment, conditionalExpression);
         }
 
+        private SyntaxNode GetValueFromAssignment(SyntaxGenerator generator, ISimpleAssignmentOperation assignment)
+            => assignment.Target.Type != null
+                ? generator.CastExpression(assignment.Target.Type, assignment.Value.Syntax.WithoutTrivia())
+                : assignment.Value.Syntax.WithoutTrivia();
+
         private void ConvertOnlyIfToConditionalExpression(
             SyntaxEditor editor, IConditionalOperation ifOperation,
             ISimpleAssignmentOperation trueAssignment, ISimpleAssignmentOperation falseAssignment,
             TExpressionSyntax conditionalExpression)
         {
             var generator = editor.Generator;
-            var assignment = generator.AssignmentStatement(
-                trueAssignment.Target.Syntax, conditionalExpression).WithTriviaFrom(ifOperation.Syntax);
+            var assignment = generator.ExpressionStatement(generator.AssignmentStatement(
+                trueAssignment.Target.Syntax, conditionalExpression).WithTriviaFrom(ifOperation.Syntax));
             editor.ReplaceNode(ifOperation.Syntax, assignment);
         }
 

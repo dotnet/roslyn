@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             //      local = expr;
             if (!(statement is IExpressionStatementOperation exprStatement) ||
                 !(exprStatement.Operation is ISimpleAssignmentOperation assignmentOp) ||
-                assignmentOp.Target == null ||
-                assignmentOp.Target.Type == null)
+                assignmentOp.Target == null)
             {
                 assignment = default;
                 return false;
