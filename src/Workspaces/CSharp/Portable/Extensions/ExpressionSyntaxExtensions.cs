@@ -2302,7 +2302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            var candidateReplacementNode = SyntaxFactory.IdentifierName("var")
+            replacementNode = SyntaxFactory.IdentifierName("var")
                 .WithLeadingTrivia(simpleName.GetLeadingTrivia())
                 .WithTrailingTrivia(simpleName.GetTrailingTrivia());
             var candidateIssueSpan = simpleName.Span;
