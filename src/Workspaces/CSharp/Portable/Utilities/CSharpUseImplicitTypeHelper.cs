@@ -75,6 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
+            if (!semanticModel.SyntaxTree.HasCompilationUnitRoot)
+            {
+                return false;
+            }
+
             Debug.Assert(!typeName.IsVar, "'var' special case should have prevented analysis of this variable.");
 
             var candidateReplacementNode = SyntaxFactory.IdentifierName("var");
