@@ -4054,9 +4054,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value)
             => SyntaxFactory.EqualsValueClause(operatorToken, (ExpressionSyntax)value);
 
-        internal override SyntaxNode EqualsValueClause(SyntaxNode value)
-            => SyntaxFactory.EqualsValueClause((ExpressionSyntax)value);
-
         private static VariableDeclarationSyntax VariableDeclaration(SyntaxNode type, string name, SyntaxNode expression = null)
         {
             return SyntaxFactory.VariableDeclaration(
