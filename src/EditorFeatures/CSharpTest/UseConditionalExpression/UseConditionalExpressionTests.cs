@@ -423,7 +423,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestConversionWithUseVarForAll()
+        public async Task TestConversionWithUseVarForAll_CannotUseVarBecauseTypeWouldChange()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -450,6 +450,66 @@ class C
     {
         // keep object even though both values are strings
         object o = true ? ""a"" : ""b"";
+    }
+}", options: s_preferImplicitTypeAlways);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestConversionWithUseVarForAll_CanUseVarBecauseConditionalTypeMatches()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        string s;
+        [||]if (true)
+        {
+            s = ""a"";
+        }
+        else
+        {
+            s = null;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        var s = true ? ""a"" : null;
+    }
+}", options: s_preferImplicitTypeAlways);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestConversionWithUseVarForAll_CanUseVarButRequiresCastOfConditionalBranch()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        string s;
+        [||]if (true)
+        {
+            s = null;
+        }
+        else
+        {
+            s = null;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        var s = true ? null : (string)null;
     }
 }", options: s_preferImplicitTypeAlways);
         }
