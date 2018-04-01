@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             if (parensDesignation is null)
             {
                 var typeSymbol = semanticModel.GetTypeInfo(typeSyntax).ConvertedType;
-                var typeName = typeSymbol.GenerateTypeSyntax()
+                var typeName = typeSymbol.GenerateTypeSyntax(allowVar: false)
                     .WithLeadingTrivia(node.GetLeadingTrivia())
                     .WithTrailingTrivia(node.GetTrailingTrivia());
                 Debug.Assert(!typeName.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");

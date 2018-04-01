@@ -2291,6 +2291,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
+            if (simpleName.HasAnnotation(DoNotAllowVarAnnotation.Annotation))
+            {
+                return false;
+            }
+
             var candidateReplacementNode = SyntaxFactory.IdentifierName("var")
                 .WithLeadingTrivia(simpleName.GetLeadingTrivia())
                 .WithTrailingTrivia(simpleName.GetTrailingTrivia());
