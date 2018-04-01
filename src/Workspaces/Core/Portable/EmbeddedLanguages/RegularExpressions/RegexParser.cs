@@ -648,75 +648,73 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
             }
-            else
+
+        var capture = captureToken.Value;
+
+            RegexToken innerCloseParenToken;
+            if (capture.Kind == RegexKind.NumberToken)
             {
-                var capture = captureToken.Value;
+                // If it's a numeric group, it has to be immediately followed by a ) and the
+                // numeric reference has to exist.
+                //
+                // That means that (?(4 ) is not treated as an embedded expression but as an
+                // error.  This is different from (?(a ) which will be treated as an embedded
+                // expression, and different from (?(a) will be treated as an embedded
+                // expression or capture group depending on if 'a' is a existing capture name.
 
-                RegexToken innerCloseParenToken;
-                if (capture.Kind == RegexKind.NumberToken)
+                ConsumeCurrentToken(allowTrivia: false);
+                if (_currentToken.Kind == RegexKind.CloseParenToken)
                 {
-                    // If it's a numeric group, it has to be immediately followed by a ) and the
-                    // numeric reference has to exist.
-                    //
-                    // That means that (?(4 ) is not treated as an embedded expression but as an
-                    // error.  This is different from (?(a ) which will be treated as an embedded
-                    // expression, and different from (?(a) will be treated as an embedded
-                    // expression or capture group depending on if 'a' is a existing capture name.
-
-                    ConsumeCurrentToken(allowTrivia: false);
-                    if (_currentToken.Kind == RegexKind.CloseParenToken)
+                    innerCloseParenToken = _currentToken;
+                    if (!HasCapture((int)capture.Value))
                     {
-                        innerCloseParenToken = _currentToken;
-                        if (!HasCapture((int)capture.Value))
-                        {
-                            capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                                WorkspacesResources.Reference_to_undefined_group,
-                                capture.GetSpan()));
-                        }
-                    }
-                    else
-                    {
-                        innerCloseParenToken = CreateMissingToken(RegexKind.CloseParenToken);
                         capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                            WorkspacesResources.Malformed,
+                            WorkspacesResources.Reference_to_undefined_group,
                             capture.GetSpan()));
-                        MoveBackBeforePreviousScan();
                     }
                 }
                 else
                 {
-                    // If its a capture name, it's ok if it that capture doesn't exist.  In that
-                    // case we will just treat this as an conditional expression.
-                    if (!HasCapture((string)capture.Value))
-                    {
-                        _lexer.Position = afterInnerOpenParen;
-                        return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
-                    }
-
-                    // Capture name existed.  For this to be a capture grouping it exactly has to
-                    // match (?(a)   anything other than a close paren after the ) will make this
-                    // into a conditional expression.
-                    ConsumeCurrentToken(allowTrivia: false);
-                    if (_currentToken.Kind != RegexKind.CloseParenToken)
-                    {
-                        _lexer.Position = afterInnerOpenParen;
-                        return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
-                    }
-
-                    innerCloseParenToken = _currentToken;
+                    innerCloseParenToken = CreateMissingToken(RegexKind.CloseParenToken);
+                    capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
+                        WorkspacesResources.Malformed,
+                        capture.GetSpan()));
+                    MoveBackBeforePreviousScan();
+                }
+            }
+            else
+            {
+                // If its a capture name, it's ok if it that capture doesn't exist.  In that
+                // case we will just treat this as an conditional expression.
+                if (!HasCapture((string)capture.Value))
+                {
+                    _lexer.Position = afterInnerOpenParen;
+                    return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
                 }
 
-                // Was (?(name) or (?(num)  and name/num was a legal capture name.  Parse
-                // this out as a conditional grouping.  Because we're going to be parsing out
-                // an embedded sequence, allow trivia before the first element.
-                ConsumeCurrentToken(allowTrivia: true);
-                var result = ParseConditionalGroupingResult();
+                // Capture name existed.  For this to be a capture grouping it exactly has to
+                // match (?(a)   anything other than a close paren after the ) will make this
+                // into a conditional expression.
+                ConsumeCurrentToken(allowTrivia: false);
+                if (_currentToken.Kind != RegexKind.CloseParenToken)
+                {
+                    _lexer.Position = afterInnerOpenParen;
+                    return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
+                }
 
-                return new RegexConditionalCaptureGroupingNode(
-                    openParenToken, questionToken,
-                    innerOpenParenToken, capture, innerCloseParenToken,
-                    result, ParseGroupingCloseParen());
+                innerCloseParenToken = _currentToken;
             }
+
+            // Was (?(name) or (?(num)  and name/num was a legal capture name.  Parse
+            // this out as a conditional grouping.  Because we're going to be parsing out
+            // an embedded sequence, allow trivia before the first element.
+            ConsumeCurrentToken(allowTrivia: true);
+            var result = ParseConditionalGroupingResult();
+
+            return new RegexConditionalCaptureGroupingNode(
+                openParenToken, questionToken,
+                innerOpenParenToken, capture, innerCloseParenToken,
+                result, ParseGroupingCloseParen());
         }
 
         private bool HasCapture(int value)
