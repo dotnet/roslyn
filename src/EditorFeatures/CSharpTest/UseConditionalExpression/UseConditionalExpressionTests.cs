@@ -22,6 +22,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
             => (new CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer(),
                 new CSharpUseConditionalExpressionForAssignmentCodeRefactoringProvider());
 
+        private static readonly Dictionary<OptionKey, object> s_preferImplicitTypeAlways = new Dictionary<OptionKey, object>
+        {
+            { CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithNoneEnforcement },
+            { CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement },
+            { CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithNoneEnforcement },
+        };            
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnSimpleAssignment()
         {
@@ -413,6 +420,38 @@ class C
         i = 1;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestConversionWithUseVarForAll()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        // keep object even though both values are strings
+        object o;
+        [||]if (true)
+        {
+            o = ""a"";
+        }
+        else
+        {
+            o = ""b"";
+        }
+    }
+}",
+@"
+class C
+{
+    void M(
+    {
+        // keep object even though both values are strings
+        object o = true ? ""a"" : ""b"";
+    }
+}", options: s_preferImplicitTypeAlways);
         }
     }
 }
