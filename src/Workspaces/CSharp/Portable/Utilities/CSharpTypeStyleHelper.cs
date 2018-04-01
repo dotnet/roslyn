@@ -10,40 +10,48 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
+    internal struct TypeStyleResult
+    {
+        public readonly bool CanConvert;
+        public readonly bool IsStylePreferred;
+        public readonly DiagnosticSeverity Severity;
+
+        public TypeStyleResult(bool canConvert, bool isStylePreferred, DiagnosticSeverity severity)
+        {
+            CanConvert = canConvert;
+            IsStylePreferred = isStylePreferred;
+            Severity = severity;
+        }
+    }
+
     internal abstract partial class CSharpTypeStyleHelper
     {
         protected abstract bool IsStylePreferred(
             SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken);
 
-        public virtual bool TryAnalyzeVariableDeclaration(
-            TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, 
-            CancellationToken cancellationToken, out DiagnosticSeverity severity)
+        public virtual TypeStyleResult AnalyzeTypeName(
+            TypeSyntax typeName, SemanticModel semanticModel,
+            OptionSet optionSet, CancellationToken cancellationToken)
         {
-            severity = default;
-
             var declaration = typeName?.FirstAncestorOrSelf<SyntaxNode>(
                 a => a.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement));
 
             if (declaration == null)
             {
-                return false;
+                return default;
             }
 
             var state = State.Generate(
                 declaration, semanticModel, optionSet, cancellationToken);
 
-            if (!this.IsStylePreferred(semanticModel, optionSet, state, cancellationToken))
-            {
-                return false;
-            }
-
             if (!TryAnalyzeVariableDeclaration(typeName, semanticModel, optionSet, cancellationToken))
             {
-                return false;
+                return default;
             }
 
-            severity = state.GetDiagnosticSeverityPreference();
-            return true;
+            var isTypePreferred = this.IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
+            return new TypeStyleResult(
+                true, isTypePreferred, state.GetDiagnosticSeverityPreference());
         }
 
         protected abstract bool TryAnalyzeVariableDeclaration(
@@ -76,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         protected virtual bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            // implict type is applicable only for local variables and
+            // implicit type is applicable only for local variables and
             // such declarations cannot have multiple declarators and
             // must have an initializer.
             var isSupportedParentKind = variableDeclaration.IsParentKind(

@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 }
             }
 
-            public bool ShouldNotify() =>
-                GetDiagnosticSeverityPreference() != DiagnosticSeverity.Hidden;
+            public bool ShouldNotify() 
+                => GetDiagnosticSeverityPreference() != DiagnosticSeverity.Hidden;
 
             private void Initialize(SyntaxNode declaration, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
             {

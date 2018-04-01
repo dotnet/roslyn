@@ -60,14 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return;
             }
 
-            if (!Helper.TryAnalyzeVariableDeclaration(
-                    declaredType, semanticModel, optionSet, cancellationToken, out var severity))
+            var typeStyle = Helper.AnalyzeTypeName(
+                declaredType, semanticModel, optionSet, cancellationToken);
+            if (!typeStyle.CanConvert)
+            {
+                return;
+            }
+
+            if (!typeStyle.IsStylePreferred)
             {
                 return;
             }
 
             // The severity preference is not Hidden, as indicated by IsStylePreferred.
-            var descriptor = GetDescriptorWithSeverity(severity);
+            var descriptor = GetDescriptorWithSeverity(typeStyle.Severity);
             context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.Span));
         }
 

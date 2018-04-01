@@ -68,8 +68,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
                 return;
             }
 
-            if (!s_useExplicitTypeHelper.TryAnalyzeVariableDeclaration(
-                    declaredType, semanticModel, optionSet, cancellationToken, out _))
+            var typeStyle = s_useExplicitTypeHelper.AnalyzeTypeName(
+                declaredType, semanticModel, optionSet, cancellationToken);
+            if (!typeStyle.CanConvert)
+            {
+                return;
+            }
+
+            // UseExplicitType analyzer/fixer already gives an action in this case
+            if (typeStyle.IsStylePreferred)
             {
                 return;
             }

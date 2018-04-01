@@ -2277,8 +2277,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            if (!CSharpUseImplicitTypeHelper.Instance.TryAnalyzeVariableDeclaration(
-                    simpleName, semanticModel, optionSet, cancellationToken, out _))
+            var typeStyle = CSharpUseImplicitTypeHelper.Instance.AnalyzeTypeName(
+                simpleName, semanticModel, optionSet, cancellationToken);
+
+            if (!typeStyle.CanConvert || !typeStyle.IsStylePreferred)
             {
                 replacementNode = null;
                 issueSpan = default;

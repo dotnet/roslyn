@@ -22,30 +22,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
         }
 
-        public override bool TryAnalyzeVariableDeclaration(
+        public override TypeStyleResult AnalyzeTypeName(
             TypeSyntax typeName, SemanticModel semanticModel, 
-            OptionSet optionSet, CancellationToken cancellationToken, 
-            out DiagnosticSeverity severity)
+            OptionSet optionSet, CancellationToken cancellationToken)
         {
-            severity = default;
-
             if (typeName.IsVar)
             {
-                return false;
+                return default;
             }
 
             if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration))
             {
-                return false;
+                return default;
             }
 
             if (typeName.HasAnnotation(DoNotAllowVarAnnotation.Annotation))
             {
-                return false;
+                return default;
             }
 
-            return base.TryAnalyzeVariableDeclaration(
-                typeName, semanticModel, optionSet, cancellationToken, out severity);
+            return base.AnalyzeTypeName(
+                typeName, semanticModel, optionSet, cancellationToken);
         }
 
         protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
