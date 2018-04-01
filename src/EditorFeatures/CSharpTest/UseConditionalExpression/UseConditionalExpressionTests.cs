@@ -316,9 +316,9 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestVarWhen()
+        public async Task TestUseImplicitTypeWhereApparent()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"
 class C
 {
@@ -334,17 +334,9 @@ class C
             i = 1;
         }
     }
-}",
-@"
-class C
-{
-    void M()
-    {
-        var i = true ? 0 : 1;
-    }
-}", options: new Dictionary<OptionKey, object> {
-    {  CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithNoneEnforcement }
-});
+}", new TestParameters(options: new Dictionary<OptionKey, object> {
+    {  CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithNoneEnforcement }
+}));
         }
     }
 }
