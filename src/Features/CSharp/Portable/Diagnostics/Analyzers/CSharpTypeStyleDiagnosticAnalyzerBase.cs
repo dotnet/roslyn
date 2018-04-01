@@ -60,22 +60,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return;
             }
 
-            var state = CSharpTypeStyleContext.Generate(declarationStatement, semanticModel, optionSet,
-                isVariableDeclarationContext: declarationStatement.IsKind(SyntaxKind.VariableDeclaration), cancellationToken: cancellationToken);
-
-            if (!Helper.IsStylePreferred(semanticModel, optionSet, state, cancellationToken))
-            {
-                return;
-            }
-
-            Debug.Assert(state != null, "analyzing a declaration and state is null.");
-            if (!Helper.TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken))
+            if (!Helper.TryAnalyzeVariableDeclaration(
+                    declaredType, semanticModel, optionSet, cancellationToken, out var severity))
             {
                 return;
             }
 
             // The severity preference is not Hidden, as indicated by IsStylePreferred.
-            var descriptor = GetDescriptorWithSeverity(state.GetDiagnosticSeverityPreference());
+            var descriptor = GetDescriptorWithSeverity(severity);
             context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.Span));
         }
 

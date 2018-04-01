@@ -68,17 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
                 return;
             }
 
-            var state = CSharpTypeStyleContext.Generate(declaration, semanticModel, optionSet,
-                isVariableDeclarationContext: declaration.IsKind(SyntaxKind.VariableDeclaration), cancellationToken: cancellationToken);
-
-            // UseExplicitType analyzer/fixer already gives an action in this case
-            if (s_useExplicitTypeHelper.IsStylePreferred(semanticModel, optionSet, state, cancellationToken))
-            {
-                return;
-            }
-
-            Debug.Assert(state != null, "analyzing a declaration and state is null.");
-            if (!s_useExplicitTypeHelper.TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken))
+            if (!s_useExplicitTypeHelper.TryAnalyzeVariableDeclaration(
+                    declaredType, semanticModel, optionSet, cancellationToken, out _))
             {
                 return;
             }

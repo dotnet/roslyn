@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
@@ -19,6 +20,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         private CSharpUseImplicitTypeHelper()
         {
+        }
+
+        public override bool TryAnalyzeVariableDeclaration(
+            TypeSyntax typeName, SemanticModel semanticModel, 
+            OptionSet optionSet, CancellationToken cancellationToken, 
+            out DiagnosticSeverity severity)
+        {
+            severity = default;
+
+            if (typeName.IsVar)
+            {
+                return false;
+            }
+
+            if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration))
+            {
+                return false;
+            }
+
+            if (typeName.HasAnnotation(DoNotAllowVarAnnotation.Annotation))
+            {
+                return false;
+            }
+
+            return base.TryAnalyzeVariableDeclaration(
+                typeName, semanticModel, optionSet, cancellationToken, out severity);
         }
 
         protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -46,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return base.ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken);
         }
 
-        public override bool IsStylePreferred(
-            SemanticModel semanticModel, OptionSet optionSet, 
-            CSharpTypeStyleContext state, CancellationToken cancellationToken)
+        protected override bool IsStylePreferred(
+            SemanticModel semanticModel, OptionSet optionSet,
+            State state, CancellationToken cancellationToken)
         {
             var stylePreferences = state.TypeStylePreference;
             var shouldNotify = state.ShouldNotify();
@@ -73,7 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
         }
 
-        public override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+        protected override bool TryAnalyzeVariableDeclaration(
+            TypeSyntax typeName, SemanticModel semanticModel,
+            OptionSet optionSet, CancellationToken cancellationToken)
         {
             if (!semanticModel.SyntaxTree.HasCompilationUnitRoot)
             {

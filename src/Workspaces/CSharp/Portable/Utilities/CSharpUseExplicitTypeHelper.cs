@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
         }
 
-        public override bool IsStylePreferred(
-            SemanticModel semanticModel, OptionSet optionSet, 
-            CSharpTypeStyleContext state, CancellationToken cancellationToken)
+        protected override bool IsStylePreferred(
+            SemanticModel semanticModel, OptionSet optionSet,
+            State state, CancellationToken cancellationToken)
         {
             var stylePreferences = state.TypeStylePreference;
             var shouldNotify = state.ShouldNotify();
@@ -69,7 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return base.ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken);
         }
 
-        public override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+        protected override bool TryAnalyzeVariableDeclaration(
+            TypeSyntax typeName, SemanticModel semanticModel,
+            OptionSet optionSet, CancellationToken cancellationToken)
         {
             // var (x, y) = e;
             // foreach (var (x, y) in e) ...

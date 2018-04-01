@@ -6,15 +6,49 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal abstract partial class CSharpTypeStyleHelper
     {
-        public abstract bool IsStylePreferred(
-            SemanticModel semanticModel, OptionSet optionSet, CSharpTypeStyleContext state, CancellationToken cancellationToken);
+        protected abstract bool IsStylePreferred(
+            SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken);
 
-        public abstract bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
+        public virtual bool TryAnalyzeVariableDeclaration(
+            TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, 
+            CancellationToken cancellationToken, out DiagnosticSeverity severity)
+        {
+            severity = default;
+
+            var declaration = typeName?.FirstAncestorOrSelf<SyntaxNode>(
+                a => a.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement));
+
+            if (declaration == null)
+            {
+                return false;
+            }
+
+            var state = State.Generate(
+                declaration, semanticModel, optionSet, cancellationToken);
+
+            if (!this.IsStylePreferred(semanticModel, optionSet, state, cancellationToken))
+            {
+                return false;
+            }
+
+            if (!TryAnalyzeVariableDeclaration(typeName, semanticModel, optionSet, cancellationToken))
+            {
+                return false;
+            }
+
+            severity = state.GetDiagnosticSeverityPreference();
+            return true;
+        }
+
+        protected abstract bool TryAnalyzeVariableDeclaration(
+            TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
+
         protected abstract bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
 
         internal TypeSyntax FindAnalyzableType(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)

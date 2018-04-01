@@ -2277,35 +2277,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            replacementNode = null;
-            issueSpan = default;
-
-            // If it is already var
-            if (simpleName.IsVar)
-            {
-                return false;
-            }
-
-            if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration))
-            {
-                return false;
-            }
-
-            if (simpleName.HasAnnotation(DoNotAllowVarAnnotation.Annotation))
-            {
-                return false;
-            }
-
             if (!CSharpUseImplicitTypeHelper.Instance.TryAnalyzeVariableDeclaration(
-                    simpleName, semanticModel, optionSet, cancellationToken))
+                    simpleName, semanticModel, optionSet, cancellationToken, out _))
             {
+                replacementNode = null;
+                issueSpan = default;
                 return false;
             }
 
             replacementNode = SyntaxFactory.IdentifierName("var")
                 .WithLeadingTrivia(simpleName.GetLeadingTrivia())
                 .WithTrailingTrivia(simpleName.GetTrailingTrivia());
-            var candidateIssueSpan = simpleName.Span;
+            issueSpan = simpleName.Span;
             return true;
         }
 
