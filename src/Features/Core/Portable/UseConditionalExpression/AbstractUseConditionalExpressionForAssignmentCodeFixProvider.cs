@@ -169,8 +169,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
-            var declarationOperation = localDeclaration.Declarations[0];
-            var declarators = declarationOperation.Declarators;
+            var declaration = localDeclaration.Declarations[0];
+            var declarators = declaration.Declarators;
             if (declarators.Length != 1)
             {
                 return false;
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var variableName = variable.Name;
 
-            var variableInitializer = declarator.Initializer;
+            var variableInitializer = declarator.Initializer ?? declaration.Initializer;
             if (variableInitializer?.Value != null)
             {
                 var unwrapped = UnwrapImplicitConversion(variableInitializer.Value);
