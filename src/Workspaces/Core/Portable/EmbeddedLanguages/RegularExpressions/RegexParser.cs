@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             foreach (var diagnostic in from)
             {
-                if (!seenDiagnostics.Add(diagnostic))
+                if (seenDiagnostics.Add(diagnostic))
                 {
                     to.Add(diagnostic);
                 }
