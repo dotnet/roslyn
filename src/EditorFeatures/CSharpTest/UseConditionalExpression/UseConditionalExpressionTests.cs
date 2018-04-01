@@ -378,5 +378,41 @@ class C
     {  CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement }
 });
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestMissingWithoutElse()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            i = 0;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestMissingWithoutElseWithStatementAfterwards()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            i = 0;
+        }
+
+        i = 1;
+    }
+}");
+        }
     }
 }
