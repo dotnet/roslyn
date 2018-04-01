@@ -184,7 +184,7 @@ class C
 {
     void M()
     {
-        var i = true ? 0 : 1;
+        int i = true ? 0 : 1;
     }
 }");
         }
@@ -214,7 +214,7 @@ class C
 {
     void M()
     {
-        var i = true ? 0 : 1;
+        int i = true ? 0 : 1;
     }
 }");
         }
@@ -222,7 +222,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnAssignmentToAboveLocalDefaultLiteralInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"
 class C
 {
@@ -244,9 +244,9 @@ class C
 {
     void M()
     {
-        var i = true ? 0 : 1;
+        int i = true ? 0 : 1;
     }
-}");
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
@@ -274,7 +274,7 @@ class C
 {
     void M()
     {
-        var i = true ? 0 : 1;
+        int i = true ? 0 : 1;
     }
 }");
         }

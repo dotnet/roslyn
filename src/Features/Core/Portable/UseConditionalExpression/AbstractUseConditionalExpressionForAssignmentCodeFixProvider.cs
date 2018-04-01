@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         private SyntaxNode GetValueFromAssignment(SyntaxGenerator generator, ISimpleAssignmentOperation assignment)
-            => assignment.Target.Type != null
+            => assignment.Target.Type != null && assignment.Target.Type.TypeKind != TypeKind.Error
                 ? generator.CastExpression(assignment.Target.Type, assignment.Value.Syntax.WithoutTrivia())
                 : assignment.Value.Syntax.WithoutTrivia();
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // See if both assignments are to the same local.
             if (!(trueAssignment.Target is ILocalReferenceOperation trueLocal) ||
                 !(falseAssignment.Target is ILocalReferenceOperation falseLocal) ||
-                !Equals(trueLocal, falseLocal))
+                !Equals(trueLocal.Local, falseLocal.Local))
             {
                 return false;
             }
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var declarator = declarators[0];
             var variable = declarator.Symbol;
-            if (!Equals(variable, trueLocal))
+            if (!Equals(variable, trueLocal.Local))
             {
                 // wasn't a declaration of the local we're assigning to.
                 return false;
@@ -186,10 +186,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var variableName = variable.Name;
 
-            var variableInitialier = declarator.Initializer;
-            if (variableInitialier?.Value != null)
+            var variableInitializer = declarator.Initializer;
+            if (variableInitializer?.Value != null)
             {
-                var unwrapped = UnwrapImplicitConversion(variableInitialier.Value);
+                var unwrapped = UnwrapImplicitConversion(variableInitializer.Value);
                 // the variable has to either not have an initializer, or it needs to be basic
                 // literal/default expression.
                 if (!(unwrapped is ILiteralOperation) &&
