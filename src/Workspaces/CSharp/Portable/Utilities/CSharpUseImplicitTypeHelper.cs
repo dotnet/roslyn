@@ -102,7 +102,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     return false;
                 }
 
-                var variable = variableDeclaration.Variables.Single();
+                if (variableDeclaration.Variables.Count != 1)
+                {
+                    return false;
+                }
+
+                var variable = variableDeclaration.Variables[0];
                 if (variable.Initializer == null)
                 {
                     return false;

@@ -865,7 +865,7 @@ options: ImplicitTypingEverywhere());
 
     static void Main()
     {
-        G<int>.@class {|Rename:class1|} = new G<int>.@class();
+        var {|Rename:class1|} = new G<int>.@class();
         G<int>.Add(class1);
     }
 }");
