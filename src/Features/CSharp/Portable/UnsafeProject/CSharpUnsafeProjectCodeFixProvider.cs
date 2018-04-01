@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnsafeProject
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new ParseOptionsChangeAction(UnsafeThisProjectResource, _ =>
+            context.RegisterCodeFix(new ProjectOptionsChangeAction(UnsafeThisProjectResource, _ =>
                 Task.FromResult(AllowUnsafeOnProject(context.Document.Project))), context.Diagnostics);
             return Task.CompletedTask;
         }
