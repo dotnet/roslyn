@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         public readonly ImmutableArray<VirtualChar> VirtualChars;
         public readonly ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> TrailingTrivia;
         internal readonly ImmutableArray<EmbeddedDiagnostic> Diagnostics;
+
+        /// <summary>
+        /// Returns the value of the token. For example, if the token represents an integer capture,
+        /// then this property would return the actual integer.
+        /// </summary>
         public readonly object Value;
 
         public EmbeddedSyntaxToken(
