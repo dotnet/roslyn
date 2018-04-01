@@ -106,7 +106,7 @@
       "strongName": null,
       "values": [
         "Dlls\\ServicesTestUtilities\\Roslyn.Services.Test.Utilities.dll",
-        "Dlls\\TestUtilities\\net461\\Roslyn.Test.Utilities.dll",
+        "Dlls\\TestUtilities\\net46\\Roslyn.Test.Utilities.dll",
         "Dlls\\VisualStudioIntegrationTestUtilities\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll",
         "Vsix\\VisualStudioIntegrationTestSetup\\Microsoft.VisualStudio.IntegrationTest.Setup.dll"
       ]
