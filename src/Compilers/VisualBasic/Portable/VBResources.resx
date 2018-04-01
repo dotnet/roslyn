@@ -5530,4 +5530,10 @@
   <data name="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment" xml:space="preserve">
     <value>{0} is not a valid Visual Basic compound assignment operation</value>
   </data>
+  <data name="WRN_AttributeNotSupportedInVB" xml:space="preserve">
+    <value>'{0}' is not supported in VB.</value>
+  </data>
+  <data name="WRN_AttributeNotSupportedInVB_Title" xml:space="preserve">
+    <value>Attribute is not supported in VB</value>
+  </data>
 </root>

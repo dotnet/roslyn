@@ -9081,6 +9081,16 @@
         <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB">
+        <source>'{0}' is not supported in VB.</source>
+        <target state="new">'{0}' is not supported in VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB_Title">
+        <source>Attribute is not supported in VB</source>
+        <target state="new">Attribute is not supported in VB</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
