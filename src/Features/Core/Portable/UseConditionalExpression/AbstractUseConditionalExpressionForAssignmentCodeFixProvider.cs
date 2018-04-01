@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var generator = editor.Generator;
 
             var conditionalExpression = (TExpressionSyntax)generator.ConditionalExpression(
-                ifOperation.Condition.Syntax,
-                generator.CastExpression(declarator.Symbol.Type, trueAssignment.Value.Syntax),
-                generator.CastExpression(declarator.Symbol.Type, falseAssignment.Value.Syntax));
+                ifOperation.Condition.Syntax.WithoutTrivia(),
+                generator.CastExpression(declarator.Symbol.Type, trueAssignment.Value.Syntax.WithoutTrivia()),
+                generator.CastExpression(declarator.Symbol.Type, falseAssignment.Value.Syntax.WithoutTrivia()));
 
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
 
