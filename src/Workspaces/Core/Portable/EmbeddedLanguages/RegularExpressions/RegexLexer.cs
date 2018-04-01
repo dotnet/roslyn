@@ -440,7 +440,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
                     Position++;
 
-                    // Ecmascript doesn't allow octal values above 32 (0x20 in hex)
+                    // Ecmascript doesn't allow octal values above 32 (0x20 in hex). Note: we do
+                    // *not* add a diagnostic.  This is not an error situation. The .net lexer
+                    // simply stops once it hits a value greater than a legal octal value.
                     if (HasOption(options, RegexOptions.ECMAScript) && currentVal >= 0x20)
                     {
                         break;
