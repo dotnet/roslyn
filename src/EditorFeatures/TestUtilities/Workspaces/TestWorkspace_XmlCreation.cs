@@ -77,7 +77,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private static XElement CreateCompilationOptionsElement(CompilationOptions options)
         {
             XElement element = null;
-            if (options is Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions vbOptions)
+            if (options is Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions csOptions)
+            {
+                element = new XElement(CompilationOptionsElementName);
+                element.SetAttributeValue(AllowUnsafeAttributeName, csOptions.AllowUnsafe);
+            }
+            else if (options is Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions vbOptions)
             {
                 element = new XElement(CompilationOptionsElementName,
                     vbOptions.GlobalImports.AsEnumerable().Select(i => new XElement(GlobalImportElementName, i.Name)));
