@@ -446,7 +446,7 @@ class C
 @"
 class C
 {
-    void M(
+    void M()
     {
         // keep object even though both values are strings
         object o = true ? ""a"" : ""b"";
