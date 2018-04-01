@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
+    using System.Collections.Generic;
     using static EmbeddedSyntaxHelpers;
     using static RegexHelpers;
 
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// and our parser mimics that behavior.  Note that even if trivia is allowed,
         /// the type of trivia that can be scanned depends on the current RegexOptions.
         /// For example, if <see cref="RegexOptions.IgnorePatternWhitespace"/> is currently
-        /// enabled, then '#...' comments are allowed.  Otherwise, only '(?#...)' comemnts
+        /// enabled, then '#...' comments are allowed.  Otherwise, only '(?#...)' comments
         /// are allowed.</param>
         private RegexToken ConsumeCurrentToken(bool allowTrivia)
         {
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         /// <summary>
         /// Given an input text, and set of options, parses out a fully representative syntax tree 
-        /// and list of diagnotics.  Parsing should always succeed, except in the case of the stack 
+        /// and list of diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
         public static RegexTree TryParse(ImmutableArray<VirtualChar> text, RegexOptions options)
@@ -97,37 +98,47 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexTree ParseTree()
         {
+            // Most callers to ParseAlternatingSequences are from group constructs.  As those
+            // constructs will have already consumed the open paren, they don't want this sub-call
+            // to consume through close-paren tokens as they want that token for themselves.
+            // However, we're the topmost call and have not consumed an open paren.  And, we want
+            // this call to consume all the way to the end, eating up excess close-paren tokens that
+            // are encountered.
             var expression = this.ParseAlternatingSequences(consumeCloseParen: true);
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
             Debug.Assert(_currentToken.Kind == RegexKind.EndOfFile);
 
             var root = new RegexCompilationUnit(expression, _currentToken);
 
+            var seenDiagnostics = new HashSet<EmbeddedDiagnostic>();
             var diagnostics = ArrayBuilder<EmbeddedDiagnostic>.GetInstance();
-            CollectDiagnostics(root, diagnostics);
+            CollectDiagnostics(root, seenDiagnostics, diagnostics);
 
             return new RegexTree(
                 _lexer.Text, root, diagnostics.ToImmutableAndFree(),
                 _captureNamesToSpan, _captureNumbersToSpan);
         }
 
-        private static void CollectDiagnostics(RegexNode node, ArrayBuilder<EmbeddedDiagnostic> diagnostics)
+        private static void CollectDiagnostics(
+            RegexNode node, HashSet<EmbeddedDiagnostic> seenDiagnostics, ArrayBuilder<EmbeddedDiagnostic> diagnostics)
         {
             foreach (var child in node)
             {
                 if (child.IsNode)
                 {
-                    CollectDiagnostics(child.Node, diagnostics);
+                    CollectDiagnostics(child.Node, seenDiagnostics, diagnostics);
                 }
                 else
                 {
                     var token = child.Token;
                     foreach (var trivia in token.LeadingTrivia)
                     {
-                        AddUniqueDiagnostics(trivia.Diagnostics, diagnostics);
+                        AddUniqueDiagnostics(seenDiagnostics, trivia.Diagnostics, diagnostics);
                     }
 
-                    AddUniqueDiagnostics(token.Diagnostics, diagnostics);
+                    // We never place trailing trivia on regex tokens.
+                    Debug.Assert(token.TrailingTrivia.IsEmpty);
+                    AddUniqueDiagnostics(seenDiagnostics, token.Diagnostics, diagnostics);
                 }
             }
         }
@@ -137,11 +148,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// have two 'missing )' diagnostics, both at the end.  Reporting both isn't helpful, so we
         /// filter duplicates out here.
         /// </summary>
-        private static void AddUniqueDiagnostics(ImmutableArray<EmbeddedDiagnostic> from, ArrayBuilder<EmbeddedDiagnostic> to)
+        private static void AddUniqueDiagnostics(
+            HashSet<EmbeddedDiagnostic> seenDiagnostics, ImmutableArray<EmbeddedDiagnostic> from, ArrayBuilder<EmbeddedDiagnostic> to)
         {
             foreach (var diagnostic in from)
             {
-                if (!to.Contains(diagnostic))
+                if (!seenDiagnostics.Add(diagnostic))
                 {
                     to.Add(diagnostic);
                 }
@@ -474,8 +486,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexPrimaryExpressionNode ParseText()
         {
+            var token = ConsumeCurrentToken(allowTrivia: true);
+            Debug.Assert(token.Value == null);
+
             // Allow trivia between this piece of text and the next sequence element
-            return new RegexTextNode(ConsumeCurrentToken(allowTrivia: true).With(kind: RegexKind.TextToken));
+            return new RegexTextNode(token.With(kind: RegexKind.TextToken));
         }
 
         private RegexPrimaryExpressionNode ParseEndAnchor()
@@ -633,76 +648,73 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
             }
-            else
+
+        var capture = captureToken.Value;
+
+            RegexToken innerCloseParenToken;
+            if (capture.Kind == RegexKind.NumberToken)
             {
-                var capture = captureToken.Value;
+                // If it's a numeric group, it has to be immediately followed by a ) and the
+                // numeric reference has to exist.
+                //
+                // That means that (?(4 ) is not treated as an embedded expression but as an
+                // error.  This is different from (?(a ) which will be treated as an embedded
+                // expression, and different from (?(a) will be treated as an embedded
+                // expression or capture group depending on if 'a' is a existing capture name.
 
-                RegexToken innerCloseParenToken;
-                if (capture.Kind == RegexKind.NumberToken)
+                ConsumeCurrentToken(allowTrivia: false);
+                if (_currentToken.Kind == RegexKind.CloseParenToken)
                 {
-                    // If it's a numeric group, it has to be immediately followed by a )
-                    // and the numeric reference has to exist.
-                    //
-                    // That means that (?(4 ) is not treated as an embedded expression but as
-                    // an error.  This is different from (?(a ) which will be treated as an 
-                    // embedded expression, and different from (?(a) will will be treated as
-                    // an embedded expression or capture group depending on if 'a' is a existing
-                    // capture name.
-
-                    ConsumeCurrentToken(allowTrivia: false);
-                    if (_currentToken.Kind == RegexKind.CloseParenToken)
+                    innerCloseParenToken = _currentToken;
+                    if (!HasCapture((int)capture.Value))
                     {
-                        innerCloseParenToken = _currentToken;
-                        if (!HasCapture((int)capture.Value))
-                        {
-                            capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                                WorkspacesResources.Reference_to_undefined_group,
-                                capture.GetSpan()));
-                        }
-                    }
-                    else
-                    {
-                        innerCloseParenToken = CreateMissingToken(RegexKind.CloseParenToken);
                         capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                            WorkspacesResources.Malformed,
+                            WorkspacesResources.Reference_to_undefined_group,
                             capture.GetSpan()));
-                        MoveBackBeforePreviousScan();
                     }
                 }
                 else
                 {
-                    // If its a capture name, its ok if it that capture doesn't exist.  In that
-                    // case we will just treat this as an conditional expression.
-                    if (!HasCapture((string)capture.Value))
-                    {
-                        _lexer.Position = afterInnerOpenParen;
-                        return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
-                    }
-
-                    // Capture name existed.  For this to be a capture grouping it exactly has to
-                    // match (?(a)   anything other than a close paren after the ) will make this
-                    // into a conditional expression.
-                    ConsumeCurrentToken(allowTrivia: false);
-                    if (_currentToken.Kind != RegexKind.CloseParenToken)
-                    {
-                        _lexer.Position = afterInnerOpenParen;
-                        return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
-                    }
-
-                    innerCloseParenToken = _currentToken;
+                    innerCloseParenToken = CreateMissingToken(RegexKind.CloseParenToken);
+                    capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
+                        WorkspacesResources.Malformed,
+                        capture.GetSpan()));
+                    MoveBackBeforePreviousScan();
+                }
+            }
+            else
+            {
+                // If its a capture name, it's ok if it that capture doesn't exist.  In that
+                // case we will just treat this as an conditional expression.
+                if (!HasCapture((string)capture.Value))
+                {
+                    _lexer.Position = afterInnerOpenParen;
+                    return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
                 }
 
-                // Was (?(name) or (?(num)  and name/num was a legal capture name.  Parse
-                // this out as a conditional grouping.  Because we're going to be parsing out
-                // an embedded sequence, allow trivia before the first element.
-                ConsumeCurrentToken(allowTrivia: true);
-                var result = ParseConditionalGroupingResult();
+                // Capture name existed.  For this to be a capture grouping it exactly has to
+                // match (?(a)   anything other than a close paren after the ) will make this
+                // into a conditional expression.
+                ConsumeCurrentToken(allowTrivia: false);
+                if (_currentToken.Kind != RegexKind.CloseParenToken)
+                {
+                    _lexer.Position = afterInnerOpenParen;
+                    return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
+                }
 
-                return new RegexConditionalCaptureGroupingNode(
-                    openParenToken, questionToken,
-                    innerOpenParenToken, capture, innerCloseParenToken,
-                    result, ParseGroupingCloseParen());
+                innerCloseParenToken = _currentToken;
             }
+
+            // Was (?(name) or (?(num)  and name/num was a legal capture name.  Parse
+            // this out as a conditional grouping.  Because we're going to be parsing out
+            // an embedded sequence, allow trivia before the first element.
+            ConsumeCurrentToken(allowTrivia: true);
+            var result = ParseConditionalGroupingResult();
+
+            return new RegexConditionalCaptureGroupingNode(
+                openParenToken, questionToken,
+                innerOpenParenToken, capture, innerCloseParenToken,
+                result, ParseGroupingCloseParen());
         }
 
         private bool HasCapture(int value)
@@ -715,7 +727,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             if (_currentToken.Kind != RegexKind.EndOfFile)
             {
-                // Move back to unconsume whatever we just consumed.
+                // Move back to un-consume whatever we just consumed.
                 _lexer.Position--;
             }
         }
@@ -732,7 +744,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (_lexer.IsAt("(?#"))
             {
                 var pos = _lexer.Position;
-                var comment = _lexer.ScanComment(default);
+                var comment = _lexer.ScanComment(options: default);
                 _lexer.Position = pos;
 
                 if (comment.Value.Diagnostics.Length > 0)
@@ -767,7 +779,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             ConsumeCurrentToken(allowTrivia: false);
             Debug.Assert(_currentToken.Kind == RegexKind.OpenParenToken);
 
-            // Parse out the grouping that starts with teh second open paren in (?(
+            // Parse out the grouping that starts with the second open paren in (?(
             // this will get us to (?(...)
             var grouping = ParseGrouping();
 
@@ -775,7 +787,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // (?(...)...
             var result = ParseConditionalGroupingResult();
 
-            // Finallyy, grab the close paren and produce (?(...)...)
+            // Finally, grab the close paren and produce (?(...)...)
             return new RegexConditionalExpressionGroupingNode(
                 openParenToken, questionToken,
                 grouping, result, ParseGroupingCloseParen());
@@ -1563,9 +1575,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private RegexEscapeNode ParsePossibleEcmascriptBackreferenceEscape(
             RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
-            // Small deviation: Ecmascript allows references only to captures that preceed
+            // Small deviation: Ecmascript allows references only to captures that precede
             // this position (unlike .net which allows references in any direction).  However,
-            // because we don't track position, we just consume the entire backreference.
+            // because we don't track position, we just consume the entire back-reference.
             //
             // This is addressable if we add position tracking when we locate all the captures.
 
@@ -1661,10 +1673,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             if (capture.IsMissing || closeToken.IsMissing)
             {
-                // Native parser falls back to normal escape scanning, if it doesn't see 
-                // a capture, or close brace.  For normal .net regexes, this will then 
-                // fail later (as \k is not a legal escape), but will succeed for for
-                // ecmascript regexes.
+                // Native parser falls back to normal escape scanning, if it doesn't see a capture,
+                // or close brace.  For normal .net regexes, this will then fail later (as \k is not
+                // a legal escape), but will succeed for ecmascript regexes.
                 _lexer.Position = afterBackslashPosition;
                 return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
             }

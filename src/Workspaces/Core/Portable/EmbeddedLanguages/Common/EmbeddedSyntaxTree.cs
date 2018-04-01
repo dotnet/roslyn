@@ -5,18 +5,18 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
-    internal abstract class EmbeddedSyntaxTree<TSyntaxKind, TNode, TRoot>
+    internal abstract class EmbeddedSyntaxTree<TSyntaxKind, TSyntaxNode, TCompilationUnitSyntax>
         where TSyntaxKind : struct
-        where TNode : EmbeddedSyntaxNode<TSyntaxKind, TNode>
-        where TRoot : TNode
+        where TSyntaxNode : EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
+        where TCompilationUnitSyntax : TSyntaxNode
     {
         public readonly ImmutableArray<VirtualChar> Text;
-        public readonly TRoot Root;
+        public readonly TCompilationUnitSyntax Root;
         public readonly ImmutableArray<EmbeddedDiagnostic> Diagnostics;
 
         protected EmbeddedSyntaxTree(
             ImmutableArray<VirtualChar> text,
-            TRoot root,
+            TCompilationUnitSyntax root,
             ImmutableArray<EmbeddedDiagnostic> diagnostics)
         {
             Text = text;
