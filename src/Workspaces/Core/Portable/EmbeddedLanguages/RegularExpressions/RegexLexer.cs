@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             var start = Position;
             var beforeSlash = start - 1;
 
-            // Make sure we're right after the \ or \.
+            // Make sure we're right after the \
             Debug.Assert(Text[beforeSlash].Char == '\\');
 
             const int maxChars = 3;
