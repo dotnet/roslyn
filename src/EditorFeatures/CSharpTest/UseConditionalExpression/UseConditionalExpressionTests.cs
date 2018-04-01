@@ -188,5 +188,35 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnAssignmentToAboveLocalLiteralInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        int i = 0;
+        [||]if (true)
+        {
+            i = 0;
+        }
+        else
+        {
+            i = 1;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        var i = true ? 0 : 1;
+    }
+}");
+        }
     }
 }
