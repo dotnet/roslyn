@@ -637,6 +637,11 @@
         <target state="new">Convert 'for' to 'foreach'</target>
         <note />
       </trans-unit>
+      <trans-unit id="if_statement_can_be_simplified">
+        <source>'if' statement can be simplified</source>
+        <target state="new">'if' statement can be simplified</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
-                : base(FeaturesResources.Return_statement_can_be_simplified, createChangedDocument, FeaturesResources.Assignment_can_be_simplified)
+                : base(FeaturesResources.Convert_to_conditional_expression, createChangedDocument, IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId)
             {
             }
         }

@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
     internal class CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer
         : AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer<SyntaxKind>
     {
+        public CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer()
+            : base(new LocalizableResourceString(nameof(CSharpFeaturesResources.if_statement_can_be_simplified), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)))
+        {
+        }
+
         protected override ImmutableArray<SyntaxKind> GetIfStatementKinds()
             => ImmutableArray.Create(SyntaxKind.IfStatement);
     }

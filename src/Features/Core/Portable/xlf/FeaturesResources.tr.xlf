@@ -2015,24 +2015,9 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="new">Make field readonly</target>
         <note />
       </trans-unit>
-      <trans-unit id="Assignment_can_be_simplified">
-        <source>Assignment can be simplified</source>
-        <target state="new">Assignment can be simplified</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_assignment">
-        <source>Simplify assignment</source>
-        <target state="new">Simplify assignment</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Return statement can be simplified">
-        <source>Return statement can be simplified</source>
-        <target state="new">Return statement can be simplified</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_return_statement">
-        <source>Simplify return statement</source>
-        <target state="new">Simplify return statement</target>
+      <trans-unit id="Convert_to_conditional_expression">
+        <source>Convert to conditional expression</source>
+        <target state="new">Convert to conditional expression</target>
         <note />
       </trans-unit>
     </body>

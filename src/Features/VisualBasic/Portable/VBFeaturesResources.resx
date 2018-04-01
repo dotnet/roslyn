@@ -1250,4 +1250,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Convert_For_to_For_Each" xml:space="preserve">
     <value>Convert 'For' to 'For Each'</value>
   </data>
+  <data name="If_statement_can_be_simplified" xml:space="preserve">
+    <value>'If' statement can be simplified</value>
+  </data>
 </root>

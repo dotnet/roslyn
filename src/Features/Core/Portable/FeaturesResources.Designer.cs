@@ -549,15 +549,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Assignment can be simplified.
-        /// </summary>
-        internal static string Assignment_can_be_simplified {
-            get {
-                return ResourceManager.GetString("Assignment_can_be_simplified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Asynchronous method cannot have ref/out parameters : [{0}].
         /// </summary>
         internal static string Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket {
@@ -858,6 +849,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Convert_to_binary {
             get {
                 return ResourceManager.GetString("Convert_to_binary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to conditional expression.
+        /// </summary>
+        internal static string Convert_to_conditional_expression {
+            get {
+                return ResourceManager.GetString("Convert_to_conditional_expression", resourceCulture);
             }
         }
         
@@ -2811,15 +2811,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Return statement can be simplified.
-        /// </summary>
-        internal static string Return_statement_can_be_simplified {
-            get {
-                return ResourceManager.GetString("Return statement can be simplified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Returns:.
         /// </summary>
         internal static string Returns_colon {
@@ -2883,15 +2874,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Simplify assignment.
-        /// </summary>
-        internal static string Simplify_assignment {
-            get {
-                return ResourceManager.GetString("Simplify_assignment", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Simplify collection initialization.
         /// </summary>
         internal static string Simplify_collection_initialization {
@@ -2933,15 +2915,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Simplify_object_initialization {
             get {
                 return ResourceManager.GetString("Simplify_object_initialization", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Simplify return statement.
-        /// </summary>
-        internal static string Simplify_return_statement {
-            get {
-                return ResourceManager.GetString("Simplify_return_statement", resourceCulture);
             }
         }
         

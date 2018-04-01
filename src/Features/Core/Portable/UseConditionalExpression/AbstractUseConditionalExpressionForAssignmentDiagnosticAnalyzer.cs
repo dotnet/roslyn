@@ -15,10 +15,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer()
+        protected AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer(
+            LocalizableResourceString message)
             : base(IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId,
-                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_assignment), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Assignment_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Convert_to_conditional_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   message)
         {
         }
          

@@ -477,6 +477,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;if&apos; statement can be simplified.
+        /// </summary>
+        internal static string if_statement_can_be_simplified {
+            get {
+                return ResourceManager.GetString("if_statement_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to indexer.
         /// </summary>
         internal static string indexer {
@@ -548,7 +557,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
             }
         }
         
-         /// <summary>
+        /// <summary>
+        ///   Looks up a localized string similar to Invert if statement.
+        /// </summary>
+        internal static string Invert_if_statement {
+            get {
+                return ResourceManager.GetString("Invert_if_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to is pattern.
         /// </summary>
         internal static string is_pattern {

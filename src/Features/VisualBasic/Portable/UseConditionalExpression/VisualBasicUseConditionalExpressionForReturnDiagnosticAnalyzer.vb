@@ -9,6 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
     Friend Class VisualBasicUseConditionalExpressionForReturnDiagnosticAnalyzer
         Inherits AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer(Of SyntaxKind)
 
+        Public Sub New()
+            MyBase.New(New LocalizableResourceString(NameOf(VBFeaturesResources.If_statement_can_be_simplified), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources)))
+        End Sub
+
         Protected Overrides Function GetIfStatementKinds() As ImmutableArray(Of SyntaxKind)
             Return ImmutableArray.Create(SyntaxKind.MultiLineIfBlock)
         End Function
