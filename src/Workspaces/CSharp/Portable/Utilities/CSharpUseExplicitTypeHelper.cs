@@ -23,13 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             State state, CancellationToken cancellationToken)
         {
             var stylePreferences = state.TypeStylePreference;
-            var shouldNotify = state.ShouldNotify();
-
-            // If notification preference is None, don't offer the suggestion.
-            if (!shouldNotify)
-            {
-                return false;
-            }
 
             if (state.IsInIntrinsicTypeContext)
             {

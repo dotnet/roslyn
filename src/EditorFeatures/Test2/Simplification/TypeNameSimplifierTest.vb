@@ -1468,6 +1468,86 @@ class C1
 
         <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharpSimplifyToVarLocalDeclaration() As Task
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
+                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
+                {CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithNoneEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithNoneEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement}
+            }
+
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class Program
+{
+    void Main()
+    {
+        {|Simplify:int|} i = 0;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class Program
+{
+    void Main()
+    {
+        var i = 0;
+    }
+}
+</code>
+
+            Await TestAsync(input, expected, simplificationOption)
+        End Function
+
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharpSimplifyToVarForeachDecl() As Task
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
+                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
+                {CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithNoneEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithNoneEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement}
+            }
+
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System.Collections.Generic;
+class Program
+{
+    void Main()
+    {
+        foreach ({|Simplify:int|} item in new List&lt;int&gt;()) { }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+using System.Collections.Generic;
+class Program
+{
+    void Main()
+    {
+        foreach (var item in new List&lt;int&gt;()) { }
+    }
+}
+</code>
+
+            Await TestAsync(input, expected, simplificationOption)
+        End Function
+
+        <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
                 {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
@@ -1522,7 +1602,7 @@ class Program
 
         var d = new D();
 
-        foreach (var item in new List&lt;int&gt;()) { }
+        foreach (int item in new List&lt;int&gt;()) { }
 
         using (var file = new StreamReader("C:\\myfile.txt")) {}
 
