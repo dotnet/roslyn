@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
 
@@ -27,6 +28,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> trailingTrivia,
             ImmutableArray<EmbeddedDiagnostic> diagnostics, object value)
         {
+            Debug.Assert(!leadingTrivia.IsDefault);
+            Debug.Assert(!virtualChars.IsDefault);
+            Debug.Assert(!trailingTrivia.IsDefault);
+            Debug.Assert(!diagnostics.IsDefault);
             Kind = kind;
             LeadingTrivia = leadingTrivia;
             VirtualChars = virtualChars;
