@@ -7,8 +7,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
-    internal abstract class AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer<
-        TSyntaxKind>
+    internal abstract class AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer<TSyntaxKind>
         : AbstractCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
     {
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var ifOperation = (IConditionalOperation)context.SemanticModel.GetOperation(ifStatement);
             if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
-                    ifOperation))
+                    ifOperation, out _, out _))
             {
                 return;
             }

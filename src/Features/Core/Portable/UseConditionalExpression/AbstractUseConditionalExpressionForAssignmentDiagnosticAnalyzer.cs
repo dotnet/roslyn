@@ -7,8 +7,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
-    internal abstract class AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer<
-        TSyntaxKind>
+    internal abstract class AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer<TSyntaxKind>
         : AbstractCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
     {

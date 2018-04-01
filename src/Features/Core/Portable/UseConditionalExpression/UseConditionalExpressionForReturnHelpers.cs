@@ -7,11 +7,12 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
     internal static class UseConditionalExpressionForReturnHelpers 
     {
         public static bool TryMatchPattern(
-            IConditionalOperation ifOperation)
+            IConditionalOperation ifOperation,
+            out IReturnOperation trueReturn,
+            out IReturnOperation falseReturn)
         {
-            //localDeclarationStatement = null;
-            //trueAssignmentOperation = null;
-            //falseAssignmentOperation = null;
+            trueReturn = null;
+            falseReturn = null;
 
             var parentBlock = ifOperation.Parent as IBlockOperation;
             if (parentBlock == null)
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             var ifIndex = parentBlock.Operations.IndexOf(ifOperation);
-            if (ifIndex <= 0)
+            if (ifIndex < 0)
             {
                 return false;
             }            
@@ -54,14 +55,18 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             trueStatement = UnwrapSingleStatementBlock(trueStatement);
             falseStatement = UnwrapSingleStatementBlock(falseStatement);
 
-            if (!(trueStatement is IReturnOperation trueReturn) ||
-                !(falseStatement is IReturnOperation falseReturn) ||
-                trueReturn.ReturnedValue == null ||
-                falseReturn.ReturnedValue == null)
+            if (!(trueStatement is IReturnOperation trueReturnOp) ||
+                !(falseStatement is IReturnOperation falseReturnOp) ||
+                trueReturnOp.ReturnedValue == null ||
+                falseReturnOp.ReturnedValue == null ||
+                trueReturnOp.ReturnedValue.Type == null ||
+                falseReturnOp.ReturnedValue.Type == null)
             {
                 return false;
             }
 
+            trueReturn = trueReturnOp;
+            falseReturn = falseReturnOp;
             return true;
         }
 
