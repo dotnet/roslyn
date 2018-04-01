@@ -248,5 +248,35 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnAssignmentToAboveLocalDefaultExpressionInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        int i = default(int);
+        [||]if (true)
+        {
+            i = 0;
+        }
+        else
+        {
+            i = 1;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        var i = true ? 0 : 1;
+    }
+}");
+        }
     }
 }
