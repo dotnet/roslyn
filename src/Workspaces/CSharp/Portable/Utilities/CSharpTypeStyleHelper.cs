@@ -6,22 +6,45 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal struct TypeStyleResult
     {
-        public readonly bool CanConvert;
+        private readonly CSharpTypeStyleHelper _helper;
+        private readonly TypeSyntax _typeName;
+        private readonly SemanticModel _semanticModel;
+        private readonly OptionSet _optionSet;
+        private readonly CancellationToken _cancellationToken;
+
+        /// <summary>
+        /// Whether or not converting would transition the code to the style the user prefers. i.e.
+        /// if the user likes 'var' for everything, and you have 'int i = 0' then IsStylePreffered
+        /// will be true.  however, if the user likes 'var' for everything and you have 'var i = 0',
+        /// then it's still possible to convert that, it would just be 'false' for IsStylePreferred
+        /// because it goes against the user's preferences.
+        ///
+        /// In general, most features should only convert the type if IsStylePreferred is true.  The
+        /// one exception is the refactoring, which is explicitly there to still let people convert
+        /// things quickly, even if it's going against their stated style.
+        /// </summary>
         public readonly bool IsStylePreferred;
         public readonly DiagnosticSeverity Severity;
 
-        public TypeStyleResult(bool canConvert, bool isStylePreferred, DiagnosticSeverity severity)
+        public TypeStyleResult(CSharpTypeStyleHelper helper, TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, bool isStylePreferred, DiagnosticSeverity severity, CancellationToken cancellationToken) : this()
         {
-            CanConvert = canConvert;
+            _helper = helper;
+            _typeName = typeName;
+            _semanticModel = semanticModel;
+            _optionSet = optionSet;
+            _cancellationToken = cancellationToken;
+
             IsStylePreferred = isStylePreferred;
             Severity = severity;
         }
+
+        public bool CanConvert()
+            => _helper.TryAnalyzeVariableDeclaration(_typeName, _semanticModel, _optionSet, _cancellationToken);
     }
 
     internal abstract partial class CSharpTypeStyleHelper
@@ -43,18 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             var state = State.Generate(
                 declaration, semanticModel, optionSet, cancellationToken);
+            var isStylePreferred = this.IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
+            var severity = state.GetDiagnosticSeverityPreference();
 
-            if (!TryAnalyzeVariableDeclaration(typeName, semanticModel, optionSet, cancellationToken))
-            {
-                return default;
-            }
-
-            var isTypePreferred = this.IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
             return new TypeStyleResult(
-                true, isTypePreferred, state.GetDiagnosticSeverityPreference());
+                this, typeName, semanticModel, optionSet, isStylePreferred, severity, cancellationToken);
         }
 
-        protected abstract bool TryAnalyzeVariableDeclaration(
+        internal abstract bool TryAnalyzeVariableDeclaration(
             TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
 
         protected abstract bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);

@@ -2280,7 +2280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var typeStyle = CSharpUseImplicitTypeHelper.Instance.AnalyzeTypeName(
                 simpleName, semanticModel, optionSet, cancellationToken);
 
-            if (!typeStyle.CanConvert || !typeStyle.IsStylePreferred)
+            if (!typeStyle.IsStylePreferred || !typeStyle.CanConvert())
             {
                 replacementNode = null;
                 issueSpan = default;

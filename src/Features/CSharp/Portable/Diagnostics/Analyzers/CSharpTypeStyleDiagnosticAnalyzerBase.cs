@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             var typeStyle = Helper.AnalyzeTypeName(
                 declaredType, semanticModel, optionSet, cancellationToken);
-            if (!typeStyle.CanConvert ||
-                !typeStyle.IsStylePreferred ||
-                typeStyle.Severity == DiagnosticSeverity.Hidden)
+            if (!typeStyle.IsStylePreferred ||
+                typeStyle.Severity == DiagnosticSeverity.Hidden ||
+                !typeStyle.CanConvert())
             {
                 return;
             }

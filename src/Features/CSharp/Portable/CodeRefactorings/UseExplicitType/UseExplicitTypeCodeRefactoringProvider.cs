@@ -68,13 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
 
             var typeStyle = CSharpUseExplicitTypeHelper.Instance.AnalyzeTypeName(
                 declaredType, semanticModel, optionSet, cancellationToken);
-            if (!typeStyle.CanConvert)
+            if (typeStyle.IsStylePreferred && typeStyle.Severity != DiagnosticSeverity.Hidden)
             {
+                // the analyzer would handle this.  So we do not.
                 return;
             }
 
-            // UseExplicitType analyzer/fixer already gives an action in this case
-            if (typeStyle.IsStylePreferred)
+            if (!typeStyle.CanConvert())
             {
                 return;
             }
