@@ -16,12 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnsafeProject
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(CS0227);
 
-        private string UnsafeThisProjectResource => "Allow unsafe code in this project";
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new ProjectOptionsChangeAction(UnsafeThisProjectResource, _ =>
-                Task.FromResult(AllowUnsafeOnProject(context.Document.Project))), context.Diagnostics);
+            context.RegisterCodeFix(new ProjectOptionsChangeAction(CSharpFeaturesResources.Allow_unsafe_code_in_this_project,
+                _ => Task.FromResult(AllowUnsafeOnProject(context.Document.Project))), context.Diagnostics);
             return Task.CompletedTask;
         }
 
