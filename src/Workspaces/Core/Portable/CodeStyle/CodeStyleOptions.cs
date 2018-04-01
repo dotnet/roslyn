@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             nameof(PreferConditionalExpressionOverAssignment),
             defaultValue: TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[]{
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_conditional_expression_over_assignment"),
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_conditional_expression_over_assignment"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferConditionalExpressionOverAssignment")});
 
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferConditionalExpressionOverReturn = new PerLanguageOption<CodeStyleOption<bool>>(
