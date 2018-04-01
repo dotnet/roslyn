@@ -18,7 +18,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             string baseName, CancellationToken cancellationToken)
         {
             return GenerateUniqueName(
-                semanticModel, location, containerOpt, baseName, filter: null, cancellationToken);
+                semanticModel, location, containerOpt, baseName, filter: null, usedNames: null, cancellationToken);
+        }
+
+        public SyntaxToken GenerateUniqueName(
+            SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
+            string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken)
+        {
+            return GenerateUniqueName(
+                semanticModel, location, containerOpt, baseName, filter: null, usedNames, cancellationToken);
         }
 
         public SyntaxToken GenerateUniqueLocalName(
@@ -37,13 +45,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 s.Kind == SymbolKind.Property;
 
             return GenerateUniqueName(
-                semanticModel, location, containerOpt, baseName, filter, cancellationToken);
+                semanticModel, location, containerOpt, baseName, filter, usedNames: Enumerable.Empty<string>(), cancellationToken);
         }
 
         private SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel,
             SyntaxNode location, SyntaxNode containerOpt,
-            string baseName, Func<ISymbol, bool> filter, CancellationToken cancellationToken)
+            string baseName, Func<ISymbol, bool> filter, 
+            IEnumerable<string> usedNames, CancellationToken cancellationToken)
         {
             var syntaxFacts = this.SyntaxFactsService;
 
@@ -54,16 +63,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 semanticModel.GetExistingSymbols(container, cancellationToken));
 
             return GenerateUniqueName(
-                semanticModel, location, containerOpt, baseName, filter != null ? candidates.Where(filter) : candidates, cancellationToken);
+                semanticModel, location, containerOpt, baseName, filter != null ? candidates.Where(filter) : candidates, usedNames, cancellationToken);
         }
 
         private SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
-            string baseName, IEnumerable<ISymbol> candidates, CancellationToken cancellationToken)
+            string baseName, IEnumerable<ISymbol> candidates, IEnumerable<string> usedNames, CancellationToken cancellationToken)
         {
             return this.SyntaxFactsService.ToIdentifierToken(
                 NameGenerator.EnsureUniqueness(
-                    baseName, candidates.Select(s => s.Name), this.SyntaxFactsService.IsCaseSensitive));
+                    baseName, candidates.Select(s => s.Name).Concat(usedNames), this.SyntaxFactsService.IsCaseSensitive));
         }
     }
 }

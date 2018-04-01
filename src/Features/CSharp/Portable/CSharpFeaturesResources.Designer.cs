@@ -315,15 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert to &apos;foreach&apos;.
-        /// </summary>
-        internal static string Convert_to_foreach {
-            get {
-                return ResourceManager.GetString("Convert_to_foreach", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to deconstruction.
         /// </summary>
         internal static string deconstruction {

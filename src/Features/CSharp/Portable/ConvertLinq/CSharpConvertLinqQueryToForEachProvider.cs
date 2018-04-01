@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 bool generateTypeFromExpression)
             {
                 var typeSyntax = generateTypeFromExpression ?
-                     _semanticModel.GetTypeInfo(expression).ConvertedType.GenerateTypeSyntax() :
+                     _semanticModel.GetTypeInfo(expression, _cancellationToken).ConvertedType.GenerateTypeSyntax() :
                      VarNameIdentifier;
                 return SyntaxFactory.LocalDeclarationStatement(
                             SyntaxFactory.VariableDeclaration(
@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         return false;
                     }
 
-                    if (_semanticModel.GetTypeInfo(selectClause.Expression).Type.ContainsAnonymousType())
+                    if (_semanticModel.GetTypeInfo(selectClause.Expression, _cancellationToken).Type.ContainsAnonymousType())
                     {
                         return false;
                     }
