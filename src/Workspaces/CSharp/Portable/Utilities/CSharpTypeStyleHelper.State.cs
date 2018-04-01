@@ -77,7 +77,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             /// </summary>
             private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, TypeStylePreference stylePreferences, CancellationToken cancellationToken)
             {
-                var initializer = variableDeclaration.Variables.Single().Initializer;
+                if (variableDeclaration.Variables.Count != 1)
+                {
+                    return false;
+                }
+
+                var initializer = variableDeclaration.Variables[0].Initializer;
+                if (initializer == null)
+                {
+                    return false;
+                }
+
                 var initializerExpression = CSharpUseImplicitTypeHelper.GetInitializerExpression(initializer.Value);
                 var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
                 return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel, cancellationToken, declaredTypeSymbol);
