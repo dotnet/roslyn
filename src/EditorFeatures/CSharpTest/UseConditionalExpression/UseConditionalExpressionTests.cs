@@ -438,6 +438,37 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestDoNotMergeAssignmentToAboveIfMultiDecl()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        int i = 0, j = 0;
+        [||]if (true)
+        {
+            i = 0;
+        }
+        else
+        {
+            i = 1;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        int i = 0, j = 0;
+        i = true ? 0 : 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestUseImplicitTypeForIntrinsicTypes()
         {
             await TestInRegularAndScriptAsync(
