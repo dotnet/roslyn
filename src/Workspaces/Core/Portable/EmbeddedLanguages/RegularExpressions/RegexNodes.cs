@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// The ```(...)``` node you get when the group does not start with ```(?```
     /// </summary>
-    internal class RegexSimpleGroupingNode : RegexGroupingNode
+    internal sealed class RegexSimpleGroupingNode : RegexGroupingNode
     {
         public RegexSimpleGroupingNode(RegexToken openParenToken, RegexExpressionNode expression, RegexToken closeParenToken)
             : base(RegexKind.SimpleGrouping, openParenToken, closeParenToken)
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```(?inmsx)``` node.  Changes options in a sequence for all subsequence nodes.
     /// </summary>
-    internal class RegexSimpleOptionsGroupingNode : RegexOptionsGroupingNode
+    internal sealed class RegexSimpleOptionsGroupingNode : RegexOptionsGroupingNode
     {
         public RegexSimpleOptionsGroupingNode(
             RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken, RegexToken closeParenToken)
@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```(?inmsx:expr)``` node.  Changes options for the parsing of 'expr'.
     /// </summary>
-    internal class RegexNestedOptionsGroupingNode : RegexOptionsGroupingNode
+    internal sealed class RegexNestedOptionsGroupingNode : RegexOptionsGroupingNode
     {
         public RegexNestedOptionsGroupingNode(
             RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken,
