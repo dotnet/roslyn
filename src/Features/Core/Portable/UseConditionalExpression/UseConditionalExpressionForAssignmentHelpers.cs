@@ -70,20 +70,25 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             trueStatement = UnwrapSingleStatementBlock(trueStatement);
             falseStatement = UnwrapSingleStatementBlock(falseStatement);
 
-            if (!(trueStatement is IExpressionStatementOperation trueExprStatement) ||
-                !(falseStatement is IExpressionStatementOperation falseExprStatement) ||
-                !(trueExprStatement.Operation is ISimpleAssignmentOperation trueAssignment) ||
-                !(falseExprStatement.Operation is ISimpleAssignmentOperation falseAssignment) ||
-                !(trueAssignment.Target is ILocalReferenceOperation trueReference) ||
-                !(falseAssignment.Target is ILocalReferenceOperation falseReference) ||
-                !trueReference.Local.Equals(variable) ||
-                !falseReference.Local.Equals(variable))
+            return TryGetAssignment(trueStatement, variable, out trueAssignmentOperation) &&
+                   TryGetAssignment(falseStatement, variable, out falseAssignmentOperation);
+        }
+
+        private static bool TryGetAssignment(
+            IOperation statement, ILocalSymbol variable, out ISimpleAssignmentOperation assignment)
+        {
+            // Both the WhenTrue and WhenFalse statements must be of the form:
+            //      local = expr;
+            if (!(statement is IExpressionStatementOperation exprStatement) ||
+                !(exprStatement.Operation is ISimpleAssignmentOperation assignmentOp) ||
+                !(assignmentOp.Target is ILocalReferenceOperation reference) ||
+                !reference.Local.Equals(variable))
             {
+                assignment = default;
                 return false;
             }
 
-            trueAssignmentOperation = trueAssignment;
-            falseAssignmentOperation = falseAssignment;
+            assignment = assignmentOp;
             return true;
         }
 
