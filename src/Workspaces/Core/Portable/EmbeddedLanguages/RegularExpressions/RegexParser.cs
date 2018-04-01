@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexTree ParseTree()
         {
+            // Most callers to ParseAlternatingSequences are from group constructs.  As those
+            // constructs will have already consumed the open paren, they don't want this sub-call
+            // to consume through close-paren tokens as they want that token for themselves.
+            // However, we're the topmost call and have not consumed an open paren.  And, we want
+            // this call to consume all the way to the end, eating up excess close-paren tokens that
+            // are encountered.
             var expression = this.ParseAlternatingSequences(consumeCloseParen: true);
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
             Debug.Assert(_currentToken.Kind == RegexKind.EndOfFile);
