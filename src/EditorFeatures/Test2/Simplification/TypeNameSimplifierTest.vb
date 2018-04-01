@@ -2,6 +2,7 @@
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
@@ -1468,8 +1469,12 @@ class C1
         <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect() As Task
-
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
+                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
+                {CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithNoneEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithNoneEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement}
+            }
 
             Dim input =
 <Workspace>
@@ -1535,8 +1540,12 @@ class Program
         <WorkItem(649385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649385")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect_QualifiedTypeNames() As Task
-
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
+                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
+                {CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithNoneEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithNoneEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement}
+            }
 
             Dim input =
 <Workspace>
