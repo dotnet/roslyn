@@ -96,5 +96,34 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestOnNonUniformTargetSyntax()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        [||]if (true)
+        {
+            this.i = 0;
+        }
+        else
+        {
+            this . i = 1;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        this.i = true ? 0 : 1;
+    }
+}");
+        }
     }
 }
