@@ -15,13 +15,14 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using System.Diagnostics;
 using static Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle.CSharpTypeStyleDiagnosticAnalyzerBase;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseExplicitType), Shared]
     internal partial class UseExplicitTypeCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private static readonly CSharpUseExplicitTypeHelper s_useExplicitTypeHelper = new CSharpUseExplicitTypeHelper();
+        private static readonly CSharpUseExplicitTypeHelper s_useExplicitTypeHelper = CSharpUseExplicitTypeHelper.Instance;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
                 return;
             }
 
-            var state = State.Generate(declaration, semanticModel, optionSet,
+            var state = CSharpTypeStyleContext.Generate(declaration, semanticModel, optionSet,
                 isVariableDeclarationContext: declaration.IsKind(SyntaxKind.VariableDeclaration), cancellationToken: cancellationToken);
 
             // UseExplicitType analyzer/fixer already gives an action in this case

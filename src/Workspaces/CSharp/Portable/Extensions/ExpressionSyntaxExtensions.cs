@@ -2296,87 +2296,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            var candidateReplacementNode = SyntaxFactory.IdentifierName("var")
-                .WithLeadingTrivia(simpleName.GetLeadingTrivia())
-                .WithTrailingTrivia(simpleName.GetTrailingTrivia());
-            var candidateIssueSpan = simpleName.Span;
-
-            // If there exists a Type called var , fail.
-            var checkSymbol = semanticModel.GetSpeculativeSymbolInfo(simpleName.SpanStart, candidateReplacementNode, SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
-            if (checkSymbol != null && checkSymbol.IsKind(SymbolKind.NamedType) && ((INamedTypeSymbol)checkSymbol).TypeKind == TypeKind.Class && checkSymbol.Name == "var")
+            if (!CSharpUseImplicitTypeHelper.Instance.TryAnalyzeVariableDeclaration(
+                    simpleName, semanticModel, optionSet, cancellationToken))
             {
                 return false;
             }
 
-            // If the simpleName is the type of the Variable Declaration Syntax belonging to LocalDeclaration, For Statement or Using statement
-            if (simpleName.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                ((VariableDeclarationSyntax)simpleName.Parent).Type == simpleName &&
-                simpleName.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
-            {
-                if (simpleName.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement) &&
-                    ((LocalDeclarationStatementSyntax)simpleName.Parent.Parent).Modifiers.Any(n => n.Kind() == SyntaxKind.ConstKeyword))
-                {
-                    // 'const var' not allowed in the language.
-                    return false;
-                }
-
-                var variableDeclaration = (VariableDeclarationSyntax)simpleName.Parent;
-
-                // Check the Initialized Value to see if it is allowed to be in the Var initialization
-                if (variableDeclaration.Variables.Count != 1 ||
-                    !variableDeclaration.Variables.Single().Initializer.IsKind(SyntaxKind.EqualsValueClause))
-                {
-                    return false;
-                }
-
-                var variable = variableDeclaration.Variables.Single();
-                var initializer = variable.Initializer;
-                var identifier = variable.Identifier;
-
-                if (EqualsValueClauseNotSuitableForVar(identifier, simpleName, initializer, semanticModel, cancellationToken))
-                {
-                    return false;
-                }
-
-                // Make sure we do this only if the user prefers 'var'.
-                if (!TypeStyleHelper.IsImplicitTypePreferred(
-                        initializer.Value, semanticModel, optionSet, cancellationToken))
-                {
-                    return false;
-                }
-
-                replacementNode = candidateReplacementNode;
-                issueSpan = candidateIssueSpan;
-                return true;
-            }
-
-            if (simpleName.IsParentKind(SyntaxKind.ForEachStatement))
-            {
-                var foreachStatement = (ForEachStatementSyntax)simpleName.Parent;
-                if (foreachStatement.Type == simpleName)
-                {
-                    var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
-                    if (!foreachStatementInfo.ElementConversion.IsIdentity)
-                    {
-                        return false;
-                    }
-
-                    // Make sure we do this only if the user prefers 'var'.
-                    if (!TypeStyleHelper.IsImplicitStylePreferred(
-                            optionSet,
-                            TypeStyleHelper.IsBuiltInType(semanticModel.GetTypeInfo(simpleName).Type),
-                            isTypeApparentContext: false))
-                    {
-                        return false;
-                    }
-
-                    replacementNode = candidateReplacementNode;
-                    issueSpan = candidateIssueSpan;
-                    return true;
-                }
-            }
-
-            return false;
+            var candidateReplacementNode = SyntaxFactory.IdentifierName("var")
+                .WithLeadingTrivia(simpleName.GetLeadingTrivia())
+                .WithTrailingTrivia(simpleName.GetTrailingTrivia());
+            var candidateIssueSpan = simpleName.Span;
+            return true;
         }
 
         private static bool EqualsValueClauseNotSuitableForVar(
