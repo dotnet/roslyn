@@ -722,5 +722,46 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestFixAll1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        {|FixAllInDocument:if|} (true)
+        {
+            i = 0;
+        }
+        else
+        {
+            i = 1;
+        }
+
+        string s;
+        if (true)
+        {
+            s = ""a"";
+        }
+        else
+        {
+            s = ""b"";
+        }
+    }
+}",
+@"
+class C
+{
+    void M(int i)
+    {
+        i = true ? 0 : 1;
+
+        string s = true ? ""a"" : ""b"";
+    }
+}");
+        }
     }
 }
