@@ -343,6 +343,68 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestDoNotMergeAssignmentToAboveLocalWithComplexInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        int i = Foo();
+        [||]if (true)
+        {
+            i = 0;
+        }
+        else
+        {
+            i = 1;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        int i = Foo();
+        i = true ? 0 : 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestDoNotMergeAssignmentToAboveIfLocalUsedInIfCondition()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        int i = 0;
+        [||]if (Bar(i))
+        {
+            i = 0;
+        }
+        else
+        {
+            i = 1;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        int i = 0;
+        i = Bar(i) ? 0 : 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestUseImplicitTypeForIntrinsicTypes()
         {
             await TestInRegularAndScriptAsync(
