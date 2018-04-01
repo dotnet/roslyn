@@ -1528,6 +1528,16 @@ Je suis d'accord avec tout ce qui précède :</target>
         <target state="new">Live code analysis</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
+        <source>Prefer conditional expression over 'if' with assignments</source>
+        <target state="new">Prefer conditional expression over 'if' with assignments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
+        <source>Prefer conditional expression over 'if' with returns</source>
+        <target state="new">Prefer conditional expression over 'if' with returns</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
