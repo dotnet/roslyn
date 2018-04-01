@@ -2350,21 +2350,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (simpleName.IsParentKind(SyntaxKind.ForEachStatement) &&
-                ((ForEachStatementSyntax)simpleName.Parent).Type == simpleName)
+            if (simpleName.IsParentKind(SyntaxKind.ForEachStatement))
             {
-                // Make sure we do this only if the user prefers 'var'.
-                if (!TypeStyleHelper.IsImplicitStylePreferred(
-                        optionSet, 
-                        TypeStyleHelper.IsBuiltInType(semanticModel.GetTypeInfo(simpleName).Type), 
-                        isTypeApparentContext: false))
+                var foreachStatement = (ForEachStatementSyntax)simpleName.Parent;
+                if (foreachStatement.Type == simpleName)
                 {
-                    return false;
-                }
+                    var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
+                    if (!foreachStatementInfo.ElementConversion.IsIdentity)
+                    {
+                        return false;
+                    }
 
-                replacementNode = candidateReplacementNode;
-                issueSpan = candidateIssueSpan;
-                return true;
+                    // Make sure we do this only if the user prefers 'var'.
+                    if (!TypeStyleHelper.IsImplicitStylePreferred(
+                            optionSet,
+                            TypeStyleHelper.IsBuiltInType(semanticModel.GetTypeInfo(simpleName).Type),
+                            isTypeApparentContext: false))
+                    {
+                        return false;
+                    }
+
+                    replacementNode = candidateReplacementNode;
+                    issueSpan = candidateIssueSpan;
+                    return true;
+                }
             }
 
             return false;
