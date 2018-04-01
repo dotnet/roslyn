@@ -280,11 +280,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return null;
             }
 
-            if (!IsDecimalDigit(this.CurrentChar))
-            {
-                return null;
-            }
-
             const int MaxValueDiv10 = int.MaxValue / 10;
             const int MaxValueMod10 = int.MaxValue % 10;
 
@@ -306,6 +301,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     value *= 10;
                     value += charVal;
                 }
+            }
+
+            if (Position == start)
+            {
+                return null;
             }
 
             var token = CreateToken(RegexKind.NumberToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
