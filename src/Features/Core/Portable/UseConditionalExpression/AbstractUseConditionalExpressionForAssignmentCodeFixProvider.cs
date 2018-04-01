@@ -198,8 +198,34 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                     return false;
                 }
             }
+            
+            // If the variable is referenced in the condition of the 'if' block, we can't merge the
+            // declaration and assignments.
+            if (ReferencesLocalVariable(ifOperation.Condition, variable))
+            {
+                return false;
+            }
 
             return true;
+        }
+
+        private bool ReferencesLocalVariable(IOperation operation, ILocalSymbol variable)
+        {
+            if (operation is ILocalReferenceOperation localReference &&
+                Equals(variable, localReference.Local))
+            {
+                return true;
+            }
+
+            foreach (var child in operation.Children)
+            {
+                if (ReferencesLocalVariable(child, variable))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static IOperation UnwrapImplicitConversion(IOperation value)
