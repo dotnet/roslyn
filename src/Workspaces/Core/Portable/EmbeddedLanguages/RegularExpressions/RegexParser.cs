@@ -133,6 +133,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         AddUniqueDiagnostics(trivia.Diagnostics, diagnostics);
                     }
 
+                    // We never place trailing trivia on regex tokens.
+                    Debug.Assert(token.TrailingTrivia.IsEmpty);
                     AddUniqueDiagnostics(token.Diagnostics, diagnostics);
                 }
             }
