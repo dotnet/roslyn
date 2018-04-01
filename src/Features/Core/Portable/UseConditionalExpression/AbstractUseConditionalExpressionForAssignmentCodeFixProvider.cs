@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -55,30 +56,64 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             Document document, Diagnostic diagnostic, 
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var ifStatement = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement);
 
-            if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(ifOperation, 
-                    out var localDeclarationOperation, 
-                    out var trueAssignment, 
-                    out var falseAssignment))
+            if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
+                    syntaxFacts, ifOperation, 
+                    out var trueAssignment, out var falseAssignment))
             {
                 return;
+            }
+
+            var generator = editor.Generator;
+
+            var conditionalExpression = (TExpressionSyntax)generator.ConditionalExpression(
+                ifOperation.Condition.Syntax.WithoutTrivia(),
+                generator.CastExpression(trueAssignment.Target.Type, trueAssignment.Value.Syntax.WithoutTrivia()),
+                generator.CastExpression(falseAssignment.Target.Type, falseAssignment.Value.Syntax.WithoutTrivia()));
+
+            conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
+
+            if (TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
+                    editor, ifOperation, trueAssignment, falseAssignment, conditionalExpression))
+            {
+                return;
+            }
+
+            ConvertOnlyIfToConditionalExpression(
+                editor, ifOperation, trueAssignment, falseAssignment, conditionalExpression);
+        }
+
+        private void ConvertOnlyIfToConditionalExpression(
+            SyntaxEditor editor, IConditionalOperation ifOperation,
+            ISimpleAssignmentOperation trueAssignment, ISimpleAssignmentOperation falseAssignment,
+            TExpressionSyntax conditionalExpression)
+        {
+            var generator = editor.Generator;
+            var assignment = generator.AssignmentStatement(
+                trueAssignment.Target.Syntax, conditionalExpression).WithTriviaFrom(ifOperation.Syntax);
+            editor.ReplaceNode(ifOperation.Syntax, assignment);
+        }
+
+        private bool TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
+            SyntaxEditor editor, IConditionalOperation ifOperation,
+            ISimpleAssignmentOperation trueAssignment, ISimpleAssignmentOperation falseAssignment,
+            TExpressionSyntax conditionalExpression)
+        {
+            if (!TryFindMatchingLocalDeclarationImmediatelyAbove(
+                    ifOperation, trueAssignment, falseAssignment,
+                    out var localDeclarationOperation))
+            {
+                return false;
             }
 
             var localDeclaration = localDeclarationOperation.Syntax;
             var declarator = localDeclarationOperation.Declarations[0].Declarators[0];
             var variable = GetDeclaratorSyntax(declarator);
-            var generator = editor.Generator;
-
-            var conditionalExpression = (TExpressionSyntax)generator.ConditionalExpression(
-                ifOperation.Condition.Syntax.WithoutTrivia(),
-                generator.CastExpression(declarator.Symbol.Type, trueAssignment.Value.Syntax.WithoutTrivia()),
-                generator.CastExpression(declarator.Symbol.Type, falseAssignment.Value.Syntax.WithoutTrivia()));
-
-            conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
 
             var updatedVariable = WithInitializer(variable, conditionalExpression);
 
@@ -87,8 +122,85 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 (TLocalDeclarationStatementSyntax)updatedLocalDeclaration);
 
             editor.ReplaceNode(localDeclaration, updatedLocalDeclaration);
-            editor.RemoveNode(ifStatement, SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepExteriorTrivia);
+            editor.RemoveNode(ifOperation.Syntax, SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepExteriorTrivia);
+            return true;
         }
+
+        private bool TryFindMatchingLocalDeclarationImmediatelyAbove(
+            IConditionalOperation ifOperation, ISimpleAssignmentOperation trueAssignment, ISimpleAssignmentOperation falseAssignment, 
+            out IVariableDeclarationGroupOperation localDeclaration)
+        {
+            localDeclaration = null;
+
+            // See if both assignments are to the same local.
+            if (!(trueAssignment.Target is ILocalReferenceOperation trueLocal) ||
+                !(falseAssignment.Target is ILocalReferenceOperation falseLocal) ||
+                !Equals(trueLocal, falseLocal))
+            {
+                return false;
+            }
+
+            // If so, see if that local was declared immediately above the if-statement.
+            var parentBlock = ifOperation.Parent as IBlockOperation;
+            if (parentBlock == null)
+            {
+                return false;
+            }
+
+            var ifIndex = parentBlock.Operations.IndexOf(ifOperation);
+            if (ifIndex <= 0)
+            {
+                return false;
+            }
+
+            localDeclaration = parentBlock.Operations[ifIndex - 1] as IVariableDeclarationGroupOperation;
+            if (localDeclaration == null)
+            {
+                return false;
+            }
+
+            if (localDeclaration.Declarations.Length != 1)
+            {
+                return false;
+            }
+
+            var declarationOperation = localDeclaration.Declarations[0];
+            var declarators = declarationOperation.Declarators;
+            if (declarators.Length != 1)
+            {
+                return false;
+            }
+
+            var declarator = declarators[0];
+            var variable = declarator.Symbol;
+            if (!Equals(variable, trueLocal))
+            {
+                // wasn't a declaration of the local we're assigning to.
+                return false;
+            }
+
+            var variableName = variable.Name;
+
+            var variableInitialier = declarator.Initializer;
+            if (variableInitialier?.Value != null)
+            {
+                var unwrapped = UnwrapImplicitConversion(variableInitialier.Value);
+                // the variable has to either not have an initializer, or it needs to be basic
+                // literal/default expression.
+                if (!(unwrapped is ILiteralOperation) &&
+                    !(unwrapped is IDefaultValueOperation))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static IOperation UnwrapImplicitConversion(IOperation value)
+            => value is IConversionOperation conversion && conversion.IsImplicit
+                ? conversion.Operand
+                : value;
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
@@ -22,7 +23,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                    message)
         {
         }
-         
+
+        protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract ImmutableArray<TSyntaxKind> GetIfStatementKinds();
 
         protected override void InitializeWorker(AnalysisContext context)
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var ifOperation = (IConditionalOperation)context.SemanticModel.GetOperation(ifStatement);
             if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
-                    ifOperation, out _, out _, out _))
+                    GetSyntaxFactsService(), ifOperation, out _, out _))
             {
                 return;
             }
