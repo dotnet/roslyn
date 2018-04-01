@@ -17,11 +17,17 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
     internal abstract class AbstractUseConditionalExpressionForAssignmentCodeFixProvider<
-        TLocalDeclarationStatement>
+        TLocalDeclarationStatementSyntax,
+        TVariableDeclaratorSyntax,
+        TExpressionSyntax>
         : SyntaxEditorBasedCodeFixProvider
-        where TLocalDeclarationStatement : SyntaxNode
+        where TLocalDeclarationStatementSyntax : SyntaxNode
+        where TVariableDeclaratorSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
     {
-        protected abstract TLocalDeclarationStatement AddSimplificationToType(TLocalDeclarationStatement updatedLocalDeclaration);
+        protected abstract TVariableDeclaratorSyntax WithInitializer(TVariableDeclaratorSyntax variable, TExpressionSyntax value);
+        protected abstract TVariableDeclaratorSyntax GetDeclaratorSyntax(IVariableDeclaratorOperation declarator);
+        protected abstract TLocalDeclarationStatementSyntax AddSimplificationToType(TLocalDeclarationStatementSyntax updatedLocalDeclaration);
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId);
@@ -64,21 +70,21 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var localDeclaration = localDeclarationOperation.Syntax;
             var declarator = localDeclarationOperation.Declarations[0].Declarators[0];
-            var variable = declarator.Syntax;
+            var variable = GetDeclaratorSyntax(declarator);
             var generator = editor.Generator;
 
-            var conditionalExpression = generator.ConditionalExpression(
+            var conditionalExpression = (TExpressionSyntax)generator.ConditionalExpression(
                 ifOperation.Condition.Syntax,
                 generator.CastExpression(declarator.Symbol.Type, trueAssignment.Value.Syntax),
                 generator.CastExpression(declarator.Symbol.Type, falseAssignment.Value.Syntax));
 
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
 
-            var updatedVariable = generator.WithInitializer(
-                variable, generator.EqualsValueClause(conditionalExpression));
+            var updatedVariable = WithInitializer(variable, conditionalExpression);
 
             var updatedLocalDeclaration = localDeclaration.ReplaceNode(variable, updatedVariable);
-            updatedLocalDeclaration = AddSimplificationToType((TLocalDeclarationStatement)updatedLocalDeclaration);
+            updatedLocalDeclaration = AddSimplificationToType(
+                (TLocalDeclarationStatementSyntax)updatedLocalDeclaration);
 
             editor.ReplaceNode(localDeclaration, updatedLocalDeclaration);
             editor.RemoveNode(ifStatement, SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepExteriorTrivia);

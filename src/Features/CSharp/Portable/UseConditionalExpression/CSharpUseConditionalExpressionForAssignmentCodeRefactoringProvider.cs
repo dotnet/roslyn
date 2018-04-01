@@ -3,6 +3,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.UseConditionalExpression;
 
@@ -10,8 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUseConditionalExpressionForAssignmentCodeRefactoringProvider
-        : AbstractUseConditionalExpressionForAssignmentCodeFixProvider<LocalDeclarationStatementSyntax>
+        : AbstractUseConditionalExpressionForAssignmentCodeFixProvider<
+            LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
     {
+        protected override VariableDeclaratorSyntax WithInitializer(VariableDeclaratorSyntax variable, ExpressionSyntax value)
+            => variable.WithInitializer(SyntaxFactory.EqualsValueClause(value));
+
+        protected override VariableDeclaratorSyntax GetDeclaratorSyntax(IVariableDeclaratorOperation declarator)
+            => (VariableDeclaratorSyntax)declarator.Syntax;
+
         protected override LocalDeclarationStatementSyntax AddSimplificationToType(LocalDeclarationStatementSyntax statement)
             => statement.WithDeclaration(statement.Declaration.WithType(
                 statement.Declaration.Type.WithAdditionalAnnotations(Simplifier.Annotation)));
