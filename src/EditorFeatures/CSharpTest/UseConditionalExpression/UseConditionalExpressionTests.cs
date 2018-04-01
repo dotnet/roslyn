@@ -372,7 +372,7 @@ class C
 {
     void M()
     {
-        var i = true ? 0 : 1;
+        int i = true ? 0 : 1;
     }
 }", options: new Dictionary<OptionKey, object> {
     {  CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement }
