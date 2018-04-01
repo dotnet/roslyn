@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : new VirtualChar((char)0, default);
 
+        public ImmutableArray<VirtualChar> GetSubPatternToCurrentPos(int start)
+            => GetSubPattern(start, Position);
+
         public ImmutableArray<VirtualChar> GetSubPattern(int start, int end)
         {
             var result = ArrayBuilder<VirtualChar>.GetInstance(end - start);
@@ -152,7 +155,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                             Position++;
                         }
 
-                        return CreateTrivia(RegexKind.CommentTrivia, GetSubPattern(start, Position));
+                        return CreateTrivia(RegexKind.CommentTrivia, GetSubPatternToCurrentPos(start));
                     }
                 }
 
@@ -170,11 +173,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         var diagnostics = ImmutableArray.Create(new EmbeddedDiagnostic(
                             WorkspacesResources.Unterminated_regex_comment,
                             GetTextSpan(start, Position)));
-                        return CreateTrivia(RegexKind.CommentTrivia, GetSubPattern(start, Position), diagnostics);
+                        return CreateTrivia(RegexKind.CommentTrivia, GetSubPatternToCurrentPos(start), diagnostics);
                     }
 
                     Position++;
-                    return CreateTrivia(RegexKind.CommentTrivia, GetSubPattern(start, Position));
+                    return CreateTrivia(RegexKind.CommentTrivia, GetSubPatternToCurrentPos(start));
                 }
             }
 
@@ -213,7 +216,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
                 if (Position > start)
                 {
-                    return CreateTrivia(RegexKind.WhitespaceTrivia, GetSubPattern(start, Position));
+                    return CreateTrivia(RegexKind.WhitespaceTrivia, GetSubPatternToCurrentPos(start));
                 }
             }
 
@@ -250,7 +253,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return null;
             }
 
-            var token = CreateToken(RegexKind.EscapeCategoryToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
+            var token = CreateToken(RegexKind.EscapeCategoryToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
             var category = token.VirtualChars.CreateString();
 
             if (!RegexCharClass.IsEscapeCategory(category))
@@ -303,7 +306,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 }
             }
 
-            var token = CreateToken(RegexKind.NumberToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
+            var token = CreateToken(RegexKind.NumberToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
             token = token.With(value: value);
 
             if (error)
@@ -334,7 +337,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return null;
             }
 
-            var token = CreateToken(RegexKind.CaptureNameToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
+            var token = CreateToken(RegexKind.CaptureNameToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
             token = token.With(value: token.VirtualChars.CreateString());
             return token;
         }
@@ -352,7 +355,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             return start == Position
                 ? default(RegexToken?)
-                : CreateToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
+                : CreateToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
         }
 
         private bool IsOptionChar(char ch)
@@ -389,7 +392,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             var result = CreateToken(
-                RegexKind.TextToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
+                RegexKind.TextToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
 
             var length = Position - start;
             if (length != count)
@@ -446,7 +449,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Debug.Assert(Position - start > 0);
 
             var result = CreateToken(
-                RegexKind.TextToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
+                RegexKind.TextToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
 
             return result;
         }
