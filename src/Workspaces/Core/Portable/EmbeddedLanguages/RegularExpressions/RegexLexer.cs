@@ -424,7 +424,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             var beforeSlash = start - 1;
 
             // Make sure we're right after the \
+            // And we only should have been called if we were \octal-char 
             Debug.Assert(Text[beforeSlash].Char == '\\');
+            Debug.Assert(IsOctalDigit(Text[start].Char));
 
             const int maxChars = 3;
             int currentVal = 0;
