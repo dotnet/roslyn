@@ -53,6 +53,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 FixOneAsync, GetMultiLineFormattingRule(), cancellationToken);
         }
 
+        /// <summary>
+        /// Returns 'true' if a multi-line conditional was created, and thus should be y
+        /// formatted specially.
+        /// </summary>
         private async Task<bool> FixOneAsync(
             Document document, Diagnostic diagnostic,
             SyntaxEditor editor, CancellationToken cancellationToken)
@@ -70,17 +74,19 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
-            var generator = editor.Generator;
-
             var (conditionalExpression, isMultiLine) = await CreateConditionalExpressionAsync<TExpressionSyntax>(
-                document, generator, ifOperation,
+                document, ifOperation,
                 trueAssignment.Value, falseAssignment.Value, 
                 cancellationToken).ConfigureAwait(false);
 
+            // See if we're assigning to a variable declared directly above the if statement. If so,
+            // try to inline the conditional directly into the initializer for that variable.
             if (!TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
                     syntaxFacts, editor, ifOperation, 
                     trueAssignment, falseAssignment, conditionalExpression))
             {
+                // If not, just replace the if-statement with a single assignment of the new
+                // conditional.
                 ConvertOnlyIfToConditionalExpression(
                     editor, ifOperation, trueAssignment, falseAssignment, conditionalExpression);
             }
@@ -94,9 +100,12 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             TExpressionSyntax conditionalExpression)
         {
             var generator = editor.Generator;
-            var assignment = generator.ExpressionStatement(generator.AssignmentStatement(
-                trueAssignment.Target.Syntax, conditionalExpression)).WithTriviaFrom(ifOperation.Syntax);
-            editor.ReplaceNode(ifOperation.Syntax, assignment);
+            editor.ReplaceNode(
+                ifOperation.Syntax,
+                generator.ExpressionStatement(
+                    generator.AssignmentStatement(
+                        trueAssignment.Target.Syntax,
+                        conditionalExpression)).WithTriviaFrom(ifOperation.Syntax));
         }
 
         private bool TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
@@ -111,12 +120,17 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
+            // We found a valid local declaration right above the if-statement.
             var localDeclaration = localDeclarationOperation.Syntax;
             var declarator = localDeclarationOperation.Declarations[0].Declarators[0];
             var variable = GetDeclaratorSyntax(declarator);
 
+            // Initialize that variable with the conditional expression.
             var updatedVariable = WithInitializer(variable, conditionalExpression);
 
+            // Because we merged the initialization and the variable, the variable may now be able
+            // to use 'var' (c#), or elide its type (vb).  Add the simplification annotation
+            // appropriately so that can happen later down the line.
             var updatedLocalDeclaration = localDeclaration.ReplaceNode(variable, updatedVariable);
             updatedLocalDeclaration = AddSimplificationToType(
                 (TLocalDeclarationStatementSyntax)updatedLocalDeclaration);
@@ -196,12 +210,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             // If the variable is referenced in the condition of the 'if' block, we can't merge the
             // declaration and assignments.
-            if (ReferencesLocalVariable(ifOperation.Condition, variable))
-            {
-                return false;
-            }
-
-            return true;
+            return !ReferencesLocalVariable(ifOperation.Condition, variable);
         }
 
         private bool ReferencesLocalVariable(IOperation operation, ILocalSymbol variable)

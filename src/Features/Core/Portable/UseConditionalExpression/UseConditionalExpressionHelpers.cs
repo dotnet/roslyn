@@ -70,10 +70,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         public static async Task<(TExpressionSyntax, bool isMultiLine)> CreateConditionalExpressionAsync<TExpressionSyntax>(
-            Document document, SyntaxGenerator generator, IConditionalOperation ifOperation, 
+            Document document, IConditionalOperation ifOperation, 
             IOperation trueValue, IOperation falseValue, CancellationToken cancellationToken)
             where TExpressionSyntax : SyntaxNode
         {
+            var generator = SyntaxGenerator.GetGenerator(document);
             var conditionalExpression = (TExpressionSyntax)generator.ConditionalExpression(
                 ifOperation.Condition.Syntax.WithoutTrivia(),
                 CastValueIfNecessary(generator, trueValue),
