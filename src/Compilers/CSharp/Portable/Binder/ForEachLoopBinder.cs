@@ -298,17 +298,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder).MakeCompilerGenerated();
                         }
-                        else if (!node.HasErrors)
-                        {
-                            // error: must declare foreach loop iteration variables.
-                            Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
-                            hasErrors = true;
-                        }
                         else
                         {
                             // Bind the expression for error recovery, but discard all new diagnostics
-                            iterationErrorExpression = originalBinder.BindExpression(node.Variable, new DiagnosticBag());
+                            iterationErrorExpression = BindExpression(node.Variable, new DiagnosticBag());
                             hasErrors = true;
+
+                            if (!node.HasErrors)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                            }
                         }
 
                         boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType).MakeCompilerGenerated();

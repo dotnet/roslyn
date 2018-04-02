@@ -1220,12 +1220,13 @@ class X
 IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
   IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (x[ ... }')
     LoopControlVariable: 
-      null
-    Collection: 
-      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.IEnumerable, IsImplicit) (Syntax: 'x')
-        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-        Operand: 
+      IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'x[0]')
+        Array reference: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'x')
+        Indices(1):
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+    Collection: 
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'x')
     Body: 
       IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
     NextVariables(0)
@@ -1283,7 +1284,7 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInva
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19996, "https://github.com/dotnet/roslyn/issues/19996")]
-        public void IForEachLoopStatement_InvalidLoopControlVariableExpression()
+        public void IForEachLoopStatement_InvalidLoopControlVariableExpression_01()
         {
             string source = @"
 class C
@@ -1322,6 +1323,96 @@ IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInva
                 // error CS0230: Type and identifier are both required in a foreach statement
                 //         /*<bind>*/foreach (M(1, 2) in arr)
                 Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(7, 36)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ForEachVariableStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void IForEachLoopStatement_InvalidLoopControlVariableExpression_02()
+        {
+            string source = @"
+class C
+{
+    void M(int a, int b)
+    {
+        int[] arr = new int[10];
+        /*<bind>*/foreach (M2(out var x) in arr)
+        {
+        }/*</bind>*/
+    }
+
+    void M2(out int x)
+    {
+        x = 0;
+    }
+}
+";
+            string expectedOperationTree = @"
+IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (M2 ... }')
+  Locals: Local_1: System.Int32 x
+  LoopControlVariable: 
+    IInvocationOperation ( void C.M2(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(out var x)')
+      Instance Receiver: 
+        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+      Arguments(1):
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'out var x')
+            IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var x')
+              ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Collection: 
+    ILocalReferenceOperation: arr (OperationKind.LocalReference, Type: System.Int32[]) (Syntax: 'arr')
+  Body: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  NextVariables(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,42): error CS0230: Type and identifier are both required in a foreach statement
+                //         /*<bind>*/foreach (M2(out var x) in arr)
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(7, 42)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ForEachVariableStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+        public void IForEachLoopStatement_InvalidLoopControlVariableExpression_03()
+        {
+            string source = @"
+class C
+{
+    void M(object o)
+    {
+        int[] arr = new int[10];
+        /*<bind>*/foreach (o is int x in arr)
+        {
+        }/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'foreach (o  ... }')
+  Locals: Local_1: System.Int32 x
+  LoopControlVariable: 
+    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is int x')
+      Expression: 
+        IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
+      Pattern: 
+        IDeclarationPatternOperation (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x')
+  Collection: 
+    ILocalReferenceOperation: arr (OperationKind.LocalReference, Type: System.Int32[]) (Syntax: 'arr')
+  Body: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  NextVariables(0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,39): error CS0230: Type and identifier are both required in a foreach statement
+                //         /*<bind>*/foreach (o is int x in arr)
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(7, 39)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ForEachVariableStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
