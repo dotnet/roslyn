@@ -14,18 +14,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             trueReturn = null;
             falseReturn = null;
 
-            var parentBlock = ifOperation.Parent as IBlockOperation;
-            if (parentBlock == null)
-            {
-                return false;
-            }
-
-            var ifIndex = parentBlock.Operations.IndexOf(ifOperation);
-            if (ifIndex < 0)
-            {
-                return false;
-            }            
-
             var trueStatement = ifOperation.WhenTrue;
             var falseStatement = ifOperation.WhenFalse;
 
@@ -43,12 +31,27 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             //      
             //      return b;
 
-            if (falseStatement == null && ifIndex + 1 < parentBlock.Operations.Length)
+            if (falseStatement == null)
             {
-                falseStatement = parentBlock.Operations[ifIndex + 1];
-                if (falseStatement.IsImplicit)
+                var parentBlock = ifOperation.Parent as IBlockOperation;
+                if (parentBlock == null)
                 {
                     return false;
+                }
+
+                var ifIndex = parentBlock.Operations.IndexOf(ifOperation);
+                if (ifIndex < 0)
+                {
+                    return false;
+                }
+
+                if (ifIndex + 1 < parentBlock.Operations.Length)
+                {
+                    falseStatement = parentBlock.Operations[ifIndex + 1];
+                    if (falseStatement.IsImplicit)
+                    {
+                        return false;
+                    }
                 }
             }
 
