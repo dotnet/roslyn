@@ -1572,7 +1572,7 @@ static class E
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (11,15): warning CS8625: Cannot convert null literal to non-nullable reference.
+                // (11,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         t.x = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 15));
         }
@@ -1902,6 +1902,8 @@ class C
         F(default).ToString();
     }
 }";
+            // ErrorCode.WRN_NullReferenceReceiver is reported for F(default).ToString() because F(v)
+            // has type T from initial binding (see https://github.com/dotnet/roslyn/issues/25778).
             var comp = CreateStandardCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
@@ -1914,7 +1916,10 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default(object))").WithLocation(6, 9),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F(default(string)).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default(string))").WithLocation(8, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default(string))").WithLocation(8, 9),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         F(default).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default)").WithLocation(9, 9));
         }
 
         [Fact]

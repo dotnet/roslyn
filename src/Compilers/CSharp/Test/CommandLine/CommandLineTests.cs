@@ -6657,12 +6657,12 @@ namespace System
             src.WriteAllText(source + mslib);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
+            int exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/nostdlib", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
+            exitCode = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
             string OriginalSource = src.Path;
@@ -6670,7 +6670,7 @@ namespace System
             src = Temp.CreateFile("NoStdLib02b.cs");
             src.WriteAllText(mslib);
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = new MockCSharpCompiler(GetDefaultResponseFilePath(), _baseDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", src.ToString() }).Run(outWriter);
+            exitCode = new MockCSharpCompiler(GetDefaultResponseFilePath(), _baseDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 

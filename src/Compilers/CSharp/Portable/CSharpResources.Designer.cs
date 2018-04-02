@@ -14325,7 +14325,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference..
+        ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference or unconstrained type parameter..
         /// </summary>
         internal static string WRN_NullAsNonNullable {
             get {
@@ -14334,7 +14334,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference..
+        ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference or unconstrained type parameter..
         /// </summary>
         internal static string WRN_NullAsNonNullable_Title {
             get {

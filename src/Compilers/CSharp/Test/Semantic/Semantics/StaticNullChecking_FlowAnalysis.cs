@@ -209,6 +209,9 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (2,7): warning CS8618: Non-nullable field 'F' is uninitialized.
+                // class A<T>
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F").WithLocation(2, 7),
                 // (12,42): warning CS8619: Nullability of reference types in value of type 'B1' doesn't match target type 'A<object>'.
                 //         var a = new[] { new A<object>(), new B1() };
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new B1()").WithArguments("B1", "A<object>").WithLocation(12, 42),
@@ -471,6 +474,12 @@ class C
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
+                // (2,7): warning CS8618: Non-nullable property 'P' is uninitialized.
+                // class A<T>
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("property", "P").WithLocation(2, 7),
+                // (2,7): warning CS8618: Non-nullable field 'F' is uninitialized.
+                // class A<T>
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F").WithLocation(2, 7),
                 // (13,10): warning CS8626: No best nullability for operands of conditional expression 'A<object>' and 'B1'.
                 //         (b ? x : y)/*T:A<object!>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? x : y").WithArguments("A<object>", "B1").WithLocation(13, 10),
@@ -1418,10 +1427,13 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (21,27): warning CS8625: Cannot convert null literal to non-nullable reference.
+                // (1,7): warning CS8618: Non-nullable field 'F' is uninitialized.
+                // class C<T>
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F").WithLocation(1, 7),
+                // (21,27): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //             Create(x).F = null; // warn
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 27),
-                // (23,19): warning CS8625: Cannot convert null literal to non-nullable reference.
+                // (23,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //             y.F = null; // warn
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(23, 19));
         }
@@ -1914,6 +1926,9 @@ class C
             var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
+                // (6,7): warning CS8618: Non-nullable field 'F' is uninitialized.
+                // class B<T>
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "B").WithArguments("field", "F").WithLocation(6, 7),
                 // (14,10): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'B<object?>'.
                 //         (x1 ?? y1)/*T:B<object?>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("A<object>", "B<object?>").WithLocation(14, 10),
@@ -2129,6 +2144,9 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (2,7): warning CS8618: Non-nullable field 'F' is uninitialized.
+                // class A<T>
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F").WithLocation(2, 7),
                 // (11,15): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
                 //         (x ?? y).F.ToString();
                 //Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("B<object?>", "A<object>").WithLocation(11, 15),
