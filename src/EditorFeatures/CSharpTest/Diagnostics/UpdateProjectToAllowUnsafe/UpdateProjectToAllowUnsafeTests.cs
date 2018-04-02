@@ -68,7 +68,7 @@ class C
 {
     void M()
     {
-        unsafe void [|Function|]()
+        unsafe void [|F|]()
         {
         }
     }

@@ -18,13 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UpdateProjectToAllowUnsafe
 
         public override FixAllProvider GetFixAllProvider()
         {
-            // Fix all could be implemented, but doesn't seem as important because for this to be useful,
-            // the user would have to have erroneous unsafe blocks in several projects, which sounds really unlikely.
-            // And after all, unsafe code itself is and should be an edge case - do we want to make it easier
-            // to convert to it on a larger scale?
-            // If we do this, we should create a custom FixAllProvider that only supports FixAllScope.Solution
-            // since Document and Project don't really make sense - the action would always be the same as for fix one
-            // and having these extra options would only be confusing.
+            // We're OK with users having to explicitly opt in each project. Unsafe code is itself an edge case and we don't
+            // need to make it easier to convert to it on a larger scale. It's also unlikely that anyone will need this.
             return null;
         }
 
