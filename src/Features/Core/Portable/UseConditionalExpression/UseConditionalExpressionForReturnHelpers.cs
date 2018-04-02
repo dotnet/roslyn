@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
+
     internal static class UseConditionalExpressionForReturnHelpers 
     {
         public static bool TryMatchPattern(

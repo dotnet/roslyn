@@ -7,8 +7,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
     internal static class UseConditionalExpressionForAssignmentHelpers 
     {
-        public static readonly SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
-
         public static bool TryMatchPattern(
             ISyntaxFactsService syntaxFacts,
             IConditionalOperation ifOperation,

@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Private Function IsCommaOfNewConditional(token As SyntaxToken) As Boolean
             If token.Kind() = SyntaxKind.CommaToken Then
                 Return token.Parent.HasAnnotation(
-                        UseConditionalExpressionForAssignmentHelpers.SpecializedFormattingAnnotation)
+                        UseConditionalExpressionHelpers.SpecializedFormattingAnnotation)
             End If
 
             Return False
@@ -38,8 +38,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Public Overrides Sub AddIndentBlockOperations(
                 list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of IndentBlockOperation))
 
-            If node.HasAnnotation(UseConditionalExpressionForAssignmentHelpers.SpecializedFormattingAnnotation) AndAlso
-                        TypeOf node Is TernaryConditionalExpressionSyntax Then
+            If node.HasAnnotation(UseConditionalExpressionHelpers.SpecializedFormattingAnnotation) AndAlso
+               TypeOf node Is TernaryConditionalExpressionSyntax Then
 
                 Dim conditional = TryCast(node, TernaryConditionalExpressionSyntax)
                 Dim statement = conditional.FirstAncestorOrSelf(Of StatementSyntax)()

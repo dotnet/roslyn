@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
-using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionForAssignmentHelpers;
+using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 {
