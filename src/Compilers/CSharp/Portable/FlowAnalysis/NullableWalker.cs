@@ -3092,8 +3092,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiverOpt != null && this.State.Reachable)
             {
+#if DEBUG
                 Debug.Assert(receiverOpt.Type is null || _result.Type?.TypeSymbol is null || AreCloseEnough(receiverOpt.Type, _result.Type.TypeSymbol));
-                var receiverType = receiverOpt.Type ?? _result.Type?.TypeSymbol;
+#endif
+                TypeSymbol receiverType = receiverOpt.Type ?? _result.Type?.TypeSymbol;
                 if ((object)receiverType != null &&
                     (!checkType || receiverType.IsReferenceType || receiverType.IsUnconstrainedTypeParameter()) &&
                     (_result.Type?.IsNullable == true || receiverType.IsUnconstrainedTypeParameter()))
