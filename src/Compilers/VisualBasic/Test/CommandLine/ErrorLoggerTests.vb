@@ -19,14 +19,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
         <Fact>
         Public Sub NoDiagnostics()
-            Dim helloWorldVB As String = <text>
+            Dim helloWorldVB As String = "
 Imports System
 Class C
     Shared Sub Main(args As String())
-        Console.WriteLine("Hello, world")
+        Console.WriteLine(""Hello, world"")
     End Sub
 End Class
-</text>.Value
+"
 
             Dim hello = Temp.CreateFile().WriteAllText(helloWorldVB).Path
             Dim errorLogDir = Temp.CreateDirectory()
@@ -36,38 +36,39 @@ End Class
                 {"/nologo",
                  $"/errorlog:{errorLogFile}",
                  hello})
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Using outWriter = New StringWriter(CultureInfo.InvariantCulture)
 
-            Dim exitCode = cmd.Run(outWriter, Nothing)
-            Assert.Equal("", outWriter.ToString().Trim())
-            Assert.Equal(0, exitCode)
+                Dim exitCode = cmd.Run(outWriter, Nothing)
+                Assert.Equal("", outWriter.ToString().Trim())
+                Assert.Equal(0, exitCode)
 
-            Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
+                Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
-            Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
-            Dim expectedIssues = "
+                Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
+                Dim expectedIssues = "
       ""results"": [
       ]
     }
   ]
 }"
 
-            Dim expectedText = expectedHeader + expectedIssues
-            Assert.Equal(expectedText, actualOutput)
+                Dim expectedText = expectedHeader + expectedIssues
+                Assert.Equal(expectedText, actualOutput)
 
-            CleanupAllGeneratedFiles(hello)
-            CleanupAllGeneratedFiles(errorLogFile)
+                CleanupAllGeneratedFiles(hello)
+                CleanupAllGeneratedFiles(errorLogFile)
+            End Using
         End Sub
 
         <Fact>
         Public Sub SimpleCompilerDiagnostics()
-            Dim source As String = <text>
+            Dim source As String = "
 Public Class C
     Public Sub Method()
         Dim x As Integer
     End Sub
 End Class
-</text>.Value
+"
 
             Dim sourceFilePath = Temp.CreateFile().WriteAllText(source).Path
             Dim errorLogDir = Temp.CreateDirectory()
@@ -78,19 +79,19 @@ End Class
                 "/preferreduilang:en",
                  $"/errorlog:{errorLogFile}",
                  sourceFilePath})
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Using outWriter = New StringWriter(CultureInfo.InvariantCulture)
 
-            Dim exitCode = cmd.Run(outWriter, Nothing)
-            Dim actualConsoleOutput = outWriter.ToString().Trim()
+                Dim exitCode = cmd.Run(outWriter, Nothing)
+                Dim actualConsoleOutput = outWriter.ToString().Trim()
 
-            Assert.Contains("BC42024", actualConsoleOutput)
-            Assert.Contains("BC30420", actualConsoleOutput)
-            Assert.NotEqual(0, exitCode)
+                Assert.Contains("BC42024", actualConsoleOutput)
+                Assert.Contains("BC30420", actualConsoleOutput)
+                Assert.NotEqual(0, exitCode)
 
-            Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
+                Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
-            Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
-            Dim expectedIssues = String.Format("
+                Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
+                Dim expectedIssues = String.Format("
       ""results"": [
         {{
           ""ruleId"": ""BC42024"",
@@ -151,16 +152,17 @@ End Class
   ]
 }}", AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath), Path.GetFileNameWithoutExtension(sourceFilePath))
 
-            Dim expectedText = expectedHeader + expectedIssues
-            Assert.Equal(expectedText, actualOutput)
+                Dim expectedText = expectedHeader + expectedIssues
+                Assert.Equal(expectedText, actualOutput)
 
-            CleanupAllGeneratedFiles(sourceFilePath)
-            CleanupAllGeneratedFiles(errorLogFile)
+                CleanupAllGeneratedFiles(sourceFilePath)
+                CleanupAllGeneratedFiles(errorLogFile)
+            End Using
         End Sub
 
         <Fact>
         Public Sub SimpleCompilerDiagnostics_Suppressed()
-            Dim source As String = <text>
+            Dim source As String = "
 Public Class C
     Public Sub Method()
 #Disable Warning BC42024
@@ -168,7 +170,7 @@ Public Class C
 #Enable Warning BC42024
     End Sub
 End Class
-</text>.Value
+"
 
             Dim sourceFilePath = Temp.CreateFile().WriteAllText(source).Path
             Dim errorLogDir = Temp.CreateDirectory()
@@ -179,20 +181,20 @@ End Class
                 "/preferreduilang:en",
                  $"/errorlog:{errorLogFile}",
                  sourceFilePath})
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Using outWriter = New StringWriter(CultureInfo.InvariantCulture)
 
-            Dim exitCode = cmd.Run(outWriter, Nothing)
-            Dim actualConsoleOutput = outWriter.ToString().Trim()
+                Dim exitCode = cmd.Run(outWriter, Nothing)
+                Dim actualConsoleOutput = outWriter.ToString().Trim()
 
-            ' Suppressed diagnostics are only report in the error log, not the console output.
-            Assert.DoesNotContain("BC42024", actualConsoleOutput)
-            Assert.Contains("BC30420", actualConsoleOutput)
-            Assert.NotEqual(0, exitCode)
+                ' Suppressed diagnostics are only report in the error log, not the console output.
+                Assert.DoesNotContain("BC42024", actualConsoleOutput)
+                Assert.Contains("BC30420", actualConsoleOutput)
+                Assert.NotEqual(0, exitCode)
 
-            Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
+                Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
-            Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
-            Dim expectedIssues = String.Format("
+                Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
+                Dim expectedIssues = String.Format("
       ""results"": [
         {{
           ""ruleId"": ""BC42024"",
@@ -256,20 +258,21 @@ End Class
   ]
 }}", AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath), Path.GetFileNameWithoutExtension(sourceFilePath))
 
-            Dim expectedText = expectedHeader + expectedIssues
-            Assert.Equal(expectedText, actualOutput)
+                Dim expectedText = expectedHeader + expectedIssues
+                Assert.Equal(expectedText, actualOutput)
 
-            CleanupAllGeneratedFiles(sourceFilePath)
-            CleanupAllGeneratedFiles(errorLogFile)
+                CleanupAllGeneratedFiles(sourceFilePath)
+                CleanupAllGeneratedFiles(errorLogFile)
+            End Using
         End Sub
 
         <Fact>
         Public Sub AnalyzerDiagnosticsWithAndWithoutLocation()
-            Dim source As String = <text>
+            Dim source As String = "
 Imports System
 Class C
 End Class
-</text>.Value
+"
 
             Dim sourceFilePath = Temp.CreateFile().WriteAllText(source).Path
             Dim outputDir = Temp.CreateDirectory()
@@ -284,26 +287,28 @@ End Class
                  $"/errorlog:{errorLogFile}",
                  sourceFilePath},
                 analyzer:=New AnalyzerForErrorLogTest())
-            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Using outWriter = New StringWriter(CultureInfo.InvariantCulture)
 
-            Dim exitCode = cmd.Run(outWriter, Nothing)
-            Dim actualConsoleOutput = outWriter.ToString().Trim()
+                Dim exitCode = cmd.Run(outWriter, Nothing)
+                Dim actualConsoleOutput = outWriter.ToString().Trim()
 
-            Assert.Contains(AnalyzerForErrorLogTest.Descriptor1.Id, actualConsoleOutput)
-            Assert.Contains(AnalyzerForErrorLogTest.Descriptor2.Id, actualConsoleOutput)
-            Assert.NotEqual(0, exitCode)
+                Assert.Contains(AnalyzerForErrorLogTest.Descriptor1.Id, actualConsoleOutput)
+                Assert.Contains(AnalyzerForErrorLogTest.Descriptor2.Id, actualConsoleOutput)
+                Assert.NotEqual(0, exitCode)
 
-            Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
+                Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
-            Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
-            Dim expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation)
+                Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
+                Dim expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogResultsText(cmd.Compilation)
 
-            Dim expectedText = expectedHeader + expectedIssues
-            Assert.Equal(expectedText, actualOutput)
+                Dim expectedText = expectedHeader + expectedIssues
+                Assert.Equal(expectedText, actualOutput)
 
-            CleanupAllGeneratedFiles(sourceFilePath)
-            CleanupAllGeneratedFiles(outputFilePath)
-            CleanupAllGeneratedFiles(errorLogFile)
+                CleanupAllGeneratedFiles(sourceFilePath)
+                CleanupAllGeneratedFiles(outputFilePath)
+                CleanupAllGeneratedFiles(errorLogFile)
+            End Using
+
         End Sub
     End Class
 End Namespace
