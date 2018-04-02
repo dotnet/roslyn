@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 ? block.Operations[0]
                 : statement;
 
+        public static IOperation UnwrapImplicitConversion(IOperation value)
+            => value is IConversionOperation conversion && conversion.IsImplicit
+                ? conversion.Operand
+                : value;
+
         private static async Task<bool> IsMultiLineAsync(
             Document document, SyntaxNode trueSyntax, SyntaxNode falseSyntax, CancellationToken cancellationToken)
         {
