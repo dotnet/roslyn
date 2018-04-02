@@ -223,11 +223,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return false;
         }
 
-        private static IOperation UnwrapImplicitConversion(IOperation value)
-            => value is IConversionOperation conversion && conversion.IsImplicit
-                ? conversion.Operand
-                : value;
-
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
