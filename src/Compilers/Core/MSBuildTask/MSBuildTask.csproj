@@ -11,6 +11,7 @@
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks46)</TargetFrameworks>
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
+    <NoWarn>$(NoWarn);CA1819</NoWarn> <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
