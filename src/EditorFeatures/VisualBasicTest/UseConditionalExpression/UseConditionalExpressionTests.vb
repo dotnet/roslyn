@@ -479,5 +479,82 @@ class C
     end sub
 end class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        Public Async Function TestMultiLine1() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    sub M(i as integer)
+        [||]if true
+            i = Foo(
+                1, 2, 3)
+        else
+            i = 1
+        end if
+    end sub
+end class",
+"
+class C
+    sub M(i as integer)
+        i = If(true,
+            Foo(
+                1, 2, 3),
+            1)
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        Public Async Function TestMultiLine2() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    sub M(i as integer)
+        [||]if true
+            i = 0
+        else
+            i = Foo(
+                1, 2, 3)
+        end if
+    end sub
+end class",
+"
+class C
+    sub M(i as integer)
+        i = If(true,
+            0,
+            Foo(
+                1, 2, 3))
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)>
+        Public Async Function TestMultiLine3() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    sub M(i as integer)
+        [||]if true
+            i = Foo(
+                1, 2, 3)
+        else
+            i = Foo(
+                4, 5, 6)
+        end if
+    end sub
+end class",
+"
+class C
+    sub M(i as integer)
+        i = If(true,
+            Foo(
+                1, 2, 3),
+            Foo(
+                4, 5, 6))
+    end sub
+end class")
+        End Function
     End Class
 End Namespace
