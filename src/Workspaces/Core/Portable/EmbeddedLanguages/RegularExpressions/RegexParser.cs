@@ -1380,7 +1380,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 builder.Add(ParseSingleCharacterClassComponent(isFirst: false, afterRangeMinus: true));
             }
 
-            return new RegexSequenceNode(builder.ToImmutable());
+            return new RegexSequenceNode(builder.ToImmutableAndFree());
         }
 
         private RegexPrimaryExpressionNode ParseSingleCharacterClassComponent(bool isFirst, bool afterRangeMinus)
