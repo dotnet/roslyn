@@ -1,11 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -25,12 +21,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             };
 
+            var output = new StringBuilder();
+
+            process.OutputDataReceived += (_, e) => output.AppendLine(e.Data);
+            process.ErrorDataReceived += (_, e) => output.AppendLine(e.Data);
+
             process.Start();
 
-            var output = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
 
-            return output;
+            return output.ToString();
         }
 
         public static string Restore(string solutionOrProjectFileName, string workingDirectory = null)
