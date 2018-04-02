@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
+            // Defer to our callback to actually make the edits for each diagnostic. In turn, it
+            // will return 'true' if it made a multi-line conditional expression. In that case,
+            // we'll need to explicitly format this node so we can get our special multi-line
+            // formatting in VB and C#.
             var nestedEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             var needsFormatting = false;
             foreach (var diagnostic in diagnostics)
@@ -37,6 +41,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var changedRoot = nestedEditor.GetChangedRoot();
             if (needsFormatting)
             {
+                // Get the language specific rule for formatting this construct and call into the
+                // formatted to explicitly format things.  Note: all we will format is the new
+                // conditional expression as that's the only node that has the appropriate
+                // annotation on it.
                 var rules = new List<IFormattingRule> { multiLineFormattingRule };
                 rules.AddRange(Formatter.GetDefaultFormattingRules(document));
 
@@ -51,6 +59,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             editor.ReplaceNode(root, changedRoot);
         }
 
+        /// <summary>
+        /// Will unwrap a block with a single statement in it to just that block.  Used so we can
+        /// support both ```if (expr) { statement }``` and ```if (expr) statement```
+        /// </summary>
         public static IOperation UnwrapSingleStatementBlock(IOperation statement)
             => statement is IBlockOperation block && block.Operations.Length == 1
                 ? block.Operations[0]
@@ -61,6 +73,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 ? conversion.Operand
                 : value;
 
+        /// <summary>
+        /// Checks if either the whenTrue or whenFalse parts of the conditional are multi-line.  If
+        /// so, we'll specially format the new conditional expression so it looks decent.
+        /// </summary>
         private static async Task<bool> IsMultiLineAsync(
             Document document, SyntaxNode trueSyntax, SyntaxNode falseSyntax, CancellationToken cancellationToken)
         {
@@ -69,6 +85,12 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                    !sourceText.AreOnSameLine(falseSyntax.GetFirstToken(), falseSyntax.GetLastToken());
         }
 
+        /// <summary>
+        /// Helper to create a conditional expression out of two original IOperation values
+        /// corresponding to the whenTrue and whenFalse parts. The helper will add the appropriate
+        /// annotations and casts to ensure that the conditional expression preserves semantics, but
+        /// is also properly simplified and formatted.
+        /// </summary>
         public static async Task<(TExpressionSyntax, bool isMultiLine)> CreateConditionalExpressionAsync<TExpressionSyntax>(
             Document document, IConditionalOperation ifOperation, 
             IOperation trueValue, IOperation falseValue, CancellationToken cancellationToken)
