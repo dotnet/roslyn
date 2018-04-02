@@ -67,9 +67,14 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 trueReturn.ReturnedValue, falseReturn.ReturnedValue,
                 cancellationToken).ConfigureAwait(false);
 
-            var returnStatement = generator.ReturnStatement(conditionalExpression).WithTriviaFrom(ifStatement);
 
-            editor.ReplaceNode(ifStatement, returnStatement);
+            editor.ReplaceNode(
+                ifStatement,
+                editor.Generator.ReturnStatement(conditionalExpression)
+                    .WithTriviaFrom(ifStatement));
+
+            // if the if-statement had no 'else' clause, then we were using the following statement
+            // as the 'false' statement.  If so, remove it explicitly.
             if (ifOperation.WhenFalse == null)
             {
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
