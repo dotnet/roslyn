@@ -1,26 +1,32 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
+using System.Collections.Immutable;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Host
 {
     internal static class TestHost
     {
-        private static HostServices s_testServices;
+        private static readonly ImmutableArray<Assembly> s_assemblies = MefHostServices.DefaultAssemblies.Add(typeof(TestHost).Assembly);
+        private static ComposableCatalog s_catalog;
 
-        public static HostServices Services
+        public static ImmutableArray<Assembly> Assemblies
+            => s_assemblies;
+
+        public static ComposableCatalog Catalog
         {
             get
             {
-                if (s_testServices == null)
+                if (s_catalog == null)
                 {
-                    var tmp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Concat(new[] { typeof(TestHost).Assembly }));
-                    System.Threading.Interlocked.CompareExchange(ref s_testServices, tmp, null);
+                    var tmp = ExportProviderCache.GetOrCreateAssemblyCatalog(Assemblies);
+                    System.Threading.Interlocked.CompareExchange(ref s_catalog, tmp, null);
                 }
 
-                return s_testServices;
+                return s_catalog;
             }
         }
     }

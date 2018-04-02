@@ -107,6 +107,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             SemanticModel semanticModel, SyntaxNode location, 
             SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
 
+        SyntaxToken GenerateUniqueName(
+            SemanticModel semanticModel, SyntaxNode location,
+            SyntaxNode containerOpt, string baseName, IEnumerable<string> usedNames, CancellationToken cancellationToken);
+
         SyntaxToken GenerateUniqueLocalName(
             SemanticModel semanticModel, SyntaxNode location,
             SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
