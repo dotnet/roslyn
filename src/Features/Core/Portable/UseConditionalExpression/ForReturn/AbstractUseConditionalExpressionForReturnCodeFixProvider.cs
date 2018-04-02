@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
-            var generator = editor.Generator;
             var (conditionalExpression, isMultiLine) = await CreateConditionalExpressionAsync<SyntaxNode>(
                 document, ifOperation,
                 trueReturn.ReturnedValue, falseReturn.ReturnedValue,
