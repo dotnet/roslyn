@@ -1424,7 +1424,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         return ParseEscape(backslashToken, allowTriviaAfterEnd: false);
 
                     case '-':
-                        // trivia is not allowed anywhere in a character class
+                        // trivia is not allowed anywhere in a character class.
+
+                        // We just let the basic consumption code pull out a token for us, we then
+                        // convert that to text since we treat all characters after the - as text no
+                        // matter what.
                         return new RegexSimpleEscapeNode(
                             backslashToken, ConsumeCurrentToken(allowTrivia: false).With(kind: RegexKind.TextToken));
 
