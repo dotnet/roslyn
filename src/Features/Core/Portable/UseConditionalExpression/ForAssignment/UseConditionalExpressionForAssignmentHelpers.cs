@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
+            // The left side of both assignment statements has to be syntactically identical (modulo
+            // trivia differences).
             return syntaxFacts.AreEquivalent(
                 trueAssignment.Target.Syntax,
                 falseAssignment.Target.Syntax);
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             IOperation statement, out ISimpleAssignmentOperation assignment)
         {
             // Both the WhenTrue and WhenFalse statements must be of the form:
-            //      local = expr;
+            //      target = value;
             if (!(statement is IExpressionStatementOperation exprStatement) ||
                 !(exprStatement.Operation is ISimpleAssignmentOperation assignmentOp) ||
                 assignmentOp.Target == null)
