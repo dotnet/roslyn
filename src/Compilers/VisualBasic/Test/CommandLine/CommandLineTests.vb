@@ -160,38 +160,40 @@ End Class"
             Assert.True(TypeOf comp.Options.StrongNameProvider Is DesktopStrongNameProvider)
         End Sub
 
-        <Fact>
-        Public Sub ParseQuotedMainTypeAndRootnamespace()
+#Region "ParseQuoted_MainType_Rootnamespace"
+        <Category("ParseQuoted_MainType_Rootnamespace"), Theory, InlineData({"/main:Test", "a.vb"}), InlineData({"/main:""Test""", "a.vb"})>
+        Public Sub ParseQuoted_MainType(ParamArray args() As String)
             'These options are always unquoted when parsed in VisualBasicCommandLineParser.Parse.
-
-            Dim args = DefaultParse({"/rootnamespace:Test", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("Test", args.CompilationOptions.RootNamespace)
-
-            args = DefaultParse({"/main:Test", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("Test", args.CompilationOptions.MainTypeName)
-
-            args = DefaultParse({"/main:""Test""", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("Test", args.CompilationOptions.MainTypeName)
-
-            args = DefaultParse({"/rootnamespace:""Test""", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("Test", args.CompilationOptions.RootNamespace)
-
-            args = DefaultParse({"/rootnamespace:""test""", "/main:""test.Module1""", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("test.Module1", args.CompilationOptions.MainTypeName)
-            Assert.Equal("test", args.CompilationOptions.RootNamespace)
-
-            ' Use of Cyrillic namespace
-            args = DefaultParse({"/rootnamespace:""решения""", "/main:""решения.Module1""", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("решения.Module1", args.CompilationOptions.MainTypeName)
-            Assert.Equal("решения", args.CompilationOptions.RootNamespace)
-
+            Dim ParsedArgs = DefaultParse(args, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal("Test", ParsedArgs.CompilationOptions.MainTypeName)
         End Sub
+
+        <Category("ParseQuoted_MainType_Rootnamespace"), Theory, InlineData({"/rootnamespace:Test", "a.vb"}), InlineData({"/rootnamespace:""Test""", "a.vb"})>
+        Public Sub ParseQuoted_Rootnamespace(ParamArray Args() As String)
+            ' These options are always unquoted when parsed in VisualBasicCommandLineParser.Parse.
+            Dim ParsedArgs = DefaultParse(Args, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal("Test", ParsedArgs.CompilationOptions.RootNamespace)
+        End Sub
+
+        <Category("ParseQuoted_MainType_Rootnamespace"), Fact>
+        Public Sub ParseQuoted_MainType_Rootnamespace()
+            Dim ParsedArgs = DefaultParse({"/rootnamespace:""test""", "/main:""test.Module1""", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal("test.Module1", ParsedArgs.CompilationOptions.MainTypeName)
+            Assert.Equal("test", ParsedArgs.CompilationOptions.RootNamespace)
+        End Sub
+
+        <Category("ParseQuoted_MainType_Rootnamespace"), Fact>
+        Public Sub ParseQuoted_MainType_Rootnamespace_Cyrillic()
+            ' Use of Cyrillic namespace
+            Dim ParsedArgs = DefaultParse({"/rootnamespace:""решения""", "/main:""решения.Module1""", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal("решения.Module1", ParsedArgs.CompilationOptions.MainTypeName)
+            Assert.Equal("решения", ParsedArgs.CompilationOptions.RootNamespace)
+        End Sub
+#End Region
 
         <WorkItem(722561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722561"), Theory,
      InlineData("/nologo", "/t:library", "/nowarn:-1"),
@@ -311,38 +313,22 @@ Copyright (C) Microsoft Corporation. All rights reserved.",
             CleanupAllGeneratedFiles(src)
         End Sub
 
-        <Fact()>
-        Public Sub VbcUtf8Output_WithRedirecting_Off()
+        <Theory>
+        <InlineData("/C ""{0}"" /nologo /preferreduilang:en /t:library {1} > {2}", "?"c)> ' Redirection Off
+        <InlineData("/C ""{0}"" /utf8output /nologo /preferreduilang:en /t:library {1} > {2}", "♚"c)> ' Redirection On
+        Public Sub VbcUtf8Output_WithRedirecting(cmdline As String, ch As Char)
             Dim src As String = Temp.CreateFile().WriteAllText("♚", New System.Text.UTF8Encoding(False)).Path
 
             Dim tempOut = Temp.CreateFile()
 
-            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /t:library " & src & " > " & tempOut.Path, expectedRetCode:=1)
+            Dim output = ProcessUtilities.RunAndGetOutput("cmd", String.Format(cmdline, s_basicCompilerExecutable, src, tempOut.Path), expectedRetCode:=1)
             Assert.Equal("", output.Trim())
 
             Assert.Equal(
-"SRC.VB(1) : error BC30037: Character is not valid.
+$"SRC.VB(1) : error BC30037: Character is not valid.
 
-?
+{ch}
 ~", tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
-
-            CleanupAllGeneratedFiles(src)
-        End Sub
-
-        <Fact()>
-        Public Sub VbcUtf8Output_WithRedirecting_On()
-            Dim src As String = Temp.CreateFile().WriteAllText("♚", New System.Text.UTF8Encoding(False)).Path
-
-            Dim tempOut = Temp.CreateFile()
-
-            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /utf8output /nologo /preferreduilang:en /t:library " & src & " > " & tempOut.Path, expectedRetCode:=1)
-            Assert.Equal("", output.Trim())
-
-            Assert.Equal("SRC.VB(1) : error BC30037: Character is not valid.
-
-♚
-~", tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
-
 
             CleanupAllGeneratedFiles(src)
         End Sub
