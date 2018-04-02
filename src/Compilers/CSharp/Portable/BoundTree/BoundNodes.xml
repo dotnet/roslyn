@@ -742,7 +742,8 @@
   -->
   <Node Name="BoundLocalFunctionStatement" Base="BoundStatement">
     <Field Name="Symbol" Type="LocalFunctionSymbol"/>
-    <Field Name="Body" Type="BoundBlock" Null="allow"/>
+    <Field Name="BlockBody" Type="BoundBlock" Null="allow"/>
+    <Field Name="ExpressionBody" Type="BoundBlock" Null="allow"/>
   </Node>
  
   <!-- 

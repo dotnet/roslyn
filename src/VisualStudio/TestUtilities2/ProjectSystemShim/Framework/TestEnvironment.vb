@@ -27,9 +27,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Implements IDisposable
 
         Private ReadOnly _monitorSelectionMock As MockShellMonitorSelection
-        Private ReadOnly _projectTracker As VisualStudioProjectTracker
-        Private ReadOnly _serviceProvider As MockServiceProvider
         Private ReadOnly _workspace As TestWorkspace
+        Private ReadOnly _serviceProvider As MockServiceProvider
+        Private ReadOnly _projectTracker As VisualStudioProjectTracker
         Private ReadOnly _projectFilePaths As New List(Of String)
 
         Public Sub New(Optional solutionIsFullyLoaded As Boolean = True)
@@ -39,8 +39,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             AbstractProject.CrashOnException = False
 
             _monitorSelectionMock = New MockShellMonitorSelection(solutionIsFullyLoaded)
-            _serviceProvider = New MockServiceProvider(_monitorSelectionMock)
             _workspace = New TestWorkspace()
+            _serviceProvider = New MockServiceProvider(_monitorSelectionMock, _workspace)
             _projectTracker = New VisualStudioProjectTracker(_serviceProvider, _workspace)
 
             Dim metadataReferenceProvider = New VisualStudioMetadataReferenceManager(_serviceProvider, _workspace.Services.GetService(Of ITemporaryStorageService)())
@@ -112,9 +112,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Implements System.IServiceProvider
 
             Private ReadOnly _mockMonitorSelection As IVsMonitorSelection
+            Private ReadOnly _workspace As TestWorkspace
 
-            Public Sub New(mockMonitorSelection As IVsMonitorSelection)
+            Public Sub New(mockMonitorSelection As IVsMonitorSelection, workspace As TestWorkspace)
                 _mockMonitorSelection = mockMonitorSelection
+                _workspace = workspace
             End Sub
 
             Public Function GetService(serviceType As Type) As Object Implements System.IServiceProvider.GetService
@@ -146,7 +148,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
             Friend Function GetComponentModelMock() As IComponentModel
                 Dim componentModel As New Mock(Of IComponentModel)(MockBehavior.Loose)
-                componentModel.SetupGet(Function(cm) cm.DefaultExportProvider).Returns(ExportProvider.AsExportProvider())
+                componentModel.SetupGet(Function(cm) cm.DefaultExportProvider).Returns(_workspace.ExportProvider.AsExportProvider())
                 Return componentModel.Object
             End Function
         End Class

@@ -6,6 +6,7 @@ Imports Microsoft.VisualStudio.GraphModel
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
+    <[UseExportProvider]>
     Public Class VisualBasicSymbolLabelTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545008")>
         Public Async Function TestMethodWithOptionalParameter() As Task

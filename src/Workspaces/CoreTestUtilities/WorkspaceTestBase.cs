@@ -13,6 +13,7 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public partial class WorkspaceTestBase : TestBase
     {
         protected readonly TempDirectory SolutionDirectory;

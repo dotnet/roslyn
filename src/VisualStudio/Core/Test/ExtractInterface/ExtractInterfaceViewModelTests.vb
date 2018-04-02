@@ -13,6 +13,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ExtractInterface
+    <[UseExportProvider]>
     Public Class ExtractInterfaceViewModelTests
         <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         Public Async Function TestExtractInterface_InterfaceNameIsSameAsPassedIn() As Task
