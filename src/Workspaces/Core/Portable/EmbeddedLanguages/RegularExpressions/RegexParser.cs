@@ -1305,6 +1305,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private int HexValue(char ch)
         {
+            Debug.Assert(RegexLexer.IsHexChar(ch));
             unchecked
             {
                 var temp = (uint)(ch - '0');

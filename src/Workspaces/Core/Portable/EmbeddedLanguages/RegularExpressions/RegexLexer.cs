@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return result;
         }
 
-        private static bool IsHexChar(char ch)
+        public static bool IsHexChar(char ch)
             => IsDecimalDigit(ch) ||
                (ch >= 'a' && ch <= 'f') ||
                (ch >= 'A' && ch <= 'F');
