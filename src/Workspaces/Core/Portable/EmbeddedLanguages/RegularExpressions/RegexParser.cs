@@ -1141,9 +1141,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     GetTokenStartPositionSpan(_currentToken)));
             }
 
+            var components = new RegexSequenceNode(contents.ToImmutableAndFree());
             return caretToken.IsMissing
-                ? (RegexBaseCharacterClassNode)new RegexCharacterClassNode(openBracketToken, new RegexSequenceNode(contents.ToImmutableAndFree()), closeBracketToken)
-                : new RegexNegatedCharacterClassNode(openBracketToken, caretToken, new RegexSequenceNode(contents.ToImmutableAndFree()), closeBracketToken);
+                ? (RegexBaseCharacterClassNode)new RegexCharacterClassNode(openBracketToken, components, closeBracketToken)
+                : new RegexNegatedCharacterClassNode(openBracketToken, caretToken, components, closeBracketToken);
         }
 
         private void ParseCharacterClassComponents(ArrayBuilder<RegexExpressionNode> components)
@@ -1216,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     switch (ch)
                     {
                         case 'a': ch = '\u0007'; break;
-                        case 'b': ch =  '\b'; break;
+                        case 'b': ch = '\b'; break;
                         case 'e': ch = '\u001B'; break;
                         case 'f': ch = '\f'; break;
                         case 'n': ch = '\n'; break;
@@ -1229,12 +1230,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 case RegexKind.ControlEscape:
                     var controlEscape = (RegexControlEscapeNode)component;
                     var controlCh = controlEscape.ControlToken.VirtualChars[0].Char;
+
                     // \ca interpreted as \cA
                     if (controlCh >= 'a' && controlCh <= 'z')
                     {
                         controlCh -= (char)('a' - 'A');
                     }
-                    ch = (char)(controlCh - '@');
+
+                    // The control characters have values mapping from the A-Z range to numeric
+                    // values 1-26.  So, to map that, we subtract 'A' from the value (which would
+                    // give us 0-25) and then add '1' back to it.
+                    ch = (char)(controlCh - 'A' + 1);
                     return true;
 
                 case RegexKind.OctalEscape:
@@ -1299,6 +1305,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private int HexValue(char ch)
         {
+            Debug.Assert(RegexLexer.IsHexChar(ch));
             unchecked
             {
                 var temp = (uint)(ch - '0');
@@ -1358,12 +1365,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexExpressionNode ParseRightSideOfCharacterClassRange()
         {
-            // Parsing the right hand side of a - is extremely strange (and most likely  buggy) in 
-            // the .net parser. Specifically, the .net parser will still consider itself on the right
-            // side no matter how many escaped dashes it sees.  So, for example, the following is legal
-            // [a-\-] (even though \- is less than 'a'). Similarly, the following are *illegal* 
-            // [b-\-a] and [b-\-\-a].  That's because the range that is checked is actually "b-a", even
-            // though it has all the \- escapes in the middle.
+            // Parsing the right hand side of a - is extremely strange (and most likely buggy) in
+            // the .net parser. Specifically, the .net parser will still consider itself on the
+            // right side no matter how many escaped dashes it sees.  So, for example, the following
+            // is legal [a-\-] (even though \- is less than 'a'). Similarly, the following are
+            // *illegal* [b-\-a] and [b-\-\-a].  That's because the range that is checked is
+            // actually "b-a", even though it has all the \- escapes in the middle.
 
             var first = ParseSingleCharacterClassComponent(isFirst: false, afterRangeMinus: true);
             if (!IsEscapedMinus(first))
@@ -1379,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 builder.Add(ParseSingleCharacterClassComponent(isFirst: false, afterRangeMinus: true));
             }
 
-            return new RegexSequenceNode(builder.ToImmutable());
+            return new RegexSequenceNode(builder.ToImmutableAndFree());
         }
 
         private RegexPrimaryExpressionNode ParseSingleCharacterClassComponent(bool isFirst, bool afterRangeMinus)
@@ -1409,19 +1416,31 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         }
 
                         // move back before the character we just scanned.
-                        // trivia is not allowed anywhere in a character class
+                        // trivia is not allowed anywhere in a character class.
+
+                        // The above list are character class and category escapes.  ParseEscape can
+                        // handle both of those, so we just defer to it.
                         _lexer.Position--;
                         return ParseEscape(backslashToken, allowTriviaAfterEnd: false);
 
                     case '-':
-                        // trivia is not allowed anywhere in a character class
+                        // trivia is not allowed anywhere in a character class.
+
+                        // We just let the basic consumption code pull out a token for us, we then
+                        // convert that to text since we treat all characters after the - as text no
+                        // matter what.
                         return new RegexSimpleEscapeNode(
                             backslashToken, ConsumeCurrentToken(allowTrivia: false).With(kind: RegexKind.TextToken));
 
                     default:
-                        // trivia is not allowed anywhere in a character class
+                        // trivia is not allowed anywhere in a character class.
+
+                        // Note: it is very intentional that we're calling ParseCharEscape and not
+                        // ParseEscape.  Normal escapes are not interpreted the same way inside a
+                        // character class.  For example \b is not an anchor in a character class.
+                        // And things like \k'...' are not k-captures, etc. etc.  
                         _lexer.Position--;
-                        return ScanCharEscape(backslashToken, allowTriviaAfterEnd: false);
+                        return ParseCharEscape(backslashToken, allowTriviaAfterEnd: false);
                 }
             }
 
@@ -1523,10 +1542,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             // Move back to after the backslash
             _lexer.Position--;
-            return ScanBasicBackslash(backslashToken, allowTriviaAfterEnd);
+            return ParseBasicBackslash(backslashToken, allowTriviaAfterEnd);
         }
 
-        private RegexEscapeNode ScanBasicBackslash(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ParseBasicBackslash(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
             Debug.Assert(_lexer.Text[_lexer.Position - 1].Char == '\\');
 
@@ -1561,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             _lexer.Position--;
-            return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
+            return ParseCharEscape(backslashToken, allowTriviaAfterEnd);
         }
 
         private RegexEscapeNode ParsePossibleBackreferenceEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
@@ -1614,7 +1633,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             _lexer.Position = start;
-            return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
+            return ParseCharEscape(backslashToken, allowTriviaAfterEnd);
         }
 
         private RegexEscapeNode ParsePossibleRegularBackreferenceEscape(
@@ -1635,7 +1654,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             _lexer.Position = start;
-            return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
+            return ParseCharEscape(backslashToken, allowTriviaAfterEnd);
         }
 
         private RegexEscapeNode ParsePossibleCaptureEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
@@ -1650,7 +1669,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (openToken.IsMissing || capture.IsMissing || closeToken.IsMissing)
             {
                 _lexer.Position = afterBackslashPosition;
-                return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
+                return ParseCharEscape(backslashToken, allowTriviaAfterEnd);
             }
 
             return new RegexCaptureEscapeNode(
@@ -1677,7 +1696,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 // or close brace.  For normal .net regexes, this will then fail later (as \k is not
                 // a legal escape), but will succeed for ecmascript regexes.
                 _lexer.Position = afterBackslashPosition;
-                return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
+                return ParseCharEscape(backslashToken, allowTriviaAfterEnd);
             }
 
             return new RegexKCaptureEscapeNode(
@@ -1722,7 +1741,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private RegexEscapeNode ScanCharEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ParseCharEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
             Debug.Assert(_lexer.Text[_lexer.Position - 1].Char == '\\');
 
@@ -1748,11 +1767,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     return new RegexSimpleEscapeNode(
                         backslashToken, ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd));
                 case 'x':
-                    return ScanHexEscape(backslashToken, allowTriviaAfterEnd);
+                    return ParseHexEscape(backslashToken, allowTriviaAfterEnd);
                 case 'u':
-                    return ScanUnicodeEscape(backslashToken, allowTriviaAfterEnd);
+                    return ParseUnicodeEscape(backslashToken, allowTriviaAfterEnd);
                 case 'c':
-                    return ScanControlEscape(backslashToken, allowTriviaAfterEnd);
+                    return ParseControlEscape(backslashToken, allowTriviaAfterEnd);
                 default:
                     var typeToken = ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd).With(kind: RegexKind.TextToken);
 
@@ -1767,7 +1786,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private RegexEscapeNode ScanUnicodeEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ParseUnicodeEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
             var typeToken = _currentToken;
             var hexChars = _lexer.ScanHexCharacters(4);
@@ -1775,7 +1794,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return new RegexUnicodeEscapeNode(backslashToken, typeToken, hexChars);
         }
 
-        private RegexEscapeNode ScanHexEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ParseHexEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
             var typeToken = _currentToken;
             var hexChars = _lexer.ScanHexCharacters(2);
@@ -1783,7 +1802,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return new RegexHexEscapeNode(backslashToken, typeToken, hexChars);
         }
 
-        private RegexControlEscapeNode ScanControlEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexControlEscapeNode ParseControlEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
             // Nothing allowed between \c and the next char
             var typeToken = ConsumeCurrentToken(allowTrivia: false);
