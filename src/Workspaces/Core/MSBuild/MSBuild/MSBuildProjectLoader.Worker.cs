@@ -108,12 +108,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     ? Stopwatch.StartNew()
                     : null;
 
-                var result = await doFunc().ConfigureAwait(false);
-
-                if (_progress != null)
+                TResult result;
+                try
                 {
-                    watch.Stop();
-                    _progress.Report(new ProjectLoadProgress(projectPath, operation, targetFramework, watch.Elapsed));
+                    result = await doFunc().ConfigureAwait(false);
+                }
+                finally
+                {
+                    if (_progress != null)
+                    {
+                        watch.Stop();
+                        _progress.Report(new ProjectLoadProgress(projectPath, operation, targetFramework, watch.Elapsed));
+                    }
                 }
 
                 return result;
