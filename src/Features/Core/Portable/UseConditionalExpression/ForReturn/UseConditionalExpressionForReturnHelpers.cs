@@ -56,15 +56,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 }
             }
 
-            trueStatement = UnwrapSingleStatementBlock(trueStatement);
-            falseStatement = UnwrapSingleStatementBlock(falseStatement);
+            trueStatement = UseConditionalExpressionHelpers.UnwrapSingleStatementBlock(trueStatement);
+            falseStatement = UseConditionalExpressionHelpers.UnwrapSingleStatementBlock(falseStatement);
 
             if (!(trueStatement is IReturnOperation trueReturnOp) ||
                 !(falseStatement is IReturnOperation falseReturnOp) ||
                 trueReturnOp.ReturnedValue == null ||
-                falseReturnOp.ReturnedValue == null ||
-                trueReturnOp.ReturnedValue.Type == null ||
-                falseReturnOp.ReturnedValue.Type == null)
+                falseReturnOp.ReturnedValue == null)
             {
                 return false;
             }
@@ -73,10 +71,5 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             falseReturn = falseReturnOp;
             return true;
         }
-
-        private static IOperation UnwrapSingleStatementBlock(IOperation statement)
-            => statement is IBlockOperation block && block.Operations.Length == 1
-                ? block.Operations[0]
-                : statement;
     }
 }

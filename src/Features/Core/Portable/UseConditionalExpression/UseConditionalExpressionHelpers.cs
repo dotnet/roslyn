@@ -46,5 +46,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             editor.ReplaceNode(root, changedRoot);
         }
+
+        private static IOperation UnwrapSingleStatementBlock(IOperation statement)
+            => statement is IBlockOperation block && block.Operations.Length == 1
+                ? block.Operations[0]
+                : statement;
     }
 }
