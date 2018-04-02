@@ -1989,6 +1989,9 @@ class Test : System.Attribute
                 // (13,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(p1 = TakeOutParam(out int x6) && x6 > 0, 
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out int x6) && x6 > 0").WithLocation(13, 16),
+                // (14,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //           p2 = TakeOutParam(out int x6) && x6 > 0)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out int x6) && x6 > 0").WithLocation(14, 16),
                 // (15,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(p = TakeOutParam(out int x7) && x7 > 0)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out int x7) && x7 > 0").WithLocation(15, 15),
@@ -2096,6 +2099,9 @@ class Test : System.Attribute
                 // (13,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(TakeOutParam(out int x6) && x6 > 0, 
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out int x6) && x6 > 0").WithLocation(13, 11),
+                // (14,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //           TakeOutParam(out int x6) && x6 > 0)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out int x6) && x6 > 0").WithLocation(14, 11),
                 // (15,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(TakeOutParam(out int x7) && x7 > 0)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out int x7) && x7 > 0").WithLocation(15, 11),
@@ -2205,6 +2211,9 @@ class Test : System.Attribute
                 // (13,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(p1 = TakeOutParam(out var x6) && x6 > 0, 
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out var x6) && x6 > 0").WithLocation(13, 16),
+                // (14,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //           p2 = TakeOutParam(out var x6) && x6 > 0)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out var x6) && x6 > 0").WithLocation(14, 16),
                 // (15,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(p = TakeOutParam(out var x7) && x7 > 0)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out var x7) && x7 > 0").WithLocation(15, 15),
@@ -2312,6 +2321,9 @@ class Test : System.Attribute
                 // (13,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(TakeOutParam(out var x6) && x6 > 0, 
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out var x6) && x6 > 0").WithLocation(13, 11),
+                // (14,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //           TakeOutParam(out var x6) && x6 > 0)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out var x6) && x6 > 0").WithLocation(14, 11),
                 // (15,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(TakeOutParam(out var x7) && x7 > 0)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "TakeOutParam(out var x7) && x7 > 0").WithLocation(15, 11),
@@ -32971,12 +32983,18 @@ class MyAttribute: System.Attribute
                 // (2,5): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [My(C.M(nameof(C.M(out int z1)), z1), z1)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out int z1)), z1)").WithLocation(2, 5),
+                // (2,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z1").WithLocation(2, 39),
                 // (3,16): error CS8081: Expression does not have a name.
                 // [My(C.M(nameof(C.M(out var z2)), z2), z2)]
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M(out var z2)").WithLocation(3, 16),
                 // (3,5): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [My(C.M(nameof(C.M(out var z2)), z2), z2)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out var z2)), z2)").WithLocation(3, 5)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out var z2)), z2)").WithLocation(3, 5),
+                // (3,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z2").WithLocation(3, 39)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -33019,12 +33037,18 @@ class MyAttribute: System.Attribute
                 // (2,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out int z1)), z1)").WithLocation(2, 15),
+                // (2,49): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [assembly: My(C.M(nameof(C.M(out int z1)), z1), z1)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z1").WithLocation(2, 49),
                 // (3,26): error CS8081: Expression does not have a name.
                 // [assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "C.M(out var z2)").WithLocation(3, 26),
                 // (3,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out var z2)), z2)").WithLocation(3, 15)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(nameof(C.M(out var z2)), z2)").WithLocation(3, 15),
+                // (3,49): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [assembly: My(C.M(nameof(C.M(out var z2)), z2), z2)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "z2").WithLocation(3, 49)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

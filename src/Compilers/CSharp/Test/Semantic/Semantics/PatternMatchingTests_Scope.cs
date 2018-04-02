@@ -3647,6 +3647,9 @@ class Test : System.Attribute
                 // (13,53): error CS0128: A local variable or function named 'x6' is already defined in this scope
                 //     [Test(p1 = 6 is int x6 && x6 > 0, p2 = 6 is int x6 && x6 > 0)]
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(13, 53),
+                // (13,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Test(p1 = 6 is int x6 && x6 > 0, p2 = 6 is int x6 && x6 > 0)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "6 is int x6 && x6 > 0").WithLocation(13, 16),
                 // (14,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Test(p = 7 is int x7 && x7 > 0)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "7 is int x7 && x7 > 0").WithLocation(14, 15),
@@ -3722,27 +3725,30 @@ class Test : System.Attribute
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-    // (8,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-    //     [Test(3 is int x3 && x3 > 0)]
-    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "3 is int x3 && x3 > 0").WithLocation(8, 11),
-    // (9,11): error CS0841: Cannot use local variable 'x4' before it is declared
-    //     [Test(x4 && 4 is int x4)]
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(9, 11),
-    // (11,21): error CS0128: A local variable named 'x5' is already defined in this scope
-    //           52 is int x5 && 
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(11, 21),
-    // (13,43): error CS0128: A local variable named 'x6' is already defined in this scope
-    //     [Test(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)]
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(13, 43),
-    // (14,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-    //     [Test(7 is int x7 && x7 > 0)]
-    Diagnostic(ErrorCode.ERR_BadAttributeArgument, "7 is int x7 && x7 > 0").WithLocation(14, 11),
-    // (15,11): error CS0103: The name 'x7' does not exist in the current context
-    //     [Test(x7 > 2)]
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 11),
-    // (16,27): error CS0103: The name 'x7' does not exist in the current context
-    //     void Test73() { Dummy(x7, 3); } 
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(16, 27)
+                // (8,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Test(3 is int x3 && x3 > 0)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "3 is int x3 && x3 > 0").WithLocation(8, 11),
+                // (9,11): error CS0841: Cannot use local variable 'x4' before it is declared
+                //     [Test(x4 && 4 is int x4)]
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(9, 11),
+                // (11,21): error CS0128: A local variable or function named 'x5' is already defined in this scope
+                //           52 is int x5 && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(11, 21),
+                // (13,43): error CS0128: A local variable or function named 'x6' is already defined in this scope
+                //     [Test(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)]
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(13, 43),
+                // (13,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Test(6 is int x6 && x6 > 0, 6 is int x6 && x6 > 0)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "6 is int x6 && x6 > 0").WithLocation(13, 11),
+                // (14,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Test(7 is int x7 && x7 > 0)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "7 is int x7 && x7 > 0").WithLocation(14, 11),
+                // (15,11): error CS0103: The name 'x7' does not exist in the current context
+                //     [Test(x7 > 2)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(15, 11),
+                // (16,27): error CS0103: The name 'x7' does not exist in the current context
+                //     void Test73() { Dummy(x7, 3); } 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(16, 27)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

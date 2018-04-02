@@ -6579,7 +6579,10 @@ class C<T, U> { public enum E {} }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A(new object[] { default(E), default(E) })]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 19)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 19),
+                // (7,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 31)
                 );
         }
 
@@ -6598,7 +6601,16 @@ class C<T, U> { public enum E {} }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 19)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 19),
+                // (7,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 31),
+                // (7,60): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 60),
+                // (7,72): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 72)
                 );
         }
 

@@ -1187,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (typedConstantKind == TypedConstantKind.Error)
                 {
-                    if (!curArgumentHasErrors && !attrHasErrors)
+                    if (!curArgumentHasErrors)
                     {
                         Binder.Error(diagnostics, ErrorCode.ERR_BadAttributeArgument, node.Syntax);
                         attrHasErrors = true;
