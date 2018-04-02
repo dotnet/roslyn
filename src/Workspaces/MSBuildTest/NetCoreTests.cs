@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
 
                 // Assert that there is a project reference between Project.csproj and Library.csproj
-                Assert.Single(project.ProjectReferences);
+                var projectReference = Assert.Single(project.ProjectReferences);
 
-                var projectRefId = project.ProjectReferences.Single().ProjectId;
+                var projectRefId = projectReference.ProjectId;
                 Assert.Equal(libraryProject.Id, projectRefId);
                 Assert.Equal(libraryProject.FilePath, workspace.CurrentSolution.GetProject(projectRefId).FilePath);
             }
@@ -120,9 +120,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             void AssertSingleProjectReference(Project project, string projectRefFilePath)
             {
-                Assert.Single(project.ProjectReferences);
+                var projectReference = Assert.Single(project.ProjectReferences);
 
-                var projectRefId = project.ProjectReferences.Single().ProjectId;
+                var projectRefId = projectReference.ProjectId;
                 Assert.Equal(projectRefFilePath, project.Solution.GetProject(projectRefId).FilePath);
             }
         }
@@ -269,17 +269,17 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 var projects = workspace.CurrentSolution.Projects.Where(p => p.FilePath.EndsWith("Project.csproj"));
                 foreach (var project in projects)
                 {
-                    Assert.Single(project.ProjectReferences);
+                    var projectReference = Assert.Single(project.ProjectReferences);
 
-                    var projectRef = workspace.CurrentSolution.GetProject(project.ProjectReferences.Single().ProjectId);
+                    var referencedProject = workspace.CurrentSolution.GetProject(projectReference.ProjectId);
 
                     if (project.OutputFilePath.Contains("netcoreapp2.0"))
                     {
-                        Assert.Contains("netstandard2.0", projectRef.OutputFilePath);
+                        Assert.Contains("netstandard2.0", referencedProject.OutputFilePath);
                     }
                     else if (project.OutputFilePath.Contains("net461"))
                     {
-                        Assert.Contains("net461", projectRef.OutputFilePath);
+                        Assert.Contains("net461", referencedProject.OutputFilePath);
                     }
                     else
                     {

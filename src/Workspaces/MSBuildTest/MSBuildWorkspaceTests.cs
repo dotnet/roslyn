@@ -2146,8 +2146,8 @@ class C1
                 var project = solution.GetProjectsByName("CSharpProject").FirstOrDefault();
                 var documents = project.Documents.ToList();
                 var fooDoc = documents.Single(d => d.Name == "Foo.cs");
-                Assert.Single(fooDoc.Folders);
-                Assert.Equal("Blah", fooDoc.Folders[0]);
+                var folder = Assert.Single(fooDoc.Folders);
+                Assert.Equal("Blah", folder);
 
                 // prove that the file path is the correct full path to the actual file
                 Assert.Contains("OtherStuff", fooDoc.FilePath);
@@ -2605,8 +2605,7 @@ class C1
                     var projectFullPath = GetSolutionFileName(projectPath);
 
                     var proj = await workspace.OpenProjectAsync(projectFullPath);
-                    Assert.Single(proj.AdditionalDocuments);
-                    var doc = proj.AdditionalDocuments.First();
+                    var doc = Assert.Single(proj.AdditionalDocuments);
                     Assert.Equal("XamlFile.xaml", doc.Name);
                     var text = await doc.GetTextAsync();
                     Assert.Contains("Window", text.ToString(), StringComparison.Ordinal);
@@ -3412,8 +3411,8 @@ class C { }";
             {
                 var proj = await workspace.OpenProjectAsync(projectFilePath);
 
-                Assert.Single(workspace.Diagnostics);
-                Assert.StartsWith("Msbuild failed", workspace.Diagnostics[0].Message);
+                var diagnostic = Assert.Single(workspace.Diagnostics);
+                Assert.StartsWith("Msbuild failed", diagnostic.Message);
 
                 Assert.Empty(proj.DocumentIds);
             }
@@ -3431,8 +3430,8 @@ class C { }";
             {
                 var proj = await workspace.OpenProjectAsync(projectFilePath);
 
-                Assert.Single(workspace.Diagnostics);
-                Assert.StartsWith("Msbuild failed", workspace.Diagnostics[0].Message);
+                var diagnostic = Assert.Single(workspace.Diagnostics);
+                Assert.StartsWith("Msbuild failed", diagnostic.Message);
 
                 Assert.Empty(proj.DocumentIds);
             }
@@ -3450,11 +3449,11 @@ class C { }";
             {
                 var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
-                Assert.Single(workspace.Diagnostics);
-                Assert.StartsWith("Msbuild failed", workspace.Diagnostics[0].Message);
+                var diagnostic = Assert.Single(workspace.Diagnostics);
+                Assert.StartsWith("Msbuild failed", diagnostic.Message);
 
-                Assert.Single(solution.ProjectIds);
-                Assert.Empty(solution.Projects.First().DocumentIds);
+                var project = Assert.Single(solution.Projects);
+                Assert.Empty(project.DocumentIds);
             }
         }
 
@@ -3470,8 +3469,8 @@ class C { }";
             {
                 var proj = await workspace.OpenProjectAsync(projectFilePath);
 
-                Assert.Single(workspace.Diagnostics);
-                Assert.StartsWith("Msbuild failed", workspace.Diagnostics[0].Message);
+                var diagnostic = Assert.Single(workspace.Diagnostics);
+                Assert.StartsWith("Msbuild failed", diagnostic.Message);
             }
         }
 
