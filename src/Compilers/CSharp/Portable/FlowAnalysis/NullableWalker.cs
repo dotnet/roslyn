@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNonNullable(TypeSymbolWithAnnotations typeOpt)
         {
-            return typeOpt?.IsNullable == false && typeOpt.IsReferenceType == true;
+            return typeOpt?.IsNullable == false && typeOpt.IsReferenceType;
         }
 
         private static bool IsUnconstrainedTypeParameter(TypeSymbol typeOpt)
@@ -3090,12 +3090,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool checkType = true)
         {
-            if (receiverOpt != null &&
-                (!checkType || ((object)receiverOpt.Type != null && (receiverOpt.Type.IsReferenceType || receiverOpt.Type.IsUnconstrainedTypeParameter()))) &&
-                this.State.Reachable &&
-                (_result.Type?.IsNullable == true || IsUnconstrainedTypeParameter(_result.Type?.TypeSymbol)))
+            if (receiverOpt != null && this.State.Reachable)
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
+                Debug.Assert(receiverOpt.Type is null || _result.Type?.TypeSymbol is null || AreCloseEnough(receiverOpt.Type, _result.Type.TypeSymbol));
+                var receiverType = receiverOpt.Type ?? _result.Type?.TypeSymbol;
+                if ((object)receiverType != null &&
+                    (!checkType || receiverType.IsReferenceType || receiverType.IsUnconstrainedTypeParameter()) &&
+                    (_result.Type?.IsNullable == true || receiverType.IsUnconstrainedTypeParameter()))
+                {
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
+                }
             }
         }
 

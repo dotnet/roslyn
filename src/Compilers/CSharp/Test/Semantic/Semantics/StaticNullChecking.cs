@@ -19514,5 +19514,36 @@ class C3<T3> where T3 : new()
                 //         x2.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(15, 9));
         }
+
+        // PROTOTYPE(NullableReferenceTypes): Track nullability of unconstrained type parameters.
+        [Fact(Skip = "TODO")]
+        public void TrackUnconstrainedTypeParameter_ExplicitCast()
+        {
+            var source =
+@"class C
+{
+    static void F(object o)
+    {
+    }
+    static void F1<T1>(T1 t1)
+    {
+        F((object)t1);
+        if (t1 != null) F((object)t1);
+    }
+    static void F2<T2>(T2 t2) where T2 : class
+    {
+        F((object)t2);
+        if (t2 != null) F((object)t2);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,11): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         F((object)t1);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)t1").WithLocation(8, 11),
+                // (8,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.F(object o)'.
+                //         F((object)t1);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(object)t1").WithArguments("o", "void C.F(object o)").WithLocation(8, 11));
+        }
     }
 }
