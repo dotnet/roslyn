@@ -446,61 +446,43 @@ a.vb
             Next
         End Sub
 
-        <Fact>
+#Region "Parse InstrumentTestNames"
+        <Category("Parse InstrumentTestNames"), Fact>
         Public Sub ParseInstrumentTestNames()
-            Dim args As VisualBasicCommandLineArguments
-
-            args = DefaultParse({}, _baseDirectory)
-            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
-
-            args = DefaultParse({"/instrument", "a.vb"}, _baseDirectory)
-            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
-
-            args = DefaultParse({"/instrument:""""", "a.vb"}, _baseDirectory)
-            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
-
-            args = DefaultParse({"/instrument:", "a.vb"}, _baseDirectory)
-            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
-
-            args = DefaultParse({"/instrument:", "Test.Flag.Name", "a.vb"}, _baseDirectory)
-            args.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
-            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
-
-            args = DefaultParse({"/instrument:InvalidOption", "a.vb"}, _baseDirectory)
-            args.Errors.Verify({Diagnostic(ERRID.ERR_InvalidInstrumentationKind).WithArguments("InvalidOption").WithLocation(1, 1)})
-            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
-
-            args = DefaultParse({"/instrument:None", "a.vb"}, _baseDirectory)
-            args.Errors.Verify({Diagnostic(ERRID.ERR_InvalidInstrumentationKind).WithArguments("None").WithLocation(1, 1)})
-            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({}))
-
-            args = DefaultParse({"/instrument:""TestCoverage,InvalidOption""", "a.vb"}, _baseDirectory)
-            args.Errors.Verify({Diagnostic(ERRID.ERR_InvalidInstrumentationKind).WithArguments("InvalidOption").WithLocation(1, 1)})
-            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
-
-            args = DefaultParse({"/instrument:TestCoverage", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
-
-            args = DefaultParse({"/instrument:""TestCoverage""", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
-
-            args = DefaultParse({"/instrument:""TESTCOVERAGE""", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
-
-            args = DefaultParse({"/instrument:TestCoverage,TestCoverage", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
-
-            args = DefaultParse({"/instrument:TestCoverage", "/instrument:TestCoverage", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.True(args.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
+            Dim ParsedArgs As VisualBasicCommandLineArguments
+            ParsedArgs = DefaultParse({}, _baseDirectory)
+            Assert.True(ParsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual({}))
         End Sub
+
+        <Category("Parse InstrumentTestNames"), Theory, InlineData({"/instrument", "a.vb"}), InlineData({"/instrument:""""", "a.vb"}), InlineData({"/instrument:", "a.vb"}), InlineData({"/instrument:", "Test.Flag.Name", "a.vb"})>
+        Public Sub ParseInstrumentTestNames_Errosr(ParamArray Args() As String)
+            Dim ParsedArgs = DefaultParse(Args, _baseDirectory)
+            ParsedArgs.Errors.Verify({Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("instrument", ":<string>").WithLocation(1, 1)})
+            Assert.True(ParsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual({}))
+        End Sub
+
+        <Category("Parse InstrumentTestNames"), Theory,
+         InlineData({"/instrument:InvalidOption", "a.vb"}, "InvalidOption", False),
+         InlineData({"/instrument:None", "a.vb"}, "None", False),
+         InlineData({"/instrument:""TestCoverage,InvalidOption""", "a.vb"}, "InvalidOption", True)>
+        Public Sub ParseInstrumentTestNames_InvalidInstrumentationKind(Args() As String, argName As String, TestCoverage As Boolean)
+            Dim ParsedArgs = DefaultParse(Args, _baseDirectory)
+            ParsedArgs.Errors.Verify({Diagnostic(ERRID.ERR_InvalidInstrumentationKind).WithArguments(argName).WithLocation(1, 1)})
+            Assert.True(ParsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual(If(TestCoverage, {InstrumentationKind.TestCoverage}, {})))
+        End Sub
+
+        <Category("Parse InstrumentTestNames"), Theory,
+         InlineData({"/instrument:TestCoverage", "a.vb"}),
+         InlineData({"/instrument:""TestCoverage""", "a.vb"}),
+         InlineData({"/instrument:""TESTCOVERAGE""", "a.vb"}),
+         InlineData({"/instrument:TestCoverage,TestCoverage", "a.vb"}),
+         InlineData({"/instrument:TestCoverage", "/instrument:TestCoverage", "a.vb"})>
+        Public Sub ParseInstrumentTestNames_TestCoverage(ParamArray Args() As String)
+            Dim ParsedArgs = DefaultParse(Args, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.True(ParsedArgs.EmitOptions.InstrumentationKinds.SequenceEqual({InstrumentationKind.TestCoverage}))
+        End Sub
+#End Region
 
         <Fact>
         Public Sub ResponseFiles2()
