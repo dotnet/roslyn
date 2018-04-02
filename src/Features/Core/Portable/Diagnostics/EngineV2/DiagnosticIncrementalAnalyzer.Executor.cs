@@ -79,7 +79,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var diagnostics = await ComputeDiagnosticsAsync(analyzerDriverOpt, document, stateSet.Analyzer, kind, nullFilterSpan, cancellationToken).ConfigureAwait(false);
 
                         // this is no-op in product. only run in test environment
-                        Logger.Log(functionId, d => string.Join(Environment.NewLine, d), diagnostics);
+                        Logger.Log(functionId, (t, d, a, ds) => $"{GetDocumentLogMessage(t, d, a)}, {string.Join(Environment.NewLine, ds)}",
+                            title, document, stateSet.Analyzer, diagnostics);
 
                         // we only care about local diagnostics
                         return new DocumentAnalysisData(version, existingData.Items, diagnostics.ToImmutableArrayOrEmpty());
