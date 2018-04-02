@@ -1141,9 +1141,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     GetTokenStartPositionSpan(_currentToken)));
             }
 
+            var components = new RegexSequenceNode(contents.ToImmutableAndFree());
             return caretToken.IsMissing
-                ? (RegexBaseCharacterClassNode)new RegexCharacterClassNode(openBracketToken, new RegexSequenceNode(contents.ToImmutableAndFree()), closeBracketToken)
-                : new RegexNegatedCharacterClassNode(openBracketToken, caretToken, new RegexSequenceNode(contents.ToImmutableAndFree()), closeBracketToken);
+                ? (RegexBaseCharacterClassNode)new RegexCharacterClassNode(openBracketToken, components, closeBracketToken)
+                : new RegexNegatedCharacterClassNode(openBracketToken, caretToken, components, closeBracketToken);
         }
 
         private void ParseCharacterClassComponents(ArrayBuilder<RegexExpressionNode> components)
