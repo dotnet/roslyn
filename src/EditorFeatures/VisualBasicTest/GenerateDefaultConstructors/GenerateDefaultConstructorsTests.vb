@@ -630,6 +630,37 @@ Public Class Derived
 End Class")
         End Function
 
+        <WorkItem(22699, "https://github.com/dotnet/Roslyn/issues/22699")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateInDerivedType3() As Task
+            Await TestInRegularAndScriptAsync(
+"
+MustInherit Class Base
+    Protected Sub New(value As Integer)
+
+    End Sub
+End Class
+
+NotInheritable Class [||]Derived
+    Inherits Base
+
+End Class",
+"
+MustInherit Class Base
+    Protected Sub New(value As Integer)
+
+    End Sub
+End Class
+
+NotInheritable Class Derived
+    Inherits Base
+
+    Public Sub New(value As Integer)
+        MyBase.New(value)
+    End Sub
+End Class")
+        End Function
+
         <WorkItem(19953, "https://github.com/dotnet/roslyn/issues/19953")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestNotOnEnum() As Task

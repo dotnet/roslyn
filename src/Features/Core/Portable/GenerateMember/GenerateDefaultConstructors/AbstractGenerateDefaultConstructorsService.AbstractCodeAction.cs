@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
 
                 return CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,
-                    accessibility: constructor.DeclaredAccessibility,
+                    accessibility: _state.ClassType.IsSealed ? Accessibility.Public : constructor.DeclaredAccessibility,
                     modifiers: new DeclarationModifiers(),
                     typeName: _state.ClassType.Name,
                     parameters: constructor.Parameters,
