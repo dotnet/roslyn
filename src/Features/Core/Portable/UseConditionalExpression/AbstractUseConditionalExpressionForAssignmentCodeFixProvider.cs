@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -9,6 +10,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -30,6 +33,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         protected abstract TVariableDeclaratorSyntax GetDeclaratorSyntax(IVariableDeclaratorOperation declarator);
         protected abstract TLocalDeclarationStatementSyntax AddSimplificationToType(TLocalDeclarationStatementSyntax updatedLocalDeclaration);
 
+        protected abstract IFormattingRule GetMultiLineFormattingRule();
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId);
 
@@ -42,18 +47,38 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var nestedEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var needsFormatting = false;
             foreach (var diagnostic in diagnostics)
             {
-                await FixOneAsync(
-                    document, diagnostic, editor, cancellationToken).ConfigureAwait(false);
+                needsFormatting |= await FixOneAsync(
+                    document, diagnostic, nestedEditor, cancellationToken).ConfigureAwait(false);
             }
+
+            var changedRoot = nestedEditor.GetChangedRoot();
+            if (needsFormatting)
+            {
+                var rules = new List<IFormattingRule> { GetMultiLineFormattingRule() };
+                rules.AddRange(Formatter.GetDefaultFormattingRules(document));
+
+                var formattedRoot = await Formatter.FormatAsync(changedRoot, 
+                    UseConditionalExpressionForAssignmentHelpers.SpecializedFormattingAnnotation,
+                    document.Project.Solution.Workspace,
+                    await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
+                    rules, cancellationToken).ConfigureAwait(false);
+                changedRoot = formattedRoot;
+            }
+
+            editor.ReplaceNode(root, changedRoot);
         }
 
-        private async Task FixOneAsync(
-            Document document, Diagnostic diagnostic, 
+        private async Task<bool> FixOneAsync(
+            Document document, Diagnostic diagnostic,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -63,10 +88,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement);
 
             if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
-                    syntaxFacts, ifOperation, 
+                    syntaxFacts, ifOperation,
                     out var trueAssignment, out var falseAssignment))
             {
-                return;
+                return false;
             }
 
             var generator = editor.Generator;
@@ -76,22 +101,52 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 GetValueFromAssignment(generator, trueAssignment),
                 GetValueFromAssignment(generator, falseAssignment));
 
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var trueValueSyntax = trueAssignment.Value.Syntax;
+            var falseValueSyntax = falseAssignment.Value.Syntax;
+            var isMultiLine = !sourceText.AreOnSameLine(trueValueSyntax.GetFirstToken(), trueValueSyntax.GetLastToken()) ||
+                              !sourceText.AreOnSameLine(falseValueSyntax.GetFirstToken(), falseValueSyntax.GetLastToken());
+
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
+            if (isMultiLine)
+            {
+                conditionalExpression = conditionalExpression.WithAdditionalAnnotations(
+                    UseConditionalExpressionForAssignmentHelpers.SpecializedFormattingAnnotation);
+            }
 
             if (TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
                     editor, ifOperation, trueAssignment, falseAssignment, conditionalExpression))
             {
-                return;
+                return isMultiLine;
             }
 
             ConvertOnlyIfToConditionalExpression(
                 editor, ifOperation, trueAssignment, falseAssignment, conditionalExpression);
+            return isMultiLine;
         }
 
         private SyntaxNode GetValueFromAssignment(SyntaxGenerator generator, ISimpleAssignmentOperation assignment)
-            => assignment.Target.Type != null && assignment.Target.Type.TypeKind != TypeKind.Error
-                ? generator.CastExpression(assignment.Target.Type, assignment.Value.Syntax.WithoutTrivia())
-                : assignment.Value.Syntax.WithoutTrivia();
+        {
+            var target = assignment.Target;
+            var source = UnwrapImplicitConversion(assignment.Value);
+
+            // If we have an actual non-error target type, then introduce a cast from the source to
+            // the target.  This is needed as there is no type inference in conditional expressions,
+            // so we need to ensure that the same conversions that were occurring previously still
+            // occur after conversion. Note: the simplifier will remove any of these casts that are
+            // unnecessary.
+            if (target.Type != null && target.Type.TypeKind != TypeKind.Error)
+            {
+                // Note we only add the cast if the source had no type (like teh null literal), or a
+                // non-error type itself.  We don't want to insert lots of casts in error code.
+                if (source.Type == null || source.Type.TypeKind != TypeKind.Error)
+                {
+                    return generator.CastExpression(assignment.Target.Type, source.Syntax.WithoutTrivia());
+                }
+            }
+
+            return source.Syntax.WithoutTrivia();
+        }
 
         private void ConvertOnlyIfToConditionalExpression(
             SyntaxEditor editor, IConditionalOperation ifOperation,
@@ -132,7 +187,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         private bool TryFindMatchingLocalDeclarationImmediatelyAbove(
-            IConditionalOperation ifOperation, ISimpleAssignmentOperation trueAssignment, ISimpleAssignmentOperation falseAssignment, 
+            IConditionalOperation ifOperation, ISimpleAssignmentOperation trueAssignment, ISimpleAssignmentOperation falseAssignment,
             out IVariableDeclarationGroupOperation localDeclaration)
         {
             localDeclaration = null;
@@ -198,7 +253,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                     return false;
                 }
             }
-            
+
             // If the variable is referenced in the condition of the 'if' block, we can't merge the
             // declaration and assignments.
             if (ReferencesLocalVariable(ifOperation.Condition, variable))
@@ -235,7 +290,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Convert_to_conditional_expression, createChangedDocument, IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId)
             {
             }

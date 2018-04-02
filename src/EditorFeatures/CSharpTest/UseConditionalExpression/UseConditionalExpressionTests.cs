@@ -763,5 +763,106 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestMultiLine1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            i = Foo(
+                1, 2, 3);
+        }
+        else
+        {
+            i = 1;
+        }
+    }
+}",
+@"
+class C
+{
+    void M(int i)
+    {
+        i = true
+            ? Foo(
+                1, 2, 3)
+            : 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestMultiLine2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            i = 0;
+        }
+        else
+        {
+            i = Foo(
+                1, 2, 3);
+        }
+    }
+}",
+@"
+class C
+{
+    void M(int i)
+    {
+        i = true
+            ? 0
+            : Foo(
+                1, 2, 3);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestMultiLine3()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        [||]if (true)
+        {
+            i = Foo(
+                1, 2, 3);
+        }
+        else
+        {
+            i = Foo(
+                4, 5, 6);
+        }
+    }
+}",
+@"
+class C
+{
+    void M(int i)
+    {
+        i = true
+            ? Foo(
+                1, 2, 3)
+            : Foo(
+                4, 5, 6);
+    }
+}");
+        }
     }
 }

@@ -6,12 +6,17 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
 Imports Microsoft.CodeAnalysis.Operations
+Imports Microsoft.CodeAnalysis.Formatting.Rules
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicUseConditionalExpressionForAssignmentCodeRefactoringProvider
         Inherits AbstractUseConditionalExpressionForAssignmentCodeFixProvider(Of
             LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax)
+
+        Protected Overrides Function GetMultiLineFormattingRule() As IFormattingRule
+            Throw New NotImplementedException()
+        End Function
 
         Protected Overrides Function WithInitializer(variable As VariableDeclaratorSyntax, value As ExpressionSyntax) As VariableDeclaratorSyntax
             Return variable.WithoutTrivia().WithInitializer(SyntaxFactory.EqualsValue(value)).
