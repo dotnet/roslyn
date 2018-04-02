@@ -1048,6 +1048,131 @@ class Program2
                 );
         }
 
+        [Fact]
+        public void UnderscoreDeclaredAndDiscardPattern_01()
+        {
+            var source =
+@"class Program0
+{
+    static int Main() => 0;
+    private const int _ = 1;
+    bool M1(object o) => o is _;                             // error: cannot use _ as a constant
+    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+}
+class Program1
+{
+    class _ {}
+    bool M1(object o) => o is _;                             // error: is type named _
+    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (11,31): error CS8413: The name '_' refers to the type 'Program1._', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
+                //     bool M1(object o) => o is _;                             // error: is type named _
+                Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("Program1._").WithLocation(11, 31),
+                // (5,31): error CS8412: A constant named '_' cannot be used as a pattern.
+                //     bool M1(object o) => o is _;                             // error: cannot use _ as a constant
+                Diagnostic(ErrorCode.ERR_ConstantPatternNamedUnderscore, "_").WithLocation(5, 31),
+                // (12,48): error CS8411: The discard pattern '_' cannot be used where 'Program1._' is in scope.
+                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program1._").WithLocation(12, 48),
+                // (6,48): error CS8411: The discard pattern '_' cannot be used where 'Program0._' is in scope.
+                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program0._").WithLocation(6, 48)
+                );
+        }
+
+        [Fact]
+        public void UnderscoreDeclaredAndDiscardPattern_02()
+        {
+            var source =
+@"class Program0
+{
+    static int Main() => 0;
+    private const int _ = 1;
+}
+class Program1 : Program0
+{
+    bool M2(object o) => o switch { 1 => true, _ => false }; // ok, private member not inherited
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void UnderscoreDeclaredAndDiscardPattern_03()
+        {
+            var source =
+@"class Program0
+{
+    static int Main() => 0;
+    protected const int _ = 1;
+}
+class Program1 : Program0
+{
+    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+}
+class Program2
+{
+    bool _(object q) => true;
+    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,48): error CS8411: The discard pattern '_' cannot be used where 'Program0._' is in scope.
+                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program0._").WithLocation(8, 48),
+                // (13,48): error CS8411: The discard pattern '_' cannot be used where 'Program2._(object)' is in scope.
+                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program2._(object)").WithLocation(13, 48)
+                );
+        }
+
+        [Fact]
+        public void UnderscoreDeclaredAndDiscardPattern_04()
+        {
+            var source =
+@"using _ = System.Int32;
+class Program
+{
+    static int Main() => 0;
+    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,48): error CS8411: The discard pattern '_' cannot be used where '_' is in scope.
+                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("_").WithLocation(5, 48)
+                );
+        }
+
+        [Fact]
+        public void EscapingUnderscoreDeclaredAndDiscardPattern_04()
+        {
+            var source =
+@"class Program0
+{
+    static int Main() => 0;
+    private const int _ = 2;
+    bool M1(object o) => o is @_;
+    int M2(object o) => o switch { 1 => 1, @_ => 2, var _ => 3 };
+}
+class Program1
+{
+    class _ {}
+    bool M1(object o) => o is @_;
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+        }
+
         // PROTOTYPE(patterns2): Need to have tests that exercise:
         // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
         // PROTOTYPE(patterns2): Definite assignment for the var-pattern

@@ -2738,6 +2738,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundIsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
             }
 
+            if (node.Right is IdentifierNameSyntax name && name.Identifier.Text == "_")
+            {
+                // PROTOTYPE(patterns2): Need compat council confirmation that this new warning in existing code is acceptable.
+                diagnostics.Add(ErrorCode.WRN_IsTypeNamedUnderscore, name.Location, alias ?? (Symbol)targetType);
+            }
+
             // Is and As operator should have null ConstantValue as they are not constant expressions.
             // However we perform analysis of is/as expressions at bind time to detect if the expression 
             // will always evaluate to a constant to generate warnings (always true/false/null).
