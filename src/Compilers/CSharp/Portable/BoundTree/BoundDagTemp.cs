@@ -6,6 +6,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class BoundDagTemp
     {
+        /// <summary>
+        /// Does this dag temp represent the original input of the pattern-matching operation?
+        /// </summary>
+        public bool IsOriginalInput => this.Source == null;
+
         public override bool Equals(object obj) => obj is BoundDagTemp other && this.Equals(other);
         public bool Equals(BoundDagTemp other)
         {

@@ -2790,7 +2790,7 @@ class Program
         <encLocalSlotMap>
           <slot kind=""5"" offset=""15"" />
           <slot kind=""0"" offset=""15"" />
-          <slot kind=""35"" offset=""91"" />
+          <slot kind=""35"" offset=""83"" />
           <slot kind=""1"" offset=""83"" />
           <slot kind=""1"" offset=""237"" />
         </encLocalSlotMap>
@@ -3022,9 +3022,7 @@ class Student : Person { public double GPA; }
           <slot kind=""0"" offset=""59"" />
           <slot kind=""0"" offset=""163"" />
           <slot kind=""0"" offset=""250"" />
-          <slot kind=""35"" offset=""19"" />
-          <slot kind=""35"" offset=""19"" />
-          <slot kind=""35"" offset=""19"" />
+          <slot kind=""35"" offset=""11"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
@@ -3033,21 +3031,21 @@ class Student : Person { public double GPA; }
         <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" document=""1"" />
         <entry offset=""0x4"" hidden=""true"" document=""1"" />
-        <entry offset=""0x37"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" document=""1"" />
-        <entry offset=""0x5a"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" document=""1"" />
-        <entry offset=""0x7e"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" document=""1"" />
-        <entry offset=""0x98"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" document=""1"" />
-        <entry offset=""0xac"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x30"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" document=""1"" />
+        <entry offset=""0x53"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" document=""1"" />
+        <entry offset=""0x74"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" document=""1"" />
+        <entry offset=""0x8e"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" document=""1"" />
+        <entry offset=""0xa2"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xaf"">
-        <scope startOffset=""0x22"" endOffset=""0x56"">
-          <local name=""s"" il_index=""0"" il_start=""0x22"" il_end=""0x56"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xa5"">
+        <scope startOffset=""0x1d"" endOffset=""0x4f"">
+          <local name=""s"" il_index=""0"" il_start=""0x1d"" il_end=""0x4f"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x56"" endOffset=""0x79"">
-          <local name=""s"" il_index=""1"" il_start=""0x56"" il_end=""0x79"" attributes=""0"" />
+        <scope startOffset=""0x4f"" endOffset=""0x72"">
+          <local name=""s"" il_index=""1"" il_start=""0x4f"" il_end=""0x72"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x79"" endOffset=""0x98"">
-          <local name=""t"" il_index=""2"" il_start=""0x79"" il_end=""0x98"" attributes=""0"" />
+        <scope startOffset=""0x72"" endOffset=""0x8e"">
+          <local name=""t"" il_index=""2"" il_start=""0x72"" il_end=""0x8e"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -3109,9 +3107,7 @@ class Student : Person { public double GPA; }
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
           <slot kind=""30"" offset=""11"" />
-          <slot kind=""35"" offset=""19"" />
-          <slot kind=""35"" offset=""19"" />
-          <slot kind=""35"" offset=""19"" />
+          <slot kind=""35"" offset=""11"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
@@ -3129,17 +3125,17 @@ class Student : Person { public double GPA; }
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
         <entry offset=""0xe"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x57"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""63"" document=""1"" />
-        <entry offset=""0x70"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""63"" document=""1"" />
-        <entry offset=""0x89"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""65"" document=""1"" />
-        <entry offset=""0x99"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""49"" document=""1"" />
-        <entry offset=""0xa9"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x5f"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""63"" document=""1"" />
+        <entry offset=""0x7d"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""63"" document=""1"" />
+        <entry offset=""0x8f"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""65"" document=""1"" />
+        <entry offset=""0x9f"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""49"" document=""1"" />
+        <entry offset=""0xaf"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xac"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xac"" attributes=""0"" />
-        <scope startOffset=""0xe"" endOffset=""0xa9"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xa9"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xb2"">
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xb2"" attributes=""0"" />
+        <scope startOffset=""0xe"" endOffset=""0xaf"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xaf"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -3205,9 +3201,7 @@ class Student : Person { public double GPA; }
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
           <slot kind=""30"" offset=""11"" />
-          <slot kind=""35"" offset=""19"" />
-          <slot kind=""35"" offset=""19"" />
-          <slot kind=""35"" offset=""19"" />
+          <slot kind=""35"" offset=""11"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
@@ -3225,23 +3219,22 @@ class Student : Person { public double GPA; }
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
         <entry offset=""0xe"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x58"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" document=""1"" />
-        <entry offset=""0x72"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""27"" document=""1"" />
-        <entry offset=""0x8c"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""27"" document=""1"" />
-        <entry offset=""0x9d"" startLine=""33"" startColumn=""17"" endLine=""33"" endColumn=""27"" document=""1"" />
-        <entry offset=""0xad"" startLine=""35"" startColumn=""5"" endLine=""35"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x60"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x7f"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x92"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""27"" document=""1"" />
+        <entry offset=""0xa3"" startLine=""33"" startColumn=""17"" endLine=""33"" endColumn=""27"" document=""1"" />
+        <entry offset=""0xb3"" startLine=""35"" startColumn=""5"" endLine=""35"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xb0"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xb0"" attributes=""0"" />
-        <scope startOffset=""0xe"" endOffset=""0xad"">
-          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xad"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xb6"">
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xb6"" attributes=""0"" />
+        <scope startOffset=""0xe"" endOffset=""0xb3"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xb3"" attributes=""0"" />
         </scope>
       </scope>
     </method>
   </methods>
-</symbols>
-");
+</symbols>");
         }
 
         [Fact, WorkItem(17090, "https://github.com/dotnet/roslyn/issues/17090"), WorkItem(19731, "https://github.com/dotnet/roslyn/issues/19731")]
@@ -7142,7 +7135,7 @@ class C
         </using>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""12"" />
-          <slot kind=""35"" offset=""22"" />
+          <slot kind=""35"" offset=""17"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -8310,14 +8303,16 @@ partial class C
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             CompileAndVerify(c).VerifyIL("Program.M",
 @"{
-  // Code size      122 (0x7a)
+  // Code size      123 (0x7b)
   .maxstack  2
   .locals init (object V_0,
                 int V_1,
                 object V_2,
-                int V_3,
-                object V_4,
-                object V_5)
+                object V_3,
+                int V_4,
+                object V_5,
+                object V_6,
+                object V_7)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.2
@@ -8356,28 +8351,28 @@ partial class C
   IL_004a:  br.s       IL_004e
   IL_004c:  br.s       IL_004e
   IL_004e:  ldarg.0
-  IL_004f:  stloc.s    V_4
-  IL_0051:  ldloc.s    V_4
-  IL_0053:  starg.s    V_0
-  IL_0055:  ldarg.0
-  IL_0056:  isinst     ""int""
-  IL_005b:  brfalse.s  IL_006c
-  IL_005d:  ldarg.0
-  IL_005e:  unbox.any  ""int""
-  IL_0063:  stloc.3
+  IL_004f:  stloc.s    V_5
+  IL_0051:  ldloc.s    V_5
+  IL_0053:  stloc.3
+  IL_0054:  ldloc.3
+  IL_0055:  isinst     ""int""
+  IL_005a:  brfalse.s  IL_006d
+  IL_005c:  ldloc.3
+  IL_005d:  unbox.any  ""int""
+  IL_0062:  stloc.s    V_4
   IL_0064:  ldc.i4.1
-  IL_0065:  ldloc.3
-  IL_0066:  beq.s      IL_006a
-  IL_0068:  br.s       IL_006c
-  IL_006a:  br.s       IL_006e
-  IL_006c:  br.s       IL_006e
-  IL_006e:  ldarg.0
-  IL_006f:  stloc.s    V_5
-  IL_0071:  ldloc.s    V_5
-  IL_0073:  starg.s    V_0
-  IL_0075:  br.s       IL_0077
-  IL_0077:  br.s       IL_0079
-  IL_0079:  ret
+  IL_0065:  ldloc.s    V_4
+  IL_0067:  beq.s      IL_006b
+  IL_0069:  br.s       IL_006d
+  IL_006b:  br.s       IL_006f
+  IL_006d:  br.s       IL_006f
+  IL_006f:  ldarg.0
+  IL_0070:  stloc.s    V_7
+  IL_0072:  ldloc.s    V_7
+  IL_0074:  stloc.s    V_6
+  IL_0076:  br.s       IL_0078
+  IL_0078:  br.s       IL_007a
+  IL_007a:  ret
 }");
             c.VerifyPdb(
 @"<symbols>
@@ -8391,11 +8386,13 @@ partial class C
           <namespace usingCount=""0"" />
         </using>
         <encLocalSlotMap>
-          <slot kind=""35"" offset=""19"" />
-          <slot kind=""35"" offset=""19"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""11"" />
           <slot kind=""1"" offset=""11"" />
-          <slot kind=""35"" offset=""386"" />
+          <slot kind=""35"" offset=""378"" />
+          <slot kind=""35"" offset=""378"" />
           <slot kind=""1"" offset=""378"" />
+          <slot kind=""35"" offset=""511"" />
           <slot kind=""1"" offset=""511"" />
         </encLocalSlotMap>
       </customDebugInfo>
@@ -8409,12 +8406,12 @@ partial class C
         <entry offset=""0x4c"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""23"" document=""1"" />
         <entry offset=""0x4e"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" document=""1"" />
         <entry offset=""0x51"" hidden=""true"" document=""1"" />
-        <entry offset=""0x6a"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x6c"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x6e"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" document=""1"" />
-        <entry offset=""0x71"" hidden=""true"" document=""1"" />
-        <entry offset=""0x77"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x79"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x6b"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x6d"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x6f"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x72"" hidden=""true"" document=""1"" />
+        <entry offset=""0x78"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x7a"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>
@@ -8541,10 +8538,10 @@ class Program
     IL_0016:  stloc.1
     // sequence point: <hidden>
     IL_0017:  ldloc.1
-    IL_0018:  stfld      ""int Program.<Test>d__0.<i>5__1""
+    IL_0018:  stfld      ""int Program.<Test>d__0.<>s__2""
     IL_001d:  ldc.i4.1
     IL_001e:  ldarg.0
-    IL_001f:  ldfld      ""int Program.<Test>d__0.<i>5__1""
+    IL_001f:  ldfld      ""int Program.<Test>d__0.<>s__2""
     IL_0024:  beq.s      IL_0028
     IL_0026:  br.s       IL_002a
     // sequence point: break;

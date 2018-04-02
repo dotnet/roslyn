@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Is the decision's result known because the input is a constant?
             bool? knownResult(BoundDagTest choice)
             {
-                if (choice.Input.Source != null)
+                if (!choice.Input.IsOriginalInput)
                 {
                     // This is a test of something other than the main input; result unknown
                     return null;
