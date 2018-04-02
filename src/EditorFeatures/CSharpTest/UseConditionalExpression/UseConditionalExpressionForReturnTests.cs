@@ -76,7 +76,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestOnSimpleAssignmentNoBlocks_NotInBlock()
+        public async Task TestOnSimpleReturnNoBlocks_NotInBlock()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -98,27 +98,6 @@ class C
     {
         if (true)
             return true ? 0 : 1;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestNotOnSimpleAssignmentToDifferentTargets()
-        {
-            await TestMissingAsync(
-@"
-class C
-{
-    void M(int i, int j)
-    {
-        [||]if (true)
-        {
-            return 0;
-        }
-        else
-        {
-            j = 1;
-        }
     }
 }");
         }

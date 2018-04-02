@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionHelpers;
 
@@ -79,7 +78,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 cancellationToken).ConfigureAwait(false);
 
             if (!TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
-                    editor, ifOperation, trueAssignment, falseAssignment, conditionalExpression))
+                    syntaxFacts, editor, ifOperation, 
+                    trueAssignment, falseAssignment, conditionalExpression))
             {
                 ConvertOnlyIfToConditionalExpression(
                     editor, ifOperation, trueAssignment, falseAssignment, conditionalExpression);
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         private bool TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
-            SyntaxEditor editor, IConditionalOperation ifOperation,
+            ISyntaxFactsService syntaxFacts, SyntaxEditor editor, IConditionalOperation ifOperation,
             ISimpleAssignmentOperation trueAssignment, ISimpleAssignmentOperation falseAssignment,
             TExpressionSyntax conditionalExpression)
         {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 (TLocalDeclarationStatementSyntax)updatedLocalDeclaration);
 
             editor.ReplaceNode(localDeclaration, updatedLocalDeclaration);
-            editor.RemoveNode(ifOperation.Syntax, SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepExteriorTrivia);
+            editor.RemoveNode(ifOperation.Syntax, GetRemoveOptions(syntaxFacts, ifOperation.Syntax));
             return true;
         }
 

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -68,7 +69,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             editor.ReplaceNode(ifStatement, returnStatement);
             if (ifOperation.WhenFalse == null)
             {
-                editor.RemoveNode(falseReturn.Syntax, SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepExteriorTrivia);
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                editor.RemoveNode(falseReturn.Syntax, GetRemoveOptions(syntaxFacts, falseReturn.Syntax));
             }
 
             return isMultiLine;

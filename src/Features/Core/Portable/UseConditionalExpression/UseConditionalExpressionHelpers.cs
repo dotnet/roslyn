@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -109,6 +110,36 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             return sourceSyntax;
+        }
+
+        public static SyntaxRemoveOptions GetRemoveOptions(
+            ISyntaxFactsService syntaxFacts, SyntaxNode syntax)
+        {
+            var removeOptions = SyntaxGenerator.DefaultRemoveOptions;
+            if (HasNonWhitespaceOrEndOfLineTrivia(syntaxFacts, syntax.GetLeadingTrivia()))
+            {
+                removeOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
+            }
+
+            if (HasNonWhitespaceOrEndOfLineTrivia(syntaxFacts, syntax.GetTrailingTrivia()))
+            {
+                removeOptions |= SyntaxRemoveOptions.KeepTrailingTrivia;
+            }
+
+            return removeOptions;
+        }
+
+        private static bool HasNonWhitespaceOrEndOfLineTrivia(ISyntaxFactsService syntaxFacts, SyntaxTriviaList triviaList)
+        {
+            foreach (var trivia in triviaList)
+            {
+                if (!syntaxFacts.IsWhitespaceTrivia(trivia) && !syntaxFacts.IsEndOfLineTrivia(trivia))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

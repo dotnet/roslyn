@@ -182,7 +182,6 @@ end class",
 class C
     sub M()
         dim i = If(true, 0, 1)
-
     end sub
 end class")
         End Function
@@ -205,7 +204,6 @@ end class",
 class C
     sub M()
         dim i = If(true, 0, 1)
-
     end sub
 end class")
         End Function
@@ -228,7 +226,6 @@ end class",
 class C
     sub M()
         dim i = If(true, 0, 1)
-
     end sub
 end class")
         End Function
@@ -375,7 +372,6 @@ class C
     sub M()
         ' keep object even though both values are strings
         dim o as object = If(true, ""a"", ""b"")
-
     end sub
 end class")
         End Function
@@ -398,7 +394,6 @@ end class",
 class C
     sub M()
         dim s = If(true, ""a"", nothing)
-
     end sub
 end class")
         End Function
@@ -421,7 +416,6 @@ end class",
 class C
     sub M()
         dim s = If(true, nothing, DirectCast(nothing, String))
-
     end sub
 end class")
         End Function
@@ -475,7 +469,6 @@ class C
         i = If(true, 0, 1)
 
         dim s = If(true, ""a"", ""b"")
-
     end sub
 end class")
         End Function
