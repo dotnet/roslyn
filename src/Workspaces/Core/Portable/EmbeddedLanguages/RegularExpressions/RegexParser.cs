@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
+    using System.Collections.Generic;
     using static EmbeddedSyntaxHelpers;
     using static RegexHelpers;
 
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// and our parser mimics that behavior.  Note that even if trivia is allowed,
         /// the type of trivia that can be scanned depends on the current RegexOptions.
         /// For example, if <see cref="RegexOptions.IgnorePatternWhitespace"/> is currently
-        /// enabled, then '#...' comments are allowed.  Otherwise, only '(?#...)' comemnts
+        /// enabled, then '#...' comments are allowed.  Otherwise, only '(?#...)' comments
         /// are allowed.</param>
         private RegexToken ConsumeCurrentToken(bool allowTrivia)
         {
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         /// <summary>
         /// Given an input text, and set of options, parses out a fully representative syntax tree 
-        /// and list of diagnotics.  Parsing should always succeed, except in the case of the stack 
+        /// and list of diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
         public static RegexTree TryParse(ImmutableArray<VirtualChar> text, RegexOptions options)
@@ -97,37 +98,47 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexTree ParseTree()
         {
+            // Most callers to ParseAlternatingSequences are from group constructs.  As those
+            // constructs will have already consumed the open paren, they don't want this sub-call
+            // to consume through close-paren tokens as they want that token for themselves.
+            // However, we're the topmost call and have not consumed an open paren.  And, we want
+            // this call to consume all the way to the end, eating up excess close-paren tokens that
+            // are encountered.
             var expression = this.ParseAlternatingSequences(consumeCloseParen: true);
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
             Debug.Assert(_currentToken.Kind == RegexKind.EndOfFile);
 
             var root = new RegexCompilationUnit(expression, _currentToken);
 
+            var seenDiagnostics = new HashSet<EmbeddedDiagnostic>();
             var diagnostics = ArrayBuilder<EmbeddedDiagnostic>.GetInstance();
-            CollectDiagnostics(root, diagnostics);
+            CollectDiagnostics(root, seenDiagnostics, diagnostics);
 
             return new RegexTree(
                 _lexer.Text, root, diagnostics.ToImmutableAndFree(),
                 _captureNamesToSpan, _captureNumbersToSpan);
         }
 
-        private static void CollectDiagnostics(RegexNode node, ArrayBuilder<EmbeddedDiagnostic> diagnostics)
+        private static void CollectDiagnostics(
+            RegexNode node, HashSet<EmbeddedDiagnostic> seenDiagnostics, ArrayBuilder<EmbeddedDiagnostic> diagnostics)
         {
             foreach (var child in node)
             {
                 if (child.IsNode)
                 {
-                    CollectDiagnostics(child.Node, diagnostics);
+                    CollectDiagnostics(child.Node, seenDiagnostics, diagnostics);
                 }
                 else
                 {
                     var token = child.Token;
                     foreach (var trivia in token.LeadingTrivia)
                     {
-                        AddUniqueDiagnostics(trivia.Diagnostics, diagnostics);
+                        AddUniqueDiagnostics(seenDiagnostics, trivia.Diagnostics, diagnostics);
                     }
 
-                    AddUniqueDiagnostics(token.Diagnostics, diagnostics);
+                    // We never place trailing trivia on regex tokens.
+                    Debug.Assert(token.TrailingTrivia.IsEmpty);
+                    AddUniqueDiagnostics(seenDiagnostics, token.Diagnostics, diagnostics);
                 }
             }
         }
@@ -137,11 +148,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// have two 'missing )' diagnostics, both at the end.  Reporting both isn't helpful, so we
         /// filter duplicates out here.
         /// </summary>
-        private static void AddUniqueDiagnostics(ImmutableArray<EmbeddedDiagnostic> from, ArrayBuilder<EmbeddedDiagnostic> to)
+        private static void AddUniqueDiagnostics(
+            HashSet<EmbeddedDiagnostic> seenDiagnostics, ImmutableArray<EmbeddedDiagnostic> from, ArrayBuilder<EmbeddedDiagnostic> to)
         {
             foreach (var diagnostic in from)
             {
-                if (!to.Contains(diagnostic))
+                if (seenDiagnostics.Add(diagnostic))
                 {
                     to.Add(diagnostic);
                 }
@@ -474,8 +486,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexPrimaryExpressionNode ParseText()
         {
+            var token = ConsumeCurrentToken(allowTrivia: true);
+            Debug.Assert(token.Value == null);
+
             // Allow trivia between this piece of text and the next sequence element
-            return new RegexTextNode(ConsumeCurrentToken(allowTrivia: true).With(kind: RegexKind.TextToken));
+            return new RegexTextNode(token.With(kind: RegexKind.TextToken));
         }
 
         private RegexPrimaryExpressionNode ParseEndAnchor()
@@ -633,76 +648,73 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
             }
-            else
+
+        var capture = captureToken.Value;
+
+            RegexToken innerCloseParenToken;
+            if (capture.Kind == RegexKind.NumberToken)
             {
-                var capture = captureToken.Value;
+                // If it's a numeric group, it has to be immediately followed by a ) and the
+                // numeric reference has to exist.
+                //
+                // That means that (?(4 ) is not treated as an embedded expression but as an
+                // error.  This is different from (?(a ) which will be treated as an embedded
+                // expression, and different from (?(a) will be treated as an embedded
+                // expression or capture group depending on if 'a' is a existing capture name.
 
-                RegexToken innerCloseParenToken;
-                if (capture.Kind == RegexKind.NumberToken)
+                ConsumeCurrentToken(allowTrivia: false);
+                if (_currentToken.Kind == RegexKind.CloseParenToken)
                 {
-                    // If it's a numeric group, it has to be immediately followed by a )
-                    // and the numeric reference has to exist.
-                    //
-                    // That means that (?(4 ) is not treated as an embedded expression but as
-                    // an error.  This is different from (?(a ) which will be treated as an 
-                    // embedded expression, and different from (?(a) will will be treated as
-                    // an embedded expression or capture group depending on if 'a' is a existing
-                    // capture name.
-
-                    ConsumeCurrentToken(allowTrivia: false);
-                    if (_currentToken.Kind == RegexKind.CloseParenToken)
+                    innerCloseParenToken = _currentToken;
+                    if (!HasCapture((int)capture.Value))
                     {
-                        innerCloseParenToken = _currentToken;
-                        if (!HasCapture((int)capture.Value))
-                        {
-                            capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                                WorkspacesResources.Reference_to_undefined_group,
-                                capture.GetSpan()));
-                        }
-                    }
-                    else
-                    {
-                        innerCloseParenToken = CreateMissingToken(RegexKind.CloseParenToken);
                         capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                            WorkspacesResources.Malformed,
+                            WorkspacesResources.Reference_to_undefined_group,
                             capture.GetSpan()));
-                        MoveBackBeforePreviousScan();
                     }
                 }
                 else
                 {
-                    // If its a capture name, its ok if it that capture doesn't exist.  In that
-                    // case we will just treat this as an conditional expression.
-                    if (!HasCapture((string)capture.Value))
-                    {
-                        _lexer.Position = afterInnerOpenParen;
-                        return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
-                    }
-
-                    // Capture name existed.  For this to be a capture grouping it exactly has to
-                    // match (?(a)   anything other than a close paren after the ) will make this
-                    // into a conditional expression.
-                    ConsumeCurrentToken(allowTrivia: false);
-                    if (_currentToken.Kind != RegexKind.CloseParenToken)
-                    {
-                        _lexer.Position = afterInnerOpenParen;
-                        return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
-                    }
-
-                    innerCloseParenToken = _currentToken;
+                    innerCloseParenToken = CreateMissingToken(RegexKind.CloseParenToken);
+                    capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
+                        WorkspacesResources.Malformed,
+                        capture.GetSpan()));
+                    MoveBackBeforePreviousScan();
+                }
+            }
+            else
+            {
+                // If its a capture name, it's ok if it that capture doesn't exist.  In that
+                // case we will just treat this as an conditional expression.
+                if (!HasCapture((string)capture.Value))
+                {
+                    _lexer.Position = afterInnerOpenParen;
+                    return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
                 }
 
-                // Was (?(name) or (?(num)  and name/num was a legal capture name.  Parse
-                // this out as a conditional grouping.  Because we're going to be parsing out
-                // an embedded sequence, allow trivia before the first element.
-                ConsumeCurrentToken(allowTrivia: true);
-                var result = ParseConditionalGroupingResult();
+                // Capture name existed.  For this to be a capture grouping it exactly has to
+                // match (?(a)   anything other than a close paren after the ) will make this
+                // into a conditional expression.
+                ConsumeCurrentToken(allowTrivia: false);
+                if (_currentToken.Kind != RegexKind.CloseParenToken)
+                {
+                    _lexer.Position = afterInnerOpenParen;
+                    return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
+                }
 
-                return new RegexConditionalCaptureGroupingNode(
-                    openParenToken, questionToken,
-                    innerOpenParenToken, capture, innerCloseParenToken,
-                    result, ParseGroupingCloseParen());
+                innerCloseParenToken = _currentToken;
             }
+
+            // Was (?(name) or (?(num)  and name/num was a legal capture name.  Parse
+            // this out as a conditional grouping.  Because we're going to be parsing out
+            // an embedded sequence, allow trivia before the first element.
+            ConsumeCurrentToken(allowTrivia: true);
+            var result = ParseConditionalGroupingResult();
+
+            return new RegexConditionalCaptureGroupingNode(
+                openParenToken, questionToken,
+                innerOpenParenToken, capture, innerCloseParenToken,
+                result, ParseGroupingCloseParen());
         }
 
         private bool HasCapture(int value)
@@ -715,7 +727,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             if (_currentToken.Kind != RegexKind.EndOfFile)
             {
-                // Move back to unconsume whatever we just consumed.
+                // Move back to un-consume whatever we just consumed.
                 _lexer.Position--;
             }
         }
@@ -732,7 +744,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (_lexer.IsAt("(?#"))
             {
                 var pos = _lexer.Position;
-                var comment = _lexer.ScanComment(default);
+                var comment = _lexer.ScanComment(options: default);
                 _lexer.Position = pos;
 
                 if (comment.Value.Diagnostics.Length > 0)
@@ -767,7 +779,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             ConsumeCurrentToken(allowTrivia: false);
             Debug.Assert(_currentToken.Kind == RegexKind.OpenParenToken);
 
-            // Parse out the grouping that starts with teh second open paren in (?(
+            // Parse out the grouping that starts with the second open paren in (?(
             // this will get us to (?(...)
             var grouping = ParseGrouping();
 
@@ -775,7 +787,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // (?(...)...
             var result = ParseConditionalGroupingResult();
 
-            // Finallyy, grab the close paren and produce (?(...)...)
+            // Finally, grab the close paren and produce (?(...)...)
             return new RegexConditionalExpressionGroupingNode(
                 openParenToken, questionToken,
                 grouping, result, ParseGroupingCloseParen());
@@ -1129,9 +1141,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     GetTokenStartPositionSpan(_currentToken)));
             }
 
+            var components = new RegexSequenceNode(contents.ToImmutableAndFree());
             return caretToken.IsMissing
-                ? (RegexBaseCharacterClassNode)new RegexCharacterClassNode(openBracketToken, new RegexSequenceNode(contents.ToImmutableAndFree()), closeBracketToken)
-                : new RegexNegatedCharacterClassNode(openBracketToken, caretToken, new RegexSequenceNode(contents.ToImmutableAndFree()), closeBracketToken);
+                ? (RegexBaseCharacterClassNode)new RegexCharacterClassNode(openBracketToken, components, closeBracketToken)
+                : new RegexNegatedCharacterClassNode(openBracketToken, caretToken, components, closeBracketToken);
         }
 
         private void ParseCharacterClassComponents(ArrayBuilder<RegexExpressionNode> components)
@@ -1204,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     switch (ch)
                     {
                         case 'a': ch = '\u0007'; break;
-                        case 'b': ch =  '\b'; break;
+                        case 'b': ch = '\b'; break;
                         case 'e': ch = '\u001B'; break;
                         case 'f': ch = '\f'; break;
                         case 'n': ch = '\n'; break;
@@ -1217,12 +1230,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 case RegexKind.ControlEscape:
                     var controlEscape = (RegexControlEscapeNode)component;
                     var controlCh = controlEscape.ControlToken.VirtualChars[0].Char;
+
                     // \ca interpreted as \cA
                     if (controlCh >= 'a' && controlCh <= 'z')
                     {
                         controlCh -= (char)('a' - 'A');
                     }
-                    ch = (char)(controlCh - '@');
+
+                    // The control characters have values mapping from the A-Z range to numeric
+                    // values 1-26.  So, to map that, we subtract 'A' from the value (which would
+                    // give us 0-25) and then add '1' back to it.
+                    ch = (char)(controlCh - 'A' + 1);
                     return true;
 
                 case RegexKind.OctalEscape:
@@ -1287,6 +1305,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private int HexValue(char ch)
         {
+            Debug.Assert(RegexLexer.IsHexChar(ch));
             unchecked
             {
                 var temp = (uint)(ch - '0');
@@ -1346,12 +1365,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexExpressionNode ParseRightSideOfCharacterClassRange()
         {
-            // Parsing the right hand side of a - is extremely strange (and most likely  buggy) in 
-            // the .net parser. Specifically, the .net parser will still consider itself on the right
-            // side no matter how many escaped dashes it sees.  So, for example, the following is legal
-            // [a-\-] (even though \- is less than 'a'). Similarly, the following are *illegal* 
-            // [b-\-a] and [b-\-\-a].  That's because the range that is checked is actually "b-a", even
-            // though it has all the \- escapes in the middle.
+            // Parsing the right hand side of a - is extremely strange (and most likely buggy) in
+            // the .net parser. Specifically, the .net parser will still consider itself on the
+            // right side no matter how many escaped dashes it sees.  So, for example, the following
+            // is legal [a-\-] (even though \- is less than 'a'). Similarly, the following are
+            // *illegal* [b-\-a] and [b-\-\-a].  That's because the range that is checked is
+            // actually "b-a", even though it has all the \- escapes in the middle.
 
             var first = ParseSingleCharacterClassComponent(isFirst: false, afterRangeMinus: true);
             if (!IsEscapedMinus(first))
@@ -1367,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 builder.Add(ParseSingleCharacterClassComponent(isFirst: false, afterRangeMinus: true));
             }
 
-            return new RegexSequenceNode(builder.ToImmutable());
+            return new RegexSequenceNode(builder.ToImmutableAndFree());
         }
 
         private RegexPrimaryExpressionNode ParseSingleCharacterClassComponent(bool isFirst, bool afterRangeMinus)
@@ -1397,19 +1416,31 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         }
 
                         // move back before the character we just scanned.
-                        // trivia is not allowed anywhere in a character class
+                        // trivia is not allowed anywhere in a character class.
+
+                        // The above list are character class and category escapes.  ParseEscape can
+                        // handle both of those, so we just defer to it.
                         _lexer.Position--;
                         return ParseEscape(backslashToken, allowTriviaAfterEnd: false);
 
                     case '-':
-                        // trivia is not allowed anywhere in a character class
+                        // trivia is not allowed anywhere in a character class.
+
+                        // We just let the basic consumption code pull out a token for us, we then
+                        // convert that to text since we treat all characters after the - as text no
+                        // matter what.
                         return new RegexSimpleEscapeNode(
                             backslashToken, ConsumeCurrentToken(allowTrivia: false).With(kind: RegexKind.TextToken));
 
                     default:
-                        // trivia is not allowed anywhere in a character class
+                        // trivia is not allowed anywhere in a character class.
+
+                        // Note: it is very intentional that we're calling ParseCharEscape and not
+                        // ParseEscape.  Normal escapes are not interpreted the same way inside a
+                        // character class.  For example \b is not an anchor in a character class.
+                        // And things like \k'...' are not k-captures, etc. etc.  
                         _lexer.Position--;
-                        return ScanCharEscape(backslashToken, allowTriviaAfterEnd: false);
+                        return ParseCharEscape(backslashToken, allowTriviaAfterEnd: false);
                 }
             }
 
@@ -1511,10 +1542,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             // Move back to after the backslash
             _lexer.Position--;
-            return ScanBasicBackslash(backslashToken, allowTriviaAfterEnd);
+            return ParseBasicBackslash(backslashToken, allowTriviaAfterEnd);
         }
 
-        private RegexEscapeNode ScanBasicBackslash(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ParseBasicBackslash(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
             Debug.Assert(_lexer.Text[_lexer.Position - 1].Char == '\\');
 
@@ -1549,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             _lexer.Position--;
-            return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
+            return ParseCharEscape(backslashToken, allowTriviaAfterEnd);
         }
 
         private RegexEscapeNode ParsePossibleBackreferenceEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
@@ -1563,9 +1594,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private RegexEscapeNode ParsePossibleEcmascriptBackreferenceEscape(
             RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
-            // Small deviation: Ecmascript allows references only to captures that preceed
+            // Small deviation: Ecmascript allows references only to captures that precede
             // this position (unlike .net which allows references in any direction).  However,
-            // because we don't track position, we just consume the entire backreference.
+            // because we don't track position, we just consume the entire back-reference.
             //
             // This is addressable if we add position tracking when we locate all the captures.
 
@@ -1602,7 +1633,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             _lexer.Position = start;
-            return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
+            return ParseCharEscape(backslashToken, allowTriviaAfterEnd);
         }
 
         private RegexEscapeNode ParsePossibleRegularBackreferenceEscape(
@@ -1623,7 +1654,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             _lexer.Position = start;
-            return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
+            return ParseCharEscape(backslashToken, allowTriviaAfterEnd);
         }
 
         private RegexEscapeNode ParsePossibleCaptureEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
@@ -1638,7 +1669,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             if (openToken.IsMissing || capture.IsMissing || closeToken.IsMissing)
             {
                 _lexer.Position = afterBackslashPosition;
-                return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
+                return ParseCharEscape(backslashToken, allowTriviaAfterEnd);
             }
 
             return new RegexCaptureEscapeNode(
@@ -1661,12 +1692,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             if (capture.IsMissing || closeToken.IsMissing)
             {
-                // Native parser falls back to normal escape scanning, if it doesn't see 
-                // a capture, or close brace.  For normal .net regexes, this will then 
-                // fail later (as \k is not a legal escape), but will succeed for for
-                // ecmascript regexes.
+                // Native parser falls back to normal escape scanning, if it doesn't see a capture,
+                // or close brace.  For normal .net regexes, this will then fail later (as \k is not
+                // a legal escape), but will succeed for ecmascript regexes.
                 _lexer.Position = afterBackslashPosition;
-                return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
+                return ParseCharEscape(backslashToken, allowTriviaAfterEnd);
             }
 
             return new RegexKCaptureEscapeNode(
@@ -1711,7 +1741,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private RegexEscapeNode ScanCharEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ParseCharEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
             Debug.Assert(_lexer.Text[_lexer.Position - 1].Char == '\\');
 
@@ -1737,11 +1767,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     return new RegexSimpleEscapeNode(
                         backslashToken, ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd));
                 case 'x':
-                    return ScanHexEscape(backslashToken, allowTriviaAfterEnd);
+                    return ParseHexEscape(backslashToken, allowTriviaAfterEnd);
                 case 'u':
-                    return ScanUnicodeEscape(backslashToken, allowTriviaAfterEnd);
+                    return ParseUnicodeEscape(backslashToken, allowTriviaAfterEnd);
                 case 'c':
-                    return ScanControlEscape(backslashToken, allowTriviaAfterEnd);
+                    return ParseControlEscape(backslashToken, allowTriviaAfterEnd);
                 default:
                     var typeToken = ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd).With(kind: RegexKind.TextToken);
 
@@ -1756,7 +1786,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private RegexEscapeNode ScanUnicodeEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ParseUnicodeEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
             var typeToken = _currentToken;
             var hexChars = _lexer.ScanHexCharacters(4);
@@ -1764,7 +1794,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return new RegexUnicodeEscapeNode(backslashToken, typeToken, hexChars);
         }
 
-        private RegexEscapeNode ScanHexEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ParseHexEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
             var typeToken = _currentToken;
             var hexChars = _lexer.ScanHexCharacters(2);
@@ -1772,7 +1802,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return new RegexHexEscapeNode(backslashToken, typeToken, hexChars);
         }
 
-        private RegexControlEscapeNode ScanControlEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexControlEscapeNode ParseControlEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
         {
             // Nothing allowed between \c and the next char
             var typeToken = ConsumeCurrentToken(allowTrivia: false);

@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
     ///    has multiple nodes.  For example there are distinct nodes to represent the very similar
     ///    {a}   {a,}    {a,b}    constructs.
     /// </summary>
-    internal abstract class EmbeddedSyntaxNode<TSyntaxKind, TNode>
+    internal abstract class EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
         where TSyntaxKind : struct
-        where TNode : EmbeddedSyntaxNode<TSyntaxKind, TNode>
+        where TSyntaxNode : EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
     {
         public readonly TSyntaxKind Kind;
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         }
 
         internal abstract int ChildCount { get; }
-        internal abstract EmbeddedSyntaxNodeOrToken<TSyntaxKind, TNode> ChildAt(int index);
+        internal abstract EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode> ChildAt(int index);
 
         public TextSpan GetSpan()
         {
@@ -104,11 +104,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         public struct Enumerator
         {
-            private readonly EmbeddedSyntaxNode<TSyntaxKind, TNode> _node;
+            private readonly EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode> _node;
             private readonly int _childCount;
             private int _currentIndex;
 
-            public Enumerator(EmbeddedSyntaxNode<TSyntaxKind, TNode> node)
+            public Enumerator(EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode> node)
             {
                 _node = node;
                 _childCount = _node.ChildCount;
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
                 Current = default;
             }
 
-            public EmbeddedSyntaxNodeOrToken<TSyntaxKind, TNode> Current { get; private set; }
+            public EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode> Current { get; private set; }
 
             public bool MoveNext()
             {

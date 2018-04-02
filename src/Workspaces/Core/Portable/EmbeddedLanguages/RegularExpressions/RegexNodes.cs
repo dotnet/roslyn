@@ -87,7 +87,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         internal override int ChildCount => 1;
 
-        internal override RegexNodeOrToken ChildAt(int index) => TextToken;
+        internal override RegexNodeOrToken ChildAt(int index)
+        {
+            switch (index)
+            {
+                case 0: return TextToken;
+            }
+
+            throw new InvalidOperationException();
+        }
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -272,7 +280,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         internal override int ChildCount => 1;
 
-        internal override RegexNodeOrToken ChildAt(int index) => TextToken;
+        internal override RegexNodeOrToken ChildAt(int index)
+        {
+            switch (index)
+            {
+                case 0: return TextToken;
+            }
+
+            throw new InvalidOperationException();
+        }
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -316,7 +332,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         internal override int ChildCount => 1;
 
-        internal override RegexNodeOrToken ChildAt(int index) => DotToken;
+        internal override RegexNodeOrToken ChildAt(int index)
+        {
+            switch (index)
+            {
+                case 0: return DotToken;
+            }
+
+            throw new InvalidOperationException();
+        }
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -450,6 +474,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             : base(RegexKind.LazyQuantifier)
         {
             Debug.Assert(quantifier != null);
+            Debug.Assert(quantifier.Kind != RegexKind.LazyQuantifier);
             Debug.Assert(questionToken.Kind == RegexKind.QuestionToken);
             Quantifier = quantifier;
             QuestionToken = questionToken;
@@ -624,7 +649,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         internal override int ChildCount => 1;
 
-        internal override RegexNodeOrToken ChildAt(int index) => AnchorToken;
+        internal override RegexNodeOrToken ChildAt(int index)
+        {
+            switch (index)
+            {
+                case 0: return AnchorToken;
+            }
+
+            throw new InvalidOperationException();
+        }
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -690,7 +723,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// The ```(...)``` node you get when the group does not start with ```(?```
     /// </summary>
-    internal class RegexSimpleGroupingNode : RegexGroupingNode
+    internal sealed class RegexSimpleGroupingNode : RegexGroupingNode
     {
         public RegexSimpleGroupingNode(RegexToken openParenToken, RegexExpressionNode expression, RegexToken closeParenToken)
             : base(RegexKind.SimpleGrouping, openParenToken, closeParenToken)
@@ -751,7 +784,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```(?inmsx)``` node.  Changes options in a sequence for all subsequence nodes.
     /// </summary>
-    internal class RegexSimpleOptionsGroupingNode : RegexOptionsGroupingNode
+    internal sealed class RegexSimpleOptionsGroupingNode : RegexOptionsGroupingNode
     {
         public RegexSimpleOptionsGroupingNode(
             RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken, RegexToken closeParenToken)
@@ -781,7 +814,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```(?inmsx:expr)``` node.  Changes options for the parsing of 'expr'.
     /// </summary>
-    internal class RegexNestedOptionsGroupingNode : RegexOptionsGroupingNode
+    internal sealed class RegexNestedOptionsGroupingNode : RegexOptionsGroupingNode
     {
         public RegexNestedOptionsGroupingNode(
             RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken,

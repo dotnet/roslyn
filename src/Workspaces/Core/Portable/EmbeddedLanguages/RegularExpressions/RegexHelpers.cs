@@ -16,17 +16,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             => (options & val) != 0;
 
         public static RegexToken CreateToken(RegexKind kind, ImmutableArray<RegexTrivia> leadingTrivia, ImmutableArray<VirtualChar> virtualChars)
-            => CreateToken(kind, leadingTrivia, virtualChars, ImmutableArray<EmbeddedDiagnostic>.Empty);
-
-        public static RegexToken CreateToken(
-            RegexKind kind, ImmutableArray<RegexTrivia> leadingTrivia,
-            ImmutableArray<VirtualChar> virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
-            => CreateToken(kind, leadingTrivia, virtualChars, diagnostics, value: null);
-
-        public static RegexToken CreateToken(
-            RegexKind kind, ImmutableArray<RegexTrivia> leadingTrivia, ImmutableArray<VirtualChar> virtualChars,
-            ImmutableArray<EmbeddedDiagnostic> diagnostics, object value)
-            => new RegexToken(kind, leadingTrivia, virtualChars, ImmutableArray<RegexTrivia>.Empty, diagnostics, value);
+            => new RegexToken(kind, leadingTrivia, virtualChars, ImmutableArray<RegexTrivia>.Empty, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null);
 
         public static RegexToken CreateMissingToken(RegexKind kind)
             => CreateToken(kind, ImmutableArray<RegexTrivia>.Empty, ImmutableArray<VirtualChar>.Empty);
