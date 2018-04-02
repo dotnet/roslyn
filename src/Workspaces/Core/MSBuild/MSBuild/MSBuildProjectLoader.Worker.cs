@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             /// When true, metadata is preferred for any project reference unless the referenced project is already loaded
             /// because it was requested.
             /// </summary>
-            private readonly bool _preferMetadataForReferencedProjects;
+            private readonly bool _preferMetadataForReferencesOfDiscoveredProjects;
 
             private readonly Dictionary<ProjectId, ProjectFileInfo> _projectIdToFileInfoMap;
             private readonly Dictionary<ProjectId, List<ProjectReference>> _projectIdToProjectReferencesMap;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 IProgress<ProjectLoadProgress> progress,
                 DiagnosticReportingOptions requestedProjectOptions,
                 DiagnosticReportingOptions discoveredProjectOptions,
-                bool preferMetadataForReferencedProjects)
+                bool preferMetadataForReferencesOfDiscoveredProjects)
             {
                 _workspace = workspace;
                 _diagnosticReporter = diagnosticReporter;
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _progress = progress;
                 _requestedProjectOptions = requestedProjectOptions;
                 _discoveredProjectOptions = discoveredProjectOptions;
-                _preferMetadataForReferencedProjects = preferMetadataForReferencedProjects;
+                _preferMetadataForReferencesOfDiscoveredProjects = preferMetadataForReferencesOfDiscoveredProjects;
                 _projectIdToFileInfoMap = new Dictionary<ProjectId, ProjectFileInfo>();
                 _pathToDiscoveredProjectInfosMap = new Dictionary<string, ImmutableArray<ProjectInfo>>(PathUtilities.Comparer);
                 _projectIdToProjectReferencesMap = new Dictionary<ProjectId, List<ProjectReference>>();

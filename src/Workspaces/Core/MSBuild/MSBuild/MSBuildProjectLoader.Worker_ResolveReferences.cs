@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                         // If metadata is preferred, see if the project reference's output exists on disk and is included
                         // in our metadata references. If it is, don't create a project reference; we'll just use the metadata.
-                        if (_preferMetadataForReferencedProjects &&
+                        if (_preferMetadataForReferencesOfDiscoveredProjects &&
                             await VerifyProjectOutputExistsAsync(projectReferencePath, builder, cancellationToken).ConfigureAwait(false))
                         {
                             continue;

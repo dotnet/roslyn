@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 progress,
                 requestedProjectOptions: reportingOptions,
                 discoveredProjectOptions: reportingOptions,
-                preferMetadataForReferencedProjects: false);
+                preferMetadataForReferencesOfDiscoveredProjects: false);
 
             var projects = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
 
