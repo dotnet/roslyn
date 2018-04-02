@@ -20096,5 +20096,83 @@ namespace A
                 //             ClassB.MethodB(obj);
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("C.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "E, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(11, 13));
         }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_NoneWithRef()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(int i);
+    partial void M(ref int i) {}  
+}").VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(ref int)'
+                //     partial void M(ref int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(ref int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_NoneWithIn()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(int i);
+    partial void M(in int i) {}  
+}").VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(in int)'
+                //     partial void M(in int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(in int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_RefWithNone()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(ref int i);
+    partial void M(int i) {}  
+}").VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(int)'
+                //     partial void M(int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_RefWithIn()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(ref int i);
+    partial void M(in int i) {}  
+}").VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(in int)'
+                //     partial void M(in int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(in int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_InWithNone()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(in int i);
+    partial void M(int i) {}  
+}").VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(int)'
+                //     partial void M(int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void PartialMethodsConsiderRefKindDifferences_InWithRef()
+        {
+            CreateCompilation(@"
+partial class C {
+    partial void M(in int i);
+    partial void M(ref int i) {}  
+}").VerifyDiagnostics(
+                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(ref int)'
+                //     partial void M(ref int i) {}  
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(ref int)").WithLocation(4, 18));
+        }
     }
 }

@@ -16465,5 +16465,75 @@ class Test2
   IL_0006:  ret
 }");
         }
+
+        [Fact]
+        public void PartialMethodsWithInParameter_WithBody()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        M(5);
+    }
+    partial void M(in int i);
+}
+partial class C
+{
+    partial void M(in int i)
+    {
+        System.Console.WriteLine(i);
+    }
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}",
+                expectedOutput: "5")
+                .VerifyIL("C.Call", @"
+
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.5
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""void C.M(in int)""
+  IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void PartialMethodsWithInParameter_NoBody()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        M(5);
+    }
+    partial void M(in int i);
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}")
+                .VerifyIL("C.Call", @"
+
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
     }
 }
