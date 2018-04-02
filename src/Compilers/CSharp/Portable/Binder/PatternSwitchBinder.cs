@@ -89,10 +89,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var sectionBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
+            var sectionBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance(switchSections.Length);
             foreach (var oldSection in switchSections)
             {
-                var labelBuilder = ArrayBuilder<BoundPatternSwitchLabel>.GetInstance();
+                var labelBuilder = ArrayBuilder<BoundPatternSwitchLabel>.GetInstance(oldSection.SwitchLabels.Length);
                 foreach (var label in oldSection.SwitchLabels)
                 {
                     var newLabel = label;
@@ -102,7 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (syntax)
                         {
                             case CasePatternSwitchLabelSyntax p:
-                                diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Pattern.Location);
+                                if (!p.Pattern.HasErrors)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Pattern.Location);
+                                }
                                 break;
                             case CaseSwitchLabelSyntax p:
                                 if (label.Pattern is BoundConstantPattern cp && !cp.ConstantValue.IsBad && FindMatchingSwitchCaseLabel(cp.ConstantValue, p) != label.Label)
@@ -110,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     // We use the traditional diagnostic when possible
                                     diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, syntax.Location, cp.ConstantValue.GetValueToDisplay());
                                 }
-                                else
+                                else if (!label.Pattern.HasErrors)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Value.Location);
                                 }

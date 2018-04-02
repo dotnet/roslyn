@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2453,6 +2455,173 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 N(SyntaxKind.CloseBraceToken);
             }
             EOF();
+        }
+
+        [Fact]
+        public void BrokenRecursivePattern01()
+        {
+            // This put the parser into an infinite loop at one time. The precise diagnostics and nodes
+            // are not as important as the fact that it terminates.
+            UsingStatement("switch (e) { case T( : Q x = n; break; } ",
+                // (1,19): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // switch (e) { case T( : Q x = n; break; } 
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "T( : Q x = n").WithArguments("recursive patterns", "patterns2").WithLocation(1, 19),
+                // (1,22): error CS1001: Identifier expected
+                // switch (e) { case T( : Q x = n; break; } 
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ":").WithLocation(1, 22),
+                // (1,28): error CS1003: Syntax error, ',' expected
+                // switch (e) { case T( : Q x = n; break; } 
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",", "=").WithLocation(1, 28),
+                // (1,30): error CS1003: Syntax error, ',' expected
+                // switch (e) { case T( : Q x = n; break; } 
+                Diagnostic(ErrorCode.ERR_SyntaxError, "n").WithArguments(",", "").WithLocation(1, 30),
+                // (1,31): error CS1026: ) expected
+                // switch (e) { case T( : Q x = n; break; } 
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31),
+                // (1,31): error CS1003: Syntax error, ':' expected
+                // switch (e) { case T( : Q x = n; break; } 
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(1, 31)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.DeconstructionPattern);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.SubpatternElement);
+                            {
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Q");
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.SubpatternElement);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "n");
+                                    }
+                                }
+                            }
+                            M(SyntaxKind.CloseParenToken);
+                        }
+                        M(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact(Skip = "This is not a reliable test, and its failure modes are hard to capture. But it is helpful to run by hand to find parser issues.")]
+        public void ParseFuzz()
+        {
+            Random random = new Random();
+            for (int i = 0; i < 2000; i++)
+            {
+                string source = $"class C{{void M(){{switch(e){{case {makePattern0()}:T v = e;}}}}}}";
+                try
+                {
+                    Parse(source, options: TestOptions.Regular.WithRecursivePatterns());
+                    for (int j = 0; j < 30; j++)
+                    {
+                        int k1 = random.Next(source.Length);
+                        int k2 = random.Next(source.Length);
+                        string source2 = source.Substring(0, k1) + source.Substring(k2);
+                        Parse(source2, options: TestOptions.Regular.WithRecursivePatterns());
+                    }
+                }
+                catch (StackOverflowException)
+                {
+                    Console.WriteLine("Failed on \"" + source + "\"");
+                    Assert.True(false, source);
+                }
+                catch (OutOfMemoryException)
+                {
+                    Console.WriteLine("Failed on \"" + source + "\"");
+                    Assert.True(false, source);
+                }
+            }
+            return;
+
+            string makeProps(int maxDepth, bool needNames)
+            {
+                int nProps = random.Next(maxDepth);
+                var builder = new StringBuilder();
+                for (int i = 0; i < nProps; i++)
+                {
+                    if (i != 0) builder.Append(", ");
+                    if (needNames || random.Next(5) == 0) builder.Append("N: ");
+                    builder.Append(makePattern(maxDepth - 1));
+                }
+                return builder.ToString();
+            }
+            string makePattern(int maxDepth)
+            {
+                if (maxDepth <= 0 || random.Next(6) == 0)
+                {
+                    switch (random.Next(4))
+                    {
+                        case 0:
+                            return "_";
+                        case 1:
+                            return "1";
+                        case 2:
+                            return "T x";
+                        default:
+                            return "var y";
+                    }
+                }
+                else
+                {
+                    // recursive pattern
+                    while (true)
+                    {
+                        bool nameType = random.Next(2) == 0;
+                        bool parensPart = random.Next(2) == 0;
+                        bool propsPart = random.Next(2) == 0;
+                        bool name = random.Next(2) == 0;
+                        if (!parensPart && !propsPart && !(nameType && name)) continue;
+                        return $"{(nameType ? "N" : "")} {(parensPart ? $"({makeProps(maxDepth, false)})" : "")} {(propsPart ? $"{{ {makeProps(maxDepth, true)} }}" : "")} {(name ? "n" : "")}";
+                    }
+                }
+            }
+            string makePattern0() => makePattern(random.Next(5));
         }
     }
 }

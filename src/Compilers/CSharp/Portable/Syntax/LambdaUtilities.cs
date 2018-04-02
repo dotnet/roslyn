@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SwitchExpression:
                 case SyntaxKind.AwaitExpression:
                     // These translate into a BoundSpillSequence, which is then translated into a block
-                    // containins temps required for spilling subexpressions. That block has the syntax of the switch
+                    // containing temps required for spilling subexpressions. That block has the syntax of the switch
                     // expression or await expression.
                     return true;
 

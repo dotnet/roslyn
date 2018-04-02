@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // We permit a type named `_` on the right-hand-side of an is operator, but not inside of a pattern.
             bool typeCannotBePattern = tk == SyntaxKind.IdentifierToken && this.CurrentToken.Text == "_";
-                // If it starts with 'nameof(', skip the 'if' and parse as a constant pattern.
+            // If it starts with 'nameof(', skip the 'if' and parse as a constant pattern.
             if (SyntaxFacts.IsPredefinedType(tk) ||
                 (tk == SyntaxKind.IdentifierToken &&
                   (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)))
@@ -331,9 +331,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (tk == SyntaxKind.IdentifierToken && this.CurrentToken.Text == "_")
             {
-                // In a pattern, we reserve `_` as a wildcard. It cannot be used (with that spelling) as the
-                // type of a declaration or recursive pattern, nor as a type in an in-type expression starting
-                // in C# 7. The binder will give a diagnostic if
+                // In a pattern, we reserve `_` as a discard. It cannot be used (with that spelling) as the
+                // type of a declaration or recursive pattern, nor as a type in an is-type expression starting
+                // in C# 8. The binder will give a diagnostic if
                 // there is a usable symbol in scope by that name. You can always escape it, using `@_`.
                 // PROTOTYPE(patterns2): Should we use the "contextual keyword" infrastructure for this?
                 return _syntaxFactory.DiscardPattern(this.EatToken(SyntaxKind.IdentifierToken));
@@ -532,7 +532,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     list.Add(this.ParseSubpatternElement());
 
                     // additional patterns
-                    while (true)
+                    int lastTokenPosition = -1;
+                    while (IsMakingProgress(ref lastTokenPosition))
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
                             this.CurrentToken.Kind == SyntaxKind.CloseBraceToken ||
@@ -587,7 +588,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private bool IsPossibleSubpatternElement()
         {
-            return this.IsPossibleExpression() || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
+            var tk = this.CurrentToken.Kind;
+            bool isExpression = this.IsPossibleExpression() &&
+                    // IsPossibleExpression returns true when the next token is a binary operator.
+                    // That is useful for error recovery elsewhere, but not here.
+                    !(SyntaxFacts.IsBinaryExpression(tk) || SyntaxFacts.IsAssignmentExpressionOperatorToken(tk));
+            return isExpression || this.CurrentToken.Kind == SyntaxKind.OpenBraceToken;
         }
 
         private PostSkipAction SkipBadPatternListTokens(
