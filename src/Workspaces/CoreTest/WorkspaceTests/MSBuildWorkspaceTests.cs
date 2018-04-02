@@ -3055,7 +3055,7 @@ class C { }";
             Assert.Equal(3, docs.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestOpenProject_BadElement()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3070,7 +3070,7 @@ class C { }";
             Assert.Equal(0, proj.DocumentIds.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestOpenProject_BadTaskImport()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3085,7 +3085,7 @@ class C { }";
             Assert.Equal(0, proj.DocumentIds.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestOpenSolution_BadTaskImport()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3101,7 +3101,7 @@ class C { }";
             Assert.Equal(0, solution.Projects.First().DocumentIds.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestOpenProject_MsbuildError()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
