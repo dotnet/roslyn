@@ -272,8 +272,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private Task<ProjectInfo> CreateProjectInfoAsync(ProjectFileInfo projectFileInfo, ProjectId projectId, bool addDiscriminator, CancellationToken cancellationToken)
             {
                 var language = projectFileInfo.Language;
-                Debug.Assert(IsSupportedLanguage(language));
-
                 var projectPath = projectFileInfo.FilePath;
 
                 var projectName = Path.GetFileNameWithoutExtension(projectPath);
@@ -477,9 +475,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     paths.Add(doc.FilePath);
                 }
             }
-
-            private bool IsSupportedLanguage(string languageName)
-                => _workspace.Services.SupportedLanguages.Contains(languageName);
 
             private TLanguageService GetLanguageService<TLanguageService>(string languageName)
                 where TLanguageService : ILanguageService
