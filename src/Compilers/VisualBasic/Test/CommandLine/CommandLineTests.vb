@@ -1061,45 +1061,38 @@ End Module").Path
             Assert.Null(parsedArgs.CompilationOptions.DelaySign)
         End Sub
 
-        <WorkItem(546113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546113")>
-        <Fact>
+#Region "OutputVerbose"
+        <Fact, WorkItem(546113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546113")>
         Public Sub OutputVerbose()
-            Dim parsedArgs = DefaultParse({"/verbose", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OutputLevel.Verbose, parsedArgs.OutputLevel)
-
-            parsedArgs = DefaultParse({"/verbose+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OutputLevel.Verbose, parsedArgs.OutputLevel)
-
-            parsedArgs = DefaultParse({"/verbose-", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
-
-            parsedArgs = DefaultParse({"/VERBOSE:-", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/VERBOSE:-"))
-
-            parsedArgs = DefaultParse({"/verbose-:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("verbose"))
-
-            parsedArgs = DefaultParse({"/verbose+:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("verbose"))
-
-            parsedArgs = DefaultParse({"/verbOSE:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/verbOSE:"))
-
-            parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
-
-            parsedArgs = DefaultParse({"/quiet", "/verbose", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OutputLevel.Verbose, parsedArgs.OutputLevel)
-
-            parsedArgs = DefaultParse({"/quiet", "/verbose-", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
         End Sub
+
+        <Theory,
+            InlineData({"/verbose", "a.vb"}, OutputLevel.Verbose),
+            InlineData({"/verbose+", "a.vb"}, OutputLevel.Verbose),
+            InlineData({"/verbose-", "a.vb"}, OutputLevel.Normal),
+            InlineData({"/quiet", "/verbose", "a.vb"}, OutputLevel.Verbose),
+            InlineData({"/quiet", "/verbose-", "a.vb"}, OutputLevel.Normal)>
+        Friend Sub OutputVerbose_DefaultParse(Args() As String, ExpectedOutputLevel As OutputLevel)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(ExpectedOutputLevel, parsedArgs.OutputLevel)
+        End Sub
+
+        <Theory, InlineData({"/VERBOSE:-", "a.vb"}, "/VERBOSE:-"), InlineData({"/verbOSE:", "a.vb"}, "/verbOSE:")>
+        Public Sub OutputVerbose_Errors_BadSwitch(Args() As String, WithArg As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments(WithArg))
+        End Sub
+
+        <Theory, InlineData({"/verbose-:", "a.vb"}, "verbose"), InlineData({"/verbose+:", "a.vb"}, "verbose")>
+        Public Sub OutputVerbose_Errors_SwitchNeedsBool(Args() As String, WithArg As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments(WithArg))
+        End Sub
+#End Region
 
         <WorkItem(546113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546113")>
         <Fact>
