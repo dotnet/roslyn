@@ -288,20 +288,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert &apos;for&apos; to &apos;foreach&apos;.
+        ///   Looks up a localized string similar to Convert to &apos;for&apos;.
         /// </summary>
-        internal static string Convert_for_to_foreach {
+        internal static string Convert_to_for {
             get {
-                return ResourceManager.GetString("Convert_for_to_foreach", resourceCulture);
+                return ResourceManager.GetString("Convert_to_for", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert &apos;if&apos; to &apos;switch&apos;.
+        ///   Looks up a localized string similar to Convert to &apos;foreach&apos;.
         /// </summary>
-        internal static string Convert_if_to_switch {
+        internal static string Convert_to_foreach {
             get {
-                return ResourceManager.GetString("Convert_if_to_switch", resourceCulture);
+                return ResourceManager.GetString("Convert_to_foreach", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to &apos;switch&apos;.
+        /// </summary>
+        internal static string Convert_to_switch {
+            get {
+                return ResourceManager.GetString("Convert_to_switch", resourceCulture);
             }
         }
         

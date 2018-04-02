@@ -3,16 +3,16 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
+    [UseExportProvider]
     public class ProjectCacheHostServiceFactoryTests
     {
         private void Test(Action<IProjectCacheHostService, ProjectId, ICachedObjectOwner, ObjectReference<object>> action)

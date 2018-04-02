@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -21,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToLocals()
         {
             SetUpEditor(@"
@@ -60,7 +61,7 @@ End Class
                 });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void FindReferencesToSharedField()
         {
             SetUpEditor(@"

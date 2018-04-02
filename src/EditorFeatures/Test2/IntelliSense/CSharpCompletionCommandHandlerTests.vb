@@ -20,6 +20,7 @@ Imports Microsoft.VisualStudio.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests
         <WorkItem(541201, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541201")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -1549,10 +1550,22 @@ class Goo
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function EnumCompletionNotTriggeredOnOtherCommitCharacters() As Task
+        Public Async Function EnumCompletionNotTriggeredOnPlusCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn("+"c)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function EnumCompletionNotTriggeredOnLeftBraceCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn("{"c)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function EnumCompletionNotTriggeredOnSpaceCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn(" "c)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function EnumCompletionNotTriggeredOnSemicolonCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn(";"c)
         End Function
 

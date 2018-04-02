@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -17,7 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void RemoveAndSort()
         {
             SetUpEditor(@"$$
