@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         /// <summary>
-        /// Returns 'true' if a multi-line conditional was created, and thus should be y
+        /// Returns 'true' if a multi-line conditional was created, and thus should be
         /// formatted specially.
         /// </summary>
         private async Task<bool> FixOneAsync(
