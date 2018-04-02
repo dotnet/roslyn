@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
             VariableDeclaratorSyntax)
 
         Protected Overrides Function GetTitle() As String
-            Return VBFeaturesResources.Convert_For_to_For_Each
+            Return VBFeaturesResources.Convert_to_For_Each
         End Function
 
         Protected Overrides Function IsValidCursorPosition(forBlock As ForBlockSyntax, cursorPos As Integer) As Boolean

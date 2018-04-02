@@ -24,7 +24,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRename()
         {
             var markup = @"
@@ -67,7 +67,7 @@ Module Program
 End Module");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithCommentsUpdated()
         {
             // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
@@ -116,7 +116,7 @@ Module Program
 End Module");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyLocalVariableRenameWithStringsUpdated()
         {
             var markup = @"
@@ -155,7 +155,7 @@ Module Program
 End Module");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
         public void VerifyOverloadsUpdated()
         {
             var markup = @"

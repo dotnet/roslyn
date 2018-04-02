@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -17,6 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    [UseExportProvider]
     public class EditSessionTests : TestBase
     {
         internal sealed class TestActiveStatementProvider : IActiveStatementProvider
@@ -90,8 +92,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
             Func<Solution, Solution> adjustSolution = null)
         {
-            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)));
+            var exportProvider = ExportProviderCache
+                .GetOrCreateExportProviderFactory(
+                    TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)))
+                .CreateExportProvider();
 
             using (var workspace = TestWorkspace.CreateCSharp(
                 ActiveStatementsDescription.ClearTags(markedSource),

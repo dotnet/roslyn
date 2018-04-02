@@ -136,7 +136,6 @@ function Ensure-NuGet() {
 # Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
 # SDK. Returns the location to the dotnet exe
 function Ensure-DotnetSdk() {
-
     # Check to see if the specified dotnet installations meets our build requirements
     function Test-DotnetDir([string]$dotnetDir, [string]$runtimeVersion, [string]$sdkVersion) {
         $sdkPath = Join-Path $dotnetDir "sdk\$sdkVersion"
@@ -179,6 +178,9 @@ function Ensure-DotnetSdk() {
         $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
         Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
         Exec-Block { & $destFile -Version $runtimeVersion -SharedRuntime -InstallDir $cliDir } | Out-Null
+    }
+    else {
+        ${env:PATH} = "$cliDir;${env:PATH}"
     }
 
     return (Join-Path $cliDir "dotnet.exe")
