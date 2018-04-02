@@ -137,17 +137,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        private static MetadataReference GetMetadataReference(Project project, string name)
-        {
-            return project.MetadataReferences.OfType<PortableExecutableReference>().SingleOrDefault(mr => mr.FilePath.Contains(name));
-        }
-
-        private static MetadataReference GetMetadataReferenceByAlias(Project project, string aliasName)
-        {
-            return project.MetadataReferences.OfType<PortableExecutableReference>().SingleOrDefault(mr =>
-            !mr.Properties.Aliases.IsDefault && mr.Properties.Aliases.Contains(aliasName));
-        }
-
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(546171, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546171")]
         public async Task Test_SharedMetadataReferencesWithAliases()
@@ -203,11 +192,20 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             }
         }
 
-        private Metadata GetMetadata(MetadataReference mref)
-        {
-            var fnGetMetadata = mref.GetType().GetMethod("GetMetadata", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-            return fnGetMetadata?.Invoke(mref, null) as Metadata;
-        }
+        private static MetadataReference GetMetadataReference(Project project, string name)
+            => project.MetadataReferences
+                .OfType<PortableExecutableReference>()
+                .SingleOrDefault(mr => mr.FilePath.Contains(name));
+
+        private static MetadataReference GetMetadataReferenceByAlias(Project project, string aliasName)
+            => project.MetadataReferences
+                .OfType<PortableExecutableReference>()
+                .SingleOrDefault(mr =>
+                    !mr.Properties.Aliases.IsDefault &&
+                    mr.Properties.Aliases.Contains(aliasName));
+
+        private static Metadata GetMetadata(MetadataReference metadataReference)
+            => ((PortableExecutableReference)metadataReference).GetMetadata();
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(552981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552981")]
