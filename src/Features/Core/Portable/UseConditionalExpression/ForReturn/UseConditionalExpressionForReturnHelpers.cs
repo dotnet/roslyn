@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             trueStatement = UseConditionalExpressionHelpers.UnwrapSingleStatementBlock(trueStatement);
             falseStatement = UseConditionalExpressionHelpers.UnwrapSingleStatementBlock(falseStatement);
 
+            // Both return-statements must be of the form "return value"
             if (!(trueStatement is IReturnOperation trueReturnOp) ||
                 !(falseStatement is IReturnOperation falseReturnOp) ||
                 trueReturnOp.ReturnedValue == null ||
