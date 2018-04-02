@@ -513,6 +513,8 @@ a.vb
                        cmd.Arguments.CompilationOptions.GlobalImports.Select(Function(import) import.Clause.ToString()))
         End Sub
 
+#Region "Win32ResourceOptions"
+
         Private Sub Assert_Win32ResourceArguments(args As String(), ByRef compilation As VisualBasicCompilation,
                            expected_ErrorCount As Int32, expected_ERRID As Int32, expected_first_count As Int32)
             Dim parsedArgs = DefaultParse(args, _baseDirectory)
@@ -923,7 +925,9 @@ End Module").Path
             ' Illegal, but not clobbered.
             Assert.Equal("blah", parsedArgs.Win32Manifest)
         End Sub
+#End Region
 
+#Region "Argument Parsing"
         <Fact>
         Public Sub ArgumentParsing()
             Dim parsedArgs = InteractiveParse({"\\"}, _baseDirectory)
@@ -933,32 +937,32 @@ End Module").Path
         End Sub
 
         <Theory,
-     InlineData({"a + b"}, False, False, True),
-     InlineData({"a + b; c"}, False, False, True),
-     InlineData({"/help"}, False, True, False),
-     InlineData({"/?"}, False, True, False),
-     InlineData({"@dd"}, True, False, False),
-     InlineData({"c /define:DEBUG"}, False, False, True),
-     InlineData({"""/r d.dll"""}, False, False, True)
-    >
-        Public Sub ArgumentParsing(args() As String, HasErrors As Boolean, DisplayHelp As Boolean, HasSourceFiles As Boolean)
+            InlineData({"a + b"}, False, False, True),
+            InlineData({"a + b; c"}, False, False, True),
+            InlineData({"/help"}, False, True, False),
+            InlineData({"/?"}, False, True, False),
+            InlineData({"@dd"}, True, False, False),
+            InlineData({"c /define:DEBUG"}, False, False, True),
+            InlineData({"""/r d.dll"""}, False, False, True)>
+        Public Sub ArgumentParsing_DisplayHelp(args() As String, HasErrors As Nullable(Of Boolean), DisplayHelp As Boolean, HasSourceFiles As Boolean)
             Dim parsedArgs = InteractiveParse(args, _baseDirectory)
-            Assert.Equal(HasErrors, parsedArgs.Errors.Any())
+            Assert.Equal(HasErrors.HasValue , parsedArgs.Errors.Any())
             Assert.Equal(DisplayHelp, parsedArgs.DisplayHelp)
             Assert.Equal(HasSourceFiles, parsedArgs.SourceFiles.Any())
         End Sub
 
         <Theory,
-     InlineData({"/version"}, False, True, False),
-     InlineData({"/version", "c"}, False, True, True),
-     InlineData({"/version:something"}, True, False, False)
-    >
-        Public Sub ArgumentParsing2(args() As String, HasErrors As Boolean, DisplayVersion As Boolean, HasSourceFiles As Boolean)
+            InlineData({"/version"}, False, True, False),
+            InlineData({"/version", "c"}, False, True, True),
+            InlineData({"/version:something"}, True, False, False)>
+        Public Sub ArgumentParsing_DispalyVersion(args() As String, HasErrors As Boolean, DisplayVersion As Boolean, HasSourceFiles As Boolean)
             Dim parsedArgs = InteractiveParse(args, _baseDirectory)
             Assert.Equal(HasErrors, parsedArgs.Errors.Any())
             Assert.Equal(DisplayVersion, parsedArgs.DisplayVersion)
             Assert.Equal(HasSourceFiles, parsedArgs.SourceFiles.Any())
         End Sub
+#End Region
+
 
         <Fact>
         Public Sub LangVersion()
