@@ -1230,12 +1230,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 case RegexKind.ControlEscape:
                     var controlEscape = (RegexControlEscapeNode)component;
                     var controlCh = controlEscape.ControlToken.VirtualChars[0].Char;
+
                     // \ca interpreted as \cA
                     if (controlCh >= 'a' && controlCh <= 'z')
                     {
                         controlCh -= (char)('a' - 'A');
                     }
-                    ch = (char)(controlCh - '@');
+
+                    // The control characters have values mapping from the A-Z range to numeric
+                    // values 1-26.  So, to map that, we subtract 'A' from the value (which would
+                    // give us 0-25) and then add '1' back to it.
+                    ch = (char)(controlCh - 'A' + 1);
                     return true;
 
                 case RegexKind.OctalEscape:
