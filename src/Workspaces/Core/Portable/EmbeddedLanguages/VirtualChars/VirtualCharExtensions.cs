@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.VirtualChars
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal static class VirtualCharExtensions
     {

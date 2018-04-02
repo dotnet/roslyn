@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.VirtualChars
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     /// <summary>
     /// Helper service that takes the raw text of a string token and produces the individual

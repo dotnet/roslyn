@@ -2,11 +2,11 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.VirtualChars;
-using Microsoft.CodeAnalysis.VirtualChars;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.VirtualChars
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 {
     public class CSharpVirtualCharServiceTests
     {

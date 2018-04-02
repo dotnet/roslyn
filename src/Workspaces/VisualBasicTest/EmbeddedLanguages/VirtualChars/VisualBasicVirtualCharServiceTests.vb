@@ -1,11 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.VirtualChars
-Imports Microsoft.CodeAnalysis.VisualBasic.VirtualChars
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
+Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.VirtualChars
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.VirtualChars
     Public Class VisualBasicVirtualCharServiceTests
         Private Const _statementPrefix As String = "dim v = "
 
