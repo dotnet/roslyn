@@ -1359,12 +1359,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexExpressionNode ParseRightSideOfCharacterClassRange()
         {
-            // Parsing the right hand side of a - is extremely strange (and most likely  buggy) in 
-            // the .net parser. Specifically, the .net parser will still consider itself on the right
-            // side no matter how many escaped dashes it sees.  So, for example, the following is legal
-            // [a-\-] (even though \- is less than 'a'). Similarly, the following are *illegal* 
-            // [b-\-a] and [b-\-\-a].  That's because the range that is checked is actually "b-a", even
-            // though it has all the \- escapes in the middle.
+            // Parsing the right hand side of a - is extremely strange (and most likely buggy) in
+            // the .net parser. Specifically, the .net parser will still consider itself on the
+            // right side no matter how many escaped dashes it sees.  So, for example, the following
+            // is legal [a-\-] (even though \- is less than 'a'). Similarly, the following are
+            // *illegal* [b-\-a] and [b-\-\-a].  That's because the range that is checked is
+            // actually "b-a", even though it has all the \- escapes in the middle.
 
             var first = ParseSingleCharacterClassComponent(isFirst: false, afterRangeMinus: true);
             if (!IsEscapedMinus(first))
