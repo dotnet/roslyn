@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.UpgradeProject;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnsafeProject
+namespace Microsoft.CodeAnalysis.CSharp.UpdateProjectToAllowUnsafe
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpUpdateProjectToAllowUnsafeCodeFixProvider : CodeFixProvider
