@@ -475,7 +475,11 @@ function Test-XUnitCoreClr() {
             $args += " --runtimeconfig " + [IO.Path]::ChangeExtension($dllPath, ".runtimeconfig.json")
             $args += " $xunitConsole"
             $args += " $dllPath"
-            $args += " -xml " + (Join-Path $logDir ([IO.Path]::ChangeExtension($dllName, ".xml")))
+            $args += " -xml " + (Join-Path $xunitResultDir ([IO.Path]::ChangeExtension($dllName, ".xml")))
+
+            # https://github.com/dotnet/roslyn/issues/25049
+            # Disable parallel runs everywhere until we get assembly specific settings working again
+            $args += " -parallel none"
 
             try {
                 Write-Host "Running $dllName"
