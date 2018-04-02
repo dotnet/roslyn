@@ -79,6 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             if (parensDesignation is null)
             {
                 var typeSymbol = semanticModel.GetTypeInfo(typeSyntax).ConvertedType;
+
+                // We're going to be passed through the simplifier.  Tell it to not just convert
+                // this back to var (as that would defeat the purpose of this refactoring entirely).
                 var typeName = typeSymbol.GenerateTypeSyntax(allowVar: false)
                     .WithLeadingTrivia(node.GetLeadingTrivia())
                     .WithTrailingTrivia(node.GetTrailingTrivia());
