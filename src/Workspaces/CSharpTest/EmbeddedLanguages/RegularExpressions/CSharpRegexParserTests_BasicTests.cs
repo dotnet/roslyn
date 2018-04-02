@@ -13798,6 +13798,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         }
 
         [Fact]
+        public void TestCharacterClassRange62()
+        {
+            Test(@"@""[ab-\-a]""", @"<Tree>
+  <CompilationUnit>
+    <Sequence>
+      <CharacterClass>
+        <OpenBracketToken>[</OpenBracketToken>
+        <Sequence>
+          <Text>
+            <TextToken>a</TextToken>
+          </Text>
+          <CharacterClassRange>
+            <Text>
+              <TextToken>b</TextToken>
+            </Text>
+            <MinusToken>-</MinusToken>
+            <Sequence>
+              <SimpleEscape>
+                <BackslashToken>\</BackslashToken>
+                <TextToken>-</TextToken>
+              </SimpleEscape>
+              <Text>
+                <TextToken>a</TextToken>
+              </Text>
+            </Sequence>
+          </CharacterClassRange>
+        </Sequence>
+        <CloseBracketToken>]</CloseBracketToken>
+      </CharacterClass>
+    </Sequence>
+    <EndOfFile />
+  </CompilationUnit>
+  <Diagnostics>
+    <Diagnostic Message=""[x-y] range in reverse order"" Start=""13"" Length=""1"" />
+  </Diagnostics>
+  <Captures>
+    <Capture Name=""0"" Span=""[10..18)"" />
+  </Captures>
+</Tree>", RegexOptions.None);
+        }
+
+        [Fact]
         public void TestCaptures1()
         {
             Test(@"@""()\1""", @"<Tree>
