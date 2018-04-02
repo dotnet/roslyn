@@ -328,13 +328,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
-            foreach (string configurationName in (object[])project.ConfigurationManager.ConfigurationRowNames)
+            foreach (Configuration configuration in project.ConfigurationManager)
             {
                 switch (hostProject.Language)
                 {
                     case LanguageNames.CSharp:
-                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)project.ConfigurationManager
-                            .ConfigurationRow(configurationName).Item(1).Object;
+                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)configuration.Object;
 
                         csharpProperties.AllowUnsafeBlocks = ((CSharpCompilationOptions)options).AllowUnsafe;
                         break;
@@ -359,17 +358,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<IParseOptionsService>();
             Contract.ThrowIfNull(parseOptionsService, nameof(parseOptionsService));
-            
+
             string newVersion = parseOptionsService.GetLanguageVersion(options);
 
             GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
-            foreach (string configurationName in (object[])project.ConfigurationManager.ConfigurationRowNames)
+            foreach (Configuration configuration in project.ConfigurationManager)
             {
                 switch (hostProject.Language)
                 {
                     case LanguageNames.CSharp:
-                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)project.ConfigurationManager
-                            .ConfigurationRow(configurationName).Item(1).Object;
+                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)configuration.Object;
 
                         if (newVersion != csharpProperties.LanguageVersion)
                         {
