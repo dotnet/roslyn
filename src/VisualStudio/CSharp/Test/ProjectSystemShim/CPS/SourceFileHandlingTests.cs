@@ -10,6 +10,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
     using static CSharpHelpers;
 
+    [UseExportProvider]
     public class SourceFileHandlingTests
     {
         [WpfFact]

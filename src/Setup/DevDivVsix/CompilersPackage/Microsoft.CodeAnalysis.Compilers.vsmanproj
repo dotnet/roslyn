@@ -22,10 +22,6 @@
 
   <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.targets" />
 
-  <Target Name="BeforeBuild">
-    <MSBuild Projects="Microsoft.CodeAnalysis.Compilers.swixproj" Targets="Build" />
-  </Target>
-
   <Target Name="ValidateManifest" />
 
   <!-- Disable automatic signing. This will be signed in the batch phase -->

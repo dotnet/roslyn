@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading;
@@ -219,9 +218,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
 
-            if (RetryRpcCall(() => dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_Start).IsAvailable))
+            if (dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_Start).IsAvailable)
             {
-                RetryRpcCall(() => dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Start));
+                dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Start);
             }
         }
 
@@ -231,36 +230,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 _inProc.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Stop);
             }
-        }
-
-        private static void RetryRpcCall(Action action)
-        {
-            do
-            {
-                try
-                {
-                    action();
-                    return;
-                }
-                catch (COMException exception) when ((exception.HResult == VSConstants.RPC_E_CALL_REJECTED) ||
-                                                     (exception.HResult == VSConstants.RPC_E_SERVERCALL_RETRYLATER))
-                {
-                    // We'll just try again in this case
-                }
-            }
-            while (true);
-        }
-
-        private static T RetryRpcCall<T>(Func<T> action)
-        {
-            var result = default(T);
-
-            RetryRpcCall(() =>
-            {
-                result = action();
-            });
-
-            return result;
         }
 
         public TelemetryVerifier EnableTestTelemetryChannel()

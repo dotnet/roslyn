@@ -20,6 +20,7 @@ Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
+    <[UseExportProvider]>
     Public Class SignatureHelpControllerTests
         Public Sub New()
             ' The controller expects to be on a UI thread
@@ -224,20 +225,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             GetMocks(controller).DocumentProvider.Verify(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken)), Times.Never)
         End Sub
 
-        ' Create an empty document to use as a non-null parameter when needed
-        Private Shared ReadOnly s_document As Document =
-            (Function()
-                 Dim workspace = TestWorkspace.CreateWorkspace(
-                     <Workspace>
-                         <Project Language="C#">
-                             <Document>
-                             </Document>
-                         </Project>
-                     </Workspace>)
-                 Return workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
-             End Function)()
-        Private Shared ReadOnly s_bufferFactory As ITextBufferFactoryService = DirectCast(s_document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
-
         Private Shared ReadOnly s_controllerMocksMap As New ConditionalWeakTable(Of Controller, ControllerMocks)
         Private Shared Function GetMocks(controller As Controller) As ControllerMocks
             Dim result As ControllerMocks = Nothing
@@ -251,13 +238,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                  Optional provider As ISignatureHelpProvider = Nothing,
                                                  Optional waitForPresentation As Boolean = False,
                                                  Optional triggerSession As Boolean = True) As Controller
-            Dim buffer = s_bufferFactory.CreateTextBuffer()
+            Dim document As Document =
+                (Function()
+                     Dim workspace = TestWorkspace.CreateWorkspace(
+                         <Workspace>
+                             <Project Language="C#">
+                                 <Document>
+                                 </Document>
+                             </Project>
+                         </Workspace>)
+                     Return workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
+                 End Function)()
+            Dim bufferFactory As ITextBufferFactoryService = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
+            Dim buffer = bufferFactory.CreateTextBuffer()
             Dim view = CreateMockTextView(buffer)
             Dim asyncListener = New Mock(Of IAsynchronousOperationListener)
             If documentProvider Is Nothing Then
                 documentProvider = New Mock(Of IDocumentProvider)
-                documentProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(s_document))
-                documentProvider.Setup(Function(p) p.GetOpenDocumentInCurrentContextWithChanges(It.IsAny(Of ITextSnapshot))).Returns(s_document)
+                documentProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(document))
+                documentProvider.Setup(Function(p) p.GetOpenDocumentInCurrentContextWithChanges(It.IsAny(Of ITextSnapshot))).Returns(document)
             End If
 
             If provider Is Nothing Then
