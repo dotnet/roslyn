@@ -460,18 +460,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool Equals(AnalyzerReference other)
         {
-            if (other != null)
+            if ((object)other == this)
             {
-                return other.Display == this.Display &&
-                       other.FullPath == this.FullPath;
+                return true;
             }
 
-            return base.Equals(other);
+            if (other != null)
+            {
+                return other.FullPath == this.FullPath;
+            }
+
+            return false;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Display, this.FullPath.GetHashCode());
+            return this.FullPath.GetHashCode();
         }
 
         public Assembly GetAssembly()
