@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
             {
                 if (hasDocumentationFile)
                 {
-                    AddQuoted("doc", documentationFile);
+                    Add("doc", documentationFile);
                 }
                 else
                 {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 }
                 else
                 {
-                    AddQuoted("vbruntime", vbRuntime);
+                    Add("vbruntime", vbRuntime);
                 }
             }
         }

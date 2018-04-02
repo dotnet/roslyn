@@ -22,26 +22,45 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected abstract void ReadCore();
 
+        private static void ValidateName(string name)
+        {
+            if (string.IsNullOrEmpty(name) || name.Contains(char.IsWhiteSpace))
+            {
+                throw new ArgumentException($"Parameter cannot be null, empty, or contain whitespace.", nameof(name));
+            }
+        }
+
         protected void Add(string name)
         {
+            ValidateName(name);
+
             _builder.Add($"/{name}");
         }
 
         protected void Add(string name, string value)
         {
-            _builder.Add($"/{name}:{value}");
+            ValidateName(name);
+
+            if (string.IsNullOrEmpty(value) || value.Contains(char.IsWhiteSpace))
+            {
+                _builder.Add($"/{name}:\"{value}\"");
+            }
+            else
+            {
+                _builder.Add($"/{name}:{value}");
+            }
         }
 
         protected void Add(string name, int value)
         {
-            _builder.Add($"/{name}:{value}");
+            Add(name, value.ToString());
         }
 
         protected void AddIfNotNullOrWhiteSpace(string name, string value)
         {
             if (!string.IsNullOrWhiteSpace(value))
             {
-                _builder.Add($"/{name}:{value}");
+                Add(name, value);
             }
         }
 
@@ -49,7 +68,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (condition)
             {
-                _builder.Add($"/{name}");
+                Add(name);
             }
         }
 
@@ -57,7 +76,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (condition)
             {
-                _builder.Add($"/{name}:{value}");
+                Add(name, value);
             }
         }
 
@@ -65,24 +84,29 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (!condition)
             {
-                _builder.Add($"/{name}");
+                Add(name);
             }
         }
 
-        protected void AddQuoted(string name, string value)
+        protected void AddWithPlus(string name)
         {
-            _builder.Add($"/{name}:\"{value}\"");
+            Add($"{name}+");
+        }
+
+        protected void AddWithMinus(string name)
+        {
+            Add($"{name}-");
         }
 
         protected void AddWithPlusOrMinus(string name, bool condition)
         {
             if (condition)
             {
-                Add($"/{name}+");
+                AddWithPlus(name);
             }
             else
             {
-                Add($"/{name}-");
+                AddWithMinus(name);
             }
         }
 
@@ -104,7 +128,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 foreach (var additionalFile in additionalFiles)
                 {
-                    AddQuoted("additionalfile", GetDocumentFilePath(additionalFile));
+                    Add("additionalfile", GetDocumentFilePath(additionalFile));
                 }
             }
         }
@@ -127,6 +151,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
             AddIfTrue("codepage", codePage.ToString(), codePage != 0);
         }
 
+        private static readonly ImmutableDictionary<string, string> _debugTypeValues = ImmutableDictionary.CreateRange(
+            StringComparer.OrdinalIgnoreCase,
+            new[]
+            {
+                KeyValuePair.Create("none", "none"),
+                KeyValuePair.Create("pdbonly", "pdbonly"),
+                KeyValuePair.Create("full", "full"),
+                KeyValuePair.Create("portable", "portable"),
+                KeyValuePair.Create("embedded", "embedded")
+            });
+
         protected void ReadDebugInfo()
         {
             var emitDebugInfo = Project.ReadPropertyBool(PropertyNames.DebugSymbols);
@@ -134,35 +169,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 var debugType = Project.ReadPropertyString(PropertyNames.DebugType);
 
-                if (string.Equals(debugType, "none", StringComparison.OrdinalIgnoreCase))
+                if (_debugTypeValues.TryGetValue(debugType, out var value))
                 {
-                    Add("debug");
-                }
-                else if (string.Equals(debugType, "pdbonly", StringComparison.OrdinalIgnoreCase))
-                {
-                    Add("debug", "pdbonly");
-                }
-                else if (string.Equals(debugType, "full", StringComparison.OrdinalIgnoreCase))
-                {
-                    Add("debug", "full");
-                }
-                else if (string.Equals(debugType, "portable", StringComparison.OrdinalIgnoreCase))
-                {
-                    Add("debug", "portable");
-                }
-                else if (string.Equals(debugType, "embedded", StringComparison.OrdinalIgnoreCase))
-                {
-                    Add("debug", "embedded");
+                    Add("debug", value);
                 }
             }
         }
 
         protected void ReadDelaySign()
         {
-            var delaySignProperty = Project.GetProperty(PropertyNames.DelaySign);
-            if (delaySignProperty != null && !string.IsNullOrWhiteSpace(delaySignProperty.EvaluatedValue))
+            var delaySign = Project.ReadPropertyString(PropertyNames.DelaySign);
+            if (!string.IsNullOrWhiteSpace(delaySign))
             {
-                AddWithPlusOrMinus("delaysign", Project.ReadPropertyBool(PropertyNames.DelaySign));
+                AddWithPlusOrMinus("delaysign", Conversions.ToBool(delaySign));
             }
         }
 
@@ -223,13 +242,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         var aliases = reference.GetAliases();
                         if (aliases.IsDefaultOrEmpty)
                         {
-                            AddQuoted("reference", filePath);
+                            Add("reference", filePath);
                         }
                         else
                         {
                             foreach (var alias in aliases)
                             {
-                                Add("reference", $"{alias}=\"{filePath}\"");
+                                if (string.Equals(alias, "global", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    Add("reference", filePath);
+                                }
+                                else
+                                {
+                                    Add("reference", $"{alias}=\"{filePath}\"");
+                                }
                             }
                         }
                     }
@@ -245,13 +271,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var keyFile = Project.ReadPropertyString(PropertyNames.KeyOriginatorFile);
                 if (!string.IsNullOrWhiteSpace(keyFile))
                 {
-                    AddQuoted("keyFile", keyFile);
+                    Add("keyFile", keyFile);
                 }
 
                 var keyContainer = Project.ReadPropertyString(PropertyNames.KeyContainerName);
                 if (!string.IsNullOrWhiteSpace(keyContainer))
                 {
-                    AddQuoted("keycontainer", keyContainer);
+                    Add("keycontainer", keyContainer);
                 }
             }
         }

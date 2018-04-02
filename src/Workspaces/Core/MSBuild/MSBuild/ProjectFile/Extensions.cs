@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var aliasesText = item.GetMetadata(MetadataNames.Aliases);
 
             return !string.IsNullOrWhiteSpace(aliasesText)
-                ? ImmutableArray.CreateRange(aliasesText.Split(new char[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries))
+                ? ImmutableArray.CreateRange(aliasesText.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(a => a.Trim()))
                 : ImmutableArray<string>.Empty;
         }
 
@@ -51,68 +51,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
             => executedProject.GetProperty(propertyName)?.EvaluatedValue;
 
         public static bool ReadPropertyBool(this MSB.Execution.ProjectInstance executedProject, string propertyName)
-            => ConvertToBool(executedProject.ReadPropertyString(propertyName));
-
-        private static bool ConvertToBool(string value)
-            => value != null
-                && (string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals("On", value, StringComparison.OrdinalIgnoreCase));
+            => Conversions.ToBool(executedProject.ReadPropertyString(propertyName));
 
         public static int ReadPropertyInt(this MSB.Execution.ProjectInstance executedProject, string propertyName)
-            => ConvertToInt(executedProject.ReadPropertyString(propertyName));
-
-        private static int ConvertToInt(string value)
-        {
-            if (value == null)
-            {
-                return 0;
-            }
-            else
-            {
-                int.TryParse(value, out var result);
-                return result;
-            }
-        }
+            => Conversions.ToInt(executedProject.ReadPropertyString(propertyName));
 
         public static ulong ReadPropertyULong(this MSB.Execution.ProjectInstance executedProject, string propertyName)
-            => ConvertToULong(executedProject.ReadPropertyString(propertyName));
+            => Conversions.ToULong(executedProject.ReadPropertyString(propertyName));
 
-        private static ulong ConvertToULong(string value)
-        {
-            if (value == null)
-            {
-                return 0;
-            }
-            else
-            {
-                ulong.TryParse(value, out var result);
-                return result;
-            }
-        }
-
-        public static TEnum? ReadPropertyEnum<TEnum>(this MSB.Execution.ProjectInstance executedProject, string propertyName)
+        public static TEnum? ReadPropertyEnum<TEnum>(this MSB.Execution.ProjectInstance executedProject, string propertyName, bool ignoreCase)
             where TEnum : struct
-            => ConvertToEnum<TEnum>(executedProject.ReadPropertyString(propertyName));
-
-        private static TEnum? ConvertToEnum<TEnum>(string value)
-            where TEnum : struct
-        {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                if (Enum.TryParse<TEnum>(value, out var result))
-                {
-                    return result;
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
+            => Conversions.ToEnum<TEnum>(executedProject.ReadPropertyString(propertyName), ignoreCase);
 
         public static string ReadItemsAsString(this MSB.Execution.ProjectInstance executedProject, string itemType)
         {
