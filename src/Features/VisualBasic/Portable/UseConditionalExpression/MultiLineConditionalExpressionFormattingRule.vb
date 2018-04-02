@@ -28,8 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
             If IsCommaOfNewConditional(previousToken) Then
                 ' We want to force the expressions after the commas to be put on the 
                 ' next line.
-                Return FormattingOperations.CreateAdjustNewLinesOperation(
-                        1, AdjustNewLinesOption.ForceLines)
+                Return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines)
             End If
 
             Return nextOperation.Invoke()

@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
             if (IsQuestionOrColonOfNewConditional(currentToken))
             {
                 // We want to force the ? and : to each be put onto the following line.
-                return FormattingOperations.CreateAdjustNewLinesOperation(
-                    1, AdjustNewLinesOption.ForceLines);
+                return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
             }
 
             return nextOperation.Invoke();
