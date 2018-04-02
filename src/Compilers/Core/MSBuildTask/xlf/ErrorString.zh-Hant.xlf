@@ -119,6 +119,26 @@
         <target state="translated">MSB3402: 建立 PDB 檔案 "{0}" 時發生錯誤。{1}</target>
         <note>{StrBegin="MSB3402: "}</note>
       </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</source>
+        <target state="new">{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="new">{0} paths are required to end with a slash or backslash: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoTopLevelSourceRoot">
+        <source>{0} items must include at least one top-level (not nested) item when {1} is true</source>
+        <target state="new">{0} items must include at least one top-level (not nested) item when {1} is true</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.NoSuchTopLevelSourceRoot">
+        <source>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</source>
+        <target state="new">The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

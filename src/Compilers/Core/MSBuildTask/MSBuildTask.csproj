@@ -72,5 +72,8 @@
     <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" />
     <PackageReference Include="System.Security.AccessControl" Version="$(SystemSecurityAccessControlVersion)" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
+  </ItemGroup>
   <Import Project="..\CommandLine\CommandLine.projitems" Label="Shared" />
 </Project>
