@@ -1217,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     switch (ch)
                     {
                         case 'a': ch = '\u0007'; break;
-                        case 'b': ch =  '\b'; break;
+                        case 'b': ch = '\b'; break;
                         case 'e': ch = '\u001B'; break;
                         case 'f': ch = '\f'; break;
                         case 'n': ch = '\n'; break;
