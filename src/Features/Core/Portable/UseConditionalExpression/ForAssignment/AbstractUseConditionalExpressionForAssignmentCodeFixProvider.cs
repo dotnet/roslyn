@@ -79,13 +79,9 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 GetValueFromAssignment(generator, trueAssignment),
                 GetValueFromAssignment(generator, falseAssignment));
 
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var trueValueSyntax = trueAssignment.Value.Syntax;
-            var falseValueSyntax = falseAssignment.Value.Syntax;
-            var isMultiLine = !sourceText.AreOnSameLine(trueValueSyntax.GetFirstToken(), trueValueSyntax.GetLastToken()) ||
-                              !sourceText.AreOnSameLine(falseValueSyntax.GetFirstToken(), falseValueSyntax.GetLastToken());
-
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
+            var isMultiLine = await UseConditionalExpressionHelpers.IsMultiLineAsync(
+                document, trueAssignment.Value.Syntax, falseAssignment.Value.Syntax, cancellationToken).ConfigureAwait(false);
             if (isMultiLine)
             {
                 conditionalExpression = conditionalExpression.WithAdditionalAnnotations(

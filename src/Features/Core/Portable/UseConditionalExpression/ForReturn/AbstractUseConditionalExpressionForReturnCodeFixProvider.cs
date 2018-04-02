@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -17,10 +18,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    internal class UseConditionalExpressionForReturnCodeFixProvider
+    internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider
         : SyntaxEditorBasedCodeFixProvider
     {
+        protected abstract IFormattingRule GetMultiLineFormattingRule();
+
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId);
 
@@ -32,18 +34,16 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return SpecializedTasks.EmptyTask;
         }
 
-        protected override async Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, 
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            foreach (var diagnostic in diagnostics)
-            {
-                await FixOneAsync(
-                    document, diagnostic, editor, cancellationToken).ConfigureAwait(false);
-            }
+            return UseConditionalExpressionHelpers.FixAllAsync(
+                document, diagnostics, editor, FixOneAsync,
+                GetMultiLineFormattingRule(), cancellationToken);
         }
 
-        private async Task FixOneAsync(
+        private async Task<bool> FixOneAsync(
             Document document, Diagnostic diagnostic, 
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(ifOperation, 
                     out var trueReturn, out var falseReturn))
             {
-                return;
+                return false;
             }
 
             var generator = editor.Generator;
@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             {
                 editor.RemoveNode(falseReturn.Syntax, SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepExteriorTrivia);
             }
+
+            return true;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

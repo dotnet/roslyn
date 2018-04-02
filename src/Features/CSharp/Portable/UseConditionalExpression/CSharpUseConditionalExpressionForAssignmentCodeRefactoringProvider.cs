@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.UseConditionalExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 {
+
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseConditionalExpressionForAssignmentCodeRefactoringProvider
         : AbstractUseConditionalExpressionForAssignmentCodeFixProvider<

@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
+
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicUseConditionalExpressionForAssignmentCodeRefactoringProvider
         Inherits AbstractUseConditionalExpressionForAssignmentCodeFixProvider(Of

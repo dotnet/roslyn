@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
@@ -52,5 +53,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             => statement is IBlockOperation block && block.Operations.Length == 1
                 ? block.Operations[0]
                 : statement;
+
+        public static async Task<bool> IsMultiLineAsync(
+            Document document, SyntaxNode trueSyntax, SyntaxNode falseSyntax, CancellationToken cancellationToken)
+        {
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return !sourceText.AreOnSameLine(trueSyntax.GetFirstToken(), trueSyntax.GetLastToken()) ||
+                   !sourceText.AreOnSameLine(falseSyntax.GetFirstToken(), falseSyntax.GetLastToken());
+        }
     }
 }
