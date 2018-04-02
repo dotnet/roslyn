@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// to completion. If this timeout is exceeded by the asynchronous operations running after a test completes,
         /// the test is failed.
         /// </summary>
-        private static readonly TimeSpan CleanupTimeout = TimeSpan.FromSeconds(15);
+        private static readonly TimeSpan CleanupTimeout = TimeSpan.FromMinutes(1);
 
         // Cache the export provider factory for RoslynServices.RemoteHostAssemblies
         private static readonly Lazy<IExportProviderFactory> s_remoteHostExportProviderFactory = new Lazy<IExportProviderFactory>(
