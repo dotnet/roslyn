@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         DiagnosticLog Log { get; }
 
         /// <summary>
-        /// Gets the project file info asynchronously.
+        /// Gets project file information asynchronously. Note that this can produce multiple
+        /// instances of <see cref="ProjectFileInfo"/> if the project is multi-targeted: one for
+        /// each target framework.
         /// </summary>
         Task<ImmutableArray<ProjectFileInfo>> GetProjectFileInfosAsync(CancellationToken cancellationToken);
 
