@@ -42,7 +42,7 @@ The specification for definite assignment and reachability in the C# language sp
 
 ### Definite assignment of structs across assemblies
 
-The compiler previously had a bug where it did not consider private fields of reference type inside structs to participate in
+The compiler previously had a bug where it did not consider private fields of reference type inside structs as participating in
 piecewise definite assignment of variables of that struct type. For example,
 
 ```C#
