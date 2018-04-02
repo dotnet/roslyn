@@ -78,6 +78,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var nullFilterSpan = (TextSpan?)null;
                         var diagnostics = await ComputeDiagnosticsAsync(analyzerDriverOpt, document, stateSet.Analyzer, kind, nullFilterSpan, cancellationToken).ConfigureAwait(false);
 
+                        // this is no-op in product. only run in test environment
+                        Logger.Log(functionId, d => string.Join(Environment.NewLine, d), diagnostics);
+
                         // we only care about local diagnostics
                         return new DocumentAnalysisData(version, existingData.Items, diagnostics.ToImmutableArrayOrEmpty());
                     }
