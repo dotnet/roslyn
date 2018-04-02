@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,8 +12,8 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionHelpers;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
@@ -59,13 +58,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             }
 
             var generator = editor.Generator;
+            var (conditionalExpression, isMultiLine) = await CreateConditionalExpressionAsync<SyntaxNode>(
+                document, generator, ifOperation,
+                trueReturn.ReturnedValue, falseReturn.ReturnedValue,
+                cancellationToken).ConfigureAwait(false);
 
-            var conditionalExpression = generator.ConditionalExpression(
-                ifOperation.Condition.Syntax.WithoutTrivia(),
-                generator.CastExpression(trueReturn.ReturnedValue.Type, trueReturn.ReturnedValue.Syntax.WithoutTrivia()),
-                generator.CastExpression(falseReturn.ReturnedValue.Type, falseReturn.ReturnedValue.Syntax.WithoutTrivia()));
-
-            conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
             var returnStatement = generator.ReturnStatement(conditionalExpression).WithTriviaFrom(ifStatement);
 
             editor.ReplaceNode(ifStatement, returnStatement);
@@ -74,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 editor.RemoveNode(falseReturn.Syntax, SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepExteriorTrivia);
             }
 
-            return true;
+            return isMultiLine;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
