@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public IPropertySymbol OverriddenProperty => null;
 
+        public IPropertySymbol HiddenProperty => null;
+
         public bool IsWithEvents => false;
 
         public ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;

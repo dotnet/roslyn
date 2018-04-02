@@ -131,6 +131,12 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol OverriddenMethod { get; }
 
         /// <summary>
+        /// If this method hides another method (because it has the new modifier
+        /// and there correctly was a method to hide), returns the hidden method.
+        /// </summary>
+        IMethodSymbol HiddenMethod { get; }
+
+        /// <summary>
         /// If this method can be applied to an object, returns the type of object it is applied to.
         /// </summary>
         ITypeSymbol ReceiverType { get; }

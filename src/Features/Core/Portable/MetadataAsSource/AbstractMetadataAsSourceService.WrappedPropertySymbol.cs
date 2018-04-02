@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public IPropertySymbol OverriddenProperty => _symbol.OverriddenProperty;
 
+            public IPropertySymbol HiddenProperty => _symbol.HiddenProperty;
+
             public ImmutableArray<IParameterSymbol> Parameters => _symbol.Parameters;
 
             public IMethodSymbol SetMethod => _symbol.SetMethod;

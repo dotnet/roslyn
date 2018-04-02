@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public IEventSymbol OverriddenEvent => null;
 
+        public IEventSymbol HiddenEvent => null;
+
         public ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray.Create<CustomModifier>();
     }
 }

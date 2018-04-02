@@ -113,6 +113,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public INamedTypeSymbol AssociatedAnonymousDelegate => null;
 
+        public IMethodSymbol HiddenMethod => throw new System.NotImplementedException();
+
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
         {
             return new CodeGenerationConstructedMethodSymbol(this, typeArguments);

@@ -306,6 +306,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public ReadOnly Property HiddenEvent As IEventSymbol Implements IEventSymbol.HiddenEvent
+            Get
+                Throw New NotImplementedException()
+            End Get
+        End Property
+
         Private ReadOnly Property IEventSymbol_ExplicitInterfaceImplementations As ImmutableArray(Of IEventSymbol) Implements IEventSymbol.ExplicitInterfaceImplementations
             Get
                 Return StaticCast(Of IEventSymbol).From(Me.ExplicitInterfaceImplementations)

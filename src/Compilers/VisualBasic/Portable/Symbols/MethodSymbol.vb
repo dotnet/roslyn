@@ -1042,6 +1042,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public ReadOnly Property HiddenMethod As IMethodSymbol Implements IMethodSymbol.HiddenMethod
+            Get
+                Throw New NotImplementedException()
+            End Get
+        End Property
+
         Private Function IMethodSymbolInternal_CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer Implements IMethodSymbolInternal.CalculateLocalSyntaxOffset
             Return CalculateLocalSyntaxOffset(localPosition, localTree)
         End Function

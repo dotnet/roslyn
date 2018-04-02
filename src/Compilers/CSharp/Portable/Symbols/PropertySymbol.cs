@@ -485,6 +485,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.RefCustomModifiers; }
         }
 
+        public IPropertySymbol HiddenProperty => throw new System.NotImplementedException();
+
         #endregion
 
         #region ISymbol Members

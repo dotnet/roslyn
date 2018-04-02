@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis
         IPropertySymbol OverriddenProperty { get; }
 
         /// <summary>
+        /// Returns the hidden property, or null.
+        /// </summary>
+        IPropertySymbol HiddenProperty { get; }
+
+        /// <summary>
         /// Returns interface properties explicitly implemented by this property.
         /// </summary>
         /// <remarks>

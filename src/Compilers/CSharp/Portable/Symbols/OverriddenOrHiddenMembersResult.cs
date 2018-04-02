@@ -83,6 +83,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        internal static Symbol GetHiddenMember(Symbol substitutedHidingMember, Symbol hiddenByDefinitionMember)
+        {
+            Debug.Assert(!substitutedHidingMember.IsDefinition);
+
+            if ((object)hiddenByDefinitionMember != null)
+            {
+                NamedTypeSymbol hiddenByDefinitionContaining = hiddenByDefinitionMember.ContainingType;
+                NamedTypeSymbol hiddenByDefinitionContainingTypeDefinition = hiddenByDefinitionContaining.OriginalDefinition;
+                for (NamedTypeSymbol baseType = substitutedHidingMember.ContainingType.BaseTypeNoUseSiteDiagnostics;
+                    (object)baseType != null;
+                    baseType = baseType.BaseTypeNoUseSiteDiagnostics)
+                {
+                    if (baseType.OriginalDefinition == hiddenByDefinitionContainingTypeDefinition)
+                    {
+                        if (baseType == hiddenByDefinitionContaining)
+                        {
+                            return hiddenByDefinitionMember;
+                        }
+
+                        return hiddenByDefinitionMember.OriginalDefinition.SymbolAsMember(baseType);
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// It is not suitable to call this method on a <see cref="OverriddenOrHiddenMembersResult"/> object
         /// associated with a member within substituted type, <see cref="GetOverriddenMember(Symbol, Symbol)"/>
@@ -96,6 +125,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return overriddenMember;
                 }
+            }
+
+            return null;
+        }
+
+        internal Symbol GetHiddenMember()
+        {
+            foreach (var hiddenMember in _hiddenMembers)
+            {
+                return hiddenMember;
             }
 
             return null;
