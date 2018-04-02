@@ -6,8 +6,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using UIAutomationClient;
 using Xunit;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
-using GridPatternIdentifiers = System.Windows.Automation.GridPatternIdentifiers;
-using SelectionItemPatternIdentifiers = System.Windows.Automation.SelectionItemPatternIdentifiers;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -75,7 +73,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             var propertyCondition = Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.AutomationIdProperty.Id, "MemberSelectionList");
             var grid = dialogAutomationElement.FindFirst(TreeScope.TreeScope_Descendants, propertyCondition);
 
-            var gridPattern = (IUIAutomationGridPattern)grid.GetCurrentPattern(GridPatternIdentifiers.Pattern.Id);
+            var gridPattern = grid.GetCurrentPattern<IUIAutomationGridPattern>(UIA_PatternIds.UIA_GridPatternId);
             var rowCount = gridPattern.CurrentRowCount;
             var columnToSelect = 2;
             int i = 0;
@@ -89,15 +87,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     // The parent of a cell is of DataItem control type, which support SelectionItemPattern.
                     var walker = Helper.Automation.ControlViewWalker;
                     var parent = walker.GetParentElement(item);
-                    if (parent.GetCurrentPattern(SelectionItemPatternIdentifiers.Pattern.Id) is IUIAutomationSelectionItemPattern pattern)
-                    {
-                        pattern.Select();
-                    }
-                    else
-                    {
-                        Assert.True(false, "Unexpected error. Item's parent is expected to support SelectionItemPattern.");
-                    }
-
+                    parent.Select();
                     return;
                 }
             }

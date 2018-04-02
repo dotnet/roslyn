@@ -180,7 +180,10 @@ function Restore-Packages() {
         Write-Host "Restoring $($both[0])"
         $projectFilePath = $both[1]
         $projectFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
-        $logFilePath = Join-Path $logsDir "Restore-$($projectFileName).binlog"
+        $logFilePath = ""
+        if ($binaryLog) { 
+            $logFilePath = Join-Path $logsDir "Restore-$($projectFileName).binlog"
+        }
         Restore-Project $dotnet $both[1] $logFilePath
     }
 }
@@ -283,6 +286,10 @@ function Build-ExtraSignArtifacts() {
         Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
         Write-Host "Publishing MSBuildTask"
         Run-MSBuild "..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
+        Write-Host "Building PortableFacades Swix"
+        Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.swixproj"
+        Write-Host "Building CompilersCodeAnalysis Swix"
+        Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.swixproj"
 
         $dest = @($configDir)
         foreach ($dir in $dest) { 
