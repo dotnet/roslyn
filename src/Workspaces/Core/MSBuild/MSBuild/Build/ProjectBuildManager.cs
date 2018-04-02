@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -20,43 +21,45 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             XmlResolver = null
         };
 
-        private readonly MSB.Evaluation.ProjectCollection _projectCollection;
-        private readonly MSBuildDiagnosticLogger _logger;
+        private static readonly ImmutableDictionary<string, string> s_defaultGlobalProperties = new Dictionary<string, string>()
+        {
+            // this will tell msbuild to not build the dependent projects
+            { PropertyNames.DesignTimeBuild, bool.TrueString },
+
+            // this will force CoreCompile task to execute even if all inputs and outputs are up to date
+            { PropertyNames.BuildingInsideVisualStudio, bool.TrueString },
+
+            { PropertyNames.BuildProjectReferences, bool.FalseString },
+            { PropertyNames.BuildingProject, bool.FalseString },
+
+            // retrieve the command-line arguments to the compiler
+            { PropertyNames.ProvideCommandLineArgs, bool.TrueString },
+
+            // don't actually run the compiler
+            { PropertyNames.SkipCompilerExecution, bool.TrueString },
+
+            { PropertyNames.ContinueOnError, PropertyValues.ErrorAndContinue }
+        }.ToImmutableDictionary();
+
+        private MSB.Evaluation.ProjectCollection _projectCollection;
+        private MSBuildDiagnosticLogger _logger;
         private bool _started;
 
-        public ProjectBuildManager()
+        ~ProjectBuildManager()
         {
-            var properties = new Dictionary<string, string>()
+            if (_started)
             {
-                // this will tell msbuild to not build the dependent projects
-                { PropertyNames.DesignTimeBuild, bool.TrueString },
-
-                // this will force CoreCompile task to execute even if all inputs and outputs are up to date
-                { PropertyNames.BuildingInsideVisualStudio, bool.TrueString },
-
-                { PropertyNames.BuildProjectReferences, bool.FalseString },
-                { PropertyNames.BuildingProject, bool.FalseString },
-
-                // retrieve the command-line arguments to the compiler
-                { PropertyNames.ProvideCommandLineArgs, bool.TrueString },
-
-                // don't actually run the compiler
-                { PropertyNames.SkipCompilerExecution, bool.TrueString },
-
-                { PropertyNames.ContinueOnError, PropertyValues.ErrorAndContinue }
-            };
-
-            _projectCollection = new MSB.Evaluation.ProjectCollection(properties);
-
-            _logger = new MSBuildDiagnosticLogger()
-            {
-                Verbosity = MSB.Framework.LoggerVerbosity.Normal
-            };
+                new InvalidOperationException("ProjectBuilderManager.Stop() not called.");
+            }
         }
 
-        private MSB.Evaluation.Project FindProject(string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
+        private static MSB.Evaluation.Project FindProject(
+            string path,
+            IDictionary<string, string> globalProperties,
+            MSB.Evaluation.ProjectCollection projectCollection,
+            CancellationToken cancellationToken)
         {
-            var loadedProjects = _projectCollection.GetLoadedProjects(path);
+            var loadedProjects = projectCollection.GetLoadedProjects(path);
             if (loadedProjects == null || loadedProjects.Count == 0)
             {
                 return null;
@@ -67,7 +70,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             // we load every project with.
 
             globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
-            var totalGlobalProperties = _projectCollection.GlobalProperties.Count + globalProperties.Count;
+            var totalGlobalProperties = projectCollection.GlobalProperties.Count + globalProperties.Count;
 
             foreach (var loadedProject in loadedProjects)
             {
@@ -115,26 +118,27 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
             try
             {
-                var project = FindProject(path, globalProperties, cancellationToken);
-                if (project != null)
+                var projectCollection = _projectCollection ?? new MSB.Evaluation.ProjectCollection(s_defaultGlobalProperties);
+
+                var project = FindProject(path, globalProperties, projectCollection, cancellationToken);
+
+                if (project == null)
                 {
-                    return (project, log);
+                    using (var stream = FileUtilities.OpenAsyncRead(path))
+                    using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false))
+                    using (var xmlReader = XmlReader.Create(readStream, s_xmlReaderSettings))
+                    {
+                        var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, projectCollection);
+
+                        // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
+                        // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
+                        xml.FullPath = path;
+
+                        project = new MSB.Evaluation.Project(xml, globalProperties, toolsVersion: null, projectCollection);
+                    }
                 }
 
-                using (var stream = FileUtilities.OpenAsyncRead(path))
-                using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false))
-                using (var xmlReader = XmlReader.Create(readStream, s_xmlReaderSettings))
-                {
-                    var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, _projectCollection);
-
-                    // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
-                    // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
-                    xml.FullPath = path;
-
-                    project = new MSB.Evaluation.Project(xml, globalProperties, toolsVersion: null, _projectCollection);
-
-                    return (project, log);
-                }
+                return (project, log);
             }
             catch (Exception e)
             {
@@ -146,6 +150,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         public async Task<string> TryGetOutputFilePathAsync(
             string path, IDictionary<string, string> globalProperties, CancellationToken cancellationToken)
         {
+            // This tries to get the project output path and retrieving the $(TargetPath) property.
+
             var (project, _) = await LoadProjectAsync(path, globalProperties, cancellationToken).ConfigureAwait(false);
             return project?.GetPropertyValue(PropertyNames.TargetPath);
         }
@@ -157,8 +163,17 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 throw new InvalidOperationException();
             }
 
-            var buildParameters = new MSB.Execution.BuildParameters(_projectCollection);
-            buildParameters.Loggers = new MSB.Framework.ILogger[] { _logger };
+            _projectCollection = new MSB.Evaluation.ProjectCollection(s_defaultGlobalProperties);
+
+            _logger = new MSBuildDiagnosticLogger()
+            {
+                Verbosity = MSB.Framework.LoggerVerbosity.Normal
+            };
+
+            var buildParameters = new MSB.Execution.BuildParameters(_projectCollection)
+            {
+                Loggers = new MSB.Framework.ILogger[] { _logger }
+            };
 
             MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
 
@@ -173,12 +188,19 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
 
             MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
+
+            // unload project so collection will release global strings
+            _projectCollection.UnloadAllProjects();
+            _projectCollection = null;
+            _logger = null;
             _started = false;
         }
 
         public Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
             MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
         {
+            Debug.Assert(_started);
+
             var targets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
 
             return BuildProjectAsync(project, targets, log, cancellationToken);

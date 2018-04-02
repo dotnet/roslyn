@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -151,16 +152,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
             AddIfTrue("codepage", codePage.ToString(), codePage != 0);
         }
 
-        private static readonly ImmutableDictionary<string, string> _debugTypeValues = ImmutableDictionary.CreateRange(
-            StringComparer.OrdinalIgnoreCase,
-            new[]
-            {
-                KeyValuePair.Create("none", "none"),
-                KeyValuePair.Create("pdbonly", "pdbonly"),
-                KeyValuePair.Create("full", "full"),
-                KeyValuePair.Create("portable", "portable"),
-                KeyValuePair.Create("embedded", "embedded")
-            });
+        private static readonly ImmutableDictionary<string, string> s_debugTypeValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "none", "none" },
+            { "pdbonly", "pdbonly" },
+            { "full", "full" },
+            { "portable", "portable" },
+            { "embedded", "embedded" }
+        }.ToImmutableDictionary();
 
         protected void ReadDebugInfo()
         {
@@ -169,7 +168,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 var debugType = Project.ReadPropertyString(PropertyNames.DebugType);
 
-                if (_debugTypeValues.TryGetValue(debugType, out var value))
+                if (s_debugTypeValues.TryGetValue(debugType, out var value))
                 {
                     Add("debug", value);
                 }

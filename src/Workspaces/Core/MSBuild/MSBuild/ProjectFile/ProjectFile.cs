@@ -40,18 +40,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Log = log;
         }
 
-        ~ProjectFile()
-        {
-            try
-            {
-                // unload project so collection will release global strings
-                _loadedProject.ProjectCollection.UnloadAllProjects();
-            }
-            catch
-            {
-            }
-        }
-
         protected abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
         public abstract string GetDocumentExtension(SourceCodeKind kind);
         protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject);
