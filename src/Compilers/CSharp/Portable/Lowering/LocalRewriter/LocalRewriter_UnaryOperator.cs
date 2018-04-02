@@ -76,20 +76,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (kind.IsDynamic())
             {
-                Debug.Assert(kind == UnaryOperatorKind.DynamicTrue && type.SpecialType == SpecialType.System_Boolean || type.IsDynamic());
+                Debug.Assert((kind == UnaryOperatorKind.DynamicTrue || kind == UnaryOperatorKind.DynamicFalse) && type.SpecialType == SpecialType.System_Boolean
+                    || type.IsDynamic());
                 Debug.Assert((object)method == null);
 
                 // Logical operators on boxed Boolean constants:
                 var constant = UnboxConstant(loweredOperand);
                 if (constant == ConstantValue.True || constant == ConstantValue.False)
                 {
-                    if (kind == UnaryOperatorKind.DynamicTrue)
+                    switch (kind)
                     {
-                        return _factory.Literal(constant.BooleanValue);
-                    }
-                    else if (kind == UnaryOperatorKind.DynamicLogicalNegation)
-                    {
-                        return MakeConversionNode(_factory.Literal(!constant.BooleanValue), type, @checked: false);
+                        case UnaryOperatorKind.DynamicTrue:
+                            return _factory.Literal(constant.BooleanValue);
+                        case UnaryOperatorKind.DynamicLogicalNegation:
+                            return MakeConversionNode(_factory.Literal(!constant.BooleanValue), type, @checked: false);
                     }
                 }
 

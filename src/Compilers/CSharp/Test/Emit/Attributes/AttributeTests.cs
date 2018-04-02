@@ -19,6 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests : WellKnownAttributesTestBase
     {
+        static string[] s_autoPropAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute" };
+        static string[] s_backingFieldAttributes = new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" };
+
         #region Function Tests
 
         [Fact]
@@ -1145,6 +1149,854 @@ public class A
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
+        }
+
+        [Fact]
+        public void TestFieldAttributeOnPropertyInCSharp7_2()
+        {
+            string source = @"
+public class A : System.Attribute
+{
+}
+public class Test
+{
+    [field: System.Obsolete]
+    [field: A]
+    public int P { get; set; }
+
+    [field: System.Obsolete(""obsolete"", error: true)]
+    public int P2 { get; }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics(
+                // (7,6): warning CS8361: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
+                //     [field: System.Obsolete]
+                Diagnostic(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable, "field:").WithArguments("7.2", "7.3").WithLocation(7, 6),
+                // (8,6): warning CS8361: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
+                //     [field: A]
+                Diagnostic(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable, "field:").WithArguments("7.2", "7.3").WithLocation(8, 6),
+                // (11,6): warning CS8361: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
+                //     [field: System.Obsolete("obsolete", error: true)]
+                Diagnostic(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable, "field:").WithArguments("7.2", "7.3").WithLocation(11, 6)
+                );
+        }
+
+        [Fact]
+        public void TestFieldAttributesOnAutoProperty()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class A : System.Attribute
+{
+    public A(int i) { }
+}
+[System.AttributeUsage(System.AttributeTargets.Property, AllowMultiple = true) ]
+public class B : System.Attribute
+{
+    public B(int i) { }
+}
+
+public class Test
+{
+    [field: A(1)]
+    public int P { get; set; }
+
+    [field: A(2)]
+    public int P2 { get; }
+
+    [B(3)]
+    [field: A(33)]
+    public int P3 { get; }
+
+    [property: B(4)]
+    [field: A(44)]
+    [field: A(444)]
+    public int P4 { get; }
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+
+                var propAttributesExpected = isFromSource ? new string[0] : s_autoPropAttributes;
+                var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
+
+                var prop1 = @class.GetMember<PropertySymbol>("P");
+                Assert.Empty(prop1.GetAttributes());
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.GetMethod.GetAttributes()));
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.SetMethod.GetAttributes()));
+
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(1)" }), GetAttributeStrings(field1.GetAttributes()));
+
+                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                Assert.Empty(prop2.GetAttributes());
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop2.GetMethod.GetAttributes()));
+                Assert.Null(prop2.SetMethod);
+
+                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(2)" }), GetAttributeStrings(field2.GetAttributes()));
+
+                var prop3 = @class.GetMember<PropertySymbol>("P3");
+                Assert.Equal("B(3)", prop3.GetAttributes().Single().ToString());
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop3.GetMethod.GetAttributes()));
+                Assert.Null(prop3.SetMethod);
+
+                var field3 = @class.GetMember<FieldSymbol>("<P3>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(33)" }), GetAttributeStrings(field3.GetAttributes()));
+
+                var prop4 = @class.GetMember<PropertySymbol>("P4");
+                Assert.Equal("B(4)", prop4.GetAttributes().Single().ToString());
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop3.GetMethod.GetAttributes()));
+                Assert.Null(prop4.SetMethod);
+
+                var field4 = @class.GetMember<FieldSymbol>("<P4>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(44)", "A(444)" }), GetAttributeStrings(field4.GetAttributes()));
+            };
+
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestGeneratedTupleAndDynamicAttributesOnAutoProperty()
+        {
+            string source = @"
+public class Test
+{
+    public (dynamic a, int b) P { get; set; }
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                if (isFromSource)
+                {
+                    Assert.Empty(field1.GetAttributes());
+                }
+                else
+                {
+                    var dynamicAndTupleNames = new[] {
+                        "System.Runtime.CompilerServices.DynamicAttribute({false, true, false})",
+                        @"System.Runtime.CompilerServices.TupleElementNamesAttribute({""a"", ""b""})" };
+
+                    AssertEx.SetEqual(s_backingFieldAttributes.Concat(dynamicAndTupleNames), GetAttributeStrings(field1.GetAttributes()));
+                }
+            };
+
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestWellKnownAttributeOnProperty_SpecialName()
+        {
+            string source = @"
+public struct Test
+{
+    [field: System.Runtime.CompilerServices.SpecialName]
+    public static int P { get; set; }
+
+    public static int P2 { get; set; }
+
+    [field: System.Runtime.CompilerServices.SpecialName]
+    public static int f;
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+
+                var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
+
+                var prop1 = @class.GetMember<PropertySymbol>("P");
+                Assert.Empty(prop1.GetAttributes());
+
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                var attributes1 = field1.GetAttributes();
+                if (isFromSource)
+                {
+                    AssertEx.SetEqual(new[] { "System.Runtime.CompilerServices.SpecialNameAttribute" }, GetAttributeStrings(attributes1));
+                }
+                else
+                {
+                    AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(attributes1));
+                }
+                Assert.True(field1.HasSpecialName);
+
+                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                Assert.Empty(prop2.GetAttributes());
+
+                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field2.GetAttributes()));
+                Assert.False(field2.HasSpecialName);
+
+                var field3 = @class.GetMember<FieldSymbol>("f");
+                var attributes3 = field3.GetAttributes();
+                if (isFromSource)
+                {
+                    AssertEx.SetEqual(new[] { "System.Runtime.CompilerServices.SpecialNameAttribute" }, GetAttributeStrings(attributes3));
+                }
+                else
+                {
+                    Assert.Empty(GetAttributeStrings(attributes3));
+                }
+            };
+
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestWellKnownAttributeOnProperty_NonSerialized()
+        {
+            string source = @"
+public class Test
+{
+    [field: System.NonSerialized]
+    public int P { get; set; }
+
+    public int P2 { get; set; }
+
+    [field: System.NonSerialized]
+    public int f;
+}
+";
+
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+
+                var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
+
+                var prop1 = @class.GetMember<PropertySymbol>("P");
+                Assert.Empty(prop1.GetAttributes());
+
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                var attributes1 = field1.GetAttributes();
+                if (isFromSource)
+                {
+                    AssertEx.SetEqual(new[] { "System.NonSerializedAttribute" }, GetAttributeStrings(attributes1));
+                }
+                else
+                {
+                    AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(attributes1));
+                }
+                Assert.True(field1.IsNotSerialized);
+
+                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                Assert.Empty(prop2.GetAttributes());
+
+                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field2.GetAttributes()));
+                Assert.False(field2.IsNotSerialized);
+
+                var field3 = @class.GetMember<FieldSymbol>("f");
+                var attributes3 = field3.GetAttributes();
+                if (isFromSource)
+                {
+                    AssertEx.SetEqual(new[] { "System.NonSerializedAttribute" }, GetAttributeStrings(attributes3));
+                }
+                else
+                {
+                    Assert.Empty(GetAttributeStrings(attributes3));
+                }
+                Assert.True(field3.IsNotSerialized);
+            };
+
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestWellKnownAttributeOnProperty_FieldOffset()
+        {
+            string source = @"
+public struct Test
+{
+    [field: System.Runtime.InteropServices.FieldOffset(0)]
+    public static int P { get; set; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,13): error CS0637: The FieldOffset attribute is not allowed on static or const fields
+                //     [field: System.Runtime.InteropServices.FieldOffset(0)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "System.Runtime.InteropServices.FieldOffset").WithArguments("System.Runtime.InteropServices.FieldOffset").WithLocation(4, 13)
+                );
+        }
+
+        [Fact]
+        public void TestWellKnownAttributeOnProperty_FieldOffset2()
+        {
+            string source = @"
+public struct Test
+{
+    [field: System.Runtime.InteropServices.FieldOffset(-1)]
+    public int P { get; set; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,56): error CS0591: Invalid value for argument to 'System.Runtime.InteropServices.FieldOffset' attribute
+                //     [field: System.Runtime.InteropServices.FieldOffset(-1)]
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "-1").WithArguments("System.Runtime.InteropServices.FieldOffset").WithLocation(4, 56),
+                // (4,13): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
+                //     [field: System.Runtime.InteropServices.FieldOffset(-1)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "System.Runtime.InteropServices.FieldOffset").WithLocation(4, 13)
+                );
+        }
+
+        [Fact]
+        public void TestWellKnownAttributeOnProperty_FieldOffset3()
+        {
+            string source = @"
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Auto)]
+public class Test
+{
+    [field: FieldOffset(4)]
+    public int P { get; set; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
+                //     [field: FieldOffset(4)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void TestWellKnownAttributeOnProperty_FieldOffset4()
+        {
+            string source = @"
+using System.Runtime.InteropServices;
+
+public struct Test
+{
+    [field: FieldOffset(4)]
+    public int P { get; set; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
+                //     [field: FieldOffset(4)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void TestWellKnownAttributeOnProperty_FieldOffset5()
+        {
+            string source = @"
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Explicit)]
+public struct Test
+{
+    public int P { get; set; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0625: 'Test.P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                //     public int P { get; set; }
+                Diagnostic(ErrorCode.ERR_MissingStructOffset, "P").WithArguments("Test.P").WithLocation(7, 16)
+                );
+        }
+
+        [Fact]
+        public void TestWellKnownAttributeOnProperty_FixedBuffer()
+        {
+            string source = @"
+public class Test
+{
+    [field: System.Runtime.CompilerServices.FixedBuffer(typeof(int), 0)]
+    public int P { get; set; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,13): error CS8362: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property
+                //     [field: System.Runtime.CompilerServices.FixedBuffer(typeof(int), 0)]
+                Diagnostic(ErrorCode.ERR_DoNotUseFixedBufferAttrOnProperty, "System.Runtime.CompilerServices.FixedBuffer").WithLocation(4, 13)
+                );
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void TestWellKnownAttributeOnProperty_DynamicAttribute()
+        {
+            string source = @"
+public class Test
+{
+    [field: System.Runtime.CompilerServices.DynamicAttribute()]
+    public int P { get; set; }
+}
+";
+            var comp = CreateCompilation(source, references: new[] { SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (4,13): error CS1970: Do not use 'System.Runtime.CompilerServices.DynamicAttribute'. Use the 'dynamic' keyword instead.
+                //     [field: System.Runtime.CompilerServices.DynamicAttribute()]
+                Diagnostic(ErrorCode.ERR_ExplicitDynamicAttr, "System.Runtime.CompilerServices.DynamicAttribute()").WithLocation(4, 13)
+                );
+        }
+
+        [Fact]
+        public void TestWellKnownAttributeOnProperty_IsReadOnlyAttribute()
+        {
+            string source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute : System.Attribute { }
+}
+public class Test
+{
+    [field: System.Runtime.CompilerServices.IsReadOnlyAttribute()]
+    public int P { get; set; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
+                //     [field: System.Runtime.CompilerServices.IsReadOnlyAttribute()]
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "System.Runtime.CompilerServices.IsReadOnlyAttribute()").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        public void TestWellKnownAttributeOnProperty_IsByRefLikeAttribute()
+        {
+            string source = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsByRefLikeAttribute : System.Attribute { }
+}
+public class Test
+{
+    [field: System.Runtime.CompilerServices.IsByRefLikeAttribute()]
+    public int P { get; set; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
+                //     [field: System.Runtime.CompilerServices.IsByRefLikeAttribute()]
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "System.Runtime.CompilerServices.IsByRefLikeAttribute()").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        public void TestWellKnownAttributeOnProperty_DateTimeConstant()
+        {
+            string source = @"
+public class Test
+{
+    [field: System.Runtime.CompilerServices.DateTimeConstant(123456)]
+    public System.DateTime P { get; set; }
+
+    [field: System.Runtime.CompilerServices.DateTimeConstant(123456)]
+    public int P2 { get; set; }
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+                var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
+
+                var prop1 = @class.GetMember<PropertySymbol>("P");
+                Assert.Empty(prop1.GetAttributes());
+
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DateTimeConstantAttribute(123456)" }),
+                    GetAttributeStrings(field1.GetAttributes()));
+
+                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                Assert.Empty(prop2.GetAttributes());
+
+                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DateTimeConstantAttribute(123456)" }),
+                    GetAttributeStrings(field2.GetAttributes()));
+            };
+
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestWellKnownAttributeOnProperty_DecimalConstant()
+        {
+            string source = @"
+public class Test
+{
+    [field: System.Runtime.CompilerServices.DecimalConstant(0, 0, 100, 100, 100)]
+    public decimal P { get; set; }
+
+    [field: System.Runtime.CompilerServices.DecimalConstant(0, 0, 100, 100, 100)]
+    public int P2 { get; set; }
+
+    [field: System.Runtime.CompilerServices.DecimalConstant(0, 0, 100, 100, 100)]
+    public decimal field;
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+
+                var fieldAttributesExpected = isFromSource ? new string[0]
+                    : new[] { "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                        "System.Diagnostics.DebuggerBrowsableAttribute(System.Diagnostics.DebuggerBrowsableState.Never)" };
+
+                var constantExpected = "1844674407800451891300";
+
+                string[] decimalAttributeExpected = new[] { "System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)" };
+
+                var prop1 = @class.GetMember<PropertySymbol>("P");
+                Assert.Empty(prop1.GetAttributes());
+
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                if (isFromSource)
+                {
+                    AssertEx.SetEqual(fieldAttributesExpected.Concat(decimalAttributeExpected), GetAttributeStrings(field1.GetAttributes()));
+                }
+                else
+                {
+                    AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field1.GetAttributes()));
+                    Assert.Equal(constantExpected, field1.ConstantValue.ToString());
+                }
+
+                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                Assert.Empty(prop2.GetAttributes());
+
+                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(decimalAttributeExpected), GetAttributeStrings(field2.GetAttributes()));
+
+                var field3 = @class.GetMember<FieldSymbol>("field");
+                if (isFromSource)
+                {
+                    AssertEx.SetEqual(decimalAttributeExpected, GetAttributeStrings(field3.GetAttributes()));
+                }
+                else
+                {
+                    Assert.Empty(GetAttributeStrings(field3.GetAttributes()));
+                    Assert.Equal(constantExpected, field3.ConstantValue.ToString());
+                }
+            };
+
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestWellKnownAttributeOnProperty_TupleElementNamesAttribute()
+        {
+            string source = @"
+namespace System.Runtime.CompilerServices
+{
+    public sealed class TupleElementNamesAttribute : Attribute
+    {
+        public TupleElementNamesAttribute(string[] transformNames) { }
+    }
+}
+public class Test
+{
+    [field: System.Runtime.CompilerServices.TupleElementNamesAttribute(new[] { ""hello"" })]
+    public int P { get; set; }
+}
+";
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS8138: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+                //     [field: System.Runtime.CompilerServices.TupleElementNamesAttribute(new[] { "hello" })]
+                Diagnostic(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, @"System.Runtime.CompilerServices.TupleElementNamesAttribute(new[] { ""hello"" })").WithLocation(11, 13)
+                );
+        }
+
+        [Fact]
+        public void TestWellKnownEarlyAttributeOnProperty_Obsolete()
+        {
+            string source = @"
+public class Test
+{
+    [field: System.Obsolete]
+    public int P { get; set; }
+
+    [field: System.Obsolete(""obsolete"", error: true)]
+    public int P2 { get; }
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                bool isFromSource = @class is SourceNamedTypeSymbol;
+                var propAttributesExpected = isFromSource ? new string[0] : s_autoPropAttributes;
+                var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
+
+                var prop1 = @class.GetMember<PropertySymbol>("P");
+                Assert.Empty(prop1.GetAttributes());
+
+                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.ObsoleteAttribute" }),
+                    GetAttributeStrings(field1.GetAttributes()));
+                Assert.Equal(ObsoleteAttributeKind.Obsolete, field1.ObsoleteAttributeData.Kind);
+                Assert.Null(field1.ObsoleteAttributeData.Message);
+                Assert.False(field1.ObsoleteAttributeData.IsError);
+
+                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                Assert.Empty(prop2.GetAttributes());
+
+                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { @"System.ObsoleteAttribute(""obsolete"", true)" }),
+                    GetAttributeStrings(field2.GetAttributes()));
+                Assert.Equal(ObsoleteAttributeKind.Obsolete, field2.ObsoleteAttributeData.Kind);
+                Assert.Equal("obsolete", field2.ObsoleteAttributeData.Message);
+                Assert.True(field2.ObsoleteAttributeData.IsError);
+            };
+
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestFieldAttributesOnProperty()
+        {
+            string source = @"
+public class A : System.Attribute { }
+
+public class Test
+{
+    [field: A]
+    public int P { get => throw null; set => throw null; }
+
+    [field: A]
+    public int P2 { get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(9, 6),
+                // (6,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(6, 6)
+                );
+        }
+
+        [Fact]
+        public void TestFieldAttributesOnPropertyAccessors()
+        {
+            string source = @"
+public class A : System.Attribute { }
+
+public class Test
+{
+    public int P { [field: A] get => throw null; set => throw null; }
+    public int P2 { [field: A] get; set; }
+    public int P3 { [field: A] get => throw null; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,21): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //     public int P { [field: A] get => throw null; set => throw null; }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(6, 21),
+                // (7,22): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //     public int P2 { [field: A] get; set; }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(7, 22),
+                // (8,22): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //     public int P3 { [field: A] get => throw null; }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(8, 22)
+                );
+        }
+
+        [Fact]
+        public void TestMultipleFieldAttributesOnProperty()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = false) ]
+public class Single : System.Attribute { }
+
+[System.AttributeUsage(System.AttributeTargets.Field, AllowMultiple = true) ]
+public class Multiple : System.Attribute { }
+
+public class Test
+{
+    [field: Single]
+    [field: Single]
+    [field: Multiple]
+    [field: Multiple]
+    public int P { get; set; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS0579: Duplicate 'Single' attribute
+                //     [field: Single]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Single").WithArguments("Single").WithLocation(11, 13)
+                );
+        }
+
+        [Fact]
+        public void TestInheritedFieldAttributesOnOverriddenProperty()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.All, Inherited = true) ]
+public class A : System.Attribute
+{
+    public A(int i) { }
+}
+
+public class Base
+{
+    [field: A(1)]
+    [A(2)]
+    public virtual int P { get; set; }
+}
+public class Derived : Base
+{
+    public override int P { get; set; }
+}
+";
+            Action<ModuleSymbol> symbolValidator = moduleSymbol =>
+            {
+                var parent = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+                bool isFromSource = parent is SourceNamedTypeSymbol;
+                var propAttributesExpected = isFromSource ? new string[0] : s_autoPropAttributes;
+                var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
+
+                var prop1 = parent.GetMember<PropertySymbol>("P");
+                Assert.Equal("A(2)", prop1.GetAttributes().Single().ToString());
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.GetMethod.GetAttributes()));
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.SetMethod.GetAttributes()));
+
+                var field1 = parent.GetMember<FieldSymbol>("<P>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(1)" }), GetAttributeStrings(field1.GetAttributes()));
+
+                var child = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+
+                var prop2 = child.GetMember<PropertySymbol>("P");
+                Assert.Empty(prop2.GetAttributes());
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop2.GetMethod.GetAttributes()));
+                AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop2.SetMethod.GetAttributes()));
+
+                var field2 = child.GetMember<FieldSymbol>("<P>k__BackingField");
+                AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field2.GetAttributes()));
+            };
+
+            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestPropertyTargetedFieldAttributesOnAutoProperty()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Property) ]
+public class A : System.Attribute { }
+
+public class Test
+{
+    [field: A]
+    public int P { get; set; }
+
+    [field: A]
+    public int P2 { get; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,13): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
+                //     [field: A]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "A").WithArguments("A", "property, indexer").WithLocation(10, 13),
+                // (7,13): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
+                //     [field: A]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "A").WithArguments("A", "property, indexer").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void TestClassTargetedFieldAttributesOnAutoProperty()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Class) ]
+public class ClassAllowed : System.Attribute { }
+
+[System.AttributeUsage(System.AttributeTargets.Field) ]
+public class FieldAllowed : System.Attribute { }
+
+public class Test
+{
+    [field: ClassAllowed] // error 1
+    [field: FieldAllowed]
+    public int P { get; set; }
+
+    [field: ClassAllowed] // error 2
+    [field: FieldAllowed]
+    public int P2 { get; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (14,13): error CS0592: Attribute 'ClassAllowed' is not valid on this declaration type. It is only valid on 'class' declarations.
+                //     [field: ClassAllowed] // error 2
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ClassAllowed").WithArguments("ClassAllowed", "class").WithLocation(14, 13),
+                // (10,13): error CS0592: Attribute 'ClassAllowed' is not valid on this declaration type. It is only valid on 'class' declarations.
+                //     [field: ClassAllowed] // error 1
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ClassAllowed").WithArguments("ClassAllowed", "class").WithLocation(10, 13)
+                );
+        }
+
+        [Fact]
+        public void TestImproperlyTargetedFieldAttributesOnProperty()
+        {
+            string source = @"
+[System.AttributeUsage(System.AttributeTargets.Property) ]
+public class A : System.Attribute { }
+
+public class Test
+{
+    [field: A]
+    public int P { get => throw null; set => throw null; }
+
+    [field: A]
+    public int P2 { get => throw null; }
+
+    [field: A]
+    public int P3 { get; set; }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(10, 6),
+                // (13,13): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
+                //     [field: A]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "A").WithArguments("A", "property, indexer").WithLocation(13, 13),
+                // (7,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: A]
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(7, 6)
+                );
         }
 
         [Fact]
@@ -2612,7 +3464,7 @@ namespace AttributeTest
         [Fact]
         public void TestAttributeStringForEnumTypedConstant()
         {
-            var source = CreateCompilation(@"
+            var source = CreateCompilationWithMscorlib40(@"
 using System;
 namespace AttributeTest
 {
@@ -6520,7 +7372,7 @@ namespace System
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 // (4,6): error CS0616: 'System.Runtime.InteropServices.DllImportAttribute' is not an attribute class
                 //     [DllImport] // Error
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "DllImport").WithArguments("System.Runtime.InteropServices.DllImportAttribute"),
@@ -6630,7 +7482,7 @@ class System : Attribute
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilationWithMscorlib40(source);
 
             compilation.VerifyDiagnostics(
                 // (2,7): warning CS0437: The type 'System' in '' conflicts with the imported namespace 'System' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
@@ -6661,8 +7513,8 @@ public class X: Attribute
 {
 }
 ";
-            var comp1 = CreateCompilation(source2, assemblyName: "Temp0").ToMetadataReference();
-            CreateCompilation(source, references: new[] { comp1 }).VerifyDiagnostics(
+            var comp1 = CreateCompilationWithMscorlib40(source2, assemblyName: "Temp0").ToMetadataReference();
+            CreateCompilationWithMscorlib40(source, references: new[] { comp1 }).VerifyDiagnostics(
                 // (2,12): error CS0616: 'X' is not an attribute class
                 // [assembly: X]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "X").WithArguments("X"));
@@ -6687,9 +7539,9 @@ class Y
 {
 }
 ";
-            comp1 = CreateCompilation(source2, assemblyName: "Temp1").ToMetadataReference();
+            comp1 = CreateCompilationWithMscorlib40(source2, assemblyName: "Temp1").ToMetadataReference();
             var comp2 = CreateEmptyCompilation(source3, assemblyName: "Temp2").ToMetadataReference();
-            var comp3 = CreateCompilation(source4, references: new[] { comp1, comp2 });
+            var comp3 = CreateCompilationWithMscorlib40(source4, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (2,2): error CS0434: The namespace 'X' in 'Temp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with the type 'X' in 'Temp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 // [X]
@@ -6702,7 +7554,7 @@ class X
 {
 }
 ";
-            comp3 = CreateCompilation(source5, references: new[] { comp1, comp2 });
+            comp3 = CreateCompilationWithMscorlib40(source5, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (2,2): error CS0616: 'X' is not an attribute class
                 // [X]
@@ -6716,7 +7568,7 @@ class X: Attribute
 {
 }
 ";
-            CompileAndVerify(source5, references: new[] { comp1, comp2 });
+            CompileAndVerifyWithMscorlib40(source5, references: new[] { comp1, comp2 });
 
             // Multiple from PE, multiple from Source
             var source6 = @"
@@ -6729,7 +7581,7 @@ namespace X
 {
 }
 ";
-            comp3 = CreateCompilation(source6, references: new[] { comp1, comp2 });
+            comp3 = CreateCompilationWithMscorlib40(source6, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (3,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'X'
                 // class X
@@ -6744,7 +7596,7 @@ class Goo: Attribute
 {
 }
 ";
-            comp3 = CreateCompilation(source7, references: new[] { comp1, comp2 });
+            comp3 = CreateCompilationWithMscorlib40(source7, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (4,2): error CS0576: Namespace '<global namespace>' contains a definition conflicting with alias 'X'
                 // [X]

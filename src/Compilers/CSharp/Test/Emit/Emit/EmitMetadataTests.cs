@@ -157,7 +157,7 @@ public class Test : C107
 }
 ";
 
-            CompileAndVerify(source, new[] { metadataTestLib1, metadataTestLib2 }, assemblyValidator: (assembly) =>
+            CompileAndVerifyWithMscorlib40(source, new[] { metadataTestLib1, metadataTestLib2 }, assemblyValidator: (assembly) =>
             {
                 var refs = assembly.Modules[0].ReferencedAssemblies.OrderBy(r => r.Name).ToArray();
                 Assert.Equal(2, refs.Length);
@@ -174,7 +174,7 @@ public class Test : Class2
 {
 }
 ";
-            CompileAndVerify(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
+            CompileAndVerifyWithMscorlib40(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
             {
                 var refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
                 Assert.Equal(2, refs2.Count());
@@ -2195,7 +2195,7 @@ class Program
             var options = EmitOptions.Default.WithFileAlignment(0x2000);
             var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular);
 
-            var peStream = CreateCompilation(
+            var peStream = CreateCompilationWithMscorlib40(
                 syntax,
                 options: TestOptions.ReleaseDll.WithDeterministic(true),
                 assemblyName: "46B9C2B2-B7A0-45C5-9EF9-28DDF739FD9E").EmitToStream(options);
@@ -2384,7 +2384,7 @@ class Program
 
             var syntax = SyntaxFactory.ParseSyntaxTree(@"class C { static void Main() { } }", TestOptions.Regular);
 
-            var peStream = CreateCompilation(
+            var peStream = CreateCompilationWithMscorlib40(
                 syntax,
                 options: TestOptions.DebugExe.WithPlatform(Platform.X64).WithDeterministic(true),
                 assemblyName: "B37A4FCD-ED76-4924-A2AD-298836056E00").EmitToStream(options);
@@ -2643,7 +2643,7 @@ class T
         [Fact]
         public void InParametersShouldHaveMetadataIn_NoPIA()
         {
-            var comAssembly = CreateCompilation(@"
+            var comAssembly = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""test.dll"")]

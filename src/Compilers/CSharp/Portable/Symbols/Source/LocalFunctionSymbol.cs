@@ -108,6 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var typeParam in _typeParameters)
             {
                 typeParam.ForceComplete(null, default(CancellationToken));
+
+                if (typeParam.HasUnmanagedTypeConstraint)
+                {
+                    addTo.Add(ErrorCode.ERR_UnmanagedConstraintWithLocalFunctions, typeParam.GetNonNullSyntaxNode().Location);
+                }
             }
 
             // force lazy init

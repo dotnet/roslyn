@@ -1180,7 +1180,7 @@ unsafe class C
     }
 }";
 
-            var compilation = CreateCompilation(source, options: new CSharpCompilationOptions(
+            var compilation = CreateCompilationWithMscorlib40(source, options: new CSharpCompilationOptions(
                 outputKind: outputKind,
                 optimizationLevel: OptimizationLevel.Release,
                 allowUnsafe: true));
@@ -1199,7 +1199,7 @@ unsafe class C
                 {
                     // Modules security attributes are copied to assemblies they're included in
                     var moduleReference = ModuleMetadata.CreateFromImage(compilation.EmitToArray()).GetReference();
-                    CompileAndVerify("", references: new[] { moduleReference }, symbolValidator: validateSecurity, verify: Verification.Skipped);
+                    CompileAndVerifyWithMscorlib40("", references: new[] { moduleReference }, symbolValidator: validateSecurity, verify: Verification.Skipped);
                 }
                 else
                 {

@@ -1313,7 +1313,7 @@ name: ThingHappened
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestCallerMemberName_ConstructorDestructor()
         {
             string source = @"
@@ -1486,7 +1486,8 @@ partial class A
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(25882, "https://github.com/dotnet/roslyn/issues/25882")] // PROTOTYPE(DefaultInterfaceImplementation): See https://github.com/dotnet/roslyn/issues/25882
         public void TestCallerFilePath2()
         {
             string source1 = @"

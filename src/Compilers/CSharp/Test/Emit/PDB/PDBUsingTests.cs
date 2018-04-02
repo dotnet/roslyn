@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#if NET461
 
 using System.Collections.Immutable;
 using System.IO;
@@ -56,7 +57,7 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -111,7 +112,7 @@ namespace X
 </symbols>");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void TestNamespaceAliases()
         {
             var text = @"
@@ -136,7 +137,7 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -191,7 +192,7 @@ namespace X
 </symbols>");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void TestTypeAliases1()
         {
             var text = @"
@@ -216,7 +217,7 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -271,7 +272,7 @@ namespace X
 </symbols>");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void TestTypeAliases2()
         {
             var text = @"
@@ -296,7 +297,7 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -401,7 +402,7 @@ namespace X
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -489,7 +490,7 @@ class A { void M() {  } }
             compilation2.VerifyPdb("A.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -540,7 +541,7 @@ class A { void M() {  } }
             compilation2.VerifyPdb("A.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -600,7 +601,7 @@ namespace M
             compilation.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void TestExternAliases_ExplicitAndGlobal()
         {
             var dummySource = @"
@@ -645,7 +646,7 @@ class C { void M() { } }
             compilation.VerifyPdb(@"
 <symbols>
     <files>
-      <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+      <file id=""1"" name="""" language=""C#"" />
     </files>
     <methods>
         <method containingType=""C"" name=""M"">
@@ -672,7 +673,7 @@ class C { void M() { } }
 </symbols>");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void TestExternAliasesInUsing()
         {
             CSharpCompilation libComp = CreateCompilation(@"
@@ -705,7 +706,7 @@ namespace N
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""N.B"" name=""M"">
@@ -734,7 +735,7 @@ namespace N
 </symbols>");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void TestNamespacesAndAliases()
         {
             CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
@@ -819,7 +820,7 @@ namespace X
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""A"" name=""M"">
@@ -897,7 +898,7 @@ namespace X
 </symbols>");
         }
 
-        [Fact, WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737"), WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
         public void ReferenceWithMultipleAliases()
         {
             var source1 = @"
@@ -937,7 +938,7 @@ public class C
             compilation2.VerifyPdb(@"
 <symbols>
     <files>
-      <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+      <file id=""1"" name="""" language=""C#"" />
     </files>
     <methods>
         <method containingType=""C"" name=""Main"">
@@ -1003,7 +1004,7 @@ public class C
             compilation2.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -1031,7 +1032,7 @@ public class C
 ");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void TestPartialTypeInOneFile()
         {
             CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
@@ -1123,7 +1124,7 @@ namespace X
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""X.C"" name=""M"">
@@ -1201,7 +1202,7 @@ namespace X
 </symbols>", options: PdbValidationOptions.SkipConversionValidation); // TODO: https://github.com/dotnet/roslyn/issues/18004
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void TestPartialTypeInTwoFiles()
         {
             CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
@@ -1314,7 +1315,7 @@ namespace X
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""X.C"" name=""M"">
@@ -1423,7 +1424,7 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
     <files>
-      <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+      <file id=""1"" name="""" language=""C#"" />
     </files>
     <methods>
         <method containingType=""X.C"" name="".ctor"">
@@ -1472,7 +1473,7 @@ class C
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
@@ -1553,7 +1554,7 @@ class C
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""get_P1"">
@@ -1657,7 +1658,7 @@ class Derived : Base
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""Base"" name=""get_P"">
@@ -1715,7 +1716,7 @@ class C : I1, I2
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""get_Item"" parameterNames=""x"">
@@ -1797,7 +1798,7 @@ public class Test : IDisposable
 }", sequencePoints: "Test.Main");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void TestNestedType()
         {
             var libSource = @"
@@ -1824,7 +1825,7 @@ public class Test
             CompileAndVerify(source, new[] { libRef }, options: TestOptions.DebugExe).VerifyPdb("Test.Main", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <entryPoint declaringType=""Test"" methodName=""Main"" />
   <methods>
@@ -1846,7 +1847,7 @@ public class Test
 </symbols>");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void TestVerbatimIdentifiers()
         {
             var source = @"
@@ -1876,7 +1877,7 @@ class Test { static void Main() { } }
             comp.VerifyPdb("Test.Main", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""Test"" name=""Main"">
@@ -1899,7 +1900,7 @@ class Test { static void Main() { } }
         }
 
         [WorkItem(842479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842479")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void UsingExternAlias()
         {
             var libSource = "public class C { }";
@@ -1926,7 +1927,7 @@ namespace N
             comp.VerifyPdb("N.D.Main", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""N.D"" name=""Main"">
@@ -1953,7 +1954,7 @@ namespace N
         }
 
         [WorkItem(842478, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842478")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void AliasIncludingDynamic()
         {
             var source = @"
@@ -1968,7 +1969,7 @@ class D
             comp.VerifyPdb("D.Main", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""D"" name=""Main"">
@@ -2030,7 +2031,7 @@ public class Test : IDisposable
         }
 
         [WorkItem(546754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546754")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void ArrayType()
         {
             var source1 = @"
@@ -2066,7 +2067,7 @@ public class C1
             comp2.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <entryPoint declaringType=""C1"" methodName=""Main"" />
   <methods>
@@ -2093,7 +2094,7 @@ public class C1
 </symbols>");
         }
 
-        [Fact, WorkItem(543615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543615")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737"), WorkItem(543615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543615")]
         public void WRN_DebugFullNameTooLong()
         {
             var text = @"
@@ -2144,7 +2145,7 @@ class D
             comp.VerifyPdb("D.Main", @"
 <symbols>
     <files>
-      <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+      <file id=""1"" name="""" language=""C#"" />
     </files>
     <methods>
         <method containingType=""D"" name=""Main"">
@@ -2385,7 +2386,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -2408,7 +2409,7 @@ class C
 </symbols>");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void ImportedTypeWithUnknownBase()
         {
             var sourceLib1 = @"
@@ -2448,7 +2449,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -2557,3 +2558,4 @@ ImportScope (index: 0x35, size: 36):
         }
     }
 }
+#endif

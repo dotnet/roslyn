@@ -1888,10 +1888,12 @@ public class C
             // The return type of F isn't considered until the delegate compatibility check,
             // which happens AFTER determining that the method group conversion exists.  As
             // a result, both methods are considered applicable and the "wrong" one is chosen.
-            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (8,11): error CS0407: 'dynamic C.F()' has the wrong return type
                 //         M(F);
                 Diagnostic(ErrorCode.ERR_BadRetType, "F").WithArguments("C.F()", "dynamic"));
+            // However, we later added a feature that takes the return type into account.
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -12,26 +11,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle.CSharpTypeStyleDiagnosticAnalyzerBase;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpUseImplicitTypeDiagnosticAnalyzer : CSharpTypeStyleDiagnosticAnalyzerBase
+    internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
     {
-        private static readonly LocalizableString s_Title =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_implicit_type), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
-
-        private static readonly LocalizableString s_Message =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.use_var_instead_of_explicit_type), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
-
-        public CSharpUseImplicitTypeDiagnosticAnalyzer()
-            : base(diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
-                   title: s_Title,
-                   message: s_Message)
-        {
-        }
-
         protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (variableDeclaration.Type.IsVar)
@@ -46,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         protected override bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (forEachStatement.Type.IsVar)
+            var type = forEachStatement.Type;
+            if (type.IsVar || (type.Kind() == SyntaxKind.RefType && ((RefTypeSyntax)type).Type.IsVar))
             {
                 // If the type is already 'var', this analyze has no work to do
                 return false;
@@ -56,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             return base.ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken);
         }
 
-        protected override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
+        internal override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
         {
             var stylePreferences = state.TypeStylePreference;
             var shouldNotify = state.ShouldNotify();
@@ -81,18 +67,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
         }
 
-        protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
+        internal override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
             Debug.Assert(!typeName.IsVar, "'var' special case should have prevented analysis of this variable.");
 
             var candidateReplacementNode = SyntaxFactory.IdentifierName("var");
-            var candidateIssueSpan = typeName.Span;
 
             // If there exists a type named var, return.
             var conflict = semanticModel.GetSpeculativeSymbolInfo(typeName.SpanStart, candidateReplacementNode, SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
             if (conflict?.IsKind(SymbolKind.NamedType) == true)
             {
-                issueSpan = default;
                 return false;
             }
 
@@ -104,7 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 // implicitly typed variables cannot be constants.
                 if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
                 {
-                    issueSpan = default;
                     return false;
                 }
 
@@ -121,7 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
                     if (containsStackAlloc)
                     {
-                        issueSpan = default;
                         return false;
                     }
                 }
@@ -130,7 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                         variable.Identifier, typeName, initializer,
                         semanticModel, optionSet, cancellationToken))
                 {
-                    issueSpan = candidateIssueSpan;
                     return true;
                 }
             }
@@ -139,18 +120,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
                 if (foreachStatementInfo.ElementConversion.IsIdentity)
                 {
-                    issueSpan = candidateIssueSpan;
                     return true;
                 }
             }
             else if (typeName.Parent is DeclarationExpressionSyntax declarationExpression &&
                      TryAnalyzeDeclarationExpression(declarationExpression, semanticModel, optionSet, cancellationToken))
             {
-                issueSpan = candidateIssueSpan;
                 return true;
             }
 
-            issueSpan = default;
             return false;
         }
 
@@ -224,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            var expression = GetInitializerExpression(initializer);
+            var expression = CSharpTypeStyleDiagnosticAnalyzerBase.GetInitializerExpression(initializer);
 
             // var cannot be assigned null
             if (expression.IsKind(SyntaxKind.NullLiteralExpression))
@@ -272,6 +250,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             // The base analyzer may impose further limitations
             return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    internal sealed class CSharpUseImplicitTypeDiagnosticAnalyzer : CSharpTypeStyleDiagnosticAnalyzerBase
+    {
+        private static readonly LocalizableString s_Title =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_implicit_type), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+
+        private static readonly LocalizableString s_Message =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.use_var_instead_of_explicit_type), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+
+        private static readonly CSharpUseImplicitTypeHelper s_Helper = new CSharpUseImplicitTypeHelper();
+        protected override CSharpTypeStyleHelper Helper => s_Helper;
+
+        public CSharpUseImplicitTypeDiagnosticAnalyzer()
+            : base(diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                   title: s_Title,
+                   message: s_Message)
+        {
         }
     }
 }

@@ -47,14 +47,14 @@ End Class"
             ' Assembly A, multiple versions, strong name.
             Dim assemblyNameA = ExpressionCompilerUtilities.GenerateUniqueName()
             Dim publicKeyA = ImmutableArray.CreateRange(Of Byte)({&H0, &H24, &H0, &H0, &H4, &H80, &H0, &H0, &H94, &H0, &H0, &H0, &H6, &H2, &H0, &H0, &H0, &H24, &H0, &H0, &H52, &H53, &H41, &H31, &H0, &H4, &H0, &H0, &H1, &H0, &H1, &H0, &HED, &HD3, &H22, &HCB, &H6B, &HF8, &HD4, &HA2, &HFC, &HCC, &H87, &H37, &H4, &H6, &H4, &HCE, &HE7, &HB2, &HA6, &HF8, &H4A, &HEE, &HF3, &H19, &HDF, &H5B, &H95, &HE3, &H7A, &H6A, &H28, &H24, &HA4, &HA, &H83, &H83, &HBD, &HBA, &HF2, &HF2, &H52, &H20, &HE9, &HAA, &H3B, &HD1, &HDD, &HE4, &H9A, &H9A, &H9C, &HC0, &H30, &H8F, &H1, &H40, &H6, &HE0, &H2B, &H95, &H62, &H89, &H2A, &H34, &H75, &H22, &H68, &H64, &H6E, &H7C, &H2E, &H83, &H50, &H5A, &HCE, &H7B, &HB, &HE8, &HF8, &H71, &HE6, &HF7, &H73, &H8E, &HEB, &H84, &HD2, &H73, &H5D, &H9D, &HBE, &H5E, &HF5, &H90, &HF9, &HAB, &HA, &H10, &H7E, &H23, &H48, &HF4, &HAD, &H70, &H2E, &HF7, &HD4, &H51, &HD5, &H8B, &H3A, &HF7, &HCA, &H90, &H4C, &HDC, &H80, &H19, &H26, &H65, &HC9, &H37, &HBD, &H52, &H81, &HF1, &H8B, &HCD})
-            Dim compilationAS1 = CreateCompilation(
+            Dim compilationAS1 = CreateEmptyCompilation(
                 New AssemblyIdentity(assemblyNameA, New Version(1, 1, 1, 1), cultureName:="", publicKeyOrToken:=publicKeyA, hasPublicKey:=True),
                 {sourceA},
                 references:={MscorlibRef},
                 options:=TestOptions.DebugDll.WithDelaySign(True))
             Dim referenceAS1 = compilationAS1.EmitToImageReference()
             Dim identityAS1 = referenceAS1.GetAssemblyIdentity()
-            Dim compilationAS2 = CreateCompilation(
+            Dim compilationAS2 = CreateEmptyCompilation(
                 New AssemblyIdentity(assemblyNameA, New Version(2, 1, 1, 1), cultureName:="", publicKeyOrToken:=publicKeyA, hasPublicKey:=True),
                 {sourceA},
                 references:={MscorlibRef},
@@ -65,14 +65,14 @@ End Class"
             ' Assembly B, multiple versions, strong name.
             Dim assemblyNameB = ExpressionCompilerUtilities.GenerateUniqueName()
             Dim publicKeyB = ImmutableArray.CreateRange(Of Byte)({&H0, &H24, &H0, &H0, &H4, &H80, &H0, &H0, &H94, &H0, &H0, &H0, &H6, &H2, &H0, &H0, &H0, &H24, &H0, &H0, &H53, &H52, &H41, &H31, &H0, &H4, &H0, &H0, &H1, &H0, &H1, &H0, &HED, &HD3, &H22, &HCB, &H6B, &HF8, &HD4, &HA2, &HFC, &HCC, &H87, &H37, &H4, &H6, &H4, &HCE, &HE7, &HB2, &HA6, &HF8, &H4A, &HEE, &HF3, &H19, &HDF, &H5B, &H95, &HE3, &H7A, &H6A, &H28, &H24, &HA4, &HA, &H83, &H83, &HBD, &HBA, &HF2, &HF2, &H52, &H20, &HE9, &HAA, &H3B, &HD1, &HDD, &HE4, &H9A, &H9A, &H9C, &HC0, &H30, &H8F, &H1, &H40, &H6, &HE0, &H2B, &H95, &H62, &H89, &H2A, &H34, &H75, &H22, &H68, &H64, &H6E, &H7C, &H2E, &H83, &H50, &H5A, &HCE, &H7B, &HB, &HE8, &HF8, &H71, &HE6, &HF7, &H73, &H8E, &HEB, &H84, &HD2, &H73, &H5D, &H9D, &HBE, &H5E, &HF5, &H90, &HF9, &HAB, &HA, &H10, &H7E, &H23, &H48, &HF4, &HAD, &H70, &H2E, &HF7, &HD4, &H51, &HD5, &H8B, &H3A, &HF7, &HCA, &H90, &H4C, &HDC, &H80, &H19, &H26, &H65, &HC9, &H37, &HBD, &H52, &H81, &HF1, &H8B, &HCD})
-            Dim compilationBS1 = CreateCompilation(
+            Dim compilationBS1 = CreateEmptyCompilation(
                 New AssemblyIdentity(assemblyNameB, New Version(1, 1, 1, 1), cultureName:="", publicKeyOrToken:=publicKeyB, hasPublicKey:=True),
                 {sourceB},
                 references:={MscorlibRef, referenceAS1},
                 options:=TestOptions.DebugDll.WithDelaySign(True))
             Dim referenceBS1 = compilationBS1.EmitToImageReference()
             Dim identityBS1 = referenceBS1.GetAssemblyIdentity()
-            Dim compilationBS2 = CreateCompilation(
+            Dim compilationBS2 = CreateEmptyCompilation(
                 New AssemblyIdentity(assemblyNameB, New Version(2, 2, 2, 1), cultureName:="", publicKeyOrToken:=publicKeyB, hasPublicKey:=True),
                 {sourceB},
                 references:={MscorlibRef, referenceAS2},
@@ -81,7 +81,7 @@ End Class"
             Dim identityBS2 = referenceBS2.GetAssemblyIdentity()
 
             ' Assembly C, multiple versions, not strong name.
-            Dim compilationCN1 = CreateCompilation(
+            Dim compilationCN1 = CreateEmptyCompilation(
                 New AssemblyIdentity("C", New Version(1, 1, 1, 1)),
                 {sourceC},
                 references:={MscorlibRef, referenceBS1},
@@ -184,7 +184,7 @@ Class B
         Dim x As New A()
     End Sub
 End Class"
-            Dim compilationA = CreateCompilationWithReferences(
+            Dim compilationA = CreateEmptyCompilationWithReferences(
                 MakeSources(sourceA),
                 options:=TestOptions.DebugDll,
                 references:={MscorlibRef, SystemRef, MsvbRef, SystemCoreRef})
@@ -192,7 +192,7 @@ End Class"
             Dim moduleA = compilationA.ToModuleInstance()
             Dim identityA = compilationA.Assembly.Identity
 
-            Dim moduleB = CreateCompilationWithReferences(
+            Dim moduleB = CreateEmptyCompilationWithReferences(
                 MakeSources(sourceB),
                 options:=TestOptions.DebugDll,
                 references:={MscorlibRef, SystemRef, MsvbRef, SystemCoreRef, moduleA.GetReference()}).ToModuleInstance()
@@ -306,19 +306,19 @@ Class C
         F()
     End Sub
 End Class"
-            Dim referenceA1 = CreateCompilation(
+            Dim referenceA1 = CreateEmptyCompilation(
                 New AssemblyIdentity("A", New Version(1, 1, 1, 1)),
                 {sourceA},
                 options:=TestOptions.DebugDll,
                 references:={MscorlibRef, SystemRef, MsvbRef}).EmitToImageReference()
 
-            Dim referenceA2 = CreateCompilation(
+            Dim referenceA2 = CreateEmptyCompilation(
                 New AssemblyIdentity("A", New Version(2, 1, 1, 2)),
                 {sourceA},
                 options:=TestOptions.DebugDll,
                 references:={MscorlibRef, SystemRef, MsvbRef}).EmitToImageReference()
 
-            Dim compilationB = CreateCompilation(
+            Dim compilationB = CreateEmptyCompilation(
                 New AssemblyIdentity("B", New Version(1, 1, 1, 1)),
                 {sourceB},
                 options:=TestOptions.DebugDll,
@@ -383,9 +383,9 @@ End Namespace"
         Dim o = DirectCast(Nothing, System.Collections.ObjectModel.ReadOnlyDictionary(Of Object, Object))
     End Sub
 End Class"
-            Dim systemConsoleComp = CreateCompilationWithMscorlib({sourceConsole}, options:=TestOptions.DebugDll, assemblyName:="System.Console")
+            Dim systemConsoleComp = CreateCompilationWithMscorlib40({sourceConsole}, options:=TestOptions.DebugDll, assemblyName:="System.Console")
             Dim systemConsoleRef = systemConsoleComp.EmitToImageReference()
-            Dim systemObjectModelComp = CreateCompilationWithMscorlib({sourceObjectModel}, options:=TestOptions.DebugDll, assemblyName:="System.ObjectModel")
+            Dim systemObjectModelComp = CreateCompilationWithMscorlib40({sourceObjectModel}, options:=TestOptions.DebugDll, assemblyName:="System.ObjectModel")
             Dim systemObjectModelRef = systemObjectModelComp.EmitToImageReference()
             Dim identityObjectModel = systemObjectModelRef.GetAssemblyIdentity()
 
@@ -399,7 +399,7 @@ End Class"
             Dim runtimeReferences = ImmutableArray.Create(systemConsoleRef, MscorlibFacadeRef, SystemRuntimeFacadeRef, systemObjectModelRef)
 
             ' Verify the compiler reports duplicate types with facade assemblies.
-            Dim compilation = CreateCompilationWithReferences(MakeSources(source), references:=runtimeReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CreateEmptyCompilationWithReferences(MakeSources(source), references:=runtimeReferences, options:=TestOptions.DebugDll)
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_AmbiguousInNamespace2, "System.Console").WithArguments("Console", "System").WithLocation(3, 25),
                 Diagnostic(ERRID.ERR_AmbiguousInNamespace2, "System.Collections.ObjectModel.ReadOnlyDictionary(Of Object, Object)").WithArguments("ReadOnlyDictionary", "System.Collections.ObjectModel").WithLocation(4, 37))
@@ -407,7 +407,7 @@ End Class"
             ' EE should not report duplicate type when the original source
             ' is compiled with contract assemblies and the EE expression
             ' is compiled with facade assemblies.
-            compilation = CreateCompilationWithReferences(MakeSources(source), references:=contractReferences, options:=TestOptions.DebugDll)
+            compilation = CreateEmptyCompilationWithReferences(MakeSources(source), references:=contractReferences, options:=TestOptions.DebugDll)
 
             WithRuntimeInstance(compilation, runtimeReferences,
                 Sub(runtime)
@@ -456,7 +456,7 @@ End Class"
 End Class
 Public Class Private2
 End Class"
-            Dim compLib = CreateCompilationWithMscorlib(
+            Dim compLib = CreateCompilationWithMscorlib40(
                 {sourceLib},
                 options:=TestOptions.ReleaseDll,
                 assemblyName:="System.Private.Library")
@@ -478,7 +478,7 @@ Namespace System
 End Namespace"
             ' Create a custom corlib with a reference to compilation
             ' above and a reference to the actual mscorlib.
-            Dim compCorLib = CreateCompilation(
+            Dim compCorLib = CreateEmptyCompilation(
                 {Parse(sourceCorLib)},
                 options:=TestOptions.ReleaseDll,
                 references:={MscorlibRef, refLib},
@@ -515,7 +515,7 @@ End Namespace"
     Shared Sub M()
     End Sub
 End Class"
-                Dim comp = CreateCompilation(
+                Dim comp = CreateEmptyCompilation(
                     {Parse(source)},
                     options:=TestOptions.ReleaseDll,
                     references:={refLib, AssemblyMetadata.Create([module]).GetReference()})

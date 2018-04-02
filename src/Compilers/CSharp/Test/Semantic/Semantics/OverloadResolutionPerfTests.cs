@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class OverloadResolutionPerfTests : CSharpTestBase
     {
         [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
-        [NoIOperationValidationFact]
+        [ConditionalFactAttribute(typeof(IsRelease), typeof(NoIOperationValidation))]
         public void Overloads()
         {
             const int n = 3000;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
-        [NoIOperationValidationFact]
+        [ConditionalFactAttribute(typeof(IsRelease), typeof(NoIOperationValidation))]
         public void BinaryOperatorOverloads()
         {
             const int n = 3000;
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + null").WithArguments("+", "C", "<null>").WithLocation(3, 29));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease))]
         public void StaticMethodsWithLambda()
         {
             const int n = 100;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease))]
         public void ConstructorsWithLambdaAndParams()
         {
             const int n = 100;
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease))]
         public void ExtensionMethodsWithLambda()
         {
             const int n = 100;
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease))]
         public void ExtensionMethodsWithLambdaAndParams()
         {
             const int n = 100;
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyDiagnostics();
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFactAttribute(typeof(IsRelease), typeof(NoIOperationValidation))]
         public void ExtensionMethodsWithLambdaAndErrors()
         {
             const int n = 200;

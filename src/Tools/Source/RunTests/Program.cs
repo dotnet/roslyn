@@ -128,12 +128,7 @@ namespace RunTests
 
         private static void WriteLogFile(Options options)
         {
-            var logFilePath = options.LogFilePath;
-            if (string.IsNullOrEmpty(logFilePath))
-            {
-                return;
-            }
-
+            var logFilePath = Path.Combine(options.LogsDirectory, "runtests.log");
             try
             {
                 using (var writer = new StreamWriter(logFilePath, append: false))
@@ -212,12 +207,9 @@ namespace RunTests
 
         private static ProcDumpInfo? GetProcDumpInfo(Options options)
         {
-            if (!string.IsNullOrEmpty(options.ProcDumpPath))
+            if (!string.IsNullOrEmpty(options.ProcDumpDirectory))
             {
-                var dumpDir = options.LogFilePath != null
-                    ? Path.GetDirectoryName(options.LogFilePath)
-                    : Directory.GetCurrentDirectory();
-                return new ProcDumpInfo(Path.Combine(options.ProcDumpPath, "procdump.exe"), dumpDir);
+                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.LogsDirectory);
             }
 
             return null;
@@ -325,7 +317,7 @@ namespace RunTests
             var testExecutionOptions = new TestExecutionOptions(
                 xunitPath: options.XunitPath,
                 procDumpInfo: GetProcDumpInfo(options),
-                logFilePath: options.LogFilePath,
+                logsDirectory: options.LogsDirectory,
                 trait: options.Trait,
                 noTrait: options.NoTrait,
                 useHtml: options.UseHtml,

@@ -448,12 +448,12 @@ class C
     }
 }";
             CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
-                // (84,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
-                //     public static void PExt(this P p) {}
-                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(84, 29),
                 // (69,28): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 //     public static P Select(this P p, Func<P, P> projection)
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(69, 28),
+                // (84,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                //     public static void PExt(this P p) {}
+                Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(84, 29),
                 // (80,33): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 //     public static object Select(this Q q, object projection)
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(80, 33),
@@ -505,7 +505,7 @@ class C
                 // (190,24): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         p.RefParameter(456);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "456").WithArguments("1", "ref").WithLocation(190, 24),
-                // (195,28): error CS1615: Argument 1 should not be passed with the 'out' keyword
+                // (195,28): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         p.OneParameter(out local);  
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "local").WithArguments("1", "out").WithLocation(195, 28),
                 // (199,28): error CS1620: Argument 1 must be passed with the 'ref' keyword
@@ -519,7 +519,8 @@ class C
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "P.NoParameter").WithArguments("P.NoParameter()").WithLocation(219, 9),
                 // (223,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod()'
                 //         InstanceMethod(); // Verify that use of 'implicit this' is not legal in a static method.
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod()").WithLocation(223, 9));
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod()").WithLocation(223, 9)
+                );
         }
 
         [WorkItem(538651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538651")]

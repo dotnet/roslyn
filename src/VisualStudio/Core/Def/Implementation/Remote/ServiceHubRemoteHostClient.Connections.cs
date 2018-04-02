@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             /// <typeparamref name="TException"/>. any other exception from the call won't be handled here.
             /// </summary>
             public static async Task<TResult> RetryRemoteCallAsync<TException, TResult>(
+                Workspace workspace,
                 Func<Task<TResult>> funcAsync,
                 TimeSpan timeout,
                 CancellationToken cancellationToken) where TException : Exception
@@ -57,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
 
                 // operation timed out, more than we are willing to wait
-                ShowInfoBar();
+                ShowInfoBar(workspace);
 
                 // user didn't ask for cancellation, but we can't fullfill this request. so we
                 // create our own cancellation token and then throw it. this doesn't guarantee
@@ -73,6 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
 
             public static async Task<Stream> RequestServiceAsync(
+                Workspace workspace,
                 HubClient client,
                 string serviceName,
                 HostGroup hostGroup,
@@ -105,6 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         // first retry most likely deal with real issue on servicehub, second retry (cancellation) is to deal with
                         // by design servicehub behavior we don't want to use.
                         return await RetryRemoteCallAsync<OperationCanceledException, Stream>(
+                            workspace,
                             () => client.RequestServiceAsync(descriptor, cancellationToken),
                             timeout,
                             cancellationToken).ConfigureAwait(false);
@@ -154,16 +157,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private static bool s_infoBarReported = false;
 
-            private static void ShowInfoBar()
+            private static void ShowInfoBar(Workspace workspace)
             {
                 // use info bar to show warning to users
-                if (CodeAnalysis.PrimaryWorkspace.Workspace != null && !s_infoBarReported)
+                if (workspace != null && !s_infoBarReported)
                 {
                     // do not report it multiple times
                     s_infoBarReported = true;
 
                     // use info bar to show warning to users
-                    CodeAnalysis.PrimaryWorkspace.Workspace.Services.GetService<IErrorReportingService>()?.ShowGlobalErrorInfo(
+                    workspace.Services.GetService<IErrorReportingService>()?.ShowGlobalErrorInfo(
                         ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio);
                 }
             }

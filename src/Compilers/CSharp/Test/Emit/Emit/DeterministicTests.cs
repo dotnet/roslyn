@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Reflection.PortableExecutable;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -16,17 +17,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     [CompilerTrait(CompilerFeature.Determinism)]
     public class DeterministicTests : EmitMetadataTestBase
     {
-        private Guid CompiledGuid(string source, string assemblyName, bool debug)
+        private Guid CompiledGuid(string source, string assemblyName, bool debug, Platform platform = Platform.AnyCpu)
         {
-            return CompiledGuid(source, assemblyName, options: debug ? TestOptions.DebugExe : TestOptions.ReleaseExe);
+            return CompiledGuid(source, assemblyName, options: debug ? TestOptions.DebugExe : TestOptions.ReleaseExe, platform: platform);
         }
 
-        private Guid CompiledGuid(string source, string assemblyName, CSharpCompilationOptions options, EmitOptions emitOptions = null)
+        private Guid CompiledGuid(string source, string assemblyName, CSharpCompilationOptions options, EmitOptions emitOptions = null, Platform platform = Platform.AnyCpu)
         {
             var compilation = CreateEmptyCompilation(source,
                 assemblyName: assemblyName,
                 references: new[] { MscorlibRef },
-                options: options.WithDeterministic(true));
+                options: options.WithDeterministic(true).WithPlatform(platform));
 
             Guid result = default(Guid);
             base.CompileAndVerify(compilation, emitOptions: emitOptions, validator: a =>
@@ -110,6 +111,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         }
 
         [Fact]
+        public void PlatformChangeGuid()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args) {}
+}";
+            // Two identical compilations should produce the same MVID
+            var mvid1 = CompiledGuid(source, "X1", false, Platform.X86);
+            var mvid2 = CompiledGuid(source, "X1", false, Platform.X86);
+            Assert.Equal(mvid1, mvid2);
+
+            var mvid3 = CompiledGuid(source, "X1", false, Platform.X64);
+            var mvid4 = CompiledGuid(source, "X1", false, Platform.X64);
+            Assert.Equal(mvid3, mvid4);
+
+            var mvid5 = CompiledGuid(source, "X1", false, Platform.Arm64);
+            var mvid6 = CompiledGuid(source, "X1", false, Platform.Arm64);
+            Assert.Equal(mvid5, mvid6);
+
+            // No two platforms should produce the same MVID
+            Assert.NotEqual(mvid1, mvid3);
+            Assert.NotEqual(mvid1, mvid5);
+            Assert.NotEqual(mvid3, mvid5);
+        }
+
+        [Fact]
+        public void PlatformChangeTimestamp()
+        {
+            var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, DebugInformationFormat.Embedded, optimize: false);
+            var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, DebugInformationFormat.Embedded, optimize: false);
+
+            AssertEx.NotEqual(result1.pe, result2.pe);
+
+            PEReader peReader1 = new PEReader(result1.pe);
+            PEReader peReader2 = new PEReader(result2.pe);
+            Assert.Equal(Machine.Amd64, peReader1.PEHeaders.CoffHeader.Machine);
+            Assert.Equal((Machine)0xAA64, peReader2.PEHeaders.CoffHeader.Machine);
+            Assert.NotEqual(peReader1.PEHeaders.CoffHeader.TimeDateStamp, peReader2.PEHeaders.CoffHeader.TimeDateStamp);
+        }
+
+        [Fact]
         public void RefAssembly()
         {
             var source =
@@ -172,6 +215,11 @@ namespace N
                 var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
                 AssertEx.Equal(result3.pe, result4.pe);
                 AssertEx.Equal(result3.pdb, result4.pdb);
+
+                var result5 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: true);
+                var result6 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: true);
+                AssertEx.Equal(result5.pe, result6.pe);
+                AssertEx.Equal(result5.pdb, result6.pdb);
             }
         }
 
@@ -194,6 +242,11 @@ namespace N
                 var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
                 AssertEx.Equal(result3.pe, result4.pe);
                 AssertEx.Equal(result3.pdb, result4.pdb);
+
+                var result5 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: false);
+                var result6 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: false);
+                AssertEx.Equal(result5.pe, result6.pe);
+                AssertEx.Equal(result5.pdb, result6.pdb);
             }
         }
 

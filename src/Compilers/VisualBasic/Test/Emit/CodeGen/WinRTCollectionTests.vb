@@ -44,7 +44,7 @@ Public NotInheritable Class BehaviorCollection
     End Function
 End Class]]></file>
             </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, WinRtRefs)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(source, WinRtRefs)
             comp.AssertNoDiagnostics()
         End Sub
 
@@ -247,7 +247,7 @@ End Class
 
             Dim comp = CompileAndVerifyOnWin8Only(source,
                                                   expectedOutput:=output,
-                                                  additionalRefs:=LegacyRefs)
+                                                  references:=LegacyRefs)
             comp.VerifyIL("A.Main", <![CDATA[
 {
   // Code size      114 (0x72)
@@ -424,7 +424,7 @@ End Class]]>
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, references:=WinRtRefs)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(source, references:=WinRtRefs)
             ' JsonArray implements both IEnumerable and IList, which both have a GetEnumerator
             ' method. We can't know which interface method to call, so we shouldn't emit a
             ' GetEnumerator method at all.
@@ -510,7 +510,7 @@ End Class
 
 
             Dim verifier = CompileAndVerify(source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIIterableMembers", <![CDATA[
@@ -1294,7 +1294,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:=LegacyRefs)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:=LegacyRefs)
             CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
@@ -1584,7 +1584,7 @@ End Class
                 </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             verifier.VerifyIL("AllMembers.TestIMapIntIntMembers", <![CDATA[
 {
@@ -2492,7 +2492,7 @@ End Class
                 </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIVectorIntIVectorViewIntIMapIntIntIMapViewIntIntMembers", <![CDATA[
@@ -3699,7 +3699,7 @@ End Class
                 </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestISimpleInterfaceImplMembers", <![CDATA[
@@ -4036,7 +4036,7 @@ End Class
                 </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestCollectionInitializers", <![CDATA[
@@ -4206,7 +4206,7 @@ End Class
                 </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestExpressionTreeCompiler", <![CDATA[
@@ -4376,7 +4376,7 @@ End Class
                 </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 options:=TestOptions.ReleaseExe.WithModuleName("MODULE"),
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
@@ -4607,7 +4607,7 @@ End Class
                 </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestNamedArguments", <![CDATA[
@@ -4728,7 +4728,7 @@ End Class
     </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestNullableArgs", <![CDATA[
@@ -4869,7 +4869,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:=LegacyRefs)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:=LegacyRefs)
             CompilationUtils.AssertTheseDiagnostics(comp)
         End Sub
 
@@ -4963,7 +4963,7 @@ End Class
                 </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIBindableVectorMembers", <![CDATA[
@@ -5183,7 +5183,7 @@ End Class
                 </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIBindableIterableMembers", <![CDATA[
@@ -5337,7 +5337,7 @@ End Class
                 </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIBindableVectorIVectorIntMembers", <![CDATA[
@@ -5688,7 +5688,7 @@ End Class
                 </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIBindableIterableIIterableMembers", <![CDATA[
@@ -5819,7 +5819,7 @@ End Class
 
             Dim verifier = CompileAndVerify(
                 source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.INotifyCollectionAndBindableVectorMembers", <![CDATA[
@@ -6078,7 +6078,7 @@ End Class
 
             Dim verifier = CompileAndVerify(
                 source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.INotifyCollectionChangedMembers", <![CDATA[
@@ -6180,7 +6180,7 @@ End Class
 
             Dim verifier = CompileAndVerify(
                 source,
-                additionalRefs:=LegacyRefs,
+                references:=LegacyRefs,
                 verify:=Verification.Fails)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.IPropertyChangedMembers", <![CDATA[
@@ -6238,7 +6238,7 @@ End Class
                 </compilation>
 
             Dim comp = CompileAndVerify(src,
-                                        additionalRefs:=LegacyRefs,
+                                        references:=LegacyRefs,
                                         verify:=Verification.Fails,
                                         options:=TestOptions.ReleaseExe)
 
@@ -6286,7 +6286,7 @@ End Namespace
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source,
                 options:=TestOptions.ReleaseWinMD,
-                additionalRefs:=WinRtRefs)
+                references:=WinRtRefs)
 
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("Test.C.GetEnumerator()", <![CDATA[
@@ -6324,7 +6324,7 @@ End Namespace
                 </compilation>
 
             verifier = CompileAndVerify(source,
-                additionalRefs:=allRefs.ToArray())
+                references:=allRefs.ToArray())
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("Test2.D.Main", <![CDATA[
 {
@@ -6358,7 +6358,7 @@ Public Class Class1
 End Class
 ]]></file>
             </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, WinRtRefs)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(source, WinRtRefs)
             comp.AssertNoDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()

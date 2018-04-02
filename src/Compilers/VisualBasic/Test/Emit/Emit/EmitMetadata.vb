@@ -165,7 +165,7 @@ End Class
 
         <Fact>
         Public Sub FakeILGen()
-            Dim comp = CompilationUtils.CreateCompilationWithReferences(
+            Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb"> 
 Public Class D
@@ -649,7 +649,7 @@ End Class
 
         <Fact()>
         Public Sub GenericMethods2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 
@@ -920,7 +920,7 @@ End Class
          WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190"),
          WorkItem(90, "https://github.com/dotnet/roslyn/issues/90")>
         Public Sub EmitWithNoResourcesAllPlatforms()
-            Dim comp = CreateCompilationWithMscorlib(
+            Dim comp = CreateCompilationWithMscorlib40(
                 <compilation>
                     <file>
 Class Test
