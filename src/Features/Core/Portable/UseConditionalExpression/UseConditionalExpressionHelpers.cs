@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             editor.ReplaceNode(root, changedRoot);
         }
 
-        private static IOperation UnwrapSingleStatementBlock(IOperation statement)
+        public static IOperation UnwrapSingleStatementBlock(IOperation statement)
             => statement is IBlockOperation block && block.Operations.Length == 1
                 ? block.Operations[0]
                 : statement;
