@@ -11,11 +11,11 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UnsafeProject
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsUnsafeProject)]
-    public class UnsafeProjectTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
+    public class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpUnsafeProjectCodeFixProvider());
+            => (null, new CSharpUpdateProjectToAllowUnsafeCodeFixProvider());
 
         private async Task TestAllowUnsafeEnabledIfDisabledAsync(string initialMarkup)
         {
