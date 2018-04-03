@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             var root = new JsonCompilationUnit(arraySequence, _currentToken);
 
-            var diagnostic = GetDiagnostic(root) ?? CheckTopLevel(_lexer.Text, root);
+            var diagnostic = GetFirstDiagnostic(root) ?? CheckTopLevel(_lexer.Text, root);
             if (diagnostic == null)
             {
                 diagnostic = strict
@@ -137,11 +137,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 : child.Token;
         }
 
-        private static EmbeddedDiagnostic? GetDiagnostic(JsonNode node)
+        private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonNode node)
         {
             foreach (var child in node)
             {
-                var diagnostic = GetDiagnostic(child);
+                var diagnostic = GetFirstDiagnostic(child);
                 if (diagnostic != null)
                 {
                     return diagnostic;
@@ -151,17 +151,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return null;
         }
 
-        private static EmbeddedDiagnostic? GetDiagnostic(JsonNodeOrToken child)
+        private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonNodeOrToken child)
         {
             return child.IsNode
-                ? GetDiagnostic(child.Node)
-                : GetDiagnostic(child.Token);
+                ? GetFirstDiagnostic(child.Node)
+                : GetFirstDiagnostic(child.Token);
         }
 
-        private static EmbeddedDiagnostic? GetDiagnostic(JsonToken token)
-            => GetDiagnostic(token.LeadingTrivia) ?? token.Diagnostics.FirstOrNullable() ?? GetDiagnostic(token.TrailingTrivia);
+        private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonToken token)
+            => GetFirstDiagnostic(token.LeadingTrivia) ?? token.Diagnostics.FirstOrNullable() ?? GetFirstDiagnostic(token.TrailingTrivia);
 
-        private static EmbeddedDiagnostic? GetDiagnostic(ImmutableArray<JsonTrivia> list)
+        private static EmbeddedDiagnostic? GetFirstDiagnostic(ImmutableArray<JsonTrivia> list)
         {
             foreach (var trivia in list)
             {
