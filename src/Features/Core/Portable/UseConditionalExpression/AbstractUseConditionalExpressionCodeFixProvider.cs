@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            var condition = ifOperation.Condition.Syntax.WithoutTrivia();
+            var condition = ifOperation.Condition.Syntax;
             var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
-                condition,
+                condition.WithoutTrivia(),
                 CastValueIfNecessary(generator, trueValue),
                 CastValueIfNecessary(generator, falseValue));
 
