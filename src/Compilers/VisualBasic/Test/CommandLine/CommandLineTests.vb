@@ -1488,18 +1488,12 @@ End Module").Path
 #End Region
 
         <Theory,
-     InlineData({"/D:a=True,b=1", "a.vb"},
-                CType({"a", True}, Object()), CType({"b", 1}, Object()), CType({"TARGET", "exe"}, Object()), CType({"VBC_VER", Double.NaN}, Object())),
-     InlineData({"/D:a=True,b=1", "/define:a=""123"",b=False", "a.vb"},
-                CType({"a", "123"}, Object()), CType({"b", False}, Object()), CType({"TARGET", "exe"}, Object()), CType({"VBC_VER", Double.NaN}, Object())),
-     InlineData({"/D:a=""\\\\a"",b=""\\\\\b""", "a.vb"},
-                CType({"a", "\\\\a"}, Object()), CType({"b", "\\\\\b"}, Object()), CType({"TARGET", "exe"}, Object()), CType({"VBC_VER", Double.NaN}, Object())),
-     InlineData({"/define:DEBUG", "a.vb"},
-                CType({"DEBUG", True}, Object()), CType({"TARGET", "exe"}, Object()), CType({"VBC_VER", Double.NaN}, Object())),
-     InlineData({"/D:TARGET=True,VBC_VER=1", "a.vb"},
-                CType({"TARGET", True}, Object()), CType({"VBC_VER", 1}, Object()))
-    >
-        Public Sub TestDefines(args() As String, ParamArray symbols As Object()())
+     InlineData({"/D:a=True,b=1", "a.vb"}, {"a", CObj(True)}, {"b", CObj(1)}, {"TARGET", CObj("exe")}, {"VBC_VER", CObj(Double.NaN)}),
+     InlineData({"/D:a=True,b=1", "/define:a=""123"",b=False", "a.vb"}, {"a", CObj("123")}, {"b", CObj(False)}, {"TARGET", CObj("exe")}, {"VBC_VER", CObj(Double.NaN)}),
+     InlineData({"/D:a=""\\\\a"",b=""\\\\\b""", "a.vb"}, {"a", CObj("\\\\a")}, {"b", CObj("\\\\\b")}, {"TARGET", CObj("exe")}, {"VBC_VER", CObj(Double.NaN)}),
+     InlineData({"/define:DEBUG", "a.vb"}, {"DEBUG", CObj(True)}, {"TARGET", CObj("exe")}, {"VBC_VER", CObj(Double.NaN)}),
+     InlineData({"/D:TARGET=True,VBC_VER=1", "a.vb"}, {"TARGET", CObj(True)}, {"VBC_VER", CObj(1)})>
+        Public Sub TestDefines(args() As String, ParamArray symbols()() As Object)
             Dim parsedArgs = DefaultParse(args, _baseDirectory)
             Assert.False(parsedArgs.Errors.Any)
             Assert.Equal(symbols.Length, parsedArgs.ParseOptions.PreprocessorSymbols.Length)
