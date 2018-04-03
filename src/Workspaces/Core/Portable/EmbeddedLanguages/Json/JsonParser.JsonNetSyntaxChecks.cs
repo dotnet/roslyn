@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
 
             private static bool IsLegalPropertyNameChar(char ch)
-                => char.IsLetterOrDigit(ch) | ch == '_' || ch == '$';
+                => char.IsLetterOrDigit(ch) || ch == '_' || ch == '$';
         }
     }
 }
