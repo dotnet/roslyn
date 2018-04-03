@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return false;
             }
 
-            for (int i = 0, n = val.Length; i < n; i++)
+            for (int i = 0; i < val.Length; i++)
             {
                 if (chars[i].Char != val[i])
                 {
