@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         where TTypeSyntax : TExpressionSyntax
         where TTypeDeclarationSyntax : SyntaxNode
         where TQueryExpressionSyntax : TExpressionSyntax
-        where TNameSyntax : SyntaxNode
+        where TNameSyntax : TTypeSyntax
     {
         protected abstract bool IsInNonFirstQueryClause(TExpressionSyntax expression);
         protected abstract bool IsInFieldInitializer(TExpressionSyntax expression);
