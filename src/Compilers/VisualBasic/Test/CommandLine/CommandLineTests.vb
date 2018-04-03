@@ -1166,74 +1166,57 @@ End Module").Path
         End Sub
 #End Region
 
+#Region "SubsystemVersionTests"
+        <Theory>
+        <InlineData({"/subsystemversion:4.0", "a.vb"}, 4, 0)>
+        <InlineData({"/subsystemversion:0.0", "a.vb"}, 0, 0)> ' wrongly supported subsystem version. CompilationOptions data will be faithful to the user input. It is normalized at the time of emit.
+        <InlineData({"/subsystemversion:0", "a.vb"}, 0, 0)>' no error in Dev11
+        <InlineData({"/subsystemversion:3.99", "a.vb"}, 3, 99)>' no error in Dev11
+        <InlineData({"/subsystemversion:4.0", "/subsystemversion:5.333", "a.vb"}, 5, 333)>' no error in Dev11
+        Public Sub SubsystemVersionTests(Args() As String, Major As Int32, Minor As Int32)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(SubsystemVersion.Create(Major, Minor), parsedArgs.EmitOptions.SubsystemVersion)
+        End Sub
+
         <Fact>
         Public Sub SubsystemVersionTests()
-            Dim parsedArgs = DefaultParse({"/subsystemversion:4.0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(SubsystemVersion.Create(4, 0), parsedArgs.EmitOptions.SubsystemVersion)
-
-            ' wrongly supported subsystem version. CompilationOptions data will be faithful to the user input.
-            ' It is normalized at the time of emit.
-            parsedArgs = DefaultParse({"/subsystemversion:0.0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify() ' no error in Dev11
-            Assert.Equal(SubsystemVersion.Create(0, 0), parsedArgs.EmitOptions.SubsystemVersion)
-
-            parsedArgs = DefaultParse({"/subsystemversion:0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify() ' no error in Dev11
-            Assert.Equal(SubsystemVersion.Create(0, 0), parsedArgs.EmitOptions.SubsystemVersion)
-
-            parsedArgs = DefaultParse({"/subsystemversion:3.99", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify() ' no warning in Dev11
-            Assert.Equal(SubsystemVersion.Create(3, 99), parsedArgs.EmitOptions.SubsystemVersion)
-
-            parsedArgs = DefaultParse({"/subsystemversion:4.0", "/subsystemversion:5.333", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse({"/subsystemversion:4.0", "/subsystemversion:5.333", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SubsystemVersion.Create(5, 333), parsedArgs.EmitOptions.SubsystemVersion)
 
-            parsedArgs = DefaultParse({"/subsystemversion:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("subsystemversion", ":<version>"))
-
-            parsedArgs = DefaultParse({"/subsystemversion", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("subsystemversion", ":<version>"))
-
-            parsedArgs = DefaultParse({"/subsystemversion-", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/subsystemversion-")) ' TODO: Dev11 reports ERRID.ERR_ArgumentRequired
-
-            parsedArgs = DefaultParse({"/subsystemversion: ", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("subsystemversion", ":<version>"))
-
-            parsedArgs = DefaultParse({"/subsystemversion: 4.1", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments(" 4.1"))
-
-            parsedArgs = DefaultParse({"/subsystemversion:4 .0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("4 .0"))
-
-            parsedArgs = DefaultParse({"/subsystemversion:4. 0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("4. 0"))
-
-            parsedArgs = DefaultParse({"/subsystemversion:.", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("."))
-
-            parsedArgs = DefaultParse({"/subsystemversion:4.", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("4."))
-
-            parsedArgs = DefaultParse({"/subsystemversion:.0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments(".0"))
-
             parsedArgs = DefaultParse({"/subsystemversion:4.2 ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-
-            parsedArgs = DefaultParse({"/subsystemversion:4.65536", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("4.65536"))
-
-            parsedArgs = DefaultParse({"/subsystemversion:65536.0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("65536.0"))
-
-            parsedArgs = DefaultParse({"/subsystemversion:-4.0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments("-4.0"))
-
-            ' TODO: incompatibilities: versions lower than '6.2' and 'arm', 'winmdobj', 'appcontainer'
+            ' WRN_BadSwitch
+            parsedArgs = DefaultParse({"/subsystemversion-", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/subsystemversion-")) ' TODO: Dev11 reports ERRID.ERR_ArgumentRequired
         End Sub
+
+        <Theory,
+            InlineData({"/subsystemversion:", "a.vb"}, {"subsystemversion", ":<version>"}),
+            InlineData({"/subsystemversion", "a.vb"}, {"subsystemversion", ":<version>"}),
+            InlineData({"/subsystemversion: ", "a.vb"}, {"subsystemversion", ":<version>"})>
+        Public Sub SubsystemVersionTests_ERR_ArgumentRequired(Args() As String, WithArgs() As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments(WithArgs))
+        End Sub
+
+        <Theory,
+            InlineData({"/subsystemversion: 4.1", "a.vb"}, " 4.1"),
+            InlineData({"/subsystemversion:4 .0", "a.vb"}, "4 .0"),
+            InlineData({"/subsystemversion:4. 0", "a.vb"}, "4. 0"),
+            InlineData({"/subsystemversion:.", "a.vb"}, "."),
+            InlineData({"/subsystemversion:4.", "a.vb"}, "4."),
+            InlineData({"/subsystemversion:.0", "a.vb"}, ".0"),
+            InlineData({"/subsystemversion:4.65536", "a.vb"}, "4.65536"),
+            InlineData({"/subsystemversion:65536.0", "a.vb"}, "65536.0"),
+            InlineData({"/subsystemversion:-4.0", "a.vb"}, "-4.0")>
+        Public Sub SubsystemVersionTests_ERR_InvalidSubSystemVersion(Args() As String, WithArg As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_InvalidSubsystemVersion).WithArguments(WithArg))
+            '' TODO: incompatibilities: versions lower than '6.2' and 'arm', 'winmdobj', 'appcontainer'
+        End Sub
+#End Region
 
         <Fact>
         Public Sub Codepage()
