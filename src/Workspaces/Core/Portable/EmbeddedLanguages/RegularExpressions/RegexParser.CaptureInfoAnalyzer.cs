@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 _captureNames = ArrayBuilder<string>.GetInstance();
                 _autoNumber = 1;
 
-                _captureNumberToSpan.Add(0, text.IsEmpty == 0 ? default : GetSpan(text));
+                _captureNumberToSpan.Add(0, text.IsEmpty ? default : GetSpan(text));
             }
 
             public (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<int, TextSpan>) Analyze(
