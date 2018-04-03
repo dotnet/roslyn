@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     : default;
 
                 var classType = _state.ClassType;
-                var accessibility = baseConstructor.ContainingType.IsAbstractClass() ? 
-                    (classType.IsAbstractClass() ? baseConstructor.DeclaredAccessibility : Accessibility.Public)
-                    : baseConstructor.DeclaredAccessibility;       
+                var accessibility = baseConstructor.ContainingType.IsAbstractClass() && !classType.IsAbstractClass()
+                    ? Accessibility.Public
+                    : baseConstructor.DeclaredAccessibility;
                 return CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,
                     accessibility: accessibility,
