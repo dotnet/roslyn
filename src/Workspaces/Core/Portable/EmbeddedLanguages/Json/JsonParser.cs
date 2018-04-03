@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         /// <summary>
         /// Given an input text, parses out a fully representative syntax tree  and list of 
-        /// diagnotics.  Parsing should always succeed, except in the case of the stack 
+        /// diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
         public static JsonTree TryParse(ImmutableArray<VirtualChar> text, bool strict)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 _lexer.Text, root, diagnostics);
         }
 
-        private EmbeddedDiagnostic? CheckTopLevel(
+        private static EmbeddedDiagnostic? CheckTopLevel(
             ImmutableArray<VirtualChar> text, JsonCompilationUnit compilationUnit)
         {
             var arraySequence = compilationUnit.Sequence;
