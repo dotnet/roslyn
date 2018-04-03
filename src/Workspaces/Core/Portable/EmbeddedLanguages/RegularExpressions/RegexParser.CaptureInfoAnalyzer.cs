@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return (_captureNameToSpan.ToImmutable(), _captureNumberToSpan.ToImmutable());
             }
 
-
             private void CollectCaptures(RegexNode node, RegexOptions options)
             {
                 switch (node.Kind)
