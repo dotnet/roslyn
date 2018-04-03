@@ -131,14 +131,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         private static JsonToken GetFirstToken(JsonNode node)
         {
-            foreach (var child in node)
-            {
-                return child.IsNode
-                    ? GetFirstToken(child.Node)
-                    : child.Token;
-            }
-
-            throw new InvalidOperationException();
+            var child = node.ChildAt(0);
+            return child.IsNode
+                ? GetFirstToken(child.Node)
+                : child.Token;
         }
 
         private static EmbeddedDiagnostic? GetDiagnostic(JsonNode node)
