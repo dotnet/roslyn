@@ -1558,34 +1558,26 @@ End Module").Path
         End Sub
 #End Region
 
-        <Fact>
-        Public Sub Link_SimpleTests()
-            Dim parsedArgs = DefaultParse({"/link:a", "/link:b,,,,c", "a.vb"}, _baseDirectory)
+#Region "Link_SimpleTests"
+        <Theory, InlineData({"/link:a", "/link:b,,,,c", "a.vb"}, {"a", "b", "c"}), InlineData({"/Link: ,,, b ,,", "a.vb"}, {" ", " b "})>
+        Public Sub Link_SimpleTests_MetadataReferences(Args() As String, ExpectedMetadataReferences() As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
             parsedArgs.Errors.Verify()
-            AssertEx.Equal({"a", "b", "c"},
-                       parsedArgs.MetadataReferences.
-                                  Where(Function(res) res.Properties.EmbedInteropTypes).
-                                  Select(Function(res) res.Reference))
-
-            parsedArgs = DefaultParse({"/Link: ,,, b ,,", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            AssertEx.Equal({" ", " b "},
-                       parsedArgs.MetadataReferences.
-                                  Where(Function(res) res.Properties.EmbedInteropTypes).
-                                  Select(Function(res) res.Reference))
-
-            parsedArgs = DefaultParse({"/l:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("l", ":<file_list>"))
-
-            parsedArgs = DefaultParse({"/L", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("l", ":<file_list>"))
-
-            parsedArgs = DefaultParse({"/l+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/l+")) ' TODO: Dev11 reports ERR_ArgumentRequired
-
-            parsedArgs = DefaultParse({"/link-:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/link-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
+            AssertEx.Equal(ExpectedMetadataReferences, parsedArgs.MetadataReferences.Where(Function(res) res.Properties.EmbedInteropTypes).Select(Function(res) res.Reference))
         End Sub
+
+        <Theory, InlineData({"/l:", "a.vb"}), InlineData({"/L", "a.vb"})>
+        Public Sub Link_SimpleTests_ERR_ArgumentRequired(ParamArray Args() As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("l", ":<file_list>"))
+        End Sub
+
+        <Theory, InlineData({"/l+", "a.vb"}, "/l+"), InlineData({"/link-:", "a.vb"}, "/link-:")>
+        Public Sub Link_SimpleTests(Args() As String, WithArg As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments(WithArg)) ' TODO: Dev11 reports ERR_ArgumentRequired
+        End Sub
+#End Region
 
         <Fact>
         Public Sub Recurse_SimpleTests()
