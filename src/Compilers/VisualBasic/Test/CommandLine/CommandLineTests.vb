@@ -1325,33 +1325,22 @@ End Module").Path
         End Sub
 #End Region
 
-        <Fact>
-        Public Sub OptionExplicit()
-            Dim parsedArgs = InteractiveParse({"/optiONexplicit"}, _baseDirectory)
-            Assert.Equal(0, parsedArgs.Errors.Length)
-            Assert.Equal(True, parsedArgs.CompilationOptions.OptionExplicit)
-
-            parsedArgs = InteractiveParse({"/optiONexplicit:+"}, _baseDirectory)
-            Assert.Equal(1, parsedArgs.Errors.Length)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optionexplicit"))
-            Assert.Equal(True, parsedArgs.CompilationOptions.OptionExplicit)
-
-            parsedArgs = InteractiveParse({"/optiONexplicit-:"}, _baseDirectory)
-            Assert.Equal(1, parsedArgs.Errors.Length)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optionexplicit"))
-
-            parsedArgs = InteractiveParse({"/optionexplicit+", "/optiONexplicit-:"}, _baseDirectory)
-            Assert.Equal(1, parsedArgs.Errors.Length)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optionexplicit"))
-
-            parsedArgs = InteractiveParse({"/optionexplicit+", "/optiONexplicit-", "/optiONexpliCIT+"}, _baseDirectory)
-            Assert.Equal(0, parsedArgs.Errors.Length)
-            Assert.Equal(True, parsedArgs.CompilationOptions.OptionExplicit)
-
-            parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
+#Region "OptionExplicit"
+        <Theory, InlineData({"/optiONexplicit"}), InlineData({"/optionexplicit+", "/optiONexplicit-", "/optiONexpliCIT+"}), InlineData({"/d:a=1"})>
+        Public Sub OptionExplicit(ParamArray Args() As String)
+            Dim parsedArgs = InteractiveParse(Args, _baseDirectory)
             Assert.Equal(0, parsedArgs.Errors.Length)
             Assert.Equal(True, parsedArgs.CompilationOptions.OptionExplicit)
         End Sub
+
+        <Theory, InlineData({"/optiONexplicit:+"}), InlineData({"/optiONexplicit-:"}), InlineData({"/optionexplicit+", "/optiONexplicit-:"})>
+        Public Sub OptionExplicit_ERR_SwitchNeedsBool(ParamArray Args() As String)
+            Dim parsedArgs = InteractiveParse(Args, _baseDirectory)
+            Assert.Equal(1, parsedArgs.Errors.Length)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optionexplicit"))
+            Assert.Equal(True, parsedArgs.CompilationOptions.OptionExplicit)
+        End Sub
+#End Region
 
         <Fact>
         Public Sub OptionInfer()
