@@ -1094,45 +1094,35 @@ End Module").Path
         End Sub
 #End Region
 
-        <WorkItem(546113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546113")>
-        <Fact>
-        Public Sub OutputQuiet()
-            Dim parsedArgs = DefaultParse({"/quiet", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OutputLevel.Quiet, parsedArgs.OutputLevel)
-
-            parsedArgs = DefaultParse({"/quiet+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OutputLevel.Quiet, parsedArgs.OutputLevel)
-
-            parsedArgs = DefaultParse({"/quiet-", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
-
-            parsedArgs = DefaultParse({"/QUIET:-", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/QUIET:-"))
-
-            parsedArgs = DefaultParse({"/quiet-:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("quiet"))
-
-            parsedArgs = DefaultParse({"/quiet+:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("quiet"))
-
-            parsedArgs = DefaultParse({"/quiET:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/quiET:"))
-
-            parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
-
-            parsedArgs = DefaultParse({"/verbose", "/quiet", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OutputLevel.Quiet, parsedArgs.OutputLevel)
-
-            parsedArgs = DefaultParse({"/verbose", "/quiet-", "a.vb"}, _baseDirectory)
+#Region "OutputQuiet"
+        <Fact, WorkItem(546113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546113")>
+        Friend Sub OutputQuiet()
+            Dim parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
             parsedArgs.Errors.Verify()
             Assert.Equal(OutputLevel.Normal, parsedArgs.OutputLevel)
         End Sub
+
+        <Theory, WorkItem(546113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546113"),
+        InlineData({"/quiet", "a.vb"}, OutputLevel.Quiet), InlineData({"/quiet+", "a.vb"}, OutputLevel.Quiet), InlineData({"/quiet-", "a.vb"}, OutputLevel.Normal),
+        InlineData({"/verbose", "/quiet", "a.vb"}, OutputLevel.Quiet), InlineData({"/verbose", "/quiet-", "a.vb"}, OutputLevel.Normal)>
+        Friend Sub OutputQuiet_DefaultParse(Args() As String, ExpectedOutputLevel As OutputLevel)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(ExpectedOutputLevel, parsedArgs.OutputLevel)
+        End Sub
+
+        <Theory, InlineData({"/QUIET:-", "a.vb"}, "/QUIET:-"), InlineData({"/quiET:", "a.vb"}, "/quiET:")>
+        Public Sub OutputQuiet_WRN_BadSwitchl(Args() As String, WithArg As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments(WithArg))
+        End Sub
+
+        <Theory, InlineData({"/quiet-:", "a.vb"}, "quiet"), InlineData({"/quiet+:", "a.vb"}, "quiet")>
+        Public Sub OutputQuiet_ERR_SwitchNeedsBool(Args() As String, WithArg As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments(WithArg))
+        End Sub
+#End Region
 
         <Fact>
         Public Sub Optimize()
