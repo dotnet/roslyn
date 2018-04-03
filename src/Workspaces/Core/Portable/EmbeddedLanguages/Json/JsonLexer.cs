@@ -29,8 +29,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             ? Text[Position]
             : new VirtualChar((char)0, span: default);
 
-        public ImmutableArray<VirtualChar> GetSubPattern(int start, int end)
+        public ImmutableArray<VirtualChar> GetCharsToCurrentPosition(int start)
         {
+            var end = Position;
             var result = ArrayBuilder<VirtualChar>.GetInstance(end - start);
             for (var i = start; i < end; i++)
             {
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     case '\'':
                         if (currentCh == startChar)
                         {
-                            return (GetSubPattern(start, Position), JsonKind.StringToken, diagnostic);
+                            return (GetCharsToCurrentPosition(start), JsonKind.StringToken, diagnostic);
                         }
                         continue;
 
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 }
             }
 
-            var chars = GetSubPattern(start, Position);
+            var chars = GetCharsToCurrentPosition(start);
             diagnostic = diagnostic ?? new EmbeddedDiagnostic(
                 WorkspacesResources.Unterminated_string, GetSpan(chars));
             return (chars, JsonKind.StringToken, diagnostic);
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             if (this.Position == Text.Length)
             {
-                var chars = GetSubPattern(stringStart, Position);
+                var chars = GetCharsToCurrentPosition(stringStart);
                 return new EmbeddedDiagnostic(WorkspacesResources.Unterminated_string, GetSpan(chars));
             }
 
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
                 default:
                     Position++;
-                    var chars = GetSubPattern(escapeStart, Position);
+                    var chars = GetCharsToCurrentPosition(escapeStart);
                     return new EmbeddedDiagnostic(WorkspacesResources.Invalid_escape_sequence, GetSpan(chars));
             }
         }
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             if (invalid || (Position - unicodeCharStart != 4))
             {
-                var chars = GetSubPattern(escapeStart, Position);
+                var chars = GetCharsToCurrentPosition(escapeStart);
                 return new EmbeddedDiagnostic(WorkspacesResources.Invalid_escape_sequence, GetSpan(chars));
             }
 
@@ -223,7 +224,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 Position++;
             }
 
-            return (GetSubPattern(start, Position), JsonKind.TextToken, null);
+            return (GetCharsToCurrentPosition(start), JsonKind.TextToken, null);
         }
 
         private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?)? TryScanText(
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
 
             Position += text.Length;
-            return (GetSubPattern(start, Position), kind, null);
+            return (GetCharsToCurrentPosition(start), kind, null);
         }
 
         private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanSingleCharToken(JsonKind kind)
@@ -291,12 +292,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             if (IsAt("\r\n"))
             {
                 Position += 2;
-                return CreateTrivia(JsonKind.EndOfLineTrivia, GetSubPattern(start, Position));
+                return CreateTrivia(JsonKind.EndOfLineTrivia, GetCharsToCurrentPosition(start));
             }
             else if (IsAt("\r") || IsAt("\n"))
             {
                 Position++;
-                return CreateTrivia(JsonKind.EndOfLineTrivia, GetSubPattern(start, Position));
+                return CreateTrivia(JsonKind.EndOfLineTrivia, GetCharsToCurrentPosition(start));
             }
 
             return null;
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 var start = Position;
                 Position++;
 
-                var chars = GetSubPattern(start, Position);
+                var chars = GetCharsToCurrentPosition(start);
                 return CreateTrivia(JsonKind.SingleLineCommentTrivia, chars,
                     ImmutableArray.Create(new EmbeddedDiagnostic(
                         WorkspacesResources.Error_parsing_comment,
@@ -339,7 +340,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 Position++;
             }
 
-            var chars = GetSubPattern(start, Position);
+            var chars = GetCharsToCurrentPosition(start);
             if (Position == start + 2)
             {
                 var diagnostics = ImmutableArray.Create(new EmbeddedDiagnostic(
@@ -365,11 +366,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             if (IsAt("*/"))
             {
                 Position += 2;
-                return CreateTrivia(JsonKind.MultiLineCommentTrivia, GetSubPattern(start, Position));
+                return CreateTrivia(JsonKind.MultiLineCommentTrivia, GetCharsToCurrentPosition(start));
             }
 
             Debug.Assert(Position == Text.Length);
-            return CreateTrivia(JsonKind.MultiLineCommentTrivia, GetSubPattern(start, Position),
+            return CreateTrivia(JsonKind.MultiLineCommentTrivia, GetCharsToCurrentPosition(start),
                 ImmutableArray.Create(new EmbeddedDiagnostic(
                     WorkspacesResources.Unterminated_comment,
                     GetTextSpan(start, Position))));
@@ -406,7 +407,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             if (Position > start)
             {
-                return CreateTrivia(JsonKind.WhitespaceTrivia, GetSubPattern(start, Position));
+                return CreateTrivia(JsonKind.WhitespaceTrivia, GetCharsToCurrentPosition(start));
             }
 
             return null;
