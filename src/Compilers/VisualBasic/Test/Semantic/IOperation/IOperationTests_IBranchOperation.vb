@@ -1426,7 +1426,7 @@ Block[B1] - Block [UnReachable]
 }
 .catch {R3} (System.Exception)
 {
-    Block[B3] - Block [UnReachable]
+    Block[B3] - Block
         Predecessors (0)
         Statements (0)
         Next (Regular) Block[B4]
@@ -1474,7 +1474,7 @@ Block[B0] - Entry
 }
 .catch {R3} (System.Exception)
 {
-    Block[B2] - Block [UnReachable]
+    Block[B2] - Block
         Predecessors (0)
         Statements (0)
         Next (Regular) Block[B1]
@@ -1698,7 +1698,7 @@ Block[B1] - Block
     }
     .catch {R5} (System.Exception)
     {
-        Block[B3] - Block [UnReachable]
+        Block[B3] - Block
             Predecessors (0)
             Statements (0)
             Next (Regular) Block[B6]
@@ -1817,20 +1817,20 @@ Block[B0] - Entry
     }
     .catch {R9} (System.Exception)
     {
-        Block[B5] - Block [UnReachable]
+        Block[B5] - Block
             Predecessors (0)
             Statements (0)
             Next (Regular) Block[B6]
                 Leaving: {R9} {R7}
     }
 
-    Block[B6] - Block [UnReachable]
+    Block[B6] - Block
         Predecessors: [B4] [B5]
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[B7] - Exit [UnReachable]
+Block[B7] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ]]>.Value

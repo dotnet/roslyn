@@ -69,14 +69,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private static void MarkReachableBlocks(ArrayBuilder<BasicBlock> blocks)
         {
-            var continueDispatchAfterFilterOrFinally = PooledDictionary<ControlFlowGraph.Region, bool>.GetInstance();
+            var continueDispatchAfterFinally = PooledDictionary<ControlFlowGraph.Region, bool>.GetInstance();
             var dispatchedExceptionsFromRegions = PooledHashSet<ControlFlowGraph.Region>.GetInstance();
             MarkReachableBlocks(blocks, firstBlockOrdinal: 0, lastBlockOrdinal: blocks.Count - 1, 
                                 outOfRangeBlocksToVisit: null, 
-                                continueDispatchAfterFilterOrFinally,
+                                continueDispatchAfterFinally,
                                 dispatchedExceptionsFromRegions,
                                 out _);
-            continueDispatchAfterFilterOrFinally.Free();
+            continueDispatchAfterFinally.Free();
             dispatchedExceptionsFromRegions.Free();
         }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Operations
             int firstBlockOrdinal, 
             int lastBlockOrdinal, 
             ArrayBuilder<BasicBlock> outOfRangeBlocksToVisit, 
-            PooledDictionary<ControlFlowGraph.Region, bool> continueDispatchAfterFilterOrFinally,
+            PooledDictionary<ControlFlowGraph.Region, bool> continueDispatchAfterFinally,
             PooledHashSet<ControlFlowGraph.Region> dispatchedExceptionsFromRegions,
             out bool fellThrough)
         {
@@ -112,17 +112,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 visited[current.Ordinal] = true;
                 current.IsReachable = true;
-                bool canThrow = false;
                 bool fallThrough = true;
-
-                foreach (IOperation operation in current.Statements)
-                {
-                    if (operationCanThrow(operation))
-                    {
-                        canThrow = true;
-                        break;
-                    }
-                }
 
                 (IOperation Condition, bool JumpIfTrue, BasicBlock.Branch Branch) conditional = current.Conditional;
                 if (conditional.Condition != null)
@@ -131,93 +121,48 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         if (constant == conditional.JumpIfTrue)
                         {
-                            followBranch(current, conditional.Branch, ref canThrow);
+                            followBranch(current, conditional.Branch);
                             fallThrough = false;
                         }
                     }
                     else
                     {
-                        if (operationCanThrow(conditional.Condition))
-                        {
-                            canThrow = true;
-                        }
-
-                        followBranch(current, conditional.Branch, ref canThrow);
+                        followBranch(current, conditional.Branch);
                     }
                 }
 
                 if (fallThrough)
                 {
-                    (IOperation Value, BasicBlock.Branch Branch) next = current.Next;
+                    BasicBlock.Branch branch = current.Next.Branch;
+                    followBranch(current, branch);
 
-                    if (operationCanThrow(next.Value))
-                    {
-                        canThrow = true;
-                    }
-
-                    followBranch(current, current.Next.Branch, ref canThrow);
-
-                    if (current.Ordinal == lastBlockOrdinal)
+                    if (current.Ordinal == lastBlockOrdinal && branch.Kind != BasicBlock.BranchKind.Throw && branch.Kind != BasicBlock.BranchKind.ReThrow)
                     {
                         fellThrough = true;
                     }
                 }
 
-                if (canThrow)
-                {
-                    dispatchException(current.Region);
-                }
+                // We are using very simple approach: 
+                // If try block is reachable, we should dispatch an exception from it, even if it is empty.
+                // To simplify implementation, we dispatch exception from every reachable basic block and rely
+                // on dispatchedExceptionsFromRegions cache to avoid doing duplicate work.
+                dispatchException(current.Region);
             }
             while (toVisit.Count != 0);
 
             toVisit.Free();
             return visited;
 
-            // A simplified, imprecise way to detect if operation can throw 
-            bool operationCanThrow(IOperation operation)
-            {
-                if (operation == null)
-                {
-                    return false;
-                }
-
-                // PROTOTYPE(dataflow): Should we treat only primitive value type constant values as non throwing.
-                //                      For example, strings, decimal, datetime constants are not primitive value
-                //                      type constants.
-                if (operation.ConstantValue.HasValue)
-                {
-                    return false;
-                }
-
-                // Treat an exception assignment to a local or a parameter as non-throwing
-                if (operation.Kind == OperationKind.SimpleAssignment)
-                {
-                    var assignment = (ISimpleAssignmentOperation)operation;
-
-                    if (assignment.Value.Kind == OperationKind.CaughtException &&
-                        (assignment.Target.Kind == OperationKind.LocalReference || assignment.Target.Kind == OperationKind.ParameterReference))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            void followBranch(BasicBlock current, BasicBlock.Branch branch, ref bool canThrow)
+            void followBranch(BasicBlock current, BasicBlock.Branch branch)
             {
                 switch (branch.Kind)
                 {
                     case BasicBlock.BranchKind.None:
                     case BasicBlock.BranchKind.ProgramTermination:
                     case BasicBlock.BranchKind.StructuredExceptionHandling:
-                        Debug.Assert(branch.Destination == null);
-                        return;
-
                     case BasicBlock.BranchKind.Throw:
                     case BasicBlock.BranchKind.ReThrow:
                         Debug.Assert(branch.Destination == null);
-                        canThrow = true;
                         return;
 
                     case BasicBlock.BranchKind.Regular:
@@ -247,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         Debug.Assert(enclosing.Regions[0] == region);
                         Debug.Assert(enclosing.Regions[1].Kind == ControlFlowGraph.RegionKind.Finally);
-                        if (!stepThroughFilterOrFinally(enclosing.Regions[1]))
+                        if (!stepThroughSingleFinally(enclosing.Regions[1]))
                         {
                             // The point that continues dispatch is not reachable. Cancel the dispatch.
                             return false;
@@ -260,31 +205,30 @@ namespace Microsoft.CodeAnalysis.Operations
                 return true;
             }
 
-            // Returns whether we should proceed with dispatch after filter or finally was taken care of.
-            bool stepThroughFilterOrFinally(ControlFlowGraph.Region filterOrFinally)
+            // Returns whether we should proceed with dispatch after finally was taken care of.
+            bool stepThroughSingleFinally(ControlFlowGraph.Region @finally)
             {
-                Debug.Assert(filterOrFinally.Kind == ControlFlowGraph.RegionKind.Finally ||
-                             filterOrFinally.Kind == ControlFlowGraph.RegionKind.Filter);
+                Debug.Assert(@finally.Kind == ControlFlowGraph.RegionKind.Finally);
 
-                if (!continueDispatchAfterFilterOrFinally.TryGetValue(filterOrFinally, out bool continueDispatch))
+                if (!continueDispatchAfterFinally.TryGetValue(@finally, out bool continueDispatch))
                 {
                     // For simplicity, we do a complete walk of the finally/filter region in isolation
                     // to make sure that the resume dispatch point is reachable from its beginning.
                     // It could also be reachable through invalid branches into the finally and we don't want to consider 
                     // these cases for regular finally handling.
                     BitVector isolated = MarkReachableBlocks(blocks, 
-                                                             filterOrFinally.FirstBlockOrdinal, 
-                                                             filterOrFinally.LastBlockOrdinal,
+                                                             @finally.FirstBlockOrdinal, 
+                                                             @finally.LastBlockOrdinal,
                                                              outOfRangeBlocksToVisit: toVisit, 
-                                                             continueDispatchAfterFilterOrFinally, 
+                                                             continueDispatchAfterFinally, 
                                                              dispatchedExceptionsFromRegions,
                                                              out bool isolatedFellThrough);
                     visited.UnionWith(isolated);
 
                     continueDispatch = isolatedFellThrough &&
-                                       blocks[filterOrFinally.LastBlockOrdinal].Next.Branch.Kind == BasicBlock.BranchKind.StructuredExceptionHandling;
+                                       blocks[@finally.LastBlockOrdinal].Next.Branch.Kind == BasicBlock.BranchKind.StructuredExceptionHandling;
 
-                    continueDispatchAfterFilterOrFinally.Add(filterOrFinally, continueDispatch);
+                    continueDispatchAfterFinally.Add(@finally, continueDispatch);
                 }
 
                 return continueDispatch;
@@ -307,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Operations
                             case ControlFlowGraph.RegionKind.TryAndFinally:
                                 Debug.Assert(enclosing.Regions[0] == fromRegion);
                                 Debug.Assert(enclosing.Regions[1].Kind == ControlFlowGraph.RegionKind.Finally);
-                                if (!stepThroughFilterOrFinally(enclosing.Regions[1]))
+                                if (!stepThroughSingleFinally(enclosing.Regions[1]))
                                 {
                                     // The point that continues dispatch is not reachable. Cancel the dispatch.
                                     return;
@@ -316,11 +260,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                             case ControlFlowGraph.RegionKind.TryAndCatch:
                                 Debug.Assert(enclosing.Regions[0] == fromRegion);
-                                if (dispatchExceptionThroughCatches(enclosing, startAt: 1))
-                                {
-                                    // Stop dispatch, an exception is handled
-                                    return;
-                                }
+                                dispatchExceptionThroughCatches(enclosing, startAt: 1);
                                 break;
 
                             default:
@@ -338,12 +278,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                         if (index > 0)
                         {
-                            if (dispatchExceptionThroughCatches(tryAndCatch, startAt: index + 1))
-                            {
-                                // Stop dispatch, an exception is handled
-                                return;
-                            }
-
+                            dispatchExceptionThroughCatches(tryAndCatch, startAt: index + 1);
                             fromRegion = tryAndCatch;
                             continue;
                         }
@@ -356,9 +291,11 @@ namespace Microsoft.CodeAnalysis.Operations
                 while (fromRegion != null);
             }
 
-            // Returns true if exception is handled
-            bool dispatchExceptionThroughCatches(ControlFlowGraph.Region tryAndCatch, int startAt)
+            void dispatchExceptionThroughCatches(ControlFlowGraph.Region tryAndCatch, int startAt)
             {
+                // For simplicity, we do not try to figure out whether a catch clause definitely
+                // handles all exceptions.
+
                 Debug.Assert(tryAndCatch.Kind == ControlFlowGraph.RegionKind.TryAndCatch);
                 Debug.Assert(startAt > 0);
                 Debug.Assert(startAt <= tryAndCatch.Regions.Length);
@@ -371,44 +308,20 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         case ControlFlowGraph.RegionKind.Catch:
                             toVisit.Add(blocks[@catch.FirstBlockOrdinal]);
-
-                            if (isCatchAllException(@catch.ExceptionType))
-                            {
-                                // Stop dispatch, an exception is handled
-                                return true;
-                            }
                             break;
 
                         case ControlFlowGraph.RegionKind.FilterAndHandler:
                             BasicBlock entryBlock = blocks[@catch.FirstBlockOrdinal];
-                            ControlFlowGraph.Region filter = @catch.Regions[0];
-                            Debug.Assert(filter.Kind == ControlFlowGraph.RegionKind.Filter);
-                            Debug.Assert(entryBlock.Ordinal == filter.FirstBlockOrdinal);
+                            Debug.Assert(@catch.Regions[0].Kind == ControlFlowGraph.RegionKind.Filter);
+                            Debug.Assert(entryBlock.Ordinal == @catch.Regions[0].FirstBlockOrdinal);
 
                             toVisit.Add(entryBlock);
-
-                            if (isCatchAllException(@catch.ExceptionType))
-                            {
-                                if (!stepThroughFilterOrFinally(filter))
-                                {
-                                    // Stop dispatch, an exception is handled
-                                    return true;
-                                }
-                            }
                             break;
 
                         default:
                             throw ExceptionUtilities.UnexpectedValue(@catch.Kind);
                     }
                 }
-
-                return false;
-            }
-
-            bool isCatchAllException(ITypeSymbol exceptionType)
-            {
-                // PROTOTYPE(dataflow): Should we also consider System.Exception as catch all, at least for VB?
-                return exceptionType == null || exceptionType.SpecialType == SpecialType.System_Object;
             }
         }
 

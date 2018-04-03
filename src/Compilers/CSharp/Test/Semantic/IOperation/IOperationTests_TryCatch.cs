@@ -989,7 +989,7 @@ Block[B0] - Entry
 }
 .catch {R3} (System.Object)
 {
-    Block[B2] - Block [UnReachable]
+    Block[B2] - Block
         Predecessors (0)
         Statements (0)
         Next (Regular) Block[B3]
@@ -1437,7 +1437,7 @@ Block[B0] - Entry
 }
 .catch {R3} (System.Object)
 {
-    Block[B2] - Block [UnReachable]
+    Block[B2] - Block
         Predecessors (0)
         Statements (0)
         Next (Regular) Block[B3]
@@ -1579,7 +1579,7 @@ Block[B0] - Entry
     .catch {R5} (Exception1)
     {
         Locals: [Exception1 e]
-        Block[B2] - Block [UnReachable]
+        Block[B2] - Block
             Predecessors (0)
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
@@ -1594,7 +1594,7 @@ Block[B0] - Entry
         .locals {R6}
         {
             Locals: [System.Int32 j]
-            Block[B3] - Block [UnReachable]
+            Block[B3] - Block
                 Predecessors: [B2]
                 Statements (1)
                     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -1691,7 +1691,7 @@ Block[B0] - Entry
 .catch {R3} (Exception1)
 {
     Locals: [Exception1 e]
-    Block[B2] - Block [UnReachable]
+    Block[B2] - Block
         Predecessors (0)
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
@@ -1759,7 +1759,7 @@ Block[B0] - Entry
     Locals: [Exception1 e] [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block [UnReachable]
+        Block[B2] - Block
             Predecessors (0)
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
@@ -1786,7 +1786,7 @@ Block[B0] - Entry
     .handler {R5}
     {
         Locals: [System.Int32 j]
-        Block[B3] - Block [UnReachable]
+        Block[B3] - Block
             Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -1856,7 +1856,7 @@ Block[B0] - Entry
     Locals: [Exception1 e] [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block [UnReachable]
+        Block[B2] - Block
             Predecessors (0)
             Statements (1)
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '(Exception1 e)')
@@ -1882,7 +1882,7 @@ Block[B0] - Entry
     }
     .handler {R5}
     {
-        Block[B3] - Block [UnReachable]
+        Block[B3] - Block
             Predecessors: [B2]
             Statements (0)
             Next (Regular) Block[B4]
@@ -1945,7 +1945,7 @@ Block[B0] - Entry
     Locals: [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block [UnReachable]
+        Block[B2] - Block
             Predecessors (0)
             Statements (0)
             Jump if True (Regular) to Block[B3]
@@ -1966,7 +1966,7 @@ Block[B0] - Entry
     .handler {R5}
     {
         Locals: [System.Int32 j]
-        Block[B3] - Block [UnReachable]
+        Block[B3] - Block
             Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -2036,7 +2036,7 @@ Block[B0] - Entry
     Locals: [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block [UnReachable]
+        Block[B2] - Block
             Predecessors (0)
             Statements (0)
             Jump if True (Regular) to Block[B3]
@@ -2056,7 +2056,7 @@ Block[B0] - Entry
     }
     .handler {R5}
     {
-        Block[B3] - Block [UnReachable]
+        Block[B3] - Block
             Predecessors: [B2]
             Statements (0)
             Next (Regular) Block[B4]
@@ -2119,7 +2119,7 @@ Block[B0] - Entry
     Locals: [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block [UnReachable]
+        Block[B2] - Block
             Predecessors (0)
             Statements (0)
             Jump if True (Regular) to Block[B3]
@@ -2140,7 +2140,7 @@ Block[B0] - Entry
     .handler {R5}
     {
         Locals: [System.Int32 j]
-        Block[B3] - Block [UnReachable]
+        Block[B3] - Block
             Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -2210,7 +2210,7 @@ Block[B0] - Entry
     Locals: [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block [UnReachable]
+        Block[B2] - Block
             Predecessors (0)
             Statements (0)
             Jump if True (Regular) to Block[B3]
@@ -2230,7 +2230,7 @@ Block[B0] - Entry
     }
     .handler {R5}
     {
-        Block[B3] - Block [UnReachable]
+        Block[B3] - Block
             Predecessors: [B2]
             Statements (0)
             Next (Regular) Block[B4]
@@ -2289,7 +2289,7 @@ Block[B0] - Entry
 .catch {R3} (Exception1)
 {
     Locals: [System.Int32 j]
-    Block[B2] - Block [UnReachable]
+    Block[B2] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -2353,7 +2353,7 @@ Block[B0] - Entry
 }
 .catch {R3} (Exception1)
 {
-    Block[B2] - Block [UnReachable]
+    Block[B2] - Block
         Predecessors (0)
         Statements (0)
         Next (Regular) Block[B3]
@@ -2415,7 +2415,7 @@ Block[B0] - Entry
     Locals: [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block [UnReachable]
+        Block[B2] - Block
             Predecessors (0)
             Statements (0)
             Jump if True (Regular) to Block[B3]
@@ -2436,7 +2436,7 @@ Block[B0] - Entry
     .handler {R5}
     {
         Locals: [System.Int32 j]
-        Block[B3] - Block [UnReachable]
+        Block[B3] - Block
             Predecessors: [B2]
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = 2;')
@@ -2506,7 +2506,7 @@ Block[B0] - Entry
     Locals: [System.Int32 i]
     .filter {R4}
     {
-        Block[B2] - Block [UnReachable]
+        Block[B2] - Block
             Predecessors (0)
             Statements (0)
             Jump if True (Regular) to Block[B3]
@@ -2526,7 +2526,7 @@ Block[B0] - Entry
     }
     .handler {R5}
     {
-        Block[B3] - Block [UnReachable]
+        Block[B3] - Block
             Predecessors: [B2]
             Statements (0)
             Next (Regular) Block[B4]
@@ -3774,7 +3774,7 @@ Block[B0] - Entry
 }
 .catch {R3} (System.Object)
 {
-    Block[B2] - Block [UnReachable]
+    Block[B2] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -3953,7 +3953,7 @@ Block[B0] - Entry
     }
     .catch {R6} (System.Object)
     {
-        Block[B3] - Block [UnReachable]
+        Block[B3] - Block
             Predecessors (0)
             Statements (1)
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -4259,7 +4259,7 @@ Block[B0] - Entry
 }
 .catch {R3} (System.Object)
 {
-    Block[B2] - Block [UnReachable]
+    Block[B2] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -4444,7 +4444,7 @@ Block[B0] - Entry
 }
 .catch {R6} (System.Object)
 {
-    Block[B3] - Block [UnReachable]
+    Block[B3] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -4545,7 +4545,7 @@ Block[B0] - Entry
 }
 .catch {R8} (System.Object)
 {
-    Block[B4] - Block [UnReachable]
+    Block[B4] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -4984,7 +4984,7 @@ Block[B0] - Entry
 }
 .catch {R8} (System.Object)
 {
-    Block[B5] - Block [UnReachable]
+    Block[B5] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -5294,7 +5294,7 @@ Block[B0] - Entry
 }
 .catch {R4} (System.Object)
 {
-    Block[B3] - Block [UnReachable]
+    Block[B3] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -5393,7 +5393,7 @@ Block[B0] - Entry
 }
 .catch {R6} (System.Object)
 {
-    Block[B4] - Block [UnReachable]
+    Block[B4] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -5709,7 +5709,7 @@ Block[B0] - Entry
 }
 .catch {R9} (System.Object)
 {
-    Block[B5] - Block [UnReachable]
+    Block[B5] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -5923,7 +5923,7 @@ Block[B0] - Entry
 }
 .catch {R6} (System.Object)
 {
-    Block[B5] - Block [UnReachable]
+    Block[B5] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -7274,7 +7274,7 @@ Block[B0] - Entry
 }
 .finally {R6}
 {
-    Block[B5] - Block [UnReachable]
+    Block[B5] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
@@ -7364,7 +7364,7 @@ Block[B0] - Entry
     }
     .catch {R8} (System.Object)
     {
-        Block[B3] - Block [UnReachable]
+        Block[B3] - Block
             Predecessors (0)
             Statements (0)
             Next (Regular) Block[B5]
@@ -7683,7 +7683,7 @@ Block[B0] - Entry
 }
 .finally {R6}
 {
-    Block[B5] - Block [UnReachable]
+    Block[B5] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 3;')
