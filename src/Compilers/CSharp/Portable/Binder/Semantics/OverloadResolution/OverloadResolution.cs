@@ -787,6 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case MemberResolutionKind.NoCorrespondingNamedParameter:
                         case MemberResolutionKind.UseSiteError:
                         case MemberResolutionKind.BadNonTrailingNamedArgument:
+                        case MemberResolutionKind.DuplicateNamedArgument:
                             return true;
                     }
                     break;

@@ -372,12 +372,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<TMember> firstUnsupported = default(MemberResolutionResult<TMember>);
 
             var supportedInPriorityOrder = new MemberResolutionResult<TMember>[6]; // from highest to lowest priority
-            const int duplicateNamedArguments = 0;
+            const int duplicateNamedArgumentPriority = 0;
             const int requiredParameterMissingPriority = 1;
             const int nameUsedForPositionalPriority = 2;
             const int noCorrespondingNamedParameterPriority = 3;
             const int noCorrespondingParameterPriority = 4;
-            const int badNonTrailingNamedArgument = 5;
+            const int badNonTrailingNamedArgumentPriority = 5;
 
             foreach (MemberResolutionResult<TMember> result in this.ResultsBuilder)
             {
@@ -421,18 +421,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     case MemberResolutionKind.BadNonTrailingNamedArgument:
-                        if (supportedInPriorityOrder[badNonTrailingNamedArgument].IsNull ||
-                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[badNonTrailingNamedArgument].Result.BadArgumentsOpt[0])
+                        if (supportedInPriorityOrder[badNonTrailingNamedArgumentPriority].IsNull ||
+                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[badNonTrailingNamedArgumentPriority].Result.BadArgumentsOpt[0])
                         {
-                            supportedInPriorityOrder[badNonTrailingNamedArgument] = result;
+                            supportedInPriorityOrder[badNonTrailingNamedArgumentPriority] = result;
                         }
                         break;
-                    case MemberResolutionKind.DuplicateNamedArguments:
+                    case MemberResolutionKind.DuplicateNamedArgument:
                         {
-                            if (supportedInPriorityOrder[duplicateNamedArguments].IsNull ||
-                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[duplicateNamedArguments].Result.BadArgumentsOpt[0])
+                            if (supportedInPriorityOrder[duplicateNamedArgumentPriority].IsNull ||
+                            result.Result.BadArgumentsOpt[0] > supportedInPriorityOrder[duplicateNamedArgumentPriority].Result.BadArgumentsOpt[0])
                             {
-                                supportedInPriorityOrder[duplicateNamedArguments] = result;
+                                supportedInPriorityOrder[duplicateNamedArgumentPriority] = result;
                             }
                         }
                         break;
@@ -492,8 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportBadNonTrailingNamedArgument(firstSupported, diagnostics, arguments, symbols);
                             return;
 
-                        case MemberResolutionKind.DuplicateNamedArguments:
-                            ReportDuplicateNamedArguments(firstSupported, diagnostics, arguments);
+                        case MemberResolutionKind.DuplicateNamedArgument:
+                            ReportDuplicateNamedArgument(firstSupported, diagnostics, arguments);
                             return;
                     }
                 }
@@ -753,10 +753,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbols), location);
         }
 
-        private void ReportDuplicateNamedArguments(MemberResolutionResult<TMember> result, DiagnosticBag diagnostics, AnalyzedArguments arguments)
+        private void ReportDuplicateNamedArgument(MemberResolutionResult<TMember> result, DiagnosticBag diagnostics, AnalyzedArguments arguments)
         {
             Debug.Assert(result.Result.BadArgumentsOpt.Length == 1);
-            var name = arguments.Names[result.Result.BadArgumentsOpt[0]];
+            IdentifierNameSyntax name = arguments.Names[result.Result.BadArgumentsOpt[0]];
             Debug.Assert(name != null);
 
             // CS: Named argument '{0}' cannot be specified multiple times

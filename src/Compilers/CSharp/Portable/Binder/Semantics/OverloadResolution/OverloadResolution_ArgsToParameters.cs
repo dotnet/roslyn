@@ -115,12 +115,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have analyzed every argument and tried to make it correspond to a particular parameter. 
             // We must now answer the following questions:
             //
-            // (1) Is there any named argument that were specified twice?
-            // (2) Is there any named argument used out-of-position and followed by unnamed arguments?
-            // (3) Is there any argument without a corresponding parameter?
-            // (4) Was there any named argument that specified a parameter that was already
+            // (1) Is there any named argument used out-of-position and followed by unnamed arguments?
+            // (2) Is there any argument without a corresponding parameter?
+            // (3) Was there any named argument that specified a parameter that was already
             //     supplied with a positional parameter?
-            // (5) Is there any non-optional parameter without a corresponding argument?
+            // (4) Is there any non-optional parameter without a corresponding argument?
+            // (5) Is there any named argument that were specified twice?
             //
             // If the answer to any of these questions is "yes" then the method is not applicable.
             // It is possible that the answer to any number of these questions is "yes", and so
@@ -128,15 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // should we need to report why a given method is not applicable. We prioritize
             // them in the given order.
 
-            // (1) Is there any named argument that were specified twice?
-
-            int? duplicateNamedArgument = CheckForDuplicateNamedArguments(arguments);
-            if (duplicateNamedArgument != null)
-            {
-                return ArgumentAnalysisResult.DuplicateNamedArguments(duplicateNamedArgument.Value);
-            }
-
-            // (2) Is there any named argument used out-of-position and followed by unnamed arguments?
+            // (1) Is there any named argument used out-of-position and followed by unnamed arguments?
 
             int? badNonTrailingNamedArgument = CheckForBadNonTrailingNamedArgument(arguments, argsToParameters, parameters);
             if (badNonTrailingNamedArgument != null)
@@ -144,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ArgumentAnalysisResult.BadNonTrailingNamedArgument(badNonTrailingNamedArgument.Value);
             }
 
-            // (3) Is there any argument without a corresponding parameter?
+            // (2) Is there any argument without a corresponding parameter?
 
             if (unmatchedArgumentIndex != null)
             {
@@ -158,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // (4) was there any named argument that specified a parameter that was already
+            // (3) was there any named argument that specified a parameter that was already
             //     supplied with a positional parameter?
 
             int? nameUsedForPositional = NameUsedForPositional(arguments, argsToParameters);
@@ -167,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ArgumentAnalysisResult.NameUsedForPositional(nameUsedForPositional.Value);
             }
 
-            // (5) Is there any non-optional parameter without a corresponding argument?
+            // (4) Is there any non-optional parameter without a corresponding argument?
 
             int? requiredParameterMissing = CheckForMissingRequiredParameter(argsToParameters, parameters, isMethodGroupConversion, expanded);
             if (requiredParameterMissing != null)
@@ -179,6 +171,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arguments.Names.Any() && arguments.Names.Last() != null && isVararg)
             {
                 return ArgumentAnalysisResult.RequiredParameterMissing(parameters.Length);
+            }
+
+            // (5) Is there any named argument that were specified twice?
+
+            int? duplicateNamedArgument = CheckForDuplicateNamedArgument(arguments);
+            if (duplicateNamedArgument != null)
+            {
+                return ArgumentAnalysisResult.DuplicateNamedArgument(duplicateNamedArgument.Value);
             }
 
             // We're good; this one might be applicable in the given form.
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static int? CheckForDuplicateNamedArguments(AnalyzedArguments arguments)
+        private static int? CheckForDuplicateNamedArgument(AnalyzedArguments arguments)
         {
             if (arguments.Names.IsEmpty())
             {

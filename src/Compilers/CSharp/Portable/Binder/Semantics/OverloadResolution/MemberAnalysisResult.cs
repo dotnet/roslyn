@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 case MemberResolutionKind.NoCorrespondingParameter:
                 case MemberResolutionKind.NoCorrespondingNamedParameter:
-                case MemberResolutionKind.DuplicateNamedArguments:
+                case MemberResolutionKind.DuplicateNamedArgument:
                 case MemberResolutionKind.NameUsedForPositional:
                 case MemberResolutionKind.RequiredParameterMissing:
                 case MemberResolutionKind.LessDerived:
@@ -151,8 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return NoCorrespondingParameter(argAnalysis.ArgumentPosition);
                 case ArgumentAnalysisResultKind.NoCorrespondingNamedParameter:
                     return NoCorrespondingNamedParameter(argAnalysis.ArgumentPosition);
-                case ArgumentAnalysisResultKind.DuplicateNamedArguments:
-                    return DuplicateNamedArguments(argAnalysis.ArgumentPosition);
+                case ArgumentAnalysisResultKind.DuplicateNamedArgument:
+                    return DuplicateNamedArgument(argAnalysis.ArgumentPosition);
                 case ArgumentAnalysisResultKind.RequiredParameterMissing:
                     return RequiredParameterMissing(argAnalysis.ParameterPosition);
                 case ArgumentAnalysisResultKind.NameUsedForPositional:
@@ -192,10 +192,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 badArgumentsOpt: ImmutableArray.Create<int>(argumentPosition));
         }
 
-        public static MemberAnalysisResult DuplicateNamedArguments(int argumentPosition)
+        public static MemberAnalysisResult DuplicateNamedArgument(int argumentPosition)
         {
             return new MemberAnalysisResult(
-                MemberResolutionKind.DuplicateNamedArguments,
+                MemberResolutionKind.DuplicateNamedArgument,
                 badArgumentsOpt: ImmutableArray.Create<int>(argumentPosition));
         }
 

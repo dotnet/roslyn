@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.NoCorrespondingNamedParameter, argumentPosition, 0, default(ImmutableArray<int>));
         }
 
-        public static ArgumentAnalysisResult DuplicateNamedArguments(int argumentPosition)
+        public static ArgumentAnalysisResult DuplicateNamedArgument(int argumentPosition)
         {
-            return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.DuplicateNamedArguments, argumentPosition, 0, default(ImmutableArray<int>));
+            return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.DuplicateNamedArgument, argumentPosition, 0, default(ImmutableArray<int>));
         }
 
         public static ArgumentAnalysisResult RequiredParameterMissing(int parameterPosition)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ArgumentAnalysisResultKind.NameUsedForPositional:
                     s += "Invalid because argument " + ArgumentPosition + " had a name.";
                     break;
-                case ArgumentAnalysisResultKind.DuplicateNamedArguments:
+                case ArgumentAnalysisResultKind.DuplicateNamedArgument:
                     s += "Invalid because named argument " + ArgumentPosition + " was specified twice.";
                     break;
                 case ArgumentAnalysisResultKind.NoCorrespondingParameter:

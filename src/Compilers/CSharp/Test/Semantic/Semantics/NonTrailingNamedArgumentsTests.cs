@@ -531,6 +531,7 @@ class C
             Assert.Equal("M(x: 1, x: 2)", invocation.ToString());
 
             var symbolInfo = model.GetSymbolInfo(invocation);
+            Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
             Assert.Equal("void C.M(params System.Int32[] x)", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
         }
@@ -551,12 +552,12 @@ class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (9,17): error CS1740: Named argument 'x' cannot be specified multiple times
-                //         M(x: 1, x: 2, 3);
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(9, 17),
                 // (9,23): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         M(x: 1, x: 2, 3);
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "3").WithArguments("7.2").WithLocation(9, 23));
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "3").WithArguments("7.2").WithLocation(9, 23),
+                // (9,17): error CS8323: Named argument 'x' is used out-of-position but is followed by an unnamed argument
+                //         M(x: 1, x: 2, 3);
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "x").WithArguments("x").WithLocation(9, 17));
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -1032,9 +1033,9 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,17): error CS1740: Named argument 'x' cannot be specified multiple times
+                // (6,11): error CS1739: The best overload for 'M' does not have a parameter named 'x'
                 //         M(x: 1, x: 2, __arglist());
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("M", "x").WithLocation(6, 11));
         }
 
         [Fact]
@@ -1119,9 +1120,9 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,22): error CS1740: Named argument 'x' cannot be specified multiple times
+                // (4,16): error CS1739: The best overload for '.ctor' does not have a parameter named 'x'
                 //     C() : this(x: 1, x: 2, 3) { }
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(4, 22));
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments(".ctor", "x").WithLocation(4, 16));
         }
 
         [Fact]
@@ -1137,9 +1138,9 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,21): error CS1740: Named argument 'x' cannot be specified multiple times
+                // (6,15): error CS1739: The best overload for 'C' does not have a parameter named 'x'
                 //         new C(x: 1, x: 2, 3);
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(6, 21));
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("C", "x").WithLocation(6, 15));
         }
 
         [Fact]
@@ -1157,9 +1158,9 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,38): error CS1740: Named argument 'x' cannot be specified multiple times
+                // (8,32): error CS1739: The best overload for 'this' does not have a parameter named 'x'
                 //         System.Console.Write(c[x: 1, x: 2, 3]);
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(8, 38));
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("this", "x").WithLocation(8, 32));
         }
     }
 }

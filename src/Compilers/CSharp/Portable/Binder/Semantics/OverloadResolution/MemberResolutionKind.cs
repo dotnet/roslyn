@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The candidate member was rejected because there were two named arguments with the same parameter name.
         /// </summary>
-        DuplicateNamedArguments,
+        DuplicateNamedArgument,
 
         /// <summary>
         /// The candidate member was rejected because an required parameter had no corresponding argument.
