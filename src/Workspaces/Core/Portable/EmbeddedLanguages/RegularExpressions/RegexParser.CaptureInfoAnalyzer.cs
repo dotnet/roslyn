@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 _captureNames = ArrayBuilder<string>.GetInstance();
                 _autoNumber = 1;
 
-                _captureNumberToSpan.Add(0, text.Length == 0 ? default : GetSpan(text[0], text.Last()));
+                _captureNumberToSpan.Add(0, text.IsEmpty ? default : GetSpan(text));
             }
 
             public (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<int, TextSpan>) Analyze(
@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 _captureNames.Free();
                 return (_captureNameToSpan.ToImmutable(), _captureNumberToSpan.ToImmutable());
             }
-
 
             private void CollectCaptures(RegexNode node, RegexOptions options)
             {
@@ -68,8 +67,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         break;
 
                     case RegexKind.ConditionalExpressionGrouping:
-                        // Explicitly dripp into conditionalGrouping.Grouping.  That grouping itself 
-                        // does not create a capture group, but nested groupings inside of it will.
+                        // Explicitly recurse into conditionalGrouping.Grouping.  That grouping
+                        // itself does not create a capture group, but nested groupings inside of it
+                        // will.
                         var conditionalGrouping = (RegexConditionalExpressionGroupingNode)node;
                         RecurseIntoChildren(conditionalGrouping.Grouping, options);
                         CollectCaptures(conditionalGrouping.Result, options);
@@ -182,10 +182,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             /// <summary>
-            /// Give numbers to all named cpatures.  They will get successive <see cref="_autoNumber"/> values
-            /// that have not already been handed out to existing numbered capture groups.
+            /// Give numbers to all named captures.  They will get successive <see
+            /// cref="_autoNumber"/> values that have not already been handed out to existing
+            /// numbered capture groups.
             /// </summary>
-            private  void AssignNumbersToCaptureNames()
+            private void AssignNumbersToCaptureNames()
             {
                 foreach (var name in _captureNames)
                 {

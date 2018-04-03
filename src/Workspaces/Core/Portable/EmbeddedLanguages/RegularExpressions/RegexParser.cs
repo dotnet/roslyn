@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -12,7 +13,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
-    using System.Collections.Generic;
     using static EmbeddedSyntaxHelpers;
     using static RegexHelpers;
 
@@ -20,6 +20,46 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
     using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
 
+    /// <summary>
+    /// Produces a <see cref="RegexTree"/> from a sequence of <see cref="VirtualChar"/> characters.
+    ///
+    /// Importantly, this parser attempts to replicate diagnostics with almost the exact same text
+    /// as the native .Net regex parser.  This is important so that users get an understandable
+    /// experience where it appears to them that this is all one cohesive system and that the IDE
+    /// will let them discover and fix the same issues they would encounter when previously trying
+    /// to just compile and execute these regexes.
+    /// </summary>
+    /// <remarks>
+    /// Invariants we try to maintain (and should consider a bug if we do not): l 1. If the .net
+    /// regex parser does not report an error for a given pattern, we should not either. it would be
+    /// very bad if we told the user there was something wrong with there pattern when there really
+    /// wasn't.
+    ///
+    /// 2. If the .net regex parser does report an error for a given pattern, we should either not
+    /// report an error (not recommended) or report the same error at an appropriate location in the
+    /// pattern.  Not reporting the error can be confusing as the user will think their pattern is
+    /// ok, when it really is not.  However, it can be acceptable to do this as it's not telling
+    /// them that something is actually wrong, and it may be too difficult to find and report the
+    /// same error.  Note: there is only one time we do this in this parser (see the deviation
+    /// documented in <see cref="ParsePossibleEcmascriptBackreferenceEscape"/>).
+    ///
+    /// Note1: the above invariants make life difficult at times.  This happens due to the fact that
+    /// the .net parser is multi-pass.  Meaning it does a first scan (which may report errors), then
+    /// does the full parse.  This means that it might report an error in a later location during
+    /// the initial scan than it would during the parse.  We replicate that behavior to follow the
+    /// second invariant.
+    ///
+    /// Note2: It would be nice if we could check these invariants at runtime, so we could control
+    /// our behavior by the behavior of the real .net regex engine.  For example, if the .net regex
+    /// engine did not report any issues, we could suppress any diagnostics we generated and we
+    /// could log an NFW to record which pattern we deviated on so we could fix the issue for a
+    /// future release.  However, we cannot do this as the .net regex engine has no guarantees about
+    /// its performance characteristics.  For example, certain regex patterns might end up causing
+    /// that engine to consume unbounded amounts of CPU and memory.  This is because the .net regex
+    /// engine is not just a parser, but something that builds an actual recognizer using techniques
+    /// that are not necessarily bounded.  As such, while we test ourselves around it during our
+    /// tests, we cannot do the same at runtime as part of the IDE.
+    /// </remarks>
     internal partial struct RegexParser
     {
         private readonly ImmutableDictionary<string, TextSpan> _captureNamesToSpan;
@@ -1099,6 +1139,32 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexBaseCharacterClassNode ParseCharacterClass()
         {
+            // Note: ScanCharClass is one of the strangest function in the .net regex parser. Code
+            // for it is here:
+            // https://github.com/dotnet/corefx/blob/6ae0da1563e6e701bac61012c62ede8f8737f065/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L498
+            //
+            // It has certain behaviors that were probably not intentional, but which we try to
+            // replicate.  Specifically, it looks like it was *intended* to just read components
+            // like simple characters ('a'), char-class-escape ('\s' and the like), ranges
+            // ('component-component'), and subtractions ('-[charclass]').
+            //
+            // And, it *looks* like it intended that if it ran into a range, it would check that the
+            // components on the left and right of the '-' made sense (i.e. you could have 'a-b' but
+            // not 'b-a').
+            //
+            // *However*, the way it is actually written, it does not have that behavior.  Instead,
+            // what it ends up doing is subtly different.  Specifically, in this switch:
+            // https://github.com/dotnet/corefx/blob/6ae0da1563e6e701bac61012c62ede8f8737f065/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L531
+            //
+            // In this switch, if it encounters a '\-' it immediately 'continues', effectively
+            // ignoring that character on the right side of a character range.  So, if you had
+            // ```[#-\-b]```, then this *should* be treated as the character class containing
+            // the range of character from '#' to '-', unioned with the character 'b'.  However,
+            // .net will interpret this as the character class containing the range of characters
+            // from '#' to 'b'.  We follow .Net here to keep our errors in sync with them.
+            //
+            // See the comment about this in ParseRightSideOfCharacterClassRange
+
             var openBracketToken = _currentToken;
             Debug.Assert(openBracketToken.Kind == RegexKind.OpenBracketToken);
             var caretToken = CreateMissingToken(RegexKind.CaretToken);
