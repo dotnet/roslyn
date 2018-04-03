@@ -53,8 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValueOpt,
             LookupResultKind resultKind)
         {
-            var tupleType = tupleField.ContainingType;
+            if (rewrittenReceiver.Kind == BoundKind.DefaultExpression)
+            {
+                return new BoundDefaultExpression(syntax, tupleField.Type);
+            }
 
+            NamedTypeSymbol tupleType = tupleField.ContainingType;
             NamedTypeSymbol currentLinkType = tupleType.TupleUnderlyingType;
             FieldSymbol underlyingField = tupleField.TupleUnderlyingField;
 

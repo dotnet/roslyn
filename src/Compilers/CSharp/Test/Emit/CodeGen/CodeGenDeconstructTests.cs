@@ -8340,7 +8340,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(21232, "https://github.com/dotnet/roslyn/issues/21232")]
         public void TestDeconstructDefaultLiteral()
         {
             string source = @"
@@ -8355,7 +8355,7 @@ public class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0 True");
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 True");
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -8364,6 +8364,163 @@ public class C
             var defaultType = model.GetTypeInfo(node);
             Assert.Equal("(System.Int32, System.String)", defaultType.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.String)", defaultType.ConvertedType.ToTestDisplayString());
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  4
+  .locals init (int V_0, //i
+                string V_1) //s
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  IL_0003:  ldnull
+  IL_0004:  stloc.1
+  IL_0005:  ldstr      ""{0} {1}""
+  IL_000a:  ldloc.0
+  IL_000b:  box        ""int""
+  IL_0010:  ldloc.1
+  IL_0011:  ldnull
+  IL_0012:  ceq
+  IL_0014:  box        ""bool""
+  IL_0019:  call       ""string string.Format(string, object, object)""
+  IL_001e:  call       ""void System.Console.Write(string)""
+  IL_0023:  nop
+  IL_0024:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(21232, "https://github.com/dotnet/roslyn/issues/21232")]
+        public void TestDeconstructDefaultExpression()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        (long l, string s) = default((int, string));
+        System.Console.Write($""{l} {s == null}"");
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 True");
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  4
+  .locals init (long V_0, //l
+                string V_1) //s
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.i8
+  IL_0003:  stloc.0
+  IL_0004:  ldnull
+  IL_0005:  stloc.1
+  IL_0006:  ldstr      ""{0} {1}""
+  IL_000b:  ldloc.0
+  IL_000c:  box        ""long""
+  IL_0011:  ldloc.1
+  IL_0012:  ldnull
+  IL_0013:  ceq
+  IL_0015:  box        ""bool""
+  IL_001a:  call       ""string string.Format(string, object, object)""
+  IL_001f:  call       ""void System.Console.Write(string)""
+  IL_0024:  nop
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(21232, "https://github.com/dotnet/roslyn/issues/21232")]
+        public void TestDeconstructDefaultExpression_DeconstructionAssignment()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        long l;
+        string s;
+        (l, s) = default((int, string));
+        System.Console.Write($""{l} {s == null}"");
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 True");
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  4
+  .locals init (long V_0, //l
+                string V_1) //s
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.i8
+  IL_0003:  stloc.0
+  IL_0004:  ldnull
+  IL_0005:  stloc.1
+  IL_0006:  ldstr      ""{0} {1}""
+  IL_000b:  ldloc.0
+  IL_000c:  box        ""long""
+  IL_0011:  ldloc.1
+  IL_0012:  ldnull
+  IL_0013:  ceq
+  IL_0015:  box        ""bool""
+  IL_001a:  call       ""string string.Format(string, object, object)""
+  IL_001f:  call       ""void System.Console.Write(string)""
+  IL_0024:  nop
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(21232, "https://github.com/dotnet/roslyn/issues/21232")]
+        public void TestDeconstructDefaultExpression_DifferentCardinality()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        (long l, string s) = default((int, string, int));
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
+                //         (long l, string s) = default((int, string, int));
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(long l, string s) = default((int, string, int))").WithArguments("3", "2").WithLocation(6, 9)
+                );
+        }
+
+        [Fact, WorkItem(21232, "https://github.com/dotnet/roslyn/issues/21232")]
+        public void TestDeconstructDefaultExpression_DeconstructableType()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        (long l, string s) = default(Deconstructable);
+        System.Console.Write($""{l} {s}"");
+    }
+}
+public struct Deconstructable
+{
+    public void Deconstruct(out int x, out string y) { x = 42; y = ""Hello""; }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42 Hello");
         }
 
         [Fact]
@@ -8391,40 +8548,31 @@ public class C
             Assert.Equal("(System.Int32, System.String)", defaultType.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.String)", defaultType.ConvertedType.ToTestDisplayString());
 
-            // We could optimize this (no need to construct a ValueTuple then access its elements)
-            // https://github.com/dotnet/roslyn/issues/21232
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       66 (0x42)
+  // Code size       40 (0x28)
   .maxstack  4
   .locals init (int V_0, //x
                 int V_1, //i
-                string V_2, //s
-                System.ValueTuple<int, string> V_3)
+                string V_2) //s
   IL_0000:  nop
   IL_0001:  ldc.i4.s   42
   IL_0003:  stloc.0
-  IL_0004:  ldloca.s   V_3
-  IL_0006:  initobj    ""System.ValueTuple<int, string>""
-  IL_000c:  ldloc.3
-  IL_000d:  ldfld      ""int System.ValueTuple<int, string>.Item1""
-  IL_0012:  stloc.1
-  IL_0013:  ldloca.s   V_3
-  IL_0015:  initobj    ""System.ValueTuple<int, string>""
-  IL_001b:  ldloc.3
-  IL_001c:  ldfld      ""string System.ValueTuple<int, string>.Item2""
-  IL_0021:  stloc.2
-  IL_0022:  ldstr      ""{0} {1}""
-  IL_0027:  ldloc.1
-  IL_0028:  box        ""int""
-  IL_002d:  ldloc.2
-  IL_002e:  ldnull
-  IL_002f:  ceq
-  IL_0031:  box        ""bool""
-  IL_0036:  call       ""string string.Format(string, object, object)""
-  IL_003b:  call       ""void System.Console.Write(string)""
-  IL_0040:  nop
-  IL_0041:  ret
+  IL_0004:  ldc.i4.0
+  IL_0005:  stloc.1
+  IL_0006:  ldnull
+  IL_0007:  stloc.2
+  IL_0008:  ldstr      ""{0} {1}""
+  IL_000d:  ldloc.1
+  IL_000e:  box        ""int""
+  IL_0013:  ldloc.2
+  IL_0014:  ldnull
+  IL_0015:  ceq
+  IL_0017:  box        ""bool""
+  IL_001c:  call       ""string string.Format(string, object, object)""
+  IL_0021:  call       ""void System.Console.Write(string)""
+  IL_0026:  nop
+  IL_0027:  ret
 }
 ");
         }
@@ -8446,42 +8594,31 @@ public class C
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "0 True");
 
-            // We could optimize this (no need to construct a ValueTuple then access its elements)
-            // https://github.com/dotnet/roslyn/issues/21232
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       75 (0x4b)
+  // Code size       39 (0x27)
   .maxstack  4
   .locals init (int V_0, //x
                 int V_1, //i
-                string V_2, //s
-                System.ValueTuple<int, (int, string)> V_3)
+                string V_2) //s
   IL_0000:  nop
-  IL_0001:  ldloca.s   V_3
-  IL_0003:  initobj    ""System.ValueTuple<int, (int, string)>""
-  IL_0009:  ldloc.3
-  IL_000a:  ldfld      ""(int, string) System.ValueTuple<int, (int, string)>.Item2""
-  IL_000f:  ldloca.s   V_3
-  IL_0011:  initobj    ""System.ValueTuple<int, (int, string)>""
-  IL_0017:  ldloc.3
-  IL_0018:  ldfld      ""int System.ValueTuple<int, (int, string)>.Item1""
-  IL_001d:  stloc.0
-  IL_001e:  dup
-  IL_001f:  ldfld      ""int System.ValueTuple<int, string>.Item1""
-  IL_0024:  stloc.1
-  IL_0025:  ldfld      ""string System.ValueTuple<int, string>.Item2""
-  IL_002a:  stloc.2
-  IL_002b:  ldstr      ""{0} {1}""
-  IL_0030:  ldloc.1
-  IL_0031:  box        ""int""
-  IL_0036:  ldloc.2
-  IL_0037:  ldnull
-  IL_0038:  ceq
-  IL_003a:  box        ""bool""
-  IL_003f:  call       ""string string.Format(string, object, object)""
-  IL_0044:  call       ""void System.Console.Write(string)""
-  IL_0049:  nop
-  IL_004a:  ret
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  stloc.1
+  IL_0005:  ldnull
+  IL_0006:  stloc.2
+  IL_0007:  ldstr      ""{0} {1}""
+  IL_000c:  ldloc.1
+  IL_000d:  box        ""int""
+  IL_0012:  ldloc.2
+  IL_0013:  ldnull
+  IL_0014:  ceq
+  IL_0016:  box        ""bool""
+  IL_001b:  call       ""string string.Format(string, object, object)""
+  IL_0020:  call       ""void System.Console.Write(string)""
+  IL_0025:  nop
+  IL_0026:  ret
 }
 ");
         }
