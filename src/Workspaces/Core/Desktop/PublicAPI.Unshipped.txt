@@ -1,7 +1,3 @@
-*REMOVED*Microsoft.CodeAnalysis.FileTextLoader
-*REMOVED*Microsoft.CodeAnalysis.FileTextLoader.DefaultEncoding.get -> System.Text.Encoding
-*REMOVED*Microsoft.CodeAnalysis.FileTextLoader.FileTextLoader(string path, System.Text.Encoding defaultEncoding) -> void
-*REMOVED*Microsoft.CodeAnalysis.FileTextLoader.Path.get -> string
 *REMOVED*Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader
 *REMOVED*Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.AssociateFileExtensionWithLanguage(string projectFileExtension, string language) -> void
 *REMOVED*Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.LoadMetadataForReferencedProjects.get -> bool
@@ -23,11 +19,9 @@
 *REMOVED*Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 *REMOVED*Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.SkipUnrecognizedProjects.get -> bool
 *REMOVED*Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.SkipUnrecognizedProjects.set -> void
-*REMOVED*override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 *REMOVED*override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.CanApplyChange(Microsoft.CodeAnalysis.ApplyChangesKind feature) -> bool
 *REMOVED*override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.TryApplyChanges(Microsoft.CodeAnalysis.Solution newSolution) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create() -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 *REMOVED*static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 *REMOVED*static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 *REMOVED*static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties, Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
-*REMOVED*virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream, Microsoft.CodeAnalysis.Workspace workspace) -> Microsoft.CodeAnalysis.Text.SourceText
