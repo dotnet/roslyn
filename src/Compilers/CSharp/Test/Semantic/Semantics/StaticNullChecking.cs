@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -134,6 +136,26 @@ class C
                 // (13,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async Task<TResult> G<TResult>(Func<Task<TResult>> f)
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "G").WithLocation(13, 32));
+        }
+
+        [Fact]
+        public void TestExternalAnnotation_Bool_Parse()
+        {
+            // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
+            var source =
+@"class C
+{
+    static void F(string? s)
+    {
+        bool.Parse(s);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,20): warning CS8604: Possible null reference argument for parameter 'value' in 'bool bool.Parse(string value)'.
+                //         bool.Parse(s);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "bool bool.Parse(string value)").WithLocation(5, 20)
+                );
         }
 
         [Fact]
