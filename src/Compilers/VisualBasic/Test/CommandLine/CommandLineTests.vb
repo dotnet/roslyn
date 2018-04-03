@@ -1245,47 +1245,40 @@ End Module").Path
         End Sub
 #End Region
 
-        <Fact, WorkItem(24735, "https://github.com/dotnet/roslyn/issues/24735")>
-        Public Sub ChecksumAlgorithm()
-            Dim parsedArgs As VisualBasicCommandLineArguments
+#Region "ChecksumAlgorithm"
+        Public Shared Iterator Function ChecksumAlgorithm_Data() As IEnumerable(Of Object())
+            Yield {SourceHashAlgorithm.Sha1, HashAlgorithmName.SHA256, "/checksumAlgorithm:sHa1", "a.cs"}
+            Yield {SourceHashAlgorithm.Sha256, HashAlgorithmName.SHA256, "/checksumAlgorithm:sha256", "a.cs"}
+            Yield {SourceHashAlgorithm.Sha1, HashAlgorithmName.SHA256, "a.cs"}
+        End Function
 
-            parsedArgs = DefaultParse({"/checksumAlgorithm:sHa1", "a.cs"}, _baseDirectory)
+        <Theory, MemberData(NameOf(ChecksumAlgorithm) & "_Data"), WorkItem(24735, "https://github.com/dotnet/roslyn/issues/24735")>
+        Public Sub ChecksumAlgorithm(ExpectedSourceHashAlgorithm As SourceHashAlgorithm, ExpectedHashAlgorithmName As HashAlgorithmName, ParamArray Args As String())
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
-            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
-
-            parsedArgs = DefaultParse({"/checksumAlgorithm:sha256", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm)
-            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
-
-            parsedArgs = DefaultParse({"a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
-            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
-
-            ' error
-            parsedArgs = DefaultParse({"/checksumAlgorithm:256", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadChecksumAlgorithm).WithArguments("256"))
-
-            parsedArgs = DefaultParse({"/checksumAlgorithm:sha-1", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadChecksumAlgorithm).WithArguments("sha-1"))
-
-            parsedArgs = DefaultParse({"/checksumAlgorithm:sha", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadChecksumAlgorithm).WithArguments("sha"))
-
-            parsedArgs = DefaultParse({"/checksumAlgorithm: ", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("checksumalgorithm", ":<algorithm>"))
-
-            parsedArgs = DefaultParse({"/checksumAlgorithm:", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("checksumalgorithm", ":<algorithm>"))
-
-            parsedArgs = DefaultParse({"/checksumAlgorithm", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("checksumalgorithm", ":<algorithm>"))
-
-            parsedArgs = DefaultParse({"/checksumAlgorithm+", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/checksumAlgorithm+"))
+            Assert.Equal(ExpectedSourceHashAlgorithm, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(ExpectedHashAlgorithmName, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
         End Sub
+
+        <Theory, InlineData({"/checksumAlgorithm:256", "a.cs"}, {"256"}), InlineData({"/checksumAlgorithm:sha-1", "a.cs"}, {"sha-1"}), InlineData({"/checksumAlgorithm:sha", "a.cs"}, {"sha"})>
+        Public Sub ChecksumAlgorithm_ERR_BadChecksumAlgorithm(Args() As String, WithArgs() As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadChecksumAlgorithm).WithArguments(WithArgs))
+        End Sub
+
+        <Theory,
+            InlineData({"/checksumAlgorithm: ", "a.cs"}, {"checksumalgorithm", ":<algorithm>"}), InlineData({"/checksumAlgorithm:", "a.cs"}, {"checksumalgorithm", ":<algorithm>"}), InlineData({"/checksumAlgorithm", "a.cs"}, {"checksumalgorithm", ":<algorithm>"})>
+        Public Sub ChecksumAlgorithm_ERR_ArgumentRequired(Args() As String, WithArgs() As String)
+            Dim parsedArgs = DefaultParse({"/checksumAlgorithm: ", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("checksumalgorithm", ":<algorithm>"))
+        End Sub
+
+        <Theory, InlineData({"/checksumAlgorithm: ", "a.cs"}, {"checksumalgorithm", ":<algorithm>"})>
+        Public Sub ChecksumAlgorithm_WRN_BadSwitch(Args() As String, WithArgs() As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments(WithArgs))
+        End Sub
+#End Region
 
         <Fact>
         Public Sub MainTypeName()
