@@ -1036,30 +1036,25 @@ End Module").Path
 
 #End Region
 
+#Region "DelaySign"
+        <Theory, InlineData({"/delaysign", "a.cs"}, True), InlineData({"/delaysign+", "a.cs"}, True), InlineData({"/DELAYsign-", "a.cs"}, False)>
+        Public Sub DelaySign(Args() As String, CheckDelaySign As Boolean)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.NotNull(parsedArgs.CompilationOptions.DelaySign)
+            Assert.Equal(CheckDelaySign, parsedArgs.CompilationOptions.DelaySign)
+        End Sub
+
         <Fact>
-        Public Sub DelaySign()
-            Dim parsedArgs = DefaultParse({"/delaysign", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.NotNull(parsedArgs.CompilationOptions.DelaySign)
-            Assert.Equal(True, parsedArgs.CompilationOptions.DelaySign)
-
-            parsedArgs = DefaultParse({"/delaysign+", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.NotNull(parsedArgs.CompilationOptions.DelaySign)
-            Assert.Equal(True, parsedArgs.CompilationOptions.DelaySign)
-
-            parsedArgs = DefaultParse({"/DELAYsign-", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.NotNull(parsedArgs.CompilationOptions.DelaySign)
-            Assert.Equal(False, parsedArgs.CompilationOptions.DelaySign)
-
-            parsedArgs = DefaultParse({"/delaysign:-", "a.cs"}, _baseDirectory)
+        Sub DelaySign()
+            Dim parsedArgs = DefaultParse({"/delaysign:-", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("delaysign"))
 
             parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
             parsedArgs.Errors.Verify()
             Assert.Null(parsedArgs.CompilationOptions.DelaySign)
         End Sub
+#End Region
 
 #Region "OutputVerbose"
         <Fact, WorkItem(546113, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546113")>
