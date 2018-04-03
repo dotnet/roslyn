@@ -18,8 +18,10 @@ using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpre
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
-    internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider
-        : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider<
+        TConditionalExpressionSyntax>
+        : AbstractUseConditionalExpressionCodeFixProvider<TConditionalExpressionSyntax>
+        where TConditionalExpressionSyntax : SyntaxNode
     {
         protected abstract IFormattingRule GetMultiLineFormattingRule();
 
@@ -43,30 +45,27 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 GetMultiLineFormattingRule(), cancellationToken);
         }
 
-        /// <summary>
-        /// Returns 'true' if a multi-line conditional was created, and thus should be
-        /// formatted specially.
-        /// </summary>
-        private async Task<bool> FixOneAsync(
+        private async Task FixOneAsync(
             Document document, Diagnostic diagnostic, 
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var ifStatement = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement);
 
-            if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(ifOperation, 
+            if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
+                    syntaxFacts, ifOperation, 
                     out var trueReturn, out var falseReturn))
             {
-                return false;
+                return;
             }
 
-            var (conditionalExpression, isMultiLine) = await CreateConditionalExpressionAsync<SyntaxNode>(
-                document, ifOperation,
+            var (conditionalExpression, isMultiLine) = await CreateConditionalExpressionAsync(
+                document, ifOperation, trueReturn, falseReturn,
                 trueReturn.ReturnedValue, falseReturn.ReturnedValue,
                 cancellationToken).ConfigureAwait(false);
-
 
             editor.ReplaceNode(
                 ifStatement,
@@ -77,11 +76,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // as the 'false' statement.  If so, remove it explicitly.
             if (ifOperation.WhenFalse == null)
             {
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 editor.RemoveNode(falseReturn.Syntax, GetRemoveOptions(syntaxFacts, falseReturn.Syntax));
             }
-
-            return isMultiLine;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

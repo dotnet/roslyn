@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.UseConditionalExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
@@ -17,5 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 
         protected override ImmutableArray<SyntaxKind> GetIfStatementKinds()
             => ImmutableArray.Create(SyntaxKind.IfStatement);
+
+        protected override ISyntaxFactsService GetSyntaxFactsService()
+            => CSharpSyntaxFactsService.Instance;
     }
 }

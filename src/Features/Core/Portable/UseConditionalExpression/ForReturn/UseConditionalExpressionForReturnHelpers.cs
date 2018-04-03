@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
@@ -7,6 +8,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
     internal static class UseConditionalExpressionForReturnHelpers 
     {
         public static bool TryMatchPattern(
+            ISyntaxFactsService syntaxFacts,
             IConditionalOperation ifOperation,
             out IReturnOperation trueReturn,
             out IReturnOperation falseReturn)
@@ -69,7 +71,9 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             trueReturn = trueReturnOp;
             falseReturn = falseReturnOp;
-            return true;
+
+            return UseConditionalExpressionHelpers.CanConvert(
+                syntaxFacts, ifOperation, trueReturn, falseReturn);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -21,11 +22,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
     internal abstract class AbstractUseConditionalExpressionForAssignmentCodeFixProvider<
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
-        TExpressionSyntax>
-        : SyntaxEditorBasedCodeFixProvider
+        TExpressionSyntax,
+        TConditionalExpressionSyntax>
+        : AbstractUseConditionalExpressionCodeFixProvider<TConditionalExpressionSyntax>
         where TLocalDeclarationStatementSyntax : SyntaxNode
         where TVariableDeclaratorSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
+        where TConditionalExpressionSyntax : TExpressionSyntax
     {
         protected abstract TVariableDeclaratorSyntax WithInitializer(TVariableDeclaratorSyntax variable, TExpressionSyntax value);
         protected abstract TVariableDeclaratorSyntax GetDeclaratorSyntax(IVariableDeclaratorOperation declarator);
@@ -74,8 +77,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
-            var (conditionalExpression, makeMultiLine) = await CreateConditionalExpressionAsync<TExpressionSyntax>(
-                document, ifOperation,
+            var (conditionalExpression, makeMultiLine) = await CreateConditionalExpressionAsync(
+                document, ifOperation, trueAssignment, falseAssignment,
                 trueAssignment.Value, falseAssignment.Value, 
                 cancellationToken).ConfigureAwait(false);
 

@@ -3,16 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
@@ -21,8 +20,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         public static readonly SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
 
         public static async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, 
-            Func<Document, Diagnostic, SyntaxEditor, CancellationToken, Task<bool>> fixOneAsync,
+            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
+            Func<Document, Diagnostic, SyntaxEditor, CancellationToken, Task> fixOneAsync,
             IFormattingRule multiLineFormattingRule, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -32,32 +31,50 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // we'll need to explicitly format this node so we can get our special multi-line
             // formatting in VB and C#.
             var nestedEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            var needsFormatting = false;
             foreach (var diagnostic in diagnostics)
             {
-                needsFormatting |= await fixOneAsync(
+                await fixOneAsync(
                     document, diagnostic, nestedEditor, cancellationToken).ConfigureAwait(false);
             }
 
             var changedRoot = nestedEditor.GetChangedRoot();
-            if (needsFormatting)
-            {
-                // Get the language specific rule for formatting this construct and call into the
-                // formatted to explicitly format things.  Note: all we will format is the new
-                // conditional expression as that's the only node that has the appropriate
-                // annotation on it.
-                var rules = new List<IFormattingRule> { multiLineFormattingRule };
-                // rules.AddRange(Formatter.GetDefaultFormattingRules(document));
+            // Get the language specific rule for formatting this construct and call into the
+            // formatted to explicitly format things.  Note: all we will format is the new
+            // conditional expression as that's the only node that has the appropriate
+            // annotation on it.
+            var rules = new List<IFormattingRule> { multiLineFormattingRule };
 
-                var formattedRoot = await Formatter.FormatAsync(changedRoot,
-                    SpecializedFormattingAnnotation,
-                    document.Project.Solution.Workspace,
-                    await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
-                    rules, cancellationToken).ConfigureAwait(false);
-                changedRoot = formattedRoot;
-            }
+            var formattedRoot = await Formatter.FormatAsync(changedRoot,
+                SpecializedFormattingAnnotation,
+                document.Project.Solution.Workspace,
+                await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
+                rules, cancellationToken).ConfigureAwait(false);
+            changedRoot = formattedRoot;
 
             editor.ReplaceNode(root, changedRoot);
+        }
+
+        public static bool CanConvert(
+            ISyntaxFactsService syntaxFacts, IConditionalOperation ifOperation, 
+            IOperation whenTrue, IOperation whenFalse)
+        {
+            // Will likely screw things up if the if directive spans any preprocessor directives.
+            // So do not offer for now.
+            if (syntaxFacts.SpansPreprocessorDirective(ifOperation.Syntax))
+            {
+                return false;
+            }
+
+            // User may have comments on the when-true/when-false statements.  These statements can
+            // be very important. Often they indicate why the true/false branches are important in
+            // the first place.  We don't have any place to put these, so we don't offer here.
+            if (HasLeadingRegularComments(syntaxFacts, whenTrue.Syntax) ||
+                HasLeadingRegularComments(syntaxFacts, whenFalse.Syntax))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -77,9 +94,18 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         /// <summary>
         /// Checks if we should wrap the conditional expression over multiple lines.
         /// </summary>
-        private static async Task<bool> MakeMultiLineAsync(
-            Document document, SyntaxNode condition, SyntaxNode trueSyntax, SyntaxNode falseSyntax, CancellationToken cancellationToken)
+        public static async Task<bool> MakeMultiLineAsync(
+            Document document, SyntaxNode condition, SyntaxNode trueSyntax, SyntaxNode falseSyntax, 
+            IEnumerable<SyntaxTrivia> trueTrailingTrivia, IEnumerable<SyntaxTrivia> falseTrailingTrivia,
+            CancellationToken cancellationToken)
         {
+            // If there is trivia on the true/false statement then make this multiline so that
+            // the trailing trivia will go at the end of each part of the conditional.
+            if (trueTrailingTrivia != null || falseTrailingTrivia != null)
+            {
+                return true;
+            }
+
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             if (!sourceText.AreOnSameLine(condition.GetFirstToken(), condition.GetLastToken()) || 
                 !sourceText.AreOnSameLine(trueSyntax.GetFirstToken(), trueSyntax.GetLastToken()) ||
@@ -98,38 +124,19 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return false;
         }
 
-        /// <summary>
-        /// Helper to create a conditional expression out of two original IOperation values
-        /// corresponding to the whenTrue and whenFalse parts. The helper will add the appropriate
-        /// annotations and casts to ensure that the conditional expression preserves semantics, but
-        /// is also properly simplified and formatted.
-        /// </summary>
-        public static async Task<(TExpressionSyntax, bool makeMultiLine)> CreateConditionalExpressionAsync<TExpressionSyntax>(
-            Document document, IConditionalOperation ifOperation, 
-            IOperation trueValue, IOperation falseValue, CancellationToken cancellationToken)
-            where TExpressionSyntax : SyntaxNode
+        public static IEnumerable<SyntaxTrivia> GetTrailingComments(
+            ISyntaxFactsService syntaxFacts, IOperation statement)
         {
-            var generator = SyntaxGenerator.GetGenerator(document);
-
-            var condition = ifOperation.Condition.Syntax.WithoutTrivia();
-            var conditionalExpression = (TExpressionSyntax)generator.ConditionalExpression(
-                condition,
-                CastValueIfNecessary(generator, trueValue),
-                CastValueIfNecessary(generator, falseValue));
-
-            conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
-            var makeMultiLine = await MakeMultiLineAsync(
-                document, condition, trueValue.Syntax, falseValue.Syntax, cancellationToken).ConfigureAwait(false);
-            if (makeMultiLine)
+            var trailingTrivia = statement.Syntax.GetTrailingTrivia();
+            if (!trailingTrivia.Any(t => syntaxFacts.IsRegularComment(t)))
             {
-                conditionalExpression = conditionalExpression.WithAdditionalAnnotations(
-                    SpecializedFormattingAnnotation);
+                return null;
             }
 
-            return (conditionalExpression, makeMultiLine);
+            return trailingTrivia.Where(t => syntaxFacts.IsWhitespaceTrivia(t) || syntaxFacts.IsRegularComment(t));
         }
 
-        private static SyntaxNode CastValueIfNecessary(
+        public static SyntaxNode CastValueIfNecessary(
             SyntaxGenerator generator, IOperation value)
         {
             var sourceSyntax = value.Syntax.WithoutTrivia();
@@ -159,12 +166,12 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             ISyntaxFactsService syntaxFacts, SyntaxNode syntax)
         {
             var removeOptions = SyntaxGenerator.DefaultRemoveOptions;
-            if (HasNonWhitespaceOrEndOfLineTrivia(syntaxFacts, syntax.GetLeadingTrivia()))
+            if (HasRegularCommentTrivia(syntaxFacts, syntax.GetLeadingTrivia()))
             {
                 removeOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
             }
 
-            if (HasNonWhitespaceOrEndOfLineTrivia(syntaxFacts, syntax.GetTrailingTrivia()))
+            if (HasRegularCommentTrivia(syntaxFacts, syntax.GetTrailingTrivia()))
             {
                 removeOptions |= SyntaxRemoveOptions.KeepTrailingTrivia;
             }
@@ -172,11 +179,14 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return removeOptions;
         }
 
-        private static bool HasNonWhitespaceOrEndOfLineTrivia(ISyntaxFactsService syntaxFacts, SyntaxTriviaList triviaList)
+        private static bool HasLeadingRegularComments(ISyntaxFactsService syntaxFacts, SyntaxNode syntax)
+            => HasRegularCommentTrivia(syntaxFacts, syntax.GetLeadingTrivia());
+
+        private static bool HasRegularCommentTrivia(ISyntaxFactsService syntaxFacts, SyntaxTriviaList triviaList)
         {
             foreach (var trivia in triviaList)
             {
-                if (!syntaxFacts.IsWhitespaceTrivia(trivia) && !syntaxFacts.IsEndOfLineTrivia(trivia))
+                if (syntaxFacts.IsRegularComment(trivia))
                 {
                     return true;
                 }

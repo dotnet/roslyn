@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
@@ -15,6 +16,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
 
         Protected Overrides Function GetIfStatementKinds() As ImmutableArray(Of SyntaxKind)
             Return ImmutableArray.Create(SyntaxKind.MultiLineIfBlock)
+        End Function
+
+        Protected Overrides Function GetSyntaxFactsService() As ISyntaxFactsService
+            Return VisualBasicSyntaxFactsService.Instance
         End Function
     End Class
 End Namespace

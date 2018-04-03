@@ -30,9 +30,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             // The left side of both assignment statements has to be syntactically identical (modulo
             // trivia differences).
-            return syntaxFacts.AreEquivalent(
-                trueAssignment.Target.Syntax,
-                falseAssignment.Target.Syntax);
+            if (!syntaxFacts.AreEquivalent(trueAssignment.Target.Syntax, falseAssignment.Target.Syntax))
+            {
+                return false;
+            }
+
+            return UseConditionalExpressionHelpers.CanConvert(
+                syntaxFacts, ifOperation, trueAssignment, falseAssignment);
         }
 
         private static bool TryGetAssignment(
