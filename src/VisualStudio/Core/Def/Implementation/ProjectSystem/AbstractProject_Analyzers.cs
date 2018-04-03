@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ruleSetFileFullPath = string.Empty;
             }
 
-            if (!ruleSetFileFullPath.Equals(string.Empty))
+            if (ruleSetFileFullPath.Length > 0)
             {
                 // This is already a full path, but run it through GetFullPath to clean it (e.g., remove
                 // extra backslashes).
