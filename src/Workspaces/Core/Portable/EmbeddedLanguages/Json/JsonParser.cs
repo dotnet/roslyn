@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         /// <summary>
         /// Given an input text, parses out a fully representative syntax tree  and list of 
-        /// diagnotics.  Parsing should always succeed, except in the case of the stack 
+        /// diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
         public static JsonTree TryParse(ImmutableArray<VirtualChar> text, bool strict)
@@ -79,12 +79,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             var root = new JsonCompilationUnit(arraySequence, _currentToken);
 
-            var diagnostic = GetDiagnostic(root) ?? CheckTopLevel(_lexer.Text, root);
+            var diagnostic = GetFirstDiagnostic(root) ?? CheckTopLevel(_lexer.Text, root);
             if (diagnostic == null)
             {
                 diagnostic = strict
-                    ? new StrictSyntaxChecker().CheckSyntax(root)
-                    : new JsonNetSyntaxChecker().CheckSyntax(root);
+                    ? StrictSyntaxChecker.CheckSyntax(root)
+                    : JsonNetSyntaxChecker.CheckSyntax(root);
             }
 
             var diagnostics = diagnostic == null
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 _lexer.Text, root, diagnostics);
         }
 
-        private EmbeddedDiagnostic? CheckTopLevel(
+        private static EmbeddedDiagnostic? CheckTopLevel(
             ImmutableArray<VirtualChar> text, JsonCompilationUnit compilationUnit)
         {
             var arraySequence = compilationUnit.Sequence;
@@ -131,21 +131,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         private static JsonToken GetFirstToken(JsonNode node)
         {
-            foreach (var child in node)
-            {
-                return child.IsNode
-                    ? GetFirstToken(child.Node)
-                    : child.Token;
-            }
-
-            throw new InvalidOperationException();
+            var child = node.ChildAt(0);
+            return child.IsNode
+                ? GetFirstToken(child.Node)
+                : child.Token;
         }
 
-        private static EmbeddedDiagnostic? GetDiagnostic(JsonNode node)
+        private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonNode node)
         {
             foreach (var child in node)
             {
-                var diagnostic = GetDiagnostic(child);
+                var diagnostic = GetFirstDiagnostic(child);
                 if (diagnostic != null)
                 {
                     return diagnostic;
@@ -155,17 +151,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return null;
         }
 
-        private static EmbeddedDiagnostic? GetDiagnostic(JsonNodeOrToken child)
+        private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonNodeOrToken child)
         {
             return child.IsNode
-                ? GetDiagnostic(child.Node)
-                : GetDiagnostic(child.Token);
+                ? GetFirstDiagnostic(child.Node)
+                : GetFirstDiagnostic(child.Token);
         }
 
-        private static EmbeddedDiagnostic? GetDiagnostic(JsonToken token)
-            => GetDiagnostic(token.LeadingTrivia) ?? token.Diagnostics.FirstOrNullable() ?? GetDiagnostic(token.TrailingTrivia);
+        private static EmbeddedDiagnostic? GetFirstDiagnostic(JsonToken token)
+            => GetFirstDiagnostic(token.LeadingTrivia) ?? token.Diagnostics.FirstOrNullable() ?? GetFirstDiagnostic(token.TrailingTrivia);
 
-        private static EmbeddedDiagnostic? GetDiagnostic(ImmutableArray<JsonTrivia> list)
+        private static EmbeddedDiagnostic? GetFirstDiagnostic(ImmutableArray<JsonTrivia> list)
         {
             foreach (var trivia in list)
             {
@@ -197,13 +193,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             var list = ArrayBuilder<JsonValueNode>.GetInstance();
 
-            if (ShouldConsumeSequenceElement())
+            while (ShouldConsumeSequenceElement())
             {
-                do
-                {
-                    list.Add(ParseValue());
-                }
-                while (ShouldConsumeSequenceElement());
+                list.Add(ParseValue());
             }
 
             return new JsonSequenceNode(list.ToImmutableAndFree());
@@ -306,7 +298,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         private JsonValueNode ParseLiteralOrPropertyOrConstructor()
         {
-            // var token = ConsumeCurrentToken().With(kind: JsonKind.TextToken);
             var textToken = ConsumeCurrentToken();
             if (_currentToken.Kind != JsonKind.ColonToken)
             {
@@ -399,7 +390,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return false;
             }
 
-            for (int i = 0, n = val.Length; i < n; i++)
+            for (int i = 0; i < val.Length; i++)
             {
                 if (chars[i].Char != val[i])
                 {
@@ -410,13 +401,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return true;
         }
 
-        private bool IsDigit(char ch)
+        private static bool IsDigit(char ch)
             => ch >= '0' && ch <= '9';
 
-        private JsonLiteralNode ParseLiteral(JsonToken textToken, JsonKind kind)
+        private static JsonLiteralNode ParseLiteral(JsonToken textToken, JsonKind kind)
             => new JsonLiteralNode(textToken.With(kind: kind));
 
-        private JsonValueNode ParseNumber(JsonToken textToken)
+        private static JsonValueNode ParseNumber(JsonToken textToken)
         {
             var numberToken = textToken.With(kind: JsonKind.NumberToken);
             return new JsonLiteralNode(numberToken);

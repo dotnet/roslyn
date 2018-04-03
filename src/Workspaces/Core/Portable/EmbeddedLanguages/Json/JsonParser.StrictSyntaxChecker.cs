@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
     internal partial struct JsonParser
     {
-        private struct StrictSyntaxChecker
+        private static class StrictSyntaxChecker
         {
-            private EmbeddedDiagnostic? CheckChildren(JsonNode node)
+            private static EmbeddedDiagnostic? CheckChildren(JsonNode node)
             {
                 foreach (var child in node)
                 {
@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return null;
             }
 
-            private EmbeddedDiagnostic? CheckToken(JsonToken token)
+            private static EmbeddedDiagnostic? CheckToken(JsonToken token)
                 => CheckTrivia(token.LeadingTrivia) ?? CheckTrivia(token.TrailingTrivia);
 
-            private EmbeddedDiagnostic? CheckTrivia(ImmutableArray<JsonTrivia> triviaList)
+            private static EmbeddedDiagnostic? CheckTrivia(ImmutableArray<JsonTrivia> triviaList)
             {
                 foreach (var trivia in triviaList)
                 {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return null;
             }
 
-            private EmbeddedDiagnostic? CheckTrivia(JsonTrivia trivia)
+            private static EmbeddedDiagnostic? CheckTrivia(JsonTrivia trivia)
             {
                 switch (trivia.Kind)
                 {
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return null;
             }
 
-            private EmbeddedDiagnostic? CheckWhitespace(JsonTrivia trivia)
+            private static EmbeddedDiagnostic? CheckWhitespace(JsonTrivia trivia)
             {
                 foreach (var ch in trivia.VirtualChars)
                 {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return null;
             }
 
-            public EmbeddedDiagnostic? CheckSyntax(JsonNode node)
+            public static EmbeddedDiagnostic? CheckSyntax(JsonNode node)
             {
                 switch (node.Kind)
                 {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return CheckChildren(node);
             }
 
-            private EmbeddedDiagnostic? CheckObject(JsonObjectNode node)
+            private static EmbeddedDiagnostic? CheckObject(JsonObjectNode node)
             {
                 var sequence = node.Sequence;
                 foreach (var child in sequence)
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return CheckProperSeparation(sequence) ?? CheckChildren(node);
             }
 
-            private EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
+            private static EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
             {
                 foreach (var child in node.Sequence)
                 {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return CheckProperSeparation(node.Sequence) ?? CheckChildren(node);
             }
 
-            private EmbeddedDiagnostic? CheckProperSeparation(JsonSequenceNode sequence)
+            private static EmbeddedDiagnostic? CheckProperSeparation(JsonSequenceNode sequence)
             {
                 for (int i = 0, n = sequence.ChildCount; i < n; i++)
                 {
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return null;
             }
 
-            private EmbeddedDiagnostic? CheckProperty(JsonPropertyNode node)
+            private static EmbeddedDiagnostic? CheckProperty(JsonPropertyNode node)
             {
                 if (node.NameToken.Kind != JsonKind.StringToken)
                 {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return CheckString(node.NameToken) ?? CheckChildren(node);
             }
 
-            private EmbeddedDiagnostic? CheckLiteral(JsonLiteralNode node)
+            private static EmbeddedDiagnostic? CheckLiteral(JsonLiteralNode node)
             {
                 switch (node.LiteralToken.Kind)
                 {
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 $",
                     RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace);
 
-            private EmbeddedDiagnostic? CheckNumber(JsonToken literalToken)
+            private static EmbeddedDiagnostic? CheckNumber(JsonToken literalToken)
             {
                 var literalText = literalToken.VirtualChars.CreateString();
                 if (!s_validNumberRegex.IsMatch(literalText))
@@ -267,7 +267,7 @@ $",
                 return CheckToken(literalToken);
             }
 
-            private EmbeddedDiagnostic? CheckString(JsonToken literalToken)
+            private static EmbeddedDiagnostic? CheckString(JsonToken literalToken)
             {
                 var chars = literalToken.VirtualChars;
                 if (chars[0].Char == '\'')
@@ -311,21 +311,21 @@ $",
                 return CheckToken(literalToken);
             }
 
-            private EmbeddedDiagnostic? InvalidLiteral(JsonToken literalToken)
+            private static EmbeddedDiagnostic? InvalidLiteral(JsonToken literalToken)
             {
                 return new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources._0_literal_not_allowed, literalToken.VirtualChars.CreateString()),
                     literalToken.GetSpan());
             }
 
-            private EmbeddedDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
+            private static EmbeddedDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
             {
                 return new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources._0_literal_not_allowed, "-Infinity"),
                     node.GetSpan());
             }
 
-            private EmbeddedDiagnostic? CheckConstructor(JsonConstructorNode node)
+            private static EmbeddedDiagnostic? CheckConstructor(JsonConstructorNode node)
             {
                 return new EmbeddedDiagnostic(
                     WorkspacesResources.Constructors_not_allowed,

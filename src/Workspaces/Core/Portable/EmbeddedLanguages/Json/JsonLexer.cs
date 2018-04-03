@@ -25,10 +25,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             Text = text;
         }
 
-        public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : new VirtualChar((char)0, default);
+        public VirtualChar CurrentChar => Position < Text.Length
+            ? Text[Position]
+            : new VirtualChar((char)0, span: default);
 
-        public ImmutableArray<VirtualChar> GetSubPattern(int start, int end)
+        public ImmutableArray<VirtualChar> GetCharsToCurrentPosition(int start)
         {
+            var end = Position;
             var result = ArrayBuilder<VirtualChar>.GetInstance(end - start);
             for (var i = start; i < end; i++)
             {
@@ -105,6 +108,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 case '\'': case '"':
                     return ScanString();
 
+                // It would be tempting to try to scan out numbers here.  However, numbers are
+                // actually quite tricky to get right (especially looking one character at a time).
+                // So, instead, we take a page from json.net and just consume out a text sequence.
+                // Later on, we'll analyze that text sequence as a whole to see if it looks like a
+                // number and to also report any issues in line with how json.net and ecmascript
+                // handle json numbers.
+
                 //case '-': case '.':
                 //case '0': case '1': case '2': case '3': case '4':
                 //case '5': case '6': case '7': case '8': case '9':
@@ -118,7 +128,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanString()
         {
             var start = Position;
-            var startChar = this.CurrentChar.Char;
+            var openChar = this.CurrentChar.Char;
             Position++;
 
             EmbeddedDiagnostic? diagnostic = null;
@@ -131,9 +141,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 {
                     case '"':
                     case '\'':
-                        if (currentCh == startChar)
+                        if (currentCh == openChar)
                         {
-                            return (GetSubPattern(start, Position), JsonKind.StringToken, diagnostic);
+                            return (GetCharsToCurrentPosition(start), JsonKind.StringToken, diagnostic);
                         }
                         continue;
 
@@ -144,17 +154,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 }
             }
 
-            var chars = GetSubPattern(start, Position);
+            var chars = GetCharsToCurrentPosition(start);
             diagnostic = diagnostic ?? new EmbeddedDiagnostic(
                 WorkspacesResources.Unterminated_string, GetSpan(chars));
             return (chars, JsonKind.StringToken, diagnostic);
         }
 
+        /// <summary>
+        /// <see cref="ScanEscape"/> does not actually lex out an escape token.  Instead, it just
+        /// moves the position forward and returns a diagnostic if this was not a valid escape.
+        /// </summary>
         private EmbeddedDiagnostic? ScanEscape(int stringStart, int escapeStart)
         {
             if (this.Position == Text.Length)
             {
-                var chars = GetSubPattern(stringStart, Position);
+                var chars = GetCharsToCurrentPosition(stringStart);
                 return new EmbeddedDiagnostic(WorkspacesResources.Unterminated_string, GetSpan(chars));
             }
 
@@ -179,7 +193,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
                 default:
                     Position++;
-                    var chars = GetSubPattern(escapeStart, Position);
+                    var chars = GetCharsToCurrentPosition(escapeStart);
                     return new EmbeddedDiagnostic(WorkspacesResources.Invalid_escape_sequence, GetSpan(chars));
             }
         }
@@ -197,7 +211,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             if (invalid || (Position - unicodeCharStart != 4))
             {
-                var chars = GetSubPattern(escapeStart, Position);
+                var chars = GetCharsToCurrentPosition(escapeStart);
                 return new EmbeddedDiagnostic(WorkspacesResources.Invalid_escape_sequence, GetSpan(chars));
             }
 
@@ -221,20 +235,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 Position++;
             }
 
-            return (GetSubPattern(start, Position), JsonKind.TextToken, null);
-        }
-
-        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?)? TryScanText(
-            string text, JsonKind kind)
-        {
-            var start = this.Position;
-            if (!IsAt(text))
-            {
-                return null;
-            }
-
-            Position += text.Length;
-            return (GetSubPattern(start, Position), kind, null);
+            return (GetCharsToCurrentPosition(start), JsonKind.TextToken, null);
         }
 
         private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanSingleCharToken(JsonKind kind)
@@ -289,12 +290,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             if (IsAt("\r\n"))
             {
                 Position += 2;
-                return CreateTrivia(JsonKind.EndOfLineTrivia, GetSubPattern(start, Position));
+                return CreateTrivia(JsonKind.EndOfLineTrivia, GetCharsToCurrentPosition(start));
             }
             else if (IsAt("\r") || IsAt("\n"))
             {
                 Position++;
-                return CreateTrivia(JsonKind.EndOfLineTrivia, GetSubPattern(start, Position));
+                return CreateTrivia(JsonKind.EndOfLineTrivia, GetCharsToCurrentPosition(start));
             }
 
             return null;
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 var start = Position;
                 Position++;
 
-                var chars = GetSubPattern(start, Position);
+                var chars = GetCharsToCurrentPosition(start);
                 return CreateTrivia(JsonKind.SingleLineCommentTrivia, chars,
                     ImmutableArray.Create(new EmbeddedDiagnostic(
                         WorkspacesResources.Error_parsing_comment,
@@ -337,9 +338,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 Position++;
             }
 
-            var chars = GetSubPattern(start, Position);
+            var chars = GetCharsToCurrentPosition(start);
             if (Position == start + 2)
             {
+                // Note: json.net reports an error if the file ends with "//", so we just
+                // preserve that behavior.
                 var diagnostics = ImmutableArray.Create(new EmbeddedDiagnostic(
                     WorkspacesResources.Unterminated_comment,
                     GetSpan(chars)));
@@ -363,20 +366,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             if (IsAt("*/"))
             {
                 Position += 2;
-                return CreateTrivia(JsonKind.MultiLineCommentTrivia, GetSubPattern(start, Position));
+                return CreateTrivia(JsonKind.MultiLineCommentTrivia, GetCharsToCurrentPosition(start));
             }
 
             Debug.Assert(Position == Text.Length);
-            return CreateTrivia(JsonKind.MultiLineCommentTrivia, GetSubPattern(start, Position),
+            return CreateTrivia(JsonKind.MultiLineCommentTrivia, GetCharsToCurrentPosition(start),
                 ImmutableArray.Create(new EmbeddedDiagnostic(
                     WorkspacesResources.Unterminated_comment,
                     GetTextSpan(start, Position))));
         }
 
-        public TextSpan GetTextSpan(int startInclusive, int endExclusive)
+        private TextSpan GetTextSpan(int startInclusive, int endExclusive)
             => TextSpan.FromBounds(Text[startInclusive].Span.Start, Text[endExclusive - 1].Span.End);
 
-        public bool IsAt(string val)
+        private bool IsAt(string val)
             => TextAt(this.Position, val);
 
         private bool TextAt(int position, string val)
@@ -404,7 +407,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             if (Position > start)
             {
-                return CreateTrivia(JsonKind.WhitespaceTrivia, GetSubPattern(start, Position));
+                return CreateTrivia(JsonKind.WhitespaceTrivia, GetCharsToCurrentPosition(start));
             }
 
             return null;

@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonSequenceNode Sequence { get; }
         public JsonToken EndOfFileToken { get; }
 
-        public override int ChildCount => 2;
+        internal override int ChildCount => 2;
 
-        public override JsonNodeOrToken ChildAt(int index)
+        internal override JsonNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
-            case 0: return Sequence;
-            case 1: return EndOfFileToken;
+                case 0: return Sequence;
+                case 1: return EndOfFileToken;
             }
 
             throw new InvalidOperationException();
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     {
         public ImmutableArray<JsonValueNode> Children { get; }
 
-        public override int ChildCount => Children.Length;
+        internal override int ChildCount => Children.Length;
 
         public JsonSequenceNode(ImmutableArray<JsonValueNode> children)
             : base(JsonKind.Sequence)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             this.Children = children;
         }
 
-        public override JsonNodeOrToken ChildAt(int index)
+        internal override JsonNodeOrToken ChildAt(int index)
             => Children[index];
 
         public override void Accept(IJsonNodeVisitor visitor)
@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     }
 
     /// <summary>
-    /// Represents a chunk of text (usually just a single char) from the original pattern.
+    /// Represents a chunk of text that we did not understand as anything special.  i.e. it wasn't a
+    /// keyword, number, or literal.
     /// </summary>
     internal sealed class JsonTextNode : JsonValueNode
     {
@@ -90,9 +91,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         public JsonToken TextToken { get; }
 
-        public override int ChildCount => 1;
+        internal override int ChildCount => 1;
 
-        public override JsonNodeOrToken ChildAt(int index)
+        internal override JsonNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonObjectNode(
             JsonToken openBraceToken,
             JsonSequenceNode sequence,
-            JsonToken closeBraceToken) 
+            JsonToken closeBraceToken)
             : base(JsonKind.Object)
         {
             Debug.Assert(openBraceToken.Kind == JsonKind.OpenBraceToken);
@@ -127,9 +128,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonSequenceNode Sequence { get; }
         public JsonToken CloseBraceToken { get; }
 
-        public override int ChildCount => 3;
+        internal override int ChildCount => 3;
 
-        public override JsonNodeOrToken ChildAt(int index)
+        internal override JsonNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -166,9 +167,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonSequenceNode Sequence { get; }
         public JsonToken CloseBracketToken { get; }
 
-        public override int ChildCount => 3;
+        internal override int ChildCount => 3;
 
-        public override JsonNodeOrToken ChildAt(int index)
+        internal override JsonNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     internal sealed class JsonNegativeLiteralNode : JsonValueNode
     {
         public JsonNegativeLiteralNode(JsonToken minusToken, JsonToken literalToken)
-       : base(JsonKind.NegativeLiteral)
+            : base(JsonKind.NegativeLiteral)
         {
             MinusToken = minusToken;
             LiteralToken = literalToken;
@@ -196,9 +197,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonToken MinusToken { get; }
         public JsonToken LiteralToken { get; }
 
-        public override int ChildCount => 2;
+        internal override int ChildCount => 2;
 
-        public override JsonNodeOrToken ChildAt(int index)
+        internal override JsonNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -215,7 +216,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
     internal sealed class JsonLiteralNode : JsonValueNode
     {
-        public JsonLiteralNode(JsonToken literalToken) 
+        public JsonLiteralNode(JsonToken literalToken)
             : base(JsonKind.Literal)
         {
             LiteralToken = literalToken;
@@ -223,9 +224,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         public JsonToken LiteralToken { get; }
 
-        public override int ChildCount => 1;
+        internal override int ChildCount => 1;
 
-        public override JsonNodeOrToken ChildAt(int index)
+        internal override JsonNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -250,9 +251,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         public JsonToken CommaToken { get; }
 
-        public override int ChildCount => 1;
+        internal override int ChildCount => 1;
 
-        public override JsonNodeOrToken ChildAt(int index)
+        internal override JsonNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -283,9 +284,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonToken ColonToken { get; }
         public JsonValueNode Value { get; }
 
-        public override int ChildCount => 3;
+        internal override int ChildCount => 3;
 
-        public override JsonNodeOrToken ChildAt(int index)
+        internal override JsonNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -320,9 +321,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonSequenceNode Sequence { get; }
         public JsonToken CloseParenToken { get; }
 
-        public override int ChildCount => 5;
+        internal override int ChildCount => 5;
 
-        public override JsonNodeOrToken ChildAt(int index)
+        internal override JsonNodeOrToken ChildAt(int index)
         {
             switch (index)
             {

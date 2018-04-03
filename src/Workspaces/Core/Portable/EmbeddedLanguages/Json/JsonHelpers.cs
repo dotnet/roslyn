@@ -11,18 +11,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
     internal static class JsonHelpers
     {
-        public static JsonToken CreateToken(JsonKind kind, ImmutableArray<JsonTrivia> leadingTrivia, ImmutableArray<VirtualChar> virtualChars, ImmutableArray<JsonTrivia> trailingTrivia)
+        public static JsonToken CreateToken(
+            JsonKind kind, ImmutableArray<JsonTrivia> leadingTrivia,
+            ImmutableArray<VirtualChar> virtualChars, ImmutableArray<JsonTrivia> trailingTrivia)
             => CreateToken(kind, leadingTrivia, virtualChars, trailingTrivia, ImmutableArray<EmbeddedDiagnostic>.Empty);
 
         public static JsonToken CreateToken(JsonKind kind, 
             ImmutableArray<JsonTrivia> leadingTrivia, ImmutableArray<VirtualChar> virtualChars,
-             ImmutableArray<JsonTrivia> trailingTrivia, ImmutableArray<EmbeddedDiagnostic> diagnostics)
-            => CreateToken(kind, leadingTrivia, virtualChars, trailingTrivia, diagnostics, value: null);
-
-        public static JsonToken CreateToken(JsonKind kind,
-            ImmutableArray<JsonTrivia> leadingTrivia, ImmutableArray<VirtualChar> virtualChars,
-            ImmutableArray<JsonTrivia> trailingTrivia, ImmutableArray<EmbeddedDiagnostic> diagnostics, object value)
-            => new JsonToken(kind, leadingTrivia, virtualChars, trailingTrivia, diagnostics, value);
+            ImmutableArray<JsonTrivia> trailingTrivia, ImmutableArray<EmbeddedDiagnostic> diagnostics)
+            => new JsonToken(kind, leadingTrivia, virtualChars, trailingTrivia, diagnostics, value: null);
 
         public static JsonToken CreateMissingToken(JsonKind kind)
             => CreateToken(kind, ImmutableArray<JsonTrivia>.Empty, ImmutableArray<VirtualChar>.Empty, ImmutableArray<JsonTrivia>.Empty);
