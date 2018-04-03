@@ -205,14 +205,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void LogConversion(CommonConversion conversion, string header = "Conversion")
         {
             var exists = FormatBoolProperty(nameof(conversion.Exists), conversion.Exists);
-            var isIdentity = FormatBoolProperty(nameof(conversion.IsIdentity), conversion.IsIdentity);
-            var isNumeric = FormatBoolProperty(nameof(conversion.IsNumeric), conversion.IsNumeric);
-            var isReference = FormatBoolProperty(nameof(conversion.IsReference), conversion.IsReference);
-            var isUserDefined = FormatBoolProperty(nameof(conversion.IsUserDefined), conversion.IsUserDefined);
 
-            LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}) (");
-            LogSymbol(conversion.MethodSymbol, nameof(conversion.MethodSymbol));
-            LogString(")");
+            if (conversion.IsLanguageAgnostic)
+            {
+                Assert.False(conversion.IsIdentity);
+                Assert.False(conversion.IsNumeric);
+                Assert.False(conversion.IsReference);
+                Assert.False(conversion.IsUserDefined);
+                Assert.Null(conversion.MethodSymbol);
+
+                LogString($"{header}: {nameof(CommonConversion)} ({exists})");
+            }
+            else
+            {
+                var isIdentity = FormatBoolProperty(nameof(conversion.IsIdentity), conversion.IsIdentity);
+                var isNumeric = FormatBoolProperty(nameof(conversion.IsNumeric), conversion.IsNumeric);
+                var isReference = FormatBoolProperty(nameof(conversion.IsReference), conversion.IsReference);
+                var isUserDefined = FormatBoolProperty(nameof(conversion.IsUserDefined), conversion.IsUserDefined);
+
+                LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}) (");
+                LogSymbol(conversion.MethodSymbol, nameof(conversion.MethodSymbol));
+                LogString(")");
+            }
         }
 
         private void LogSymbol(ISymbol symbol, string header, bool logDisplayString = true)
@@ -644,6 +658,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.Resources, "Resources");
             Visit(operation.Body, "Body");
+
+            Assert.NotEqual(OperationKind.VariableDeclaration, operation.Resources.Kind);
+            Assert.NotEqual(OperationKind.VariableDeclarator, operation.Resources.Kind);
         }
 
         // https://github.com/dotnet/roslyn/issues/21281
@@ -1031,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Indent();
             LogConversion(operation.Conversion);
 
-            if (((Operation)operation).SemanticModel == null)
+            if (((Operation)operation).SemanticModel == null && !operation.Conversion.IsLanguageAgnostic)
             {
                 LogNewLine();
                 Indent();

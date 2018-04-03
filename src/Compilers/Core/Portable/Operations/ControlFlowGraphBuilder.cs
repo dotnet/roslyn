@@ -1794,7 +1794,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (candidate.Kind == SymbolKind.Method && !candidate.IsStatic && candidate.DeclaredAccessibility == Accessibility.Public)
                 {
                     var method = (IMethodSymbol)candidate;
-                    if (method.Parameters.Length == 0 && !method.ReturnsByRef && !method.ReturnsByRefReadonly &&
+                    if (method.Parameters.Length == 0 && method.RefKind == RefKind.None &&
                         method.OriginalDefinition.ReturnType.Equals(((INamedTypeSymbol)valueType).OriginalDefinition.TypeParameters[0]))
                     {
                         return new InvocationExpression(method, value, isVirtual: false,
@@ -2280,6 +2280,190 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+        public override IOperation VisitUsing(IUsingOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(operation == _currentStatement);
+
+            SemanticModel semanticModel = ((Operation)operation).SemanticModel;
+            ITypeSymbol iDisposable = semanticModel.Compilation.GetSpecialType(SpecialType.System_IDisposable);
+
+            if (operation.Resources.Kind == OperationKind.VariableDeclarationGroup)
+            {
+                var declarationGroup = (IVariableDeclarationGroupOperation)operation.Resources;
+                var resourceQueue = ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>.GetInstance(declarationGroup.Declarations.Length);
+
+                // PROTOTYPE(dataflow): Once https://github.com/dotnet/roslyn/issues/25825 is fixed
+                //                      we should switch to IUsingOperation.Locals property
+                //                      because the current approach doesn't handle 'out vars' and the like.
+                var locals = ArrayBuilder<ILocalSymbol>.GetInstance(declarationGroup.Declarations.Length);
+
+                foreach (IVariableDeclarationOperation declaration in declarationGroup.Declarations)
+                {
+                    foreach (IVariableDeclaratorOperation declarator in declaration.Declarators)
+                    {
+                        locals.Add(declarator.Symbol);
+                        resourceQueue.Add((declaration, declarator));
+                    }
+                }
+
+                resourceQueue.ReverseContents();
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: locals.ToImmutableAndFree()));
+
+                processQueue(resourceQueue);
+
+                LeaveRegion();
+            }
+            else
+            {
+                Debug.Assert(operation.Resources.Kind != OperationKind.VariableDeclaration);
+                Debug.Assert(operation.Resources.Kind != OperationKind.VariableDeclarator);
+
+                // PROTOTYPE(dataflow): Once https://github.com/dotnet/roslyn/issues/25825 is fixed
+                //                      we should handle locals in IUsingOperation.Locals property:
+                //                      'out vars' and the like.
+                IOperation resource = Visit(operation.Resources);
+                int captureId = _availableCaptureId++;
+
+                if (shouldConvertToIDisposableBeforeTry(resource))
+                {
+                    resource = convertToIDisposable(resource);
+                }
+
+                AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
+                processResource(new FlowCaptureReference(captureId, resource.Syntax, resource.Type, constantValue: default), resourceQueueOpt: null);
+            }
+
+            return null;
+
+            void processQueue(ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)> resourceQueueOpt)
+            {
+                if (resourceQueueOpt == null || resourceQueueOpt.Count == 0)
+                {
+                    VisitStatement(operation.Body);
+                }
+                else
+                {
+                    (IVariableDeclarationOperation declaration, IVariableDeclaratorOperation declarator) = resourceQueueOpt.Pop();
+                    HandleVariableDeclarator(declaration, declarator);
+                    ILocalSymbol localSymbol = declarator.Symbol;
+                    processResource(new LocalReferenceExpression(localSymbol, isDeclaration: false, semanticModel: null, declarator.Syntax, localSymbol.Type, 
+                                                                 constantValue: default, isImplicit: true),
+                                    resourceQueueOpt);
+                }
+            }
+
+            bool shouldConvertToIDisposableBeforeTry(IOperation resource)
+            {
+                return resource.Type == null || resource.Type.Kind == SymbolKind.DynamicType;
+            }
+
+            void processResource(IOperation resource, ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)> resourceQueueOpt)
+            {
+                // When ResourceType is a non-nullable value type, the expansion is:
+                // 
+                // { 
+                //   ResourceType resource = expr; 
+                //   try { statement; } 
+                //   finally { ((IDisposable)resource).Dispose(); }
+                // }
+                // 
+                // Otherwise, when Resource type is a nullable value type or
+                // a reference type other than dynamic, the expansion is:
+                // 
+                // { 
+                //   ResourceType resource = expr; 
+                //   try { statement; } 
+                //   finally { if (resource != null) ((IDisposable)resource).Dispose(); }
+                // }
+                // 
+                // Otherwise, when ResourceType is dynamic, the expansion is:
+                // { 
+                //   dynamic resource = expr; 
+                //   IDisposable d = (IDisposable)resource;
+                //   try { statement; } 
+                //   finally { if (d != null) d.Dispose(); }
+                // }
+
+                if (shouldConvertToIDisposableBeforeTry(resource))
+                {
+                    resource = convertToIDisposable(resource);
+                    int captureId = _availableCaptureId++;
+                    AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
+                    resource = new FlowCaptureReference(captureId, resource.Syntax, resource.Type, constantValue: default);
+                }
+
+                var afterTryFinally = new BasicBlock(BasicBlockKind.Block);
+
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.TryAndFinally));
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try));
+
+                processQueue(resourceQueueOpt);
+
+                LinkBlocks(CurrentBasicBlock, afterTryFinally);
+
+                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.Try);
+                LeaveRegion();
+
+                var endOfFinally = new BasicBlock(BasicBlockKind.Block);
+                endOfFinally.InternalNext.Branch.Kind = BasicBlock.BranchKind.StructuredExceptionHandling;
+
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Finally));
+                AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
+
+                if (!(resource.Type?.IsValueType == true && !ITypeSymbolHelpers.IsNullableType(resource.Type)))
+                {
+                    IOperation condition = MakeIsNullOperation(semanticModel, OperationCloner.CloneOperation(resource));
+                    condition = Operation.SetParentOperation(condition, null);
+                    LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: true, RegularBranch(endOfFinally)));
+                    _currentBasicBlock = null;
+                }
+
+                if (!resource.Type.Equals(iDisposable))
+                {
+                    resource = convertToIDisposable(resource);
+                }
+
+                AddStatement(tryDispose(resource) ??
+                             // PROTOTYPE(dataflow): The scenario with missing Dispose is not covered by unit-tests.
+                             MakeInvalidOperation(type: null, resource));
+
+                AppendNewBlock(endOfFinally);
+
+                LeaveRegion();
+                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
+                LeaveRegion();
+
+                AppendNewBlock(afterTryFinally, linkToPrevious: false);
+            }
+
+            IOperation convertToIDisposable(IOperation operand)
+            {
+                return new ConversionOperation(operand, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
+                                               semanticModel: null, operand.Syntax, iDisposable, constantValue: default, isImplicit: true);
+            }
+
+            IOperation tryDispose(IOperation value)
+            {
+                Debug.Assert(value.Type == iDisposable);
+
+                foreach (ISymbol candidate in iDisposable.GetMembers("Dispose"))
+                {
+                    if (candidate.Kind == SymbolKind.Method && !candidate.IsStatic && candidate.DeclaredAccessibility == Accessibility.Public)
+                    {
+                        var method = (IMethodSymbol)candidate;
+                        if (method.Parameters.Length == 0 && method.RefKind == RefKind.None && method.ReturnsVoid)
+                        {
+                            return new InvocationExpression(method, value, isVirtual: true,
+                                                            ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, value.Syntax,
+                                                            method.ReturnType, constantValue: default, isImplicit: true);
+                        }
+                    }
+                }
+
+                return null;
+            }
+        }
+
         public override IOperation VisitEnd(IEndOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
@@ -2312,75 +2496,80 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             foreach (IVariableDeclaratorOperation declarator in operation.Declarators)
             {
-                ILocalSymbol localSymbol = declarator.Symbol;
+                HandleVariableDeclarator(operation, declarator);
+            }
+        }
 
-                // We skip constants in the control flow graph, as they're not actually involved in any control flow.
-                if (localSymbol.IsConst)
-                {
-                    continue;
-                }
+        private void HandleVariableDeclarator(IVariableDeclarationOperation declaration, IVariableDeclaratorOperation declarator)
+        {
+            ILocalSymbol localSymbol = declarator.Symbol;
 
-                // If the local is a static (possible in VB), then we create a semaphore for conditional execution of the initializer.
-                BasicBlock afterInitialization = null;
-                if (localSymbol.IsStatic && (declarator.Initializer != null || operation.Initializer != null))
-                {
-                    afterInitialization = new BasicBlock(BasicBlockKind.Block);
+            // We skip constants in the control flow graph, as they're not actually involved in any control flow.
+            if (localSymbol.IsConst)
+            {
+                return;
+            }
 
-                    ITypeSymbol booleanType = ((Operation)operation).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
-                    var initializationSemaphore = new StaticLocalInitializationSemaphoreOperation(localSymbol, declarator.Syntax, booleanType);
-                    Operation.SetParentOperation(initializationSemaphore, null);
+            // If the local is a static (possible in VB), then we create a semaphore for conditional execution of the initializer.
+            BasicBlock afterInitialization = null;
+            if (localSymbol.IsStatic && (declarator.Initializer != null || declaration.Initializer != null))
+            {
+                afterInitialization = new BasicBlock(BasicBlockKind.Block);
 
-                    LinkBlocks(CurrentBasicBlock, (initializationSemaphore, JumpIfTrue: false, RegularBranch(afterInitialization)));
+                ITypeSymbol booleanType = ((Operation)declaration).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
+                var initializationSemaphore = new StaticLocalInitializationSemaphoreOperation(localSymbol, declarator.Syntax, booleanType);
+                Operation.SetParentOperation(initializationSemaphore, null);
 
-                    _currentBasicBlock = null;
-                    EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.StaticLocalInitializer));
-                }
+                LinkBlocks(CurrentBasicBlock, (initializationSemaphore, JumpIfTrue: false, RegularBranch(afterInitialization)));
 
-                IOperation initializer = null;
-                SyntaxNode assignmentSyntax = null;
-                if (declarator.Initializer != null)
-                {
-                    initializer = Visit(declarator.Initializer.Value);
-                    assignmentSyntax = declarator.Syntax;
-                }
+                _currentBasicBlock = null;
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.StaticLocalInitializer));
+            }
 
-                if (operation.Initializer != null)
-                {
-                    IOperation operationInitializer = Visit(operation.Initializer.Value);
-                    assignmentSyntax = operation.Syntax;
-                    if (initializer != null)
-                    {
-                        // PROTOTYPE(dataflow): Add a test with control flow in a shared initializer after
-                        // object creation support has been added
-                        initializer = new InvalidOperation(ImmutableArray.Create(initializer, operationInitializer),
-                                                           semanticModel: null,
-                                                           operation.Syntax,
-                                                           type: localSymbol.Type,
-                                                           constantValue: default,
-                                                           isImplicit: true);
-                    }
-                    else
-                    {
-                        initializer = operationInitializer;
-                    }
-                }
+            IOperation initializer = null;
+            SyntaxNode assignmentSyntax = null;
+            if (declarator.Initializer != null)
+            {
+                initializer = Visit(declarator.Initializer.Value);
+                assignmentSyntax = declarator.Syntax;
+            }
 
-                // If we have an afterInitialization, then we must have static local and an initializer to ensure we don't create empty regions that can't be cleaned up.
-                Debug.Assert(afterInitialization == null || (localSymbol.IsStatic && initializer != null));
-
+            if (declaration.Initializer != null)
+            {
+                IOperation operationInitializer = Visit(declaration.Initializer.Value);
+                assignmentSyntax = declaration.Syntax;
                 if (initializer != null)
                 {
-                    // We can't use the IdentifierToken as the syntax for the local reference, so we use the
-                    // entire declarator as the node
-                    var localRef = new LocalReferenceExpression(localSymbol, isDeclaration: true, semanticModel: null, declarator.Syntax, localSymbol.Type, constantValue: default, isImplicit: true);
-                    var assignment = new SimpleAssignmentExpression(localRef, isRef: localSymbol.IsRef, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: default, isImplicit: true);
-                    AddStatement(assignment);
+                    // PROTOTYPE(dataflow): Add a test with control flow in a shared initializer after
+                    // object creation support has been added
+                    initializer = new InvalidOperation(ImmutableArray.Create(initializer, operationInitializer),
+                                                        semanticModel: null,
+                                                        declaration.Syntax,
+                                                        type: localSymbol.Type,
+                                                        constantValue: default,
+                                                        isImplicit: true);
+                }
+                else
+                {
+                    initializer = operationInitializer;
+                }
+            }
 
-                    if (localSymbol.IsStatic)
-                    {
-                        LeaveRegion();
-                        AppendNewBlock(afterInitialization);
-                    }
+            // If we have an afterInitialization, then we must have static local and an initializer to ensure we don't create empty regions that can't be cleaned up.
+            Debug.Assert(afterInitialization == null || (localSymbol.IsStatic && initializer != null));
+
+            if (initializer != null)
+            {
+                // We can't use the IdentifierToken as the syntax for the local reference, so we use the
+                // entire declarator as the node
+                var localRef = new LocalReferenceExpression(localSymbol, isDeclaration: true, semanticModel: null, declarator.Syntax, localSymbol.Type, constantValue: default, isImplicit: true);
+                var assignment = new SimpleAssignmentExpression(localRef, isRef: localSymbol.IsRef, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: default, isImplicit: true);
+                AddStatement(assignment);
+
+                if (localSymbol.IsStatic)
+                {
+                    LeaveRegion();
+                    AppendNewBlock(afterInitialization);
                 }
             }
         }
@@ -2583,11 +2772,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitLock(ILockOperation operation, int? captureIdForResult)
         {
             return new LockStatement(Visit(operation.LockedValue), Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitUsing(IUsingOperation operation, int? captureIdForResult)
-        {
-            return new UsingStatement(Visit(operation.Resources), Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         internal override IOperation VisitFixed(IFixedOperation operation, int? captureIdForResult)

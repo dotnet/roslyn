@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, object argument)
         {
-            throw ExceptionUtilities.Unreachable;
+            return new FlowCaptureReference(operation.Id, operation.Syntax, operation.Type, constantValue: operation.ConstantValue);
         }
 
         public override IOperation VisitIsNull(IIsNullOperation operation, object argument)

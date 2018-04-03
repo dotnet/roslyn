@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -981,5 +981,150 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ExpressionStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        ' PROTOTYPE(dataflow): Port applicable UsingFlow_01 - UsingFlow_12 test scenarios from C#.
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub UsingFlow_13()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(x As Integer) 'BIND:"Sub M"
+        Using c1 As C1 = New C1, s2 As S2 = New S2
+            x = 1
+        End Using
+    End Sub
+End Class
+
+Class C1
+    Implements IDisposable
+    Public Sub Dispose() Implements IDisposable.Dispose
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Structure S2
+    Implements IDisposable
+    Public Sub Dispose() Implements IDisposable.Dispose
+        Throw New NotImplementedException()
+    End Sub
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [c1 As C1] [s2 As S2]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1, IsImplicit) (Syntax: 'c1 As C1 = New C1')
+              Left: 
+                ILocalReferenceOperation: c1 (IsDeclaration: True) (OperationKind.LocalReference, Type: C1, IsImplicit) (Syntax: 'c1')
+              Right: 
+                IObjectCreationOperation (Constructor: Sub C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1')
+                  Arguments(0)
+                  Initializer: 
+                    null
+
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: S2, IsImplicit) (Syntax: 's2 As S2 = New S2')
+                  Left: 
+                    ILocalReferenceOperation: s2 (IsDeclaration: True) (OperationKind.LocalReference, Type: S2, IsImplicit) (Syntax: 's2')
+                  Right: 
+                    IObjectCreationOperation (Constructor: Sub S2..ctor()) (OperationKind.ObjectCreation, Type: S2) (Syntax: 'New S2')
+                      Arguments(0)
+                      Initializer: 
+                        null
+
+            Next (Regular) Block[B3]
+                Entering: {R4} {R5}
+
+        .try {R4, R5}
+        {
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (1)
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 1')
+                      Expression: 
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = 1')
+                          Left: 
+                            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                          Right: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+                Next (Regular) Block[B8]
+                    Finalizing: {R6} {R7}
+                    Leaving: {R5} {R4} {R3} {R2} {R1}
+        }
+        .finally {R6}
+        {
+            Block[B4] - Block
+                Predecessors (0)
+                Statements (1)
+                    IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 's2')
+                      Instance Receiver: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 's2')
+                          Conversion: CommonConversion (Exists: True)
+                          Operand: 
+                            ILocalReferenceOperation: s2 (OperationKind.LocalReference, Type: S2, IsImplicit) (Syntax: 's2')
+                      Arguments(0)
+
+                Next (StructuredExceptionHandling) Block[null]
+        }
+    }
+    .finally {R7}
+    {
+        Block[B5] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B7]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+                  Operand: 
+                    ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B5]
+            Statements (1)
+                IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'c1')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'c1')
+                      Conversion: CommonConversion (Exists: True)
+                      Operand: 
+                        ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1, IsImplicit) (Syntax: 'c1')
+                  Arguments(0)
+
+            Next (Regular) Block[B7]
+        Block[B7] - Block
+            Predecessors: [B5] [B6]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+
+Block[B8] - Exit
+    Predecessors: [B3]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
     End Class
 End Namespace

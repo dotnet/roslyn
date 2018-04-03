@@ -384,6 +384,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.Using, operation.Kind);
             AssertEx.Equal(new[] { operation.Resources, operation.Body }, operation.Children);
+            Assert.NotEqual(OperationKind.VariableDeclaration, operation.Resources.Kind);
+            Assert.NotEqual(OperationKind.VariableDeclarator, operation.Resources.Kind);
         }
 
         // https://github.com/dotnet/roslyn/issues/21281
@@ -630,13 +632,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var conversion = operation.Conversion;
             var isChecked = operation.IsChecked;
             var isTryCast = operation.IsTryCast;
+
             switch (operation.Language)
             {
                 case LanguageNames.CSharp:
-                    CSharp.Conversion csharpConversion = CSharp.CSharpExtensions.GetConversion(operation);
+                    if (conversion.IsLanguageAgnostic)
+                    {
+                        Assert.Throws<InvalidCastException>(() => CSharp.CSharpExtensions.GetConversion(operation));
+                    }
+                    else
+                    {
+                        CSharp.Conversion csharpConversion = CSharp.CSharpExtensions.GetConversion(operation);
+                    }
+
+                    Assert.Throws<ArgumentException>(() => VisualBasic.VisualBasicExtensions.GetConversion(operation));
                     break;
                 case LanguageNames.VisualBasic:
-                    VisualBasic.Conversion visualBasicConversion = VisualBasic.VisualBasicExtensions.GetConversion(operation);
+                    if (conversion.IsLanguageAgnostic)
+                    {
+                        Assert.Throws<InvalidCastException>(() => VisualBasic.VisualBasicExtensions.GetConversion(operation));
+                    }
+                    else
+                    {
+                        VisualBasic.Conversion visualBasicConversion = VisualBasic.VisualBasicExtensions.GetConversion(operation);
+                    }
+
+                    Assert.Throws<ArgumentException>(() => CSharp.CSharpExtensions.GetConversion(operation));
                     break;
                 default:
                     Debug.Fail($"Language {operation.Language} is unknown!");

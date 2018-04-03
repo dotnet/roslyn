@@ -43,6 +43,7 @@ Microsoft.CodeAnalysis.Operations.BasicBlockKind
 Microsoft.CodeAnalysis.Operations.BasicBlockKind.Block = 2 -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
 Microsoft.CodeAnalysis.Operations.BasicBlockKind.Entry = 0 -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
 Microsoft.CodeAnalysis.Operations.BasicBlockKind.Exit = 1 -> Microsoft.CodeAnalysis.Operations.BasicBlockKind
+Microsoft.CodeAnalysis.Operations.CommonConversion.IsLanguageAgnostic.get -> bool
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.Blocks.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.BasicBlock>
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.Region
