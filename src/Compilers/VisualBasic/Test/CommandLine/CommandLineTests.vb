@@ -1487,6 +1487,7 @@ End Module").Path
         End Sub
 #End Region
 
+#Region "TestDefines"
         <Theory,
      InlineData({"/D:a=True,b=1", "a.vb"}, {"a", CObj(True)}, {"b", CObj(1)}, {"TARGET", CObj("exe")}, {"VBC_VER", CObj(Double.NaN)}),
      InlineData({"/D:a=True,b=1", "/define:a=""123"",b=False", "a.vb"}, {"a", CObj("123")}, {"b", CObj(False)}, {"TARGET", CObj("exe")}, {"VBC_VER", CObj(Double.NaN)}),
@@ -1497,24 +1498,22 @@ End Module").Path
             Dim parsedArgs = DefaultParse(args, _baseDirectory)
             Assert.False(parsedArgs.Errors.Any)
             Assert.Equal(symbols.Length, parsedArgs.ParseOptions.PreprocessorSymbols.Length)
-            Dim sortedDefines = parsedArgs.ParseOptions.
-                            PreprocessorSymbols.Select(
-                                Function(d) New With {d.Key, d.Value}).OrderBy(Function(o) o.Key)
-
+            Dim sortedDefines = parsedArgs.ParseOptions.PreprocessorSymbols.Select(Function(d) New With {d.Key, d.Value}).OrderBy(Function(o) o.Key)
             For i = 0 To symbols.Length - 1
                 Assert.Equal(symbols(i)(0), sortedDefines(i).Key)
                 Dim value = symbols(i)(1)
                 If TypeOf value Is Double Then
                     Dim dbl As Double = CDbl(value)
                     If Double.IsNaN(dbl) Then dbl = s_VBC_VER
-
                     Assert.Equal(dbl, sortedDefines(i).Value)
                 Else
                     Assert.Equal(value, sortedDefines(i).Value)
                 End If
             Next
         End Sub
+#End Region
 
+#Region "Option Strict"
         <Theory,
         InlineData(VisualBasic.OptionStrict.On, {"/optionStrict", "a.vb"}, False),
         InlineData(VisualBasic.OptionStrict.On, {"/optionStrict+", "a.vb"}, False),
@@ -1535,6 +1534,7 @@ End Module").Path
                 Assert.Equal(strictness.Value, parsedArgs.CompilationOptions.OptionStrict)
             End If
         End Sub
+#End Region
 
         <WorkItem(546319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546319")>
         <WorkItem(546318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546318")>
