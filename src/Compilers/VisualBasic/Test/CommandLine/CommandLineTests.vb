@@ -1536,90 +1536,47 @@ End Module").Path
         End Sub
 #End Region
 
+#Region "Rootnamespace"
         <WorkItem(546319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546319")>
         <WorkItem(546318, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546318")>
         <WorkItem(685392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/685392")>
-        <Fact>
-        Public Sub RootNamespace()
-            Dim parsedArgs = DefaultParse({"/rootnamespace:One.Two.Three", "a.vb"}, _baseDirectory)
+        <Theory>
+        <InlineData({"/rootnamespace:One.Two.Three", "a.vb"}, "One.Two.Three")>
+        <InlineData({"/rootnamespace:One Two Three", "/rootnamespace:One.Two.Three", "a.vb"}, "One.Two.Three")>
+        <InlineData({"/rootnamespace:""One.Two.Three""", "a.vb"}, "One.Two.Three")>
+        <InlineData({"/rootnamespace:[global]", "a.vb"}, "[global]")>
+        <InlineData({"/rootnamespace:goo.[global].bar", "a.vb"}, "goo.[global].bar")>
+        <InlineData({"/rootnamespace:goo.[bar]", "a.vb"}, "goo.[bar]")>
+        <InlineData({"/rootnamespace:__.___", "a.vb"}, "__.___")>
+        Public Sub RootNamespace(Args() As String, ExpectedRootnamespace As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("One.Two.Three", parsedArgs.CompilationOptions.RootNamespace)
-
-            parsedArgs = DefaultParse({"/rootnamespace:One Two Three", "/rootnamespace:One.Two.Three", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal("One.Two.Three", parsedArgs.CompilationOptions.RootNamespace)
-
-            parsedArgs = DefaultParse({"/rootnamespace:""One.Two.Three""", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal("One.Two.Three", parsedArgs.CompilationOptions.RootNamespace)
-
-            parsedArgs = DefaultParse({"/rootnamespace", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("rootnamespace", ":<string>"))
-
-            parsedArgs = DefaultParse({"/rootnamespace:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("rootnamespace", ":<string>"))
-
-            parsedArgs = DefaultParse({"/rootnamespace+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/rootnamespace+")) ' TODO: Dev11 reports ERR_ArgumentRequired
-
-            parsedArgs = DefaultParse({"/rootnamespace-:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/rootnamespace-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
-
-            parsedArgs = DefaultParse({"/rootnamespace:+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("+"))
-
-            parsedArgs = DefaultParse({"/rootnamespace: ", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("rootnamespace", ":<string>"))
-
-            parsedArgs = DefaultParse({"/rootnamespace: A.B.C", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments(" A.B.C"))
-
-            parsedArgs = DefaultParse({"/rootnamespace:[abcdef", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("[abcdef"))
-
-            parsedArgs = DefaultParse({"/rootnamespace:abcdef]", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("abcdef]"))
-
-            parsedArgs = DefaultParse({"/rootnamespace:[[abcdef]]", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("[[abcdef]]"))
-
-            parsedArgs = DefaultParse({"/rootnamespace:[global]", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal("[global]", parsedArgs.CompilationOptions.RootNamespace)
-
-            parsedArgs = DefaultParse({"/rootnamespace:goo.[global].bar", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal("goo.[global].bar", parsedArgs.CompilationOptions.RootNamespace)
-
-            parsedArgs = DefaultParse({"/rootnamespace:goo.[bar]", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal("goo.[bar]", parsedArgs.CompilationOptions.RootNamespace)
-
-            parsedArgs = DefaultParse({"/rootnamespace:goo$", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("goo$"))
-
-            parsedArgs = DefaultParse({"/rootnamespace:I(", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("I("))
-
-            parsedArgs = DefaultParse({"/rootnamespace:_", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("_"))
-
-            parsedArgs = DefaultParse({"/rootnamespace:[_]", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("[_]"))
-
-            parsedArgs = DefaultParse({"/rootnamespace:__.___", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal("__.___", parsedArgs.CompilationOptions.RootNamespace)
-
-            parsedArgs = DefaultParse({"/rootnamespace:[", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("["))
-
-            parsedArgs = DefaultParse({"/rootnamespace:]", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("]"))
-
-            parsedArgs = DefaultParse({"/rootnamespace:[]", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments("[]"))
+            Assert.Equal(ExpectedRootnamespace, parsedArgs.CompilationOptions.RootNamespace)
         End Sub
+
+        <Theory, InlineData({"/rootnamespace", "a.vb"}), InlineData({"/rootnamespace:", "a.vb"}), InlineData({"/rootnamespace: ", "a.vb"})>
+        Public Sub RootNamespace_ERR_ArgumentRequired(ParamArray Args() As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("rootnamespace", ":<string>"))
+        End Sub
+        <Theory, InlineData({"/rootnamespace+", "a.vb"}, "/rootnamespace+"), InlineData({"/rootnamespace-:", "a.vb"}, "/rootnamespace-:")>
+        Public Sub Rootnamespace_WRN_BadSwitch(Args() As String, WithArg As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments(WithArg)) ' TODO: Dev11 reports ERR_ArgumentRequired
+        End Sub
+
+        <Theory,
+         InlineData({"/rootnamespace:+", "a.vb"}, "+"), InlineData({"/rootnamespace: A.B.C", "a.vb"}, " A.B.C"),
+         InlineData({"/rootnamespace:[abcdef", "a.vb"}, "[abcdef"), InlineData({"/rootnamespace:abcdef]", "a.vb"}, "abcdef]"),
+         InlineData({"/rootnamespace:[[abcdef]]", "a.vb"}, "[[abcdef]]"), InlineData({"/rootnamespace:goo$", "a.vb"}, "goo$"),
+         InlineData({"/rootnamespace:I(", "a.vb"}, "I("), InlineData({"/rootnamespace:_", "a.vb"}, "_"),
+         InlineData({"/rootnamespace:[_]", "a.vb"}, "[_]"), InlineData({"/rootnamespace:[", "a.vb"}, "["),
+         InlineData({"/rootnamespace:]", "a.vb"}, "]"), InlineData({"/rootnamespace:[]", "a.vb"}, "[]")>
+        Public Sub Rootnamespace_WRN_BadNamespaceName1(Args() As String, WithArg As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadNamespaceName1).WithArguments(WithArg))
+        End Sub
+#End Region
 
         <Fact>
         Public Sub Link_SimpleTests()
