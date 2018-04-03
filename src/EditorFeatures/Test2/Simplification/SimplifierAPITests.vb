@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
+    <UseExportProvider>
     Public Class SimplifierAPITests
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>

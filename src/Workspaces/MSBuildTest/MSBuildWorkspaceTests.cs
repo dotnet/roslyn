@@ -1203,7 +1203,7 @@ class C1
             });
         }
 
-        private HostServices _hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
+        private IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
@@ -1215,7 +1215,7 @@ class C1
 
             AssertEx.Throws<InvalidOperationException>(() =>
             {
-                using (var workspace = CreateMSBuildWorkspace(_hostServicesWithoutCSharp))
+                using (var workspace = CreateMSBuildWorkspace(MefHostServices.Create(_defaultAssembliesWithoutCSharp)))
                 {
                     workspace.SkipUnrecognizedProjects = false;
                     workspace.OpenSolutionAsync(solutionFilePath).Wait();
@@ -1237,7 +1237,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            using (var workspace = CreateMSBuildWorkspace(_hostServicesWithoutCSharp))
+            using (var workspace = CreateMSBuildWorkspace(MefHostServices.Create(_defaultAssembliesWithoutCSharp)))
             {
                 workspace.SkipUnrecognizedProjects = true;
 
@@ -1265,7 +1265,7 @@ class C1
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var projectName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
-            using (var workspace = MSBuildWorkspace.Create(_hostServicesWithoutCSharp))
+            using (var workspace = MSBuildWorkspace.Create(MefHostServices.Create(_defaultAssembliesWithoutCSharp)))
             {
                 AssertEx.Throws<InvalidOperationException>(() =>
                 {

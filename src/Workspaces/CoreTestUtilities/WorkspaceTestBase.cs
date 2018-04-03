@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public class WorkspaceTestBase : TestBase
     {
         protected readonly TempDirectory SolutionDirectory;

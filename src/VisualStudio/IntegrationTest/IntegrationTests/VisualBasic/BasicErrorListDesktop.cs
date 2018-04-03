@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -14,13 +15,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
         public override void ErrorList()
         {
             base.ErrorList();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
         public override void ErrorsDuringMethodBodyEditing()
         {
             base.ErrorsDuringMethodBodyEditing();

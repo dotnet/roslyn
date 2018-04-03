@@ -19,10 +19,16 @@
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
+    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj" />
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj" />
+    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj" />
+    <ProjectReference Include="..\..\Features\VisualBasic\Portable\BasicFeatures.vbproj" />
     <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj" />
     <ProjectReference Include="..\CoreTestUtilities\WorkspacesTestUtilities.csproj" />
     <ProjectReference Include="..\Core\Desktop\Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\CSharp\Portable\CSharpWorkspace.csproj" />
+    <ProjectReference Include="..\Remote\Core\RemoteWorkspaces.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\BasicWorkspace.vbproj" />
     <ProjectReference Include="..\Core\Portable\Workspaces.csproj" />
     <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj" />
