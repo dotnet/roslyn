@@ -1139,6 +1139,32 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexBaseCharacterClassNode ParseCharacterClass()
         {
+            // Note: ScanCharClass is one of the strangest function in the .net regex parser. Code
+            // for it is here:
+            // https://github.com/dotnet/corefx/blob/6ae0da1563e6e701bac61012c62ede8f8737f065/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L498
+            //
+            // It has certain behaviors that were probably not intentional, but which we try to
+            // replicate.  Specifically, it looks like it was *intended* to just read components
+            // like simple characters ('a'), char-class-escape ('\s' and the like), ranges
+            // ('component-component'), and subtractions ('-[charclass]').
+            //
+            // And, it *looks* like it intended that if it ran into a range, it would check that the
+            // components on the left and right of the '-' made sense (i.e. you could have 'a-b' but
+            // not 'b-a').
+            //
+            // *However*, the way it is actually written, it does not have that behavior.  Instead,
+            // what it ends up doing is subtly different.  Specifically, in this switch:
+            // https://github.com/dotnet/corefx/blob/6ae0da1563e6e701bac61012c62ede8f8737f065/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L531
+            //
+            // In this switch, if it encounters a '\-' it immediately 'continues', effectively
+            // ignoring that character on the right side of a character range.  So, if you had
+            // ```[#-\-b]```, then this *should* be treated as the character class containing
+            // the range of character from '#' to '-', unioned with the character 'b'.  However,
+            // .net will interpret this as the character class containing the range of characters
+            // from '#' to 'b'.  We follow .Net here to keep our errors in sync with them.
+            //
+            // See the comment about this in ParseRightSideOfCharacterClassRange
+
             var openBracketToken = _currentToken;
             Debug.Assert(openBracketToken.Kind == RegexKind.OpenBracketToken);
             var caretToken = CreateMissingToken(RegexKind.CaretToken);
