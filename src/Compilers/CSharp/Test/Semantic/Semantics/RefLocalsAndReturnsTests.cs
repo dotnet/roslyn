@@ -13,6 +13,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class RefLocalsAndReturnsTests : CompilingTestBase
     {
         [Fact]
+        public void RefEscapeInForeach()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    ref int M(Span<int> s)
+    {
+        foreach (ref int x in s)
+        {
+            if (x == 0)
+            {
+                return ref x; // OK
+            }
+        }
+
+        Span<int> s2 = stackalloc int[10];
+        foreach (ref int x in s2)
+        {
+            if (x == 0)
+            {
+                return ref x; // error
+            }
+        }
+
+        return ref s[0];
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (20,28): error CS8157: Cannot return 'x' by reference because it was initialized to a value that cannot be returned by reference
+                //                 return ref x; // error
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "x").WithArguments("x").WithLocation(20, 28));
+        }
+
+        [Fact]
         public void RefFor72()
         {
             var comp = CreateCompilation(@"
