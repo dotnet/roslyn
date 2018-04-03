@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
-            var (conditionalExpression, isMultiLine) = await CreateConditionalExpressionAsync<TExpressionSyntax>(
+            var (conditionalExpression, makeMultiLine) = await CreateConditionalExpressionAsync<TExpressionSyntax>(
                 document, ifOperation,
                 trueAssignment.Value, falseAssignment.Value, 
                 cancellationToken).ConfigureAwait(false);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                     editor, ifOperation, trueAssignment, falseAssignment, conditionalExpression);
             }
 
-            return isMultiLine;
+            return makeMultiLine;
         }
 
         private void ConvertOnlyIfToConditionalExpression(

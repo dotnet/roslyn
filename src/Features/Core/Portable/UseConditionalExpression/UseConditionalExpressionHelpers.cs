@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -74,15 +75,26 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 : value;
 
         /// <summary>
-        /// Checks if either the whenTrue or whenFalse parts of the conditional are multi-line.  If
-        /// so, we'll specially format the new conditional expression so it looks decent.
+        /// Checks if we should wrap the conditional expression over multiple lines.
         /// </summary>
-        private static async Task<bool> IsMultiLineAsync(
+        private static async Task<bool> MakeMultiLineAsync(
             Document document, SyntaxNode trueSyntax, SyntaxNode falseSyntax, CancellationToken cancellationToken)
         {
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return !sourceText.AreOnSameLine(trueSyntax.GetFirstToken(), trueSyntax.GetLastToken()) ||
-                   !sourceText.AreOnSameLine(falseSyntax.GetFirstToken(), falseSyntax.GetLastToken());
+            if (!sourceText.AreOnSameLine(trueSyntax.GetFirstToken(), trueSyntax.GetLastToken()) ||
+                !sourceText.AreOnSameLine(falseSyntax.GetFirstToken(), falseSyntax.GetLastToken()))
+            {
+                return true;
+            }
+
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var wrappingLength = options.GetOption(UseConditionalExpressionOptions.ConditionalExpressionWrappingLength);
+            if (trueSyntax.Span.Length + falseSyntax.Span.Length > wrappingLength)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -91,7 +103,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         /// annotations and casts to ensure that the conditional expression preserves semantics, but
         /// is also properly simplified and formatted.
         /// </summary>
-        public static async Task<(TExpressionSyntax, bool isMultiLine)> CreateConditionalExpressionAsync<TExpressionSyntax>(
+        public static async Task<(TExpressionSyntax, bool makeMultiLine)> CreateConditionalExpressionAsync<TExpressionSyntax>(
             Document document, IConditionalOperation ifOperation, 
             IOperation trueValue, IOperation falseValue, CancellationToken cancellationToken)
             where TExpressionSyntax : SyntaxNode
@@ -103,15 +115,15 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 CastValueIfNecessary(generator, falseValue));
 
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
-            var isMultiLine = await IsMultiLineAsync(
+            var makeMultiLine = await MakeMultiLineAsync(
                 document, trueValue.Syntax, falseValue.Syntax, cancellationToken).ConfigureAwait(false);
-            if (isMultiLine)
+            if (makeMultiLine)
             {
                 conditionalExpression = conditionalExpression.WithAdditionalAnnotations(
                     SpecializedFormattingAnnotation);
             }
 
-            return (conditionalExpression, isMultiLine);
+            return (conditionalExpression, makeMultiLine);
         }
 
         private static SyntaxNode CastValueIfNecessary(
