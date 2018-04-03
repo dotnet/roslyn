@@ -67,8 +67,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         break;
 
                     case RegexKind.ConditionalExpressionGrouping:
-                        // Explicitly dripp into conditionalGrouping.Grouping.  That grouping itself 
-                        // does not create a capture group, but nested groupings inside of it will.
+                        // Explicitly recurse into conditionalGrouping.Grouping.  That grouping
+                        // itself does not create a capture group, but nested groupings inside of it
+                        // will.
                         var conditionalGrouping = (RegexConditionalExpressionGroupingNode)node;
                         RecurseIntoChildren(conditionalGrouping.Grouping, options);
                         CollectCaptures(conditionalGrouping.Result, options);
