@@ -1119,62 +1119,38 @@ End Module").Path
         End Sub
 #End Region
 
-        <Fact>
-        Public Sub Optimize()
-            Dim parsedArgs = DefaultParse({"/optimize", "a.vb"}, _baseDirectory)
+#Region "Optimize"
+        <Theory, InlineData({"/optimize", "a.vb"}, OptimizationLevel.Release), InlineData({"a.vb"}, OptimizationLevel.Debug),
+         InlineData({"/OPTIMIZE+", "a.vb"}, OptimizationLevel.Release), InlineData({"/optimize-", "a.vb"}, OptimizationLevel.Debug),
+         InlineData({"/optimize-", "/optimize+", "a.vb"}, OptimizationLevel.Release)>
+        Friend Sub Optimize(Args() As String, ExpectedOptimizationLevel As OptimizationLevel)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(OptimizationLevel.Release, parsedArgs.CompilationOptions.OptimizationLevel)
-
-            parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OptimizationLevel.Debug, parsedArgs.CompilationOptions.OptimizationLevel) ' default
-
-            parsedArgs = DefaultParse({"/OPTIMIZE+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OptimizationLevel.Release, parsedArgs.CompilationOptions.OptimizationLevel)
-
-            parsedArgs = DefaultParse({"/optimize-", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OptimizationLevel.Debug, parsedArgs.CompilationOptions.OptimizationLevel)
-
-            parsedArgs = DefaultParse({"/optimize-", "/optimize+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OptimizationLevel.Release, parsedArgs.CompilationOptions.OptimizationLevel)
-
-            parsedArgs = DefaultParse({"/OPTIMIZE:", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optimize"))
-
-            parsedArgs = DefaultParse({"/OPTIMIZE+:", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optimize"))
-
-            parsedArgs = DefaultParse({"/optimize-:", "a.cs"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optimize"))
+            Assert.Equal(ExpectedOptimizationLevel, parsedArgs.CompilationOptions.OptimizationLevel)
         End Sub
+        <Theory, InlineData({"/OPTIMIZE:", "a.cs"}, "optimize"), InlineData({"/OPTIMIZE+:", "a.cs"}, "optimize"), InlineData({"/optimize-:", "a.cs"}, "optimize")>
+        Public Sub Optimize_Err_SwitchNeedsBool(Args() As String, WithArg As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments(WithArg).WithLocation(1, 1))
+        End Sub
+#End Region
 
+#Region "Deterministic"
         <WorkItem(5417, "DevDiv"), Theory,
-     InlineData({"a.vb"}, False),
-     InlineData({"/deterministic+", "a.vb"}, True),
-     InlineData({"/deterministic", "a.vb"}, True),
-     InlineData({"/DETERMINISTIC+", "a.vb"}, True),
-     InlineData({"/deterministic-", "a.vb"}, False)
-    >
+         InlineData({"a.vb"}, False), InlineData({"/deterministic+", "a.vb"}, True), InlineData({"/deterministic", "a.vb"}, True),
+         InlineData({"/DETERMINISTIC+", "a.vb"}, True), InlineData({"/deterministic-", "a.vb"}, False)>
         Public Sub Deterministic(args() As String, IsDeterministic As Boolean)
             Dim ParsedArgs = DefaultParse(args, _baseDirectory)
             ParsedArgs.Errors.Verify()
             Assert.Equal(IsDeterministic, ParsedArgs.CompilationOptions.Deterministic)
         End Sub
+#End Region
 
+#Region "Parallel"
         <WorkItem(546301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546301"), Theory,
-     InlineData({"/parallel", "a.vb"}, True),
-     InlineData({"/p", "a.vb"}, True),
-     InlineData({"a.vb"}, True),
-     InlineData({"/PARALLEL+", "a.vb"}, True),
-     InlineData({"/PARALLEL-", "a.vb"}, False),
-     InlineData({"/PArallel-", "/PArallel+", "a.vb"}, True),
-     InlineData({"/P+", "a.vb"}, True),
-     InlineData({"/P-", "a.vb"}, False),
-     InlineData({"/P-", "/P+", "a.vb"}, True)
-    >
+         InlineData({"/parallel", "a.vb"}, True), InlineData({"/p", "a.vb"}, True), InlineData({"a.vb"}, True), InlineData({"/PARALLEL+", "a.vb"}, True),
+         InlineData({"/PARALLEL-", "a.vb"}, False), InlineData({"/PArallel-", "/PArallel+", "a.vb"}, True), InlineData({"/P+", "a.vb"}, True), InlineData({"/P-", "a.vb"}, False),
+         InlineData({"/P-", "/P+", "a.vb"}, True)>
         Public Sub Parallel(args() As String, IsConcurrentBuild As Boolean)
             Dim parsedArgs = DefaultParse(args, _baseDirectory)
             parsedArgs.Errors.Verify()
@@ -1182,13 +1158,13 @@ End Module").Path
         End Sub
 
         <Theory,
-     InlineData({"/parallel:", "a.vb"}, "parallel"), InlineData({"/parallel+:", "a.vb"}, "parallel"), InlineData({"/parallel-:", "a.vb"}, "parallel"),
-     InlineData({"/p:", "a.vb"}, "p"), InlineData({"/p+:", "a.vb"}, "p"), InlineData({"/p-:", "a.vb"}, "p")
-   >
+         InlineData({"/parallel:", "a.vb"}, "parallel"), InlineData({"/parallel+:", "a.vb"}, "parallel"), InlineData({"/parallel-:", "a.vb"}, "parallel"),
+         InlineData({"/p:", "a.vb"}, "p"), InlineData({"/p+:", "a.vb"}, "p"), InlineData({"/p-:", "a.vb"}, "p")>
         Sub Parallel_Errors(args() As String, arg As String)
             Dim parsedArgs = DefaultParse(args, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments(arg))
         End Sub
+#End Region
 
         <Fact>
         Public Sub SubsystemVersionTests()
