@@ -182,8 +182,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             /// <summary>
-            /// Give numbers to all named cpatures.  They will get successive <see cref="_autoNumber"/> values
-            /// that have not already been handed out to existing numbered capture groups.
+            /// Give numbers to all named captures.  They will get successive <see
+            /// cref="_autoNumber"/> values that have not already been handed out to existing
+            /// numbered capture groups.
             /// </summary>
             private  void AssignNumbersToCaptureNames()
             {
