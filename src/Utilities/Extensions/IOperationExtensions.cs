@@ -462,7 +462,7 @@ namespace Analyzer.Utilities.Extensions
             // Ignore case for VB by converting ToLower.
             if (instance.Language == LanguageNames.VisualBasic)
             {
-                text = text.ToLower();
+                text = text.ToUpperInvariant();
             }
 
             switch (text)
@@ -475,7 +475,7 @@ namespace Analyzer.Utilities.Extensions
 
                     break;
 
-                case "me":
+                case "ME":
                     if (instance.Language == LanguageNames.VisualBasic)
                     {
                         return InstanceReferenceKind.This;
@@ -491,7 +491,7 @@ namespace Analyzer.Utilities.Extensions
 
                     break;
 
-                case "mybase":
+                case "MYBASE":
                     if (instance.Language == LanguageNames.VisualBasic)
                     {
                         return InstanceReferenceKind.Base;
@@ -499,7 +499,7 @@ namespace Analyzer.Utilities.Extensions
 
                     break;
 
-                case "myclass":
+                case "MYCLASS":
                     if (instance.Language == LanguageNames.VisualBasic)
                     {
                         return InstanceReferenceKind.MyClass;
