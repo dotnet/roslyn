@@ -2772,6 +2772,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetState(dispatchState.Clone());
                 VisitPattern(node.Expression, arm.Pattern);
                 SetState(StateWhenTrue);
+                if (arm.Pattern.HasErrors)
+                {
+                    // suppress definite assignment errors on broken switch arms
+                    SetUnreachable();
+                }
                 if (arm.WhenClause != null)
                 {
                     VisitCondition(arm.WhenClause);

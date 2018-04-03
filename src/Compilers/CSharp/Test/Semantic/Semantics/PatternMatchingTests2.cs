@@ -1173,6 +1173,53 @@ class Program1
                 );
         }
 
+        [Fact]
+        public void ErroneousSwitchArmDefiniteAssignment()
+        {
+            // When a switch expression arm is erroneous, ensure that the expression is treated as unreachable (e.g. for definite assignment purposes).
+            var source =
+@"class Program2
+{
+    public static int Main() => 0;
+    public static void M(string s)
+    {
+        int i;
+        int j = s switch { ""frog"" => 1, 0 => i, _ => 2 };
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,41): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         int j = s switch { "frog" => 1, 0 => i, _ => 2 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "string").WithLocation(7, 41)
+                );
+        }
+
+        [Fact, WorkItem(9154, "https://github.com/dotnet/roslyn/issues/9154")]
+        public void ErroneousIsPatternDefiniteAssignment()
+        {
+            var source =
+@"class Program2
+{
+    public static int Main() => 0;
+    void Dummy(object o) {}
+    void Test5()
+    {
+        Dummy((System.Func<object, object, bool>) ((o1, o2) => o1 is int x5 && 
+                                                               o2 is int x5 && 
+                                                               x5 > 0));
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,74): error CS0128: A local variable or function named 'x5' is already defined in this scope
+                //                                                                o2 is int x5 && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(8, 74)
+                );
+        }
+
         // PROTOTYPE(patterns2): Need to have tests that exercise:
         // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
         // PROTOTYPE(patterns2): Definite assignment for the var-pattern
