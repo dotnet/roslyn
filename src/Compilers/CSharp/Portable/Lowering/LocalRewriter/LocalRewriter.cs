@@ -634,6 +634,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode VisitIfStatement(BoundIfStatement node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode VisitDeconstructionVariablePendingInference(DeconstructionVariablePendingInference node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode VisitTryGetNextArgumentPlaceholder(BoundTryGetNextArgumentPlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
             private void Fail(BoundNode node)
             {
                 Debug.Assert(false, $"Bound nodes of kind {node.Kind} should not survive past local rewriting");

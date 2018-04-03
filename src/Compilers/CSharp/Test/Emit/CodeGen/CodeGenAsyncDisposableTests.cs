@@ -229,6 +229,52 @@ class C : System.IAsyncDisposable
         }
 
         [Fact]
+        public void TestWithObsoleteDisposeAsync()
+        {
+            string source = @"
+class C : System.IAsyncDisposable
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        using await (var x = new C())
+        {
+        }
+    }
+    [System.Obsolete]
+    public async System.Threading.Tasks.Task DisposeAsync()
+    {
+        await System.Threading.Tasks.Task.Delay(10);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            // PROTOTYPE(async-streams) Confirm whether this behavior is ok (currently matching behavior of obsolete Dispose in non-async using)
+        }
+
+        [Fact]
+        public void TestWithObsoleteDispose()
+        {
+            string source = @"
+class C : System.IDisposable
+{
+    public static void Main()
+    {
+        using (var x = new C())
+        {
+        }
+    }
+    [System.Obsolete]
+    public void Dispose()
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TestInCatchBlock()
         {
             string source = @"

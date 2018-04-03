@@ -431,6 +431,9 @@ namespace Microsoft.CodeAnalysis
         System_ReadOnlySpan_T__get_Length,
 
         System_IAsyncDisposable__DisposeAsync,
+        System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
+        System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync,
+        System_Collections_Generic_IAsyncEnumerator_T__TryGetNext,
 
         Count
     }

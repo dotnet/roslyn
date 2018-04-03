@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionStatement = _instrumenter.InstrumentUsingTargetCapture(node, expressionStatement);
             }
 
-            BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, node.AwaitOpt);
+            BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, usingSyntax.AwaitKeyword, node.AwaitOpt);
 
             // { ResourceType temp = expr; try { ... } finally { ... } }
             return new BoundBlock(
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundAssignmentOperator tempAssignment;
                 BoundLocal boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment, kind: SynthesizedLocalKind.Using);
 
-                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, awaitOpt);
+                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, usingSyntax.AwaitKeyword, awaitOpt);
 
                 return new BoundBlock(
                     syntax: usingSyntax,
@@ -211,14 +211,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundLocal, awaitOpt);
+                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundLocal, usingSyntax.AwaitKeyword, awaitOpt);
 
                 // localSymbol will be declared by an enclosing block
                 return BoundBlock.SynthesizedNoLocals(usingSyntax, rewrittenDeclaration, tryFinally);
             }
         }
 
-        private BoundStatement RewriteUsingStatementTryFinally(UsingStatementSyntax syntax, BoundBlock tryBlock, BoundLocal local, AwaitableInfo awaitOpt)
+        private BoundStatement RewriteUsingStatementTryFinally(SyntaxNode syntax, BoundBlock tryBlock, BoundLocal local, SyntaxToken awaitKeywordOpt, AwaitableInfo awaitOpt)
         {
             // SPEC: When ResourceType is a non-nullable value type, the expansion is:
             // SPEC: 
@@ -289,6 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // "{ dynamic temp1 = x; IDisposable temp2 = (IDisposable) temp1; ... }". Rather, we elide
             // the completely unnecessary first temporary. 
 
+            Debug.Assert((awaitKeywordOpt == default) == (awaitOpt == default(AwaitableInfo)));
             BoundExpression disposedExpression;
             bool isNullableValueType = local.Type.IsNullableType();
 
@@ -312,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (awaitOpt != null
                 && TryGetWellKnownTypeMember(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync,
-                    out MethodSymbol disposeAsyncMethodSymbol, location: syntax.AwaitKeyword.GetLocation()))
+                    out MethodSymbol disposeAsyncMethodSymbol, location: awaitKeywordOpt.GetLocation()))
             {
                 // await local.DisposeAsync()
                 _sawAwaitInExceptionHandler = true;

@@ -8590,6 +8590,21 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <target state="new">'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AsyncForEachMissingMember">
+        <source>Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</source>
+        <target state="new">Async foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadGetAsyncEnumerator">
+        <source>Async foreach requires that the return type '{0}' of '{1}' must have suitable public WaitForNextAsync and TryGetNext methods</source>
+        <target state="new">Async foreach requires that the return type '{0}' of '{1}' must have suitable public WaitForNextAsync and TryGetNext methods</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MultipleIAsyncEnumOfT">
+        <source>Async foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
+        <target state="new">Async foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

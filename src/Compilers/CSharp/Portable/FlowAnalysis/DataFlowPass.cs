@@ -291,6 +291,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UsingStatement:
                     var usingStatement = (BoundUsingStatement)pending.Branch;
                     return usingStatement.AwaitOpt != null;
+                case BoundKind.ForEachStatement:
+                    var foreachStatement = (BoundForEachStatement)pending.Branch;
+                    return foreachStatement.AwaitOpt != null;
                 default:
                     return false;
             }
