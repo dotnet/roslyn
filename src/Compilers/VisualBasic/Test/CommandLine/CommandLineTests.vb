@@ -1311,26 +1311,19 @@ End Module").Path
         End Sub
 #End Region
 
-        <Fact>
-        Public Sub OptionCompare()
-            Dim parsedArgs = InteractiveParse({"/optioncompare"}, _baseDirectory)
-            Assert.Equal(1, parsedArgs.Errors.Length)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("optioncompare", ":binary|text"))
-            Assert.Equal(False, parsedArgs.CompilationOptions.OptionCompareText)
-
-            parsedArgs = InteractiveParse({"/optioncompare:text", "/optioncompare"}, _baseDirectory)
-            Assert.Equal(1, parsedArgs.Errors.Length)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("optioncompare", ":binary|text"))
-            Assert.Equal(True, parsedArgs.CompilationOptions.OptionCompareText)
-
-            parsedArgs = InteractiveParse({"/opTioncompare:Text", "/optioncomparE:bINARY"}, _baseDirectory)
-            Assert.Equal(0, parsedArgs.Errors.Length)
-            Assert.Equal(False, parsedArgs.CompilationOptions.OptionCompareText)
-
-            parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
-            Assert.Equal(0, parsedArgs.Errors.Length)
-            Assert.Equal(False, parsedArgs.CompilationOptions.OptionCompareText)
+#Region "OptionCompare"
+        <Theory,
+            InlineData({"/optioncompare"}, {"optioncompare", ":binary|text"}, True, 1, False),
+            InlineData({"/optioncompare:text", "/optioncompare"}, {"optioncompare", ":binary|text"}, True, 1, True),
+            InlineData({"/opTioncompare:Text", "/optioncomparE:bINARY"}, Nothing, False, 0, False),
+            InlineData({"/d:a=1"}, Nothing, False, 0, False)>
+        Public Sub OptionCompare(Args() As String, WithArgs() As String, Verify As Boolean, ExpectedErrorCount As Integer, ExpectedOptionCompareText As Boolean)
+            Dim parsedArgs = InteractiveParse(Args, _baseDirectory)
+            If Verify Then parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments(WithArgs))
+            Assert.Equal(ExpectedErrorCount, parsedArgs.Errors.Length)
+            Assert.Equal(ExpectedOptionCompareText, parsedArgs.CompilationOptions.OptionCompareText)
         End Sub
+#End Region
 
         <Fact>
         Public Sub OptionExplicit()
