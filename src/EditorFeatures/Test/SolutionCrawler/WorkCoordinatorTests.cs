@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
                 service.Register(workspace);
 
-                var provider = new AnalyzerProvider(new Analyzer());
+                var worker = new Analyzer();
+                var provider = new AnalyzerProvider(worker);
                 service.AddAnalyzerProvider(provider, Metadata.Crawler);
 
                 // wait for everything to settle
@@ -70,8 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
                 service.Unregister(workspace);
 
                 // check whether everything ran as expected
-                Assert.Equal(10, provider.Analyzer.SyntaxDocumentIds.Count);
-                Assert.Equal(10, provider.Analyzer.DocumentIds.Count);
+                Assert.Equal(10, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(10, worker.DocumentIds.Count);
             }
         }
 
@@ -838,6 +839,51 @@ End Class";
             }
         }
 
+        [Fact]
+        public async Task FileFromSameProjectTogetherTest()
+        {
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+            var projectId3 = ProjectId.CreateNewId();
+
+            var solution = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create(),
+                projects: new[]
+                {
+                    ProjectInfo.Create(projectId1, VersionStamp.Create(), "P1", "P1", LanguageNames.CSharp,
+                        documents: GetDocuments(projectId1, count: 5)),
+                    ProjectInfo.Create(projectId2, VersionStamp.Create(), "P2", "P2", LanguageNames.CSharp,
+                        documents: GetDocuments(projectId2, count: 5)),
+                    ProjectInfo.Create(projectId3, VersionStamp.Create(), "P3", "P3", LanguageNames.CSharp,
+                        documents: GetDocuments(projectId3, count: 5))
+                });
+
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            {
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                // add analyzer
+                var worker = new Analyzer2();
+                var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(worker), Metadata.Crawler);
+
+                // enable solution crawler
+                var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListenerProvider(workspace.ExportProvider));
+                service.Register(workspace);
+
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                // mutate solution
+                workspace.OnSolutionAdded(solution);
+
+                await WaitAsync(service, workspace);
+
+                Assert.Equal(1, worker.DocumentIds.Take(5).Select(d => d.ProjectId).Distinct().Count());
+                Assert.Equal(1, worker.DocumentIds.Skip(5).Take(5).Select(d => d.ProjectId).Distinct().Count());
+                Assert.Equal(1, worker.DocumentIds.Skip(10).Take(5).Select(d => d.ProjectId).Distinct().Count());
+
+                service.Unregister(workspace);
+            }
+        }
+
         private async Task InsertText(string code, string text, bool expectDocumentAnalysis, string language = LanguageNames.CSharp)
         {
             using (var workspace = TestWorkspace.Create(
@@ -958,24 +1004,18 @@ End Class";
                         projects: new[]
                         {
                             ProjectInfo.Create(projectId1, VersionStamp.Create(), "P1", "P1", LanguageNames.CSharp,
-                                documents: new[]
-                                {
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "D1"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "D2"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "D3"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "D4"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId1), "D5")
-                                }),
+                                documents: GetDocuments(projectId1, count: 5)),
                             ProjectInfo.Create(projectId2, VersionStamp.Create(), "P2", "P2", LanguageNames.CSharp,
-                                documents: new[]
-                                {
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "D1"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "D2"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "D3"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "D4"),
-                                    DocumentInfo.Create(DocumentId.CreateNewId(projectId2), "D5")
-                                })
+                                documents: GetDocuments(projectId2, count: 5))
                         });
+        }
+
+        private static IEnumerable<DocumentInfo> GetDocuments(ProjectId projectId, int count)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                yield return DocumentInfo.Create(DocumentId.CreateNewId(projectId), $"D{i + 1}");
+            }
         }
 
         private static AsynchronousOperationListenerProvider GetListenerProvider(ExportProvider provider)
@@ -1022,9 +1062,9 @@ End Class";
 
         private class AnalyzerProvider : IIncrementalAnalyzerProvider
         {
-            public readonly Analyzer Analyzer;
+            public readonly IIncrementalAnalyzer Analyzer;
 
-            public AnalyzerProvider(Analyzer analyzer)
+            public AnalyzerProvider(IIncrementalAnalyzer analyzer)
             {
                 Analyzer = analyzer;
             }
@@ -1148,6 +1188,29 @@ End Class";
             {
                 return SpecializedTasks.EmptyTask;
             }
+            #endregion
+        }
+
+        private class Analyzer2 : IIncrementalAnalyzer
+        {
+            public readonly List<DocumentId> DocumentIds = new List<DocumentId>();
+
+            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            {
+                this.DocumentIds.Add(document.Id);
+                return SpecializedTasks.EmptyTask;
+            }
+
+            #region unused 
+            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e) => false;
+            public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+            public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+            public Task DocumentResetAsync(Document document, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+            public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+            public void RemoveDocument(DocumentId documentId) { }
+            public void RemoveProject(ProjectId projectId) { }
             #endregion
         }
 
