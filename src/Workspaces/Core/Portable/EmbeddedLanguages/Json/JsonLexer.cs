@@ -160,6 +160,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return (chars, JsonKind.StringToken, diagnostic);
         }
 
+        /// <summary>
+        /// <see cref="ScanEscape"/> does not actually lex out an escape token.  Instead, it just
+        /// moves the position forward and returns a diagnostic if this was not a valid escape.
+        /// </summary>
         private EmbeddedDiagnostic? ScanEscape(int stringStart, int escapeStart)
         {
             if (this.Position == Text.Length)
