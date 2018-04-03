@@ -523,6 +523,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IForEachLoopOperation));
             LogLoopStatementHeader(operation);
 
+            Assert.NotNull(operation.LoopControlVariable);
             Visit(operation.LoopControlVariable, "LoopControlVariable");
             Visit(operation.Collection, "Collection");
             Visit(operation.Body, "Body");

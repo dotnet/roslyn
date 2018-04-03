@@ -272,22 +272,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(LoopKind.ForEach, operation.LoopKind);
             VisitLocals(operation);
 
-            IEnumerable<IOperation> children;
-
-            // operation.LoopControlVariable shouldn't be null.
-            // The following conditional logic should be removed once https://github.com/dotnet/roslyn/issues/23820
-            // is fixed.
-            if (operation.LoopControlVariable == null)
-            {
-                Assert.Equal(LanguageNames.CSharp, operation.Language);
-                children = new[] { operation.Collection, operation.Body };
-            }
-            else
-            {
-                children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body };
-            }
-
-            children = children.Concat(operation.NextVariables);
+            IEnumerable<IOperation> children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body }.Concat(operation.NextVariables);
             AssertEx.Equal(children, operation.Children);
         }
 
