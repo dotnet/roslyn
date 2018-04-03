@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
     internal partial struct JsonParser
     {
-        private struct JsonNetSyntaxChecker
+        private static class JsonNetSyntaxChecker
         {
-            private EmbeddedDiagnostic? CheckChildren(JsonNode node)
+            private static EmbeddedDiagnostic? CheckChildren(JsonNode node)
             {
                 foreach (var child in node)
                 {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return null;
             }
 
-            public EmbeddedDiagnostic? CheckSyntax(JsonNode node)
+            public static EmbeddedDiagnostic? CheckSyntax(JsonNode node)
             {
                 switch (node.Kind)
                 {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return CheckChildren(node);
             }
 
-            private EmbeddedDiagnostic? CheckLiteral(JsonLiteralNode node)
+            private static EmbeddedDiagnostic? CheckLiteral(JsonLiteralNode node)
             {
                 if (node.LiteralToken.Kind == JsonKind.NumberToken)
                 {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return CheckChildren(node);
             }
 
-            private EmbeddedDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
+            private static EmbeddedDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
             {
                 if (node.LiteralToken.Kind == JsonKind.NumberToken)
                 {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return CheckChildren(node);
             }
 
-            private EmbeddedDiagnostic? CheckNumber(JsonToken numberToken)
+            private static EmbeddedDiagnostic? CheckNumber(JsonToken numberToken)
             {
                 var chars = numberToken.VirtualChars;
                 var firstChar = chars[0].Char;
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return null;
             }
 
-            private EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
+            private static EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
             {
                 foreach (var child in node.Sequence)
                 {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return diagnostic ?? CheckChildren(node);
             }
 
-            private EmbeddedDiagnostic? CheckConstructor(JsonConstructorNode node)
+            private static EmbeddedDiagnostic? CheckConstructor(JsonConstructorNode node)
             {
                 if (!IsValidConstructorName(node.NameToken))
                 {
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return true;
             }
 
-            private EmbeddedDiagnostic? CheckCommasBetweenSequenceElements(JsonSequenceNode node)
+            private static EmbeddedDiagnostic? CheckCommasBetweenSequenceElements(JsonSequenceNode node)
             {
                 for (int i = 0, n = node.ChildCount - 1; i < n; i++)
                 {
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return null;
             }
 
-            private EmbeddedDiagnostic? CheckObject(JsonObjectNode node)
+            private static EmbeddedDiagnostic? CheckObject(JsonObjectNode node)
             {
                 for (int i = 0, n = node.Sequence.ChildCount; i < n; i++)
                 {
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return CheckChildren(node);
             }
 
-            private EmbeddedDiagnostic? CheckProperty(JsonPropertyNode node)
+            private static EmbeddedDiagnostic? CheckProperty(JsonPropertyNode node)
             {
                 if (node.NameToken.Kind != JsonKind.StringToken &&
                     !IsLegalPropertyNameText(node.NameToken))
