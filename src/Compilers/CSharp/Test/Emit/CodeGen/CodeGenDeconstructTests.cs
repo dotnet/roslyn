@@ -8435,6 +8435,94 @@ public class C
 ");
         }
 
+        [Fact, WorkItem(21232, "https://github.com/dotnet/roslyn/issues/21232")]
+        public void TestDeconstructDefaultExpression_DeconstructionAssignment()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        long l;
+        string s;
+        (l, s) = default((int, string));
+        System.Console.Write($""{l} {s == null}"");
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 True");
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  4
+  .locals init (long V_0, //l
+                string V_1) //s
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.i8
+  IL_0003:  stloc.0
+  IL_0004:  ldnull
+  IL_0005:  stloc.1
+  IL_0006:  ldstr      ""{0} {1}""
+  IL_000b:  ldloc.0
+  IL_000c:  box        ""long""
+  IL_0011:  ldloc.1
+  IL_0012:  ldnull
+  IL_0013:  ceq
+  IL_0015:  box        ""bool""
+  IL_001a:  call       ""string string.Format(string, object, object)""
+  IL_001f:  call       ""void System.Console.Write(string)""
+  IL_0024:  nop
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(21232, "https://github.com/dotnet/roslyn/issues/21232")]
+        public void TestDeconstructDefaultExpression_DifferentCardinality()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        (long l, string s) = default((int, string, int));
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8132: Cannot deconstruct a tuple of '3' elements into '2' variables.
+                //         (long l, string s) = default((int, string, int));
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(long l, string s) = default((int, string, int))").WithArguments("3", "2").WithLocation(6, 9)
+                );
+        }
+
+        [Fact, WorkItem(21232, "https://github.com/dotnet/roslyn/issues/21232")]
+        public void TestDeconstructDefaultExpression_DeconstructableType()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        (long l, string s) = default(Deconstructable);
+        System.Console.Write($""{l} {s}"");
+    }
+}
+public struct Deconstructable
+{
+    public void Deconstruct(out int x, out string y) { x = 42; y = ""Hello""; }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42 Hello");
+        }
+
         [Fact]
         public void TestDeconstructDefaultLiteral_Nested()
         {
