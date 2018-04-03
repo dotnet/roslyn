@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -13,19 +12,22 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 {
     internal abstract class AbstractDocumentationCommentCommandHandler<TDocumentationComment, TMemberNode> :
-        ICommandHandler<TypeCharCommandArgs>,
-        ICommandHandler<ReturnKeyCommandArgs>,
-        ICommandHandler<InsertCommentCommandArgs>,
-        ICommandHandler<OpenLineAboveCommandArgs>,
-        ICommandHandler<OpenLineBelowCommandArgs>
+        IChainedCommandHandler<TypeCharCommandArgs>,
+        VSCommanding.ICommandHandler<ReturnKeyCommandArgs>,
+        VSCommanding.ICommandHandler<InsertCommentCommandArgs>,
+        IChainedCommandHandler<OpenLineAboveCommandArgs>,
+        IChainedCommandHandler<OpenLineBelowCommandArgs>
         where TDocumentationComment : SyntaxNode, IStructuredTriviaSyntax
         where TMemberNode : SyntaxNode
     {
@@ -71,6 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         {
             get { return ExteriorTriviaText[ExteriorTriviaText.Length - 1]; }
         }
+
+        public string DisplayName => EditorFeaturesResources.Documentation_Comment_Command_Handler;
 
         private string GetNewLine(SourceText text)
         {
@@ -465,12 +469,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             return insertAction(syntaxTree, text, caretPosition, originalCaretPosition, subjectBuffer, textView, documentOptions, cancellationToken);
         }
 
-        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             return nextHandler();
         }
 
-        public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             var originalCaretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
 
@@ -485,12 +489,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCharacterTyped, CancellationToken.None);
         }
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(ReturnKeyCommandArgs args)
         {
-            return nextHandler();
+            return VSCommanding.CommandState.Unspecified;
         }
 
-        public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
@@ -514,14 +518,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
             if (originalPosition < 0)
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, originalPosition))
             {
-                nextHandler();
-                return;
+                return false;
             }
 
             // According to JasonMal, the text undo history is associated with the surface buffer
@@ -538,20 +540,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 // the transaction -- even if we didn't generate anything.
                 transaction.Complete();
             }
+
+            return true;
         }
 
-        public CommandState GetCommandState(InsertCommentCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(InsertCommentCommandArgs args)
         {
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
             if (caretPosition < 0)
             {
-                return CommandState.Unavailable;
+                return VSCommanding.CommandState.Unavailable;
             }
 
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return CommandState.Unavailable;
+                return VSCommanding.CommandState.Unavailable;
             }
 
             TMemberNode targetMember = null;
@@ -563,33 +567,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             });
 
             return targetMember != null
-                ? CommandState.Available
-                : CommandState.Unavailable;
+                ? VSCommanding.CommandState.Available
+                : VSCommanding.CommandState.Unavailable;
         }
 
-        public void ExecuteCommand(InsertCommentCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(InsertCommentCommandArgs args, CommandExecutionContext context)
         {
             var originalCaretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
 
-            _waitIndicator.Wait(
-                title: EditorFeaturesResources.Documentation_Comment,
-                message: EditorFeaturesResources.Inserting_documentation_comment,
-                allowCancel: true,
-                action: w =>
-                {
-                    if (!CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCommandInvoke, w.CancellationToken))
-                    {
-                        nextHandler();
-                    }
-                });
+            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Inserting_documentation_comment))
+            {
+                return CompleteComment(args.SubjectBuffer, args.TextView, originalCaretPosition, InsertOnCommandInvoke, context.WaitContext.UserCancellationToken);
+            }
         }
 
-        public CommandState GetCommandState(OpenLineAboveCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(OpenLineAboveCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             return nextHandler();
         }
 
-        public void ExecuteCommand(OpenLineAboveCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(OpenLineAboveCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
@@ -613,12 +610,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             InsertExteriorTriviaIfNeeded(args.TextView, args.SubjectBuffer);
         }
 
-        public CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             return nextHandler();
         }
 
-        public void ExecuteCommand(OpenLineBelowCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(OpenLineBelowCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
