@@ -459,7 +459,7 @@ namespace Analyzer.Utilities.Extensions
 
             var text = instance.Syntax.ToString();
 
-            // Ignore case for VB by converting ToLower.
+            // Ignore case for VB by converting ToUpperInvariant.
             if (instance.Language == LanguageNames.VisualBasic)
             {
                 text = text.ToUpperInvariant();
