@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     GetTextSpan(start, Position))));
         }
 
-        public TextSpan GetTextSpan(int startInclusive, int endExclusive)
+        private TextSpan GetTextSpan(int startInclusive, int endExclusive)
             => TextSpan.FromBounds(Text[startInclusive].Span.Start, Text[endExclusive - 1].Span.End);
 
         public bool IsAt(string val)
