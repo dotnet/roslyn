@@ -234,6 +234,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sawLocalFunctions = true;
             CheckRefReadOnlySymbols(node.Symbol);
 
+            if (node.Symbol.TypeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
+            {
+                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
+            }
+
             var oldContainingSymbol = _factory.CurrentMethod;
             try
             {
