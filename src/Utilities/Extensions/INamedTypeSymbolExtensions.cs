@@ -112,7 +112,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool OverridesEquals(this INamedTypeSymbol symbol)
         {
             // Does the symbol override Object.Equals?
-            return symbol.GetMembers(WellKnownMemberNames.ObjectEquals).OfType<IMethodSymbol>().Any(m => m.IsEqualsOverride());
+            return symbol.GetMembers(WellKnownMemberNames.ObjectEquals).OfType<IMethodSymbol>().Any(m => m.IsObjectEqualsOverride());
         }
 
         public static bool OverridesGetHashCode(this INamedTypeSymbol symbol)
