@@ -2324,7 +2324,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 IOperation resource = Visit(operation.Resources);
                 int captureId = _availableCaptureId++;
 
-                if (convertToIDisposableBeforeTry(resource))
+                if (shouldConvertToIDisposableBeforeTry(resource))
                 {
                     resource = convertToIDisposable(resource);
                 }
@@ -2352,7 +2352,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
 
-            bool convertToIDisposableBeforeTry(IOperation resource)
+            bool shouldConvertToIDisposableBeforeTry(IOperation resource)
             {
                 return resource.Type == null || resource.Type.Kind == SymbolKind.DynamicType;
             }
@@ -2384,7 +2384,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 //   finally { if (d != null) d.Dispose(); }
                 // }
 
-                if (convertToIDisposableBeforeTry(resource))
+                if (shouldConvertToIDisposableBeforeTry(resource))
                 {
                     resource = convertToIDisposable(resource);
                     int captureId = _availableCaptureId++;

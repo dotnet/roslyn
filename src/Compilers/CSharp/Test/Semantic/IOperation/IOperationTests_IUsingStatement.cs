@@ -1625,7 +1625,7 @@ Block[B9] - Exit
             string source = @"
 class P
 {
-    void M(MyDisposable input, bool b)
+    void M(NotDisposable input, bool b)
 /*<bind>*/{
         using (GetDisposable() ?? input)
         {
@@ -1633,10 +1633,10 @@ class P
         }
     }/*</bind>*/
 
-    MyDisposable GetDisposable() => throw null;
+    NotDisposable GetDisposable() => throw null;
 }
 
-class MyDisposable
+class NotDisposable
 {
 }
 ";
@@ -1649,7 +1649,7 @@ Block[B1] - Block
     Statements (1)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'GetDisposable()')
           Value: 
-            IInvocationOperation ( MyDisposable P.GetDisposable()) (OperationKind.Invocation, Type: MyDisposable, IsInvalid) (Syntax: 'GetDisposable()')
+            IInvocationOperation ( NotDisposable P.GetDisposable()) (OperationKind.Invocation, Type: NotDisposable, IsInvalid) (Syntax: 'GetDisposable()')
               Instance Receiver: 
                 IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'GetDisposable')
               Arguments(0)
@@ -1657,7 +1657,7 @@ Block[B1] - Block
     Jump if True (Regular) to Block[B3]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'GetDisposable()')
           Operand: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable()')
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: NotDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable()')
 
     Next (Regular) Block[B2]
 Block[B2] - Block
@@ -1665,7 +1665,7 @@ Block[B2] - Block
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'GetDisposable()')
           Value: 
-            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable()')
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: NotDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable()')
 
     Next (Regular) Block[B4]
 Block[B3] - Block
@@ -1673,7 +1673,7 @@ Block[B3] - Block
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'input')
           Value: 
-            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: MyDisposable, IsInvalid) (Syntax: 'input')
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: NotDisposable, IsInvalid) (Syntax: 'input')
 
     Next (Regular) Block[B4]
 Block[B4] - Block
@@ -1681,7 +1681,7 @@ Block[B4] - Block
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
           Value: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: NotDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
 
     Next (Regular) Block[B5]
         Entering: {R1} {R2}
@@ -1711,7 +1711,7 @@ Block[B4] - Block
         Jump if True (Regular) to Block[B8]
             IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
               Operand: 
-                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: NotDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
 
         Next (Regular) Block[B7]
     Block[B7] - Block
@@ -1722,7 +1722,7 @@ Block[B4] - Block
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
                   Conversion: CommonConversion (Exists: True)
                   Operand: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: NotDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
               Arguments(0)
 
         Next (Regular) Block[B8]
@@ -1737,9 +1737,9 @@ Block[B9] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,16): error CS1674: 'MyDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // file.cs(6,16): error CS1674: 'NotDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 //         using (GetDisposable() ?? input)
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "GetDisposable() ?? input").WithArguments("MyDisposable").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "GetDisposable() ?? input").WithArguments("NotDisposable").WithLocation(6, 16)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
