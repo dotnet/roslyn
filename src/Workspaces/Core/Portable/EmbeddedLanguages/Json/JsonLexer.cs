@@ -108,6 +108,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 case '\'': case '"':
                     return ScanString();
 
+                // It would be tempting to try to scan out numbers here.  However, numbers are
+                // actually quite tricky to get right (especially looking one character at a time).
+                // So, instead, we take a page from json.net and just consume out a text sequence.
+                // Later on, we'll analyze that text sequence as a whole to see if it looks like a
+                // number and to also report any issues in line with how json.net and ecmascript
+                // handle json numbers.
+
                 //case '-': case '.':
                 //case '0': case '1': case '2': case '3': case '4':
                 //case '5': case '6': case '7': case '8': case '9':
