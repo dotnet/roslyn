@@ -4361,8 +4361,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorArgType">
-        <source>Iterators cannot have ref or out parameters</source>
-        <target state="translated">Итераторы не могут иметь параметры с ключевым словом ref или out.</target>
+        <source>Iterators cannot have ref, in or out parameters</source>
+        <target state="needs-review-translation">Итераторы не могут иметь параметры с ключевым словом ref или out.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturn">
@@ -5231,8 +5231,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByRefParameterInExpressionTree">
-        <source>An expression tree lambda may not contain an out or ref parameter</source>
-        <target state="translated">Дерево лямбда-выражения не может содержать параметры с ключевыми словами out и ref.</target>
+        <source>An expression tree lambda may not contain a ref, in or out parameter</source>
+        <target state="needs-review-translation">Дерево лямбда-выражения не может содержать параметры с ключевыми словами out и ref.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarArgsInExpressionTree">
@@ -5794,8 +5794,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
-        <source>Async methods cannot have ref or out parameters</source>
-        <target state="translated">У асинхронных методов не может быть параметров ref и out.</target>
+        <source>Async methods cannot have ref, in or out parameters</source>
+        <target state="needs-review-translation">У асинхронных методов не может быть параметров ref и out.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsync">
@@ -8713,6 +8713,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
         <source>declaration of expression variables in member initializers and queries</source>
         <target state="new">declaration of expression variables in member initializers and queries</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExprCannotBeFixed">
+        <source>The given expression cannot be used in a fixed statement</source>
+        <target state="new">The given expression cannot be used in a fixed statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensibleFixedStatement">
+        <source>extensible fixed statement</source>
+        <target state="new">extensible fixed statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
+        <source>indexing movable fixed buffers</source>
+        <target state="new">indexing movable fixed buffers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidObjectCreation">
+        <source>Invalid object creation</source>
+        <target state="new">Invalid object creation</target>
         <note />
       </trans-unit>
     </body>

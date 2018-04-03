@@ -4361,8 +4361,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorArgType">
-        <source>Iterators cannot have ref or out parameters</source>
-        <target state="translated">반복기에는 ref 또는 out 매개 변수를 사용할 수 없습니다.</target>
+        <source>Iterators cannot have ref, in or out parameters</source>
+        <target state="needs-review-translation">반복기에는 ref 또는 out 매개 변수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturn">
@@ -5231,8 +5231,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByRefParameterInExpressionTree">
-        <source>An expression tree lambda may not contain an out or ref parameter</source>
-        <target state="translated">람다 식 트리에는 out 또는 ref 매개 변수를 사용할 수 없습니다.</target>
+        <source>An expression tree lambda may not contain a ref, in or out parameter</source>
+        <target state="needs-review-translation">람다 식 트리에는 out 또는 ref 매개 변수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarArgsInExpressionTree">
@@ -5794,8 +5794,8 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
-        <source>Async methods cannot have ref or out parameters</source>
-        <target state="translated">비동기 메서드에는 ref 또는 out 매개 변수를 사용할 수 없습니다.</target>
+        <source>Async methods cannot have ref, in or out parameters</source>
+        <target state="needs-review-translation">비동기 메서드에는 ref 또는 out 매개 변수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsync">
@@ -8713,6 +8713,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
         <source>declaration of expression variables in member initializers and queries</source>
         <target state="new">declaration of expression variables in member initializers and queries</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExprCannotBeFixed">
+        <source>The given expression cannot be used in a fixed statement</source>
+        <target state="new">The given expression cannot be used in a fixed statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensibleFixedStatement">
+        <source>extensible fixed statement</source>
+        <target state="new">extensible fixed statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
+        <source>indexing movable fixed buffers</source>
+        <target state="new">indexing movable fixed buffers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidObjectCreation">
+        <source>Invalid object creation</source>
+        <target state="new">Invalid object creation</target>
         <note />
       </trans-unit>
     </body>

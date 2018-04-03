@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
@@ -103,5 +104,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken);
 
         SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken);
+
+        SyntaxToken GenerateUniqueName(
+            SemanticModel semanticModel, SyntaxNode location, 
+            SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
     }
 }

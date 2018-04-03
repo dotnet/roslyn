@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                     }
 
                     var lastVC = result.Last();
-                    Debug.Assert(lastVC.Span.End == token.Span.End - 1, "Last span has to end right before the end of hte string token (including its trailing delimeter).");
+                    Debug.Assert(lastVC.Span.End == token.Span.End - 1, "Last span has to end right before the end of the string token (including its trailing delimeter).");
                 }
             }
 #endif
@@ -60,21 +60,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// Helper to convert simple string literals that escape quotes by doubling them.  This is 
         /// how normal VB literals and c# verbatim string literals work.
         /// </summary>
-        protected ImmutableArray<VirtualChar> TryConvertSimpleDoubleQuoteString(
-            SyntaxToken token, string startDelimeter, string endDelimeter)
+        /// <param name="startDelimiter">The start characters string.  " in VB and @" in C#</param>
+        protected static ImmutableArray<VirtualChar> TryConvertSimpleDoubleQuoteString(
+            SyntaxToken token, string startDelimiter)
         {
             Debug.Assert(!token.ContainsDiagnostics);
+            const string endDelimiter = "\"";
 
             var tokenText = token.Text;
-            if (!tokenText.StartsWith(startDelimeter) ||
-                !tokenText.EndsWith(endDelimeter))
+            if (!tokenText.StartsWith(startDelimiter) ||
+                !tokenText.EndsWith(endDelimiter))
             {
                 Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
                 return default;
             }
 
-            var startIndexInclusive = startDelimeter.Length;
-            var endIndexExclusive = tokenText.Length - endDelimeter.Length;
+            var startIndexInclusive = startDelimiter.Length;
+            var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
             var result = ArrayBuilder<VirtualChar>.GetInstance();
 

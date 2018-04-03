@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string ValidateFormatStringDiagnosticID = "IDE0043";
 
-        public const string RegexPatternDiagnosticId = "IDE0044";
+        public const string MakeFieldReadonlyDiagnosticId = "IDE0044";
+
+        public const string RegexPatternDiagnosticId = "IDE0045";
 
         // diagnostic for when we detect a string that should have /*language=json*/ added to it.
         public const string JsonDetectionDiagnosticId = "IDE0045";

@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertNumericLiteral = "CodeActions.ConvertNumericLiteral";
             public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
             public const string CodeActionsConvertToIterator = "CodeActions.ConvertToIterator";
+            public const string CodeActionsConvertForToForEach = "CodeActions.ConvertForToForEach";
             public const string CodeActionsConvertIfToSwitch = "CodeActions.ConvertIfToSwitch";
             public const string CodeActionsCorrectExitContinue = "CodeActions.CorrectExitContinue";
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
@@ -84,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInvertIf = "CodeActions.InvertIf";
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
+            public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
             public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
             public const string CodeActionsMakeMethodSynchronous = "CodeActions.MakeMethodSynchronous";
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";

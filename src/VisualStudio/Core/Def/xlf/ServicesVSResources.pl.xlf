@@ -1548,6 +1548,16 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
         <target state="new">Sync Class View Command Handler</target>
         <note />
       </trans-unit>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="new">Field preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="new">Prefer readonly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzing_0">
         <source>Analyzing '{0}'</source>
         <target state="new">Analyzing '{0}'</target>
