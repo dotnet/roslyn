@@ -8876,6 +8876,24 @@ Class Program
     End Sub
 End Class").Path
         End Function
+
+        <Fact>
+        <WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")>
+        Public Sub InvalidPathCharacterInPathMap()
+            Dim filePath = Temp.CreateFile().WriteAllText("").Path
+            Dim compiler = New MockVisualBasicCompiler(Nothing, _baseDirectory,
+            {
+                filePath,
+                "/debug:embedded",
+                "/pathmap:test\\=""",
+                "/target:library"
+            })
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = compiler.Run(outWriter)
+            Assert.Equal(1, exitCode)
+            Assert.Contains("vbc : error BC37253: The pathmap option was incorrectly formatted.", outWriter.ToString(), StringComparison.Ordinal)
+        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
