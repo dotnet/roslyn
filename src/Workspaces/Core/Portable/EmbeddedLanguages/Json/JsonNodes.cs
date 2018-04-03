@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     }
 
     /// <summary>
-    /// Represents a chunk of text (usually just a single char) from the original pattern.
+    /// Represents a chunk of text that we did not understand as anything special.  i.e. it wasn't a
+    /// keyword, number, or literal.
     /// </summary>
     internal sealed class JsonTextNode : JsonValueNode
     {
