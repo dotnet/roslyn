@@ -1218,38 +1218,32 @@ End Module").Path
         End Sub
 #End Region
 
-        <Fact>
-        Public Sub Codepage()
-            Dim parsedArgs = DefaultParse({"/CodePage:1200", "a.vb"}, _baseDirectory)
+#Region "Codepage"
+        <Theory, InlineData({"/CodePage:1200", "a.vb"}, "Unicode"), InlineData({"/CodePage:1200", "/CodePage:65001", "a.vb"}, "Unicode (UTF-8)")>
+        Public Sub Codepage(Args() As String, ExpectedEncodingName As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("Unicode", parsedArgs.Encoding.EncodingName)
-
-            parsedArgs = DefaultParse({"/CodePage:1200", "/CodePage:65001", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal("Unicode (UTF-8)", parsedArgs.Encoding.EncodingName)
-
-            ' errors 
-            parsedArgs = DefaultParse({"/codepage:0", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadCodepage).WithArguments("0"))
-
-            parsedArgs = DefaultParse({"/codepage:abc", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadCodepage).WithArguments("abc"))
-
-            parsedArgs = DefaultParse({"/codepage:-5", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadCodepage).WithArguments("-5"))
-
-            parsedArgs = DefaultParse({"/codepage: ", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("codepage", ":<number>"))
-
-            parsedArgs = DefaultParse({"/codepage:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("codepage", ":<number>"))
-
-            parsedArgs = DefaultParse({"/codepage+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/codepage+")) ' Dev11 reports ERR_ArgumentRequired
-
-            parsedArgs = DefaultParse({"/codepage", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("codepage", ":<number>"))
+            Assert.Equal(ExpectedEncodingName, parsedArgs.Encoding.EncodingName)
         End Sub
+
+        <Theory, InlineData({"/codepage:0", "a.vb"}, {"0"}), InlineData({"/codepage:abc", "a.vb"}, {"abc"}), InlineData({"/codepage:-5", "a.vb"}, {"-5"})>
+        Public Sub Codepage_ERR_BadCodepage(Args() As String, WithArgs As String())
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_BadCodepage).WithArguments(WithArgs))
+        End Sub
+
+        <Theory, InlineData({"/codepage: ", "a.vb"}, {"codepage", ":<number>"}), InlineData({"/codepage:", "a.vb"}, {"codepage", ":<number>"}), InlineData({"/codepage", "a.vb"}, {"codepage", ":<number>"})>
+        Public Sub Codepage_ERR_ArgumentRequired(Args() As String, WithArgs() As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments(WithArgs))
+        End Sub
+
+        <Theory, InlineData({"/codepage+", "a.vb"}, {"/codepage+"})>' Dev11 reports ERR_ArgumentRequired
+        Public Sub Codepage_WRN_BadSwitch(Args() As String, WithArgs() As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments(WithArgs))
+        End Sub
+#End Region
 
         <Fact, WorkItem(24735, "https://github.com/dotnet/roslyn/issues/24735")>
         Public Sub ChecksumAlgorithm()
