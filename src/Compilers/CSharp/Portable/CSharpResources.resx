@@ -216,6 +216,9 @@
   <data name="IDS_FeaturePrivateProtected" xml:space="preserve">
     <value>private protected</value>
   </data>
+  <data name="IDS_FeatureTupleEquality" xml:space="preserve">
+    <value>tuple equality</value>
+  </data>
   <data name="IDS_FeatureNullable" xml:space="preserve">
     <value>nullable types</value>
   </data>
@@ -926,6 +929,9 @@
   </data>
   <data name="ERR_FixedNotNeeded" xml:space="preserve">
     <value>You cannot use the fixed statement to take the address of an already fixed expression</value>
+  </data>
+  <data name="ERR_ExprCannotBeFixed" xml:space="preserve">
+    <value>The given expression cannot be used in a fixed statement</value>
   </data>
   <data name="ERR_UnsafeNeeded" xml:space="preserve">
     <value>Pointers and fixed size buffers may only be used in an unsafe context</value>
@@ -2174,6 +2180,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_ExpressionTreeContainsBaseAccess" xml:space="preserve">
     <value>An expression tree may not contain a base access</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsTupleBinOp" xml:space="preserve">
+    <value>An expression tree may not contain a tuple == or != operator</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsAssignment" xml:space="preserve">
     <value>An expression tree may not contain an assignment operator</value>
   </data>
@@ -2741,7 +2750,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.</value>
   </data>
   <data name="ERR_BadIteratorArgType" xml:space="preserve">
-    <value>Iterators cannot have ref or out parameters</value>
+    <value>Iterators cannot have ref, in or out parameters</value>
   </data>
   <data name="ERR_BadIteratorReturn" xml:space="preserve">
     <value>The body of '{0}' cannot be an iterator block because '{1}' is not an iterator interface type</value>
@@ -3266,7 +3275,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>The best overloaded Add method '{0}' for the collection initializer has some invalid arguments</value>
   </data>
   <data name="ERR_ByRefParameterInExpressionTree" xml:space="preserve">
-    <value>An expression tree lambda may not contain an out or ref parameter</value>
+    <value>An expression tree lambda may not contain a ref, in or out parameter</value>
   </data>
   <data name="ERR_VarArgsInExpressionTree" xml:space="preserve">
     <value>An expression tree lambda may not contain a method with variable arguments</value>
@@ -3603,7 +3612,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Async methods cannot have unsafe parameters or return types</value>
   </data>
   <data name="ERR_BadAsyncArgType" xml:space="preserve">
-    <value>Async methods cannot have ref or out parameters</value>
+    <value>Async methods cannot have ref, in or out parameters</value>
   </data>
   <data name="ERR_BadAwaitWithoutAsync" xml:space="preserve">
     <value>The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier</value>
@@ -4280,6 +4289,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureRefForEach" xml:space="preserve">
     <value>ref foreach iteration variables</value>
+  </data>
+  <data name="IDS_FeatureExtensibleFixedStatement" xml:space="preserve">
+    <value>extensible fixed statement</value>
   </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>
@@ -5039,6 +5051,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
     <value>The tuple element name is ignored because a different name or no name is specified by the assignment target.</value>
   </data>
+  <data name="WRN_TupleBinopLiteralNameMismatch" xml:space="preserve">
+    <value>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</value>
+  </data>
+  <data name="WRN_TupleBinopLiteralNameMismatch_Title" xml:space="preserve">
+    <value>The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</value>
+  </data>
   <data name="ERR_PredefinedValueTupleTypeMustBeStruct" xml:space="preserve">
     <value>Predefined type '{0}' must be a struct.</value>
   </data>
@@ -5083,12 +5101,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_VarInvocationLvalueReserved" xml:space="preserve">
     <value>The syntax 'var (...)' as an lvalue is reserved.</value>
-  </data>
-  <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
-    <value>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</value>
-  </data>
-  <data name="ERR_ExpressionVariableInQueryClause" xml:space="preserve">
-    <value>Out variable and pattern variable declarations are not allowed within a query clause.</value>
   </data>
   <data name="ERR_SemiOrLBraceOrArrowExpected" xml:space="preserve">
     <value>{ or ; or =&gt; expected</value>
@@ -5267,6 +5279,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InDynamicMethodArg" xml:space="preserve">
     <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</value>
   </data>
+  <data name="ERR_TupleSizesMismatchForBinOps" xml:space="preserve">
+    <value>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</value>
+  </data>
   <data name="ERR_RefLocalOrParamExpected" xml:space="preserve">
     <value>The left-hand side of a ref assignment must be a ref local or parameter.</value>
   </data>
@@ -5297,10 +5312,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ConWithUnmanagedCon" xml:space="preserve">
     <value>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</value>
   </data>
+  <data name="ERR_InvalidObjectCreation" xml:space="preserve">
+    <value>Invalid object creation</value>
+  </data>
   <data name="IDS_FeatureStackAllocInitializer" xml:space="preserve">
     <value>stackalloc initializer</value>
   </data>
   <data name="ERR_InvalidStackAllocArray" xml:space="preserve">
     <value>"Invalid rank specifier: expected ']'</value>
+  </data>
+  <data name="IDS_FeatureExpressionVariablesInQueriesAndInitializers" xml:space="preserve">
+    <value>declaration of expression variables in member initializers and queries</value>
+  </data>
+  <data name="IDS_FeatureIndexingMovableFixedBuffers" xml:space="preserve">
+    <value>indexing movable fixed buffers</value>
   </data>
 </root>

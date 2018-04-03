@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -17,7 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VerifyColorOfSomeTokens()
         {
             VisualStudio.Editor.SetText(@"using System;
@@ -65,7 +66,7 @@ namespace ConsoleApplication1
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void SemanticClassification()
         {
             VisualStudio.Editor.SetText(@"
@@ -100,7 +101,7 @@ class Program : Attribute
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VerifyProjectConfigChange()
         {
             VisualStudio.Editor.SetText(@"
