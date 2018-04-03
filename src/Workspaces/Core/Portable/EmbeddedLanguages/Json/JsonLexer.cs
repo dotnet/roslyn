@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             Text = text;
         }
 
-        public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : new VirtualChar((char)0, default);
+        public VirtualChar CurrentChar => Position < Text.Length
+            ? Text[Position]
+            : new VirtualChar((char)0, span: default);
 
         public ImmutableArray<VirtualChar> GetSubPattern(int start, int end)
         {
