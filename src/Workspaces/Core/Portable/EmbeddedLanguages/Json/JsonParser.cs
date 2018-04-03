@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             if (diagnostic == null)
             {
                 diagnostic = strict
-                    ? new StrictSyntaxChecker().CheckSyntax(root)
-                    : new JsonNetSyntaxChecker().CheckSyntax(root);
+                    ? StrictSyntaxChecker.CheckSyntax(root)
+                    : JsonNetSyntaxChecker.CheckSyntax(root);
             }
 
             var diagnostics = diagnostic == null
