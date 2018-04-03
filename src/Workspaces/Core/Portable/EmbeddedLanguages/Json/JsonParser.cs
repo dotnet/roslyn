@@ -401,13 +401,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return true;
         }
 
-        private bool IsDigit(char ch)
+        private static bool IsDigit(char ch)
             => ch >= '0' && ch <= '9';
 
-        private JsonLiteralNode ParseLiteral(JsonToken textToken, JsonKind kind)
+        private static JsonLiteralNode ParseLiteral(JsonToken textToken, JsonKind kind)
             => new JsonLiteralNode(textToken.With(kind: kind));
 
-        private JsonValueNode ParseNumber(JsonToken textToken)
+        private static JsonValueNode ParseNumber(JsonToken textToken)
         {
             var numberToken = textToken.With(kind: JsonKind.NumberToken);
             return new JsonLiteralNode(numberToken);
