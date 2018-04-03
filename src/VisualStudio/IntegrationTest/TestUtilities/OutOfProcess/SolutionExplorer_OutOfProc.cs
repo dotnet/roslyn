@@ -44,6 +44,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void AddProject(ProjectUtils.Project projectName, string projectTemplate, string languageName)
             => _inProc.AddProject(projectName.Name, projectTemplate, languageName);
+        
+        public void AddCustomProject(ProjectUtils.Project projectName, string projectFileExtension, string projectFileContent)
+            => _inProc.AddCustomProject(projectName.Name, projectFileExtension, projectFileContent);
 
         public void AddProjectReference(ProjectUtils.Project fromProjectName, ProjectUtils.ProjectReference toProjectName)
         {

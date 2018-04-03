@@ -14,8 +14,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
     {
         public readonly VisualStudioInstance VisualStudio;
 
-        protected readonly string ProjectName = "TestProj";
-        protected readonly string SolutionName = "TestSolution";
+        protected const string ProjectName = "TestProj";
+        protected const string SolutionName = "TestSolution";
 
         private VisualStudioInstanceContext _visualStudioContext;
 
