@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.LineSeparators
 {
+    [UseExportProvider]
     public class LineSeparatorTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)]

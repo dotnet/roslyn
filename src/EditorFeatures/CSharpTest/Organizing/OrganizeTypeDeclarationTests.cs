@@ -1076,8 +1076,9 @@ interface I
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void OrganizingCommandsDisabledInSubmission()
         {
-            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
+            var exportProvider = ExportProviderCache
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)))
+                .CreateExportProvider();
 
             using (var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>

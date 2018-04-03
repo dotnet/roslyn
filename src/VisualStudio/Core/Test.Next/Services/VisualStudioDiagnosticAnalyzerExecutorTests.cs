@@ -26,6 +26,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
+    [UseExportProvider]
     public class VisualStudioDiagnosticAnalyzerExecutorTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -234,8 +235,8 @@ End Class";
         private TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
         {
             var workspace = (language == LanguageNames.CSharp) ?
-                TestWorkspace.CreateCSharp(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider) :
-                TestWorkspace.CreateVisualBasic(code, parseOptions: options, exportProvider: TestHostServices.SharedExportProvider);
+                TestWorkspace.CreateCSharp(code, parseOptions: options, exportProvider: TestHostServices.CreateExportProvider()) :
+                TestWorkspace.CreateVisualBasic(code, parseOptions: options, exportProvider: TestHostServices.CreateExportProvider());
 
             workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
                                      .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, true)
