@@ -1280,41 +1280,36 @@ End Module").Path
         End Sub
 #End Region
 
-        <Fact>
-        Public Sub MainTypeName()
-            Dim parsedArgs = DefaultParse({"/main:A.B.C", "a.vb"}, _baseDirectory)
+#Region "MainTypeName"
+        <Theory, InlineData({"/main:A.B.C", "a.vb"}, "A.B.C"), InlineData({"/Main:A.B.C", "/M:X.Y.Z", "a.vb"}, "X.Y.Z")>
+        Public Sub MainTypeName(Args() As String, ExpectedMainTypeName As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("A.B.C", parsedArgs.CompilationOptions.MainTypeName)
+            Assert.Equal(ExpectedMainTypeName, parsedArgs.CompilationOptions.MainTypeName)
+        End Sub
 
-            ' overriding the value
-            parsedArgs = DefaultParse({"/Main:A.B.C", "/M:X.Y.Z", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal("X.Y.Z", parsedArgs.CompilationOptions.MainTypeName)
+        <Theory, InlineData({"/MAIN: ", "a.vb"}, {"main", ":<class>"}, True), InlineData({"/maiN:", "a.vb"}, {"main", ":<class>"}), InlineData({"/m", "a.vb"}, {"m", ":<class>"})>
+        Public Sub MainTypeName_ERR_ArgumentRequired(Args() As String, WithArgs() As String, Optional CheckMainTypeName As Boolean = False)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments(WithArgs))
+            If CheckMainTypeName Then Assert.Equal(Nothing, parsedArgs.CompilationOptions.MainTypeName) ' EDMAURER Dev11 accepts and MainTypeName is " "
+        End Sub
 
-            parsedArgs = DefaultParse({"/MAIN: ", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("main", ":<class>"))
-            Assert.Equal(Nothing, parsedArgs.CompilationOptions.MainTypeName) ' EDMAURER Dev11 accepts and MainTypeName is " "
-
-            ' errors 
-            parsedArgs = DefaultParse({"/maiN:", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("main", ":<class>"))
-
-            parsedArgs = DefaultParse({"/m", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("m", ":<class>"))
-
-            parsedArgs = DefaultParse({"/m+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/m+")) ' Dev11 reports ERR_ArgumentRequired
-
+        <Theory, InlineData({"/MAIN:XYZ", "/t:library", "a.vb"}, OutputKind.DynamicallyLinkedLibrary), InlineData({"/MAIN:XYZ", "/t:module", "a.vb"}, OutputKind.NetModule)>
+        Public Sub MainTypeName_OutputKind(Args() As String, ExpectedOutputKind As OutputKind)
             ' incompatibilities ignored by Dev11
-            parsedArgs = DefaultParse({"/MAIN:XYZ", "/t:library", "a.vb"}, _baseDirectory)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal("XYZ", parsedArgs.CompilationOptions.MainTypeName)
-            Assert.Equal(OutputKind.DynamicallyLinkedLibrary, parsedArgs.CompilationOptions.OutputKind)
-
-            parsedArgs = DefaultParse({"/MAIN:XYZ", "/t:module", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify()
-            Assert.Equal(OutputKind.NetModule, parsedArgs.CompilationOptions.OutputKind)
+            Assert.Equal(ExpectedOutputKind, parsedArgs.CompilationOptions.OutputKind)
         End Sub
+
+        <Theory, InlineData({"/m+", "a.vb"}, {"/m+"})> ' Dev11 reports ERR_ArgumentRequired
+        Public Sub MainTypeName_WRN_BadSwitch(Args() As String, WithArgs() As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments(WithArgs))
+        End Sub
+#End Region
 
         <Fact>
         Public Sub OptionCompare()
