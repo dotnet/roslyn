@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             /// cref="_autoNumber"/> values that have not already been handed out to existing
             /// numbered capture groups.
             /// </summary>
-            private  void AssignNumbersToCaptureNames()
+            private void AssignNumbersToCaptureNames()
             {
                 foreach (var name in _captureNames)
                 {
