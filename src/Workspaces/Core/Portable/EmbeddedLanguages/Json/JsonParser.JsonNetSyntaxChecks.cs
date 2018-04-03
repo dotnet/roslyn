@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
     internal partial struct JsonParser
     {
-        private partial struct JsonNetSyntaxChecker
+        private struct JsonNetSyntaxChecker
         {
             private EmbeddedDiagnostic? CheckChildren(JsonNode node)
             {
