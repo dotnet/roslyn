@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not element.IsImplicitlyDeclared Then
                     builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name, noEscaping:=False))
                     AddSpace()
-                    AddPunctuation(SyntaxKind.AsKeyword)
+                    AddKeyword(SyntaxKind.AsKeyword)
                     AddSpace()
                 End If
 

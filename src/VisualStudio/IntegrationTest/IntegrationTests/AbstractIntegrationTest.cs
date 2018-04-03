@@ -1,17 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using System;
 using System.Threading;
-using System.Windows.Automation;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
     [CaptureTestName]
     public abstract class AbstractIntegrationTest : IDisposable
     {
+        /// <summary>
+        /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
+        /// </summary>
+        protected static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(1);
+
         public readonly VisualStudioInstance VisualStudio;
 
         protected readonly string ProjectName = "TestProj";
@@ -22,7 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected AbstractIntegrationTest(
             VisualStudioInstanceFactory instanceFactory)
         {
-            Automation.TransactionTimeout = 20000;
+            Helper.Automation.TransactionTimeout = 20000;
             _visualStudioContext = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
             VisualStudio = _visualStudioContext.Instance;
         }
