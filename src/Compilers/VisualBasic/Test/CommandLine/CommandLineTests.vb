@@ -1342,29 +1342,20 @@ End Module").Path
         End Sub
 #End Region
 
-        <Fact>
-        Public Sub OptionInfer()
-            Dim parsedArgs = InteractiveParse({"/optiONinfer"}, _baseDirectory)
-            Assert.Equal(0, parsedArgs.Errors.Length)
-            Assert.Equal(True, parsedArgs.CompilationOptions.OptionInfer)
-
-            parsedArgs = InteractiveParse({"/OptionInfer:+"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optioninfer"))
-
-            parsedArgs = InteractiveParse({"/OPTIONinfer-:"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optioninfer"))
-
-            parsedArgs = InteractiveParse({"/optioninfer+", "/optioninFER-:"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optioninfer"))
-
-            parsedArgs = InteractiveParse({"/optioninfer+", "/optioninfeR-", "/OptionInfer+"}, _baseDirectory)
+#Region "OptionInfer"
+        <Theory, InlineData({"/optiONinfer"}, True), InlineData({"/optioninfer+", "/optioninfeR-", "/OptionInfer+"}, True), InlineData({"/d:a=1"}, False)>
+        Public Sub OptionInfer(Args() As String, ExpectedOptionInfer As Boolean)
+            Dim parsedArgs = InteractiveParse(Args, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(True, parsedArgs.CompilationOptions.OptionInfer)
-
-            parsedArgs = InteractiveParse({"/d:a=1"}, _baseDirectory) ' test default value
-            parsedArgs.Errors.Verify()
-            Assert.Equal(False, parsedArgs.CompilationOptions.OptionInfer)
+            Assert.Equal(ExpectedOptionInfer, parsedArgs.CompilationOptions.OptionInfer)
         End Sub
+
+        <Theory, InlineData({"/OptionInfer:+"}), InlineData({"/OPTIONinfer-:"}), InlineData({"/optioninfer+", "/optioninFER-:"})>
+        Public Sub OptionInfer_ERR_SwitchNeedsBool(ParamArray Args() As String)
+            Dim parsedArgs = InteractiveParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("optioninfer"))
+        End Sub
+#End Region
 
         Private ReadOnly s_VBC_VER As Double = PredefinedPreprocessorSymbols.CurrentVersionNumber
 
