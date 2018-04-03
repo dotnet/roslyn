@@ -341,6 +341,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             var chars = GetCharsToCurrentPosition(start);
             if (Position == start + 2)
             {
+                // Note: json.net reports an error if the file ends with "//", so we just
+                // preserve that behavior.
                 var diagnostics = ImmutableArray.Create(new EmbeddedDiagnostic(
                     WorkspacesResources.Unterminated_comment,
                     GetSpan(chars)));
