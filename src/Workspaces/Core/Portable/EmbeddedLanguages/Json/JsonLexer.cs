@@ -238,19 +238,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return (GetCharsToCurrentPosition(start), JsonKind.TextToken, null);
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?)? TryScanText(
-            string text, JsonKind kind)
-        {
-            var start = this.Position;
-            if (!IsAt(text))
-            {
-                return null;
-            }
-
-            Position += text.Length;
-            return (GetCharsToCurrentPosition(start), kind, null);
-        }
-
         private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanSingleCharToken(JsonKind kind)
         {
             var chars = ImmutableArray.Create(this.CurrentChar);
