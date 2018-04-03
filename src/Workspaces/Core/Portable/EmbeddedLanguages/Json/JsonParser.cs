@@ -193,13 +193,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             var list = ArrayBuilder<JsonValueNode>.GetInstance();
 
-            if (ShouldConsumeSequenceElement())
+            while (ShouldConsumeSequenceElement())
             {
-                do
-                {
-                    list.Add(ParseValue());
-                }
-                while (ShouldConsumeSequenceElement());
+                list.Add(ParseValue());
             }
 
             return new JsonSequenceNode(list.ToImmutableAndFree());
