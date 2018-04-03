@@ -1,19 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.NamingStyles;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
 {
@@ -857,6 +851,175 @@ class Test
             {
                 workspace.Options = originalOptions;
             }
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsIEnumerableOfType()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+    Container $$
+  }
+}
+
+public class Container : ContainerBase { }
+public class ContainerBase : IEnumerable<ContainerBase> { }
+";
+            await VerifyItemExistsAsync(markup, "container");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsIEnumerableOfType2()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+     Container $$
+  }
+}
+
+public class ContainerBase : IEnumerable<Container> { }
+public class Container : ContainerBase { }
+";
+            await VerifyItemExistsAsync(markup, "container");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsIEnumerableOfType3()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+     Container $$
+  }
+}
+
+public class Container : IEnumerable<Container> { }
+";
+            await VerifyItemExistsAsync(markup, "container");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsIEnumerableOfType4()
+        {
+            var markup = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class Class1
+{
+  public void Method()
+  {
+     TaskType $$
+  }
+}
+
+public class ContainerBase : IEnumerable<Container> { }
+public class Container : ContainerBase { }
+public class TaskType : Task<Container> { }
+";
+            await VerifyItemExistsAsync(markup, "taskType");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsTaskOfType()
+        {
+            var markup = @"
+using System.Threading.Tasks;
+
+public class Class1
+{
+  public void Method()
+  {
+    Container $$
+  }
+}
+
+public class Container : ContainerBase { }
+public class ContainerBase : Task<ContainerBase> { }
+";
+            await VerifyItemExistsAsync(markup, "container");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsTaskOfType2()
+        {
+            var markup = @"
+using System.Threading.Tasks;
+
+public class Class1
+{
+  public void Method()
+  {
+     Container $$
+  }
+}
+
+public class Container : Task<ContainerBase> { }
+public class ContainerBase : Container { }
+";
+            await VerifyItemExistsAsync(markup, "container");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsTaskOfType3()
+        {
+            var markup = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class Class1
+{
+  public void Method()
+  {
+    EnumerableType $$
+  }
+}
+
+public class TaskType : TaskTypeBase { }
+public class TaskTypeBase : Task<TaskTypeBase> { }
+public class EnumerableType : IEnumerable<TaskType> { }
+";
+            await VerifyItemExistsAsync(markup, "taskTypes");
+        }
+
+        [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeIsNullableOfNullable()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+      // This code isn't legal, but we want to ensure we don't crash in this broken code scenario
+      IEnumerable<Nullable<int?>> $$
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "nullables");
         }
     }
 }

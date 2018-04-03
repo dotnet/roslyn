@@ -15024,7 +15024,7 @@ class C
                 // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (1, 1): return;
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 1)").WithArguments("object", "2").WithLocation(7, 18)
-                );
+               );
         }
 
         [Fact]
@@ -24234,6 +24234,138 @@ namespace System
                 // (10,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
                 //         tuple.Item1 = 3;
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "tuple.Item1").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        public void InferenceWithTuple_AddingNames()
+        {
+            string source = @"
+using System;
+public interface IDo<T>
+{
+    IResult<TReturn> Do<TReturn>(Func<T, TReturn> fn);
+}
+
+public interface IResult<TReturn>
+{
+}
+
+public class Class1
+{
+    public void Test1(IDo<(int, int)> impl)
+    {
+        var case3 = impl.Do(((int x, int y) a) => a.x * a.y);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var doSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("impl.Do(((int x, int y) a) => a.x * a.y)", doSyntax.ToString());
+            var doSymbol = (IMethodSymbol)model.GetSymbolInfo(doSyntax).Symbol;
+            Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        public void InferenceWithTuple_DifferentNames()
+        {
+            string source = @"
+using System;
+public interface IDo<T>
+{
+    IResult<TReturn> Do<TReturn>(Func<T, TReturn> fn);
+}
+
+public interface IResult<TReturn>
+{
+}
+
+public class Class1
+{
+    public void Test1(IDo<(int a, int b)> impl)
+    {
+        var case3 = impl.Do(((int x, int y) a) => a.x * a.y);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var doSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("impl.Do(((int x, int y) a) => a.x * a.y)", doSyntax.ToString());
+            var doSymbol = (IMethodSymbol)model.GetSymbolInfo(doSyntax).Symbol;
+            Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        public void InferenceWithTuple_DroppingNames()
+        {
+            string source = @"
+using System;
+public interface IDo<T>
+{
+    IResult<TReturn> Do<TReturn>(Func<T, TReturn> fn);
+}
+
+public interface IResult<TReturn>
+{
+}
+
+public class Class1
+{
+    public void Test1(IDo<(int a, int b)> impl)
+    {
+        var case3 = impl.Do(((int, int) a) => a.Item1 * a.Item2);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var doSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("impl.Do(((int, int) a) => a.Item1 * a.Item2)", doSyntax.ToString());
+            var doSymbol = (IMethodSymbol)model.GetSymbolInfo(doSyntax).Symbol;
+            Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        public void InferenceWithDynamic()
+        {
+            string source = @"
+using System;
+public interface IDo<T>
+{
+    IResult<TReturn> Do<TReturn>(Func<T, TReturn> fn);
+}
+
+public interface IResult<TReturn>
+{
+}
+
+public class Class1
+{
+    public void Test1(IDo<object> impl)
+    {
+        var case3 = impl.Do((dynamic a) => 1);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var doSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("impl.Do((dynamic a) => 1)", doSyntax.ToString());
+            var doSymbol = (IMethodSymbol)model.GetSymbolInfo(doSyntax).Symbol;
+            Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
         }
 
         [Fact]

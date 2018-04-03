@@ -687,6 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
                 typeArguments: default(ImmutableArray<TypeSymbol>),
                 invoked: false,
+                indexed: false,
                 diagnostics: diagnostics);
 
             if (boundMember.Kind == BoundKind.PropertyGroup)

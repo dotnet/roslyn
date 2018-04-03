@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async methods cannot have ref or out parameters.
+        ///   Looks up a localized string similar to Async methods cannot have ref, in or out parameters.
         /// </summary>
         internal static string ERR_BadAsyncArgType {
             get {
@@ -1619,7 +1619,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Iterators cannot have ref or out parameters.
+        ///   Looks up a localized string similar to Iterators cannot have ref, in or out parameters.
         /// </summary>
         internal static string ERR_BadIteratorArgType {
             get {
@@ -2357,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree lambda may not contain an out or ref parameter.
+        ///   Looks up a localized string similar to An expression tree lambda may not contain a ref, in or out parameter.
         /// </summary>
         internal static string ERR_ByRefParameterInExpressionTree {
             get {
@@ -4301,6 +4301,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The given expression cannot be used in a fixed statement.
+        /// </summary>
+        internal static string ERR_ExprCannotBeFixed {
+            get {
+                return ResourceManager.GetString("ERR_ExprCannotBeFixed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected expression.
         /// </summary>
         internal static string ERR_ExpressionExpected {
@@ -5953,6 +5962,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InvalidNumber {
             get {
                 return ResourceManager.GetString("ERR_InvalidNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid object creation.
+        /// </summary>
+        internal static string ERR_InvalidObjectCreation {
+            get {
+                return ResourceManager.GetString("ERR_InvalidObjectCreation", resourceCulture);
             }
         }
         
@@ -10674,6 +10692,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to extensible fixed statement.
+        /// </summary>
+        internal static string IDS_FeatureExtensibleFixedStatement {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExtensibleFixedStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to extension method.
         /// </summary>
         internal static string IDS_FeatureExtensionMethod {
@@ -10733,6 +10760,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureImplicitLocal {
             get {
                 return ResourceManager.GetString("IDS_FeatureImplicitLocal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to indexing movable fixed buffers.
+        /// </summary>
+        internal static string IDS_FeatureIndexingMovableFixedBuffers {
+            get {
+                return ResourceManager.GetString("IDS_FeatureIndexingMovableFixedBuffers", resourceCulture);
             }
         }
         

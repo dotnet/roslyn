@@ -8279,5 +8279,55 @@ class C
             Assert.Null(info.Method);
             Assert.Empty(info.Nested);
         }
+
+        [Fact]
+        public void TestDeconstructStructThis()
+        {
+            string source = @"
+public struct S
+{
+    int I;
+    public static void Main()
+    {
+        S s = new S();
+        s.M();
+    }
+    public void M()
+    {
+        this.I = 42;
+        var (x, (y, z)) = (this, this /* mutating deconstruction */);
+        System.Console.Write($""{x.I} {y} {z}"");
+    }
+    void Deconstruct(out int x1, out int x2) { x1 = I++; x2 = I++; }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "42 42 43");
+        }
+
+        [Fact]
+        public void TestDeconstructClassThis()
+        {
+            string source = @"
+public class C
+{
+    int I;
+    public static void Main()
+    {
+        C c = new C();
+        c.M();
+    }
+    public void M()
+    {
+        this.I = 42;
+        var (x, (y, z)) = (this, this /* mutating deconstruction */);
+        System.Console.Write($""{x.I} {y} {z}"");
+    }
+    void Deconstruct(out int x1, out int x2) { x1 = I++; x2 = I++; }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "44 42 43");
+        }
     }
 }

@@ -829,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAddressOfOperator : BoundExpression
     {
-        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
+        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, bool isManaged, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.AddressOfOperator, syntax, type, hasErrors || operand.HasErrors())
         {
 
@@ -837,21 +837,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Operand = operand;
+            this.IsManaged = isManaged;
         }
 
 
         public BoundExpression Operand { get; }
+
+        public bool IsManaged { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitAddressOfOperator(this);
         }
 
-        public BoundAddressOfOperator Update(BoundExpression operand, TypeSymbol type)
+        public BoundAddressOfOperator Update(BoundExpression operand, bool isManaged, TypeSymbol type)
         {
-            if (operand != this.Operand || type != this.Type)
+            if (operand != this.Operand || isManaged != this.IsManaged || type != this.Type)
             {
-                var result = new BoundAddressOfOperator(this.Syntax, operand, type, this.HasErrors);
+                var result = new BoundAddressOfOperator(this.Syntax, operand, isManaged, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -893,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPointerElementAccess : BoundExpression
     {
-        public BoundPointerElementAccess(SyntaxNode syntax, BoundExpression expression, BoundExpression index, Boolean @checked, TypeSymbol type, bool hasErrors = false)
+        public BoundPointerElementAccess(SyntaxNode syntax, BoundExpression expression, BoundExpression index, bool @checked, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.PointerElementAccess, syntax, type, hasErrors || expression.HasErrors() || index.HasErrors())
         {
 
@@ -911,14 +914,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Index { get; }
 
-        public Boolean Checked { get; }
+        public bool Checked { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitPointerElementAccess(this);
         }
 
-        public BoundPointerElementAccess Update(BoundExpression expression, BoundExpression index, Boolean @checked, TypeSymbol type)
+        public BoundPointerElementAccess Update(BoundExpression expression, BoundExpression index, bool @checked, TypeSymbol type)
         {
             if (expression != this.Expression || index != this.Index || @checked != this.Checked || type != this.Type)
             {
@@ -1272,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDeconstructionAssignmentOperator : BoundExpression
     {
-        public BoundDeconstructionAssignmentOperator(SyntaxNode syntax, BoundTupleExpression left, BoundConversion right, Boolean isUsed, TypeSymbol type, bool hasErrors = false)
+        public BoundDeconstructionAssignmentOperator(SyntaxNode syntax, BoundTupleExpression left, BoundConversion right, bool isUsed, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.DeconstructionAssignmentOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
@@ -1290,14 +1293,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConversion Right { get; }
 
-        public Boolean IsUsed { get; }
+        public bool IsUsed { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitDeconstructionAssignmentOperator(this);
         }
 
-        public BoundDeconstructionAssignmentOperator Update(BoundTupleExpression left, BoundConversion right, Boolean isUsed, TypeSymbol type)
+        public BoundDeconstructionAssignmentOperator Update(BoundTupleExpression left, BoundConversion right, bool isUsed, TypeSymbol type)
         {
             if (left != this.Left || right != this.Right || isUsed != this.IsUsed || type != this.Type)
             {
@@ -2031,7 +2034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConversion : BoundExpression
     {
-        public BoundConversion(SyntaxNode syntax, BoundExpression operand, Conversion conversion, Boolean isBaseConversion, Boolean @checked, Boolean explicitCastInCode, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundConversion(SyntaxNode syntax, BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.Conversion, syntax, type, hasErrors || operand.HasErrors())
         {
 
@@ -2051,11 +2054,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public Conversion Conversion { get; }
 
-        public Boolean IsBaseConversion { get; }
+        public bool IsBaseConversion { get; }
 
-        public Boolean Checked { get; }
+        public bool Checked { get; }
 
-        public Boolean ExplicitCastInCode { get; }
+        public bool ExplicitCastInCode { get; }
 
         public ConstantValue ConstantValueOpt { get; }
 
@@ -2064,7 +2067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitConversion(this);
         }
 
-        public BoundConversion Update(BoundExpression operand, Conversion conversion, Boolean isBaseConversion, Boolean @checked, Boolean explicitCastInCode, ConstantValue constantValueOpt, TypeSymbol type)
+        public BoundConversion Update(BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue constantValueOpt, TypeSymbol type)
         {
             if (operand != this.Operand || conversion != this.Conversion || isBaseConversion != this.IsBaseConversion || @checked != this.Checked || explicitCastInCode != this.ExplicitCastInCode || constantValueOpt != this.ConstantValueOpt || type != this.Type)
             {
@@ -2148,7 +2151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFixedLocalCollectionInitializer : BoundExpression
     {
-        public BoundFixedLocalCollectionInitializer(SyntaxNode syntax, TypeSymbol elementPointerType, Conversion elementPointerTypeConversion, BoundExpression expression, TypeSymbol type, bool hasErrors = false)
+        public BoundFixedLocalCollectionInitializer(SyntaxNode syntax, TypeSymbol elementPointerType, Conversion elementPointerTypeConversion, BoundExpression expression, MethodSymbol getPinnableOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.FixedLocalCollectionInitializer, syntax, type, hasErrors || expression.HasErrors())
         {
 
@@ -2159,6 +2162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ElementPointerType = elementPointerType;
             this.ElementPointerTypeConversion = elementPointerTypeConversion;
             this.Expression = expression;
+            this.GetPinnableOpt = getPinnableOpt;
         }
 
 
@@ -2168,16 +2172,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Expression { get; }
 
+        public MethodSymbol GetPinnableOpt { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitFixedLocalCollectionInitializer(this);
         }
 
-        public BoundFixedLocalCollectionInitializer Update(TypeSymbol elementPointerType, Conversion elementPointerTypeConversion, BoundExpression expression, TypeSymbol type)
+        public BoundFixedLocalCollectionInitializer Update(TypeSymbol elementPointerType, Conversion elementPointerTypeConversion, BoundExpression expression, MethodSymbol getPinnableOpt, TypeSymbol type)
         {
-            if (elementPointerType != this.ElementPointerType || elementPointerTypeConversion != this.ElementPointerTypeConversion || expression != this.Expression || type != this.Type)
+            if (elementPointerType != this.ElementPointerType || elementPointerTypeConversion != this.ElementPointerTypeConversion || expression != this.Expression || getPinnableOpt != this.GetPinnableOpt || type != this.Type)
             {
-                var result = new BoundFixedLocalCollectionInitializer(this.Syntax, elementPointerType, elementPointerTypeConversion, expression, type, this.HasErrors);
+                var result = new BoundFixedLocalCollectionInitializer(this.Syntax, elementPointerType, elementPointerTypeConversion, expression, getPinnableOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -2466,31 +2472,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLocalFunctionStatement : BoundStatement
     {
-        public BoundLocalFunctionStatement(SyntaxNode syntax, LocalFunctionSymbol symbol, BoundBlock body, bool hasErrors = false)
-            : base(BoundKind.LocalFunctionStatement, syntax, hasErrors || body.HasErrors())
+        public BoundLocalFunctionStatement(SyntaxNode syntax, LocalFunctionSymbol symbol, BoundBlock blockBody, BoundBlock expressionBody, bool hasErrors = false)
+            : base(BoundKind.LocalFunctionStatement, syntax, hasErrors || blockBody.HasErrors() || expressionBody.HasErrors())
         {
 
             Debug.Assert(symbol != null, "Field 'symbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Symbol = symbol;
-            this.Body = body;
+            this.BlockBody = blockBody;
+            this.ExpressionBody = expressionBody;
         }
 
 
         public LocalFunctionSymbol Symbol { get; }
 
-        public BoundBlock Body { get; }
+        public BoundBlock BlockBody { get; }
+
+        public BoundBlock ExpressionBody { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitLocalFunctionStatement(this);
         }
 
-        public BoundLocalFunctionStatement Update(LocalFunctionSymbol symbol, BoundBlock body)
+        public BoundLocalFunctionStatement Update(LocalFunctionSymbol symbol, BoundBlock blockBody, BoundBlock expressionBody)
         {
-            if (symbol != this.Symbol || body != this.Body)
+            if (symbol != this.Symbol || blockBody != this.BlockBody || expressionBody != this.ExpressionBody)
             {
-                var result = new BoundLocalFunctionStatement(this.Syntax, symbol, body, this.HasErrors);
+                var result = new BoundLocalFunctionStatement(this.Syntax, symbol, blockBody, expressionBody, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -3805,7 +3814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundForEachStatement : BoundLoopStatement
     {
-        public BoundForEachStatement(SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, Boolean @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
+        public BoundForEachStatement(SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
             : base(BoundKind.ForEachStatement, syntax, breakLabel, continueLabel, hasErrors || iterationVariableType.HasErrors() || expression.HasErrors() || deconstructionOpt.HasErrors() || body.HasErrors())
         {
 
@@ -3841,14 +3850,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundStatement Body { get; }
 
-        public Boolean Checked { get; }
+        public bool Checked { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitForEachStatement(this);
         }
 
-        public BoundForEachStatement Update(ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, Boolean @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
+        public BoundForEachStatement Update(ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
         {
             if (enumeratorInfoOpt != this.EnumeratorInfoOpt || elementConversion != this.ElementConversion || iterationVariableType != this.IterationVariableType || iterationVariables != this.IterationVariables || expression != this.Expression || deconstructionOpt != this.DeconstructionOpt || body != this.Body || @checked != this.Checked || breakLabel != this.BreakLabel || continueLabel != this.ContinueLabel)
             {
@@ -4015,7 +4024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTryStatement : BoundStatement
     {
-        public BoundTryStatement(SyntaxNode syntax, BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt, Boolean preferFaultHandler, bool hasErrors = false)
+        public BoundTryStatement(SyntaxNode syntax, BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt, bool preferFaultHandler, bool hasErrors = false)
             : base(BoundKind.TryStatement, syntax, hasErrors || tryBlock.HasErrors() || catchBlocks.HasErrors() || finallyBlockOpt.HasErrors())
         {
 
@@ -4035,14 +4044,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock FinallyBlockOpt { get; }
 
-        public Boolean PreferFaultHandler { get; }
+        public bool PreferFaultHandler { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitTryStatement(this);
         }
 
-        public BoundTryStatement Update(BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt, Boolean preferFaultHandler)
+        public BoundTryStatement Update(BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks, BoundBlock finallyBlockOpt, bool preferFaultHandler)
         {
             if (tryBlock != this.TryBlock || catchBlocks != this.CatchBlocks || finallyBlockOpt != this.FinallyBlockOpt || preferFaultHandler != this.PreferFaultHandler)
             {
@@ -8943,7 +8952,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            this.Visit(node.Body);
+            this.Visit(node.BlockBody);
+            this.Visit(node.ExpressionBody);
             return null;
         }
         public override BoundNode VisitSequence(BoundSequence node)
@@ -9628,7 +9638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(operand, type);
+            return node.Update(operand, node.IsManaged, type);
         }
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
@@ -9832,7 +9842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             TypeSymbol elementPointerType = this.VisitType(node.ElementPointerType);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(elementPointerType, node.ElementPointerTypeConversion, expression, type);
+            return node.Update(elementPointerType, node.ElementPointerTypeConversion, expression, node.GetPinnableOpt, type);
         }
         public override BoundNode VisitSequencePoint(BoundSequencePoint node)
         {
@@ -9879,8 +9889,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            BoundBlock body = (BoundBlock)this.Visit(node.Body);
-            return node.Update(node.Symbol, body);
+            BoundBlock blockBody = (BoundBlock)this.Visit(node.BlockBody);
+            BoundBlock expressionBody = (BoundBlock)this.Visit(node.ExpressionBody);
+            return node.Update(node.Symbol, blockBody, expressionBody);
         }
         public override BoundNode VisitSequence(BoundSequence node)
         {
@@ -10712,6 +10723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("addressOfOperator", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
+                new TreeDumperNode("isManaged", node.IsManaged, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
@@ -11059,6 +11071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("elementPointerType", node.ElementPointerType, null),
                 new TreeDumperNode("elementPointerTypeConversion", node.ElementPointerTypeConversion, null),
                 new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+                new TreeDumperNode("getPinnableOpt", node.GetPinnableOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
@@ -11141,7 +11154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("localFunctionStatement", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("symbol", node.Symbol, null),
-                new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) })
+                new TreeDumperNode("blockBody", null, new TreeDumperNode[] { Visit(node.BlockBody, null) }),
+                new TreeDumperNode("expressionBody", null, new TreeDumperNode[] { Visit(node.ExpressionBody, null) })
             }
             );
         }

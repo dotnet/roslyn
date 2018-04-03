@@ -7,9 +7,12 @@ Imports Microsoft.CodeAnalysis.ImplementInterface
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
+Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
-    <ExportCommandHandler("ImplementInterfaceCommandHandler", ContentTypeNames.VisualBasicContentType)>
+    <Export(GetType(VSCommanding.ICommandHandler))>
+    <ContentType(ContentTypeNames.VisualBasicContentType)>
+    <Name("ImplementInterfaceCommandHandler")>
     <Order(Before:=PredefinedCommandHandlerNames.EndConstruct)>
     <Order(After:=PredefinedCommandHandlerNames.Completion)>
     Friend Class ImplementInterfaceCommandHandler

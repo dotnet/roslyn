@@ -223,7 +223,8 @@ namespace Microsoft.CodeAnalysis.Remote
             var diagnosticAnalyzerPerformanceTracker = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
             if (diagnosticAnalyzerPerformanceTracker != null)
             {
-                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, s_reportInterval, ShutdownCancellationToken);
+                var globalOperationNotificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>();
+                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, s_reportInterval, ShutdownCancellationToken);
             }
         }
 
@@ -262,15 +263,14 @@ namespace Microsoft.CodeAnalysis.Remote
             return session;
         }
 
-        private static RemotePersistentStorageLocationService GetPersistentStorageService()
+        private RemotePersistentStorageLocationService GetPersistentStorageService()
         {
             return (RemotePersistentStorageLocationService)SolutionService.PrimaryWorkspace.Services.GetService<IPersistentStorageLocationService>();
         }
 
         private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()
         {
-            var workspace = SolutionService.PrimaryWorkspace;
-            var notificationService = workspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
+            var notificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
             return notificationService;
         }
 

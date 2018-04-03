@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
     public partial class CodeGenerationTests
     {
+        [UseExportProvider]
         public class CSharp
         {
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]

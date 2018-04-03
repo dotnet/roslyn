@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var expr = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(expr, node.Type));
+            return UpdateExpression(builder, node.Update(expr, node.IsManaged, node.Type));
         }
 
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
@@ -1049,19 +1049,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
-            var oldCurrentMethod = _F.CurrentMethod;
-            _F.CurrentMethod = node.Symbol;
+            var oldCurrentFunction = _F.CurrentFunction;
+            _F.CurrentFunction = node.Symbol;
             var result = base.VisitLambda(node);
-            _F.CurrentMethod = oldCurrentMethod;
+            _F.CurrentFunction = oldCurrentFunction;
             return result;
         }
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            var oldCurrentMethod = _F.CurrentMethod;
-            _F.CurrentMethod = node.Symbol;
+            var oldCurrentFunction = _F.CurrentFunction;
+            _F.CurrentFunction = node.Symbol;
             var result = base.VisitLocalFunctionStatement(node);
-            _F.CurrentMethod = oldCurrentMethod;
+            _F.CurrentFunction = oldCurrentFunction;
             return result;
         }
 
