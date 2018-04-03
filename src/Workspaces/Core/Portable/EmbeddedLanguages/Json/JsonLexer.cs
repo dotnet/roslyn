@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanString()
         {
             var start = Position;
-            var startChar = this.CurrentChar.Char;
+            var openChar = this.CurrentChar.Char;
             Position++;
 
             EmbeddedDiagnostic? diagnostic = null;
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 {
                     case '"':
                     case '\'':
-                        if (currentCh == startChar)
+                        if (currentCh == openChar)
                         {
                             return (GetCharsToCurrentPosition(start), JsonKind.StringToken, diagnostic);
                         }
