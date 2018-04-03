@@ -2,8 +2,8 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.UseConditionalExpression
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.UseConditionalExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
@@ -13,15 +13,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
 
         Protected Overrides Function GetMultiLineFormattingRule() As IFormattingRule
             Return MultiLineConditionalExpressionFormattingRule.Instance
-        End Function
-
-        Protected Overrides Function AddTriviaTo(
-                conditional As TernaryConditionalExpressionSyntax,
-                trueTrivia As IEnumerable(Of SyntaxTrivia),
-                falseTrivia As IEnumerable(Of SyntaxTrivia)) As TernaryConditionalExpressionSyntax
-
-            Return conditional.WithFirstCommaToken(conditional.FirstCommaToken.WithTrailingTrivia(trueTrivia)).
-                               WithSecondCommaToken(conditional.SecondCommaToken.WithTrailingTrivia(falseTrivia))
         End Function
     End Class
 End Namespace

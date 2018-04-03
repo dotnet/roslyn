@@ -2,11 +2,11 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
-Imports Microsoft.CodeAnalysis.Operations
-Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
 
@@ -31,15 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Protected Overrides Function AddSimplificationToType(statement As LocalDeclarationStatementSyntax) As LocalDeclarationStatementSyntax
             Dim declarator = statement.Declarators(0)
             Return statement.ReplaceNode(declarator, declarator.WithAdditionalAnnotations(Simplifier.Annotation))
-        End Function
-
-        Protected Overrides Function AddTriviaTo(
-                conditional As TernaryConditionalExpressionSyntax,
-                trueTrivia As IEnumerable(Of SyntaxTrivia),
-                falseTrivia As IEnumerable(Of SyntaxTrivia)) As TernaryConditionalExpressionSyntax
-
-            Return conditional.WithFirstCommaToken(conditional.FirstCommaToken.WithTrailingTrivia(trueTrivia)).
-                               WithSecondCommaToken(conditional.SecondCommaToken.WithTrailingTrivia(falseTrivia))
         End Function
     End Class
 End Namespace

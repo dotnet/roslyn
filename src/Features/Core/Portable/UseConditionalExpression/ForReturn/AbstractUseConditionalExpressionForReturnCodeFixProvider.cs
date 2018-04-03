@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         : AbstractUseConditionalExpressionCodeFixProvider<TConditionalExpressionSyntax>
         where TConditionalExpressionSyntax : SyntaxNode
     {
-        protected abstract IFormattingRule GetMultiLineFormattingRule();
-
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId);
 
@@ -36,16 +34,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return SpecializedTasks.EmptyTask;
         }
 
-        protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            return UseConditionalExpressionHelpers.FixAllAsync(
-                document, diagnostics, editor, FixOneAsync,
-                GetMultiLineFormattingRule(), cancellationToken);
-        }
-
-        private async Task FixOneAsync(
+        protected override async Task FixOneAsync(
             Document document, Diagnostic diagnostic, 
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
@@ -62,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return;
             }
 
-            var (conditionalExpression, isMultiLine) = await CreateConditionalExpressionAsync(
+            var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation, trueReturn, falseReturn,
                 trueReturn.ReturnedValue, falseReturn.ReturnedValue,
                 cancellationToken).ConfigureAwait(false);

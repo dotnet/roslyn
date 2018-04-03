@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -10,7 +9,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -34,8 +32,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         protected abstract TVariableDeclaratorSyntax GetDeclaratorSyntax(IVariableDeclaratorOperation declarator);
         protected abstract TLocalDeclarationStatementSyntax AddSimplificationToType(TLocalDeclarationStatementSyntax updatedLocalDeclaration);
 
-        protected abstract IFormattingRule GetMultiLineFormattingRule();
-
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseConditionalExpressionForAssignmentDiagnosticId);
 
@@ -47,20 +43,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return SpecializedTasks.EmptyTask;
         }
 
-        protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            return UseConditionalExpressionHelpers.FixAllAsync(
-                document, diagnostics, editor,
-                FixOneAsync, GetMultiLineFormattingRule(), cancellationToken);
-        }
-
         /// <summary>
         /// Returns 'true' if a multi-line conditional was created, and thus should be
         /// formatted specially.
         /// </summary>
-        private async Task<bool> FixOneAsync(
+        protected override async Task FixOneAsync(
             Document document, Diagnostic diagnostic,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
@@ -74,11 +61,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                     syntaxFacts, ifOperation,
                     out var trueAssignment, out var falseAssignment))
             {
-                return false;
+                return;
             }
 
-            var (conditionalExpression, makeMultiLine) = await CreateConditionalExpressionAsync(
-                document, ifOperation, trueAssignment, falseAssignment,
+            var conditionalExpression = await CreateConditionalExpressionAsync(
+                document, ifOperation, trueAssignment.Parent, falseAssignment.Parent,
                 trueAssignment.Value, falseAssignment.Value, 
                 cancellationToken).ConfigureAwait(false);
 
@@ -93,8 +80,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 ConvertOnlyIfToConditionalExpression(
                     editor, ifOperation, trueAssignment, falseAssignment, conditionalExpression);
             }
-
-            return makeMultiLine;
         }
 
         private void ConvertOnlyIfToConditionalExpression(
