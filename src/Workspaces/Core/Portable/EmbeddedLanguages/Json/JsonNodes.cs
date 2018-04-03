@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             switch (index)
             {
-            case 0: return Sequence;
-            case 1: return EndOfFileToken;
+                case 0: return Sequence;
+                case 1: return EndOfFileToken;
             }
 
             throw new InvalidOperationException();
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         public JsonObjectNode(
             JsonToken openBraceToken,
             JsonSequenceNode sequence,
-            JsonToken closeBraceToken) 
+            JsonToken closeBraceToken)
             : base(JsonKind.Object)
         {
             Debug.Assert(openBraceToken.Kind == JsonKind.OpenBraceToken);
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     internal sealed class JsonNegativeLiteralNode : JsonValueNode
     {
         public JsonNegativeLiteralNode(JsonToken minusToken, JsonToken literalToken)
-       : base(JsonKind.NegativeLiteral)
+            : base(JsonKind.NegativeLiteral)
         {
             MinusToken = minusToken;
             LiteralToken = literalToken;
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
     internal sealed class JsonLiteralNode : JsonValueNode
     {
-        public JsonLiteralNode(JsonToken literalToken) 
+        public JsonLiteralNode(JsonToken literalToken)
             : base(JsonKind.Literal)
         {
             LiteralToken = literalToken;
