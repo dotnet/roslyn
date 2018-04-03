@@ -78,10 +78,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         /// Checks if we should wrap the conditional expression over multiple lines.
         /// </summary>
         private static async Task<bool> MakeMultiLineAsync(
-            Document document, SyntaxNode trueSyntax, SyntaxNode falseSyntax, CancellationToken cancellationToken)
+            Document document, SyntaxNode condition, SyntaxNode trueSyntax, SyntaxNode falseSyntax, CancellationToken cancellationToken)
         {
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (!sourceText.AreOnSameLine(trueSyntax.GetFirstToken(), trueSyntax.GetLastToken()) ||
+            if (!sourceText.AreOnSameLine(condition.GetFirstToken(), condition.GetLastToken()) || 
+                !sourceText.AreOnSameLine(trueSyntax.GetFirstToken(), trueSyntax.GetLastToken()) ||
                 !sourceText.AreOnSameLine(falseSyntax.GetFirstToken(), falseSyntax.GetLastToken()))
             {
                 return true;
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var wrappingLength = options.GetOption(UseConditionalExpressionOptions.ConditionalExpressionWrappingLength);
-            if (trueSyntax.Span.Length + falseSyntax.Span.Length > wrappingLength)
+            if (condition.Span.Length + trueSyntax.Span.Length + falseSyntax.Span.Length > wrappingLength)
             {
                 return true;
             }
@@ -109,14 +110,16 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             where TExpressionSyntax : SyntaxNode
         {
             var generator = SyntaxGenerator.GetGenerator(document);
+
+            var condition = ifOperation.Condition.Syntax.WithoutTrivia();
             var conditionalExpression = (TExpressionSyntax)generator.ConditionalExpression(
-                ifOperation.Condition.Syntax.WithoutTrivia(),
+                condition,
                 CastValueIfNecessary(generator, trueValue),
                 CastValueIfNecessary(generator, falseValue));
 
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
             var makeMultiLine = await MakeMultiLineAsync(
-                document, trueValue.Syntax, falseValue.Syntax, cancellationToken).ConfigureAwait(false);
+                document, condition, trueValue.Syntax, falseValue.Syntax, cancellationToken).ConfigureAwait(false);
             if (makeMultiLine)
             {
                 conditionalExpression = conditionalExpression.WithAdditionalAnnotations(
