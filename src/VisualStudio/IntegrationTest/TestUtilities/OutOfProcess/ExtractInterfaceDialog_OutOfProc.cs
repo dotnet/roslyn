@@ -2,7 +2,7 @@
 
 using System;
 using System.Linq;
-using System.Windows.Automation;
+using System.Threading;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }
 
             // Wait for application idle to ensure the dialog is fully initialized
-            VisualStudioInstance.WaitForApplicationIdle();
+            VisualStudioInstance.WaitForApplicationIdle(CancellationToken.None);
         }
 
         /// <summary>
@@ -98,12 +98,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             var dialog = DialogHelpers.GetOpenDialogById(GetMainWindowHWnd(), ExtractInterfaceDialogID);
 
             var memberSelectionList = dialog.FindDescendantByAutomationId("MemberSelectionList");
-            var listItems = memberSelectionList.FindDescendantsByClass("ListBoxItem");
+            var comListItems = memberSelectionList.FindDescendantsByClass("ListBoxItem");
+            var listItems = Enumerable.Range(0, comListItems.Length).Select(comListItems.GetElement);
 
-            return listItems.Cast<AutomationElement>()
+            return listItems
                 .Select(item => item.FindDescendantByClass("CheckBox"))
                 .Where(checkBox => checkBox.IsToggledOn())
-                .Select(checkbox => checkbox.Current.AutomationId)
+                .Select(checkbox => checkbox.CurrentAutomationId)
                 .ToArray();
         }
 
@@ -137,7 +138,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             checkBox.Toggle();
         }
 
-        private int GetMainWindowHWnd()
+        private IntPtr GetMainWindowHWnd()
         {
             return VisualStudioInstance.Shell.GetHWnd();
         }

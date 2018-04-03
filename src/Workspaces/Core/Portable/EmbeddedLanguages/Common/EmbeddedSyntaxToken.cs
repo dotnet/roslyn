@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
 
@@ -13,6 +14,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         public readonly ImmutableArray<VirtualChar> VirtualChars;
         public readonly ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> TrailingTrivia;
         internal readonly ImmutableArray<EmbeddedDiagnostic> Diagnostics;
+
+        /// <summary>
+        /// Returns the value of the token. For example, if the token represents an integer capture,
+        /// then this property would return the actual integer.
+        /// </summary>
         public readonly object Value;
 
         public EmbeddedSyntaxToken(
@@ -22,6 +28,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> trailingTrivia,
             ImmutableArray<EmbeddedDiagnostic> diagnostics, object value)
         {
+            Debug.Assert(!leadingTrivia.IsDefault);
+            Debug.Assert(!virtualChars.IsDefault);
+            Debug.Assert(!trailingTrivia.IsDefault);
+            Debug.Assert(!diagnostics.IsDefault);
             Kind = kind;
             LeadingTrivia = leadingTrivia;
             VirtualChars = virtualChars;

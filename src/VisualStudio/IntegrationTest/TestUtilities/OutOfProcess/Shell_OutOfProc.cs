@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string GetActiveWindowCaption()
             => _inProc.GetActiveWindowCaption();
 
-        public int GetHWnd()
+        public IntPtr GetHWnd()
             => _inProc.GetHWnd();
 
         public bool IsActiveTabProvisional()

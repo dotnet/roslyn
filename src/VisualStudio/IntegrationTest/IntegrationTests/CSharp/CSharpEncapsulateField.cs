@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -38,11 +39,11 @@ namespace myNamespace
             var encapsulateField = VisualStudio.EncapsulateField;
             var dialog = VisualStudio.PreviewChangesDialog;
             encapsulateField.Invoke();
-            dialog.VerifyOpen(encapsulateField.DialogName);
+            dialog.VerifyOpen(encapsulateField.DialogName, timeout: HangMitigatingTimeout);
             dialog.ClickCancel(encapsulateField.DialogName);
             dialog.VerifyClosed(encapsulateField.DialogName);
             encapsulateField.Invoke();
-            dialog.VerifyOpen(encapsulateField.DialogName);
+            dialog.VerifyOpen(encapsulateField.DialogName, timeout: HangMitigatingTimeout);
             dialog.ClickApplyAndWaitForFeature(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
             VisualStudio.Editor.Verify.TextContains("public static int? Param { get => param; set => param = value; }");
         }

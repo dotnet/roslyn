@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -19,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             private readonly WeakReference<ITextBuffer> _weakEditorBuffer;
             private readonly object _gate = new object();
+            private readonly ITextBufferCloneService _textBufferCloneServiceOpt;
 
             private event EventHandler<TextChangeEventArgs> EtextChanged;
             private SourceText _currentText;
@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.Text
                 Contract.ThrowIfNull(editorBuffer);
 
                 _weakEditorBuffer = new WeakReference<ITextBuffer>(editorBuffer);
-                _currentText = SnapshotSourceText.From(editorBuffer.CurrentSnapshot, this);
+                editorBuffer.Properties.TryGetProperty(typeof(ITextBufferCloneService), out _textBufferCloneServiceOpt);
+                _currentText = SnapshotSourceText.From(_textBufferCloneServiceOpt, editorBuffer.CurrentSnapshot, this);
             }
 
             /// <summary>
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                 // this should convert given editor snapshots to roslyn forked snapshots
                 var oldText = (SnapshotSourceText)args.Before.AsText();
-                var newText = SnapshotSourceText.From(args.After);
+                var newText = SnapshotSourceText.From(_textBufferCloneServiceOpt, args.After);
                 _currentText = newText;
 
                 var changes = ImmutableArray.CreateRange(args.Changes.Select(c => new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength)));
