@@ -494,17 +494,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool foundSectionBuilder = _switchArms.TryGetValue(sectionSyntax, out ArrayBuilder<BoundStatement> sectionBuilder);
                 Debug.Assert(foundSectionBuilder);
                 sectionBuilder.Add(_factory.Label(labelToSectionScope));
-                foreach ((BoundExpression leftExpression, BoundDagTemp dagTemp) in whenClause.Bindings)
+                foreach (BoundPatternBinding binding in whenClause.Bindings)
                 {
-                    BoundExpression rightExpression = _tempAllocator.GetTemp(dagTemp);
-                    if (leftExpression == rightExpression)
+                    BoundExpression left = _localRewriter.VisitExpression(binding.VariableAccess);
+                    // Since a switch does not add variables to the enclosing scope, the pattern variables
+                    // are locals even in a script and rewriting them should have no effect.
+                    Debug.Assert(left.Kind == BoundKind.Local && left == binding.VariableAccess);
+                    BoundExpression right = _tempAllocator.GetTemp(binding.TempContainingValue);
+                    if (left != right)
                     {
-                        // In this case we would just be assigning the variable to itself, so we need generate no code.
-                        // This arises due to an optimization by which we use pattern variables as dag temps.
-                    }
-                    else
-                    {
-                        sectionBuilder.Add(_factory.Assignment(leftExpression, rightExpression));
+                        sectionBuilder.Add(_factory.Assignment(left, right));
                     }
                 }
 
