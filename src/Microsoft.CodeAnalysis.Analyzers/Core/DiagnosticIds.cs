@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string DiagnosticIdMustBeInSpecifiedFormatRuleId = "RS1018";
         public const string UseUniqueDiagnosticIdRuleId = "RS1019";
         public const string UseCategoriesFromSpecifiedRangeRuleId = "RS1020";
-        public const string AnalyzerCategoryAndIdRangeFileInvalidRuleId = "RS1021";        
+        public const string AnalyzerCategoryAndIdRangeFileInvalidRuleId = "RS1021";
+        public const string DoNotUseTypesFromAssemblyRuleId = "RS1022";
     }
 }

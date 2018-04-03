@@ -337,6 +337,26 @@
         <target state="translated">Диагностический идентификатор для анализаторов должен быть константой, отличной от NULL.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleDescription">
+        <source>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</source>
+        <target state="translated">Типы диагностического анализатора не должны использовать типы из сборок рабочих областей. Сборки рабочих областей доступны только при запуске анализатора в интерактивном анализе среды Visual Studio, но они недоступны во время сборки из командной строки. Ссылки на типы из сборок рабочих областей приведут к возникновению исключения в среде выполнения при запуске анализаторе в сборке командной строки.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleTitle">
+        <source>Do not use types from Workspaces assembly in an analyzer</source>
+        <target state="translated">Не используйте в анализаторе типы из сборки рабочих областей</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleIndirectMessage">
+        <source>Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</source>
+        <target state="translated">Измените тип диагностического анализатора "{0}" и удалите из него все возможности прямого и непрямого доступа к типам "{1}", которые обращаются к типам "{2}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseTypesFromAssemblyRuleDirectMessage">
+        <source>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</source>
+        <target state="translated">Измените тип диагностического анализатора "{0}" и удалите из него все возможности прямого доступа к типам "{1}"</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

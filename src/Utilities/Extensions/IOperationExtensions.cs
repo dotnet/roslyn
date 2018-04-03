@@ -228,46 +228,63 @@ namespace Analyzer.Utilities.Extensions
         /// Gets the operation for the object being created that is being referenced by <paramref name="operation"/>.
         /// If the operation is referencing an implicit or an explicit this/base/Me/MyBase/MyClass instance, then we return "null".
         /// </summary>
-        public static IOperation GetInstance(this IInstanceReferenceOperation operation)
+        /// <param name="operation"></param>
+        /// <param name="isInsideObjectInitializer">Flag to indicate if the operation is a descendant of an <see cref="IObjectOrCollectionInitializerOperation"/> or an <see cref="IAnonymousObjectCreationOperation"/>.</param>
+        /// <remarks>
+        /// PERF: Note that the parameter <paramref name="isInsideObjectInitializer"/> is to improve performance by avoiding walking the entire IOperation parent for non-initializer cases.
+        /// </remarks>
+        public static IOperation GetInstance(this IInstanceReferenceOperation operation, bool isInsideObjectInitializer)
         {
-            // VB object initializer allows accessing the members of the object being created with "." operator.
-            // The syntax of such an IInstanceReferenceOperation points to the object being created.
-            // Check for such an  IObjectCreationOperation or IAnonymousObjectCreationOperation with matching syntax.
-            // For example, instance reference for members ".Field1" and ".Field2" in "New C() With { .Field1 = 0, .Field2 = .Field1 }".
-            Func<IObjectCreationOperation, bool> isObjectCreation = creation => creation.Syntax == operation.Syntax;
-            var objectCreation = operation.GetAncestor(OperationKind.ObjectCreation, isObjectCreation);
-            if (objectCreation != null)
+            Debug.Assert(isInsideObjectInitializer ==
+                (operation.GetAncestor<IObjectOrCollectionInitializerOperation>(OperationKind.ObjectOrCollectionInitializer) != null ||
+                 operation.GetAncestor<IAnonymousObjectCreationOperation>(OperationKind.ObjectOrCollectionInitializer) != null));
+
+            if (isInsideObjectInitializer)
             {
-                return objectCreation;
+                for (IOperation current = operation; current != null && current.Kind != OperationKind.Block; current = current.Parent)
+                {
+                    switch (current.Kind)
+                    {
+                        // VB object initializer allows accessing the members of the object being created with "." operator.
+                        // The syntax of such an IInstanceReferenceOperation points to the object being created.
+                        // Check for such an  IObjectCreationOperation or IAnonymousObjectCreationOperation with matching syntax.
+                        // For example, instance reference for members ".Field1" and ".Field2" in "New C() With { .Field1 = 0, .Field2 = .Field1 }".
+                        case OperationKind.ObjectCreation:
+                        case OperationKind.AnonymousObjectCreation:
+                            if (current.Syntax == operation.Syntax)
+                            {
+                                return current;
+                            }
+
+                            break;
+
+                        // IInstanceReferenceOperation on left of an IMemberInitializerOperation refers to the ancestor IObjectCreationOperation/IAnonymousObjectCreationOperation/IMemberInitializerOperation.
+                        // For example, implicit instance reference for member initializer "AnotherType" in "new C() { AnotherType = { IntField = 0 } };", where "AnotherType" is a member of named type kind.
+                        case OperationKind.MemberInitializer:
+                            var parentMemberInitializer = (IMemberInitializerOperation)current;
+                            if (parentMemberInitializer.InitializedMember.DescendantsAndSelf().Contains(operation))
+                            {
+                                return parentMemberInitializer.GetCreation();
+                            }
+
+                            break;
+
+                        // IInstanceReferenceOperation on left of an ISimpleAssignmentOperation with an IObjectOrCollectionInitializerOperation parent refers to the parenting IObjectCreationOperation/IAnonymousObjectCreationOperation/IMemberInitializerOperation.
+                        // For example, implicit instance reference for "IntField" in "new C() { IntField = 0 };".
+                        case OperationKind.SimpleAssignment:
+                            var parentSimpleAssignmentInitialier = (ISimpleAssignmentOperation)current;
+                            if (parentSimpleAssignmentInitialier.Parent is IObjectOrCollectionInitializerOperation &&
+                                parentSimpleAssignmentInitialier.Target.DescendantsAndSelf().Contains(operation))
+                            {
+                                return parentSimpleAssignmentInitialier.Parent.Parent;
+                            }
+
+                            break;
+                    }
+                }
             }
 
-            Func<IAnonymousObjectCreationOperation, bool> isAnonymousObjectCreation = creation => creation.Syntax == operation.Syntax;
-            var anonymousObjectCreation = operation.GetAncestor(OperationKind.AnonymousObjectCreation, isAnonymousObjectCreation);
-            if (anonymousObjectCreation != null)
-            {
-                return anonymousObjectCreation;
-            }
-
-            // IInstanceReferenceOperation on left of an IMemberInitializerOperation refers to the ancestor IObjectCreationOperation/IAnonymousObjectCreationOperation/IMemberInitializerOperation.
-            // For example, implicit instance reference for member initializer "AnotherType" in "new C() { AnotherType = { IntField = 0 } };", where "AnotherType" is a member of named type kind.
-            IMemberInitializerOperation parentMemberInitializer = operation.GetAncestor<IMemberInitializerOperation>(OperationKind.MemberInitializer);
-            if (parentMemberInitializer != null &&
-                parentMemberInitializer.InitializedMember.DescendantsAndSelf().Contains(operation))
-            {
-                return parentMemberInitializer.GetCreation();
-            }
-
-            // IInstanceReferenceOperation on left of an ISimpleAssignmentOperation with an IObjectOrCollectionInitializerOperation parent refers to the parenting IObjectCreationOperation/IAnonymousObjectCreationOperation/IMemberInitializerOperation.
-            // For example, implicit instance reference for "IntField" in "new C() { IntField = 0 };".
-            ISimpleAssignmentOperation parentSimpleAssignmentInitialier = operation.GetAncestor<ISimpleAssignmentOperation>(OperationKind.SimpleAssignment);
-            if (parentSimpleAssignmentInitialier != null &&
-                parentSimpleAssignmentInitialier.Parent is IObjectOrCollectionInitializerOperation &&
-                parentSimpleAssignmentInitialier.Target.DescendantsAndSelf().Contains(operation))
-            {
-                return parentSimpleAssignmentInitialier.Parent.Parent;
-            }
-
-            // For all cases, IInstanceReferenceOperation refers to the implicit or explicit this/base/Me/MyBase/MyClass reference.
+            // For all other cases, IInstanceReferenceOperation refers to the implicit or explicit this/base/Me/MyBase/MyClass reference.
             // We return null for such cases.
             return null;
         }
@@ -301,5 +318,128 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsInsideCatchClause(this IOperation operation)
             => operation.GetAncestor<ICatchClauseOperation>(OperationKind.CatchClause) != null;
+
+        public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, Func<IOperation, bool> predicate)
+        {
+            foreach (var operationBlock in operationBlocks)
+            {
+                if (operationBlock.HasAnyOperationDescendant(predicate))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate)
+        {
+            Debug.Assert(operationBlock != null);
+            Debug.Assert(predicate != null);
+            foreach (var descendant in operationBlock.DescendantsAndSelf())
+            {
+                if (predicate(descendant))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, OperationKind kind)
+        {
+            return operationBlocks.HasAnyOperationDescendant(predicate: operation => operation.Kind == kind);
+        }
+
+        /// <summary>
+        /// Indicates if the given <paramref name="binaryOperation"/> is a ConditionalAnd/ConditionalOr operator ('&&' or '||').
+        /// </summary>
+        /// <param name="binaryOperation"></param>
+        /// <returns></returns>
+        public static bool IsConditionalOperator(this IBinaryOperation binaryOperation) => binaryOperation.IsConditionalAndOperator() || binaryOperation.IsConditionalOrOperator();
+
+        /// <summary>
+        /// Indicates if the given <paramref name="binaryOperation"/> is a ConditionalAnd operator ('&&').
+        /// </summary>
+        /// <param name="binaryOperation"></param>
+        /// <returns></returns>
+        public static bool IsConditionalAndOperator(this IBinaryOperation binaryOperation)
+        {
+            switch (binaryOperation.OperatorKind)
+            {
+                case BinaryOperatorKind.ConditionalAnd:
+                    return true;
+
+                case BinaryOperatorKind.And:
+                    // Workaround for https://github.com/dotnet/roslyn/issues/23956
+                    return binaryOperation.Type.SpecialType == SpecialType.System_Boolean;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Indicates if the given <paramref name="binaryOperation"/> is a ConditionalOr operator ('||').
+        /// </summary>
+        /// <param name="binaryOperation"></param>
+        /// <returns></returns>
+        public static bool IsConditionalOrOperator(this IBinaryOperation binaryOperation)
+        {
+            switch (binaryOperation.OperatorKind)
+            {
+                case BinaryOperatorKind.ConditionalOr:
+                    return true;
+
+                case BinaryOperatorKind.Or:
+                    // Workaround for https://github.com/dotnet/roslyn/issues/23956
+                    return binaryOperation.Type.SpecialType == SpecialType.System_Boolean;
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Indicates if the given <paramref name="binaryOperation"/> is a predicate operation used in a condition.
+        /// </summary>
+        /// <param name="binaryOperation"></param>
+        /// <returns></returns>
+        public static bool IsComparisonOperator(this IBinaryOperation binaryOperation)
+        {
+            switch (binaryOperation.OperatorKind)
+            {
+                case BinaryOperatorKind.Equals:
+                case BinaryOperatorKind.NotEquals:
+                case BinaryOperatorKind.ObjectValueEquals:
+                case BinaryOperatorKind.ObjectValueNotEquals:
+                case BinaryOperatorKind.LessThan:
+                case BinaryOperatorKind.LessThanOrEqual:
+                case BinaryOperatorKind.GreaterThan:
+                case BinaryOperatorKind.GreaterThanOrEqual:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        public static ITypeSymbol GetExceptionType(this IThrowOperation throwOperation)
+        {
+            if (throwOperation.Exception != null)
+            {
+                return throwOperation.Exception.Type;
+            }
+
+            var catchOperation = throwOperation.GetAncestor<ICatchClauseOperation>(OperationKind.CatchClause);
+            return catchOperation?.ExceptionType;
+        }
+
+        public static bool IsLambdaOrLocalFunctionOrDelegateInvocation(this IInvocationOperation operation)
+            => operation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate();
+
+        public static bool IsLambdaOrLocalFunctionOrDelegateReference(this IMethodReferenceOperation operation)
+            => operation.Method.IsLambdaOrLocalFunctionOrDelegate();
     }
 }

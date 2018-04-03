@@ -16,6 +16,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1");
         }
 
+        public static INamedTypeSymbol GenericIReadOnlyCollection(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyCollection`1");
+        }
+
         public static INamedTypeSymbol IEnumerable(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
@@ -121,6 +126,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Threading.Thread");
         }
 
+        public static INamedTypeSymbol Task(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
+        }
+
         public static INamedTypeSymbol WebMethodAttribute(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Web.Services.WebMethodAttribute");
@@ -129,6 +139,11 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol WebUIControl(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Web.UI.Control");
+        }
+
+        public static INamedTypeSymbol WebUILiteralControl(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.UI.LiteralControl");
         }
 
         public static INamedTypeSymbol WinFormsUIControl(Compilation compilation)
@@ -356,6 +371,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
         }
 
+        public static INamedTypeSymbol LocalizableAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.ComponentModel.LocalizableAttribute");
+        }
+
         public static INamedTypeSymbol FieldOffsetAttribute(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.FieldOffsetAttribute");
@@ -395,6 +415,21 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol ExpectedException(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.ExpectedExceptionAttribute");
+        }
+
+        public static INamedTypeSymbol UnitTestingAssert(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.Assert");
+        }
+
+        public static INamedTypeSymbol UnitTestingCollectionAssert(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.CollectionAssert");
+        }
+
+        public static INamedTypeSymbol UnitTestingCollectionStringAssert(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.StringAssert");
         }
 
         public static INamedTypeSymbol XunitAssert(Compilation compilation)
@@ -460,6 +495,16 @@ namespace Analyzer.Utilities
         public static INamedTypeSymbol NunitTheory(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("NUnit.Framework.TheoryAttribute");
+        }
+
+        public static INamedTypeSymbol SystemDiagnosticContractsContract(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Diagnostics.Contracts.Contract");
+        }
+
+        public static INamedTypeSymbol XmlWriter(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Xml.XmlWriter");
         }
         #endregion
     }
