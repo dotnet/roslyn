@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -826,8 +827,8 @@ class Program
 
     static void Main()
     {
-        var {|Rename:class1|} = new G<int>.@class();
-        G<int>.Add(class1);
+        var {|Rename:@class|} = new G<int>.@class();
+        G<int>.Add(@class);
     }
 }",
 options: ImplicitTypingEverywhere());
@@ -864,8 +865,8 @@ options: ImplicitTypingEverywhere());
 
     static void Main()
     {
-        G<int>.@class {|Rename:class1|} = new G<int>.@class();
-        G<int>.Add(class1);
+        G<int>.@class {|Rename:@class|} = new G<int>.@class();
+        G<int>.Add(@class);
     }
 }");
         }

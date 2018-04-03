@@ -17,6 +17,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
+    <[UseExportProvider]>
     Public Class CodeFixServiceTests
 
         Private _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()

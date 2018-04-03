@@ -2786,15 +2786,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitConstructorMethodBody(BoundConstructorMethodBody node)
+        public override BoundNode VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node)
         {
-            Visit(node.Initializer);
             VisitMethodBodies(node.BlockBody, node.ExpressionBody);
             return null;
         }
 
-        public override BoundNode VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node)
+        public override BoundNode VisitConstructorMethodBody(BoundConstructorMethodBody node)
         {
+            Visit(node.Initializer);
             VisitMethodBodies(node.BlockBody, node.ExpressionBody);
             return null;
         }

@@ -150,6 +150,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// </summary>
         protected bool IsInputPending()
         {
+            // The code below invokes into user32.dll, which is not available in non-Windows.
+            if (PlatformInformation.IsUnix)
+            {
+                return false;
+            }
+
             // The return value of GetQueueStatus is HIWORD:LOWORD.
             // A non-zero value in HIWORD indicates some input message in the queue.
             uint result = NativeMethods.GetQueueStatus(NativeMethods.QS_INPUT);
