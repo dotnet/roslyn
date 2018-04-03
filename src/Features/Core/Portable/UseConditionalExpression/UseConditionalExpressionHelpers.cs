@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 // conditional expression as that's the only node that has the appropriate
                 // annotation on it.
                 var rules = new List<IFormattingRule> { multiLineFormattingRule };
-                rules.AddRange(Formatter.GetDefaultFormattingRules(document));
+                // rules.AddRange(Formatter.GetDefaultFormattingRules(document));
 
                 var formattedRoot = await Formatter.FormatAsync(changedRoot,
                     SpecializedFormattingAnnotation,
