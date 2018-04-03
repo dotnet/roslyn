@@ -634,7 +634,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
-        public void BuildsArgumentsOperationsForDuplicateExplicitArguments_CorrectArgumentsOrder_Lambdas()
+        public void BuildsArgumentsOperationsForDuplicateExplicitArguments_CorrectArgumentsOrder_Delegates()
         {
             string source = @"
 public delegate void D(int a, int b, int c = 4);
@@ -764,7 +764,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
         [Fact]
         [CompilerTrait(CompilerFeature.IOperation)]
         [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
-        public void BuildsArgumentsOperationsForDuplicateExplicitArguments_IncorrectArgumentsOrder_Lambdas()
+        public void BuildsArgumentsOperationsForDuplicateExplicitArguments_IncorrectArgumentsOrder_Delegates()
         {
             string source = @"
 public delegate void D(int a, int b, int c = 4);

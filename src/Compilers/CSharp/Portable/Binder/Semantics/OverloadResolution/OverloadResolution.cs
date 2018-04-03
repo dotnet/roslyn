@@ -2920,6 +2920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case ArgumentAnalysisResultKind.RequiredParameterMissing:
                     case ArgumentAnalysisResultKind.NoCorrespondingParameter:
+                    case ArgumentAnalysisResultKind.DuplicateNamedArgument:
                         if (!completeResults) goto default;
                         // When we are producing more complete results, and we have the wrong number of arguments, we push on
                         // through type inference so that lambda arguments can be bound to their delegate-typed parameters,
