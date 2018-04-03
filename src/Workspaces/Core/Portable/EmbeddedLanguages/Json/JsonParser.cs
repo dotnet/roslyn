@@ -298,7 +298,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         private JsonValueNode ParseLiteralOrPropertyOrConstructor()
         {
-            // var token = ConsumeCurrentToken().With(kind: JsonKind.TextToken);
             var textToken = ConsumeCurrentToken();
             if (_currentToken.Kind != JsonKind.ColonToken)
             {
