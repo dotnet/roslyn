@@ -1592,6 +1592,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.ExpressionBody, "ExpressionBody");
         }
 
+        public override void VisitDiscardOperation(IDiscardOperation operation)
+        {
+            LogString(nameof(IDiscardOperation));
+            LogString(" (");
+            LogSymbol(operation.DiscardSymbol, "Symbol");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+        }
+
         #endregion
     }
 }
