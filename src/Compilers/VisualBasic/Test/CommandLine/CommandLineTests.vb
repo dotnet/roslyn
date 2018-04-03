@@ -1293,7 +1293,7 @@ End Module").Path
 
             parsedArgs = DefaultParse({"/MAIN: ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("main", ":<class>"))
-            Assert.Null(parsedArgs.CompilationOptions.MainTypeName) ' EDMAURER Dev11 accepts and MainTypeName is " "
+            Assert.Equal(Nothing, parsedArgs.CompilationOptions.MainTypeName) ' EDMAURER Dev11 accepts and MainTypeName is " "
 
             ' errors 
             parsedArgs = DefaultParse({"/maiN:", "a.vb"}, _baseDirectory)
@@ -1391,6 +1391,7 @@ End Module").Path
 
         Private ReadOnly s_VBC_VER As Double = PredefinedPreprocessorSymbols.CurrentVersionNumber
 
+#Region "LanguageVersion"
         <Fact>
         Public Sub LanguageVersionAdded_Canary()
             ' When a new version is added, this test will break. This list must be checked:
@@ -1496,6 +1497,7 @@ End Module").Path
                 Next
             End Using
         End Sub
+#End Region
 
         <Theory,
      InlineData({"/D:a=True,b=1", "a.vb"},
