@@ -94,6 +94,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             var diagnostic = GetFirstDiagnostic(root) ?? CheckTopLevel(_lexer.Text, root);
             if (diagnostic == null)
             {
+                // We didn't have any diagnostics in the tree so far.  Do the json.net/strict checks
+                // depending on how we were invoked.
                 diagnostic = strict
                     ? StrictSyntaxChecker.CheckSyntax(root)
                     : JsonNetSyntaxChecker.CheckSyntax(root);
