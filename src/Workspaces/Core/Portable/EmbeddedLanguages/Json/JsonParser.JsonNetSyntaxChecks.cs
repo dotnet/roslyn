@@ -70,6 +70,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             private static EmbeddedDiagnostic? CheckNumber(JsonToken numberToken)
             {
+                // This code was effectively copied from:
+                // https://github.com/JamesNK/Newtonsoft.Json/blob/993215529562866719689206e27e413013d4439c/Src/Newtonsoft.Json/JsonTextReader.cs#L1926
+                // So as to match Newtonsoft.Json's behavior around number parsing.
                 var chars = numberToken.VirtualChars;
                 var firstChar = chars[0].Char;
 
@@ -101,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     }
                 }
                 else if (!double.TryParse(
-                    literalText, NumberStyles.Float | NumberStyles.AllowThousands,
+                    literalText, NumberStyles.Float,
                     CultureInfo.InvariantCulture, out _))
                 {
                     return new EmbeddedDiagnostic(
