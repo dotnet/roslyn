@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
@@ -50,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
 
             MyBase.New(
                 workspaceElement,
-                exportProvider:=MinimalTestExportProvider.CreateExportProvider(VisualStudioTestExportProvider.PartCatalog),
+                exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider(),
                 workspaceKind:=WorkspaceKind.Debugger)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices

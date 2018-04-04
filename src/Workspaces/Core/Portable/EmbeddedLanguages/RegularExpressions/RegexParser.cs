@@ -59,6 +59,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// engine is not just a parser, but something that builds an actual recognizer using techniques
     /// that are not necessarily bounded.  As such, while we test ourselves around it during our
     /// tests, we cannot do the same at runtime as part of the IDE.
+    /// 
+    /// This parser was based off the corefx RegexParser based at:
+    /// https://github.com/dotnet/corefx/blob/f759243d724f462da0bcef54e86588f8a55352c6/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexParser.cs#L1
     /// </remarks>
     internal partial struct RegexParser
     {
