@@ -1699,8 +1699,9 @@ namespace Microsoft.CodeAnalysis.Operations
             var whenNull = new BasicBlock(BasicBlockKind.Block);
             Optional<object> constantValue = operation.Value.ConstantValue;
 
+            SemanticModel semanticModel = ((Operation)operation).SemanticModel;
             LinkBlocks(CurrentBasicBlock,
-                       (Operation.SetParentOperation(MakeIsNullOperation(((Operation)operation).SemanticModel,
+                       (Operation.SetParentOperation(MakeIsNullOperation(semanticModel,
                                                                          new FlowCaptureReference(testExpressionCaptureId, valueSyntax, valueTypeOpt, constantValue)),
                                                      null),
                         true,
@@ -1718,7 +1719,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (ITypeSymbolHelpers.IsNullableType(valueTypeOpt) &&
                     (!testConversion.IsIdentity || !ITypeSymbolHelpers.IsNullableType(operation.Type)))
                 {
-                    possiblyUnwrappedValue = TryUnwrapNullableValue(capturedValue);
+                    possiblyUnwrappedValue = TryUnwrapNullableValue(capturedValue, semanticModel);
                     // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
                 }
                 else
@@ -1783,20 +1784,21 @@ namespace Microsoft.CodeAnalysis.Operations
                                        constantValue.HasValue ? new Optional<object>(constantValue.Value == null) : default);
         }
 
-        private static IOperation TryUnwrapNullableValue(IOperation value)
+        private static IOperation TryUnwrapNullableValue(IOperation value, SemanticModel semanticModel)
         {
             ITypeSymbol valueType = value.Type;
 
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(valueType));
 
-            foreach (ISymbol candidate in valueType.GetMembers("GetValueOrDefault"))
+            var method = (IMethodSymbol)semanticModel.Compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefault);
+
+            if (method != null)
             {
-                if (candidate.Kind == SymbolKind.Method && !candidate.IsStatic && candidate.DeclaredAccessibility == Accessibility.Public)
+                foreach (ISymbol candidate in valueType.GetMembers(method.Name))
                 {
-                    var method = (IMethodSymbol)candidate;
-                    if (method.Parameters.Length == 0 && method.RefKind == RefKind.None &&
-                        method.OriginalDefinition.ReturnType.Equals(((INamedTypeSymbol)valueType).OriginalDefinition.TypeParameters[0]))
+                    if (candidate.OriginalDefinition.Equals(method))
                     {
+                        method = (IMethodSymbol)candidate;
                         return new InvocationExpression(method, value, isVirtual: false,
                                                         ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, value.Syntax,
                                                         method.ReturnType, constantValue: default, isImplicit: true);
@@ -1832,8 +1834,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 int testExpressionCaptureId = VisitAndCapture(testExpression);
                 Optional<object> constantValue = testExpression.ConstantValue;
 
+                SemanticModel semanticModel = ((Operation)operation).SemanticModel;
                 LinkBlocks(CurrentBasicBlock,
-                           (Operation.SetParentOperation(MakeIsNullOperation(((Operation)operation).SemanticModel,
+                           (Operation.SetParentOperation(MakeIsNullOperation(semanticModel,
                                                                              new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, constantValue)),
                                                          null),
                             true,
@@ -1844,7 +1847,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (ITypeSymbolHelpers.IsNullableType(testExpressionType))
                 {
-                    receiver = TryUnwrapNullableValue(receiver) ??
+                    receiver = TryUnwrapNullableValue(receiver, semanticModel) ??
                                // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
                                MakeInvalidOperation(((INamedTypeSymbol)testExpressionType).TypeArguments[0], receiver);
                 }
@@ -1909,14 +1912,14 @@ namespace Microsoft.CodeAnalysis.Operations
                     return new ObjectCreationExpression(method, initializer: null,
                                                         ImmutableArray.Create<IArgumentOperation>(
                                                                     new ArgumentOperation(underlyingValue,
-                                                                                        ArgumentKind.Explicit,
-                                                                                        method.Parameters[0],
-                                                                                        inConversionOpt: null,
-                                                                                        outConversionOpt: null,
-                                                                                        semanticModel: null,
-                                                                                        underlyingValue.Syntax,
-                                                                                        constantValue: null,
-                                                                                        isImplicit: true)),
+                                                                                          ArgumentKind.Explicit,
+                                                                                          method.Parameters[0],
+                                                                                          inConversionOpt: null,
+                                                                                          outConversionOpt: null,
+                                                                                          semanticModel: null,
+                                                                                          underlyingValue.Syntax,
+                                                                                          constantValue: null,
+                                                                                          isImplicit: true)),
                                                         semanticModel: null,
                                                         underlyingValue.Syntax,
                                                         type,
@@ -2446,22 +2449,191 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 Debug.Assert(value.Type == iDisposable);
 
-                foreach (ISymbol candidate in iDisposable.GetMembers("Dispose"))
+                var method = (IMethodSymbol)semanticModel.Compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
+                if (method != null)
                 {
-                    if (candidate.Kind == SymbolKind.Method && !candidate.IsStatic && candidate.DeclaredAccessibility == Accessibility.Public)
-                    {
-                        var method = (IMethodSymbol)candidate;
-                        if (method.Parameters.Length == 0 && method.RefKind == RefKind.None && method.ReturnsVoid)
-                        {
-                            return new InvocationExpression(method, value, isVirtual: true,
-                                                            ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, value.Syntax,
-                                                            method.ReturnType, constantValue: default, isImplicit: true);
-                        }
-                    }
+                    return new InvocationExpression(method, value, isVirtual: true,
+                                                    ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, value.Syntax,
+                                                    method.ReturnType, constantValue: default, isImplicit: true);
                 }
 
                 return null;
             }
+        }
+
+        public override IOperation VisitLock(ILockOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(operation == _currentStatement);
+
+            SemanticModel semanticModel = ((Operation)operation).SemanticModel;
+            ITypeSymbol objectType = semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
+
+            // If Monitor.Enter(object, ref bool) is available:
+            //
+            // L $lock = `LockedValue`;  
+            // bool $lockTaken = false;                   
+            // try
+            // {
+            //     Monitor.Enter($lock, ref $lockTaken);
+            //     `body`                               
+            // }
+            // finally
+            // {                                        
+            //     if ($lockTaken) Monitor.Exit($lock);   
+            // }
+
+            // If Monitor.Enter(object, ref bool) is not available:
+            //
+            // L $lock = `LockedValue`;
+            // Monitor.Enter($lock);           // NB: before try-finally so we don't Exit if an exception prevents us from acquiring the lock.
+            // try 
+            // {
+            //     `body`
+            // } 
+            // finally 
+            // {
+            //     Monitor.Exit($lock); 
+            // }
+
+            // If original type of the LockedValue object is System.Object, VB calls runtime helper (if one is available)
+            // Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.CheckForSyncLockOnValueType to ensure no value type is 
+            // used. 
+            // For simplicity, we will not synthesize this call because its presence is unlikely to affect graph analysis.
+
+            IOperation lockedValue = Visit(operation.LockedValue);
+
+            if (!objectType.Equals(lockedValue.Type))
+            {
+                lockedValue = new ConversionOperation(lockedValue, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
+                                                      semanticModel: null, lockedValue.Syntax, objectType, constantValue: default, isImplicit: true);
+            }
+
+            int captureId = _availableCaptureId++;
+            AddStatement(new FlowCapture(captureId, lockedValue.Syntax, lockedValue));
+            lockedValue = new FlowCaptureReference(captureId, lockedValue.Syntax, lockedValue.Type, constantValue: default);
+
+            var enterMethod = (IMethodSymbol)semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2);
+            bool legacyMode = (enterMethod == null);
+
+            if (legacyMode)
+            {
+                enterMethod = (IMethodSymbol)semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter);
+
+                // Monitor.Enter($lock);
+                if (enterMethod == null)
+                {
+                    // PROTOTYPE(dataflow): The scenario with missing Enter is not covered by unit-tests.
+                    AddStatement(MakeInvalidOperation(type: null, lockedValue));
+                }
+                else
+                {
+                    AddStatement(new InvocationExpression(enterMethod, instance: null, isVirtual: false,
+                                                          ImmutableArray.Create<IArgumentOperation>(
+                                                                    new ArgumentOperation(lockedValue,
+                                                                                          ArgumentKind.Explicit,
+                                                                                          enterMethod.Parameters[0],
+                                                                                          inConversionOpt: null,
+                                                                                          outConversionOpt: null,
+                                                                                          semanticModel: null,
+                                                                                          lockedValue.Syntax,
+                                                                                          constantValue: null,
+                                                                                          isImplicit: true)),
+                                                          semanticModel: null, lockedValue.Syntax,
+                                                          enterMethod.ReturnType, constantValue: default, isImplicit: true));
+                }
+            }
+
+            var afterTryFinally = new BasicBlock(BasicBlockKind.Block);
+
+            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.TryAndFinally));
+            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try));
+
+            IOperation lockTaken = null;
+            if (!legacyMode)
+            {
+                // Monitor.Enter($lock, ref $lockTaken);
+                lockTaken = new FlowCaptureReference(_availableCaptureId++, lockedValue.Syntax, semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean), constantValue: default);
+                AddStatement(new InvocationExpression(enterMethod, instance: null, isVirtual: false,
+                                                      ImmutableArray.Create<IArgumentOperation>(
+                                                                new ArgumentOperation(lockedValue,
+                                                                                      ArgumentKind.Explicit,
+                                                                                      enterMethod.Parameters[0],
+                                                                                      inConversionOpt: null,
+                                                                                      outConversionOpt: null,
+                                                                                      semanticModel: null,
+                                                                                      lockedValue.Syntax,
+                                                                                      constantValue: null,
+                                                                                      isImplicit: true),
+                                                                new ArgumentOperation(lockTaken,
+                                                                                      ArgumentKind.Explicit,
+                                                                                      enterMethod.Parameters[1],
+                                                                                      inConversionOpt: null,
+                                                                                      outConversionOpt: null,
+                                                                                      semanticModel: null,
+                                                                                      lockedValue.Syntax,
+                                                                                      constantValue: null,
+                                                                                      isImplicit: true)),
+                                                      semanticModel: null, lockedValue.Syntax,
+                                                      enterMethod.ReturnType, constantValue: default, isImplicit: true));
+            }
+
+            VisitStatement(operation.Body);
+
+            LinkBlocks(CurrentBasicBlock, afterTryFinally);
+
+            Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.Try);
+            LeaveRegion();
+
+            var endOfFinally = new BasicBlock(BasicBlockKind.Block);
+            endOfFinally.InternalNext.Branch.Kind = BasicBlock.BranchKind.StructuredExceptionHandling;
+
+            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Finally));
+            AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
+
+            if (!legacyMode)
+            {
+                // if ($lockTaken)
+                IOperation condition = OperationCloner.CloneOperation(lockTaken);
+                condition = Operation.SetParentOperation(condition, null);
+                LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: false, RegularBranch(endOfFinally)));
+                _currentBasicBlock = null;
+            }
+
+            // Monitor.Exit($lock);
+            var exitMethod = (IMethodSymbol)semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Exit);
+            lockedValue = OperationCloner.CloneOperation(lockedValue);
+
+            if (exitMethod == null)
+            {
+                // PROTOTYPE(dataflow): The scenario with missing Exit is not covered by unit-tests.
+                AddStatement(MakeInvalidOperation(type: null, lockedValue));
+            }
+            else
+            {
+                AddStatement(new InvocationExpression(exitMethod, instance: null, isVirtual: false,
+                                                      ImmutableArray.Create<IArgumentOperation>(
+                                                                new ArgumentOperation(lockedValue,
+                                                                                      ArgumentKind.Explicit,
+                                                                                      exitMethod.Parameters[0],
+                                                                                      inConversionOpt: null,
+                                                                                      outConversionOpt: null,
+                                                                                      semanticModel: null,
+                                                                                      lockedValue.Syntax,
+                                                                                      constantValue: null,
+                                                                                      isImplicit: true)),
+                                                      semanticModel: null, lockedValue.Syntax,
+                                                      exitMethod.ReturnType, constantValue: default, isImplicit: true));
+            }
+
+            AppendNewBlock(endOfFinally);
+
+            LeaveRegion();
+            Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
+            LeaveRegion();
+
+            AppendNewBlock(afterTryFinally, linkToPrevious: false);
+
+            return null;
         }
 
         public override IOperation VisitEnd(IEndOperation operation, int? captureIdForResult)
@@ -2767,11 +2939,6 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             // PROTOTYPE(dataflow): note that the loop control variable can be an IVariableDeclarator directly, and this function is expected to handle it without calling Visit(IVariableDeclarator)
             return new ForEachLoopStatement(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable), Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitLock(ILockOperation operation, int? captureIdForResult)
-        {
-            return new LockStatement(Visit(operation.LockedValue), Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         internal override IOperation VisitFixed(IFixedOperation operation, int? captureIdForResult)

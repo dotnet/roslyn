@@ -982,11 +982,11 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
             VerifyOperationTreeAndDiagnosticsForTest(Of ExpressionStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        ' PROTOTYPE(dataflow): Port applicable UsingFlow_01 - UsingFlow_12 test scenarios from C#.
+        ' PROTOTYPE(dataflow): Port applicable UsingFlow_01 - UsingFlow_13 test scenarios from C#.
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
-        Public Sub UsingFlow_13()
+        Public Sub UsingFlow_14()
             Dim source = <![CDATA[
 Imports System
 Public Class C
