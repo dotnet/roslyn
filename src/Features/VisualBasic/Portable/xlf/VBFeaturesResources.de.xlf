@@ -1802,11 +1802,6 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
         <target state="translated">"Me." hinzufügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_If_to_Select_Case">
-        <source>Convert 'If' to 'Select Case'</source>
-        <target state="translated">"If" in "Select Case" konvertieren</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">
         <source>Use 'Is Nothing' check</source>
         <target state="translated">Prüfung "Is Nothing" verwenden</target>
@@ -1817,9 +1812,19 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
         <target state="translated">Prüfung "IsNot Nothing" verwenden</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_For_to_For_Each">
-        <source>Convert 'For' to 'For Each'</source>
-        <target state="new">Convert 'For' to 'For Each'</target>
+      <trans-unit id="Convert_to_Select_Case">
+        <source>Convert to 'Select Case'</source>
+        <target state="new">Convert to 'Select Case'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For_Each">
+        <source>Convert to 'For Each'</source>
+        <target state="new">Convert to 'For Each'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For">
+        <source>Convert  to 'For'</source>
+        <target state="new">Convert  to 'For'</target>
         <note />
       </trans-unit>
     </body>

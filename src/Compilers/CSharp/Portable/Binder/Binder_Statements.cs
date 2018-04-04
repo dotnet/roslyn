@@ -492,50 +492,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             var hasErrors = localSymbol.ScopeBinder
                 .ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-            BoundBlock block;
+            BoundBlock blockBody = null;
+            BoundBlock expressionBody = null;
             if (node.Body != null)
             {
-                block = BindEmbeddedBlock(node.Body, diagnostics);
+                blockBody = runAnalysis(BindEmbeddedBlock(node.Body, diagnostics), diagnostics);
+
+                if (node.ExpressionBody != null)
+                {
+                    var expressionBodyDiagnostics = new DiagnosticBag();
+                    expressionBody = runAnalysis(BindExpressionBodyAsBlock(node.ExpressionBody, expressionBodyDiagnostics), expressionBodyDiagnostics);
+                }
             }
             else if (node.ExpressionBody != null)
             {
-                block = BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
+                expressionBody = runAnalysis(BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics), diagnostics);
             }
             else
             {
-                block = null;
                 hasErrors = true;
                 diagnostics.Add(ErrorCode.ERR_LocalFunctionMissingBody, localSymbol.Locations[0], localSymbol);
             }
 
-            if (block != null)
-            {
-                localSymbol.ComputeReturnType();
-
-                // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
-                // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
-                // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
-                // It's a bit of code duplication, but refactoring would make things worse.
-                var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, diagnostics);
-                if (endIsReachable)
-                {
-                    if (ImplicitReturnIsOkay(localSymbol))
-                    {
-                        block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol);
-                    }
-                    else
-                    {
-                        diagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.Locations[0], localSymbol);
-                    }
-                }
-            }
+            Debug.Assert(blockBody != null || expressionBody != null || hasErrors);
 
             localSymbol.GetDeclarationDiagnostics(diagnostics);
 
             Symbol.CheckForBlockAndExpressionBody(
                 node.Body, node.ExpressionBody, node, diagnostics);
 
-            return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
+            return new BoundLocalFunctionStatement(node, localSymbol, blockBody, expressionBody, hasErrors);
+
+            BoundBlock runAnalysis(BoundBlock block, DiagnosticBag blockDiagnostics)
+            {
+                if (block != null)
+                {
+                    // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
+                    // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
+                    // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
+                    // It's a bit of code duplication, but refactoring would make things worse.
+                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, blockDiagnostics);
+                    if (endIsReachable)
+                    {
+                        if (ImplicitReturnIsOkay(localSymbol))
+                        {
+                            block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol);
+                        }
+                        else
+                        {
+                            blockDiagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.Locations[0], localSymbol);
+                        }
+                    }
+                }
+
+                return block;
+            }
         }
 
         private bool ImplicitReturnIsOkay(MethodSymbol method)
