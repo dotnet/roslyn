@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 {
@@ -35,7 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _workQueue = new PriorityQueue();
             _lastProcessedTimeInMS = Environment.TickCount;
 
-            Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken.None, TaskScheduler.Default);
+            // Only start the background processing task if foreground work is allowed
+            if (ForegroundKind != ForegroundThreadDataKind.Unknown)
+            {
+                Task.Factory.SafeStartNewFromAsync(ProcessAsync, CancellationToken.None, TaskScheduler.Default);
+            }
         }
 
         public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
@@ -58,6 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                 return;
             }
 
+            // Assert we have some kind of foreground thread
+            Contract.ThrowIfTrue(CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
+
             var current = Environment.TickCount;
 
             _workQueue.Enqueue(new PendingWork(current + delay, action, asyncToken, cancellationToken));
@@ -72,6 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                 asyncToken?.Dispose();
                 return;
             }
+
+            // Assert we have some kind of foreground thread
+            Contract.ThrowIfTrue(CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
 
             var current = Environment.TickCount;
 
