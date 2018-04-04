@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             var arraySequence = compilationUnit.Sequence;
             if (arraySequence.ChildCount == 0)
             {
+                // json is not allowed to be just whitespace.
                 if (text.Length > 0 &&
                     compilationUnit.EndOfFileToken.LeadingTrivia.All(
                         t => t.Kind == JsonKind.WhitespaceTrivia || t.Kind == JsonKind.EndOfLineTrivia))
