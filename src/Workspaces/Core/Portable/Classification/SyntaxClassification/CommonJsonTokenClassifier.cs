@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 return;
             }
 
-            var tree = detector?.TryParseJson(token, cancellationToken);
+            var tree = detector?.TryParseJson(token);
             if (tree == null)
             {
                 return;

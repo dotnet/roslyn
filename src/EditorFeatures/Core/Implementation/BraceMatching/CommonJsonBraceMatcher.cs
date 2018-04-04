@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                 return default;
             }
 
-            var tree = detector.TryParseJson(token, cancellationToken);
+            var tree = detector.TryParseJson(token);
             if (tree == null)
             {
                 return default;

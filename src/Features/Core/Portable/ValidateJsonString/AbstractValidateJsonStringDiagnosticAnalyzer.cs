@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ValidateJsonString
                     if (token.RawKind == _stringLiteralKind &&
                         detector.IsDefinitelyJson(token, cancellationToken))
                     {
-                        var tree = detector.TryParseJson(token, cancellationToken);
+                        var tree = detector.TryParseJson(token);
                         if (tree != null)
                         {
                             foreach (var diag in tree.Diagnostics)

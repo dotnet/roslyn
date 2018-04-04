@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.JsonStringDetector
                     if (token.RawKind == _stringLiteralKind &&
                         !JsonPatternDetector.IsDefinitelyNotJson(token, _syntaxFacts) &&
                         !detector.IsDefinitelyJson(token, cancellationToken) &&
-                        detector.IsProbablyJson(token, cancellationToken))
+                        detector.IsProbablyJson(token))
                     {
                         var chars = _virtualCharService.TryConvertToVirtualChars(token);
                         var strictTree = JsonParser.TryParse(chars, strict: true);

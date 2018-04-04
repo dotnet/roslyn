@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return false;
         }
 
-        public JsonTree TryParseJson(SyntaxToken token, CancellationToken cancellationToken)
+        public JsonTree TryParseJson(SyntaxToken token)
         {
             if (IsDefinitelyNotJson(token, _syntaxFacts))
             {
@@ -258,9 +258,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return null;
         }
 
-        public bool IsProbablyJson(SyntaxToken token, CancellationToken cancellationToken)
+        public bool IsProbablyJson(SyntaxToken token)
         {
-            var tree = TryParseJson(token, cancellationToken);
+            var tree = TryParseJson(token);
             if (tree == null || !tree.Diagnostics.IsEmpty)
             {
                 return false;
