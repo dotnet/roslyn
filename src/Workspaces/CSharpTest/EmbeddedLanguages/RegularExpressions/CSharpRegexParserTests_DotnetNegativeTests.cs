@@ -2447,7 +2447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <Capture Name=""cat"" Span=""[10..21)"" />
     <Capture Name=""dog"" Span=""[24..41)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
 
         [Fact]
@@ -2504,7 +2504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <Capture Name=""cat"" Span=""[10..21)"" />
     <Capture Name=""dog"" Span=""[24..42)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
 
         [Fact]
@@ -2561,7 +2561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <Capture Name=""cat"" Span=""[10..21)"" />
     <Capture Name=""dog"" Span=""[24..41)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
 
         [Fact]
@@ -2618,7 +2618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
     <Capture Name=""cat"" Span=""[10..21)"" />
     <Capture Name=""dog"" Span=""[24..38)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
 
         [Fact]
@@ -2654,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..22)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowIndexOutOfRange: true);
         }
 
         [Fact]
