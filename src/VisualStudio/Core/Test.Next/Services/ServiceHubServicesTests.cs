@@ -129,7 +129,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
 
                 await client.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService,
+                    WellKnownServiceHubServices.SnapshotService,
                     workspace.CurrentSolution,
                     nameof(ISnapshotService.SynchronizeGlobalAssetsAsync),
                     new object[] { new Checksum[0] { } }, CancellationToken.None);
@@ -327,7 +327,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private static async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
         {
             await client.TryRunRemoteAsync(
-                WellKnownRemoteHostServices.RemoteHostService, solution,
+                WellKnownServiceHubServices.SnapshotService, solution,
                 nameof(ISnapshotService.SynchronizePrimaryWorkspaceAsync),
                 await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
         }

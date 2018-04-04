@@ -146,7 +146,7 @@ End Class";
 
                 var client = await workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(CancellationToken.None);
                 await client.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService, workspace.CurrentSolution,
+                    WellKnownServiceHubServices.SnapshotService, workspace.CurrentSolution,
                     nameof(ISnapshotService.SynchronizeGlobalAssetsAsync), (object)(new Checksum[] { asset.Checksum }), CancellationToken.None);
 
                 // set option
@@ -195,7 +195,7 @@ End Class";
 
                 var client = await workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(CancellationToken.None);
                 await client.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService, workspace.CurrentSolution,
+                    WellKnownServiceHubServices.SnapshotService, workspace.CurrentSolution,
                     nameof(ISnapshotService.SynchronizeGlobalAssetsAsync), (object)(new Checksum[] { asset.Checksum }), CancellationToken.None);
 
                 // run analysis
