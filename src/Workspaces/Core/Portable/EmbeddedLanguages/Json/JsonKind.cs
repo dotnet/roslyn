@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 {
     internal enum JsonKind
     {
-        None,
+        None = 0,
         Sequence,
         CompilationUnit,
         Text,
