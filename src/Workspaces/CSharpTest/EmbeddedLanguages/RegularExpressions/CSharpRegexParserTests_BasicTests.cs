@@ -1616,7 +1616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[9..22)"" />
   </Captures>
-</Tree>", runSubTreeTests: false, options: RegexOptions.None);
+</Tree>", runSubTreeTests: false, options: RegexOptions.None, allowOutOfMemory: true);
         }
 
         [Fact]
@@ -1666,7 +1666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[9..23)"" />
   </Captures>
-</Tree>", runSubTreeTests: false, options: RegexOptions.None);
+</Tree>", runSubTreeTests: false, options: RegexOptions.None, allowOutOfMemory: true);
         }
 
         [Fact]
