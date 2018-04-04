@@ -511,9 +511,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var trueLabel = GetDagNodeLabel(whenTrue);
                 if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValue != ConstantValue.True)
                 {
-                    // PROTOTYPE(patterns2): there should perhaps be a sequence point (for e.g. a breakpoint) on the when clause.
                     _factory.Syntax = whenClause.Syntax;
-                    sectionBuilder.Add(_factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), trueLabel, jumpIfTrue: true));
+                    BoundStatement conditionalGoto = _factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), trueLabel, jumpIfTrue: true);
+
+                    // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
+                    if (_isSwitchStatement && !whenClause.WhenExpression.WasCompilerGenerated && _localRewriter.Instrument)
+                    {
+                        conditionalGoto = _localRewriter._instrumenter.InstrumentPatternSwitchWhenClauseConditionalGotoBody(whenClause.WhenExpression, conditionalGoto);
+                    }
+
+                    sectionBuilder.Add(conditionalGoto);
                     Debug.Assert(whenFalse != null);
                     sectionBuilder.Add(_factory.Goto(GetDagNodeLabel(whenFalse)));
                 }

@@ -9280,13 +9280,24 @@ public class Program
         <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" document=""1"" />
         <entry offset=""0x4"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1b"" startLine=""12"" startColumn=""24"" endLine=""12"" endColumn=""30"" document=""1"" />
         <entry offset=""0x24"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x26"" startLine=""13"" startColumn=""24"" endLine=""13"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x2f"" startLine=""13"" startColumn=""24"" endLine=""13"" endColumn=""30"" document=""1"" />
         <entry offset=""0x38"" startLine=""13"" startColumn=""32"" endLine=""13"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x3c"" startLine=""14"" startColumn=""24"" endLine=""14"" endColumn=""30"" document=""1"" />
         <entry offset=""0x45"" startLine=""14"" startColumn=""32"" endLine=""14"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x47"" startLine=""15"" startColumn=""24"" endLine=""15"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x50"" startLine=""15"" startColumn=""24"" endLine=""15"" endColumn=""30"" document=""1"" />
         <entry offset=""0x59"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x5d"" startLine=""16"" startColumn=""24"" endLine=""16"" endColumn=""30"" document=""1"" />
         <entry offset=""0x66"" startLine=""16"" startColumn=""32"" endLine=""16"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x68"" startLine=""17"" startColumn=""24"" endLine=""17"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x71"" startLine=""17"" startColumn=""24"" endLine=""17"" endColumn=""30"" document=""1"" />
         <entry offset=""0x7a"" startLine=""17"" startColumn=""32"" endLine=""17"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x7e"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""30"" document=""1"" />
         <entry offset=""0x87"" startLine=""18"" startColumn=""32"" endLine=""18"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x89"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""30"" document=""1"" />
         <entry offset=""0x92"" startLine=""19"" startColumn=""32"" endLine=""19"" endColumn=""38"" document=""1"" />
         <entry offset=""0x94"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""1"" />
       </sequencePoints>

@@ -3031,6 +3031,7 @@ class Student : Person { public double GPA; }
         <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" document=""1"" />
         <entry offset=""0x4"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1d"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
         <entry offset=""0x30"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" document=""1"" />
         <entry offset=""0x53"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" document=""1"" />
         <entry offset=""0x74"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" document=""1"" />
@@ -3126,6 +3127,7 @@ class Student : Person { public double GPA; }
         <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
         <entry offset=""0xe"" hidden=""true"" document=""1"" />
         <entry offset=""0x1b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x47"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
         <entry offset=""0x5f"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""63"" document=""1"" />
         <entry offset=""0x7d"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""63"" document=""1"" />
         <entry offset=""0x8f"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""65"" document=""1"" />
@@ -3220,6 +3222,7 @@ class Student : Person { public double GPA; }
         <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
         <entry offset=""0xe"" hidden=""true"" document=""1"" />
         <entry offset=""0x1b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x47"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
         <entry offset=""0x60"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" document=""1"" />
         <entry offset=""0x7f"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""27"" document=""1"" />
         <entry offset=""0x92"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""27"" document=""1"" />
@@ -8400,7 +8403,11 @@ partial class C
         <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" document=""1"" />
         <entry offset=""0x3"" hidden=""true"" document=""1"" />
+        <entry offset=""0x32"" startLine=""7"" startColumn=""20"" endLine=""7"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x37"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""34"" document=""1"" />
         <entry offset=""0x3c"" startLine=""10"" startColumn=""17"" endLine=""10"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x3e"" startLine=""11"" startColumn=""20"" endLine=""11"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x43"" startLine=""13"" startColumn=""20"" endLine=""13"" endColumn=""34"" document=""1"" />
         <entry offset=""0x48"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""23"" document=""1"" />
         <entry offset=""0x4a"" startLine=""16"" startColumn=""17"" endLine=""16"" endColumn=""23"" document=""1"" />
         <entry offset=""0x4c"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""23"" document=""1"" />
