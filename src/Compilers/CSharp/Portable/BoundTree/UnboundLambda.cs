@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
 
         SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
+
+        BoundBlock IBoundLambdaOrFunction.Body { get => this.Body; }
     }
 
     internal sealed partial class BoundLambda : IBoundLambdaOrFunction

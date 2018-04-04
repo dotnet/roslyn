@@ -3,12 +3,14 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
+    [UseExportProvider]
     public class ClassificationTypeNamesTests
     {
         public static IEnumerable<object[]> AllClassificationTypeNames

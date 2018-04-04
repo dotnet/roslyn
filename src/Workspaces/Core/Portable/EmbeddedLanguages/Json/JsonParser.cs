@@ -29,6 +29,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private JsonLexer _lexer;
         private JsonToken _currentToken;
         private int _recursionDepth;
+
+        // Fields used to keep track of what types of json values we're in.  They're used for error
+        // recovery, specifically with respect to to encountering unexpected tokens while parsing
+        // out a sequence of values.  For example, if we have:  ```{ a: [1, 2, }```, we will mark
+        // that we're both in an object and in an array.  When we then encounter the errant ```}```,
+        // we'll see that we were in an object, and thus should stop parsing out the sequence for
+        // the array so that the ```}``` can be consume by the object we were in.  However, if we
+        // just had ```[1, 2, }```, we would not be in an object, and we would just consume the
+        // ```}``` as a bogus value inside the array.
+        //
+        // This approach of keeping track of the parse contexts we're in, and using them to
+        // determine if we should consume or pop-out when encountering an error token, mirrors the
+        // same approach that we use in the C# and TS/JS parsers.
         private bool _inObject;
         private bool _inArray;
         private bool _inConstructor;
@@ -62,8 +75,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             try
             {
-                var tree1 = new JsonParser(text).ParseTree(strict);
-                return tree1;
+                return new JsonParser(text).ParseTree(strict);
             }
             catch (Exception e) when (StackGuard.IsInsufficientExecutionStackException(e))
             {
@@ -82,6 +94,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             var diagnostic = GetFirstDiagnostic(root) ?? CheckTopLevel(_lexer.Text, root);
             if (diagnostic == null)
             {
+                // We didn't have any diagnostics in the tree so far.  Do the json.net/strict checks
+                // depending on how we were invoked.
                 diagnostic = strict
                     ? StrictSyntaxChecker.CheckSyntax(root)
                     : JsonNetSyntaxChecker.CheckSyntax(root);
@@ -95,12 +109,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 _lexer.Text, root, diagnostics);
         }
 
+        /// <summary>
+        /// Checks for errors in json for both json.net and strict mode.
+        /// </summary>
         private static EmbeddedDiagnostic? CheckTopLevel(
             ImmutableArray<VirtualChar> text, JsonCompilationUnit compilationUnit)
         {
             var arraySequence = compilationUnit.Sequence;
             if (arraySequence.ChildCount == 0)
             {
+                // json is not allowed to be just whitespace.
                 if (text.Length > 0 &&
                     compilationUnit.EndOfFileToken.LeadingTrivia.All(
                         t => t.Kind == JsonKind.WhitespaceTrivia || t.Kind == JsonKind.EndOfLineTrivia))
@@ -110,11 +128,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
             else if (arraySequence.ChildCount >= 2)
             {
+                // the top level can't have more than one actual value.
                 var firstToken = GetFirstToken(arraySequence.ChildAt(1).Node);
                 return new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0].Char),
                     firstToken.GetSpan());
             }
+
             foreach (var child in compilationUnit.Sequence)
             {
                 if (child.IsNode && child.Node.Kind == JsonKind.EmptyValue)

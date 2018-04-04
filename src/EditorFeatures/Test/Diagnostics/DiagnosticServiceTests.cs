@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
+    [UseExportProvider]
     public class DiagnosticServiceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
