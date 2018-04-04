@@ -733,28 +733,29 @@ class C
         </using>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
+          <slot kind=""temp"" />
         </encLocalSlotMap>
         <encLambdaMap>
           <methodOrdinal>0</methodOrdinal>
+          <lambda offset=""244"" />
           <lambda offset=""109"" />
           <lambda offset=""122"" />
           <lambda offset=""79"" />
-          <lambda offset=""185"" />
           <lambda offset=""161"" />
-          <lambda offset=""244"" />
+          <lambda offset=""185"" />
         </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""11"" endColumn=""40"" document=""1"" />
-        <entry offset=""0xe6"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xe8"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xe7"">
+      <scope startOffset=""0x0"" endOffset=""0xe9"">
         <namespace name=""System.Linq"" />
-        <local name=""result"" il_index=""0"" il_start=""0x0"" il_end=""0xe7"" attributes=""0"" />
+        <local name=""result"" il_index=""0"" il_start=""0x0"" il_end=""0xe9"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_0"" parameterNames=""a"">
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_1"" parameterNames=""a"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
       </customDebugInfo>
@@ -762,7 +763,7 @@ class C
         <entry offset=""0x0"" startLine=""9"" startColumn=""52"" endLine=""9"" endColumn=""57"" document=""1"" />
       </sequencePoints>
     </method>
-    <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_1"" parameterNames=""b"">
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_2"" parameterNames=""b"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
       </customDebugInfo>
@@ -770,20 +771,12 @@ class C
         <entry offset=""0x0"" startLine=""9"" startColumn=""65"" endLine=""9"" endColumn=""70"" document=""1"" />
       </sequencePoints>
     </method>
-    <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_2"" parameterNames=""a, b"">
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_3"" parameterNames=""a, b"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""70"" document=""1"" />
-      </sequencePoints>
-    </method>
-    <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_3"" parameterNames=""&lt;&gt;h__TransparentIdentifier0"">
-      <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""57"" endLine=""10"" endColumn=""74"" document=""1"" />
       </sequencePoints>
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_4"" parameterNames=""&lt;&gt;h__TransparentIdentifier0"">
@@ -794,7 +787,15 @@ class C
         <entry offset=""0x0"" startLine=""10"" startColumn=""33"" endLine=""10"" endColumn=""53"" document=""1"" />
       </sequencePoints>
     </method>
-    <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_5"" parameterNames=""d"">
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_5"" parameterNames=""&lt;&gt;h__TransparentIdentifier0"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""57"" endLine=""10"" endColumn=""74"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;F&gt;b__0_0"" parameterNames=""d"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""F"" />
       </customDebugInfo>

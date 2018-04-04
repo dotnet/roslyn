@@ -303,9 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundConversion conv = (BoundConversion)current;
                             switch (conv.ConversionKind)
                             {
-                                case ConversionKind.AnonymousFunction:
                                 case ConversionKind.ImplicitConstant:
-                                case ConversionKind.MethodGroup:
                                 case ConversionKind.DefaultOrNullLiteral:
                                     return true;
 
@@ -330,6 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     current = conv.Operand;
                                     break;
 
+                                case ConversionKind.AnonymousFunction:
+                                case ConversionKind.MethodGroup:
                                 case ConversionKind.ExplicitUserDefined:
                                 case ConversionKind.ImplicitUserDefined:
                                 // expression trees rewrite this later.
