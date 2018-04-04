@@ -2,16 +2,12 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal interface IRemoteHostService
     {
         string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken);
-        Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken);
-        Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken);
-
         void UpdateSolutionStorageLocation(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken);
 
         /// <summary>

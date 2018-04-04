@@ -131,7 +131,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService,
                     workspace.CurrentSolution,
-                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
+                    nameof(ISnapshotService.SynchronizeGlobalAssetsAsync),
                     new object[] { new Checksum[0] { } }, CancellationToken.None);
 
                 var storage = client.AssetStorage;
@@ -328,7 +328,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             await client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService, solution,
-                nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
+                nameof(ISnapshotService.SynchronizePrimaryWorkspaceAsync),
                 await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
         }
 
