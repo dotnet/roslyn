@@ -400,21 +400,36 @@ End Module").Path
             Yield {"/resource:", "a.vb", Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("resource", ":<resinfo>")}
             Yield {"/resource: ", "a.vb", Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("resource", ":<resinfo>")}
             Yield {"/resource", "a.vb", Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("resource", ":<resinfo>")}
-            Yield {"/RES+", "a.vb", Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/RES+")} ' TODO: Dev11 reports ERR_ArgumentRequired
-            Yield {"/res-:", "a.vb", Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/res-:")} ' TODO: Dev11 reports ERR_ArgumentRequired
             Yield {"/linkresource:", "a.vb", Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("linkresource", ":<resinfo>")}
             Yield {"/linkresource: ", "a.vb", Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("linkresource", ":<resinfo>")}
             Yield {"/linkresource", "a.vb", Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("linkresource", ":<resinfo>")}
-            Yield {"/linkRES+", "a.vb", Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/linkRES+")} ' TODO: Dev11 reports ERR_ArgumentRequired
-            Yield {"/linkres-:", "a.vb", Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/linkres-:")} ' TODO: Dev11 reports ERR_ArgumentRequired
+            'Yield {"/RES+", "a.vb", Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/RES+")} ' TODO: Dev11 reports ERR_ArgumentRequired
+            'Yield {"/res-:", "a.vb", Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/res-:")} ' TODO: Dev11 reports ERR_ArgumentRequired
+            'Yield {"/linkRES+", "a.vb", Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/linkRES+")} ' TODO: Dev11 reports ERR_ArgumentRequired
+            'Yield {"/linkres-:", "a.vb", Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/linkres-:")} ' TODO: Dev11 reports ERR_ArgumentRequired
         End Function
 
-        <Theory, MemberData("ManagedResourceOptions_SimpleErrors_Data")>
-        Public Sub ManagedResourceOptions_SimpleErrors(arg0 As String, arg1 As String, diag As DiagnosticDescription)
-            Dim parsedArgs = DefaultParse({arg0, arg1}, _baseDirectory)
-            parsedArgs.Errors.Verify(diag)
+        <Theory>
+        <InlineData({"/resource:", "a.vb"}, {"resource", ":<resinfo>"})>
+        <InlineData({"/resource: ", "a.vb"}, {"resource", ":<resinfo>"})>
+        <InlineData({"/resource", "a.vb"}, {"resource", ":<resinfo>"})>
+        <InlineData({"/linkresource:", "a.vb"}, {"linkresource", ":<resinfo>"})>
+        <InlineData({"/linkresource: ", "a.vb"}, {"linkresource", ":<resinfo>"})>
+        <InlineData({"/linkresource", "a.vb"}, {"linkresource", ":<resinfo>"})>
+        Public Sub ManagedResourceOptions_SimpleErrors_ERR_ArgumentRequired(Args() As String, WithArgs() As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments(WithArgs))
         End Sub
 
+        <Theory>
+        <InlineData({"/RES+", "a.vb"}, {"/RES+"})> ' TODO: Dev11 reports ERR_ArgumentRequired
+        <InlineData({"/res-:", "a.vb"}, {"/res-:"})> ' TODO: >Dev11 reports ERR_ArgumentRequired
+        <InlineData({"/linkRES+", "a.vb"}, {"/linkRES+"})> ' TODO: Dev11 reports ERR_ArgumentRequired
+        <InlineData({"/linkres-:", "a.vb"}, {"/linkres-:"})> ' TODO: Dev11 reports ERR_ArgumentRequired
+        Public Sub ManagedResourceOptions_SimpleErrors_WRN_BadSwitch(Args() As String, WithArgs() As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments(WithArgs))
+        End Sub
         <Fact>
         Public Sub ModuleManifest()
             Dim parsedArgs = DefaultParse({"/win32manifest:blah", "/target:module", "a.cs"}, _baseDirectory)
