@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
@@ -26,11 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
         public Document TargetDocument { get; }
         public string NotificationMessage { get; private set; }
 
-        private static readonly ExportProvider s_exportProvider = MinimalTestExportProvider.CreateExportProvider(
-            TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
-            typeof(CSharpEncapsulateFieldService),
-            typeof(EditorNotificationServiceFactory),
-            typeof(DefaultDocumentSupportsFeatureService)));
+        private static readonly IExportProviderFactory s_exportProviderFactory =
+            ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
+                    typeof(CSharpEncapsulateFieldService),
+                    typeof(EditorNotificationServiceFactory),
+                    typeof(DefaultDocumentSupportsFeatureService)));
 
         public EncapsulateFieldTestState(TestWorkspace workspace)
         {
@@ -45,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
 
         public static EncapsulateFieldTestState Create(string markup)
         {
-            var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: s_exportProvider);
+            var exportProvider = s_exportProviderFactory.CreateExportProvider();
+            var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
             workspace.Options = workspace.Options
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement)
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement);

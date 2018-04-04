@@ -2,32 +2,31 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
-using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Text.Classification;
 using UIAutomationClient;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 using ControlType = System.Windows.Automation.ControlType;
+using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -264,25 +263,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public ClassifiedToken[] GetLightbulbPreviewClassifications(string menuText)
         {
-            return ExecuteOnActiveView(view =>
+            return ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var view = GetActiveTextView();
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
                 var classifierAggregatorService = GetComponentModelService<IViewClassifierAggregatorService>();
-                return GetLightbulbPreviewClassifications(
+                return await GetLightbulbPreviewClassificationsAsync(
                     menuText,
                     broker,
                     view,
-                    classifierAggregatorService);
+                    classifierAggregatorService).ConfigureAwait(false);
             });
         }
 
-        private ClassifiedToken[] GetLightbulbPreviewClassifications(
-                    string menuText,
-                    ILightBulbBroker broker,
-                    IWpfTextView view,
-                    IViewClassifierAggregatorService viewClassifierAggregator)
+        private async Task<ClassifiedToken[]> GetLightbulbPreviewClassificationsAsync(
+            string menuText,
+            ILightBulbBroker broker,
+            IWpfTextView view,
+            IViewClassifierAggregatorService viewClassifierAggregator)
         {
-            LightBulbHelper.WaitForLightBulbSession(broker, view);
+            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view).ConfigureAwait(true);
 
             var bufferType = view.TextBuffer.ContentType.DisplayName;
             if (!broker.IsLightBulbSessionActive(view))
@@ -311,7 +313,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
 
                 IWpfTextView preview = null;
-                object pane = HostWaitHelper.PumpingWaitResult(set.GetPreviewAsync(CancellationToken.None));
+                object pane = await set.GetPreviewAsync(CancellationToken.None).ConfigureAwait(true);
                 if (pane is System.Windows.Controls.UserControl)
                 {
                     var container = ((System.Windows.Controls.UserControl)pane).FindName("PreviewDockPanel") as DockPanel;

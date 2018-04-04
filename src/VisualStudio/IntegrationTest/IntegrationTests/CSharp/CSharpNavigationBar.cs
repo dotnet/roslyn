@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -32,7 +33,7 @@ struct S
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar()
         {
             SetUpEditor(TestSource);
@@ -52,7 +53,7 @@ struct S
             VisualStudio.Editor.Verify.CurrentLineText("public static bool operator $$!=(C c1, C c2) { return false; }", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar2()
         {
             SetUpEditor(TestSource);
@@ -74,7 +75,7 @@ struct S
             VisualStudio.Editor.Verify.CurrentLineText("$$struct S", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar3()
         {
             SetUpEditor(@"
@@ -97,7 +98,7 @@ struct S$$
             VerifyRightSelected("Goo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void TestSplitWindow()
         {
             VisualStudio.Editor.SetText(@"
@@ -122,7 +123,7 @@ struct S
             VerifyRightSelected("Goo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyOption()
         {
             VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "False");

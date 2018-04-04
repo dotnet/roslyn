@@ -27,6 +27,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
+    [UseExportProvider]
     public class PreviewWorkspaceTests
     {
         [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [WpfFact]
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
-            using (var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.CreateExportProvider()))
+            using (var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider))
             {
                 // set up listener to wait until diagnostic finish running
                 var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
