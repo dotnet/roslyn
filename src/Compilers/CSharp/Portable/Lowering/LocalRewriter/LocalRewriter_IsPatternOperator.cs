@@ -89,10 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 LabelSymbol failureLabel = new GeneratedLabelSymbol("failure");
                 BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(compilation, pattern.Syntax, loweredInput, pattern, failureLabel, diagnostics, out LabelSymbol successLabel);
-                if (loweredInput.ConstantValue != null)
-                {
-                    decisionDag = decisionDag.SimplifyDecisionDagForConstantInput(loweredInput, _localRewriter._compilation.Conversions, diagnostics);
-                }
+                decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(loweredInput);
 
                 // The optimization of sharing pattern-matching temps with user variables can always apply to
                 // an is-pattern expression because there is no when clause that could possibly intervene during

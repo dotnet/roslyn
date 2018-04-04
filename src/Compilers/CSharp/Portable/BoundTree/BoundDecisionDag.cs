@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -77,18 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given a decision dag and a constant-valued input, produce a simplified decision dag that has removed all the
-        /// tests that are unnecessary due to that constant value. This simplification affects flow analysis (reachability
-        /// and definite assignment) and permits us to simplify the generated code.
+        /// Rewrite a decision dag, using a mapping function that rewrites one node at a time. That function
+        /// takes as its input the node to be rewritten and a function that returns the previously computed
+        /// rewritten node for successor nodes.
         /// </summary>
-        public BoundDecisionDag SimplifyDecisionDagForConstantInput(
-            BoundExpression input,
-            Conversions conversions,
-            DiagnosticBag diagnostics)
+        public BoundDecisionDag Rewrite(Func<BoundDecisionDagNode, Func<BoundDecisionDagNode, BoundDecisionDagNode>, BoundDecisionDagNode> makeReplacement)
         {
-            ConstantValue inputConstant = input.ConstantValue;
-            Debug.Assert(inputConstant != null);
-
             // First, we topologically sort the nodes of the dag so that we can translate the nodes bottom-up.
             // This will avoid overflowing the compiler's runtime stack which would occur for a large switch
             // statement if we were using a recursive strategy.
@@ -98,12 +93,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a node's successors before the node, the replacement should always be in the cache when we need it.
             var replacement = PooledDictionary<BoundDecisionDagNode, BoundDecisionDagNode>.GetInstance();
 
+            Func<BoundDecisionDagNode, BoundDecisionDagNode> getReplacementForChild = n => replacement[n];
+
             // Loop backwards through the topologically sorted nodes to translate them, so that we always visit a node after its successors
             for (int i = sortedNodes.Length - 1; i >= 0; i--)
             {
                 BoundDecisionDagNode node = sortedNodes[i];
                 Debug.Assert(!replacement.ContainsKey(node));
-                BoundDecisionDagNode newNode = makeReplacement(node);
+                BoundDecisionDagNode newNode = makeReplacement(node, getReplacementForChild);
                 replacement.Add(node, newNode);
             }
 
@@ -111,75 +108,89 @@ namespace Microsoft.CodeAnalysis.CSharp
             var newRoot = replacement[this.RootNode];
             replacement.Free();
             return this.Update(newRoot);
+        }
 
-            // Make a replacement for a given node, using the precomputed replacements for its successors.
-            BoundDecisionDagNode makeReplacement(BoundDecisionDagNode dag)
+        /// <summary>
+        /// A trivial node replacement function for use with <see cref="Rewrite(Func{BoundDecisionDagNode, Func{BoundDecisionDagNode, BoundDecisionDagNode}, BoundDecisionDagNode})"/>.
+        /// </summary>
+        /// <param name="dag"></param>
+        /// <param name="replacement"></param>
+        /// <returns></returns>
+        public BoundDecisionDagNode TrivialReplacement(BoundDecisionDagNode dag, Func<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
+        {
+            switch (dag)
             {
-                switch (dag)
+                case BoundEvaluationDecisionDagNode p:
+                    return p.Update(p.Evaluation, replacement(p.Next));
+                case BoundTestDecisionDagNode p:
+                    return p.Update(p.Test, replacement(p.WhenTrue), replacement(p.WhenFalse));
+                case BoundWhenDecisionDagNode p:
+                    return p.Update(p.Bindings, p.WhenExpression, replacement(p.WhenTrue), (p.WhenFalse != null) ? replacement(p.WhenFalse) : null);
+                case BoundLeafDecisionDagNode p:
+                    return p;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(dag);
+            }
+        }
+
+        /// <summary>
+        /// Given a decision dag and a constant-valued input, produce a simplified decision dag that has removed all the
+        /// tests that are unnecessary due to that constant value. This simplification affects flow analysis (reachability
+        /// and definite assignment) and permits us to simplify the generated code.
+        /// </summary>
+        public BoundDecisionDag SimplifyDecisionDagIfConstantInput(BoundExpression input)
+        {
+            if (input.ConstantValue == null)
+            {
+                return this;
+            }
+            else
+            {
+                ConstantValue inputConstant = input.ConstantValue;
+                return Rewrite(makeReplacement);
+
+                // Make a replacement for a given node, using the precomputed replacements for its successors.
+                BoundDecisionDagNode makeReplacement(BoundDecisionDagNode dag, Func<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
                 {
-                    case BoundEvaluationDecisionDagNode p:
-                        return p.Update(p.Evaluation, replacement[p.Next]);
-                    case BoundTestDecisionDagNode p:
+                    if (dag is BoundTestDecisionDagNode p)
+                    {
                         // This is the key to the optimization. The result of a top-level test might be known if the input is constant.
                         switch (knownResult(p.Test))
                         {
                             case true:
-                                return replacement[p.WhenTrue];
+                                return replacement(p.WhenTrue);
                             case false:
-                                return replacement[p.WhenFalse];
-                            default:
-                                return p.Update(p.Test, replacement[p.WhenTrue], replacement[p.WhenFalse]);
+                                return replacement(p.WhenFalse);
                         }
-                    case BoundWhenDecisionDagNode p:
-                        if (p.WhenExpression == null || p.WhenExpression.ConstantValue == ConstantValue.True)
-                        {
-                            return p.Update(p.Bindings, p.WhenExpression, replacement[p.WhenTrue], null);
-                        }
-                        else if (p.WhenExpression.ConstantValue == ConstantValue.False)
-                        {
-                            // It is possible in this case that we could eliminate some predecessor nodes, for example
-                            // those that compute evaluations only needed to get to this decision. We do not bother,
-                            // as that optimization would only be likely to affect test code.
-                            return replacement[p.WhenFalse];
-                        }
-                        else
-                        {
-                            return p.Update(p.Bindings, p.WhenExpression, replacement[p.WhenTrue], replacement[p.WhenFalse]);
-                        }
-                    case BoundLeafDecisionDagNode p:
-                        return p;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(dag);
+                    }
+
+                    return TrivialReplacement(dag, replacement);
+                }
+
+                // Is the decision's result known because the input is a constant?
+                bool? knownResult(BoundDagTest choice)
+                {
+                    if (!choice.Input.IsOriginalInput)
+                    {
+                        // This is a test of something other than the main input; result unknown
+                        return null;
+                    }
+
+                    switch (choice)
+                    {
+                        case BoundDagNullTest d:
+                            return inputConstant.IsNull;
+                        case BoundDagNonNullTest d:
+                            return !inputConstant.IsNull;
+                        case BoundDagValueTest d:
+                            return d.Value == inputConstant;
+                        case BoundDagTypeTest d:
+                            return inputConstant.IsNull ? (bool?)false : null;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(choice);
+                    }
                 }
             }
-
-            // Is the decision's result known because the input is a constant?
-            bool? knownResult(BoundDagTest choice)
-            {
-                if (!choice.Input.IsOriginalInput)
-                {
-                    // This is a test of something other than the main input; result unknown
-                    return null;
-                }
-
-                switch (choice)
-                {
-                    case BoundDagNullTest d:
-                        return inputConstant.IsNull;
-                    case BoundDagNonNullTest d:
-                        return !inputConstant.IsNull;
-                    case BoundDagValueTest d:
-                        return d.Value == inputConstant;
-                    case BoundDagTypeTest d:
-                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                        bool? known = Binder.ExpressionOfTypeMatchesPatternType(conversions, input.Type, d.Type, ref useSiteDiagnostics, out Conversion conversion, inputConstant, inputConstant.IsNull);
-                        diagnostics.Add(d.Syntax, useSiteDiagnostics);
-                        return known;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(choice);
-                }
-            }
-
         }
     }
 }
