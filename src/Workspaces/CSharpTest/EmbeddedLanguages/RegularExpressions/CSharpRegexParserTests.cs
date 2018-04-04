@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         private void Test(string stringText, string expected, RegexOptions options, 
             bool runSubTreeTests = true, [CallerMemberName]string name = "",
             bool allowIndexOutOfRange = true,
-            bool allowNullReference = true,
+            bool allowNullReference = false,
             bool allowOutOfMemory = false)
         {
             var tree = TryParseTree(stringText, options, conversionFailureOk: false,

@@ -1220,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowNullReference: true);
         }
 
         [Fact]
@@ -1278,7 +1278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowNullReference: true);
         }
 
         [Fact]
@@ -1305,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowNullReference: true);
         }
 
         [Fact]
@@ -1332,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowNullReference: true);
         }
 
         [Fact]
@@ -1359,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowNullReference: true);
         }
 
         [Fact]
@@ -1386,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowNullReference: true);
         }
 
         [Fact]
@@ -1413,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowNullReference: true);
         }
 
         [Fact]
@@ -1440,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowNullReference: true);
         }
 
         [Fact]
@@ -1467,7 +1467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowNullReference: true);
         }
 
         [Fact]
@@ -2109,7 +2109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
   <Captures>
     <Capture Name=""0"" Span=""[10..17)"" />
   </Captures>
-</Tree>", RegexOptions.None);
+</Tree>", RegexOptions.None, allowNullReference: true);
         }
 
         [Fact]
