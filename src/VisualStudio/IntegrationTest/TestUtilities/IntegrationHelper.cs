@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             try
             {
                 // No need to re-attach threads in case when VS initializaed an UI thread for a debugged application.
-                if (!skipAttachingThread)
+                if (!skipAttachingThread && activeThreadId != currentThreadId)
                 {
                     // Attach the thread inputs so that 'SetActiveWindow' and 'SetFocus' work
                     threadInputsAttached = AttachThreadInput(currentThreadId, activeThreadId);

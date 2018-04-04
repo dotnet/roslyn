@@ -867,6 +867,8 @@ class Program
                     var document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
                     await CheckResultsAsync(document2, position, isBuilder);
                 }
+
+                workspaceFixture.DisposeAfterTest();
             }
         }
 

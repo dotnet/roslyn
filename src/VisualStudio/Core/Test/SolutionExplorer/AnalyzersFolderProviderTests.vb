@@ -10,6 +10,7 @@ Imports Microsoft.VisualStudio.Shell
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
+    <[UseExportProvider]>
     Public Class AnalyzersFolderProviderTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>

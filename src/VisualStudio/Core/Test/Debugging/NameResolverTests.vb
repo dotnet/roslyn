@@ -10,6 +10,7 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
 
+    <[UseExportProvider]>
     Public Class NameResolverTests
 
         Private Function TestAsync(text As String, searchText As String, ParamArray expectedNames() As String) As Tasks.Task
