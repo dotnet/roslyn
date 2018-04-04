@@ -75,8 +75,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         {
             try
             {
-                var tree1 = new JsonParser(text).ParseTree(strict);
-                return tree1;
+                return new JsonParser(text).ParseTree(strict);
             }
             catch (Exception e) when (StackGuard.IsInsufficientExecutionStackException(e))
             {
