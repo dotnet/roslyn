@@ -107,6 +107,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 _lexer.Text, root, diagnostics);
         }
 
+        /// <summary>
+        /// Checks for errors in json for both json.net and strict mode.
+        /// </summary>
         private static EmbeddedDiagnostic? CheckTopLevel(
             ImmutableArray<VirtualChar> text, JsonCompilationUnit compilationUnit)
         {
@@ -122,11 +125,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
             else if (arraySequence.ChildCount >= 2)
             {
+                // the top level can't have more than one actual value.
                 var firstToken = GetFirstToken(arraySequence.ChildAt(1).Node);
                 return new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0].Char),
                     firstToken.GetSpan());
             }
+
             foreach (var child in compilationUnit.Sequence)
             {
                 if (child.IsNode && child.Node.Kind == JsonKind.EmptyValue)
