@@ -89,7 +89,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Other
         }
 
         [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
         public void AllConfigurationsUpdated()
         {
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
