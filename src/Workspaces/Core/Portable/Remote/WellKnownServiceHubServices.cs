@@ -17,12 +17,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public static string CodeAnalysisService { get; private set; } = "roslynCodeAnalysis";
         public static string RemoteSymbolSearchUpdateEngine { get; private set; } = "roslynRemoteSymbolSearchUpdateEngine";
 
-        // CodeLens methods.
-        public const string CodeAnalysisService_GetReferenceCountAsync = "GetReferenceCountAsync";
-        public const string CodeAnalysisService_FindReferenceLocationsAsync = "FindReferenceLocationsAsync";
-        public const string CodeAnalysisService_FindReferenceMethodsAsync = "FindReferenceMethodsAsync";
-        public const string CodeAnalysisService_GetFullyQualifiedName = "GetFullyQualifiedName";
-
         public const string ServiceHubServiceBase_Initialize = "Initialize";
         public const string AssetService_RequestAssetAsync = "RequestAssetAsync";
     }
