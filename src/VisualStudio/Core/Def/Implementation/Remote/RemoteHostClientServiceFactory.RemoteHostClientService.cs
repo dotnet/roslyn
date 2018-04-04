@@ -197,8 +197,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // send over global asset
                 await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.SnapshotService, _workspace.CurrentSolution,
-                    nameof(ISnapshotService.SynchronizeGlobalAssetsAsync),
+                    WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
+                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
                     (object)checksums, cancellationToken).ConfigureAwait(false);
 
                 return client;

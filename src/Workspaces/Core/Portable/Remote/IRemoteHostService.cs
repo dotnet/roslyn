@@ -2,12 +2,14 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal interface IRemoteHostService
     {
         string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken);
+
         void UpdateSolutionStorageLocation(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken);
 
         /// <summary>
@@ -23,5 +25,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </remarks>
         void OnGlobalOperationStarted(string unused);
         void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled);
+
+        /// <summary>
+        /// Synchronize data to OOP proactively without anyone asking for it to make most of operation
+        /// faster
+        /// </summary>
+        Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken);
+        Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken);
     }
 }

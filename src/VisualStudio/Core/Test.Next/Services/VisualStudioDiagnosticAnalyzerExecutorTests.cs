@@ -146,8 +146,8 @@ End Class";
 
                 var client = await workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(CancellationToken.None);
                 await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.SnapshotService, workspace.CurrentSolution,
-                    nameof(ISnapshotService.SynchronizeGlobalAssetsAsync), (object)(new Checksum[] { asset.Checksum }), CancellationToken.None);
+                    WellKnownRemoteHostServices.RemoteHostService, workspace.CurrentSolution,
+                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync), (object)(new Checksum[] { asset.Checksum }), CancellationToken.None);
 
                 // set option
                 workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
@@ -195,8 +195,8 @@ End Class";
 
                 var client = await workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(CancellationToken.None);
                 await client.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.SnapshotService, workspace.CurrentSolution,
-                    nameof(ISnapshotService.SynchronizeGlobalAssetsAsync), (object)(new Checksum[] { asset.Checksum }), CancellationToken.None);
+                    WellKnownRemoteHostServices.RemoteHostService, workspace.CurrentSolution,
+                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync), (object)(new Checksum[] { asset.Checksum }), CancellationToken.None);
 
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(analyzerReference);

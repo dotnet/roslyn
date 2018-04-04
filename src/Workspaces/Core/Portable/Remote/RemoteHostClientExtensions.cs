@@ -254,8 +254,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
                 await remoteHostClient.TryRunRemoteAsync(
-                    WellKnownServiceHubServices.SnapshotService, solution,
-                    nameof(ISnapshotService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken).ConfigureAwait(false);
+                    WellKnownRemoteHostServices.RemoteHostService, solution,
+                    nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync), checksum, cancellationToken).ConfigureAwait(false);
             }
         }
 
