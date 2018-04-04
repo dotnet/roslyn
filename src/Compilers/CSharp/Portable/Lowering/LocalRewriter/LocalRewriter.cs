@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
             }
 
-            var oldContainingSymbol = _factory.CurrentMethod;
+            var oldContainingSymbol = _factory.CurrentFunction;
             try
             {
                 _factory.CurrentFunction = node.Symbol;
