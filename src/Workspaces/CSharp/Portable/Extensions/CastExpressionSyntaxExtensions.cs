@@ -11,10 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class CastExpressionSyntaxExtensions
     {
-        private static ITypeSymbol GetOuterCastType(ExpressionSyntax expression, SemanticModel semanticModel, out bool parentIsOrAsExpression)
+        private static ITypeSymbol GetOuterCastType(ExpressionSyntax expression, SemanticModel semanticModel,
+            out bool parentIsIsOrAsExpression)
         {
             expression = expression.WalkUpParentheses();
-            parentIsOrAsExpression = false;
+            parentIsIsOrAsExpression = false;
 
             var parentNode = expression.Parent;
             if (parentNode == null)
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (parentNode.IsKind(SyntaxKind.IsExpression) ||
                 parentNode.IsKind(SyntaxKind.AsExpression))
             {
-                parentIsOrAsExpression = true;
+                parentIsIsOrAsExpression = true;
                 return null;
             }
 
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 !semanticModel.GetConversion(expression).IsUserDefined)
             {
                 var parentExpression = (ExpressionSyntax)parentNode;
-                return GetOuterCastType(parentExpression, semanticModel, out parentIsOrAsExpression) ?? semanticModel.GetTypeInfo(parentExpression).ConvertedType;
+                return GetOuterCastType(parentExpression, semanticModel, out parentIsIsOrAsExpression) ?? semanticModel.GetTypeInfo(parentExpression).ConvertedType;
             }
 
             return null;

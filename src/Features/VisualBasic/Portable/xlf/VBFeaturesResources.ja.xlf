@@ -1801,11 +1801,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Me' を追加します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_If_to_Select_Case">
-        <source>Convert 'If' to 'Select Case'</source>
-        <target state="translated">If' を 'Select Case' に変換する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">
         <source>Use 'Is Nothing' check</source>
         <target state="translated">Is Nothing' チェックを使用します</target>
@@ -1816,9 +1811,19 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">IsNot Nothing' チェックを使用します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_For_to_For_Each">
-        <source>Convert 'For' to 'For Each'</source>
-        <target state="new">Convert 'For' to 'For Each'</target>
+      <trans-unit id="Convert_to_Select_Case">
+        <source>Convert to 'Select Case'</source>
+        <target state="new">Convert to 'Select Case'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For_Each">
+        <source>Convert to 'For Each'</source>
+        <target state="new">Convert to 'For Each'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For">
+        <source>Convert  to 'For'</source>
+        <target state="new">Convert  to 'For'</target>
         <note />
       </trans-unit>
     </body>

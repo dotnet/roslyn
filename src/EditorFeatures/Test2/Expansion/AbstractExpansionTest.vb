@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Simplification
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
+    <[UseExportProvider]>
     Public MustInherit Class AbstractExpansionTest
 
         Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional useLastProject As Boolean = False, Optional expandParameter As Boolean = False) As System.Threading.Tasks.Task
