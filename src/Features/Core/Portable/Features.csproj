@@ -84,6 +84,7 @@
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.Roslyn" />
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.ReferencesProvider" />
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.CodeSense.TestsProvider" />
+    <InternalsVisibleToCompletionTests Include="Microsoft.VisualStudio.Completion.Tests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
