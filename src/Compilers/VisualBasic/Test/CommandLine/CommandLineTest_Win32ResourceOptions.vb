@@ -169,36 +169,25 @@ End Module").Path
             CheckWin32ResourceOptions({"/nowin32manifest", "/nowin32manifest"}, Nothing, Nothing, Nothing, True)
         End Sub
 
-        <Fact>
-        Public Sub Win32ResourceOptions_SimplyInvalid()
+        <Theory>
+        <InlineData({"/win32resource", "a.vb"}, {"win32resource", ":<file>"})>
+        <InlineData({"/win32icon", "a.vb"}, {"win32icon", ":<file>"})>
+        <InlineData({"/win32manifest", "a.vb"}, {"win32manifest", ":<file>"})>
+        Public Sub Win32ResourceOptions_SimplyInvalid_ERR_ArgumentRequired(Args() As String, WithArgs() As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments(WithArgs))
+        End Sub
 
-            Dim parsedArgs = DefaultParse({"/win32resource", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32resource", ":<file>"))
-
-            parsedArgs = DefaultParse({"/win32resource+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/win32resource+")) ' TODO: Dev11 reports ERR_ArgumentRequired
-
-            parsedArgs = DefaultParse({"/win32resource-", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/win32resource-")) ' TODO: Dev11 reports ERR_ArgumentRequired
-
-            parsedArgs = DefaultParse({"/win32icon", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32icon", ":<file>"))
-
-            parsedArgs = DefaultParse({"/win32icon+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/win32icon+")) ' TODO: Dev11 reports ERR_ArgumentRequired
-
-            parsedArgs = DefaultParse({"/win32icon-", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/win32icon-")) ' TODO: Dev11 reports ERR_ArgumentRequired
-
-            parsedArgs = DefaultParse({"/win32manifest", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("win32manifest", ":<file>"))
-
-            parsedArgs = DefaultParse({"/win32manifest+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/win32manifest+")) ' TODO: Dev11 reports ERR_ArgumentRequired
-
-            parsedArgs = DefaultParse({"/win32manifest-", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/win32manifest-")) ' TODO: Dev11 reports ERR_ArgumentRequired
-
+        <Theory>
+        <InlineData({"/win32resource+", "a.vb"}, {"/win32resource+"})>
+        <InlineData({"/win32resource-", "a.vb"}, {"/win32resource-"})>
+        <InlineData({"/win32icon+", "a.vb"}, {"/win32icon+"})>
+        <InlineData({"/win32icon-", "a.vb"}, {"/win32icon-"})>
+        <InlineData({"/win32manifest+", "a.vb"}, {"/win32manifest+"})>
+        <InlineData({"/win32manifest-", "a.vb"}, {"/win32manifest-"})>
+        Public Sub Win32ResourceOptions_SimplyInvalid_WRN_BadSwitch(Args() As String, WithArgs() As String)
+            Dim parsedArgs = DefaultParse(Args, _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments(WithArgs)) ' TODO: Dev11 reports ERR_ArgumentRequired
         End Sub
 
         Private Sub CheckWin32ResourceOptions(args As String(), expectedResourceFile As String, expectedIcon As String, expectedManifest As String, expectedNoManifest As Boolean, ParamArray diags As DiagnosticDescription())
@@ -223,7 +212,7 @@ End Module").Path
         <InlineData("resource", "path, ", "path", "path", True)>
         <InlineData("resource", "path,name,", "path", "name", True)>
         <InlineData("resource", "path,name,,", "path", "name", True)>
-        <InlineData("resource", "path, ,private", "path", "name", False)>
+        <InlineData("resource", "path, ,private", "path", "path", False)>
         Public Sub ParseResourceDescription(ResourceName As String, ResourceDescription As String, Expected_FileName As String, Expected_ResourceName As String, Expected_IsPublic As Boolean)
             Dim diags = New List(Of Diagnostic)()
             Dim desc As ResourceDescription
