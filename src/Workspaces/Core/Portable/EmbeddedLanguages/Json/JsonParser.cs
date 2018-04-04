@@ -29,6 +29,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private JsonLexer _lexer;
         private JsonToken _currentToken;
         private int _recursionDepth;
+
+        // Fields used to keep track of what types of json values we're in.  They're used for error
+        // recovery, specifically with respect to to encountering unexpected tokens while parsing
+        // out a sequence of values.  For example, if we have:  ```{ a: [1, 2, }```, we will mark
+        // that we're both in an object and in an array.  When we then encounter the errant ```}```,
+        // we'll see that we were in an object, and thus should stop parsing out the sequence for
+        // the array so that the ```}``` can be consume by the object we were in.  However, if we
+        // just had ```[1, 2, }```, we would not be in an object, and we would just consume the
+        // ```}``` as a bogus value inside the array.
+        //
+        // This approach of keeping track of the parse contexts we're in, and using them to
+        // determine if we should consume or pop-out when encountering an error token, mirrors the
+        // same approach that we use in the C# and TS/JS parsers.
         private bool _inObject;
         private bool _inArray;
         private bool _inConstructor;
