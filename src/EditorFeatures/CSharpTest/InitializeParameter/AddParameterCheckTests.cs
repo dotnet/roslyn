@@ -910,6 +910,38 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnSimpleLambdaParameter_EmptyBlock()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Action<string> f = [||]s => { };
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        Action<string> f = s =>
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestOnParenthesizedLambdaParameter()
         {
             await TestInRegularAndScript1Async(

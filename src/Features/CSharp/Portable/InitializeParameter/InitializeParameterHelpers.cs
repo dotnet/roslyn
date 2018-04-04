@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     // Otherwise, we have no statements in this block.  Add the new statement
                     // as the single statement the block will have.
                     Debug.Assert(block.Statements.Count == 0);
-                    editor.ReplaceNode(block, block.AddStatements(statement));
+                    editor.ReplaceNode(block, (currentBlock, _) => ((BlockSyntax)currentBlock).AddStatements(statement));
                 }
 
                 // If the block was on a single line before, the format it so that the formatting
