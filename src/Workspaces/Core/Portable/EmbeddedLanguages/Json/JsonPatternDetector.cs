@@ -265,11 +265,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         public bool IsProbablyJson(SyntaxToken token, CancellationToken cancellationToken)
         {
-            if (IsDefinitelyNotJson(token, _syntaxFacts))
-            {
-                return false;
-            }
-
             var tree = TryParseJson(token, cancellationToken);
             if (tree == null || !tree.Diagnostics.IsEmpty)
             {
