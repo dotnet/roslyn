@@ -381,6 +381,42 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 ";
         #endregion A string containing expression-tree dumping utilities
 
+        [Fact]
+        public void ExprLambdaIndexerCompoundAssignment()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+using System.Linq.Expressions;
+
+class C
+{
+    private static Expression<Func<int>> _f1;
+    private static Expression<Func<int>> _f2;
+
+    public static void Main() {
+        var c = new C();
+        c[() => 0] += 1;
+        Console.WriteLine(object.ReferenceEquals(_f1, _f2));
+    }
+
+    int this[Expression<Func<int>> f] {
+        get
+        {
+            Console.WriteLine(f.Compile()());
+            _f1 = f;
+            return 0;
+        }
+        set
+        {
+            Console.WriteLine(f.Compile()());
+            _f2 = f;
+        }
+    }
+}", expectedOutput: @"0
+0
+True");
+        }
+
         [WorkItem(544283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544283")]
         [Fact]
         public void MissingLibrary()
