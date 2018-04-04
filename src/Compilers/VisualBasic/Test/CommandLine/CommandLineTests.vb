@@ -6616,6 +6616,7 @@ out
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
+#Region "RuleSet Tests"
         <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_GeneralCommandLineOptionOverridesGeneralRuleSetOption()
             Dim dir = Temp.CreateDirectory()
@@ -6848,6 +6849,7 @@ out
             Assert.Equal(expected:=1, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions.Count)
             Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=arguments.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
+#End Region
 
         <Fact>
         Public Sub ReportAnalyzer()
