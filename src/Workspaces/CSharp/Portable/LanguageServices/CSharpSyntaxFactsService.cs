@@ -201,6 +201,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node is AnonymousMethodExpressionSyntax;
         }
 
+        public bool IsLocalFunction(SyntaxNode node)
+        {
+            return node is LocalFunctionStatementSyntax;
+        }
+
         public bool IsGenericName(SyntaxNode node)
         {
             return node is GenericNameSyntax;
@@ -689,10 +694,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public RefKind GetRefKindOfArgument(SyntaxNode node)
             => (node as ArgumentSyntax).GetRefKind();
 
+        public bool IsArgument(SyntaxNode node)
+            => node.Kind() == SyntaxKind.Argument;
+
         public bool IsSimpleArgument(SyntaxNode node)
         {
-            var argument = (ArgumentSyntax)node;
-            return argument.RefOrOutKeyword.Kind() == SyntaxKind.None &&
+            var argument = node as ArgumentSyntax;
+            return argument != null &&
+                   argument.RefOrOutKeyword.Kind() == SyntaxKind.None &&
                    argument.NameColon == null;
         }
 
@@ -1410,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => GetArgumentsOfArgumentList((invocationExpression as ObjectCreationExpressionSyntax)?.ArgumentList);
 
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
-            => (argumentList as ArgumentListSyntax)?.Arguments ?? default(SeparatedSyntaxList<SyntaxNode>);
+            => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default(SeparatedSyntaxList<SyntaxNode>);
 
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
@@ -1536,22 +1545,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node)
-        {
-            return ((SimpleNameSyntax)node).Identifier;
-        }
+            => ((SimpleNameSyntax)node).Identifier;
 
         public SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node)
-        {
-            return ((VariableDeclaratorSyntax)node).Identifier;
-        }
+            => ((VariableDeclaratorSyntax)node).Identifier;
 
         public bool IsIdentifierName(SyntaxNode node)
             => node.IsKind(SyntaxKind.IdentifierName);
 
         public bool IsLocalDeclarationStatement(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.LocalDeclarationStatement);
-        }
+            => node.IsKind(SyntaxKind.LocalDeclarationStatement);
+
+        public bool IsLocalFunctionStatement(SyntaxNode node)
+            => node.IsKind(SyntaxKind.LocalFunctionStatement);
 
         public bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement)
         {
@@ -1820,8 +1826,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetInitializerOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclaratorSyntax)node).Initializer;
 
+        public SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node)
+            => ((VariableDeclarationSyntax)((VariableDeclaratorSyntax)node).Parent).Type;
+
         public SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node)
-            => ((EqualsValueClauseSyntax)node).Value;
+            => ((EqualsValueClauseSyntax)node)?.Value;
 
         public bool IsExecutableBlock(SyntaxNode node)
             => node.IsKind(SyntaxKind.Block);

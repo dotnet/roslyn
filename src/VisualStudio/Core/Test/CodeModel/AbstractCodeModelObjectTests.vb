@@ -2,8 +2,10 @@
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
+    <[UseExportProvider]>
     Partial Public MustInherit Class AbstractCodeModelObjectTests(Of TCodeModelObject As Class)
 
         Protected MustOverride ReadOnly Property LanguageName As String

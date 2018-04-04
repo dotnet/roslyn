@@ -64,8 +64,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string ValidateFormatStringDiagnosticID = "IDE0043";
 
-        public const string RemoveUnnecessaryParenthesesDiagnosticId = "IDE0044";
-        public const string AddRequiredParenthesesDiagnosticId = "IDE0045";
+        public const string MakeFieldReadonlyDiagnosticId = "IDE0044";
+
+        public const string RemoveUnnecessaryParenthesesDiagnosticId = "IDE0045";
+        public const string AddRequiredParenthesesDiagnosticId = "IDE0046";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

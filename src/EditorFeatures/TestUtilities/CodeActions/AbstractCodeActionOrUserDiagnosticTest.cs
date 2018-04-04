@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -24,6 +25,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
+    [UseExportProvider]
     public abstract class AbstractCodeActionOrUserDiagnosticTest
     {
         public struct TestParameters
@@ -72,12 +74,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected abstract TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters);
 
+        private TestParameters WithRegularOptions(TestParameters parameters)
+            => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Regular));
+
+        private TestParameters WithScriptOptions(TestParameters parameters)
+            => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Script) ?? GetScriptOptions());
+
         protected async Task TestMissingInRegularAndScriptAsync(
             string initialMarkup,
             TestParameters parameters = default(TestParameters))
         {
-            await TestMissingAsync(initialMarkup, parameters.WithParseOptions(null));
-            await TestMissingAsync(initialMarkup, parameters.WithParseOptions(GetScriptOptions()));
+            await TestMissingAsync(initialMarkup, WithRegularOptions(parameters));
+            await TestMissingAsync(initialMarkup, WithScriptOptions(parameters));
         }
 
         protected async Task TestMissingAsync(
@@ -167,11 +175,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             await TestAddDocument(
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
-                index, parameters.WithParseOptions(null));
+                index, WithRegularOptions(parameters));
             await TestAddDocument(
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
-                index, parameters.WithParseOptions(GetScriptOptions()));
+                index, WithScriptOptions(parameters));
         }
 
         protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
@@ -315,8 +323,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null,
             TestParameters parameters = default(TestParameters))
         {
-            await TestAsync(initialMarkup, expectedMarkup, index, priority, parameters.WithParseOptions(null));
-            await TestAsync(initialMarkup, expectedMarkup, index, priority, parameters.WithParseOptions(GetScriptOptions()));
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, WithRegularOptions(parameters));
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, WithScriptOptions(parameters));
         }
 
         internal Task TestAsync(
@@ -421,24 +429,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             void TestAnnotations(ImmutableArray<TextSpan> expectedSpans, string annotationKind)
             {
-                var annotatedTokens = fixedRoot.GetAnnotatedNodesAndTokens(annotationKind).Select(n => (SyntaxToken)n).ToList();
+                var annotatedItems = fixedRoot.GetAnnotatedNodesAndTokens(annotationKind).OrderBy(s => s.SpanStart).ToList();
 
-                Assert.Equal(expectedSpans.Length, annotatedTokens.Count);
+                Assert.Equal(expectedSpans.Length, annotatedItems.Count);
 
-                if (expectedSpans.Length > 0)
+                for (var i = 0; i < Math.Min(expectedSpans.Length, annotatedItems.Count); i++)
                 {
-                    var expectedTokens = TokenUtilities.GetTokens(TokenUtilities.GetSyntaxRoot(expectedText, GetLanguage(), parseOptions));
-                    var actualTokens = TokenUtilities.GetTokens(fixedRoot);
-
-                    for (var i = 0; i < Math.Min(expectedTokens.Count, actualTokens.Count); i++)
-                    {
-                        var expectedToken = expectedTokens[i];
-                        var actualToken = actualTokens[i];
-
-                        var actualIsConflict = annotatedTokens.Contains(actualToken);
-                        var expectedIsConflict = expectedSpans.Contains(expectedToken.Span);
-                        Assert.Equal(expectedIsConflict, actualIsConflict);
-                    }
+                    var actual = annotatedItems[i].Span;
+                    var expected = expectedSpans[i];
+                    Assert.Equal(expected, actual);
                 }
             }
         }
