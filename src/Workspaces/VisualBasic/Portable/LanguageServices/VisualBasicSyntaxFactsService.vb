@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsQueryKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsQueryKeyword
             Select Case token.Kind()
-cmd                Case SyntaxKind.JoinKeyword
+                Case SyntaxKind.JoinKeyword
                 Case SyntaxKind.IntoKeyword
                 Case SyntaxKind.AggregateKeyword
                 Case SyntaxKind.DistinctKeyword
