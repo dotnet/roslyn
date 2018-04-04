@@ -319,6 +319,7 @@ End Class"
     Sub M()
         Dim x = 1
         Dim {|Rename:v|} As Boolean = x = 1
+
         While v
         End While
     End Sub
@@ -1020,6 +1021,7 @@ Module Program
         If True Then
             Dim {|Rename:p|} As Object = Sub()
                               End Sub
+
             q = p
         End If
     End Sub
@@ -2127,6 +2129,7 @@ Module Program
     Sub Main()
         Dim {|Rename:p|} = Sub()
                 End Sub
+
         Dim x = Function() p
     End Sub
 End Module
@@ -2321,6 +2324,7 @@ Module Program
         Dim s = ""Text""
         Dim x = 42
         Dim {|Rename:length|} As Integer = s.Length
+
         If (length.CompareTo(x) > 0 AndAlso
             length.CompareTo(x) > 0) Then
         End If
@@ -2747,6 +2751,7 @@ end class",
     sub Method(span as MySpan)
         dim pos as integer = span.Start
         Dim {|Rename:start1|} As Integer = span.Start
+
         while pos < start1
             dim start as integer = pos
         end while
