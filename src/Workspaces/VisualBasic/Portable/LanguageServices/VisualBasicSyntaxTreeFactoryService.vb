@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly _parseOptionsWithLatestLanguageVersion As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)
 
-
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return New VisualBasicSyntaxTreeFactoryService(provider)
         End Function
