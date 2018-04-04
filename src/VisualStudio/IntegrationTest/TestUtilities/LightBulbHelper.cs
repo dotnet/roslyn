@@ -11,11 +11,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     {
         public static Task<bool> WaitForLightBulbSessionAsync(ILightBulbBroker broker, IWpfTextView view)
         {
+            var startTime = DateTimeOffset.Now;
+
             return Helper.RetryAsync(async () =>
             {
                 if (broker.IsLightBulbSessionActive(view))
                 {
                     return true;
+                }
+
+                if (DateTimeOffset.Now > startTime + Helper.HangMitigatingTimeout)
+                {
+                    throw new InvalidOperationException("Expected a light bulb session to appear.");
                 }
 
                 // checking whether there is any suggested action is async up to editor layer and our waiter doesn't track up to that point.
