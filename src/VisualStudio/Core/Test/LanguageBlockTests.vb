@@ -8,6 +8,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Roslyn.Test.Utilities
 
 Namespace Tests
+    <[UseExportProvider]>
     Public Class LanguageBlockTests
         <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043580")>
         Public Sub TestGetCurrentBlock_NotInImports_VB()

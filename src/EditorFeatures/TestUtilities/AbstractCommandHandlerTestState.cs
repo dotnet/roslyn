@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -131,16 +132,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         private static ExportProvider GetExportProvider(bool useMinimumCatalog, ComposableCatalog extraParts)
         {
+            if (extraParts == null || extraParts.Parts.Count == 0)
+            {
+                return useMinimumCatalog
+                    ? TestExportProvider.MinimumExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider()
+                    : TestExportProvider.ExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
+            }
+
             var baseCatalog = useMinimumCatalog
                 ? TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
                 : TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic;
 
-            if (extraParts == null)
-            {
-                return MinimalTestExportProvider.CreateExportProvider(baseCatalog);
-            }
-
-            return MinimalTestExportProvider.CreateExportProvider(baseCatalog.WithParts(extraParts));
+            return ExportProviderCache.GetOrCreateExportProviderFactory(baseCatalog.WithParts(extraParts)).CreateExportProvider();
         }
 
         public virtual ITextView TextView

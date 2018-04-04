@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -14,7 +13,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
     Public Class VisualBasicFormattingTestBase
         Inherits FormattingTestBase
 
-        Protected Shared ReadOnly DefaultWorkspace As Workspace = New AdhocWorkspace()
+        Private _ws As Workspace
+
+        Protected ReadOnly Property DefaultWorkspace As Workspace
+            Get
+                If _ws Is Nothing Then
+                    _ws = New AdhocWorkspace()
+                End If
+
+                Return _ws
+            End Get
+        End Property
 
         Protected Overrides Function ParseCompilation(text As String, parseOptions As ParseOptions) As SyntaxNode
             Return SyntaxFactory.ParseCompilationUnit(text, options:=DirectCast(parseOptions, VisualBasicParseOptions))

@@ -12,6 +12,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
     using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
     using static CSharpHelpers;
 
+    [UseExportProvider]
     public class CSharpReferenceTests
     {
         [WpfFact]
