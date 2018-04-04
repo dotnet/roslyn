@@ -767,6 +767,25 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingWithExistingNullCheck6()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+        if (s is null)
+        {
+            throw new ArgumentNullException();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestMissingWithExistingNullCheckInLocalFunction()
         {
             await TestMissingInRegularAndScriptAsync(

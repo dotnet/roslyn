@@ -137,6 +137,14 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         return true;
                     }
                 }
+                else if (condition is IIsPatternOperation isPatternOperation &&
+                         isPatternOperation.Pattern is IConstantPatternOperation constantPattern)
+                {
+                    if (IsNullCheck(constantPattern.Value, isPatternOperation.Value, parameter))
+                    {
+                        return true;
+                    }
+                }
                 else if (parameter.Type.SpecialType == SpecialType.System_String &&
                          IsStringCheck(condition, parameter))
                 {
