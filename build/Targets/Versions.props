@@ -18,7 +18,8 @@
     <!-- The release moniker for our packages.  Developers should use "dev" and official builds pick the branch
          moniker listed below -->
     <RoslynNuGetMoniker Condition="'$(RoslynNuGetMoniker)' == ''">dev</RoslynNuGetMoniker>
-    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">beta1</RoslynNuGetMoniker> 
+    <!-- PROTOTYPE(dataflow) This needs to be reverted before merging to master -->
+    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">dataflow</RoslynNuGetMoniker> 
 
     <!-- This is the base of the NuGet versioning for prerelease packages -->
     <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-$(RoslynNuGetMoniker)</NuGetPreReleaseVersion>
