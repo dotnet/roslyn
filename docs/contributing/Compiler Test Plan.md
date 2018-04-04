@@ -26,6 +26,7 @@ This document provides guidance for thinking about language interactions and tes
     - AnalyzeStatementsDataFlow 
     - AnalyzeStatementDataFlow 
     - ClassifyConversion
+    - GetOperation (IOperation)
 - VB/F# interop
 - Performance and stress testing
  
@@ -81,9 +82,9 @@ This document provides guidance for thinking about language interactions and tes
     - Ref / out parameters
     - Compound operators (+=, /=, etc ..) 
     - Assignment exprs
-- Ref return, ref readonly return, ref ternary, ref readonly local
+- Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - `this = e;` in `struct` .ctor
-- Stackalloc
+- Stackalloc (including initializers)
 - Patterns
 
 # Misc
@@ -140,6 +141,7 @@ while(…) …
 do … while(…); 
 for( … ; … ; … ) … 
 foreach(…) …
+fixed(…) … // (plain, or custom with `GetPinnableReference`)
 goto … ; 
 throw … ; 
 return … ; 
@@ -163,7 +165,8 @@ Every expression can be classified as exactly one of these:
 - Namespace 
 - Type 
 - Method group 
-- Null literal 
+- Null literal
+- Default literal
 - Anonymous function 
 - Property 
 - Indexer 

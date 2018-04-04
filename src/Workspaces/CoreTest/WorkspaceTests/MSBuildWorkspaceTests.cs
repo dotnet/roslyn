@@ -1060,7 +1060,7 @@ class C1
             });
         }
 
-        private HostServices _hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
+        private IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
@@ -1071,7 +1071,7 @@ class C1
 
             AssertThrows<InvalidOperationException>(() =>
             {
-                var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
+                var ws = MSBuildWorkspace.Create(MefHostServices.Create(_defaultAssembliesWithoutCSharp));
                 ws.SkipUnrecognizedProjects = false;
                 var solution = ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
             },
@@ -1090,7 +1090,7 @@ class C1
             // proves that if the language libraries are missing then the appropriate error occurs
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
-            var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
+            var ws = MSBuildWorkspace.Create(MefHostServices.Create(_defaultAssembliesWithoutCSharp));
             ws.SkipUnrecognizedProjects = true;
 
             var dx = new List<WorkspaceDiagnostic>();
@@ -1114,7 +1114,7 @@ class C1
         {
             // proves that if the language libraries are missing then the appropriate error occurs
             CreateFiles(GetSimpleCSharpSolutionFiles());
-            var ws = MSBuildWorkspace.Create(_hostServicesWithoutCSharp);
+            var ws = MSBuildWorkspace.Create(MefHostServices.Create(_defaultAssembliesWithoutCSharp));
             var projectName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             AssertThrows<InvalidOperationException>(() =>
             {
@@ -3055,7 +3055,7 @@ class C { }";
             Assert.Equal(3, docs.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestOpenProject_BadElement()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3070,7 +3070,7 @@ class C { }";
             Assert.Equal(0, proj.DocumentIds.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestOpenProject_BadTaskImport()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3085,7 +3085,7 @@ class C { }";
             Assert.Equal(0, proj.DocumentIds.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestOpenSolution_BadTaskImport()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3101,7 +3101,7 @@ class C { }";
             Assert.Equal(0, solution.Projects.First().DocumentIds.Count);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.Workspace)]
         public async Task TestOpenProject_MsbuildError()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()

@@ -273,6 +273,54 @@ unsafe class Test
                 //         var obj2 = stackalloc[] { new {} };
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new {} }").WithArguments("<empty anonymous type>").WithLocation(8, 20)
                 );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var expressions = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitStackAllocArrayCreationExpressionSyntax>().ToArray();
+            Assert.Equal(3, expressions.Length);
+
+            var @stackalloc = expressions[0];
+            var stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.String*", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.String*", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            var element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Null(element0Info.Symbol);
+            Assert.Equal("System.String", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("System.String", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element0Info.ImplicitConversion);
+
+            @stackalloc = expressions[1];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("<empty anonymous type>*", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("<empty anonymous type>*", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Equal("<empty anonymous type>..ctor()", element0Info.Symbol.ToTestDisplayString());
+            Assert.Equal("<empty anonymous type>", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("<empty anonymous type>", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element0Info.ImplicitConversion);
+
+            @stackalloc = expressions[2];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("Test.S*", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("Test.S*", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Equal("Test.S s", element0Info.Symbol.ToTestDisplayString());
+            Assert.Equal("Test.S", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("Test.S", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element0Info.ImplicitConversion);
         }
 
         [Fact]
@@ -301,6 +349,54 @@ unsafe class Test
                 //         var obj3 = c ? default : stackalloc[] { s };
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "stackalloc[] { s }").WithArguments("Test.S").WithLocation(9, 34)
                 );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var expressions = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitStackAllocArrayCreationExpressionSyntax>().ToArray();
+            Assert.Equal(3, expressions.Length);
+
+            var @stackalloc = expressions[0];
+            var stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Span<System.String>", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.String>", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            var element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Null(element0Info.Symbol);
+            Assert.Equal("System.String", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("System.String", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element0Info.ImplicitConversion);
+
+            @stackalloc = expressions[1];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Span<<empty anonymous type>>", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<<empty anonymous type>>", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Equal("<empty anonymous type>..ctor()", element0Info.Symbol.ToTestDisplayString());
+            Assert.Equal("<empty anonymous type>", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("<empty anonymous type>", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element0Info.ImplicitConversion);
+
+            @stackalloc = expressions[2];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Span<Test.S>", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<Test.S>", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Equal("Test.S s", element0Info.Symbol.ToTestDisplayString());
+            Assert.Equal("Test.S", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("Test.S", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element0Info.ImplicitConversion);
         }
 
         [Fact]
@@ -379,6 +475,115 @@ class Test
 }", TestOptions.DebugExe);
 
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestForTernary()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+class Test
+{
+    static void Method1(bool b)
+    {
+        for (var p = b ? stackalloc int[3] { 1, 2, 3 } : default; false;) {}
+        for (var p = b ? stackalloc int[ ] { 1, 2, 3 } : default; false;) {}
+        for (var p = b ? stackalloc    [ ] { 1, 2, 3 } : default; false;) {}
+    }
+}", TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestLock()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+class Test
+{
+    static void Method1()
+    {
+        lock (stackalloc int[3] { 1, 2, 3 }) {}
+        lock (stackalloc int[ ] { 1, 2, 3 }) {}
+        lock (stackalloc    [ ] { 1, 2, 3 }) {} 
+    }
+}", TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (6,15): error CS1525: Invalid expression term 'stackalloc'
+                //         lock (stackalloc int[3] { 1, 2, 3 }) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 15),
+                // (6,15): error CS0185: 'stackalloc int[3]' is not a reference type as required by the lock statement
+                //         lock (stackalloc int[3] { 1, 2, 3 }) {}
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc int[3] { 1, 2, 3 }").WithArguments("stackalloc int[3]").WithLocation(6, 15),
+                // (7,15): error CS1525: Invalid expression term 'stackalloc'
+                //         lock (stackalloc int[ ] { 1, 2, 3 }) {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 15),
+                // (7,15): error CS0185: 'stackalloc int[]' is not a reference type as required by the lock statement
+                //         lock (stackalloc int[ ] { 1, 2, 3 }) {}
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc int[ ] { 1, 2, 3 }").WithArguments("stackalloc int[]").WithLocation(7, 15),
+                // (8,15): error CS1525: Invalid expression term 'stackalloc'
+                //         lock (stackalloc    [ ] { 1, 2, 3 }) {} 
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 15),
+                // (8,15): error CS0185: 'stackalloc int[]' is not a reference type as required by the lock statement
+                //         lock (stackalloc    [ ] { 1, 2, 3 }) {} 
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc    [ ] { 1, 2, 3 }").WithArguments("stackalloc int[]").WithLocation(8, 15)
+                );
+        }
+
+        [Fact]
+        public void TestSelect()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System.Linq;
+class Test
+{
+    static void Method1(int[] array)
+    {
+        var q1 = from item in array select stackalloc int[3] { 1, 2, 3 };
+        var q2 = from item in array select stackalloc int[ ] { 1, 2, 3 };
+        var q3 = from item in array select stackalloc    [ ] { 1, 2, 3 };
+    }
+}", TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (7,44): error CS1525: Invalid expression term 'stackalloc'
+                //         var q1 = from item in array select stackalloc int[3] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 44),
+                // (8,44): error CS1525: Invalid expression term 'stackalloc'
+                //         var q2 = from item in array select stackalloc int[ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 44),
+                // (9,44): error CS1525: Invalid expression term 'stackalloc'
+                //         var q3 = from item in array select stackalloc    [ ] { 1, 2, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(9, 44)
+                );
+        }
+
+        [Fact]
+        public void TestLet()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System.Linq;
+class Test
+{
+    static void Method1(int[] array)
+    {
+        var q1 = from item in array let v = stackalloc int[3] { 1, 2, 3 } select v;
+        var q2 = from item in array let v = stackalloc int[ ] { 1, 2, 3 } select v;
+        var q3 = from item in array let v = stackalloc    [ ] { 1, 2, 3 } select v;
+    }
+}", TestOptions.ReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (7,45): error CS1525: Invalid expression term 'stackalloc'
+                //         var q1 = from item in array let v = stackalloc int[3] { 1, 2, 3 } select v;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 45),
+                // (8,45): error CS1525: Invalid expression term 'stackalloc'
+                //         var q2 = from item in array let v = stackalloc int[ ] { 1, 2, 3 } select v;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 45),
+                // (9,45): error CS1525: Invalid expression term 'stackalloc'
+                //         var q3 = from item in array let v = stackalloc    [ ] { 1, 2, 3 } select v;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(9, 45)
+                );
         }
 
         [Fact]
@@ -1965,14 +2170,19 @@ unsafe class Test
     {
         var obj1 = stackalloc double[2] { 1, 1.2 };
         Span<double> obj2 = stackalloc double[2] { 1, 1.2 };
+        _ = stackalloc double[2] { 1, 1.2 };
     }
-}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,13): error CS8353: A result of a stackalloc expression of type 'Span<double>' cannot be used in this context because it may be exposed outside of the containing method
+                //         _ = stackalloc double[2] { 1, 1.2 };
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc double[2] { 1, 1.2 }").WithArguments("System.Span<double>").WithLocation(9, 13)
+                );
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
             var expressions = tree.GetCompilationUnitRoot().DescendantNodes().OfType<StackAllocArrayCreationExpressionSyntax>().ToArray();
-            Assert.Equal(2, expressions.Length);
+            Assert.Equal(3, expressions.Length);
 
             var @stackalloc = expressions[0];
             var stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
@@ -2029,6 +2239,34 @@ unsafe class Test
             Assert.Equal(Conversion.Identity, sizeInfo.ImplicitConversion);
 
             Assert.Null(model.GetDeclaredSymbol(@stackalloc));
+
+            @stackalloc = expressions[2];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Span<System.Double>", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.Double>", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Null(element0Info.Symbol);
+            Assert.Equal("System.Int32", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNumeric, element0Info.ImplicitConversion);
+
+            element1Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[1]);
+            Assert.Null(element1Info.Symbol);
+            Assert.Equal("System.Double", element1Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element1Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element1Info.ImplicitConversion);
+
+            sizeInfo = model.GetSemanticInfoSummary(((ArrayTypeSyntax)@stackalloc.Type).RankSpecifiers[0].Sizes[0]);
+            Assert.Null(sizeInfo.Symbol);
+            Assert.Equal("System.Int32", sizeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", sizeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, sizeInfo.ImplicitConversion);
+
+            Assert.Null(model.GetDeclaredSymbol(@stackalloc));
         }
 
         [Fact]
@@ -2042,14 +2280,19 @@ unsafe class Test
     {
         var obj1 = stackalloc[] { 1, 1.2 };
         Span<double> obj2 = stackalloc[] { 1, 1.2 };
+        _ = stackalloc[] { 1, 1.2 };
     }
-}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,13): error CS8353: A result of a stackalloc expression of type 'Span<double>' cannot be used in this context because it may be exposed outside of the containing method
+                //         _ = stackalloc[] { 1, 1.2 };
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc[] { 1, 1.2 }").WithArguments("System.Span<double>").WithLocation(9, 13)
+                );
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
             var expressions = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitStackAllocArrayCreationExpressionSyntax>().ToArray();
-            Assert.Equal(2, expressions.Length);
+            Assert.Equal(3, expressions.Length);
 
             var @stackalloc = expressions[0];
             var stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
@@ -2074,6 +2317,28 @@ unsafe class Test
             Assert.Null(model.GetDeclaredSymbol(@stackalloc));
 
             @stackalloc = expressions[1];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Span<System.Double>", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.Double>", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Null(element0Info.Symbol);
+            Assert.Equal("System.Int32", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNumeric, element0Info.ImplicitConversion);
+
+            element1Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[1]);
+            Assert.Null(element1Info.Symbol);
+            Assert.Equal("System.Double", element1Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element1Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element1Info.ImplicitConversion);
+
+            Assert.Null(model.GetDeclaredSymbol(@stackalloc));
+
+            @stackalloc = expressions[2];
             stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
 
             Assert.Null(stackallocInfo.Symbol);

@@ -481,5 +481,42 @@ delegate void D&lt;T&gt;() where T : [| unmanaged |];
 </Workspace>",
                 expectedActionSet: Enumerable.Empty<string>());
         }
+
+        [Fact]
+        public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_LocalFunction()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Test
+{
+    public void N()
+    {
+        void M<T>() where T : [|unmanaged|] { }
+    }
+}",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_LocalFunction_AlreadyDefined()
+        {
+            await TestExactActionSetOfferedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""7"">
+        <Document>
+interface unmanaged { }
+class Test
+{
+    public void N()
+    {
+        void M&lt;T&gt;() where T : [|unmanaged|] { }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+                expectedActionSet: Enumerable.Empty<string>());
+        }
     }
 }

@@ -52,6 +52,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
         {
             Contract.Requires(delay >= 0);
 
+            if (cancellationToken.IsCancellationRequested)
+            {
+                asyncToken?.Dispose();
+                return;
+            }
+
             var current = Environment.TickCount;
 
             _workQueue.Enqueue(new PendingWork(current + delay, action, asyncToken, cancellationToken));
@@ -60,6 +66,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
         public void RegisterNotification(Func<bool> action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
         {
             Contract.Requires(delay >= 0);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                asyncToken?.Dispose();
+                return;
+            }
 
             var current = Environment.TickCount;
 

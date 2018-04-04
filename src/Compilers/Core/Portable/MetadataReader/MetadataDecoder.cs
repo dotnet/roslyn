@@ -893,7 +893,10 @@ namespace Microsoft.CodeAnalysis
 
                             if (modReqFound)
                             {
-                                if (type.SpecialType == SpecialType.System_ValueType)
+                                // Any other modifiers, optional or not, are not allowed: http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
+                                Debug.Assert(!modifiers.IsDefaultOrEmpty);
+
+                                if (type.SpecialType == SpecialType.System_ValueType && modifiers.Length == 1)
                                 {
                                     isUnmanagedConstraint = true;
                                 }
@@ -904,8 +907,7 @@ namespace Microsoft.CodeAnalysis
                             }
                             else if (!modifiers.IsDefaultOrEmpty)
                             {
-                                // Optional modifiers (also, other required parameters) not allowed on generic parameters
-                                // http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
+                                // Any other modifiers, optional or not, are not allowed: http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528856
                                 return GetUnsupportedMetadataTypeSymbol();
                             }
 
