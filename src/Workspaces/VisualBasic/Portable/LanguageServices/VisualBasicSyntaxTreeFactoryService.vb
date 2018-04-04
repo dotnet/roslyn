@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class VisualBasicSyntaxTreeFactoryServiceFactory
         Implements ILanguageServiceFactory
 
-        Private Shared _parseOptionsWithLatestLanguageVersion As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)
+        Private Shared ReadOnly _parseOptionsWithLatestLanguageVersion As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)
 
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
