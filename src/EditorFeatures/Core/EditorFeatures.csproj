@@ -71,6 +71,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.UnitTests.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />

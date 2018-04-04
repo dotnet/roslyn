@@ -592,11 +592,6 @@
         <target state="translated">Dodaj „this.”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_if_to_switch">
-        <source>Convert 'if' to 'switch'</source>
-        <target state="translated">Konwertuj „if” na „switch”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Warning_Extracting_a_local_function_reference_may_produce_invalid_code">
         <source>Warning: Extracting a local function reference may produce invalid code</source>
         <target state="translated">Ostrzeżenie: Wyodrębnienie odwołania do funkcji lokalnej może skutkować powstaniem nieprawidłowego kodu</target>
@@ -632,9 +627,19 @@
         <target state="translated">Dodaj nawiasy</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_for_to_foreach">
-        <source>Convert 'for' to 'foreach'</source>
-        <target state="new">Convert 'for' to 'foreach'</target>
+      <trans-unit id="Convert_to_switch">
+        <source>Convert to 'switch'</source>
+        <target state="new">Convert to 'switch'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_foreach">
+        <source>Convert to 'foreach'</source>
+        <target state="new">Convert to 'foreach'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_for">
+        <source>Convert to 'for'</source>
+        <target state="new">Convert to 'for'</target>
         <note />
       </trans-unit>
     </body>

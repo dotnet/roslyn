@@ -51,7 +51,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
             public const string CodeActionsConvertToIterator = "CodeActions.ConvertToIterator";
             public const string CodeActionsConvertForToForEach = "CodeActions.ConvertForToForEach";
+            public const string CodeActionsConvertForEachToFor = "CodeActions.ConvertForEachToFor";
             public const string CodeActionsConvertIfToSwitch = "CodeActions.ConvertIfToSwitch";
+            public const string CodeActionsConvertQueryToForEach = "CodeActions.ConvertQueryToForEach";
             public const string CodeActionsCorrectExitContinue = "CodeActions.CorrectExitContinue";
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";

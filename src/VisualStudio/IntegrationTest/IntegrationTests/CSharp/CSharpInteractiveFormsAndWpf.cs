@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -11,6 +13,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public CSharpInteractiveFormsAndWpf(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
             VisualStudio.InteractiveWindow.SubmitText(@"#r ""System.Windows.Forms""
 #r ""WindowsBase""
 #r ""PresentationCore""
@@ -22,7 +29,7 @@ using System.Windows.Forms;
 using Wpf = System.Windows.Controls;");
         }
 
-        [Fact]
+        [WpfFact]
         public void InteractiveWithDisplayFormAndWpfWindow()
         {
             // 1) Create and display form and WPF window

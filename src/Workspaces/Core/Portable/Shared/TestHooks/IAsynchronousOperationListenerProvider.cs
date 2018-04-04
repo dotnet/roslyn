@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     [Shared]
     [Export(typeof(IAsynchronousOperationListenerProvider))]
     [Export(typeof(AsynchronousOperationListenerProvider))]
-    internal class AsynchronousOperationListenerProvider : IAsynchronousOperationListenerProvider
+    internal sealed class AsynchronousOperationListenerProvider : IAsynchronousOperationListenerProvider
     {
         public static readonly IAsynchronousOperationListenerProvider NullProvider = new NullListenerProvider();
         public static readonly IAsynchronousOperationListener NullListener = new NullOperationListener();
@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             s_enabled = enable;
         }
 
+        [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
         public AsynchronousOperationListenerProvider()
         {
             _singletonListeners = new ConcurrentDictionary<string, AsynchronousOperationListener>(concurrencyLevel: 2, capacity: 20);
