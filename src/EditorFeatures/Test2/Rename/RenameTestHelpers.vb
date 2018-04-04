@@ -21,18 +21,12 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Friend Module RenameTestHelpers
 
-        <ThreadStatic>
-        Friend _exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
+        Friend _exportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
             TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory)))
 
-        Friend ReadOnly Property ExportProvider As ExportProvider
+        Friend ReadOnly Property ExportProviderFactory As IExportProviderFactory
             Get
-                If _exportProvider Is Nothing Then
-                    _exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                        TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockDocumentNavigationServiceFactory)))
-                End If
-
-                Return _exportProvider
+                Return _exportProviderFactory
             End Get
         End Property
 
@@ -105,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Public Function CreateWorkspaceWithWaiter(element As XElement) As TestWorkspace
             Dim workspace = TestWorkspace.CreateWorkspace(
                 element,
-                exportProvider:=ExportProvider)
+                exportProvider:=ExportProviderFactory.CreateExportProvider())
             workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
             Return workspace
         End Function

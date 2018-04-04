@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public void Disconnect()
             {
                 _workQueue.AssertIsForeground();
-                _workQueue.CancelCurrentWork();
+                _workQueue.CancelCurrentWork(remainCancelled: true);
 
                 // Tell the interaction object to stop issuing events.
                 _eventSource.Disconnect();
