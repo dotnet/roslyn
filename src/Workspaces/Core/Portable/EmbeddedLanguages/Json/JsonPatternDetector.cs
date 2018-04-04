@@ -89,9 +89,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         public static bool IsDefinitelyNotJson(SyntaxToken token, ISyntaxFactsService syntaxFacts)
         {
-            // We only support string literals passed in arguments to something.
-            // In the future we could support any string literal, as long as it has
-            // some marker (like a comment on it) stating it's a regex.
             if (!syntaxFacts.IsStringLiteral(token))
             {
                 return true;
@@ -205,8 +202,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 var name = GetNameOfInvokedExpression(invokedExpression);
                 if (_syntaxFacts.StringComparer.Equals(name, _methodNameOfInterest))
                 {
-                    // Is a string argument to a method that looks like it could be a Regex method.  
-                    // Need to do deeper analysis
+                    // Is a string argument to a method that looks like it could be a json-parsing
+                    // method. Need to do deeper analysis
                     var method = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
                     if (method != null &&
                         method.DeclaredAccessibility == Accessibility.Public &&
