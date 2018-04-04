@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // (though perhaps its component parts are used), then we can save the component parts
                     // and assign them into temps (or perhaps user variables) to avoid the creation of
                     // the tuple altogether.
-                    decisionDag = RewriteTupleSwitch(decisionDag, (BoundTupleLiteral)loweredInput, addCode);
+                    decisionDag = RewriteTupleInput(decisionDag, (BoundTupleLiteral)loweredInput, addCode);
                 }
                 else
                 {
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// itself. We also emit assignments of the tuple values into their corresponding temps.
             /// </summary>
             /// <returns>A new decision dag that does not reference the input directly</returns>
-            private BoundDecisionDag RewriteTupleSwitch(
+            private BoundDecisionDag RewriteTupleInput(
                 BoundDecisionDag decisionDag,
                 BoundTupleLiteral loweredInput,
                 Action<BoundExpression> addCode)

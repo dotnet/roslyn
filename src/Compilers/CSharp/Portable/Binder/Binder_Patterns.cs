@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (elementTypes.Length != node.SubPatterns.Count && !hasErrors)
                 {
                     var location = new SourceLocation(node.SyntaxTree, new Text.TextSpan(node.OpenParenToken.SpanStart, node.CloseParenToken.Span.End - node.OpenParenToken.SpanStart));
-                    diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, declType.TupleElementTypes, elementTypes.Length, node.SubPatterns.Count);
+                    diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, declType, elementTypes.Length, node.SubPatterns.Count);
                     hasErrors = true;
                 }
                 for (int i = 0; i < node.SubPatterns.Count; i++)
