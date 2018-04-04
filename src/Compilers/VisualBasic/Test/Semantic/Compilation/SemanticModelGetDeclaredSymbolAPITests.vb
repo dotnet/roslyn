@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(xml)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(xml)
             Dim tree = comp.SyntaxTrees(0)
 
             Dim model1 = comp.GetSemanticModel(tree)
@@ -62,7 +62,7 @@ End Sub
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(xml)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(xml)
             Dim tree = comp.SyntaxTrees(0)
             Dim model1 = comp.GetSemanticModel(tree)
 
@@ -85,7 +85,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(xml)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(xml)
             Dim tree = comp.SyntaxTrees(0)
             Dim model1 = comp.GetSemanticModel(tree)
 
@@ -107,7 +107,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(xml, TestOptions.ReleaseDll.WithRootNamespace("Pavement"))
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(xml, TestOptions.ReleaseDll.WithRootNamespace("Pavement"))
             Dim tree = comp.SyntaxTrees(0)
             Dim model1 = comp.GetSemanticModel(tree)
 
@@ -131,7 +131,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(xml)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(xml)
             Dim tree = comp.SyntaxTrees(0)
 
             Dim model1 = comp.GetSemanticModel(tree)
@@ -159,8 +159,8 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib(xml)
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib(xml)
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40(xml)
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40(xml)
 
             Dim tree1 = comp1.SyntaxTrees(0)
             Dim tree2 = comp2.SyntaxTrees(0)
@@ -193,8 +193,8 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib(xml)
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib(xml)
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40(xml)
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40(xml)
 
             Dim tree1 = comp1.SyntaxTrees(0)
             Dim tree2 = comp2.SyntaxTrees(0)
@@ -227,7 +227,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(xml)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(xml)
             Dim tree = comp.SyntaxTrees(0)
 
             Dim model1 = comp.GetSemanticModel(tree)
@@ -257,7 +257,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(xml)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(xml)
             Dim tree = comp.SyntaxTrees(0)
 
             Dim model1 = comp.GetSemanticModel(tree)
@@ -286,8 +286,8 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib(xml)
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib(xml)
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40(xml)
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40(xml)
             Dim tree1 = comp1.SyntaxTrees(0)
             Dim tree2 = comp2.SyntaxTrees(0)
 
@@ -319,8 +319,8 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib(xml)
-            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib(xml)
+            Dim comp1 = CompilationUtils.CreateCompilationWithMscorlib40(xml)
+            Dim comp2 = CompilationUtils.CreateCompilationWithMscorlib40(xml)
             Dim tree1 = comp1.SyntaxTrees(0)
             Dim tree2 = comp2.SyntaxTrees(0)
 
@@ -388,7 +388,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(xml)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(xml)
             Dim diag = comp.GetDiagnostics()
             Debug.Assert(diag.Length = 0)
             Dim tree = comp.SyntaxTrees(0)
@@ -450,7 +450,7 @@ End Namespace
         ' Ensure local symbols gotten from same Binding instance are same object.
         <Fact()>
         Public Sub GetSemanticInfoLocalVariableTwice()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Imports System   
@@ -497,7 +497,7 @@ Class M
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub GetSemanticInfoLocalVariableTwiceStaticLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Imports System   
@@ -543,7 +543,7 @@ Class M
         <WorkItem(540580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540580")>
         <Fact()>
         Public Sub GetSemanticInfoInsideType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Imports System
@@ -570,7 +570,7 @@ End Class
         Public Sub TestGetDeclaredSymbolFromTypeDeclaration()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         ' top of file
@@ -766,7 +766,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
         Public Sub TestGetDeclaredSymbolFromNamespaceDeclaration()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         ' top of file
@@ -923,7 +923,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
         Public Sub TestGetDeclaredSymbolFromMethodDeclaration()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         ' top of file
@@ -1063,7 +1063,7 @@ BC30460: 'End Class' must be preceded by a matching 'Class'.
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromPropertyDeclaration()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="c.vb">
 Class C
@@ -1117,7 +1117,7 @@ End Class
         Public Sub TestGetDeclaredSymbolFromOperatorDeclaration()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("NS")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         ' top of file
@@ -1196,7 +1196,7 @@ End Class
         Public Sub TestGetDeclaredSymbolFromParameter()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         ' top of file
@@ -1302,7 +1302,7 @@ BC30001: Statement is not valid in a namespace.
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromEventParameter()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="TestGetDeclaredSymbolFromEventParameter">
     <file name="a.vb">
         Namespace N1
@@ -1332,7 +1332,7 @@ BC30001: Statement is not valid in a namespace.
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromParameterWithTypeChar()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="TypeChar.vb">
 Imports System
@@ -1406,7 +1406,7 @@ End Namespace
         Public Sub TestGetDeclaredSymbolLambdaParam()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Imports System
@@ -1433,7 +1433,7 @@ End Module
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromPropertyStatementSyntax()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="TypeChar.vb">
 Class Program
@@ -1500,7 +1500,7 @@ End Class
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromAlias()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="TypeChar.vb">
 Imports M=
@@ -1559,7 +1559,7 @@ End Class
         <Fact()>
         Public Sub TestGetDeclaredSymbolForOnErrorGotoLabels()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="TypeChar.vb">
 Import System
@@ -1622,7 +1622,7 @@ End Class
         Public Sub TestGetDeclaredSymbolFromAliasDecl()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Imports VB6 = Microsoft.VisualBasic
@@ -1647,7 +1647,7 @@ Imports VB6 = Microsoft.VisualBasic
 
         <Fact(), WorkItem(544076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544076")>
         Public Sub TestGetDeclaredSymbolFromSubFunctionConstructor()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="TypeChar.vb">
 Interface I1
@@ -1716,7 +1716,7 @@ End Class
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromTypes()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="TypeChar.vb">
 Interface I1
@@ -1803,7 +1803,7 @@ End Namespace
         Public Sub TestGetDeclaredSymbolFromTypeParameter()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         ' top of file
@@ -1917,7 +1917,7 @@ BC30001: Statement is not valid in a namespace.
         Public Sub TestGetDeclaredFromLabel()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Module Module1
@@ -1957,7 +1957,7 @@ End Module
         Public Sub TestGetDeclaredSymbolFromVariableName()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
         ' top of file
@@ -2106,7 +2106,7 @@ BC42024: Unused local variable: 'ccc'.
 
         <Fact>
         Public Sub Locals()
-            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module Program
@@ -2127,7 +2127,7 @@ End Module
 
         <Fact()>
         Public Sub TestGetDeclaredSymbolArrayField()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -2147,7 +2147,7 @@ End Class
         <WorkItem(543476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543476")>
         <Fact()>
         Public Sub BindingLocalConstantValue()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="BindingLocalConstantValue">
         <file name="a.vb">
 Imports System            
@@ -2249,7 +2249,7 @@ End Module
         <WorkItem(543476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543476")>
         <Fact()>
         Public Sub BindingLocalConstantVariable()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="BindingLocalConstantVariable">
         <file name="a.vb">
 Imports System            
@@ -2356,7 +2356,7 @@ End Module
         <WorkItem(540374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540374")>
         <Fact()>
         Public Sub Bug6617()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Imports System
@@ -2393,7 +2393,7 @@ End Class
         <WorkItem(540665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540665")>
         <Fact()>
         Public Sub GetSemanticInfoForPartiallyTypedMemberAccessNodes()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfoForPartiallyTypedMemberAccessNodes">
     <file name="a.vb">
 Imports System   
@@ -2470,7 +2470,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(xml)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(xml)
             Dim tree = comp.SyntaxTrees(0)
 
             Dim model1 = comp.GetSemanticModel(tree)
@@ -2485,7 +2485,7 @@ End Namespace
         Public Sub GetDeclaredSymbolDelegateStatementSyntax()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Namespace Server
@@ -2527,7 +2527,7 @@ End Namespace
         Public Sub GetDeclaredSymbolLambdaParamError()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Goo.Bar")
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 ' Imports System  ' Func won't bind without this!
@@ -2568,7 +2568,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(xml)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(xml)
             Dim tree = comp.SyntaxTrees(0)
             Dim model1 = comp.GetSemanticModel(tree)
 
@@ -2580,7 +2580,7 @@ End Class
         <WorkItem(542342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542342")>
         <Fact()>
         Public Sub SourceNamespaceSymbolMergeWithMetadata()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Namespace System
@@ -2650,7 +2650,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(xml)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(xml)
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
 
@@ -2662,7 +2662,7 @@ End Namespace
         <WorkItem(542702, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542702")>
         <Fact>
         Public Sub Bug10037()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -2688,7 +2688,7 @@ End Module
         <WorkItem(543605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543605")>
         <Fact()>
         Public Sub TestGetDeclaredSymbolFromParameterInLambdaExprOfAddHandlerStatement()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="TestGetDeclaredSymbolFromEventParameter">
     <file name="a.vb">
 Module Program
@@ -2724,7 +2724,7 @@ BC30201: Expression expected.
         <WorkItem(543666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543666")>
         <Fact()>
         Public Sub BindingLocalConstantObjectVariable()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="BindingLocalConstantObjectVariable">
         <file name="a.vb">
 Option Strict On
@@ -2836,7 +2836,7 @@ End Module
 
         <Fact(), WorkItem(545106, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545106")>
         Public Sub GetDeclaredSymbolForDeclaredControlVariable()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -2879,7 +2879,7 @@ End Module
         <WorkItem(611537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611537")>
         <Fact()>
         Public Sub Bug611537()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb">
 Class 
@@ -2896,7 +2896,7 @@ Property 'BIND1:"Property"
 
         <Fact(), WorkItem(747446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747446")>
         Public Sub TestGetDeclaredSymbolWithChangedRootNamespace()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Interface I1
@@ -2937,7 +2937,7 @@ End Interface
 
         <Fact(), WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
         Public Sub TestGetDeclaredSymbolWithIncompleteDeclaration()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Compilation">
     <file name="a.vb">
 Class C0

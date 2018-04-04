@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
 
         void ICommandHandlerService.Execute<T>(IContentType contentType, T args, Action lastHandler)
         {
-            using (Logger.LogBlock(FunctionId.CommandHandler_ExecuteHandlers, CancellationToken.None))
+            using (Logger.LogBlock(FunctionId.CommandHandler_ExecuteHandlers, a => a?.ToString(), args, CancellationToken.None))
             {
                 ExecuteHandlers(GetHandlers<T>(contentType), args, lastHandler);
             }

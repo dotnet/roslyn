@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -43,7 +44,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -59,7 +60,7 @@ class Program
   IL_0024:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
+            comp = CompileAndVerify(text, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -99,7 +100,7 @@ class Program
     }
 ";
 
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "A");
+            var comp1 = CreateCompilation(text1, assemblyName: "A");
             var ref1 = comp1.EmitToImageReference();
 
             var text = @"
@@ -114,7 +115,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1}, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -130,7 +131,7 @@ class Program
   IL_0024:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
+            comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -180,7 +181,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -198,7 +199,7 @@ class Program
   IL_002a:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
+            comp = CompileAndVerify(text, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -253,7 +254,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -272,7 +273,7 @@ class Program
   IL_002f:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
+            comp = CompileAndVerify(text, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -316,7 +317,7 @@ class Program
     }
 ";
 
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "A");
+            var comp1 = CreateCompilation(text1, assemblyName: "A");
             var ref1 = comp1.EmitToImageReference();
 
             var text = @"
@@ -333,7 +334,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
+            var comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -352,7 +353,7 @@ class Program
   IL_002f:  ret
 }");
 
-            comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
+            comp = CompileAndVerify(text, new[] { ref1 }, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature(), verify: Verification.Passes, expectedOutput: @"hello2");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -406,7 +407,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.Test", @"
 {
@@ -452,7 +453,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"12");
 
             comp.VerifyIL("Program.S1.Test()", @"
 {
@@ -503,7 +504,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"Program+S1Program+S1");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"Program+S1Program+S1");
 
             comp.VerifyIL("Program.S1.Test()", @"
 {
@@ -554,7 +555,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242");
 
             comp.VerifyIL("Program.S1..ctor(int)", @"
 {
@@ -622,7 +623,7 @@ class Program
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (27,13): error CS1604: Cannot assign to 'this' because it is read-only
                 //             this = default; // error
@@ -694,7 +695,7 @@ class Program
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (19,24): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
                 //             void F() { x = i;} // Error           
@@ -808,7 +809,7 @@ class Program
 }
 ";
 
-            var comp = CreateStandardCompilation(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
 
             // S1
             NamedTypeSymbol namedType = comp.GetTypeByMetadataName("Program+S1");
@@ -816,6 +817,16 @@ class Program
             Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
             Assert.Equal(RefKind.In, namedType.GetMethod("M1").ThisParameter.RefKind);
             Assert.Equal(RefKind.In, namedType.GetMethod("ToString").ThisParameter.RefKind);
+
+            void validate(ModuleSymbol module)
+            {
+                var test = module.ContainingAssembly.GetTypeByMetadataName("Program+S1");
+
+                var peModule = (PEModuleSymbol)module;
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PENamedTypeSymbol)test).Handle));
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Internal);
+            }
+            CompileAndVerify(comp, symbolValidator: validate);
 
             // S1<T>
             namedType = comp.GetTypeByMetadataName("Program+S1`1");
@@ -882,6 +893,14 @@ class Program
             type = (TypeSymbol)comp.CreateTupleTypeSymbol(ImmutableArray.Create<ITypeSymbol>(comp.ObjectType, comp.ObjectType));
             Assert.False(type.IsReadOnly);
 
+            // S1 from image
+            var clientComp = CreateCompilation("", references: new[] { comp.EmitToImageReference() });
+            NamedTypeSymbol s1 = clientComp.GetTypeByMetadataName("Program+S1");
+            Assert.True(s1.IsReadOnly);
+            Assert.Empty(s1.GetAttributes());
+            Assert.Equal(RefKind.Out, s1.Constructors[0].ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, s1.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.In, s1.GetMethod("ToString").ThisParameter.RefKind);
         }
 
         [Fact]
@@ -961,10 +980,10 @@ class Program
     delegate int D1();
 }
 ";
-            var comp1 = CreateStandardCompilation(text1, assemblyName: "A");
+            var comp1 = CreateCompilation(text1, assemblyName: "A");
             var ref1 = comp1.EmitToImageReference();
 
-            var comp = CreateStandardCompilation("//NO CODE HERE", new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation("//NO CODE HERE", new[] { ref1 }, parseOptions: TestOptions.Regular);
 
             // S1
             NamedTypeSymbol namedType = comp.GetTypeByMetadataName("Program+S1");

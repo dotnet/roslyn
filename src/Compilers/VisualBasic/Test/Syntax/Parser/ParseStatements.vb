@@ -4141,7 +4141,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+        Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
         compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedNext, "For j = 1 To 10"),
                                        Diagnostic(ERRID.ERR_ExtraNextVariable, "i"),
                                        Diagnostic(ERRID.ERR_NameNotDeclared1, "j").WithArguments("j"))
@@ -4165,7 +4165,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+        Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
         CompileAndVerify(compilation)
 
         CompilationUtils.AssertNoErrors(compilation)
@@ -4194,7 +4194,7 @@ End Module
 </compilation>
 
         'Should be No errors and a single line lambda is in use
-        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
         CompilationUtils.AssertTheseDiagnostics(Compilation, <expected>
                                                              </expected>)
         CompileAndVerify(Compilation)
@@ -4224,7 +4224,7 @@ End Module
 </compilation>
 
         'Should be No errors and a single line lambda is in use
-        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+        Dim Compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
         CompilationUtils.AssertTheseDiagnostics(Compilation, <expected>
                                                              </expected>)
         CompileAndVerify(Compilation)
@@ -8466,7 +8466,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8520,7 +8520,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8568,7 +8568,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8613,7 +8613,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30086: 'Else' must be preceded by a matching 'If' or 'ElseIf'.
@@ -8657,7 +8657,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8698,7 +8698,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8783,7 +8783,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8832,7 +8832,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 </expected>)
@@ -8875,7 +8875,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8939,7 +8939,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -8988,7 +8988,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30205: End of statement expected.
@@ -9047,7 +9047,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -9080,7 +9080,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30199: '(' expected.
@@ -9110,7 +9110,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30199: '(' expected.
@@ -9140,7 +9140,7 @@ End Module
     </file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30199: '(' expected.
@@ -9172,7 +9172,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30625: 'Module' statement must end with a matching 'End Module'.
@@ -9207,7 +9207,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30625: 'Module' statement must end with a matching 'End Module'.
@@ -9239,7 +9239,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30451: 'sServiceName' is not declared. It may be inaccessible due to its protection level.
@@ -9262,7 +9262,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30451: 'sServiceName' is not declared. It may be inaccessible due to its protection level.
@@ -9288,7 +9288,7 @@ End Module
     ]]></file>
 </compilation>
 
-        Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseDll)
+        Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll)
         CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
 BC30625: 'Module' statement must end with a matching 'End Module'.

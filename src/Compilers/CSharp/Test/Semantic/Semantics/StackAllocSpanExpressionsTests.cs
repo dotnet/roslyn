@@ -188,7 +188,7 @@ class Test
         [Fact]
         public void MissingSpanType()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M()
@@ -207,7 +207,7 @@ class Test
         [Fact]
         public void MissingSpanConstructor()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 namespace System
 {
     ref struct Span<T>
@@ -220,7 +220,7 @@ namespace System
             Span<int> a = stackalloc int [10];
         }
     }
-}").VerifyDiagnostics(
+}").VerifyEmitDiagnostics(
                 // (11,27): error CS0656: Missing compiler required member 'System.Span`1..ctor'
                 //             Span<int> a = stackalloc int [10];
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "stackalloc int [10]").WithArguments("System.Span`1", ".ctor").WithLocation(11, 27));
@@ -347,7 +347,7 @@ class Test
         }
 
         [Fact]
-        public void NewStackAllocSpanSyntaxProducesErrorsOnEarlierVersions()
+        public void NewStackAllocSpanSyntaxProducesErrorsOnEarlierVersions_Statements()
         {
             var parseOptions = new CSharpParseOptions().WithLanguageVersion(LanguageVersion.CSharp7);
 
@@ -366,9 +366,32 @@ class Test
         }
 
         [Fact]
+        public void NewStackAllocSpanSyntaxProducesErrorsOnEarlierVersions_Expressions()
+        {
+            var parseOptions = new CSharpParseOptions().WithLanguageVersion(LanguageVersion.CSharp7);
+
+            CreateCompilationWithMscorlibAndSpan(@"
+class Test
+{
+    void M(bool condition)
+    {
+        var x = condition
+            ? stackalloc int[10]
+            : stackalloc int[100];
+    }
+}", options: TestOptions.UnsafeReleaseDll, parseOptions: parseOptions).VerifyDiagnostics(
+                // (7,15): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
+                //             ? stackalloc int[10]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc int[10]").WithArguments("ref structs", "7.2").WithLocation(7, 15),
+                // (8,15): error CS8107: Feature 'ref structs' is not available in C# 7.0. Please use language version 7.2 or greater.
+                //             : stackalloc int[100];
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "stackalloc int[100]").WithArguments("ref structs", "7.2").WithLocation(8, 15));
+        }
+
+        [Fact]
         public void StackAllocSyntaxProducesUnsafeErrorInSafeCode()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M()
@@ -433,7 +456,7 @@ unsafe public class Test
     }
 }
 ";
-            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
                 // (6,15): error CS0283: The type 'int*' cannot be declared const
                 //         const int* p = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15));
@@ -551,7 +574,7 @@ unsafe public class Test
         [Fact]
         public void StackAllocWithDynamic()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Program
 {
     static void Main()
@@ -584,7 +607,7 @@ class Program
         [Fact]
         public void StackAllocAsArgument()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Program
 {
     static void N(object p) { }
@@ -602,7 +625,7 @@ class Program
         [Fact]
         public void StackAllocInParenthesis()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Program
 {
     static void Main()
@@ -618,7 +641,7 @@ class Program
         [Fact]
         public void StackAllocInNullConditionalOperator()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Program
 {
     static void Main()
@@ -651,6 +674,73 @@ class Test
         return new Test();
     }
 }", TestOptions.ReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(25038, "https://github.com/dotnet/roslyn/issues/25038")]
+        public void StackAllocToSpanWithRefStructType()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+ref struct S {}
+class Test
+{
+    void M()
+    {
+        Span<S> explicitError = default;
+        var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
+    }
+}").VerifyDiagnostics(
+                // (8,14): error CS0306: The type 'S' may not be used as a type argument
+                //         Span<S> explicitError = default;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S").WithArguments("S").WithLocation(8, 14),
+                // (9,67): error CS0306: The type 'S' may not be used as a type argument
+                //         var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S[10]").WithArguments("S").WithLocation(9, 67),
+                // (9,86): error CS0306: The type 'S' may not be used as a type argument
+                //         var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S[100]").WithArguments("S").WithLocation(9, 86));
+        }
+
+        [Fact]
+        [WorkItem(25086, "https://github.com/dotnet/roslyn/issues/25086")]
+        public void StaackAllocToSpanWithCustomSpanAndConstraints()
+        {
+            var code = @"
+using System;
+namespace System
+{
+    public unsafe readonly ref struct Span<T> where T : IComparable
+    {
+        public Span(void* ptr, int length)
+        {
+            Length = length;
+        }
+        public int Length { get; }
+    }
+}
+struct NonComparable { }
+class Test
+{
+    void M()
+    {
+        Span<NonComparable> explicitError = default;
+        var implicitError = explicitError.Length > 0 ? stackalloc NonComparable[10] : stackalloc NonComparable[100];
+    }
+}";
+
+            var references = new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef };
+
+            CreateEmptyCompilation(code, references, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (19,14): error CS0315: The type 'NonComparable' cannot be used as type parameter 'T' in the generic type or method 'Span<T>'. There is no boxing conversion from 'NonComparable' to 'System.IComparable'.
+                //         Span<NonComparable> explicitError = default;
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "NonComparable").WithArguments("System.Span<T>", "System.IComparable", "T", "NonComparable").WithLocation(19, 14),
+                // (20,67): error CS0315: The type 'NonComparable' cannot be used as type parameter 'T' in the generic type or method 'Span<T>'. There is no boxing conversion from 'NonComparable' to 'System.IComparable'.
+                //         var implicitError = explicitError.Length > 0 ? stackalloc NonComparable[10] : stackalloc NonComparable[100];
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "NonComparable[10]").WithArguments("System.Span<T>", "System.IComparable", "T", "NonComparable").WithLocation(20, 67),
+                // (20,98): error CS0315: The type 'NonComparable' cannot be used as type parameter 'T' in the generic type or method 'Span<T>'. There is no boxing conversion from 'NonComparable' to 'System.IComparable'.
+                //         var implicitError = explicitError.Length > 0 ? stackalloc NonComparable[10] : stackalloc NonComparable[100];
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "NonComparable[100]").WithArguments("System.Span<T>", "System.IComparable", "T", "NonComparable").WithLocation(20, 98));
         }
     }
 }

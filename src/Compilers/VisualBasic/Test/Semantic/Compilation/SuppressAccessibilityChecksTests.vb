@@ -111,7 +111,7 @@ End Class
         ]]>.Value
 
             Dim tree = SyntaxFactory.ParseSyntaxTree(source)
-            Dim comp = CreateCompilationWithMscorlib(tree)
+            Dim comp = CreateCompilationWithMscorlib40(tree)
             Dim model = comp.GetSemanticModel(tree, ignoreAccessibility:=True)
 
             Dim root = tree.GetCompilationUnitRoot()
@@ -166,11 +166,11 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim compilationA = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilationA = CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             Dim referenceA = MetadataReference.CreateFromStream(compilationA.EmitToStream())
 
-            Dim compilationB = CreateCompilationWithMscorlib(New String() {<![CDATA[
+            Dim compilationB = CreateCompilationWithMscorlib40(New String() {<![CDATA[
 Class B 
 
     Sub Main() 
@@ -219,7 +219,7 @@ Class C
 End Class
 ]]>.Value
 
-            Dim compilationA = CreateCompilationWithMscorlib(SyntaxFactory.ParseSyntaxTree(source))
+            Dim compilationA = CreateCompilationWithMscorlib40(SyntaxFactory.ParseSyntaxTree(source))
 
             Dim blockStatement = SyntaxFactory.ParseSyntaxTree(<![CDATA[
                                                                

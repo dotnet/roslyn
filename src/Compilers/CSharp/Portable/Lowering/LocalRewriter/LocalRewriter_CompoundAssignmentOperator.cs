@@ -661,11 +661,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///        l += goo(ref l);
         /// 
         /// even though l is a local, we must access it via a temp since "goo(ref l)" may change it
-        /// on between accesses. 
+        /// on between accesses.
+        ///
+        /// Note: In `this.x++`, `this` cannot change between reads. But in `(this, ...) == (..., this.Mutate())` it can.
         /// </summary>
         internal static bool CanChangeValueBetweenReads(
             BoundExpression expression,
-            bool localsMayBeAssignedOrCaptured = true)
+            bool localsMayBeAssignedOrCaptured = true,
+            bool structThisCanChangeValueBetweenReads = false)
         {
             if (expression.IsDefaultValue())
             {
@@ -681,6 +684,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expression.Kind)
             {
                 case BoundKind.ThisReference:
+                    return structThisCanChangeValueBetweenReads && ((BoundThisReference)expression).Type.IsStructType();
+
                 case BoundKind.BaseReference:
                     return false;
 
@@ -727,6 +732,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var conv = (BoundConversion)expression;
                     return conv.ConversionHasSideEffects() ||
                         ReadIsSideeffecting(conv.Operand);
+
+                case BoundKind.PassByCopy:
+                    return ReadIsSideeffecting(((BoundPassByCopy)expression).Expression);
 
                 case BoundKind.ObjectCreationExpression:
                     // common production of lowered conversions to nullable

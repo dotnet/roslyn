@@ -97,3 +97,30 @@ Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123
     This is changed in 15.6 to now produce an error that the variable is not definitely assigned.
 
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/19792 C# compiler will now reject [IsReadOnly] symbols that should have an [InAttribute] modreq, but don't.
+- Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/pull/25131 C# compiler will now check `stackalloc T [count]` expressions to see if T matches constraints of `Span<T>`.
+
+- https://github.com/dotnet/roslyn/issues/24806 In C# 7.2 and previous versions, it could be possible to observe cases when an RValue expression is reduced to a variable that can be passed by reference in the process of compiling.  
+For example `(x + 0)` becomes `x`. If such change happens in a context that allows both RValues and passing via direct reference (receiver of a struct call or an `in` parameter), then it could change the meaning of the code.   
+C# 7.3 will preserve the behavior of the rvalue where the value must always be passed via a copy.  
+Example:  
+   ```C#
+   static int x = 123;
+   static string Test1()
+   {
+       // cannot replace value of "x + 0" with a reference to "x"
+       // since that would make the method see the mutations in M1();
+       return (x + 0).ToString(M1());
+   }
+   
+   static string M1()
+   {
+       x = 42;
+       return "";
+   }
+   	```  
+
+- Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/25450 We added new restrictions on the use of the `default` expression in preparation for the planned addition of further pattern-matching features in C# 8.0:
+  - If you write `e is default`, you will get the new error
+    `error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.` 
+  - If you write `case default:`, you will get the new error
+    `error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.`

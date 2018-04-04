@@ -12,6 +12,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
+    <[UseExportProvider]>
     Public Class SmartTokenFormatter_FormatTokenTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
