@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public static string CodeAnalysisService { get; private set; } = "roslynCodeAnalysis";
         public static string RemoteSymbolSearchUpdateEngine { get; private set; } = "roslynRemoteSymbolSearchUpdateEngine";
 
+        // these are OOP implementation itself should care. not features that consume OOP care
         public const string ServiceHubServiceBase_Initialize = "Initialize";
         public const string AssetService_RequestAssetAsync = "RequestAssetAsync";
     }
