@@ -2412,70 +2412,56 @@ Block[B1] - Block
               Value: 
                 IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
 
-        Jump if True (Regular) to Block[B4]
+        Jump if True (Regular) to Block[B7]
             IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'o')
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'o')
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
 
         Next (Regular) Block[B3]
     Block[B3] - Block
         Predecessors: [B2]
         Statements (1)
-            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.ToString()')
-              Value: 
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'o?.ToString();')
+              Expression: 
                 IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '.ToString()')
                   Instance Receiver: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'o')
                   Arguments(0)
 
-        Next (Regular) Block[B5]
-    Block[B4] - Block
-        Predecessors: [B2]
-        Statements (1)
-            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'o')
-              Value: 
-                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'o')
-
-        Next (Regular) Block[B5]
-    Block[B5] - Block
-        Predecessors: [B3] [B4]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'o?.ToString();')
-              Expression: 
-                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'o?.ToString()')
-
-        Next (Regular) Block[B9]
+        Next (Regular) Block[B7]
             Finalizing: {R3}
             Leaving: {R2} {R1}
 }
 .finally {R3}
 {
-    Block[B6] - Block
+    Block[B4] - Block
         Predecessors (0)
         Statements (0)
-        Jump if True (Regular) to Block[B8]
+        Jump if True (Regular) to Block[B6]
             IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
               Operand: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'input')
 
-        Next (Regular) Block[B7]
-    Block[B7] - Block
-        Predecessors: [B6]
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B4]
         Statements (1)
             IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'input')
               Instance Receiver: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'input')
               Arguments(0)
 
-        Next (Regular) Block[B8]
-    Block[B8] - Block
-        Predecessors: [B6] [B7]
+        Next (Regular) Block[B6]
+    Block[B6] - Block
+        Predecessors: [B4] [B5]
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[B9] - Exit
-    Predecessors: [B5]
+Block[B7] - Exit
+    Predecessors: [B2] [B3]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

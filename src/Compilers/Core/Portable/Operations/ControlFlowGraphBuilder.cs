@@ -1822,6 +1822,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             var whenNull = new BasicBlock(BasicBlockKind.Block);
 
+            SemanticModel semanticModel = ((Operation)operation).SemanticModel;
             IConditionalAccessOperation currentConditionalAccess = operation;
             IOperation testExpression;
 
@@ -1834,7 +1835,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 int testExpressionCaptureId = VisitAndCapture(testExpression);
                 Optional<object> constantValue = testExpression.ConstantValue;
 
-                SemanticModel semanticModel = ((Operation)operation).SemanticModel;
                 LinkBlocks(CurrentBasicBlock,
                            (Operation.SetParentOperation(MakeIsNullOperation(semanticModel,
                                                                              new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, constantValue)),
@@ -1863,68 +1863,97 @@ namespace Microsoft.CodeAnalysis.Operations
                 currentConditionalAccess = (IConditionalAccessOperation)currentConditionalAccess.WhenNotNull;
             }
 
-            int resultCaptureId = captureIdForResult ?? _availableCaptureId++;
-
-            if (ITypeSymbolHelpers.IsNullableType(operation.Type) && !ITypeSymbolHelpers.IsNullableType(currentConditionalAccess.WhenNotNull.Type))
+            // Avoid creation of default values and FlowCapture for conditional access on a statement level.
+            if (_currentStatement == operation ||
+                (_currentStatement == operation.Parent && _currentStatement?.Kind == OperationKind.ExpressionStatement))
             {
-                IOperation access = Visit(currentConditionalAccess.WhenNotNull);
-                AddStatement(new FlowCapture(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax,
-                                             TryMakeNullableValue((INamedTypeSymbol)operation.Type, access) ??
-                                             // PROTOTYPE(dataflow): The scenario with missing constructor is not covered by unit-tests.
-                                             MakeInvalidOperation(operation.Type, access)));
+                Debug.Assert(captureIdForResult == null);
+
+                IOperation result = Visit(currentConditionalAccess.WhenNotNull);
+                Debug.Assert(_currentConditionalAccessInstance == null);
+
+                if (_currentStatement != operation)
+                {
+                    var expressionStatement = (IExpressionStatementOperation)_currentStatement;
+                    result = new ExpressionStatement(result, semanticModel: null, expressionStatement.Syntax, 
+                                                     expressionStatement.Type, expressionStatement.ConstantValue, 
+                                                     expressionStatement.IsImplicit);
+                }
+
+                AddStatement(result);
+                AppendNewBlock(whenNull);
+                return null;
             }
             else
             {
-                VisitAndCapture(currentConditionalAccess.WhenNotNull, resultCaptureId);
+                int resultCaptureId = captureIdForResult ?? _availableCaptureId++;
+
+                if (ITypeSymbolHelpers.IsNullableType(operation.Type) && !ITypeSymbolHelpers.IsNullableType(currentConditionalAccess.WhenNotNull.Type))
+                {
+                    IOperation access = Visit(currentConditionalAccess.WhenNotNull);
+                    AddStatement(new FlowCapture(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax,
+                                                 TryMakeNullableValue((INamedTypeSymbol)operation.Type, access, semanticModel) ??
+                                                 // PROTOTYPE(dataflow): The scenario with missing constructor is not covered by unit-tests.
+                                                 MakeInvalidOperation(operation.Type, access)));
+                }
+                else
+                {
+                    VisitAndCapture(currentConditionalAccess.WhenNotNull, resultCaptureId);
+                }
+
+                Debug.Assert(_currentConditionalAccessInstance == null);
+
+                var afterAccess = new BasicBlock(BasicBlockKind.Block);
+                LinkBlocks(CurrentBasicBlock, afterAccess);
+                _currentBasicBlock = null;
+
+                AppendNewBlock(whenNull);
+
+                SyntaxNode defaultValueSyntax = (operation.Operation == testExpression ? testExpression : operation).Syntax;
+
+                AddStatement(new FlowCapture(resultCaptureId,
+                                             defaultValueSyntax,
+                                             new DefaultValueExpression(semanticModel: null, defaultValueSyntax, operation.Type,
+                                                                        (operation.Type.IsReferenceType && !ITypeSymbolHelpers.IsNullableType(operation.Type)) ?
+                                                                            new Optional<object>(null) : default,
+                                                                        isImplicit: true)));
+
+                AppendNewBlock(afterAccess);
+
+                return new FlowCaptureReference(resultCaptureId, operation.Syntax, operation.Type, operation.ConstantValue);
             }
-
-            Debug.Assert(_currentConditionalAccessInstance == null);
-
-            var afterAccess = new BasicBlock(BasicBlockKind.Block);
-            LinkBlocks(CurrentBasicBlock, afterAccess);
-            _currentBasicBlock = null;
-
-            AppendNewBlock(whenNull);
-
-            SyntaxNode defaultValueSyntax = (operation.Operation == testExpression ? testExpression : operation).Syntax;
-
-            AddStatement(new FlowCapture(resultCaptureId,
-                                         defaultValueSyntax,
-                                         new DefaultValueExpression(semanticModel: null, defaultValueSyntax, operation.Type,
-                                                                    (operation.Type.IsReferenceType && !ITypeSymbolHelpers.IsNullableType(operation.Type)) ?
-                                                                        new Optional<object>(null) : default,
-                                                                    isImplicit: true)));
-
-            AppendNewBlock(afterAccess);
-
-            return new FlowCaptureReference(resultCaptureId, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
-        private static IOperation TryMakeNullableValue(INamedTypeSymbol type, IOperation underlyingValue)
+        private static IOperation TryMakeNullableValue(INamedTypeSymbol type, IOperation underlyingValue, SemanticModel semanticModel)
         {
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(type));
 
-            foreach (IMethodSymbol method in type.InstanceConstructors)
+            var method = (IMethodSymbol)semanticModel.Compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor);
+
+            if (method != null)
             {
-                if (method.DeclaredAccessibility == Accessibility.Public && method.Parameters.Length == 1 &&
-                    method.OriginalDefinition.Parameters[0].Type.Equals(type.OriginalDefinition.TypeParameters[0]))
+                foreach (ISymbol candidate in type.InstanceConstructors)
                 {
-                    return new ObjectCreationExpression(method, initializer: null,
-                                                        ImmutableArray.Create<IArgumentOperation>(
-                                                                    new ArgumentOperation(underlyingValue,
-                                                                                          ArgumentKind.Explicit,
-                                                                                          method.Parameters[0],
-                                                                                          inConversionOpt: null,
-                                                                                          outConversionOpt: null,
-                                                                                          semanticModel: null,
-                                                                                          underlyingValue.Syntax,
-                                                                                          constantValue: null,
-                                                                                          isImplicit: true)),
-                                                        semanticModel: null,
-                                                        underlyingValue.Syntax,
-                                                        type,
-                                                        constantValue: null,
-                                                        isImplicit: true);
+                    if (candidate.OriginalDefinition.Equals(method))
+                    {
+                        method = (IMethodSymbol)candidate;
+                        return new ObjectCreationExpression(method, initializer: null,
+                                                            ImmutableArray.Create<IArgumentOperation>(
+                                                                        new ArgumentOperation(underlyingValue,
+                                                                                              ArgumentKind.Explicit,
+                                                                                              method.Parameters[0],
+                                                                                              inConversionOpt: null,
+                                                                                              outConversionOpt: null,
+                                                                                              semanticModel: null,
+                                                                                              underlyingValue.Syntax,
+                                                                                              constantValue: null,
+                                                                                              isImplicit: true)),
+                                                            semanticModel: null,
+                                                            underlyingValue.Syntax,
+                                                            type,
+                                                            constantValue: null,
+                                                            isImplicit: true);
+                    }
                 }
             }
 
@@ -1937,6 +1966,21 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation result = _currentConditionalAccessInstance;
             _currentConditionalAccessInstance = null;
             return result;
+        }
+
+        public override IOperation VisitExpressionStatement(IExpressionStatementOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            IOperation underlying = Visit(operation.Operation);
+
+            if (underlying == null)
+            {
+                Debug.Assert(operation.Operation.Kind == OperationKind.ConditionalAccess);
+                return null;
+            }
+
+            return new ExpressionStatement(underlying, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitWhileLoop(IWhileLoopOperation operation, int? captureIdForResult)
@@ -2944,11 +2988,6 @@ namespace Microsoft.CodeAnalysis.Operations
         internal override IOperation VisitFixed(IFixedOperation operation, int? captureIdForResult)
         {
             return new FixedStatement(Visit(operation.Variables), Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitExpressionStatement(IExpressionStatementOperation operation, int? captureIdForResult)
-        {
-            return new ExpressionStatement(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         internal override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)

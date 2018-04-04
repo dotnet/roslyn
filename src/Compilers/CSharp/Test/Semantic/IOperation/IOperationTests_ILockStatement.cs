@@ -453,53 +453,39 @@ Block[B4] - Block
               Value: 
                 IParameterReferenceOperation: source3 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'source3')
 
-        Jump if True (Regular) to Block[B7]
+        Jump if True (Regular) to Block[B10]
             IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'source3')
               Operand: 
                 IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'source3')
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
 
         Next (Regular) Block[B6]
     Block[B6] - Block
         Predecessors: [B5]
         Statements (1)
-            IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.ToString()')
-              Value: 
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'source3?.ToString();')
+              Expression: 
                 IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '.ToString()')
                   Instance Receiver: 
                     IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'source3')
                   Arguments(0)
 
-        Next (Regular) Block[B8]
-    Block[B7] - Block
-        Predecessors: [B5]
-        Statements (1)
-            IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'source3')
-              Value: 
-                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'source3')
-
-        Next (Regular) Block[B8]
-    Block[B8] - Block
-        Predecessors: [B6] [B7]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'source3?.ToString();')
-              Expression: 
-                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'source3?.ToString()')
-
-        Next (Regular) Block[B12]
+        Next (Regular) Block[B10]
             Finalizing: {R3}
             Leaving: {R2} {R1}
 }
 .finally {R3}
 {
-    Block[B9] - Block
+    Block[B7] - Block
         Predecessors (0)
         Statements (0)
-        Jump if False (Regular) to Block[B11]
+        Jump if False (Regular) to Block[B9]
             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'source1 ?? source2')
 
-        Next (Regular) Block[B10]
-    Block[B10] - Block
-        Predecessors: [B9]
+        Next (Regular) Block[B8]
+    Block[B8] - Block
+        Predecessors: [B7]
         Statements (1)
             IInvocationOperation (void System.Threading.Monitor.Exit(System.Object obj)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'source1 ?? source2')
               Instance Receiver: 
@@ -510,15 +496,15 @@ Block[B4] - Block
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
-        Next (Regular) Block[B11]
-    Block[B11] - Block
-        Predecessors: [B9] [B10]
+        Next (Regular) Block[B9]
+    Block[B9] - Block
+        Predecessors: [B7] [B8]
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[B12] - Exit
-    Predecessors: [B8]
+Block[B10] - Exit
+    Predecessors: [B5] [B6]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
