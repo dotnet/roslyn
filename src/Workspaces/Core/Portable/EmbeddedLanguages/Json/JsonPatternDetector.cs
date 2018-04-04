@@ -210,8 +210,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                         method.IsStatic &&
                         _typesOfInterest.Contains(method.ContainingType))
                     {
-                        return AnalyzeStringLiteral(
-                            stringLiteral, argumentNode, cancellationToken);
+                        return IsArgumentToParameterWithName(
+                            argumentNode, _jsonName, cancellationToken);
                     }
                 }
             }
@@ -237,12 +237,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return JsonParser.TryParse(chars, strict);
         }
 
-        private bool AnalyzeStringLiteral(
-            SyntaxToken stringLiteral, SyntaxNode argumentNode,
-            CancellationToken cancellationToken)
+        private bool IsArgumentToParameterWithName(
+            SyntaxNode argumentNode, string name, CancellationToken cancellationToken)
         {
             var parameter = _semanticFacts.FindParameterForArgument(_semanticModel, argumentNode, cancellationToken);
-            return parameter?.Name == _jsonName;
+            return parameter?.Name == name;
         }
 
         private string GetNameOfInvokedExpression(SyntaxNode invokedExpression)
