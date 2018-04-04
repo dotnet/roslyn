@@ -394,6 +394,30 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestNotOnPropertyParameter() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+class C
+    readonly property P([||]s as string)
+        get
+        end get
+    end property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestNotOnIndexerParameter() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+class C
+    default readonly property I([||]s as string)
+        get
+        end get
+    end property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestSpecialStringCheck1() As Task
             Await TestInRegularAndScript1Async(
 "

@@ -463,7 +463,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestUpdateLocalFunctionExpressionBody()
+        public async Task TestUpdateLocalFunctionExpressionBody_NonVoid()
         {
             await TestInRegularAndScript1Async(
 @"
@@ -497,7 +497,41 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestUpdateLambdaExpressionBodyWithReturn()
+        public async Task TestUpdateLocalFunctionExpressionBody_Void()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        void F([||]string s) => Init();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        void F(string s)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            Init();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestUpdateLambdaExpressionBody_NonVoid()
         {
             await TestInRegularAndScript1Async(
 @"
@@ -535,7 +569,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestUpdateLambdaExpressionBodyNoReturn()
+        public async Task TestUpdateLambdaExpressionBody_Void()
         {
             await TestInRegularAndScript1Async(
 @"
@@ -727,6 +761,28 @@ class C
         if (null == s)
         {
             throw new ArgumentNullException();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingWithExistingNullCheckInLocalFunction()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public C()
+    {
+        void F([||]string s)
+        {
+            if (s == null)
+            {
+                throw new ArgumentNullException();
+            }
         }
     }
 }");
@@ -932,7 +988,7 @@ class C
 {
     public C()
     {
-        void Goo([||]string s)
+        void F([||]string s)
         {
         }
     }
@@ -944,12 +1000,29 @@ class C
 {
     public C()
     {
-        void Goo(string s)
+        void F(string s)
         {
             if (s == null)
             {
                 throw new ArgumentNullException(nameof(s));
             }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnIndexerParameter()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int this[[||]string s]
+    {
+        get
+        {
+            return 0;
         }
     }
 }");
