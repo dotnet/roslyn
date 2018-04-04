@@ -269,6 +269,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     {
                         continue;
                     }
+                    else
+                    {
+                        break;
+                    }
                 }
 
                 var whitespace = ScanWhitespace();
