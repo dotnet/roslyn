@@ -8626,7 +8626,7 @@ End Class")
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Dim csc = New MockVisualBasicCompiler(Nothing, dir.Path,
-                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "a.vb"})
+                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "/preferreduilang:en", "a.vb"})
 
             Dim exitCode = csc.Run(outWriter)
             Assert.Equal(1, exitCode)

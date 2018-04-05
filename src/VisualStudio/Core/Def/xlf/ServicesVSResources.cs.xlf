@@ -1103,11 +1103,6 @@ Další informace: {1}</target>
         <target state="translated">Spravovat specifikace</target>
         <note />
       </trans-unit>
-      <trans-unit id="Manage_styles">
-        <source>Manage styles</source>
-        <target state="translated">Spravovat styly</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reorder">
         <source>Reorder</source>
         <target state="translated">Přeskupit</target>
@@ -1506,6 +1501,11 @@ Souhlasím se všemi výše uvedenými podmínkami:</target>
       <trans-unit id="Sync_Class_View_Command_Handler">
         <source>Sync Class View Command Handler</source>
         <target state="new">Sync Class View Command Handler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="new">Manage naming styles</target>
         <note />
       </trans-unit>
       <trans-unit id="Field_preferences_colon">

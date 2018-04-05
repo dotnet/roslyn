@@ -6,6 +6,7 @@ using System.Composition.Hosting;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// to completion. If this timeout is exceeded by the asynchronous operations running after a test completes,
         /// the test is failed.
         /// </summary>
-        private static readonly TimeSpan CleanupTimeout = TimeSpan.FromSeconds(15);
+        private static readonly TimeSpan CleanupTimeout = TimeSpan.FromMinutes(1);
 
         // Cache the export provider factory for RoslynServices.RemoteHostAssemblies
         private static readonly Lazy<IExportProviderFactory> s_remoteHostExportProviderFactory = new Lazy<IExportProviderFactory>(
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             DesktopMefHostServices.ResetHostServicesTestOnly();
 
             // make sure we enable this for all unit tests
-            AsynchronousOperationListenerProvider.Enable(true);
+            AsynchronousOperationListenerProvider.Enable(enable: true, diagnostics: true);
             ExportProviderCache.SetEnabled_OnlyUseExportProviderAttributeCanCall(true);
         }
 
@@ -112,7 +113,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         }
                         catch (OperationCanceledException ex) when (timeoutTokenSource.IsCancellationRequested)
                         {
-                            throw new TimeoutException("Failed to clean up listeners in a timely manner.", ex);
+                            var messageBuilder = new StringBuilder("Failed to clean up listeners in a timely manner.");
+                            foreach (var token in ((AsynchronousOperationListenerProvider)listenerProvider).GetTokens())
+                            {
+                                messageBuilder.AppendLine().Append($"  {token}");
+                            }
+
+                            throw new TimeoutException(messageBuilder.ToString(), ex);
                         }
                     }
                 }
