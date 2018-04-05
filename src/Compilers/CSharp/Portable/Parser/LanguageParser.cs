@@ -7936,9 +7936,34 @@ tryAgain:
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.SwitchKeyword);
             var @switch = this.EatToken(SyntaxKind.SwitchKeyword);
-            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
             var expression = this.ParseExpressionCore();
-            var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+            SyntaxToken openParen;
+            SyntaxToken closeParen;
+            if (expression.Kind == SyntaxKind.ParenthesizedExpression)
+            {
+                var parenExpression = (ParenthesizedExpressionSyntax)expression;
+                openParen = parenExpression.OpenParenToken;
+                expression = parenExpression.Expression;
+                closeParen = parenExpression.CloseParenToken;
+
+                // PROTOTYPE(patterns2): Do we need to preserve any diagnostics that were attached directly to parenExpression?
+                Debug.Assert(parenExpression.GetDiagnostics().Length == 0);
+            }
+            else if (expression.Kind == SyntaxKind.TupleExpression)
+            {
+                // As a special case, when a tuple literal is the governing expression of
+                // a switch statement we permit the switch statement's own parentheses to be omitted.
+                // LDM 2018-04-04.
+                openParen = closeParen = default;
+            }
+            else
+            {
+                // Some other expression has appeared without parens. Give a syntax error.
+                openParen = SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken);
+                expression = this.AddError(expression, ErrorCode.ERR_SwitchGoverningExpressionRequiresParens);
+                closeParen = SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken);
+            }
+
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
             var sections = _pool.Allocate<SwitchSectionSyntax>();

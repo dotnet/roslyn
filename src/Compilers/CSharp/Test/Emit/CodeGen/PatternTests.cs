@@ -1152,7 +1152,7 @@ public class Door
 
     public static DoorState ChangeState0(DoorState state, Action action, bool haveKey = false)
     {
-        switch ((state, action))
+        switch (state, action)
         {
             case (DoorState.Opened, Action.Close):
                 return DoorState.Closed;

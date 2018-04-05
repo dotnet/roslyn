@@ -5375,4 +5375,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureIndexingMovableFixedBuffers" xml:space="preserve">
     <value>indexing movable fixed buffers</value>
   </data>
+  <data name="ERR_SwitchGoverningExpressionRequiresParens" xml:space="preserve">
+    <value>Parentheses are required around the switch governing expression.</value>
+  </data>
 </root>

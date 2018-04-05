@@ -8815,6 +8815,11 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="new">Do not use '_' to refer to the type in an is-type expression.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
+        <source>Parentheses are required around the switch governing expression.</source>
+        <target state="new">Parentheses are required around the switch governing expression.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

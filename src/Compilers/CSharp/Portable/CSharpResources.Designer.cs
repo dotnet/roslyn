@@ -9377,6 +9377,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parentheses are required around the switch governing expression..
+        /// </summary>
+        internal static string ERR_SwitchGoverningExpressionRequiresParens {
+            get {
+                return ResourceManager.GetString("ERR_SwitchGoverningExpressionRequiresParens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Command-line syntax error: Missing &apos;:&lt;number&gt;&apos; for &apos;{0}&apos; option.
         /// </summary>
         internal static string ERR_SwitchNeedsNumber {

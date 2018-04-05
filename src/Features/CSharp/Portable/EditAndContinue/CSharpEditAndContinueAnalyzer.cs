@@ -1327,7 +1327,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.SwitchStatement:
                     var switchStatement = (SwitchStatementSyntax)node;
-                    return TextSpan.FromBounds(switchStatement.SwitchKeyword.SpanStart, switchStatement.CloseParenToken.Span.End);
+                    return TextSpan.FromBounds(switchStatement.SwitchKeyword.SpanStart,
+                        (switchStatement.CloseParenToken != default) ? switchStatement.CloseParenToken.Span.End : switchStatement.Expression.Span.End);
 
                 case SyntaxKind.SwitchSection:
                     return ((SwitchSectionSyntax)node).Labels.Last().Span;
