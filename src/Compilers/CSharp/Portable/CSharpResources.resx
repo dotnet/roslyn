@@ -5378,4 +5378,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SwitchGoverningExpressionRequiresParens" xml:space="preserve">
     <value>Parentheses are required around the switch governing expression.</value>
   </data>
+  <data name="ERR_TupleElementNameMismatch" xml:space="preserve">
+    <value>The name '{0}' does not identify tuple element {1}.</value>
+  </data>
+  <data name="ERR_DeconstructParameterNameMistmatch" xml:space="preserve">
+    <value>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</value>
+  </data>
 </root>
