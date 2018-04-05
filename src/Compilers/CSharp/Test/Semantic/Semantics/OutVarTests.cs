@@ -966,6 +966,7 @@ public class Cls
             Assert.Equal(decl.Identifier().ValueText, symbol.Name);
             Assert.Equal(variableDeclaratorSyntax, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(expectedLocalKind, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.False(((ILocalSymbol)symbol).IsFixed);
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)variableDeclaratorSyntax));
 
             var other = model.LookupSymbols(decl.SpanStart, name: decl.Identifier().ValueText).Single();
