@@ -2042,11 +2042,12 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseFixedStatement : Operation, IFixedOperation
     {
-        protected BaseFixedStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseFixedStatement(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             // https://github.com/dotnet/roslyn/issues/21281
             // base(OperationKind.Fixed, semanticModel, syntax, type, constantValue)
             base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            Locals = locals;
         }
 
         public override IEnumerable<IOperation> Children
@@ -2063,6 +2064,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
         }
+
+        public ImmutableArray<ILocalSymbol> Locals { get; }
+
         /// <summary>
         /// Variables to be fixed.
         /// </summary>
@@ -2086,8 +2090,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class FixedStatement : BaseFixedStatement, IFixedOperation
     {
-        public FixedStatement(IVariableDeclarationGroupOperation variables, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public FixedStatement(ImmutableArray<ILocalSymbol> locals, IVariableDeclarationGroupOperation variables, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Variables = SetParentOperation(variables, this);
             Body = SetParentOperation(body, this);
@@ -2105,8 +2109,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<IVariableDeclarationGroupOperation> _lazyVariables;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyFixedStatement(Lazy<IVariableDeclarationGroupOperation> variables, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyFixedStatement(ImmutableArray<ILocalSymbol> locals, Lazy<IVariableDeclarationGroupOperation> variables, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyVariables = variables ?? throw new System.ArgumentNullException(nameof(variables));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));

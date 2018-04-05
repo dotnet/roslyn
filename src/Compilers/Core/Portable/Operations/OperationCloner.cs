@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Operations
         // https://github.com/dotnet/roslyn/issues/21281
         internal override IOperation VisitFixed(IFixedOperation operation, object argument)
         {
-            return new FixedStatement(Visit(operation.Variables), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new FixedStatement(operation.Locals, Visit(operation.Variables), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitExpressionStatement(IExpressionStatementOperation operation, object argument)

@@ -184,9 +184,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundTryStatementOperation((BoundTryStatement)boundNode);
                 case BoundKind.CatchBlock:
                     return CreateBoundCatchBlockOperation((BoundCatchBlock)boundNode);
-                // https://github.com/dotnet/roslyn/issues/21281
-                //case BoundKind.FixedStatement:
-                //    return CreateBoundFixedStatementOperation((BoundFixedStatement)boundNode);
+                case BoundKind.FixedStatement:
+                    return CreateBoundFixedStatementOperation((BoundFixedStatement)boundNode);
                 case BoundKind.UsingStatement:
                     return CreateBoundUsingStatementOperation((BoundUsingStatement)boundNode);
                 case BoundKind.ThrowStatement:
@@ -1553,13 +1552,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IFixedOperation CreateBoundFixedStatementOperation(BoundFixedStatement boundFixedStatement)
         {
+            ImmutableArray<ILocalSymbol> locals = boundFixedStatement.Locals.As<ILocalSymbol>();
             Lazy<IVariableDeclarationGroupOperation> variables = new Lazy<IVariableDeclarationGroupOperation>(() => (IVariableDeclarationGroupOperation)Create(boundFixedStatement.Declarations));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundFixedStatement.Body));
             SyntaxNode syntax = boundFixedStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundFixedStatement.WasCompilerGenerated;
-            return new LazyFixedStatement(variables, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyFixedStatement(locals, variables, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IUsingOperation CreateBoundUsingStatementOperation(BoundUsingStatement boundUsingStatement)

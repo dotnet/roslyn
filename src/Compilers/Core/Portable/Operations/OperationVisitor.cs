@@ -138,7 +138,9 @@ namespace Microsoft.CodeAnalysis.Operations
         // Make public after review: https://github.com/dotnet/roslyn/issues/21281
         internal virtual void VisitFixed(IFixedOperation operation)
         {
-            DefaultVisit(operation);
+            // https://github.com/dotnet/roslyn/issues/21281
+            //DefaultVisit(operation);
+            VisitNoneOperation(operation);
         }
 
         public virtual void VisitExpressionStatement(IExpressionStatementOperation operation)
@@ -683,7 +685,9 @@ namespace Microsoft.CodeAnalysis.Operations
         // Make public after review: https://github.com/dotnet/roslyn/issues/21281
         internal virtual TResult VisitFixed(IFixedOperation operation, TArgument argument)
         {
-            return DefaultVisit(operation, argument);
+            // https://github.com/dotnet/roslyn/issues/21281
+            //return DefaultVisit(operation, argument);
+            return VisitNoneOperation(operation, argument);
         }
 
         public virtual TResult VisitExpressionStatement(IExpressionStatementOperation operation, TArgument argument)
