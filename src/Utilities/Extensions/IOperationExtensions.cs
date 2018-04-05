@@ -441,5 +441,74 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsLambdaOrLocalFunctionOrDelegateReference(this IMethodReferenceOperation operation)
             => operation.Method.IsLambdaOrLocalFunctionOrDelegate();
+
+        /// <summary>
+        /// Gets the <see cref="InstanceReferenceKind"/> for the given <paramref name="instance"/> operation.
+        /// </summary>
+        /// <remarks>
+        /// NOTE: Currently, we return incorrect <see cref="InstanceReferenceKind"/> for anonymous instance property reference
+        ///       due to https://github.com/dotnet/roslyn/issues/22736 (IPropertyReferenceExpressions in IAnonymousObjectCreationExpression are missing a receiver).
+        ///       Use <see cref="GetAnonymousObjectCreation(IPropertyReferenceOperation)"/> as a workaround.
+        /// </remarks>
+        public static InstanceReferenceKind GetInstanceReferenceKind(this IOperation instance)
+        {
+            if (instance == null || instance.Kind != OperationKind.InstanceReference)
+            {
+                return InstanceReferenceKind.None;
+            }
+
+            var text = instance.Syntax.ToString();
+
+            // Ignore case for VB by converting ToUpperInvariant.
+            if (instance.Language == LanguageNames.VisualBasic)
+            {
+                text = text.ToUpperInvariant();
+            }
+
+            switch (text)
+            {
+                case "this":
+                    if (instance.Language == LanguageNames.CSharp)
+                    {
+                        return InstanceReferenceKind.This;
+                    }
+
+                    break;
+
+                case "ME":
+                    if (instance.Language == LanguageNames.VisualBasic)
+                    {
+                        return InstanceReferenceKind.This;
+                    }
+
+                    break;
+
+                case "base":
+                    if (instance.Language == LanguageNames.CSharp)
+                    {
+                        return InstanceReferenceKind.Base;
+                    }
+
+                    break;
+
+                case "MYBASE":
+                    if (instance.Language == LanguageNames.VisualBasic)
+                    {
+                        return InstanceReferenceKind.Base;
+                    }
+
+                    break;
+
+                case "MYCLASS":
+                    if (instance.Language == LanguageNames.VisualBasic)
+                    {
+                        return InstanceReferenceKind.MyClass;
+                    }
+
+                    break;
+            }
+
+            return InstanceReferenceKind.Creation;
+        }
     }
 }
