@@ -7,17 +7,18 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
-    internal class AbstractEmbeddedLanguageProvider : IEmbeddedLanguageProvider
+    internal abstract class AbstractEmbeddedLanguageProvider : IEmbeddedLanguageProvider
     {
         private readonly ImmutableArray<IEmbeddedLanguage> _embeddedLanguages;
 
         protected AbstractEmbeddedLanguageProvider(
+            int stringLiteralKind,
             ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,
             IVirtualCharService virtualCharService)
         {
             _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguage>(
-                new JsonEmbeddedLanguage(syntaxFacts, semanticFacts, virtualCharService));
+                new JsonEmbeddedLanguage(stringLiteralKind, syntaxFacts, semanticFacts, virtualCharService));
         }
 
         public ImmutableArray<IEmbeddedLanguage> GetEmbeddedLanguages()

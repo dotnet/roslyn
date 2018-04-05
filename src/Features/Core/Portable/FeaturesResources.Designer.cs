@@ -1918,15 +1918,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JSON issue: {0}.
-        /// </summary>
-        internal static string JSON_issue_0 {
-            get {
-                return ResourceManager.GetString("JSON_issue_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Keywords.
         /// </summary>
         internal static string Keywords {

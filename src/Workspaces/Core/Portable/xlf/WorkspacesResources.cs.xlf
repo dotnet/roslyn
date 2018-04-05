@@ -1077,6 +1077,11 @@
         <target state="new">Variables captured:</target>
         <note />
       </trans-unit>
+      <trans-unit id="JSON_issue_0">
+        <source>JSON issue: {0}</source>
+        <target state="new">JSON issue: {0}</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

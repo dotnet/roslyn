@@ -781,4 +781,7 @@
   <data name="_0_literal_not_allowed" xml:space="preserve">
     <value>'{0}' literal not allowed</value>
   </data>
+  <data name="JSON_issue_0" xml:space="preserve">
+    <value>JSON issue: {0}</value>
+  </data>
 </root>

@@ -13,7 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
         Public Shared Instance As New VisualBasicEmbeddedLanguageProvider()
 
         Private Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance,
+            MyBase.New(SyntaxKind.StringLiteralToken,
+                       VisualBasicSyntaxFactsService.Instance,
                        VisualBasicSemanticFactsService.Instance,
                        VisualBasicVirtualCharService.Instance)
         End Sub

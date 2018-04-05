@@ -1340,9 +1340,6 @@ This version used in: {2}</value>
   <data name="Probable_JSON_string_detected" xml:space="preserve">
     <value>Probable JSON string detected</value>
   </data>
-  <data name="JSON_issue_0" xml:space="preserve">
-    <value>JSON issue: {0}</value>
-  </data>
   <data name="Alias_ambiguous_type_0" xml:space="preserve">
     <value>Alias ambiguous type '{0}'</value>
   </data>
