@@ -120,13 +120,15 @@ IL_0005:  ret
         }
 
         [Fact]
-        public void DifferentVersions()
+        public void DifferentAssemblyVersions()
         {
+            var publicKeyA = ImmutableArray.CreateRange(new byte[] { 0x00, 0x24, 0x00, 0x00, 0x04, 0x80, 0x00, 0x00, 0x94, 0x00, 0x00, 0x00, 0x06, 0x02, 0x00, 0x00, 0x00, 0x24, 0x00, 0x00, 0x52, 0x53, 0x41, 0x31, 0x00, 0x04, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0xED, 0xD3, 0x22, 0xCB, 0x6B, 0xF8, 0xD4, 0xA2, 0xFC, 0xCC, 0x87, 0x37, 0x04, 0x06, 0x04, 0xCE, 0xE7, 0xB2, 0xA6, 0xF8, 0x4A, 0xEE, 0xF3, 0x19, 0xDF, 0x5B, 0x95, 0xE3, 0x7A, 0x6A, 0x28, 0x24, 0xA4, 0x0A, 0x83, 0x83, 0xBD, 0xBA, 0xF2, 0xF2, 0x52, 0x20, 0xE9, 0xAA, 0x3B, 0xD1, 0xDD, 0xE4, 0x9A, 0x9A, 0x9C, 0xC0, 0x30, 0x8F, 0x01, 0x40, 0x06, 0xE0, 0x2B, 0x95, 0x62, 0x89, 0x2A, 0x34, 0x75, 0x22, 0x68, 0x64, 0x6E, 0x7C, 0x2E, 0x83, 0x50, 0x5A, 0xCE, 0x7B, 0x0B, 0xE8, 0xF8, 0x71, 0xE6, 0xF7, 0x73, 0x8E, 0xEB, 0x84, 0xD2, 0x73, 0x5D, 0x9D, 0xBE, 0x5E, 0xF5, 0x90, 0xF9, 0xAB, 0x0A, 0x10, 0x7E, 0x23, 0x48, 0xF4, 0xAD, 0x70, 0x2E, 0xF7, 0xD4, 0x51, 0xD5, 0x8B, 0x3A, 0xF7, 0xCA, 0x90, 0x4C, 0xDC, 0x80, 0x19, 0x26, 0x65, 0xC9, 0x37, 0xBD, 0x52, 0x81, 0xF1, 0x8B, 0xCD });
+            var options = TestOptions.DebugDll.WithDelaySign(true);
             var (identityMscorlib, moduleMscorlib) = (MscorlibRef.GetAssemblyIdentity(), MscorlibRef.ToModuleInstance());
-            var (identityA1, moduleA1, refA1) = Compile(new AssemblyIdentity("A", new Version(1, 1, 1, 1)), "public class A { }", MscorlibRef);
-            var (identityA2, moduleA2, refA2) = Compile(new AssemblyIdentity("A", new Version(2, 2, 2, 2)), "public class A { }", MscorlibRef);
-            var (identityA3, moduleA3, refA3) = Compile(new AssemblyIdentity("a", new Version(3, 3, 3, 3)), "public class A { }", MscorlibRef);
-            var (identityB1, moduleB1, refB1) = Compile(new AssemblyIdentity("B", new Version(1, 1, 1, 1)), "public class B : A { static void M() { } }", refA2, MscorlibRef);
+            var (identityA1, moduleA1, refA1) = Compile(new AssemblyIdentity("A", new Version(1, 1, 1, 1), publicKeyOrToken: publicKeyA, hasPublicKey: true), "public class A { }", options, MscorlibRef);
+            var (identityA2, moduleA2, refA2) = Compile(new AssemblyIdentity("A", new Version(2, 2, 2, 2), publicKeyOrToken: publicKeyA, hasPublicKey: true), "public class A { }", options, MscorlibRef);
+            var (identityA3, moduleA3, refA3) = Compile(new AssemblyIdentity("a", new Version(3, 3, 3, 3), publicKeyOrToken: publicKeyA, hasPublicKey: true), "public class A { }", options, MscorlibRef);
+            var (identityB1, moduleB1, refB1) = Compile(new AssemblyIdentity("B", new Version(1, 1, 1, 1)), "public class B : A { static void M() { } }", TestOptions.DebugDll, refA2, MscorlibRef);
 
             using (var runtime = CreateRuntimeInstance(new[] { moduleMscorlib, moduleA1, moduleA2, moduleA3, moduleB1 }))
             {
@@ -192,14 +194,7 @@ IL_0005:  ret
                     kind: MakeAssemblyReferencesKind.AllReferences);
                 testData = new CompilationTestData();
                 context.CompileExpression("new B()", out error, testData);
-                methodData = testData.GetMethodData("<>x.<>m0");
-                methodData.VerifyIL(
-@"{
-// Code size        6 (0x6)
-.maxstack  1
-IL_0000:  newobj     ""B..ctor()""
-IL_0005:  ret
-}");
+                Assert.Equal("error CS1705: Assembly 'B' with identity 'B, Version=1.1.1.1, Culture=neutral, PublicKeyToken=null' uses 'A, Version=2.2.2.2, Culture=neutral, PublicKeyToken=1f8a32457d187bf3' which has a higher version than referenced assembly 'A' with identity 'A, Version=1.1.1.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3'", error);
                 VerifyResolutionRequests(context, (identityA2, identityA1, 1));
 
                 // Multiple versions of A.
@@ -253,9 +248,11 @@ IL_0005:  ret
         [Fact]
         public void DuplicateNamedCorLib()
         {
+            var publicKeyA = ImmutableArray.CreateRange(new byte[] { 0x00, 0x24, 0x00, 0x00, 0x04, 0x80, 0x00, 0x00, 0x94, 0x00, 0x00, 0x00, 0x06, 0x02, 0x00, 0x00, 0x00, 0x24, 0x00, 0x00, 0x52, 0x53, 0x41, 0x31, 0x00, 0x04, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0xED, 0xD3, 0x22, 0xCB, 0x6B, 0xF8, 0xD4, 0xA2, 0xFC, 0xCC, 0x87, 0x37, 0x04, 0x06, 0x04, 0xCE, 0xE7, 0xB2, 0xA6, 0xF8, 0x4A, 0xEE, 0xF3, 0x19, 0xDF, 0x5B, 0x95, 0xE3, 0x7A, 0x6A, 0x28, 0x24, 0xA4, 0x0A, 0x83, 0x83, 0xBD, 0xBA, 0xF2, 0xF2, 0x52, 0x20, 0xE9, 0xAA, 0x3B, 0xD1, 0xDD, 0xE4, 0x9A, 0x9A, 0x9C, 0xC0, 0x30, 0x8F, 0x01, 0x40, 0x06, 0xE0, 0x2B, 0x95, 0x62, 0x89, 0x2A, 0x34, 0x75, 0x22, 0x68, 0x64, 0x6E, 0x7C, 0x2E, 0x83, 0x50, 0x5A, 0xCE, 0x7B, 0x0B, 0xE8, 0xF8, 0x71, 0xE6, 0xF7, 0x73, 0x8E, 0xEB, 0x84, 0xD2, 0x73, 0x5D, 0x9D, 0xBE, 0x5E, 0xF5, 0x90, 0xF9, 0xAB, 0x0A, 0x10, 0x7E, 0x23, 0x48, 0xF4, 0xAD, 0x70, 0x2E, 0xF7, 0xD4, 0x51, 0xD5, 0x8B, 0x3A, 0xF7, 0xCA, 0x90, 0x4C, 0xDC, 0x80, 0x19, 0x26, 0x65, 0xC9, 0x37, 0xBD, 0x52, 0x81, 0xF1, 0x8B, 0xCD });
+            var options = TestOptions.DebugDll.WithDelaySign(true);
             var (identityMscorlib, moduleMscorlib) = (MscorlibRef.GetAssemblyIdentity(), MscorlibRef.ToModuleInstance());
-            var (identityA, moduleA, refA) = Compile(new AssemblyIdentity(identityMscorlib.Name, new Version(1, 1, 1, 1)), "public class A { }", MscorlibRef);
-            var (identityB, moduleB, refB) = Compile(new AssemblyIdentity("B", new Version(1, 1, 1, 1)), "public class B : A { static void M() { } }", refA, MscorlibRef);
+            var (identityA, moduleA, refA) = Compile(new AssemblyIdentity(identityMscorlib.Name, new Version(1, 1, 1, 1), publicKeyOrToken: publicKeyA, hasPublicKey: true), "public class A { }", options, MscorlibRef);
+            var (identityB, moduleB, refB) = Compile(new AssemblyIdentity("B", new Version(1, 1, 1, 1)), "public class B : A { static void M() { } }", TestOptions.DebugDll, refA, MscorlibRef);
 
             using (var runtime = CreateRuntimeInstance(new[] { moduleMscorlib, moduleA, moduleB }))
             {
@@ -658,9 +655,9 @@ IL_0005:  ret
             return (compilation.Assembly.Identity, module, module.GetReference());
         }
 
-        private static (AssemblyIdentity Identity, ModuleInstance Module, MetadataReference Reference) Compile(AssemblyIdentity identity, string source, params MetadataReference[] references)
+        private static (AssemblyIdentity Identity, ModuleInstance Module, MetadataReference Reference) Compile(AssemblyIdentity identity, string source, CSharpCompilationOptions options, params MetadataReference[] references)
         {
-            var compilation = CreateCompilation(identity, new[] { source }, references: references, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(identity, new[] { source }, references: references, options: options);
             compilation.VerifyDiagnostics();
             var module = compilation.ToModuleInstance();
             return (compilation.Assembly.Identity, module, module.GetReference());

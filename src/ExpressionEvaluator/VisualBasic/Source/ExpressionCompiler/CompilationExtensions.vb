@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         <Extension>
         Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock), moduleVersionId As Guid, kind As MakeAssemblyReferencesKind) As VisualBasicCompilation
-            Dim referencesByIdentity As Dictionary(Of AssemblyIdentity, MetadataReference) = Nothing
+            Dim referencesByIdentity As Dictionary(Of String, ImmutableArray(Of (AssemblyIdentity, MetadataReference))) = Nothing
             Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer, kind, referencesByIdentity)
             Dim options = s_compilationOptions
             If referencesByIdentity IsNot Nothing Then

@@ -25,12 +25,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public override PortableExecutableReference ResolveMissingAssembly(MetadataReference definition, AssemblyIdentity referenceIdentity)
         {
-            ImmutableArray<(AssemblyIdentity, MetadataReference)> pairs;
-            (AssemblyIdentity, MetadataReference) pair = default;
-            if (_referencesByIdentity.TryGetValue(referenceIdentity.Name, out pairs))
+            ImmutableArray<(AssemblyIdentity, MetadataReference)> references;
+            (AssemblyIdentity, MetadataReference) result = default;
+            if (_referencesByIdentity.TryGetValue(referenceIdentity.Name, out references))
             {
-                // TODO: Use _identityComparer to return the appropriate version.
-                pair = pairs[0];
+                result = GetBestMatch(references, referenceIdentity);
             }
 #if DEBUG
             (AssemblyIdentity Identity, int Count) request;
@@ -38,9 +37,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 request = (referenceIdentity, 0);
             }
-            Requests[referenceIdentity] = (pair.Item1, request.Count + 1);
+            Requests[referenceIdentity] = (result.Item1, request.Count + 1);
 #endif
-            return (PortableExecutableReference)pair.Item2;
+            return (PortableExecutableReference)result.Item2;
         }
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
@@ -56,6 +55,32 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public override int GetHashCode()
         {
             throw ExceptionUtilities.Unreachable;
+        }
+
+        private (AssemblyIdentity, MetadataReference) GetBestMatch(ImmutableArray<(AssemblyIdentity, MetadataReference)> references, AssemblyIdentity referenceIdentity)
+        {
+            (AssemblyIdentity, MetadataReference) best = default;
+            foreach (var pair in references)
+            {
+                var identity = pair.Item1;
+                var compareResult = _identityComparer.Compare(referenceIdentity, identity);
+                switch (compareResult)
+                {
+                    case AssemblyIdentityComparer.ComparisonResult.NotEquivalent:
+                        break;
+                    case AssemblyIdentityComparer.ComparisonResult.Equivalent:
+                        return pair;
+                    case AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion:
+                        if (best.Item1 is null || identity.Version > best.Item1.Version)
+                        {
+                            best = pair;
+                        }
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(compareResult);
+                }
+            }
+            return best;
         }
     }
 }
