@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 metadataBlocks,
                 moduleVersionId,
                 typeToken,
-                useReferencedModulesOnly)
+                GetMakeAssemblyReferencesKind(useReferencedModulesOnly))
         End Function
 
         Friend Shared Function CreateTypeContextHelper(Of TAppDomain)(
@@ -55,9 +55,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             metadataBlocks As ImmutableArray(Of MetadataBlock),
             moduleVersionId As Guid,
             typeToken As Integer,
-            useReferencedModulesOnly As Boolean) As EvaluationContextBase
+            kind As MakeAssemblyReferencesKind) As EvaluationContextBase
 
-            If useReferencedModulesOnly Then
+            If kind = MakeAssemblyReferencesKind.DirectReferencesOnly Then
                 ' Avoid using the cache for referenced assemblies only
                 ' since this should be the exceptional case.
                 Dim compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
@@ -80,7 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 previousContext,
                 metadataBlocks,
                 moduleVersionId,
-                typeToken)
+                typeToken,
+                kind)
 
             ' New type context is not attached to the AppDomain since it is less
             ' re-usable than the previous attached method context. (We could hold
@@ -115,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 methodVersion,
                 ilOffset,
                 localSignatureToken,
-                useReferencedModulesOnly)
+                GetMakeAssemblyReferencesKind(useReferencedModulesOnly))
         End Function
 
         Friend Shared Function CreateMethodContextHelper(Of TAppDomain)(
@@ -130,9 +131,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             methodVersion As Integer,
             ilOffset As UInteger,
             localSignatureToken As Integer,
-            useReferencedModulesOnly As Boolean) As EvaluationContextBase
+            kind As MakeAssemblyReferencesKind) As EvaluationContextBase
 
-            If useReferencedModulesOnly Then
+            If kind = MakeAssemblyReferencesKind.DirectReferencesOnly Then
                 ' Avoid using the cache for referenced assemblies only
                 ' since this should be the exceptional case.
                 Dim compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
@@ -166,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 methodVersion,
                 ilOffset,
                 localSignatureToken,
-                useReferencedAssembliesOnly:=True)
+                kind)
 
             If context IsNot previousContext?.EvaluationContext Then
                 setMetadataContext(

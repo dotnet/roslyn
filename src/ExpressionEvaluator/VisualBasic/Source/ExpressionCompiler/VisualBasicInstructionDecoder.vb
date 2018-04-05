@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If previous IsNot Nothing Then
                 compilation = previous.AssemblyContext.Compilation
             Else
-                compilation = metadataBlocks.ToCompilation(moduleVersionId, MakeAssemblyReferencesKind.AllReferences)
+                compilation = metadataBlocks.ToCompilation(moduleVersionId, GetMakeAssemblyReferencesKind())
                 appDomain.SetMetadataContext(
                     New AppDomainMetadataContext(Of VisualBasicCompilation, EvaluationContext)(
                         metadataBlocks,

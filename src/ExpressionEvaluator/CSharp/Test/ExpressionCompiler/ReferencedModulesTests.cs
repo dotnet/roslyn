@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     methodVersion: 1,
                     ilOffset: ilOffset,
                     localSignatureToken: localSignatureToken,
-                    useReferencedAssembliesOnly: true);
+                    kind: MakeAssemblyReferencesKind.AllReferences);
                 ResultProperties resultProperties;
                 string error;
                 ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     methodVersion: 1,
                     ilOffset: ilOffset,
                     localSignatureToken: localSignatureToken,
-                    useReferencedAssembliesOnly: true);
+                    kind: MakeAssemblyReferencesKind.AllReferences);
                 var testData = new CompilationTestData();
                 context.CompileExpression("new B2()", out error, testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
@@ -102,7 +102,7 @@ IL_0005:  ret
                     methodVersion: 1,
                     ilOffset: ilOffset,
                     localSignatureToken: localSignatureToken,
-                    useReferencedAssembliesOnly: true);
+                    kind: MakeAssemblyReferencesKind.AllReferences);
                 testData = new CompilationTestData();
                 context.CompileExpression("new B2()", out error, testData);
                 methodData = testData.GetMethodData("<>x.<>m0");

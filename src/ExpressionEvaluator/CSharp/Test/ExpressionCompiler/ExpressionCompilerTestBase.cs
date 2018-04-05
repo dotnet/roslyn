@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 methodVersion: 1,
                 state.ILOffset,
                 state.LocalSignatureToken,
-                useReferencedModulesOnly: false);
+                MakeAssemblyReferencesKind.AllAssemblies);
         }
 
         internal static (Guid ModuleVersionId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) GetContextState(RuntimeInstance runtime, string methodName)

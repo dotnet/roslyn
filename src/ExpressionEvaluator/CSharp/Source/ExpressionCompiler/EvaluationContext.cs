@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ImmutableArray<MetadataBlock> metadataBlocks,
             Guid moduleVersionId,
             int typeToken,
-            bool useReferencedAssembliesOnly = false) // TODO: Should not be optional. Make all callers explicit.
+            MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllAssemblies) // TODO: Should not be optional. Make all callers explicit.
         {
             // Re-use the previous compilation if possible.
             var compilation = previous != null ?
                 previous.Compilation :
-                metadataBlocks.ToCompilation(moduleVersionId, useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies);
+                metadataBlocks.ToCompilation(moduleVersionId, kind);
 
             return CreateTypeContext(compilation, moduleVersionId, typeToken);
         }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             int methodVersion,
             uint ilOffset,
             int localSignatureToken,
-            bool useReferencedAssembliesOnly = false) // TODO: Should not be optional. Make all callers explicit.
+            MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllAssemblies) // TODO: Should not be optional. Make all callers explicit.
         {
             var offset = NormalizeILOffset(ilOffset);
 
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             else
             {
-                compilation = metadataBlocks.ToCompilation(moduleVersionId, useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies);
+                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind);
             }
 
             return CreateMethodContext(

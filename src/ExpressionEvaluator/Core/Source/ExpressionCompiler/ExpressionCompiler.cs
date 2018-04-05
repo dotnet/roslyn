@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         // See https://github.com/dotnet/roslyn/issues/22620
         private readonly IDkmLanguageFrameDecoder _languageFrameDecoder;
         private readonly IDkmLanguageInstructionDecoder _languageInstructionDecoder;
+        private readonly bool _useReferencedAssembliesOnly;
 
         static ExpressionCompiler()
         {
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             _languageFrameDecoder = languageFrameDecoder;
             _languageInstructionDecoder = languageInstructionDecoder;
+            _useReferencedAssembliesOnly = GetUseReferencedAssembliesOnlySetting();
         }
 
         DkmCompiledClrLocalsQuery IDkmClrExpressionCompiler.GetClrLocalVariableQuery(
@@ -218,6 +220,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        internal static bool GetUseReferencedAssembliesOnlySetting()
+        {
+            return RegistryHelpers.GetBoolRegistryValue("UseReferencedAssembliesOnly");
+        }
+
+        internal MakeAssemblyReferencesKind GetMakeAssemblyReferencesKind(bool useReferencedModulesOnly)
+        {
+            if (useReferencedModulesOnly)
+            {
+                return MakeAssemblyReferencesKind.DirectReferencesOnly;
+            }
+            return _useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies;
         }
 
         /// <remarks>

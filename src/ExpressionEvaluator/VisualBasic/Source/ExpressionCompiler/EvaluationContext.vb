@@ -75,12 +75,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             metadataBlocks As ImmutableArray(Of MetadataBlock),
             moduleVersionId As Guid,
             typeToken As Integer,
-            Optional useReferencedAssembliesOnly As Boolean = False) As EvaluationContext
+            Optional kind As MakeAssemblyReferencesKind = MakeAssemblyReferencesKind.AllAssemblies) As EvaluationContext
 
             ' Re-use the previous compilation if possible.
             Dim compilation = If(previous IsNot Nothing,
                 previous.Compilation,
-                metadataBlocks.ToCompilation(moduleVersionId, If(useReferencedAssembliesOnly, MakeAssemblyReferencesKind.AllReferences, MakeAssemblyReferencesKind.AllAssemblies)))
+                metadataBlocks.ToCompilation(moduleVersionId, kind))
 
             Return CreateTypeContext(compilation, moduleVersionId, typeToken)
         End Function
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             methodVersion As Integer,
             ilOffset As UInteger,
             localSignatureToken As Integer,
-            Optional useReferencedAssembliesOnly As Boolean = False) As EvaluationContext
+            Optional kind As MakeAssemblyReferencesKind = MakeAssemblyReferencesKind.AllAssemblies) As EvaluationContext
 
             Dim offset = NormalizeILOffset(ilOffset)
 
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 End If
                 compilation = previous.Compilation
             Else
-                compilation = metadataBlocks.ToCompilation(moduleVersionId, If(useReferencedAssembliesOnly, MakeAssemblyReferencesKind.AllReferences, MakeAssemblyReferencesKind.AllAssemblies))
+                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind)
             End If
 
             Return CreateMethodContext(

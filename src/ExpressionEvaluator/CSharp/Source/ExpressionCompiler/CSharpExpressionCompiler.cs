@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 metadataBlocks,
                 moduleVersionId,
                 typeToken,
-                useReferencedModulesOnly);
+                GetMakeAssemblyReferencesKind(useReferencedModulesOnly));
         }
 
         internal static EvaluationContext CreateTypeContext<TAppDomain>(
@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ImmutableArray<MetadataBlock> metadataBlocks,
             Guid moduleVersionId,
             int typeToken,
-            bool useReferencedModulesOnly)
+            MakeAssemblyReferencesKind kind)
         {
-            if (useReferencedModulesOnly)
+            if (kind == MakeAssemblyReferencesKind.DirectReferencesOnly)
             {
                 // Avoid using the cache for referenced assemblies only
                 // since this should be the exceptional case.
@@ -81,7 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 previousContext,
                 metadataBlocks,
                 moduleVersionId,
-                typeToken);
+                typeToken,
+                kind);
 
             // New type context is not attached to the AppDomain since it is less
             // re-usable than the previous attached method context. (We could hold
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 methodVersion,
                 ilOffset,
                 localSignatureToken,
-                useReferencedModulesOnly);
+                GetMakeAssemblyReferencesKind(useReferencedModulesOnly));
         }
 
         internal static EvaluationContext CreateMethodContext<TAppDomain>(
@@ -129,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             int methodVersion,
             uint ilOffset,
             int localSignatureToken,
-            bool useReferencedModulesOnly)
+            MakeAssemblyReferencesKind kind)
         {
-            if (useReferencedModulesOnly)
+            if (kind == MakeAssemblyReferencesKind.DirectReferencesOnly)
             {
                 // Avoid using the cache for referenced assemblies only
                 // since this should be the exceptional case.
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 methodVersion,
                 ilOffset,
                 localSignatureToken,
-                useReferencedAssembliesOnly: true);
+                kind);
 
             if (context != previousContext?.EvaluationContext)
             {

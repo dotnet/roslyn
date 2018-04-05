@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             else
             {
-                compilation = metadataBlocks.ToCompilation(moduleVersionId, MakeAssemblyReferencesKind.AllReferences);
+                compilation = metadataBlocks.ToCompilation(moduleVersionId, GetMakeAssemblyReferencesKind());
                 appDomain.SetMetadataContext(
                     new AppDomainMetadataContext<CSharpCompilation, EvaluationContext>(
                         metadataBlocks,
