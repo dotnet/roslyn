@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeclarationPattern:
                     {
                         var declPattern = (BoundDeclarationPattern)pattern;
-                        return declPattern.Update(declPattern.Variable, VisitExpression(declPattern.VariableAccess), declPattern.DeclaredType, declPattern.IsVar);
+                        return declPattern.Update(declPattern.Variable, VisitExpression(declPattern.VariableAccess), declPattern.DeclaredType, declPattern.IsVar, declPattern.InputType);
                     }
                 case BoundKind.RecursivePattern:
                     {
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConstantPattern:
                     {
                         var constantPattern = (BoundConstantPattern)pattern;
-                        return constantPattern.Update(VisitExpression(constantPattern.Value), constantPattern.ConstantValue);
+                        return constantPattern.Update(VisitExpression(constantPattern.Value), constantPattern.ConstantValue, constantPattern.InputType);
                     }
                 case BoundKind.DiscardPattern:
                     {
