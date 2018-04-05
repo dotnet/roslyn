@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.Equal(
                 null,
                 PathUtilities.GetDirectoryName(@"", isUnixLike: false));
-            
+
             TestGetDirectoryNameAndCompareToDotnet(null, null);
         }
 
@@ -310,6 +310,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         [InlineData("path/*.txt", false)]
         [InlineData("path/:.txt", false)]
         [InlineData("path/\".txt", false)]
+        [InlineData(
+            "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" +
+            "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" +
+            "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" +
+            "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" +
+            "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII.txt", false)]
         public void IsValidFilePath(string path, bool isValid)
         {
             Assert.Equal(isValid, PathUtilities.IsValidFilePath(path));

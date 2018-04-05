@@ -9941,7 +9941,8 @@ class C
                 filePath,
                 "/debug:embedded",
                 "/pathmap:test\\=\"",
-                "/target:library"
+                "/target:library",
+                "/preferreduilang:en"
             });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -9960,7 +9961,8 @@ class C
                 filePath,
                 "/debug:embedded",
                 "/pdb:test\\?.pdb",
-                "/target:library"
+                "/target:library",
+                "/preferreduilang:en"
             });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
