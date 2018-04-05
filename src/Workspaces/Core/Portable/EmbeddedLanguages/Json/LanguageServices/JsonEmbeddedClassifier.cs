@@ -1,40 +1,51 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Classification
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 {
     using static EmbeddedSyntaxHelpers;
 
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
     using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
 
-    internal static class CommonJsonPatternTokenClassifier
+    internal class JsonEmbeddedClassifier : IEmbeddedClassifier
     {
         private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
 
-        public static void AddClassifications(
-            Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result,  
-            ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, IVirtualCharService virtualCharService,
+        private readonly ISyntaxFactsService _syntaxFacts;
+        private readonly ISemanticFactsService _semanticFacts;
+        private readonly IVirtualCharService _virtualCharService;
+
+        public JsonEmbeddedClassifier(ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, IVirtualCharService virtualCharService)
+        {
+            _syntaxFacts = syntaxFacts;
+            _semanticFacts = semanticFacts;
+            _virtualCharService = virtualCharService;
+        }
+
+        public void AddClassifications(
+            Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            if (!workspace.Options.GetOption(JsonOptions.ColorizeJsonPatterns, LanguageNames.CSharp))
+            if (!workspace.Options.GetOption(JsonOptions.ColorizeJsonPatterns, token.Language))
             {
                 return;
             }
 
             // Do some quick syntactic checks before doing any complex work.
-            if (JsonPatternDetector.IsDefinitelyNotJson(token, syntaxFacts))
+            if (JsonPatternDetector.IsDefinitelyNotJson(token, _syntaxFacts))
             {
                 return;
             }
 
-            var detector = JsonPatternDetector.GetOrCreate(semanticModel, syntaxFacts, semanticFacts, virtualCharService);
+            var detector = JsonPatternDetector.GetOrCreate(semanticModel, _syntaxFacts, _semanticFacts, _virtualCharService);
             if (!detector.IsDefinitelyJson(token, cancellationToken))
             {
                 return;
