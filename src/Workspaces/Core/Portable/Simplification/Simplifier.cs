@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        public static async Task<TNode> ExpandAsync<TNode>(TNode node, Document document, Func<SyntaxNode, bool> expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default(CancellationToken)) where TNode : SyntaxNode
+        public static async Task<TNode> ExpandAsync<TNode>(TNode node, Document document, Func<SyntaxNode, bool> expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
             if (node == null)
             {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        public static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool> expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default(CancellationToken)) where TNode : SyntaxNode
+        public static TNode Expand<TNode>(TNode node, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool> expandInsideNode = null, bool expandParameter = false, CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
             if (node == null)
             {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        public static async Task<SyntaxToken> ExpandAsync(SyntaxToken token, Document document, Func<SyntaxNode, bool> expandInsideNode = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<SyntaxToken> ExpandAsync(SyntaxToken token, Document document, Func<SyntaxNode, bool> expandInsideNode = null, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.
         /// </summary>
-        public static SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool> expandInsideNode = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Workspace workspace, Func<SyntaxNode, bool> expandInsideNode = null, CancellationToken cancellationToken = default)
         {
             if (semanticModel == null)
             {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// Reduce all sub-trees annotated with <see cref="Annotation" /> found within the document. The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static async Task<Document> ReduceAsync(Document document, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<Document> ReduceAsync(Document document, OptionSet optionSet = null, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the subtrees identified with the specified <paramref name="annotation"/>.
         /// The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, OptionSet optionSet = null, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified span.
         /// The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static Task<Document> ReduceAsync(Document document, TextSpan span, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<Document> ReduceAsync(Document document, TextSpan span, OptionSet optionSet = null, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified spans.
         /// The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet optionSet = null, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 
         internal static async Task<Document> ReduceAsync(
-            Document document, ImmutableArray<AbstractReducer> reducers, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
+            Document document, ImmutableArray<AbstractReducer> reducers, OptionSet optionSet = null, CancellationToken cancellationToken = default)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await document.Project.LanguageServices.GetService<ISimplificationService>()

@@ -24,15 +24,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var project = projectGroup.Key;
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                foreach (var documentGroup in projectGroup)
+                if (project.SupportsCompilation)
                 {
-                    var document = documentGroup.Key;
-                    await AddSymbolsAsync(document, documentGroup, result, cancellationToken).ConfigureAwait(false);
-                }
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                GC.KeepAlive(compilation);
+                    foreach (var documentGroup in projectGroup)
+                    {
+                        var document = documentGroup.Key;
+                        await AddSymbolsAsync(document, documentGroup, result, cancellationToken).ConfigureAwait(false);
+                    }
+
+                    GC.KeepAlive(compilation);
+                }
             }
 
             return result;

@@ -8,6 +8,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
 
@@ -55,9 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string RestFieldName = "Rest";
 
         private TupleTypeSymbol(Location locationOpt, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations,
-            ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes, ImmutableArray<bool> inferredNamesPositions)
+            ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes, ImmutableArray<bool> errorPositions)
             : this(locationOpt == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt),
-                  underlyingType, elementLocations, elementNames, elementTypes, inferredNamesPositions)
+                  underlyingType, elementLocations, elementNames, elementTypes, errorPositions)
         {
         }
 
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
-            if (shouldCheckConstraints)
+            if (shouldCheckConstraints && diagnostics != null)
             {
                 constructedType.CheckConstraints(compilation.Conversions, syntax, elementLocations, compilation, diagnostics);
             }
@@ -283,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var regularElements = Math.Min(currentType.Arity, TupleTypeSymbol.RestPosition - 1);
-                tupleElementTypes.AddRange(currentType.TypeArguments, regularElements);
+                tupleElementTypes.AddRange(currentType.TypeArgumentsNoUseSiteDiagnostics, regularElements);
 
                 if (currentType.Arity == TupleTypeSymbol.RestPosition)
                 {
@@ -1388,7 +1390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsSerializable
+        public override bool IsSerializable
         {
             get
             {
@@ -1516,7 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             throw ExceptionUtilities.Unreachable;
         }

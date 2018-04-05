@@ -10,23 +10,27 @@ namespace Roslyn.Test.Utilities
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
     public sealed class WorkItemAttribute : Attribute
     {
-        private readonly int _id;
-        private readonly string _description;
-
         public int Id
         {
-            get { return _id; }
+            get;
         }
 
-        public string Description
+        public string Location
         {
-            get { return _description; }
+            get;
         }
 
-        public WorkItemAttribute(int id, string description)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WorkItemAttribute"/>.
+        /// </summary>
+        /// <param name="id">The ID of the issue in the original tracker where the work item was first reported. This
+        /// could be a GitHub issue or pull request number, or the number of a Microsoft-internal bug.</param>
+        /// <param name="issueUri">The URI where the work item can be viewed. This is a link to work item
+        /// <paramref name="id"/> in the original source.</param>
+        public WorkItemAttribute(int id, string issueUri)
         {
-            _id = id;
-            _description = description;
+            Id = id;
+            Location = issueUri;
         }
     }
 }

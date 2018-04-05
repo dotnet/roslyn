@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -183,6 +184,7 @@ class C
 class C
 {
     private string S => null;
+
     public string S1 { get; }
 
     public C(string s)
@@ -261,8 +263,8 @@ class C
 @"
 class C
 {
-    private int s;
     private readonly string s1;
+    private int s;
 
     public C(string s)
     {
@@ -384,7 +386,7 @@ class C
     public C(string s, string t)
     {
         this.s = s;
-        this.t = t;
+        this.t = t;   
     }
 }");
         }
@@ -440,6 +442,7 @@ class C
     public C(string s)
     {
         if (true) { }
+
         this.s = s;
     }
 }");
@@ -454,7 +457,7 @@ class C
 {
     private string s;
 
-    public M([||]string s)
+    public void M([||]string s)
     {
     }
 }");
@@ -562,11 +565,35 @@ class C
     public C(string s, string t)
     {
         S = s;
-        T = t;
+        T = t;   
     }
 
     public string S { get; }
     public string T { get; }
+}");
+        }
+
+        [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNoBlock()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    private string s;
+
+    public C(string s[||])
+}",
+@"
+class C
+{
+    private string s;
+
+    public C(string s)
+    {
+        this.s = s;
+    }
 }");
         }
     }

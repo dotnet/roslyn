@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private IEnumerable<Microsoft.Cci.IWin32Resource> BuildResources()
         {
-            yield return new Win32Resource(null, 0, 0, -1, "foo", 1, null);//4
+            yield return new Win32Resource(null, 0, 0, -1, "goo", 1, null);//4
             yield return new Win32Resource(null, 0, 0, -1, "b", -1, "a");//0
             yield return new Win32Resource(null, 0, 0, 1, null, 1, null);//5
             yield return new Win32Resource(null, 0, 0, -1, "b", 2, null);//6
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("B", elem.Name);
             elem = resources[4];
             Assert.Equal(1, elem.TypeId);
-            Assert.Equal("foo", elem.Name);
+            Assert.Equal("goo", elem.Name);
             elem = resources[5];
             Assert.Equal(1, elem.TypeId);
             Assert.Equal(1, elem.Id);

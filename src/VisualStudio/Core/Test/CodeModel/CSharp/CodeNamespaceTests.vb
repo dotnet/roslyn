@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -25,19 +26,19 @@ namespace $$N { }
         Public Sub TestComment2()
             Dim code =
 <Code>
-// Foo
+// Goo
 // Bar
 namespace $$N { }
 </Code>
 
-            TestComment(code, "Foo" & vbCrLf & "Bar" & vbCrLf)
+            TestComment(code, "Goo" & vbCrLf & "Bar" & vbCrLf)
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestComment3()
             Dim code =
 <Code>
-namespace N1 { } // Foo
+namespace N1 { } // Goo
 // Bar
 namespace $$N2 { }
 </Code>
@@ -49,7 +50,7 @@ namespace $$N2 { }
         Public Sub TestComment4()
             Dim code =
 <Code>
-namespace N1 { } // Foo
+namespace N1 { } // Goo
 /* Bar */
 namespace $$N2 { }
 </Code>
@@ -61,7 +62,7 @@ namespace $$N2 { }
         Public Sub TestComment5()
             Dim code =
 <Code>
-namespace N1 { } // Foo
+namespace N1 { } // Goo
 /*
     Bar
 */
@@ -75,7 +76,7 @@ namespace $$N2 { }
         Public Sub TestComment6()
             Dim code =
 <Code>
-namespace N1 { } // Foo
+namespace N1 { } // Goo
 /*
     Hello
     World!
@@ -90,7 +91,7 @@ namespace $$N2 { }
         Public Sub TestComment7()
             Dim code =
 <Code>
-namespace N1 { } // Foo
+namespace N1 { } // Goo
 /*
     Hello
     
@@ -122,7 +123,7 @@ namespace $$N { }
         Public Sub TestComment9()
             Dim code =
 <Code>
-// Foo
+// Goo
 /// &lt;summary&gt;Bar&lt;/summary&gt;
 namespace $$N { }
 </Code>
@@ -193,7 +194,7 @@ namespace $$N { }
         Public Async Function TestSetComment1() As Task
             Dim code =
 <Code>
-// Foo
+// Goo
 
 // Bar
 namespace $$N { }
@@ -211,14 +212,14 @@ namespace N { }
         Public Async Function TestSetComment2() As Task
             Dim code =
 <Code>
-// Foo
+// Goo
 /// &lt;summary&gt;Bar&lt;/summary&gt;
 namespace $$N { }
 </Code>
 
             Dim expected =
 <Code>
-// Foo
+// Goo
 /// &lt;summary&gt;Bar&lt;/summary&gt;
 // Bar
 namespace N { }
@@ -231,7 +232,7 @@ namespace N { }
         Public Async Function TestSetComment3() As Task
             Dim code =
 <Code>
-// Foo
+// Goo
 
 // Bar
 namespace $$N { }
@@ -332,13 +333,13 @@ namespace N { }
         Public Async Function TestSetDocComment3() As Task
             Dim code =
 <Code>
-// Foo
+// Goo
 namespace $$N { }
 </Code>
 
             Dim expected =
 <Code>
-// Foo
+// Goo
 /// &lt;summary&gt;Blah&lt;/summary&gt;
 namespace N { }
 </Code>
@@ -351,14 +352,14 @@ namespace N { }
             Dim code =
 <Code>
 /// &lt;summary&gt;FogBar&lt;/summary&gt;
-// Foo
+// Goo
 namespace $$N { }
 </Code>
 
             Dim expected =
 <Code>
 /// &lt;summary&gt;Blah&lt;/summary&gt;
-// Foo
+// Goo
 namespace N { }
 </Code>
 
@@ -389,13 +390,116 @@ namespace N1
 
 #End Region
 
+#Region "Set Name tests"
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_SameName() As Task
+            Dim code =
+<Code><![CDATA[
+namespace N$$ 
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+namespace N
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Await TestSetName(code, expected, "N", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_NewName() As Task
+            Dim code =
+<Code><![CDATA[
+namespace N$$
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+namespace N2
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Await TestSetName(code, expected, "N2", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_SimpleNameToDottedName() As Task
+            Dim code =
+<Code><![CDATA[
+namespace N1$$
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+namespace N2.N3
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Await TestSetName(code, expected, "N2.N3", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_DottedNameToSimpleName() As Task
+            Dim code =
+<Code><![CDATA[
+namespace N1.N2$$
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+namespace N3.N4
+{
+    class C
+    {
+    }
+}
+]]></Code>
+
+            Await TestSetName(code, expected, "N3.N4", NoThrow(Of String)())
+        End Function
+
+#End Region
+
 #Region "Remove tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestRemove1() As Task
             Dim code =
 <Code>
-namespace $$Foo
+namespace $$Goo
 {
     class C
     {
@@ -405,7 +509,7 @@ namespace $$Foo
 
             Dim expected =
 <Code>
-namespace Foo
+namespace Goo
 {
 }
 </Code>

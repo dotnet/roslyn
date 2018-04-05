@@ -3,7 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -59,16 +59,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             context.RegisterOperationAction(
                 (operationContext) =>
                     {
-                        IArrayCreationExpression arrayCreation = (IArrayCreationExpression)operationContext.Operation;
+                        IArrayCreationOperation arrayCreation = (IArrayCreationOperation)operationContext.Operation;
 
                         // ToDo: Need to suppress analysis of array creation expressions within attribute applications.
 
                         // Detect array creation expression that have rank 1 and size 0. Such expressions
                         // can be replaced with Array.Empty<T>(), provided that the element type can be a generic type argument.
 
+                        var elementType = (arrayCreation as IArrayTypeSymbol)?.ElementType;
                         if (arrayCreation.DimensionSizes.Length == 1
                             //// Pointer types can't be generic type arguments.
-                            && arrayCreation.ElementType.TypeKind != TypeKind.Pointer)
+                            && elementType?.TypeKind != TypeKind.Pointer)
                         {
                             Optional<object> arrayLength = arrayCreation.DimensionSizes[0].ConstantValue;
                             if (arrayLength.HasValue &&
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             }
                         }
                     },
-                OperationKind.ArrayCreationExpression);
+                OperationKind.ArrayCreation);
         }
     }
 }

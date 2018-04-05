@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 subEditor.ReplaceNode(statement, newStatement);
                 foreach (var match in matches)
                 {
-                    subEditor.RemoveNode(match);
+                    subEditor.RemoveNode(match, SyntaxRemoveOptions.KeepUnbalancedDirectives);
                 }
 
                 document = document.WithSyntaxRoot(subEditor.GetChangedRoot());

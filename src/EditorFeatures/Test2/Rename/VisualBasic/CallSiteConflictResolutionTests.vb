@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
+    <[UseExportProvider]>
     Public Class CallSiteConflictResolutionTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -23,13 +24,13 @@ Imports System.Runtime.CompilerServices
 
 Class C
     Function Bar(tag As Integer) As C
-        Return {|Replacement:Me.{|Resolved:Foo|}(1).{|Resolved:Foo|}(2)|}
+        Return {|Replacement:Me.{|Resolved:Goo|}(1).{|Resolved:Goo|}(2)|}
     End Function
 End Class
 
 Module M
     <Extension()>
-    Function [|$$Foo|](x As C, tag As Integer) As C
+    Function [|$$Goo|](x As C, tag As Integer) As C
         Return New C()
     End Function
 End Module
@@ -56,13 +57,13 @@ Imports System.Runtime.CompilerServices
 
 Class C
     Function Bar(Of T)() As C
-        Return {|Replacement:Me.{|Resolved:Foo|}(Of Integer)()|}
+        Return {|Replacement:Me.{|Resolved:Goo|}(Of Integer)()|}
     End Function
 End Class
 
 Module M
     <Extension()>
-    Function [|$$Foo|](Of T)(x As C) As C
+    Function [|$$Goo|](Of T)(x As C) As C
         Return New C()
     End Function
 End Module
@@ -89,13 +90,13 @@ Imports System.Runtime.CompilerServices
 
 Class C
     Function Bar(Of T)(y As T) As C
-        Return {|Replacement:Me.{|Resolved:Foo|}(42)|}
+        Return {|Replacement:Me.{|Resolved:Goo|}(42)|}
     End Function
 End Class
 
 Module M
     <Extension()>
-    Function [|$$Foo|](Of T)(x As C, y As T) As C
+    Function [|$$Goo|](Of T)(x As C, y As T) As C
         Return New C()
     End Function
 End Module

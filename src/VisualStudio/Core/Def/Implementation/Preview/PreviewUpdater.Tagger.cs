@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             public void OnTextBufferChanged()
             {
-                if (PreviewUpdater.SpanToShow != default(Span))
+                if (PreviewUpdater.SpanToShow != default)
                 {
                     if (TagsChanged != null)
                     {

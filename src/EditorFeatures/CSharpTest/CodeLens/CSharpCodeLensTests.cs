@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeLens
@@ -175,6 +175,42 @@ public class A
     </Project>
 </Workspace>";
             await RunMethodReferenceTest(input);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        public async Task TestFullyQualifiedName()
+        {
+            const string input = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+public class A
+{
+    {|A.C: public void C()
+    {
+        C();
+    }|}
+
+    public class B
+    {
+        {|A+B.C: public void C()
+        {
+            C();
+        }|}
+
+        public class D
+        {
+            {|A+B+D.C: public void C()
+            {
+                C();
+            }|}
+        }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>";
+            await RunFullyQualifiedNameTest(input);
         }
     }
 }

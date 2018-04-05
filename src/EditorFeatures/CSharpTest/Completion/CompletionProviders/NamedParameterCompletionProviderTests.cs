@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -25,14 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         public async Task SendEnterThroughToEditorTest()
         {
             const string markup = @"
-class Foo
+class Goo
 {
-    public Foo(int a = 42)
+    public Goo(int a = 42)
     { }
 
     void Bar()
     {
-        var b = new Foo($$
+        var b = new Goo($$
     }
 }";
 
@@ -45,14 +46,14 @@ class Foo
         public async Task CommitCharacterTest()
         {
             const string markup = @"
-class Foo
+class Goo
 {
-    public Foo(int a = 42)
+    public Goo(int a = 42)
     { }
 
     void Bar()
     {
-        var b = new Foo($$
+        var b = new Goo($$
     }
 }";
 
@@ -63,14 +64,14 @@ class Foo
         public async Task InObjectCreation()
         {
             var markup = @"
-class Foo
+class Goo
 {
-    public Foo(int a = 42)
+    public Goo(int a = 42)
     { }
 
     void Bar()
     {
-        var b = new Foo($$
+        var b = new Goo($$
     }
 }";
 
@@ -81,13 +82,13 @@ class Foo
         public async Task InBaseConstructor()
         {
             var markup = @"
-class Foo
+class Goo
 {
-    public Foo(int a = 42)
+    public Goo(int a = 42)
     { }
 }
 
-class DogBed : Foo
+class DogBed : Goo
 {
     public DogBed(int b) : base($$
 }
@@ -100,7 +101,7 @@ class DogBed : Foo
         public async Task InvocationExpression()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Bar(int a)
     {
@@ -116,7 +117,7 @@ class Foo
         public async Task InvocationExpressionAfterComma()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Bar(int a, string b)
     {
@@ -167,13 +168,13 @@ class Program
             var markup = @"
 partial class PartialClass
 {
-    static partial void Foo(int declaring);
-    static partial void Foo(int implementing)
+    static partial void Goo(int declaring);
+    static partial void Goo(int implementing)
     {
     }
     static void Caller()
     {
-        Foo($$
+        Goo($$
     }
 }
 ";
@@ -186,7 +187,7 @@ partial class PartialClass
         public async Task NotAfterColon()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Bar(int a, string b)
     {
@@ -204,7 +205,7 @@ class Foo
         {
             var markup = @"
 using System.Collections.Generic;
-class Foo
+class Goo
 {
     void Bar(List<int> integers)
     {
@@ -225,13 +226,13 @@ class Class1
 {
     void Test()
     {
-        Foo(boolean:true, $$)
+        Goo(boolean:true, $$)
     }
  
-    void Foo(string str = ""hello"", char character = 'a')
+    void Goo(string str = ""hello"", char character = 'a')
     { }
  
-    void Foo(string str = ""hello"", bool boolean = false)
+    void Goo(string str = ""hello"", bool boolean = false)
     { }
 }
 ";
@@ -248,13 +249,13 @@ class Class1
 {
     void Test()
     {
-        Foo(str:"""", $$)
+        Goo(str:"""", $$)
     }
  
-    void Foo(string str = ""hello"", char character = 'a')
+    void Goo(string str = ""hello"", char character = 'a')
     { }
  
-    void Foo(string str = ""hello"", bool boolean = false)
+    void Goo(string str = ""hello"", bool boolean = false)
     { }
 }
 ";
@@ -268,7 +269,7 @@ class Class1
         public async Task FilteringOverloadsByCallSiteComplex()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Test()
     {
@@ -301,7 +302,7 @@ class Bar { }
         public async Task MethodOverloads()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Test()
     {
@@ -329,7 +330,7 @@ class Foo
         public async Task ExistingNamedParamsAreFilteredOut()
         {
             var markup = @"
-class Foo
+class Goo
 {
     void Test()
     {
@@ -364,9 +365,9 @@ class Foo
             var markup = @"
 class Program
 {
-    void Foo(int @integer)
+    void Goo(int @integer)
     {
-        Foo(@i$$
+        Goo(@i$$
     }
 }
 ";
@@ -382,13 +383,13 @@ class Class1
 {
     void Test()
     {
-        Foo(boolean: true, $$)
+        Goo(boolean: true, $$)
     }
  
-    void Foo(string obj = ""hello"")
+    void Goo(string obj = ""hello"")
     { }
  
-    void Foo(bool boolean = false, Class1 obj = default(Class1))
+    void Goo(bool boolean = false, Class1 obj = default(Class1))
     { }
 }
 ";

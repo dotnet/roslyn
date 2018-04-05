@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
 
@@ -284,7 +285,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '               ...
                 Case SyntaxKind.GroupByClause
                     Dim groupByClause = DirectCast(clause, GroupByClauseSyntax)
-                    If rangeVariable.SpanStart < groupByClause.ByKeyword.SpanStart Then
+                    If rangeVariable.SpanStart < groupByClause.ByKeyword.SpanStart OrElse
+                       (rangeVariable.SpanStart = groupByClause.ByKeyword.SpanStart AndAlso rangeVariable Is groupByClause.Items.Last) Then
                         Return GetGroupByItemsLambdaBody(groupByClause)
                     Else
                         Return GetGroupByKeysLambdaBody(groupByClause)

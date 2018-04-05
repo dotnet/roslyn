@@ -16,8 +16,12 @@ to make the packages for the build.
 > .\make-all.ps1 -version "26418.00" -branch "d15prerel"  -outpath c:\users\jaredpar\temp\nuget
 ```
 
-This will create all of the packages with the version string 15.0.26418-alpha.  Next the build needs to be updated 
-to reflect this change in version for the packages we are consuming. 
+This will create all of the packages with the version string 15.0.26418-alpha.
+
+When building packages from a non-release branch (e.g. vsucorediag) use ```-versionSuffix branch-name``` to avoid potential 
+conflicts with release branch versions.
+
+Next the build needs to be updated to reflect this change in version for the packages we are consuming. 
 
 ``` powershell
 > .\change-all.ps1 -version "26418.00" 

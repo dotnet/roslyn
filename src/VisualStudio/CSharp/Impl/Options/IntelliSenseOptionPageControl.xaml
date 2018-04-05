@@ -60,6 +60,10 @@
                                           x:Name="Always_add_new_line_on_enter"
                                           Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Always_add_new_line_on_enter}"/>
                     </StackPanel>
+
+                    <CheckBox x:Uid="Show_name_suggestions"
+                                  x:Name="Show_name_suggestions"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_name_suggestions}" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>

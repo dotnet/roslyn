@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PreferFrameworkType
@@ -747,7 +747,7 @@ class Program
         Int32 x = 5;
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -772,7 +772,7 @@ class Program
         Int32 /* 2 */ x = 5;
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
     }
 }

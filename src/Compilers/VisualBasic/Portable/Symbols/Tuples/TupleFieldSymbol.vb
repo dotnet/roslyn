@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class TupleFieldSymbol
         Inherits WrappedFieldSymbol
 
-        Protected _containingTuple As TupleTypeSymbol
+        Protected ReadOnly _containingTuple As TupleTypeSymbol
 
         ''' <summary>
         ''' If this field represents a tuple element with index X, the field contains
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         '''  2X + 1  if this field represents a Friendly-named element
         ''' Otherwise, (-1 - [index in members array]);
         ''' </summary>
-        Private _tupleElementIndex As Integer
+        Private ReadOnly _tupleElementIndex As Integer
 
         Public Overrides ReadOnly Property IsTupleField As Boolean
             Get
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class TupleElementFieldSymbol
         Inherits TupleFieldSymbol
 
-        Private _locations As ImmutableArray(Of Location)
+        Private ReadOnly _locations As ImmutableArray(Of Location)
 
         ' default tuple elements like Item1 Or Item20 could be provided by the user or
         ' otherwise implicitly declared by compiler
@@ -209,8 +209,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class TupleVirtualElementFieldSymbol
         Inherits TupleElementFieldSymbol
 
-        Private _name As String
-        Private _cannotUse As Boolean ' With LanguageVersion 15, we will produce named elements that should not be used
+        Private ReadOnly _name As String
+        Private ReadOnly _cannotUse As Boolean ' With LanguageVersion 15, we will produce named elements that should not be used
 
         Public Sub New(container As TupleTypeSymbol,
                        underlyingField As FieldSymbol,

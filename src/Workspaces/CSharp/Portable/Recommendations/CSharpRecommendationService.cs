@@ -296,13 +296,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             //     int i = 5;
             //     i.          // <-- here
             //     List<string> ml = new List<string>();
+            //
+            // The problem is that "i.List<string>" gets parsed as a type.  In this case we need 
+            // to try binding again as if "i" is an expression and not a type.  In order to do 
+            // that, we need to speculate as to what 'i' meant if it wasn't part of a local 
+            // declaration's type.
+            //
+            // Another interesting case is something like:
+            //
+            //      stringList.
+            //      await Test2();
+            //
+            // Here "stringList.await" is thought of as the return type of a local function.
 
-            // The problem is that "i.List<string>" gets parsed as a type.  In this case we need to
-            // try binding again as if "i" is an expression and not a type.  In order to do that, we
-            // need to speculate as to what 'i' meant if it wasn't part of a local declaration's
-            // type.
-
-            if (name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
+            if (name.IsFoundUnder<LocalFunctionStatementSyntax>(d => d.ReturnType) ||
+                name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
                 name.IsFoundUnder<FieldDeclarationSyntax>(d => d.Declaration.Type))
             {
                 var speculativeBinding = context.SemanticModel.GetSpeculativeSymbolInfo(
@@ -321,8 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
             var nameBinding = context.SemanticModel.GetSymbolInfo(name, cancellationToken);
 
-            var symbol = nameBinding.Symbol as INamespaceOrTypeSymbol;
-            if (symbol != null)
+            if (nameBinding.Symbol is INamespaceOrTypeSymbol symbol)
             {
                 if (context.IsNameOfContext)
                 {
@@ -349,20 +356,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 var usingDirective = name.GetAncestorOrThis<UsingDirectiveSyntax>();
                 if (usingDirective != null && usingDirective.Alias == null)
                 {
-                    if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
-                    {
-                        return symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType());
-                    }
-                    else
-                    {
-                        symbols = symbols.WhereAsArray(s => s.IsNamespace());
-                    }
+                    return usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword)
+                        ? symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType())
+                        : symbols.WhereAsArray(s => s.IsNamespace());
                 }
 
-                if (symbols.Any())
-                {
-                    return symbols;
-                }
+                return symbols;
             }
 
             return ImmutableArray<ISymbol>.Empty;
@@ -460,6 +459,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 // If the thing on the left is a lambda expression, we shouldn't show anything.
                 if (symbol.Kind == SymbolKind.Method &&
                     ((IMethodSymbol)symbol).MethodKind == MethodKind.AnonymousFunction)
+                {
+                    return ImmutableArray<ISymbol>.Empty;
+                }
+
+                // If the thing on the left is a method name identifier, we shouldn't show anything.
+                var originalExpressionKind = originalExpression.Kind();
+                if (symbol.Kind == SymbolKind.Method &&
+                    (originalExpressionKind == SyntaxKind.IdentifierName || originalExpressionKind == SyntaxKind.GenericName))
                 {
                     return ImmutableArray<ISymbol>.Empty;
                 }

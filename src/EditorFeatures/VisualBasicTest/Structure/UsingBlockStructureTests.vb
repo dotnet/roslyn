@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
@@ -17,14 +17,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Const code = "
 Class C
     Sub M()
-        {|span:Using (foo) $$
+        {|span:Using (goo) $$
         End Using|}
     End Sub
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "Using (foo) ...", autoCollapse:=False))
+                Region("span", "Using (goo) ...", autoCollapse:=False))
         End Function
     End Class
 End Namespace

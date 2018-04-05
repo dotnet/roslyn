@@ -28,7 +28,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            return default(T);
+            return default;
         }
 
         public override bool TryGetValue(out T value)
@@ -41,7 +41,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            value = default(T);
+            value = default;
             return false;
         }
 

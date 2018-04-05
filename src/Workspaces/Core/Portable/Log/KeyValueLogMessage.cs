@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             get
             {
                 EnsureMap();
-                return _map?.Count > 0;
+                return _map.Count > 0;
             }
         }
 
@@ -81,6 +81,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         protected override void FreeCore()
         {
+            if (this == NoProperty)
+            {
+                return;
+            }
+
             if (_map != null)
             {
                 SharedPools.Default<Dictionary<string, object>>().ClearAndFree(_map);
@@ -90,17 +95,21 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             if (_propertySetter != null)
             {
                 _propertySetter = null;
-                s_pool.Free(this);
             }
+
+            // always pool it back
+            s_pool.Free(this);
         }
 
         private void EnsureMap()
         {
-            if (_map == null && _propertySetter != null)
+            // always create _map
+            if (_map == null)
             {
                 _map = SharedPools.Default<Dictionary<string, object>>().AllocateAndClear();
-                _propertySetter(_map);
             }
+
+            _propertySetter?.Invoke(_map);
         }
     }
 

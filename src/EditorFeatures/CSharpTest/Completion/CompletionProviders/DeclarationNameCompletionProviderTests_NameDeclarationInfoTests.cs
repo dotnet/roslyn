@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Collections.Immutable;
 using static Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationNameCompletionProvider;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DeclarationInfoTests
 {
+    [UseExportProvider]
     public class DeclarationNameCompletion_ContextTests
     {
         protected CSharpTestWorkspaceFixture fixture = new CSharpTestWorkspaceFixture();
@@ -100,7 +96,7 @@ class C
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         int $$
     }
@@ -118,7 +114,7 @@ class C
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         int c1, $$
     }
@@ -136,7 +132,7 @@ class C
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         readonly int $$
     }
@@ -154,7 +150,7 @@ class C
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         readonly int c1, $$
     }
@@ -172,7 +168,7 @@ class C
             var markup = @"
 class C
 {
-    void foo(C $$
+    void goo(C $$
     }
 }
 ";
@@ -188,7 +184,7 @@ class C
             var markup = @"
 class C
 {
-    void foo(C c1, C $$
+    void goo(C c1, C $$
     }
 }
 ";
@@ -204,7 +200,7 @@ class C
             var markup = @"
 class C
 {
-    void foo(string $$
+    void goo(string $$
     }
 }
 ";
@@ -220,7 +216,7 @@ class C
             var markup = @"
 class C
 {
-    void foo(C c1, string $$
+    void goo(C c1, string $$
     }
 }
 ";
@@ -237,7 +233,7 @@ class C
 using System.Collections.Generic;
 class C
 {
-    void foo(C c1, List<string> $$
+    void goo(C c1, List<string> $$
     }
 }
 ";
@@ -482,9 +478,7 @@ namespace ConsoleApp1
 
         private (Document, int) ApplyChangesToFixture(string markup)
         {
-            string text;
-            int position;
-            MarkupTestFile.GetPosition(markup, out text, out position);
+            MarkupTestFile.GetPosition(markup, out var text, out int position);
             return (fixture.UpdateDocument(text, SourceCodeKind.Regular), position);
         }
     }

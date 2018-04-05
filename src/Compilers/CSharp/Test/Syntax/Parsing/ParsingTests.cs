@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+//#define PARSING_TESTS_DUMP
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -47,9 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public CompilationUnitSyntax ParseFile(string text, CSharpParseOptions parseOptions = null) =>
             SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
 
-        internal CompilationUnitSyntax ParseFileExperimental(string text, MessageID feature) =>
-            ParseFile(text, parseOptions: TestOptions.Regular.WithExperimental(feature));
-
         protected virtual CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options) =>
             ParseTree(text, options).GetCompilationUnitRoot();
 
@@ -63,14 +62,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode(node);
         }
 
-        internal void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
+        internal void UsingExpression(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
         {
-            var node = SyntaxFactory.ParseExpression(text);
+            var node = SyntaxFactory.ParseExpression(text, options: options);
             // we validate the text roundtrips
             Assert.Equal(text, node.ToFullString());
             var actualErrors = node.GetDiagnostics();
             actualErrors.Verify(expectedErrors);
             UsingNode(node);
+        }
+
+        internal void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            UsingExpression(text, options: null, expectedErrors);
         }
 
         /// <summary>

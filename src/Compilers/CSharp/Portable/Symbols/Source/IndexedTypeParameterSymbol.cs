@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -120,6 +121,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override bool HasReferenceTypeConstraint
+        {
+            get { return false; }
+        }
+
+        public override bool HasUnmanagedTypeConstraint
         {
             get { return false; }
         }

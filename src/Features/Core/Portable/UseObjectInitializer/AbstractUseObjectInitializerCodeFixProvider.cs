@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 subEditor.ReplaceNode(statement, newStatement);
                 foreach (var match in matches)
                 {
-                    subEditor.RemoveNode(match.Statement);
+                    subEditor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
                 }
 
                 document = document.WithSyntaxRoot(subEditor.GetChangedRoot());

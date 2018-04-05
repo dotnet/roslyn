@@ -67,19 +67,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // the 'progress' parameter which will then update the UI.
                 var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
 
-                using (var session = await TryGetRemoteSessionAsync(
-                    solution, serverCallback, cancellationToken).ConfigureAwait(false))
-                {
-                    if (session != null)
-                    {
-                        await session.InvokeAsync(
-                            nameof(IRemoteSymbolFinder.FindReferencesAsync),
-                            SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
-                            documents?.Select(d => d.Id).ToArray()).ConfigureAwait(false);
-
-                        return true;
-                    }
-                }
+                return await solution.TryRunCodeAnalysisRemoteAsync(
+                    RemoteFeatureOptions.SymbolFinderEnabled,
+                    serverCallback,
+                    nameof(IRemoteSymbolFinder.FindReferencesAsync),
+                    new object[] { SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId), documents?.Select(d => d.Id).ToArray() },
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return false;

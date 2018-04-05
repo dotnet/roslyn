@@ -35,11 +35,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public FileSet ReplaceFileElement(string fileName, string elementName, string elementValue)
         {
-            object content;
-            if (_nameToContentMap.TryGetValue(fileName, out content))
+            if (_nameToContentMap.TryGetValue(fileName, out var content))
             {
-                var textContent = content as string;
-                if (textContent != null)
+                if (content is string textContent)
                 {
                     var elementStartTag = "<" + elementName;
                     var elementEndTag = "</" + elementName;

@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var current = stack.Pop();
-                var currentNs = current as INamespaceSymbol;
-                if (currentNs != null)
+                if (current is INamespaceSymbol currentNs)
                 {
                     stack.Push(currentNs.GetMembers());
                 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -23,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public SymbolSpecification(
             Guid? id, string symbolSpecName,
             ImmutableArray<SymbolKindOrTypeKind> symbolKindList,
-            ImmutableArray<Accessibility> accessibilityList = default(ImmutableArray<Accessibility>),
-            ImmutableArray<ModifierKind> modifiers = default(ImmutableArray<ModifierKind>))
+            ImmutableArray<Accessibility> accessibilityList = default,
+            ImmutableArray<ModifierKind> modifiers = default)
         {
             ID = id ?? Guid.NewGuid();
             Name = symbolSpecName;
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private DeclarationModifiers CollapseModifiers(ImmutableArray<ModifierKind> requiredModifierList)
         {
-            if (requiredModifierList == default(ImmutableArray<ModifierKind>))
+            if (requiredModifierList == default)
             {
                 return new DeclarationModifiers();
             }

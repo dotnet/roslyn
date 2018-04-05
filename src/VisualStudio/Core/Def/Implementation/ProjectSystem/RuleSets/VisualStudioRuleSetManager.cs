@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _ruleSetFileMap.Remove(ruleSetFile.FilePath);
         }
 
-        public void Dispose()
+        public void ClearCachedRuleSetFiles()
         {
             foreach (var pair in _ruleSetFileMap)
             {
@@ -49,6 +49,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             _ruleSetFileMap.Clear();
+        }
+
+        void IDisposable.Dispose()
+        {
+            ClearCachedRuleSetFiles();
         }
     }
 }

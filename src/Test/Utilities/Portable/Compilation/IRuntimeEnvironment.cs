@@ -18,29 +18,11 @@ namespace Roslyn.Test.Utilities
 {
     public static class RuntimeEnvironmentFactory
     {
-        private static readonly Lazy<IRuntimeEnvironmentFactory> s_lazyFactory = new Lazy<IRuntimeEnvironmentFactory>(GetFactoryImplementation);
+        private static readonly Lazy<IRuntimeEnvironmentFactory> s_lazyFactory = new Lazy<IRuntimeEnvironmentFactory>(RuntimeUtilities.GetRuntimeEnvironmentFactory);
 
         internal static IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies = null)
         {
             return s_lazyFactory.Value.Create(additionalDependencies);
-        }
-
-        private static IRuntimeEnvironmentFactory GetFactoryImplementation()
-        {
-            string assemblyName;
-            string typeName;
-            if (CoreClrShim.IsRunningOnCoreClr)
-            {
-                assemblyName = "Roslyn.Test.Utilities.CoreClr";
-                typeName = "Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime.CoreCLRRuntimeEnvironmentFactory";
-            }
-            else
-            {
-                assemblyName = "Roslyn.Test.Utilities.Desktop";
-                typeName = "Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime.DesktopRuntimeEnvironmentFactory";
-            }
-
-            return RuntimeUtilities.GetFactoryImplementation<IRuntimeEnvironmentFactory>(assemblyName, typeName);
         }
 
         public static void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput)
@@ -64,33 +46,13 @@ namespace Roslyn.Test.Utilities
         }
     }
 
-    internal static class RuntimeUtilities
+    internal static class RuntimeEnvironmentUtilities
     {
         private static int s_dumpCount;
 
         private static IEnumerable<ModuleMetadata> EnumerateModules(Metadata metadata)
         {
             return (metadata.Kind == MetadataImageKind.Assembly) ? ((AssemblyMetadata)metadata).GetModules().AsEnumerable() : SpecializedCollections.SingletonEnumerable((ModuleMetadata)metadata);
-        }
-
-        /// <summary>
-        /// Loads the given assembly name, assuming the same public key, culture, version,
-        /// and architecture as this assembly, and uses reflection to instantiate the given
-        /// type and return the value.
-        /// </summary>
-        internal static T GetFactoryImplementation<T>(string assemblyName, string typeName)
-        {
-            var thisAssemblyName = typeof(RuntimeUtilities).GetTypeInfo().Assembly.GetName();
-            var name = new AssemblyName();
-            name.Name = assemblyName;
-            name.Version = thisAssemblyName.Version;
-            name.SetPublicKey(thisAssemblyName.GetPublicKey());
-            name.CultureName = thisAssemblyName.CultureName;
-            name.ProcessorArchitecture = thisAssemblyName.ProcessorArchitecture;
-
-            var assembly = Assembly.Load(name);
-            var type = assembly.GetType(typeName);
-            return (T)Activator.CreateInstance(type);
         }
 
         /// <summary>
@@ -150,7 +112,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Find all of the <see cref="Compilation"/> values reachable from this instance.
         /// </summary>
-        /// <param name="compilation"></param>
+        /// <param name="original"></param>
         /// <returns></returns>
         private static List<Compilation> FindReferencedCompilations(Compilation original)
         {
@@ -253,6 +215,7 @@ namespace Roslyn.Test.Utilities
                 {
                     result = compilation.Emit(
                         executableStream,
+                        metadataPEStream: null,
                         pdbStream: pdbStream,
                         xmlDocumentationStream: null,
                         win32Resources: null,
@@ -323,8 +286,7 @@ namespace Roslyn.Test.Utilities
                     }
                     else
                     {
-                        AssemblyIdentity identity;
-                        AssemblyIdentity.TryParseDisplayName(module.FullName, out identity);
+                        AssemblyIdentity.TryParseDisplayName(module.FullName, out var identity);
                         fileName = identity.Name;
                     }
 
@@ -367,14 +329,14 @@ namespace Roslyn.Test.Utilities
     public interface IRuntimeEnvironment : IDisposable
     {
         void Emit(Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool usePdbForDebugging = false);
-        int Execute(string moduleName, string expectedOutput);
+        int Execute(string moduleName, string[] args, string expectedOutput);
         ImmutableArray<byte> GetMainImage();
         ImmutableArray<byte> GetMainPdb();
         ImmutableArray<Diagnostic> GetDiagnostics();
         SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName);
         IList<ModuleData> GetAllModuleData();
-        void PeVerify();
-        string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true);
+        void Verify(Verification verification);
+        string[] VerifyModules(string[] modulesToVerify);
         void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput);
     }
 

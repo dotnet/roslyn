@@ -101,15 +101,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
             private (Project project, ISymbol symbol) TryResolveSymbolInCurrentSolution(
                 Workspace workspace, string symbolKey)
             {
-                if (!this.Properties.TryGetValue(MetadataAssemblyIdentityDisplayName, out var identityDisplayName) ||
-                    !AssemblyIdentity.TryParseDisplayName(identityDisplayName, out var identity))
+                if (!this.Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
+                    !this.Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
                 {
                     return (null, null);
                 }
 
-                var project = workspace.CurrentSolution
-                    .ProjectsWithReferenceToAssembly(identity)
-                    .FirstOrDefault();
+                var project = workspace.CurrentSolution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
 
                 if (project == null)
                 {

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -7,12 +7,12 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
+    [UseExportProvider]
     public class DiagnosticServiceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
 
                 var source = new TestDiagnosticUpdateSource(false, null);
-                var diagnosticService = new DiagnosticService(AggregateAsynchronousOperationListener.EmptyListeners);
+                var diagnosticService = new DiagnosticService(AsynchronousOperationListenerProvider.NullProvider);
                 diagnosticService.Register(source);
 
                 diagnosticService.DiagnosticsUpdated += (s, o) => { set.Set(); };
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
 
                 var source = new TestDiagnosticUpdateSource(false, null);
-                var diagnosticService = new DiagnosticService(AggregateAsynchronousOperationListener.EmptyListeners);
+                var diagnosticService = new DiagnosticService(AsynchronousOperationListenerProvider.NullProvider);
                 diagnosticService.Register(source);
 
                 diagnosticService.DiagnosticsUpdated += (s, o) => { set.Set(); };

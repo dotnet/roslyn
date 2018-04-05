@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -47,10 +47,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return syntax;
         }
 
-        public static TSyntaxNode AddCleanupAnnotationsTo<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
-        {
-            return node.WithAdditionalAnnotations(Formatter.Annotation);
-        }
+        public static TSyntaxNode AddFormatterAndCodeGeneratorAnnotationsTo<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
+            => node.WithAdditionalAnnotations(Formatter.Annotation, CodeGenerator.Annotation);
 
         public static void CheckNodeType<TSyntaxNode1>(SyntaxNode node, string argumentName)
             where TSyntaxNode1 : SyntaxNode
@@ -136,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return -1;
         }
 
-        public static bool TryGetDocumentationComment(ISymbol symbol, string commentToken, out string comment, CancellationToken cancellationToken = default(CancellationToken))
+        public static bool TryGetDocumentationComment(ISymbol symbol, string commentToken, out string comment, CancellationToken cancellationToken = default)
         {
             var xml = symbol.GetDocumentationCommentXml(cancellationToken: cancellationToken);
             if (string.IsNullOrEmpty(xml))
@@ -215,9 +213,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             Contract.ThrowIfNull(symbol);
 
-            return options != null && options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1 ?
-                symbol.DeclaringSyntaxReferences[0].GetSyntax() as T :
-                null;
+            return options != null && options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1
+                ? symbol.DeclaringSyntaxReferences[0].GetSyntax() as T
+                : null;
         }
 
         public static T GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationOptions options)

@@ -241,7 +241,10 @@ namespace Roslyn.Utilities
             return hashCode;
         }
 
-#if WORKSPACE
+        internal static int GetCaseInsensitiveFNVHashCode(string text)
+        {
+            return GetCaseInsensitiveFNVHashCode(text, 0, text.Length);
+        }
 
         internal static int GetCaseInsensitiveFNVHashCode(string text, int start, int length)
         {
@@ -255,8 +258,6 @@ namespace Roslyn.Utilities
 
             return hashCode;
         }
-
-#endif
 
         /// <summary>
         /// Compute the hashcode of a sub-string using FNV-1a

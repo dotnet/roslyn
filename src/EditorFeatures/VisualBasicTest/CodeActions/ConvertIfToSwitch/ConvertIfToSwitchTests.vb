@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -357,6 +357,43 @@ End Class",
                 Case 1
             End Select
         End While
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(21103, "https://github.com/dotnet/roslyn/issues/21103")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        Public Async Function TestTrivia1() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub M(i As Integer)
+#if true
+        Console.WriteLine()
+#end if
+
+        [||]If i = 1 OrElse 2 = i OrElse i = 3 Then
+            M(0)
+        ElseIf i = 4 OrElse 5 = i OrElse i = 6 Then
+            M(1)
+        Else
+            M(2)
+        End If
+    End Sub
+End Class",
+"Class C
+    Sub M(i As Integer)
+#if true
+        Console.WriteLine()
+#end if
+
+        Select i
+            Case 1, 2, 3
+                M(0)
+            Case 4, 5, 6
+                M(1)
+            Case Else
+                M(2)
+        End Select
     End Sub
 End Class")
         End Function

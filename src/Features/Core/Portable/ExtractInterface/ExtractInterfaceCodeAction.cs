@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         {
             IEnumerable<CodeActionOperation> operations = null;
 
-            var extractInterfaceOptions = options as ExtractInterfaceOptionsResult;
-            if (extractInterfaceOptions != null && !extractInterfaceOptions.IsCancelled)
+            if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
             {
                 var extractInterfaceResult = _extractInterfaceService.ExtractInterfaceFromAnalyzedType(_typeAnalysisResult, extractInterfaceOptions, cancellationToken);
 

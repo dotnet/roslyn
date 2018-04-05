@@ -65,3 +65,12 @@ The general structure of this file is:
 - Import all of the external targets.
 - PropertyGroup to adjust properties set by the external projects.
 - Custom Targets for our build.
+
+### Version property files
+
+There are a number props files that just control version numbers:
+
+- Packages.props: version numbers for all of the NuGet packages we use. Versions here presumably will change as new packages are available.
+- FixedPackages.props: similar to Packages.props but for packages that should never change versions. They are fixed and do not change when new packages are available. Typically used for producing SDKs for older VS / .NET versions.
+- Tools.props: version numbers for non-Nuget assets. 
+

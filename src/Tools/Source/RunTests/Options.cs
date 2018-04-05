@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -58,12 +58,19 @@ namespace RunTests
         /// </summary>
         public List<string> Assemblies { get; set; }
 
+        /// <summary>
+        /// Time after which the runner should kill the xunit process and exit with a failure.
+        /// </summary>
+        public TimeSpan? Timeout { get; set; }
+
+        public string ProcDumpDirectory { get; set; }
+
         public string XunitPath { get; set; }
 
         /// <summary>
-        /// When set the log file ffor executing tests will be written to the prescribed location.
+        /// Directory to hold all of our test logging information.
         /// </summary>
-        public string LogFilePath { get; set; }
+        public string LogsDirectory { get; set; }
 
         internal static Options Parse(string[] args)
         {
@@ -86,12 +93,11 @@ namespace RunTests
                 return false;
             }
 
-            var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true };
+            var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true, LogsDirectory = Directory.GetCurrentDirectory() };
             var index = 1;
             var allGood = true;
             while (index < args.Length)
             {
-                string value;
                 var current = args[index];
                 if (comparer.Equals(current, "-test64"))
                 {
@@ -114,15 +120,14 @@ namespace RunTests
                     opt.UseCachedResults = false;
                     index++;
                 }
-                else if (isOption(current, "-log", out value))
+                else if (isOption(current, "-logpath", out string value))
                 {
-                    opt.LogFilePath = value;
+                    opt.LogsDirectory = value;
                     index++;
                 }
                 else if (isOption(current, "-display", out value))
                 {
-                    Display display;
-                    if (Enum.TryParse(value, ignoreCase: true, result: out display))
+                    if (Enum.TryParse(value, ignoreCase: true, result: out Display display))
                     {
                         opt.Display = display;
                     }
@@ -142,6 +147,25 @@ namespace RunTests
                 else if (isOption(current, "-notrait", out value))
                 {
                     opt.NoTrait = value;
+                    index++;
+                }
+                else if (isOption(current, "-timeout", out value))
+                {
+                    if (int.TryParse(value, out var minutes))
+                    {
+                        opt.Timeout = TimeSpan.FromMinutes(minutes);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{value} is not a valid minute value for timeout");
+                        allGood = false;
+                    }
+
+                    index++;
+                }
+                else if (isOption(current, "-procdumpPath", out value))
+                {
+                    opt.ProcDumpDirectory = value;
                     index++;
                 }
                 else

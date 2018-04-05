@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -16,13 +16,13 @@ Imports N
 
 Module Program
     Sub Main()
-        {|Expand:Foo|}()
+        {|Expand:Goo|}()
     End Sub
 End Module
 
 Namespace N
     Module X
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Module
 End Namespace
@@ -36,13 +36,13 @@ Imports N
 
 Module Program
     Sub Main()
-        Call Global.N.X.Foo()
+        Call Global.N.X.Goo()
     End Sub
 End Module
 
 Namespace N
     Module X
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Module
 End Namespace
@@ -61,13 +61,13 @@ Imports N
 
 Module Program
     Sub Main()
-        Dim bar As {|Expand:N.Foo|}
+        Dim bar As {|Expand:N.Goo|}
     End Sub
 End Module
 
 Namespace N
     Module X
-        Class Foo
+        Class Goo
         End Class
     End Module
 End Namespace
@@ -81,13 +81,13 @@ Imports N
 
 Module Program
     Sub Main()
-        Dim bar As Global.N.X.Foo
+        Dim bar As Global.N.X.Goo
     End Sub
 End Module
 
 Namespace N
     Module X
-        Class Foo
+        Class Goo
         End Class
     End Module
 End Namespace
@@ -106,13 +106,13 @@ Imports N
 
 Module Program
     Sub Main()
-        {|Expand:N.Foo()|}
+        {|Expand:N.Goo()|}
     End Sub
 End Module
 
 Namespace N
     Module X
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Module
 End Namespace
@@ -126,13 +126,13 @@ Imports N
 
 Module Program
     Sub Main()
-        Global.N.X.Foo()
+        Global.N.X.Goo()
     End Sub
 End Module
 
 Namespace N
     Module X
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Module
 End Namespace
@@ -193,13 +193,13 @@ Imports N
 
 Module Program
     Sub Main()
-        {|ExpandAndSimplify:Foo|}()
+        {|ExpandAndSimplify:Goo|}()
     End Sub
 End Module
 
 Namespace N
     Module X
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Module
 End Namespace
@@ -213,13 +213,13 @@ Imports N
 
 Module Program
     Sub Main()
-        Foo()
+        Goo()
     End Sub
 End Module
 
 Namespace N
     Module X
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Module
 End Namespace
@@ -238,13 +238,13 @@ Imports N
 
 Module Program
     Sub Main()
-        Dim bar As {|ExpandAndSimplify:N.Foo|}
+        Dim bar As {|ExpandAndSimplify:N.Goo|}
     End Sub
 End Module
 
 Namespace N
     Module X
-        Class Foo
+        Class Goo
         End Class
     End Module
 End Namespace
@@ -258,13 +258,13 @@ Imports N
 
 Module Program
     Sub Main()
-        Dim bar As N.Foo
+        Dim bar As N.Goo
     End Sub
 End Module
 
 Namespace N
     Module X
-        Class Foo
+        Class Goo
         End Class
     End Module
 End Namespace

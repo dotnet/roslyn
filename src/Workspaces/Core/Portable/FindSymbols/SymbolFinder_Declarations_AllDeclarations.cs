@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
-            Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default(CancellationToken))
+            Project project, string name, bool ignoreCase, CancellationToken cancellationToken = default)
         {
             using (var query = SearchQuery.Create(name, ignoreCase))
             {
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Find the declared symbols from either source, referenced projects or metadata assemblies with the specified name.
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(
-            Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default(CancellationToken))
+            Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default)
         {
             using (var query = SearchQuery.Create(name, ignoreCase))
             {

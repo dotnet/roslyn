@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
         public static SymbolKeyResolution Resolve(
             string symbolKey, Compilation compilation,
             bool ignoreAssemblyKey = false, bool resolveLocations = false,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             using (var reader = SymbolKeyReader.GetReader(
                 symbolKey, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken))
@@ -121,12 +121,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static SymbolKey Create(ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
+        public static SymbolKey Create(ISymbol symbol, CancellationToken cancellationToken = default)
         {
             return new SymbolKey(ToString(symbol, cancellationToken));
         }
 
-        public static string ToString(ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
+        public static string ToString(ISymbol symbol, CancellationToken cancellationToken = default)
         {
             using (var writer = SymbolKeyWriter.GetWriter(cancellationToken))
             {
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis
         public SymbolKeyResolution Resolve(
             Compilation compilation, 
             bool ignoreAssemblyKey = false, bool resolveLocations = false,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return Resolve(
                 _symbolKeyData, compilation,
@@ -170,14 +170,14 @@ namespace Microsoft.CodeAnalysis
         private static SymbolKeyResolution CreateSymbolInfo(IEnumerable<ISymbol> symbols)
         {
             return symbols == null
-                ? default(SymbolKeyResolution)
+                ? default
                 : CreateSymbolInfo(symbols.WhereNotNull().ToArray());
         }
 
         private static SymbolKeyResolution CreateSymbolInfo(ISymbol[] symbols)
         {
             return symbols.Length == 0
-                ? default(SymbolKeyResolution)
+                ? default
                 : symbols.Length == 1
                     ? new SymbolKeyResolution(symbols[0])
                     : new SymbolKeyResolution(ImmutableArray.Create<ISymbol>(symbols), CandidateReason.Ambiguous);
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
         private static IEnumerable<INamedTypeSymbol> InstantiateTypes(
             Compilation compilation,
             bool ignoreAssemblyKey,
-            IEnumerable<INamedTypeSymbol> types,
+            ImmutableArray<INamedTypeSymbol> types,
             int arity,
             ImmutableArray<SymbolKeyResolution> typeArgumentKeys)
         {

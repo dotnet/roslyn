@@ -6,11 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Structure;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
+    [UseExportProvider]
     public class BlockStructureServiceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 @"using System.Linq;
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         var q = Enumerable.Range(1, 100).Where(x =>
         {
@@ -46,7 +47,7 @@ class C
 @"using System.Linq;
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         var q = Enumerable.Range(1, 100).Where((x) =>
         {
@@ -72,7 +73,7 @@ class C
 @"using System.Linq;
 class C
 {
-    static void Foo()
+    static void Goo()
     {
         var q = Enumerable.Range(1, 100).Where(delegate (int x)
         {

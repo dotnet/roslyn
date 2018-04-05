@@ -286,6 +286,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_InvalidHashAlgorithmName As Integer
+            Get
+                Return ERRID.ERR_InvalidHashAlgorithmName
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ERR_InvalidInstrumentationKind As Integer
             Get
                 Return ERRID.ERR_InvalidInstrumentationKind
@@ -543,6 +549,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_BadAssemblyName As Integer
             Get
                 Return ERRID.ERR_BadAssemblyName
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_InvalidDebugInfo As Integer
+            Get
+                Return ERRID.ERR_InvalidDebugInfo
             End Get
         End Property
     End Class

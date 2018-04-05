@@ -117,9 +117,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             get { return false; }
         }
 
-        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.ReturnValueAttributes
+        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.GetReturnValueAttributes(EmitContext context)
         {
-            get { return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>(); }
+            return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
         }
 
         bool Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly

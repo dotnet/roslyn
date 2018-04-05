@@ -10,7 +10,6 @@
 
 namespace Microsoft.CodeAnalysis.BuildTasks {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class ErrorString {
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.BuildTasks.ErrorString", typeof(ErrorString).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.BuildTasks.ErrorString", typeof(ErrorString).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -67,6 +66,43 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         internal static string Compiler_UnexpectedException {
             get {
                 return ResourceManager.GetString("Compiler_UnexpectedException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to check the content hash of the destination ref assembly &apos;{0}&apos;. It will be overwritten..
+        /// </summary>
+        internal static string CopyRefAssembly_BadDestination1 {
+            get {
+                return ResourceManager.GetString("CopyRefAssembly_BadDestination1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to check the content hash of the source ref assembly &apos;{0}&apos;: {1}
+        ///{2}.
+        /// </summary>
+        internal static string CopyRefAssembly_BadSource3 {
+            get {
+                return ResourceManager.GetString("CopyRefAssembly_BadSource3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference assembly &quot;{0}&quot; already has latest information. Leaving it untouched..
+        /// </summary>
+        internal static string CopyRefAssembly_SkippingCopy1 {
+            get {
+                return ResourceManager.GetString("CopyRefAssembly_SkippingCopy1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not extract the MVID from &quot;{0}&quot;. Are you sure it is a reference assembly?.
+        /// </summary>
+        internal static string CopyRefAssembly_SourceNotRef1 {
+            get {
+                return ResourceManager.GetString("CopyRefAssembly_SourceNotRef1", resourceCulture);
             }
         }
         
@@ -143,15 +179,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MSB3082: Task failed because &quot;{0}&quot; was not found..
-        /// </summary>
-        internal static string General_ToolFileNotFound {
-            get {
-                return ResourceManager.GetString("General_ToolFileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to MSB3087: An incompatible host object was passed into the &quot;{0}&quot; task.  The host object for this task must implement the &quot;{1}&quot; interface..
         /// </summary>
         internal static string General_IncorrectHostObject {
@@ -184,6 +211,51 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         internal static string General_ReferenceDoesNotExist {
             get {
                 return ResourceManager.GetString("General_ReferenceDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MSB3082: Task failed because &quot;{0}&quot; was not found..
+        /// </summary>
+        internal static string General_ToolFileNotFound {
+            get {
+                return ResourceManager.GetString("General_ToolFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} contains duplicate items &apos;{1}&apos; with conflicting metadata &apos;{2}&apos;: &apos;{3}&apos; and &apos;{4}&apos;.
+        /// </summary>
+        internal static string MapSourceRoots_ContainsDuplicate {
+            get {
+                return ResourceManager.GetString("MapSourceRoots.ContainsDuplicate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: &apos;{2}&apos;.
+        /// </summary>
+        internal static string MapSourceRoots_NoSuchTopLevelSourceRoot {
+            get {
+                return ResourceManager.GetString("MapSourceRoots.NoSuchTopLevelSourceRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} items must include at least one top-level (not nested) item when {1} is true.
+        /// </summary>
+        internal static string MapSourceRoots_NoTopLevelSourceRoot {
+            get {
+                return ResourceManager.GetString("MapSourceRoots.NoTopLevelSourceRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} paths are required to end with a slash or backslash: &apos;{1}&apos;.
+        /// </summary>
+        internal static string MapSourceRoots_PathMustEndWithSlashOrBackslash {
+            get {
+                return ResourceManager.GetString("MapSourceRoots.PathMustEndWithSlashOrBackslash", resourceCulture);
             }
         }
         

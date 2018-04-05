@@ -1,72 +1,72 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class OfKeywordRecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfAfterPossibleMethodTypeParamTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Foo(|</ClassDeclaration>, "Of")
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Goo(|</ClassDeclaration>, "Of")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfNotAfterMethodTypeParamTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Foo(Of T)(|</ClassDeclaration>, "Of")
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Sub Goo(Of T)(|</ClassDeclaration>, "Of")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfDefinitelyInMethodTypeParamTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Foo(|)(x As Integer)</ClassDeclaration>, "Of")
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Sub Goo(|)(x As Integer)</ClassDeclaration>, "Of")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfAfterPossibleDelegateTypeParamTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Delegate Sub Foo(|</ClassDeclaration>, "Of")
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Delegate Sub Goo(|</ClassDeclaration>, "Of")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfNotAfterDelegateTypeParamTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Delegate Sub Foo(Of T)(|</ClassDeclaration>, "Of")
+            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Delegate Sub Goo(Of T)(|</ClassDeclaration>, "Of")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfDefinitelyInDelegateTypeParamTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Delegate Sub Foo(|)(x As Integer)</ClassDeclaration>, "Of")
+            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Delegate Sub Goo(|)(x As Integer)</ClassDeclaration>, "Of")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfInClassDeclarationTypeParamTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>Class Foo(|</File>, "Of")
+            Await VerifyRecommendationsContainAsync(<File>Class Goo(|</File>, "Of")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfInStructureDeclarationTypeParamTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>Structure Foo(|</File>, "Of")
+            Await VerifyRecommendationsContainAsync(<File>Structure Goo(|</File>, "Of")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfInInterfaceDeclarationTypeParamTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>Interface Foo(|</File>, "Of")
+            Await VerifyRecommendationsContainAsync(<File>Interface Goo(|</File>, "Of")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfNotInEnumDeclarationTest() As Task
             ' This is invalid code, so make sure we don't show it
-            Await VerifyRecommendationsMissingAsync(<File>Enum Foo(|</File>, "Of")
+            Await VerifyRecommendationsMissingAsync(<File>Enum Goo(|</File>, "Of")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfNotInModuleDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>Module Foo(|</File>, "Of")
+            Await VerifyRecommendationsMissingAsync(<File>Module Goo(|</File>, "Of")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfInVariableDeclaration1Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim f As Foo(|</MethodBody>, "Of")
+            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim f As Goo(|</MethodBody>, "Of")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfInVariableDeclaration2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim f As New Foo(|</MethodBody>, "Of")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Dim f As New Goo(|</MethodBody>, "Of")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OfInMethodCallTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(|</MethodBody>, "Of")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "Of")
         End Function
 
         <WorkItem(541636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541636")>
@@ -97,10 +97,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
             Dim code =
 <File>
 Class C
-    Delegate Sub Foo()
+    Delegate Sub Goo()
 
     Sub Main(args As String())
-        Dim f1 As New Foo(|
+        Dim f1 As New Goo(|
     End Sub
 End Class
 </File>
@@ -113,10 +113,10 @@ End Class
         Public Async Function InGenericDelegateCreationTest() As Task
             Dim code = <ModuleDeclaration><![CDATA[
 Class C
-    Delegate Sub Foo(Of C)()
+    Delegate Sub Goo(Of C)()
 
     Sub Main(args As String())
-        Dim f1 As New Foo(|
+        Dim f1 As New Goo(|
     End Sub
 End Class
 ]]></ModuleDeclaration>
@@ -128,11 +128,11 @@ End Class
         Public Async Function InPotentiallyGenericDelegateCreationTest() As Task
             Dim code = <ModuleDeclaration><![CDATA[
 Class C
-    Delegate Sub Foo()
-    Delegate Sub Foo(Of C)()
+    Delegate Sub Goo()
+    Delegate Sub Goo(Of C)()
 
     Sub Main(args As String())
-        Dim f1 As New Foo(|
+        Dim f1 As New Goo(|
     End Sub
 End Class
 ]]></ModuleDeclaration>
@@ -144,13 +144,13 @@ End Class
         Public Async Function NotInNonGenericDelegateCreationWithGenericTypeOfSameNameTest() As Task
             Dim code =
 <File>
-Class Foo(Of U)
+Class Goo(Of U)
 End Class
 Class C
-    Delegate Sub Foo()
+    Delegate Sub Goo()
 
     Sub Main(args As String())
-        Dim f1 As New Foo(|
+        Dim f1 As New Goo(|
     End Sub
 End Class
 </File>
@@ -162,7 +162,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterEolTest() As Task
             Await VerifyRecommendationsContainAsync(
-<MethodBody>Foo(
+<MethodBody>Goo(
 |</MethodBody>, "Of")
         End Function
 

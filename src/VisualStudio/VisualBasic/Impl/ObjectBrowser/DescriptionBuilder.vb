@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -296,6 +296,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
                     AddText("Protected ")
                 Case Accessibility.ProtectedOrFriend
                     AddText("Protected Friend ")
+                Case Accessibility.ProtectedAndFriend
+                    AddText("Private Protected ")
                 Case Else
                     AddText("Friend ")
             End Select

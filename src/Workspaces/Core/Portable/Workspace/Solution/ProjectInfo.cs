@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -51,6 +52,11 @@ namespace Microsoft.CodeAnalysis
         /// The path to the output file (module or assembly).
         /// </summary>
         public string OutputFilePath => Attributes.OutputFilePath;
+
+        /// <summary>
+        /// The path to the reference assembly output file.
+        /// </summary>
+        public string OutputRefFilePath => Attributes.OutputRefFilePath;
 
         /// <summary>
         /// True if this is a submission project for interactive sessions.
@@ -137,6 +143,7 @@ namespace Microsoft.CodeAnalysis
             string language,
             string filePath,
             string outputFilePath,
+            string outputRefFilePath,
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             IEnumerable<DocumentInfo> documents,
@@ -157,6 +164,7 @@ namespace Microsoft.CodeAnalysis
                     language,
                     filePath,
                     outputFilePath,
+                    outputRefFilePath,
                     isSubmission,
                     hasAllInformation),
                 compilationOptions,
@@ -167,6 +175,35 @@ namespace Microsoft.CodeAnalysis
                 analyzerReferences,
                 additionalDocuments,
                 hostObjectType);
+        }
+
+        // 2.7.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        /// <summary>
+        /// Create a new instance of a ProjectInfo.
+        /// </summary>
+        public static ProjectInfo Create(
+            ProjectId id,
+            VersionStamp version,
+            string name,
+            string assemblyName,
+            string language,
+            string filePath,
+            string outputFilePath,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            IEnumerable<DocumentInfo> documents,
+            IEnumerable<ProjectReference> projectReferences,
+            IEnumerable<MetadataReference> metadataReferences,
+            IEnumerable<AnalyzerReference> analyzerReferences,
+            IEnumerable<DocumentInfo> additionalDocuments,
+            bool isSubmission,
+            Type hostObjectType)
+        {
+            return Create(
+                id, version, name, assemblyName, language,
+                filePath, outputFilePath, outputRefFilePath: null, compilationOptions, parseOptions,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
+                isSubmission, hostObjectType, hasAllInformation: true);
         }
 
         /// <summary>
@@ -188,11 +225,12 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             IEnumerable<DocumentInfo> additionalDocuments = null,
             bool isSubmission = false,
-            Type hostObjectType = null)
+            Type hostObjectType = null,
+            string outputRefFilePath = null)
         {
             return Create(
                 id, version, name, assemblyName, language,
-                filePath, outputFilePath, compilationOptions, parseOptions,
+                filePath, outputFilePath, outputRefFilePath, compilationOptions, parseOptions,
                 documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
                 isSubmission, hostObjectType, hasAllInformation: true);
         }
@@ -206,7 +244,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<MetadataReference> metadataReferences = null,
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             IEnumerable<DocumentInfo> additionalDocuments = null,
-            Optional<Type> hostObjectType = default(Optional<Type>))
+            Optional<Type> hostObjectType = default)
         {
             var newAttributes = attributes ?? Attributes;
             var newCompilationOptions = compilationOptions ?? CompilationOptions;
@@ -232,15 +270,15 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new ProjectInfo(
-                    newAttributes,
-                    newCompilationOptions,
-                    newParseOptions,
-                    newDocuments,
-                    newProjectReferences,
-                    newMetadataReferences,
-                    newAnalyzerReferences,
-                    newAdditionalDocuments,
-                    newHostObjectType);
+                newAttributes,
+                newCompilationOptions,
+                newParseOptions,
+                newDocuments,
+                newProjectReferences,
+                newMetadataReferences,
+                newAnalyzerReferences,
+                newAdditionalDocuments,
+                newHostObjectType);
         }
 
         public ProjectInfo WithDocuments(IEnumerable<DocumentInfo> documents)
@@ -276,6 +314,11 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithOutputFilePath(string outputFilePath)
         {
             return With(attributes: Attributes.With(outputPath: outputFilePath));
+        }
+
+        public ProjectInfo WithOutputRefFilePath(string outputRefFilePath)
+        {
+            return With(attributes: Attributes.With(outputRefPath: outputRefFilePath));
         }
 
         public ProjectInfo WithCompilationOptions(CompilationOptions compilationOptions)
@@ -355,6 +398,11 @@ namespace Microsoft.CodeAnalysis
             public string OutputFilePath { get; }
 
             /// <summary>
+            /// The path to the reference assembly output file.
+            /// </summary>
+            public string OutputRefFilePath { get; }
+
+            /// <summary>
             /// True if this is a submission project for interactive sessions.
             /// </summary>
             public bool IsSubmission { get; }
@@ -374,6 +422,7 @@ namespace Microsoft.CodeAnalysis
                 string language,
                 string filePath,
                 string outputFilePath,
+                string outputRefFilePath,
                 bool isSubmission,
                 bool hasAllInformation)
             {
@@ -385,19 +434,21 @@ namespace Microsoft.CodeAnalysis
                 Version = version;
                 FilePath = filePath;
                 OutputFilePath = outputFilePath;
+                OutputRefFilePath = outputRefFilePath;
                 IsSubmission = isSubmission;
                 HasAllInformation = hasAllInformation;
             }
 
             public ProjectAttributes With(
-                VersionStamp? version = default(VersionStamp?),
+                VersionStamp? version = default,
                 string name = null,
                 string assemblyName = null,
                 string language = null,
-                Optional<string> filePath = default(Optional<string>),
-                Optional<string> outputPath = default(Optional<string>),
-                Optional<bool> isSubmission = default(Optional<bool>),
-                Optional<bool> hasAllInformation = default(Optional<bool>))
+                Optional<string> filePath = default,
+                Optional<string> outputPath = default,
+                Optional<string> outputRefPath = default,
+                Optional<bool> isSubmission = default,
+                Optional<bool> hasAllInformation = default)
             {
                 var newVersion = version.HasValue ? version.Value : Version;
                 var newName = name ?? Name;
@@ -405,6 +456,7 @@ namespace Microsoft.CodeAnalysis
                 var newLanguage = language ?? Language;
                 var newFilepath = filePath.HasValue ? filePath.Value : FilePath;
                 var newOutputPath = outputPath.HasValue ? outputPath.Value : OutputFilePath;
+                var newOutputRefPath = outputRefPath.HasValue ? outputRefPath.Value : OutputRefFilePath;
                 var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : IsSubmission;
                 var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : HasAllInformation;
 
@@ -414,6 +466,7 @@ namespace Microsoft.CodeAnalysis
                     newLanguage == Language &&
                     newFilepath == FilePath &&
                     newOutputPath == OutputFilePath &&
+                    newOutputRefPath == OutputRefFilePath &&
                     newIsSubmission == IsSubmission &&
                     newHasAllInformation == HasAllInformation)
                 {
@@ -421,15 +474,16 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return new ProjectAttributes(
-                        Id,
-                        newVersion,
-                        newName,
-                        newAssemblyName,
-                        newLanguage,
-                        newFilepath,
-                        newOutputPath,
-                        newIsSubmission,
-                        newHasAllInformation);
+                    Id,
+                    newVersion,
+                    newName,
+                    newAssemblyName,
+                    newLanguage,
+                    newFilepath,
+                    newOutputPath,
+                    newOutputRefPath,
+                    newIsSubmission,
+                    newHasAllInformation);
             }
 
             public void WriteTo(ObjectWriter writer)
@@ -444,6 +498,7 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteString(Language);
                 writer.WriteString(FilePath);
                 writer.WriteString(OutputFilePath);
+                writer.WriteString(OutputRefFilePath);
                 writer.WriteBoolean(IsSubmission);
                 writer.WriteBoolean(HasAllInformation);
 
@@ -461,10 +516,11 @@ namespace Microsoft.CodeAnalysis
                 var language = reader.ReadString();
                 var filePath = reader.ReadString();
                 var outputFilePath = reader.ReadString();
+                var outputRefFilePath = reader.ReadString();
                 var isSubmission = reader.ReadBoolean();
                 var hasAllInformation = reader.ReadBoolean();
 
-                return new ProjectAttributes(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, isSubmission, hasAllInformation);
+                return new ProjectAttributes(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, outputRefFilePath, isSubmission, hasAllInformation);
             }
 
             private Checksum _lazyChecksum;
@@ -474,7 +530,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_lazyChecksum == null)
                     {
-                        _lazyChecksum = Checksum.Create(nameof(ProjectAttributes), this);
+                        _lazyChecksum = Checksum.Create(WellKnownSynchronizationKind.ProjectAttributes, this);
                     }
 
                     return _lazyChecksum;

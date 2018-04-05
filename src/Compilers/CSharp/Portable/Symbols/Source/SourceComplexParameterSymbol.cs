@@ -186,7 +186,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(binderForDefault.ContainingMemberOrLambda == ContainingSymbol);
 
             BoundExpression valueBeforeConversion;
-            var convertedExpression = binderForDefault.BindParameterDefaultValue(defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
+            BoundExpression convertedExpression = binderForDefault.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out valueBeforeConversion).Value;
+            if (valueBeforeConversion.HasErrors)
+            {
+                return ConstantValue.Bad;
+            }
 
             bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, diagnostics);
             if (hasErrors)
@@ -196,8 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If we have something like M(double? x = 1) then the expression we'll get is (double?)1, which
             // does not have a constant value. The constant value we want is (double)1.
+            // The default literal conversion is an exception: (double)default would give the wrong value for M(double? x = default).
 
-            if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion)
+            if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion &&
+                !(valueBeforeConversion.Kind == BoundKind.DefaultExpression && valueBeforeConversion.Type == null))
             {
                 if (parameterType.IsNullableType())
                 {
@@ -218,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // The metadata parameter name should be the name used in the partial definition.
 
-                var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
+                var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
                 if ((object)sourceMethod == null)
                 {
                     return base.MetadataName;
@@ -253,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
+                var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
                 if ((object)sourceMethod == null)
                 {
                     return null;
@@ -291,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             SyntaxList<AttributeListSyntax> attributes = AttributeDeclarationList;
 
-            var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
+            var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
             if ((object)sourceMethod == null)
             {
                 return OneOrMany.Create(attributes);
@@ -300,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxList<AttributeListSyntax> otherAttributes;
 
             // if this is a definition get the implementation and vice versa
-            SourceMemberMethodSymbol otherPart = sourceMethod.OtherPartOfPartial;
+            SourceOrdinaryMethodSymbol otherPart = sourceMethod.OtherPartOfPartial;
             if ((object)otherPart != null)
             {
                 otherAttributes = ((SourceParameterSymbol)otherPart.Parameters[this.Ordinal]).AttributeDeclarationList;
@@ -515,15 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.InAttribute))
             {
-                if (this.RefKind == RefKind.Out)
-                {
-                    // error CS0036: An out parameter cannot have the In attribute
-                    arguments.Diagnostics.Add(ErrorCode.ERR_InAttrOnOutParam, arguments.AttributeSyntaxOpt.Name.Location);
-                }
-                else
-                {
-                    arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasInAttribute = true;
-                }
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasInAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.OutAttribute))
             {
@@ -557,6 +555,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            {
+                // IsReadOnlyAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
+            {
+                // IsUnmanagedAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
@@ -844,10 +857,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var data = (CommonParameterWellKnownAttributeData)decodedData;
             if (data != null)
             {
-                if (this.RefKind == RefKind.Ref && data.HasOutAttribute && !data.HasInAttribute)
+                switch (RefKind)
                 {
-                    // error CS0662: '...' cannot specify only Out attribute on a ref parameter. Use both In and Out attributes, or neither.
-                    diagnostics.Add(ErrorCode.ERR_OutAttrOnRefParam, this.Locations[0]);
+                    case RefKind.Ref:
+                        if (data.HasOutAttribute && !data.HasInAttribute)
+                        {
+                            // error CS0662: Cannot specify the Out attribute on a ref parameter without also specifying the In attribute.
+                            diagnostics.Add(ErrorCode.ERR_OutAttrOnRefParam, this.Locations[0]);
+                        }
+                        break;
+                    case RefKind.Out:
+                        if (data.HasInAttribute)
+                        {
+                            // error CS0036: An out parameter cannot have the In attribute.
+                            diagnostics.Add(ErrorCode.ERR_InAttrOnOutParam, this.Locations[0]);
+                        }
+                        break;
+                    case RefKind.In:
+                        if (data.HasOutAttribute)
+                        {
+                            // error CS8355: An in parameter cannot have the Out attribute.
+                            diagnostics.Add(ErrorCode.ERR_OutAttrOnInParam, this.Locations[0]);
+                        }
+                        break;
                 }
             }
 
@@ -916,20 +948,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsMetadataIn => GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
+        internal sealed override bool IsMetadataIn
+            => base.IsMetadataIn || GetDecodedWellKnownAttributeData()?.HasInAttribute == true;
 
         internal sealed override bool IsMetadataOut
-        {
-            get
-            {
-                if (this.RefKind == RefKind.Out)
-                {
-                    return true;
-                }
-
-                return GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
-            }
-        }
+            => base.IsMetadataOut || GetDecodedWellKnownAttributeData()?.HasOutAttribute == true;
 
         internal sealed override MarshalPseudoCustomAttributeData MarshallingInformation
             => GetDecodedWellKnownAttributeData()?.MarshallingInformation;

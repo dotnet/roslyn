@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -105,13 +106,13 @@ End Class"
 
         <Fact>
         Public Sub TestCompile()
-            Dim comp = CreateCompilationWithMscorlib({s_tuplesTestSource}, options:=TestOptions.ReleaseDll, references:=s_valueTupleRefs)
+            Dim comp = CreateCompilationWithMscorlib40({s_tuplesTestSource}, options:=TestOptions.ReleaseDll, references:=s_valueTupleRefs)
             CompileAndVerify(comp)
         End Sub
 
         <Fact>
         Public Sub TestTupleAttributes()
-            Dim comp = CreateCompilationWithMscorlib({s_tuplesTestSource}, options:=TestOptions.ReleaseDll, references:=s_valueTupleRefs)
+            Dim comp = CreateCompilationWithMscorlib40({s_tuplesTestSource}, options:=TestOptions.ReleaseDll, references:=s_valueTupleRefs)
             TupleAttributeValidator.ValidateTupleAttributes(comp)
         End Sub
 
@@ -121,14 +122,14 @@ End Class"
 "Namespace System.Runtime.CompilerServices
     Public Class TupleElementNamesAttribute
         Inherits Attribute
-        Public Sub New(names As String())
+        Public Sub New(names() As String)
         End Sub
     End Class
 End Namespace"
             Dim comp0 = CreateCSharpCompilation(TestResources.NetFX.ValueTuple.tuplelib_cs)
             comp0.VerifyDiagnostics()
             Dim ref0 = comp0.EmitToImageReference()
-            Dim comp = CreateCompilationWithMscorlib({s_tuplesTestSource, attributeSource}, options:=TestOptions.ReleaseDll, references:={SystemRuntimeFacadeRef, ref0})
+            Dim comp = CreateCompilationWithMscorlib40({s_tuplesTestSource, attributeSource}, options:=TestOptions.ReleaseDll, references:={SystemRuntimeFacadeRef, ref0})
             comp.AssertTheseDiagnostics()
             TupleAttributeValidator.ValidateTupleAttributes(comp)
         End Sub
@@ -163,10 +164,10 @@ Class C
         d((0, 0))
     End Sub
 End Class"
-            Dim comp = CreateCompilation({source0})
+            Dim comp = CreateEmptyCompilation({source0})
             comp.AssertTheseDiagnostics()
             Dim ref0 = comp.EmitToImageReference()
-            comp = CreateCompilation({source1}, references:={ValueTupleRef, SystemRuntimeFacadeRef, ref0})
+            comp = CreateEmptyCompilation({source1}, references:={ValueTupleRef, SystemRuntimeFacadeRef, ref0})
             comp.AssertTheseDiagnostics(
                 <expected>
 BC30002: Type 'System.String' is not defined.
@@ -202,10 +203,10 @@ End Namespace"
         Return Nothing
     End Function
 End Class"
-            Dim comp = CreateCompilation({source0})
+            Dim comp = CreateEmptyCompilation({source0})
             comp.AssertTheseDiagnostics()
             Dim ref0 = comp.EmitToImageReference()
-            comp = CreateCompilation({source1}, references:={ValueTupleRef, SystemRuntimeFacadeRef, ref0})
+            comp = CreateEmptyCompilation({source1}, references:={ValueTupleRef, SystemRuntimeFacadeRef, ref0})
             comp.AssertTheseDiagnostics(
                 <expected>
 BC30002: Type 'System.String' is not defined.
@@ -217,9 +218,9 @@ BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neut
                 </expected>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/16829")>
+        <Fact>
         Public Sub RoundTrip()
-            Dim comp = CreateCompilationWithMscorlib({s_tuplesTestSource}, options:=TestOptions.ReleaseDll, references:=s_valueTupleRefs)
+            Dim comp = CreateCompilationWithMscorlib40({s_tuplesTestSource}, options:=TestOptions.ReleaseDll, references:=s_valueTupleRefs)
             Dim sourceModule As ModuleSymbol = Nothing
             Dim peModule As ModuleSymbol = Nothing
             CompileAndVerify(comp,
@@ -451,7 +452,7 @@ BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neut
             Dim comp0 = CreateCSharpCompilation(TestResources.NetFX.ValueTuple.tuplelib_cs)
             comp0.VerifyDiagnostics()
             Dim ref0 = comp0.EmitToImageReference()
-            Dim comp = CreateCompilationWithMscorlib({s_tuplesTestSource}, options:=TestOptions.ReleaseDll, references:={SystemRuntimeFacadeRef, ref0})
+            Dim comp = CreateCompilationWithMscorlib40({s_tuplesTestSource}, options:=TestOptions.ReleaseDll, references:={SystemRuntimeFacadeRef, ref0})
             comp.AssertTheseDiagnostics(
                 <expected>
 BC37268: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
@@ -585,7 +586,7 @@ BC37268: Cannot define a class or member that utilizes tuples because the compil
 
         <Fact>
         Public Sub ExplicitTupleNamesAttribute()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoTuples">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -784,7 +785,7 @@ End Interface
                 End Sub
 
             CompileAndVerify(src,
-                             additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                             references:={ValueTupleRef, SystemRuntimeFacadeRef},
                              validator:=validator,
                              symbolValidator:=symbolValidator)
         End Sub
@@ -890,7 +891,7 @@ End Interface
                 End Sub
 
             CompileAndVerify(src,
-                additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef},
+                references:={ValueTupleRef, SystemRuntimeFacadeRef},
                 validator:=validator,
                 symbolValidator:=symbolValidator)
         End Sub

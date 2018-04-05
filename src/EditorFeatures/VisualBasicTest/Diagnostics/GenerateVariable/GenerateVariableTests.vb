@@ -1,17 +1,17 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateVariable
+Imports Microsoft.CodeAnalysis.VisualBasic.GenerateVariable
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateVariable
     Public Class GenerateVariableTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (Nothing, New GenerateVariableCodeFixProvider())
+            Return (Nothing, New VisualBasicGenerateVariableCodeFixProvider())
         End Function
 
         Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
@@ -23,13 +23,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Bar|])
+        Goo([|Bar|])
     End Sub
 End Module",
 "Module Program
     Public Property Bar As Object
+
     Sub Main(args As String())
-        Foo(Bar)
+        Goo(Bar)
     End Sub
 End Module")
         End Function
@@ -39,13 +40,14 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Bar|])
+        Goo([|Bar|])
     End Sub
 End Module",
 "Module Program
     Private Bar As Object
+
     Sub Main(args As String())
-        Foo(Bar)
+        Goo(Bar)
     End Sub
 End Module",
 index:=1)
@@ -56,13 +58,14 @@ index:=1)
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|Bar|])
+        Goo([|Bar|])
     End Sub
 End Module",
 "Module Program
     Private ReadOnly Bar As Object
+
     Sub Main(args As String())
-        Foo(Bar)
+        Goo(Bar)
     End Sub
 End Module",
 index:=2)
@@ -74,13 +77,14 @@ index:=2)
             Await TestInRegularAndScriptAsync(
 "Class C
     Shared Sub M
-        [|Foo|] = 3
+        [|Goo|] = 3
     End Sub
 End Class",
 "Class C
-    Private Shared Foo As Integer
+    Private Shared Goo As Integer
+
     Shared Sub M
-        Foo = 3
+        Goo = 3
     End Sub
 End Class",
 index:=1)
@@ -92,20 +96,43 @@ index:=1)
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Dim i As IFoo
+        Dim i As IGoo
         Main(i.[|Blah|])
     End Sub
 End Module
-Interface IFoo
+Interface IGoo
 End Interface",
 "Module Program
     Sub Main(args As String())
-        Dim i As IFoo
+        Dim i As IGoo
         Main(i.Blah)
     End Sub
 End Module
-Interface IFoo
+Interface IGoo
     ReadOnly Property Blah As String()
+End Interface")
+        End Function
+
+        <WorkItem(539694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539694")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGenerateReadWriteProperty() As Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+        Dim i As IGoo
+        Main(i.[|Blah|])
+    End Sub
+End Module
+Interface IGoo
+End Interface",
+"Module Program
+    Sub Main(args As String())
+        Dim i As IGoo
+        Main(i.Blah)
+    End Sub
+End Module
+Interface IGoo
+    Property Blah As String()
 End Interface",
 index:=1)
         End Function
@@ -119,16 +146,16 @@ End Class
 Class Derived
     Inherits Base
     Shared Sub Main
-        Dim a = Base.[|Foo|]
+        Dim a = Base.[|Goo|]
     End Sub
 End Class",
 "Class Base
-    Protected Shared Foo As Object
+    Protected Shared Goo As Object
 End Class
 Class Derived
     Inherits Base
     Shared Sub Main
-        Dim a = Base.Foo
+        Dim a = Base.Goo
     End Sub
 End Class",
 index:=1)
@@ -137,11 +164,11 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Async Function TestNotOfferedForSharedAccessOffInterface() As Task
             Await TestMissingInRegularAndScriptAsync(
-"Interface IFoo
+"Interface IGoo
 End Interface
 Class Program
     Sub Main
-        IFoo.[|Bar|] = 3
+        IGoo.[|Bar|] = 3
     End Sub
 End Class")
         End Function
@@ -153,40 +180,62 @@ End Class")
 End Class
 Class B
     Sub Main
-        Dim x = A.[|Foo|]
+        Dim x = A.[|Goo|]
     End Sub
 End Class",
 "Class A
-    Friend Shared Foo As Object
+    Friend Shared Goo As Object
 End Class
 Class B
     Sub Main
-        Dim x = A.Foo
+        Dim x = A.Goo
     End Sub
 End Class",
 index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
-        Public Async Function TestGeneratePropertyOnInterface() As Threading.Tasks.Task
+        Public Async Function TestGeneratePropertyOnInterface1() As Threading.Tasks.Task
             Await TestInRegularAndScriptAsync(
-"Interface IFoo
+"Interface IGoo
 End Interface
 Class C
     Sub Main
-        Dim foo As IFoo
-        Dim b = foo.[|Bar|]
+        Dim goo As IGoo
+        Dim b = goo.[|Bar|]
     End Sub
 End Class",
-"Interface IFoo
+"Interface IGoo
+    ReadOnly Property Bar As Object
+End Interface
+Class C
+    Sub Main
+        Dim goo As IGoo
+        Dim b = goo.Bar
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestGeneratePropertyOnInterface2() As Threading.Tasks.Task
+            Await TestInRegularAndScriptAsync(
+"Interface IGoo
+End Interface
+Class C
+    Sub Main
+        Dim goo As IGoo
+        Dim b = goo.[|Bar|]
+    End Sub
+End Class",
+"Interface IGoo
     Property Bar As Object
 End Interface
 Class C
     Sub Main
-        Dim foo As IFoo
-        Dim b = foo.Bar
+        Dim goo As IGoo
+        Dim b = goo.Bar
     End Sub
-End Class")
+End Class", index:=1)
         End Function
 
         <WorkItem(539796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539796")>
@@ -204,6 +253,7 @@ Class C
 End Class",
 "Module Program
     Public Property P As Integer
+
     Sub Main(args As String())
     End Sub
 End Module
@@ -229,6 +279,7 @@ Class C
 End Class",
 "Module Program
     Friend P As Integer
+
     Sub Main(args As String())
     End Sub
 End Module
@@ -251,6 +302,7 @@ index:=1)
 End Module",
 "Module Program
     Private HERE As Object
+
     Sub Main(args As String())
         HERE.ToString()
     End Sub
@@ -262,13 +314,13 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Async Function TestMissingWhenInterfacePropertyAlreadyExists() As Task
             Await TestMissingInRegularAndScriptAsync(
-"Interface IFoo
+"Interface IGoo
     Property Blah As String()
 End Interface
 Module Program
     Sub Main(args As String())
-        Dim foo As IFoo
-        Main(foo.[|Blah|])
+        Dim goo As IGoo
+        Main(goo.[|Blah|])
     End Sub
 End Module")
         End Function
@@ -279,7 +331,7 @@ End Module")
             Await TestMissingInRegularAndScriptAsync(
 "Delegate Sub D(x As Integer)
 Class C
-    Public Sub Foo()
+    Public Sub Goo()
         Dim x As D = New D(AddressOf [|Method|])
     End Sub
 End Class")
@@ -296,6 +348,7 @@ End Class")
 End Module",
 "Module Program
     Public Property P As Integer
+
     Function Fun() As Integer
         Return P
     End Function
@@ -314,6 +367,7 @@ End Module")
 End Module",
 "Module Program
     Public Property P As Integer
+
     Sub Main(args As String())
         Dim x As Integer
         x = P
@@ -331,6 +385,7 @@ End Module")
 End Class",
 "Class GenPropTest
     Private Shared genStaticUnqualified As String
+
     Public Shared Sub Main()
         genStaticUnqualified = """"
     End Sub
@@ -347,6 +402,7 @@ End Class")
 End Class",
 "Class GenPropTest
     Private Shared genStaticUnqualified As String
+
     Public Sub Main()
         GenPropTest.genStaticUnqualified = """"
     End Sub
@@ -363,6 +419,7 @@ End Class")
 End Class",
 "Class GenPropTest
     Private field As String
+
     Public Sub Main()
         Me.field = """"
     End Sub
@@ -379,6 +436,7 @@ End Class")
 End Class",
 "Class GenPropTest
     Private field As String
+
     Public Sub Main()
         field = """"
     End Sub
@@ -391,22 +449,22 @@ End Class")
 "Class A
 End Class
 Class B
-    Public Sub Foo(ByRef d As Integer)
+    Public Sub Goo(ByRef d As Integer)
     End Sub
     Public Sub Bar()
         Dim s As New A()
-        Foo(s.[|field|])
+        Goo(s.[|field|])
     End Sub
 End Class",
 "Class A
     Friend field As Integer
 End Class
 Class B
-    Public Sub Foo(ByRef d As Integer)
+    Public Sub Goo(ByRef d As Integer)
     End Sub
     Public Sub Bar()
         Dim s As New A()
-        Foo(s.field)
+        Goo(s.field)
     End Sub
 End Class")
         End Function
@@ -417,22 +475,22 @@ End Class")
 "Class A
 End Class
 Class B
-    Public Sub Foo(ByRef d As Integer)
+    Public Sub Goo(ByRef d As Integer)
     End Sub
     Public Sub Bar()
         Dim s As New A()
-        Foo(s.[|field|])
+        Goo(s.[|field|])
     End Sub
 End Class",
 "Class A
     Friend field As Integer
 End Class
 Class B
-    Public Sub Foo(ByRef d As Integer)
+    Public Sub Goo(ByRef d As Integer)
     End Sub
     Public Sub Bar()
         Dim s As New A()
-        Foo(s.field)
+        Goo(s.field)
     End Sub
 End Class")
         End Function
@@ -446,11 +504,11 @@ Imports System
 Class A
 End Class
 Class B
-    Public Sub Foo(ByRef d As Integer)
+    Public Sub Goo(ByRef d As Integer)
     End Sub
     Public Sub Bar()
         Dim s As New A()
-        Foo(s.[|field|])
+        Goo(s.[|field|])
     End Sub
 End Class",
 "
@@ -464,11 +522,11 @@ Class A
     End Property
 End Class
 Class B
-    Public Sub Foo(ByRef d As Integer)
+    Public Sub Goo(ByRef d As Integer)
     End Sub
     Public Sub Bar()
         Dim s As New A()
-        Foo(s.field)
+        Goo(s.field)
     End Sub
 End Class", index:=1)
         End Function
@@ -483,6 +541,7 @@ End Class", index:=1)
 End Module",
 "Module Program
     Private field As Integer
+
     Sub Main(args As String())
         field = 5
     End Sub
@@ -499,6 +558,7 @@ End Module")
 End Module",
 "Module Program
     Public Property Field As Integer
+
     Sub Main(args As String())
         Field = 5
     End Sub
@@ -545,6 +605,7 @@ Class C(Of T)
 End Class",
 "Class A
     Private field As C(Of B)
+
     Sub Main()
         field = New C(Of B)
     End Sub
@@ -587,7 +648,7 @@ End Class")
 Imports System.Collections.Generic
 Imports System.Linq
 Class A
-    Sub Foo(Of T)
+    Sub Goo(Of T)
         [|z|] = GetType(T)
     End Sub
 End Class",
@@ -596,7 +657,8 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class A
     Private z As Type
-    Sub Foo(Of T)
+
+    Sub Goo(Of T)
         z = GetType(T)
     End Sub
 End Class")
@@ -609,23 +671,23 @@ End Class")
 Imports System.Collections.Generic
 Imports System.Linq
 Class A
-    Implements IFoo
-    Public Property X As Integer Implements [|IFoo.X|]
+    Implements IGoo
+    Public Property X As Integer Implements [|IGoo.X|]
     Sub Bar()
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
 End Interface",
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 Class A
-    Implements IFoo
-    Public Property X As Integer Implements IFoo.X
+    Implements IGoo
+    Public Property X As Integer Implements IGoo.X
     Sub Bar()
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
     Property X As Integer
 End Interface")
         End Function
@@ -640,6 +702,7 @@ End Interface")
 End Class",
 "Class [Class]
     Public Property [Enum] As Integer
+
     Private Sub Method(i As Integer)
         [Enum] = 5
     End Sub
@@ -656,6 +719,7 @@ End Class")
 End Class",
 "Class [Class]
     Private [Enum] As Integer
+
     Private Sub Method(i As Integer)
         [Enum] = 5
     End Sub
@@ -678,6 +742,7 @@ index:=1)
 End Class",
 "Class [Class]
     Private test As Object
+
     Private Sub Method()
         test = Function(ByRef x As Integer) InlineAssignHelper(x, 10)
     End Sub
@@ -695,8 +760,8 @@ End Class")
 Imports System.Collections.Generic
 Imports System.Linq
 Class A
-    Implements IFoo
-    Public Property Item1(i As Integer) As String Implements [|IFoo.Item1|]
+    Implements IGoo
+    Public Property Item1(i As Integer) As String Implements [|IGoo.Item1|]
         Get
             Throw New NotImplementedException()
         End Get
@@ -707,15 +772,15 @@ Class A
     Sub Bar()
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
     ' Default Property Item(i As Integer) As String 
 End Interface",
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 Class A
-    Implements IFoo
-    Public Property Item1(i As Integer) As String Implements IFoo.Item1
+    Implements IGoo
+    Public Property Item1(i As Integer) As String Implements IGoo.Item1
         Get
             Throw New NotImplementedException()
         End Get
@@ -726,7 +791,7 @@ Class A
     Sub Bar()
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
     Property Item1(i As Integer) As String
     ' Default Property Item(i As Integer) As String 
 End Interface")
@@ -739,8 +804,8 @@ End Interface")
 Imports System.Collections.Generic
 Imports System.Linq
 Class A
-    Implements IFoo
-    Public Property Item1(i As Integer) As String Implements [|IFoo.Item1|]
+    Implements IGoo
+    Public Property Item1(i As Integer) As String Implements [|IGoo.Item1|]
         Get
             Throw New NotImplementedException()
         End Get
@@ -751,15 +816,15 @@ Class A
     Sub Bar()
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
     ' Default Property Item(i As Integer) As String 
 End Interface",
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 Class A
-    Implements IFoo
-    Public Property Item1(i As Integer) As String Implements IFoo.Item1
+    Implements IGoo
+    Public Property Item1(i As Integer) As String Implements IGoo.Item1
         Get
             Throw New NotImplementedException()
         End Get
@@ -770,7 +835,7 @@ Class A
     Sub Bar()
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
     Property Item1(i As Integer) As String
     ' Default Property Item(i As Integer) As String 
 End Interface")
@@ -783,8 +848,8 @@ End Interface")
 Imports System.Collections.Generic
 Imports System.Linq
 Class A
-    Implements IFoo
-    Default Public Property Item(i As Integer) As String Implements [|IFoo.Item|]
+    Implements IGoo
+    Default Public Property Item(i As Integer) As String Implements [|IGoo.Item|]
         Get
             Throw New NotImplementedException()
         End Get
@@ -795,15 +860,15 @@ Class A
     Sub Bar()
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
     ' Default Property Item(i As Integer) As String 
 End Interface",
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 Class A
-    Implements IFoo
-    Default Public Property Item(i As Integer) As String Implements IFoo.Item
+    Implements IGoo
+    Default Public Property Item(i As Integer) As String Implements IGoo.Item
         Get
             Throw New NotImplementedException()
         End Get
@@ -814,7 +879,7 @@ Class A
     Sub Bar()
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
     Default Property Item(i As Integer) As String
     ' Default Property Item(i As Integer) As String 
 End Interface")
@@ -828,8 +893,8 @@ End Interface")
 Imports System.Collections.Generic
 Imports System.Linq
 Class A
-    Implements IFoo
-    Default Public Property Item(i As Integer) As String Implements [|IFoo.Item|]
+    Implements IGoo
+    Default Public Property Item(i As Integer) As String Implements [|IGoo.Item|]
         Get
             Throw New NotImplementedException()
         End Get
@@ -840,15 +905,15 @@ Class A
     Sub Bar()
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
     ' Default Property Item(i As Integer) As String 
 End Interface",
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 Class A
-    Implements IFoo
-    Default Public Property Item(i As Integer) As String Implements IFoo.Item
+    Implements IGoo
+    Default Public Property Item(i As Integer) As String Implements IGoo.Item
         Get
             Throw New NotImplementedException()
         End Get
@@ -859,7 +924,7 @@ Class A
     Sub Bar()
     End Sub
 End Class
-Interface IFoo
+Interface IGoo
     Default Property Item(i As Integer) As String
     ' Default Property Item(i As Integer) As String 
 End Interface")
@@ -909,6 +974,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Private a As Object
+
     Sub Main(args As String())
         a = New With {.a = ., .b = 1}
     End Sub
@@ -938,6 +1004,7 @@ Module StringExtensions
 End Module
 Module M
     Private s As String
+
     Sub Main()
         Print(s)
     End Sub
@@ -970,6 +1037,7 @@ Module StringExtensions
 End Module
 Module M
     Private s As String
+
     Sub Main()
         Print(s)
     End Sub
@@ -984,15 +1052,16 @@ parseOptions:=Nothing) ' TODO (tomat): Modules nested in Script class not suppor
 "Module P
     Sub M()
         Dim t As System.Action = Sub()
-                                     [|P.Foo|] = 5
+                                     [|P.Goo|] = 5
                                  End Sub
     End Sub
 End Module",
 "Module P
-    Public Property Foo As Integer
+    Public Property Goo As Integer
+
     Sub M()
         Dim t As System.Action = Sub()
-                                     P.Foo = 5
+                                     P.Goo = 5
                                  End Sub
     End Sub
 End Module")
@@ -1040,6 +1109,7 @@ End Module
 End Module",
 "Module Program
     Private a As Integer
+
     Sub Main(args As String())
         Main(a + b)
     End Sub
@@ -1056,6 +1126,7 @@ End Module")
 End Module",
 "Module Program
     Private b As Integer
+
     Sub Main(args As String())
         Main(a + b)
     End Sub
@@ -1067,13 +1138,14 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        Foo([|bar|])
+        Goo([|bar|])
     End Sub
 End Module",
 "Module Program
     Private bar As Object
+
     Sub Main(args As String())
-        Foo(bar)
+        Goo(bar)
     End Sub
 End Module")
         End Function
@@ -1126,6 +1198,7 @@ Module Program
 #If True
         ' Banner Line 1
         ' Banner Line 2
+
         Dim local As Integer = Nothing
         Integer.TryParse(""123"", local)
 #End If
@@ -1139,17 +1212,17 @@ End Module", index:=2)
             Await TestInRegularAndScriptAsync(
 "Module Program
     Sub Main(args As String())
-        foo([|xyz|])
+        goo([|xyz|])
     End Sub
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
     End Sub
 End Module",
 "Module Program
     Sub Main(args As String())
         Dim xyz As Integer = Nothing
-        foo(xyz)
+        goo(xyz)
     End Sub
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
     End Sub
 End Module",
 index:=3)
@@ -1168,6 +1241,7 @@ End Module",
 "Imports System.Linq
 Module Program
     Private v As Object
+
     Sub Main(args As String())
         Dim q = From a In args
                 Select v
@@ -1188,6 +1262,7 @@ End Module",
 "Module Program
     Sub Main()
         Dim a As Object = Nothing
+
         If (a Mod b <> 0) Then
         End If
     End Sub
@@ -1220,8 +1295,10 @@ End Module")
  End Function
 End Module",
 "Imports System
+
 Module Program
     Private d As Func(Of String)
+
     Sub Main(args As String())
         d = AddressOf test
     End Sub
@@ -1238,8 +1315,8 @@ End Module")
 "Imports System.Collections
 
 Module Program
-    Sub Foo()
-        Dim x = New Hashtable![|Foo|]!Bar
+    Sub Goo()
+        Dim x = New Hashtable![|Goo|]!Bar
     End Sub
 End Module")
         End Function
@@ -1251,8 +1328,8 @@ End Module")
 "Imports System.Collections
 
 Module Program
-    Sub Foo()
-        Dim x = New Hashtable!Foo![|Bar|]
+    Sub Goo()
+        Dim x = New Hashtable!Goo![|Bar|]
     End Sub
 End Module")
         End Function
@@ -1264,8 +1341,8 @@ End Module")
 "Imports System.Collections
 
 Module Program
-    Sub Foo()
-        Dim x = New Hashtable![|Foo!Bar|]
+    Sub Goo()
+        Dim x = New Hashtable![|Goo!Bar|]
     End Sub
 End Module")
         End Function
@@ -1287,8 +1364,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
         End If
     End Sub
 End Module</Text>.Value.Replace(vbLf, vbCrLf),
-index:=2,
-ignoreTrivia:=False)
+index:=2)
         End Function
 
         <WorkItem(666189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
@@ -1296,24 +1372,22 @@ ignoreTrivia:=False)
         Public Async Function TestGeneratePropertyInScript() As Task
             Await TestAsync(
 <Text>Dim x As Integer
-x = [|Foo|]</Text>.Value.Replace(vbLf, vbCrLf),
+x = [|Goo|]</Text>.Value.Replace(vbLf, vbCrLf),
 <Text>Dim x As Integer
-Public Property Foo As Integer
-x = Foo</Text>.Value.Replace(vbLf, vbCrLf),
-parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script),
-ignoreTrivia:=False)
+Public Property Goo As Integer
+x = Goo</Text>.Value.Replace(vbLf, vbCrLf),
+parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
         End Function
         <WorkItem(666189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666189")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Async Function TestGenerateFieldInScript() As Task
             Await TestAsync(
 <Text>Dim x As Integer
-x = [|Foo|]</Text>.Value.Replace(vbLf, vbCrLf),
+x = [|Goo|]</Text>.Value.Replace(vbLf, vbCrLf),
 <Text>Dim x As Integer
-Private Foo As Integer
-x = Foo</Text>.Value.Replace(vbLf, vbCrLf),
+Private Goo As Integer
+x = Goo</Text>.Value.Replace(vbLf, vbCrLf),
 parseOptions:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script),
-ignoreTrivia:=False,
 index:=1)
         End Function
 
@@ -1330,6 +1404,7 @@ End Class",
 "Imports System
 Public Class A
     Private MyExp As Exception
+
     Public Sub B()
         Throw MyExp
     End Sub
@@ -1349,6 +1424,7 @@ End Class",
 "Imports System
 Class C
     Public Property Z As Object
+
     Sub M()
         Dim x = NameOf(Z)
     End Sub
@@ -1368,6 +1444,7 @@ End Class",
 "Imports System
 Class C
     Private Z As Object
+
     Sub M()
         Dim x = NameOf(Z)
     End Sub
@@ -1387,6 +1464,7 @@ End Class",
 "Imports System
 Class C
     Private ReadOnly Z As Object
+
     Sub M()
         Dim x = NameOf(Z)
     End Sub
@@ -1423,6 +1501,7 @@ End Class", index:=3)
 End Class",
 "Public Class C
     Public Property B As C
+
     Sub Main(a As C)
         Dim x As C = a?.B
     End Sub
@@ -1440,6 +1519,7 @@ End Class")
 End Class",
 "Public Class C
     Public Property B As Object
+
     Sub Main(a As C)
         Dim x = a?.B
     End Sub
@@ -1457,6 +1537,7 @@ End Class")
 End Class",
 "Public Class C
     Public Property B As Integer
+
     Sub Main(a As C)
         Dim x As Integer? = a?.B
     End Sub
@@ -1474,6 +1555,7 @@ End Class")
 End Class",
 "Public Class C
     Public Property B As C
+
     Sub Main(a As C)
         Dim x As C? = a?.B
     End Sub
@@ -1491,6 +1573,7 @@ End Class")
 End Class",
 "Public Class C
     Private B As C
+
     Sub Main(a As C)
         Dim x As C = a?.B
     End Sub
@@ -1509,6 +1592,7 @@ index:=1)
 End Class",
 "Public Class C
     Private B As Object
+
     Sub Main(a As C)
         Dim x = a?.B
     End Sub
@@ -1527,6 +1611,7 @@ index:=1)
 End Class",
 "Public Class C
     Private B As Integer
+
     Sub Main(a As C)
         Dim x As Integer? = a?.B
     End Sub
@@ -1545,6 +1630,7 @@ index:=1)
 End Class",
 "Public Class C
     Private B As C
+
     Sub Main(a As C)
         Dim x As C? = a?.B
     End Sub
@@ -1563,6 +1649,7 @@ index:=1)
 End Class",
 "Public Class C
     Private ReadOnly B As C
+
     Sub Main(a As C)
         Dim x As C = a?.B
     End Sub
@@ -1581,6 +1668,7 @@ index:=2)
 End Class",
 "Public Class C
     Private ReadOnly B As Object
+
     Sub Main(a As C)
         Dim x = a?.B
     End Sub
@@ -1599,6 +1687,7 @@ index:=2)
 End Class",
 "Public Class C
     Private ReadOnly B As Integer
+
     Sub Main(a As C)
         Dim x As Integer? = a?.B
     End Sub
@@ -1617,6 +1706,7 @@ index:=2)
 End Class",
 "Public Class C
     Private ReadOnly B As C
+
     Sub Main(a As C)
         Dim x As C? = a?.B
     End Sub
@@ -2090,6 +2180,7 @@ Friend Class Customer
 End Class",
 "Module Program
     Public Property name As Object
+
     Sub Main(args As String())
         Dim x As New Customer With {.Name = name}
     End Sub
@@ -2153,6 +2244,7 @@ Friend Class Customer
 End Class",
 "Module Program
     Private name As Object
+
     Sub Main(args As String())
         Dim x As New Customer With {.Name = name}
     End Sub
@@ -2218,6 +2310,7 @@ index:=3)
 End Module",
 "Module C
     Public Property B As String
+
     Sub Test()
         If TypeOf B Is String Then
         End If
@@ -2236,6 +2329,7 @@ End Module")
 End Module",
 "Module C
     Private B As String
+
     Sub Test()
         If TypeOf B Is String Then
         End If
@@ -2255,6 +2349,7 @@ index:=1)
 End Module",
 "Module C
     Private ReadOnly B As String
+
     Sub Test()
         If TypeOf B Is String Then
         End If
@@ -2275,6 +2370,7 @@ End Module",
 "Module C
     Sub Test()
         Dim B As String = Nothing
+
         If TypeOf B Is String Then
         End If
     End Sub
@@ -2300,6 +2396,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Public Property Prop As TypeOfIsNotDerived
+
     Sub M()
         If TypeOf Prop IsNot TypeOfIsNotDerived Then
         End If
@@ -2325,6 +2422,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Private Prop As TypeOfIsNotDerived
+
     Sub M()
         If TypeOf Prop IsNot TypeOfIsNotDerived Then
         End If
@@ -2351,6 +2449,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Private ReadOnly Prop As TypeOfIsNotDerived
+
     Sub M()
         If TypeOf Prop IsNot TypeOfIsNotDerived Then
         End If
@@ -2378,6 +2477,7 @@ Imports System.Linq
 Module Program
     Sub M()
         Dim Prop As TypeOfIsNotDerived = Nothing
+
         If TypeOf Prop IsNot TypeOfIsNotDerived Then
         End If
     End Sub
@@ -2390,7 +2490,7 @@ index:=3)
             Await TestInRegularAndScriptAsync(
 "Class [Class]
     Private Sub Method(i As Integer)
-        [|foo|] = Function()
+        [|goo|] = Function()
                   Return 2
               End Function
     End Sub
@@ -2398,10 +2498,10 @@ End Class",
 "Imports System
 
 Class [Class]
-    Private foo As Func(Of Integer)
+    Private goo As Func(Of Integer)
 
     Private Sub Method(i As Integer)
-        foo = Function()
+        goo = Function()
                   Return 2
               End Function
     End Sub
@@ -2413,7 +2513,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class [Class]
     Private Sub Method(i As Integer)
-        [|foo|] = Function()
+        [|goo|] = Function()
                   Return 2
               End Function
     End Sub
@@ -2421,10 +2521,10 @@ End Class",
 "Imports System
 
 Class [Class]
-    Public Property foo As Func(Of Integer)
+    Public Property goo As Func(Of Integer)
 
     Private Sub Method(i As Integer)
-        foo = Function()
+        goo = Function()
                   Return 2
               End Function
     End Sub
@@ -2437,15 +2537,15 @@ index:=1)
             Await TestInRegularAndScriptAsync(
 "Class [Class]
     Private Sub Method(i As Integer)
-        [|foo|] = Function()
+        [|goo|] = Function()
                   Return 2
               End Function
     End Sub
 End Class",
 "Class [Class]
     Private Sub Method(i As Integer)
-        Dim foo As System.Func(Of Integer)
-        foo = Function()
+        Dim goo As System.Func(Of Integer)
+        goo = Function()
                   Return 2
               End Function
     End Sub
@@ -2463,6 +2563,7 @@ index:=2)
 End Class",
 "Class [Class]
     Private tuple As (Integer, String)
+
     Private Sub Method(i As (Integer, String))
         Method(tuple)
     End Sub
@@ -2478,8 +2579,9 @@ End Class")
     End Sub
 End Class",
 "Class [Class]
-    Private tuple As (a As Integer, String) 
-  Private Sub Method(i As (a As Integer, String))
+    Private tuple As (a As Integer, String)
+
+    Private Sub Method(i As (a As Integer, String)) 
  Method(tuple)
     End Sub
 End Class")
@@ -2495,6 +2597,7 @@ End Class")
 End Class",
 "Class [Class]
     Private tuple As (Integer, String)
+
     Private Sub Method()
         tuple = (1, ""hello"") 
  End Sub
@@ -2510,11 +2613,163 @@ End Class")
  End Sub
 End Class",
 "Class [Class]
-    Private tuple As (a As Integer, String) 
-  Private Sub Method()
+    Private tuple As (a As Integer, String)
+
+    Private Sub Method()
         tuple = (a:=1, ""hello"") 
  End Sub
 End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestPreferReadOnlyIfAfterReadOnlyAssignment() As Task 
+            await TestInRegularAndScriptAsync(
+"class C
+    private readonly _goo as integer
+
+    public sub new()
+        _goo = 0
+        [|_bar|] = 1
+    end sub
+end class",
+"class C
+    private readonly _goo as integer
+    Private ReadOnly _bar As Integer
+
+    public sub new()
+        _goo = 0
+        _bar = 1
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestPreferReadOnlyIfBeforeReadOnlyAssignment() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    private readonly _goo as integer
+
+    public sub new()
+        [|_bar|] = 1
+        _goo = 0
+    end sub
+end class",
+"class C
+    Private ReadOnly _bar As Integer
+    private readonly _goo as integer
+
+    public sub new()
+        _bar = 1
+        _goo = 0
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestPlaceFieldBasedOnSurroundingStatements() As Task
+            await TestInRegularAndScriptAsync(
+"class Class
+    private _goo as integer
+    private _quux as integer
+
+    public sub new()
+        _goo = 0
+        [|_bar|] = 1
+        _quux = 2
+    end sub
+end class",
+"class Class
+    private _goo as integer
+    Private _bar As Integer
+    private _quux as integer
+
+    public sub new()
+        _goo = 0
+        _bar = 1
+        _quux = 2
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function TestPlacePropertyBasedOnSurroundingStatements() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class
+    public readonly property Goo as integer
+    public readonly property Quux as integer
+
+    public sub new()
+        Goo = 0
+        [|Bar|] = 1
+        Quux = 2
+    end sub
+end class",
+"class Class
+    public readonly property Goo as integer
+    Public ReadOnly Property Bar As Integer
+    public readonly property Quux as integer
+
+    public sub new()
+        Goo = 0
+        Bar = 1
+        Quux = 2
+    end sub
+end class")
+        End Function
+
+        <WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function GroupNonReadonlyFieldsTogether() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    public isDisposed as boolean
+
+    public readonly x as integer
+    public readonly m as integer
+
+    public sub new()
+        me.[|y|] = 0
+    end sub
+end class",
+"
+class C
+    public isDisposed as boolean
+    Private y As Integer
+    public readonly x as integer
+    public readonly m as integer
+
+    public sub new()
+        me.y = 0
+    end sub
+end class")
+        End Function
+
+        <WorkItem(18988, "https://github.com/dotnet/roslyn/issues/18988")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Async Function GroupReadonlyFieldsTogether() As Task
+            Await TestInRegularAndScriptAsync("
+class C
+    public readonly x as integer
+    public readonly m as integer
+
+    public isDisposed as boolean
+
+    public sub new()
+        me.[|y|] = 0
+    end sub
+end class",
+"
+class C
+    public readonly x as integer
+    public readonly m as integer
+    Private ReadOnly y As Integer
+    public isDisposed as boolean
+
+    public sub new()
+        me.y = 0
+    end sub
+end class", index:=1)
         End Function
     End Class
 End Namespace

@@ -15,106 +15,30 @@ namespace Microsoft.CodeAnalysis.Execution
             return (T[])reader.ReadValue();
         }
 
-        public static string GetWellKnownSynchronizationKind(this object value)
+        public static WellKnownSynchronizationKind GetWellKnownSynchronizationKind(this object value)
         {
-            if (value is SolutionStateChecksums)
+            switch (value)
             {
-                return WellKnownSynchronizationKinds.SolutionState;
-            }
-
-            if (value is ProjectStateChecksums)
-            {
-                return WellKnownSynchronizationKinds.ProjectState;
-            }
-
-            if (value is DocumentStateChecksums)
-            {
-                return WellKnownSynchronizationKinds.DocumentState;
-            }
-
-            if (value is ProjectChecksumCollection)
-            {
-                return WellKnownSynchronizationKinds.Projects;
-            }
-
-            if (value is DocumentChecksumCollection)
-            {
-                return WellKnownSynchronizationKinds.Documents;
-            }
-
-            if (value is TextDocumentChecksumCollection)
-            {
-                return WellKnownSynchronizationKinds.TextDocuments;
-            }
-
-            if (value is ProjectReferenceChecksumCollection)
-            {
-                return WellKnownSynchronizationKinds.ProjectReferences;
-            }
-
-            if (value is MetadataReferenceChecksumCollection)
-            {
-                return WellKnownSynchronizationKinds.MetadataReferences;
-            }
-
-            if (value is AnalyzerReferenceChecksumCollection)
-            {
-                return WellKnownSynchronizationKinds.AnalyzerReferences;
-            }
-
-            if (value is SolutionInfo.SolutionAttributes)
-            {
-                return WellKnownSynchronizationKinds.SolutionAttributes;
-            }
-
-            if (value is ProjectInfo.ProjectAttributes)
-            {
-                return WellKnownSynchronizationKinds.ProjectAttributes;
-            }
-
-            if (value is DocumentInfo.DocumentAttributes)
-            {
-                return WellKnownSynchronizationKinds.DocumentAttributes;
-            }
-
-            if (value is CompilationOptions)
-            {
-                return WellKnownSynchronizationKinds.CompilationOptions;
-            }
-
-            if (value is ParseOptions)
-            {
-                return WellKnownSynchronizationKinds.ParseOptions;
-            }
-
-            if (value is ProjectReference)
-            {
-                return WellKnownSynchronizationKinds.ProjectReference;
-            }
-
-            if (value is MetadataReference)
-            {
-                return WellKnownSynchronizationKinds.MetadataReference;
-            }
-
-            if (value is AnalyzerReference)
-            {
-                return WellKnownSynchronizationKinds.AnalyzerReference;
-            }
-
-            if (value is TextDocumentState)
-            {
-                return WellKnownSynchronizationKinds.RecoverableSourceText;
-            }
-
-            if (value is SourceText)
-            {
-                return WellKnownSynchronizationKinds.SourceText;
-            }
-
-            if (value is OptionSet)
-            {
-                return WellKnownSynchronizationKinds.OptionSet;
+                case SolutionStateChecksums _: return WellKnownSynchronizationKind.SolutionState;
+                case ProjectStateChecksums _: return WellKnownSynchronizationKind.ProjectState;
+                case DocumentStateChecksums _: return WellKnownSynchronizationKind.DocumentState;
+                case ProjectChecksumCollection _: return WellKnownSynchronizationKind.Projects;
+                case DocumentChecksumCollection _: return WellKnownSynchronizationKind.Documents;
+                case TextDocumentChecksumCollection _: return WellKnownSynchronizationKind.TextDocuments;
+                case ProjectReferenceChecksumCollection _: return WellKnownSynchronizationKind.ProjectReferences;
+                case MetadataReferenceChecksumCollection _: return WellKnownSynchronizationKind.MetadataReferences;
+                case AnalyzerReferenceChecksumCollection _: return WellKnownSynchronizationKind.AnalyzerReferences;
+                case SolutionInfo.SolutionAttributes _: return WellKnownSynchronizationKind.SolutionAttributes;
+                case ProjectInfo.ProjectAttributes _: return WellKnownSynchronizationKind.ProjectAttributes;
+                case DocumentInfo.DocumentAttributes _: return WellKnownSynchronizationKind.DocumentAttributes;
+                case CompilationOptions _: return WellKnownSynchronizationKind.CompilationOptions;
+                case ParseOptions _: return WellKnownSynchronizationKind.ParseOptions;
+                case ProjectReference _: return WellKnownSynchronizationKind.ProjectReference;
+                case MetadataReference _: return WellKnownSynchronizationKind.MetadataReference;
+                case AnalyzerReference _: return WellKnownSynchronizationKind.AnalyzerReference;
+                case TextDocumentState _: return WellKnownSynchronizationKind.RecoverableSourceText;
+                case SourceText _: return WellKnownSynchronizationKind.SourceText;
+                case OptionSet _: return WellKnownSynchronizationKind.OptionSet;
             }
 
             throw ExceptionUtilities.UnexpectedValue(value);

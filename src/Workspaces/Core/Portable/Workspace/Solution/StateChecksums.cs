@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
         }
 
-        public SolutionStateChecksums(params object[] children) : base(nameof(SolutionStateChecksums), children)
+        public SolutionStateChecksums(params object[] children) : base(WellKnownSynchronizationKind.SolutionStateChecksums, children)
         {
         }
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
         }
 
-        public ProjectStateChecksums(params object[] children) : base(nameof(ProjectStateChecksums), children)
+        public ProjectStateChecksums(params object[] children) : base(WellKnownSynchronizationKind.ProjectStateChecksums, children)
         {
         }
 
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         }
 
         private static void Find<T>(
-            ImmutableDictionary<DocumentId, T> values,
+            IImmutableDictionary<DocumentId, T> values,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
             CancellationToken cancellationToken) where T : TextDocumentState
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
         }
 
-        public DocumentStateChecksums(params object[] children) : base(nameof(DocumentStateChecksums), children)
+        public DocumentStateChecksums(params object[] children) : base(WellKnownSynchronizationKind.DocumentStateChecksums, children)
         {
         }
 

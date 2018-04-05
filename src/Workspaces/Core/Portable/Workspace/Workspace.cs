@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis
         private readonly string _workspaceKind;
         private readonly HostWorkspaceServices _services;
         private readonly BranchId _primaryBranchId;
+
+        private readonly IWorkspaceOptionService _workspaceOptionService;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
         private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
@@ -81,6 +83,8 @@ namespace Microsoft.CodeAnalysis
             _workspaceKind = workspaceKind;
 
             _services = host.CreateWorkspaceServices(this);
+
+            _workspaceOptionService = _services.GetService<IOptionService>() as IWorkspaceOptionService;
 
             // queue used for sending events
             var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
@@ -162,6 +166,10 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see cref="WorkspaceChanged"/> event.
         /// </summary>
+        /// <remarks>
+        /// This method does not guarantee that linked files will have the same contents. Callers 
+        /// should enforce that policy before passing in the new solution.
+        /// </remarks>
         protected Solution SetCurrentSolution(Solution solution)
         {
             var currentSolution = Volatile.Read(ref _latestSolution);
@@ -300,7 +308,7 @@ namespace Microsoft.CodeAnalysis
                 this.ClearSolutionData();
             }
 
-            ((IWorkspaceOptionService)this.Services.GetService<IOptionService>()).OnWorkspaceDisposed(this);
+            _workspaceOptionService?.OnWorkspaceDisposed(this);
         }
 
         #region Host API
@@ -830,18 +838,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckDocumentIsInCurrentSolution(documentId);
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithDocumentText(documentId, newText, mode));
-
-                var newDocument = newSolution.GetDocument(documentId);
-                this.OnDocumentTextChanged(newDocument);
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
-            }
+            OnAnyDocumentTextChanged(
+                documentId,
+                newText,
+                mode,
+                CheckDocumentIsInCurrentSolution,
+                (solution, docId) => solution.GetRelatedDocumentIds(docId),
+                (solution, docId, text, preservationMode) => solution.WithDocumentText(docId, text, preservationMode),
+                WorkspaceChangeKind.DocumentChanged,
+                isCodeDocument: true);
         }
 
         /// <summary>
@@ -849,16 +854,81 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentTextChanged(DocumentId documentId, SourceText newText, PreservationMode mode)
         {
+            OnAnyDocumentTextChanged(
+                documentId,
+                newText,
+                mode,
+                CheckAdditionalDocumentIsInCurrentSolution,
+                (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
+                (solution, docId, text, preservationMode) => solution.WithAdditionalDocumentText(docId, text, preservationMode),
+                WorkspaceChangeKind.AdditionalDocumentChanged,
+                isCodeDocument: false);
+        }
+
+        /// <summary>
+        /// When a <see cref="Document"/>s text is changed, we need to make sure all of the linked
+        /// files also have their content updated in the new solution before applying it to the
+        /// workspace to avoid the workspace having solutions with linked files where the contents
+        /// do not match.
+        /// </summary>
+        private void OnAnyDocumentTextChanged(
+            DocumentId documentId, 
+            SourceText newText, 
+            PreservationMode mode, 
+            Action<DocumentId> checkIsInCurrentSolution,
+            Func<Solution, DocumentId, ImmutableArray<DocumentId>> getRelatedDocuments,
+            Func<Solution, DocumentId, SourceText, PreservationMode, Solution> updateSolutionWithText,
+            WorkspaceChangeKind changeKind,
+            bool isCodeDocument)
+        {
             using (_serializationLock.DisposableWait())
             {
-                CheckAdditionalDocumentIsInCurrentSolution(documentId);
+                checkIsInCurrentSolution(documentId);
 
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.WithAdditionalDocumentText(documentId, newText, mode));
+                var originalSolution = CurrentSolution;
+                var updatedSolution = CurrentSolution;
+                var previousSolution = updatedSolution;
 
-                var newDocument = newSolution.GetAdditionalDocument(documentId);
+                var linkedDocuments = getRelatedDocuments(updatedSolution, documentId);
+                var updatedDocumentIds = new List<DocumentId>();
 
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId);
+                foreach (var linkedDocument in linkedDocuments)
+                {
+                    previousSolution = updatedSolution;
+                    updatedSolution = updateSolutionWithText(updatedSolution, linkedDocument, newText, mode);
+                    if (previousSolution != updatedSolution)
+                    {
+                        updatedDocumentIds.Add(linkedDocument);
+                    }
+                }
+
+                // In the case of linked files, we may have already updated all of the linked
+                // documents during an earlier call to this method. We may have no work to do here.
+                if (updatedDocumentIds.Count > 0)
+                {
+                    var newSolution = SetCurrentSolution(updatedSolution);
+
+                    // Prior to the unification of the callers of this method, the
+                    // OnAdditionalDocumentTextChanged method did not fire any sort of synchronous
+                    // update notification event, so we preserve that behavior here.
+                    if (isCodeDocument)
+                    {
+                        foreach (var updatedDocumentId in updatedDocumentIds)
+                        {
+                            var newDocument = newSolution.GetDocument(updatedDocumentId);
+                            OnDocumentTextChanged(newDocument);
+                        }
+                    }
+
+                    foreach (var updatedDocumentInfo in updatedDocumentIds)
+                    {
+                        RaiseWorkspaceChangedEventAsync(
+                            changeKind,
+                            originalSolution,
+                            newSolution,
+                            documentId: updatedDocumentInfo);
+                    }
+                }
             }
         }
 
@@ -951,6 +1021,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     outputAssemblyToProjectIdMap[p.OutputFilePath] = p.Id;
                 }
+
+                if (!string.IsNullOrEmpty(p.OutputRefFilePath))
+                {
+                    outputAssemblyToProjectIdMap[p.OutputRefFilePath] = p.Id;
+                }
             }
 
             // now fix each project if necessary
@@ -961,8 +1036,7 @@ namespace Microsoft.CodeAnalysis
                 // convert metadata references to project references if the metadata reference matches some project's output assembly.
                 foreach (var meta in project.MetadataReferences)
                 {
-                    var pemeta = meta as PortableExecutableReference;
-                    if (pemeta != null)
+                    if (meta is PortableExecutableReference pemeta)
                     {
 
                         // check both Display and FilePath. FilePath points to the actually bits, but Display should match output path if 
@@ -1362,7 +1436,10 @@ namespace Microsoft.CodeAnalysis
                 project.ProjectReferences,
                 project.MetadataReferences,
                 project.AnalyzerReferences,
-                project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)));
+                project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)),
+                project.IsSubmission,
+                project.State.HostObjectType,
+                project.OutputRefFilePath);
         }
 
         internal SourceText GetTextForced(TextDocument doc)

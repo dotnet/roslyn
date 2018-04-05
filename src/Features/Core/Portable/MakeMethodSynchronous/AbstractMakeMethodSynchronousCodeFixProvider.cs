@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
     {
         public static readonly string EquivalenceKey = FeaturesResources.Make_method_synchronous;
 
-        protected abstract bool IsMethodOrAnonymousFunction(SyntaxNode node);
+        protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
         protected abstract SyntaxNode RemoveAsyncTokenAndFixReturnType(IMethodSymbol methodSymbolOpt, SyntaxNode node, ITypeSymbol taskType, ITypeSymbol taskOfTType);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var token = diagnostic.Location.FindToken(cancellationToken);
-            var node = token.GetAncestor(IsMethodOrAnonymousFunction);
+            var node = token.GetAncestor(IsAsyncSupportingFunctionSyntax);
 
             // See if we're on an actual method declaration (otherwise we're on a lambda declaration).
             // If we're on a method declaration, we'll get an IMethodSymbol back.  In that case, check
@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
 
-            if (methodSymbolOpt?.MethodKind == MethodKind.Ordinary &&
+            bool isOrdinaryOrLocalFunction = methodSymbolOpt.IsOrdinaryMethodOrLocalFunction();
+            if (isOrdinaryOrLocalFunction &&
                 methodSymbolOpt.Name.Length > AsyncSuffix.Length &&
                 methodSymbolOpt.Name.EndsWith(AsyncSuffix))
             {
@@ -118,9 +119,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             if (methodDeclaration != null)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration) as IMethodSymbol;
 
-                if (methodSymbol != null)
+                if (semanticModel.GetDeclaredSymbol(methodDeclaration) is IMethodSymbol methodSymbol)
                 {
                     var references = await SymbolFinder.FindRenamableReferencesAsync(
                         new SymbolAndProjectId(methodSymbol, document.Project.Id),

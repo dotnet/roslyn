@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 }";
             var assembly = GetUnsafeAssembly(source);
             const long ptr = 0x0;
-            GetMemberValueDelegate getMemberValue = (v, m) => (m == "pfn") ? GetFunctionPointerField(v, m) : null;
+            DkmClrValue getMemberValue(DkmClrValue v, string m) => (m == "pfn") ? GetFunctionPointerField(v, m) : null;
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlibAndSystemCore(assembly), getMemberValue: getMemberValue);
             using (runtime.Load())
             {

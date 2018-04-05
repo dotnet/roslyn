@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Options
@@ -7,6 +7,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
+    <[UseExportProvider]>
     Public Class EndConstructCommandHandlerTests
         Private _endConstructServiceMock As New Mock(Of IEndConstructGenerationService)
         Private _featureOptions As New Mock(Of IOptionService)(MockBehavior.Strict)

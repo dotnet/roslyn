@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -87,11 +87,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal IpcServerChannel _ServerChannel
         {
             get { return _serverChannel; }
-        }
-
-        internal void Dispose(bool joinThreads)
-        {
-            Dispose(joinThreads, disposing: true);
         }
 
         #endregion
@@ -226,25 +221,21 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         ~InteractiveHost()
         {
-            Dispose(joinThreads: false, disposing: false);
+            DisposeRemoteService(disposing: false);
         }
 
         public void Dispose()
         {
-            Dispose(joinThreads: false, disposing: true);
+            DisposeChannel();
+            DisposeRemoteService(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool joinThreads, bool disposing)
+        private void DisposeRemoteService(bool disposing)
         {
-            if (disposing)
-            {
-                GC.SuppressFinalize(this);
-                DisposeChannel();
-            }
-
             if (_lazyRemoteService != null)
             {
-                _lazyRemoteService.Dispose(joinThreads);
+                _lazyRemoteService.Dispose(disposing);
                 _lazyRemoteService = null;
             }
         }

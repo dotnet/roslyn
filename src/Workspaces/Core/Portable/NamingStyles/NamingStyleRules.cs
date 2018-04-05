@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 }
             }
 
-            applicableRule = default(NamingRule);
+            applicableRule = default;
             return false;
         }
 

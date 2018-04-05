@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         StaUnitTest,
         JoinableTask,
         ForcedByPackageInitialize,
+        MonoDevelopGtk,
         Unknown
     }
 
@@ -42,6 +43,10 @@ namespace Microsoft.CodeAnalysis.Utilities
                 case "System.Windows.Forms.WindowsFormsSynchronizationContext":
 
                     return WinForms;
+
+                case "MonoDevelop.Ide.DispatchService+GtkSynchronizationContext":
+
+                    return MonoDevelopGtk;
 
                 default:
 

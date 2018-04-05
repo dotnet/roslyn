@@ -14,16 +14,18 @@ function MarkShipped([string]$dir) {
     Write-Host "Processing $dir"
 
     foreach ($item in $unshipped) {
-        if ($item.StartsWith($removedPrefix)) {
-            $item = $item.Substring($removedPrefix.Length)
-            $removed += $item
-        }
-        else {
-            $shipped += $item
+        if ($item.Length -gt 0) {
+            if ($item.StartsWith($removedPrefix)) {
+                $item = $item.Substring($removedPrefix.Length)
+                $removed += $item
+            }
+            else {
+                $shipped += $item
+            }
         }
     }
 
-    $shipped | Sort-Object | ?{ -not $removed.Contains($_) } |  Out-File $shippedFilePath -Encoding Ascii
+    $shipped | Sort-Object | ?{ -not $removed.Contains($_) } | Out-File $shippedFilePath -Encoding Ascii
     "" | Out-File $unshippedFilePath -Encoding Ascii
 }
 

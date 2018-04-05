@@ -1108,7 +1108,7 @@ class C
             UsingTree(@"
 class C
 {
-    public async delegate void Foo();
+    public async delegate void Goo();
 }
 ");
             N(SyntaxKind.CompilationUnit);

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -14,14 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         private readonly Dictionary<string, IClassificationType> _identityMap;
         private readonly IClassificationTypeRegistryService _registryService;
 
-        public IClassificationFormatMapService ClassificationFormatMapService { get; }
-
         [ImportingConstructor]
         internal ClassificationTypeMap(
-            IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService registryService)
         {
-            this.ClassificationFormatMapService = classificationFormatMapService;
             _registryService = registryService;
 
             // Prepopulate the identity map with the constant string values from ClassificationTypeNames

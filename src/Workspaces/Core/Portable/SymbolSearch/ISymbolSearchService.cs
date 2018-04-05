@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// Implementations should return results in order from best to worst (from their
         /// perspective).
         /// </summary>
-        Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+        Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken);
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// Implementations should return results in order from best to worst (from their
         /// perspective).
         /// </summary>
-        Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+        Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
             string source, string assemblyName, CancellationToken cancellationToken);
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         /// Implementations should return results in order from best to worst (from their
         /// perspective).
         /// </summary>
-        Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+        Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken);
     }
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
     internal class PackageWithTypeResult : PackageResult
     {
-        public readonly IReadOnlyList<string> ContainingNamespaceNames;
+        public readonly IList<string> ContainingNamespaceNames;
         public readonly string TypeName;
         public readonly string Version;
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             string typeName,
             string version,
             int rank,
-            IReadOnlyList<string> containingNamespaceNames)
+            IList<string> containingNamespaceNames)
             : base(packageName, rank)
         {
             TypeName = typeName;
@@ -118,14 +118,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
     internal class ReferenceAssemblyWithTypeResult
     {
-        public readonly IReadOnlyList<string> ContainingNamespaceNames;
+        public readonly IList<string> ContainingNamespaceNames;
         public readonly string AssemblyName;
         public readonly string TypeName;
 
         public ReferenceAssemblyWithTypeResult(
             string assemblyName,
             string typeName,
-            IReadOnlyList<string> containingNamespaceNames)
+            IList<string> containingNamespaceNames)
         {
             AssemblyName = assemblyName;
             TypeName = typeName;
@@ -136,22 +136,22 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
     internal class DefaultSymbolSearchService : ISymbolSearchService
     {
-        public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+        public Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<PackageWithTypeResult>();
+            return SpecializedTasks.EmptyList<PackageWithTypeResult>();
         }
 
-        public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+        public Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
             string source, string assemblyName, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<PackageWithAssemblyResult>();
+            return SpecializedTasks.EmptyList<PackageWithAssemblyResult>();
         }
 
-        public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+        public Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
             string name, int arity, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<ReferenceAssemblyWithTypeResult>();
+            return SpecializedTasks.EmptyList<ReferenceAssemblyWithTypeResult>();
         }
     }
 }

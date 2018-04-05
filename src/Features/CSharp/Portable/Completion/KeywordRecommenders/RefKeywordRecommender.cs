@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private bool IsValidNewByRefContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return
-                IsValidRefDeclarationOrAssignmentContext(syntaxTree, position, context, cancellationToken) ||
+                IsValidRefExpressionContext(syntaxTree, position, context, cancellationToken) ||
                 context.IsDelegateReturnTypeContext ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, RefGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     cancellationToken: cancellationToken);
         }
 
-        private static bool IsValidRefDeclarationOrAssignmentContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsValidRefExpressionContext(SyntaxTree syntaxTree, int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // {
             //     ref var x ...
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             // 
-            //  ref Foo(int x, ...
+            //  ref Goo(int x, ...
             // 
             if (context.IsGlobalStatementContext)
             {
@@ -107,24 +107,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 case SyntaxKind.ReturnKeyword:
                     return true;
 
-                    // {
+                // {
                 //     () => ref ...
                 // 
                 case SyntaxKind.EqualsGreaterThanToken:
                     return true;
 
                 // {
-                //     for(ref var x ...
-                // 
+                //     for (ref var x ...
+                //
+                //     foreach (ref var x ...
+                //
                 case SyntaxKind.OpenParenToken:
                     var previous = token.GetPreviousToken(includeSkipped: true);
-                    return previous.IsKind(SyntaxKind.ForKeyword);
+                    return previous.IsKind(SyntaxKind.ForKeyword)
+                        || previous.IsKind(SyntaxKind.ForEachKeyword);
 
                 // {
                 //     ref var x = ref
                 // 
                 case SyntaxKind.EqualsToken:
-                    return token.Parent?.Parent?.Kind() == SyntaxKind.VariableDeclarator;
+                    var parent = token.Parent;
+                    return parent?.Kind() == SyntaxKind.SimpleAssignmentExpression
+                        || parent?.Parent?.Kind() == SyntaxKind.VariableDeclarator;
+
+                // {
+                //     var x = true ?
+                //     var x = true ? ref y :
+                case SyntaxKind.QuestionToken:
+                case SyntaxKind.ColonToken:
+                    return token.Parent?.Kind() == SyntaxKind.ConditionalExpression;
             }
 
             return false;

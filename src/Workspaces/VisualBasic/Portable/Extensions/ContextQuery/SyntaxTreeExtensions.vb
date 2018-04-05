@@ -146,14 +146,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return False
             End If
 
-            Dim afterDimOrModifiers = allowAfterModifiersOrDim AndAlso (targetToken.IsModifier OrElse
-                                                                        targetToken.Kind = SyntaxKind.DimKeyword OrElse
-                                                                        targetToken.HasMatchingText(SyntaxKind.AsyncKeyword) OrElse
-                                                                        targetToken.HasMatchingText(SyntaxKind.IteratorKeyword))
+            Dim afterDimOrModifiers = allowAfterModifiersOrDim AndAlso IsDimOrModifierOrAttributeList(targetToken)
 
             ' We either must be on a separate line, or else after Dim or modifiers
             If targetToken.FollowsEndOfStatement(position) OrElse afterDimOrModifiers Then
                 Return targetToken.GetInnermostDeclarationContext().IsKind(allowedParentBlocks)
+            End If
+
+            Return False
+        End Function
+
+        Private Function IsDimOrModifierOrAttributeList(token As SyntaxToken) As Boolean
+            If token.IsModifier Then
+                Return True
+            End If
+
+            If token.Kind = SyntaxKind.DimKeyword Then
+                Return True
+            End If
+
+            If token.HasMatchingText(SyntaxKind.AsyncKeyword) OrElse token.HasMatchingText(SyntaxKind.IteratorKeyword) Then
+                Return True
+            End If
+
+            ' eg. <Extension> |
+            If token.Kind = SyntaxKind.GreaterThanToken AndAlso token.Parent.Kind = SyntaxKind.AttributeList Then
+                Return True
             End If
 
             Return False

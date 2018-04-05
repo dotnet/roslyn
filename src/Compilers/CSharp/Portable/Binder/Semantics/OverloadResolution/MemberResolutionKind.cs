@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         NameUsedForPositional,
 
         /// <summary>
+        /// The candidate member was rejected because a named argument was used out-of-position and followed by unnamed arguments.
+        /// </summary>
+        BadNonTrailingNamedArgument,
+
+        /// <summary>
         /// The candidate member was rejected because it is not supported by the language or cannot be used 
         /// given the current set of assembly references.
         /// </summary>
@@ -88,9 +93,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         TypeInferenceExtensionInstanceArgument,
 
         /// <summary>
-        /// The candidate member was rejected because it a constraint on a type parameter was not satisfied.
+        /// The candidate member was rejected because a constraint on the type of a parameter was not satisfied.
         /// </summary>
         ConstructedParameterFailedConstraintCheck,
+
+        /// <summary>
+        /// The candidate method's type arguments do not satisfy their constraints.
+        /// </summary>
+        ConstraintFailure,
+
+        /// <summary>
+        /// The candidate member was rejected because it was an instance member accessed from a type,
+        /// or a static member accessed from an instance.
+        /// </summary>
+        StaticInstanceMismatch,
+
+        /// <summary>
+        /// The candidate method in a delegate conversion was rejected because the ref kind of its return does not match the delegate.
+        /// </summary>
+        WrongRefKind,
+
+        /// <summary>
+        /// The candidate method in a delegate conversion was rejected because its return type does not match the return type of the delegate.
+        /// </summary>
+        WrongReturnType,
 
         /// <summary>
         /// The candidate member was rejected because another member further down in the inheritance hierarchy was

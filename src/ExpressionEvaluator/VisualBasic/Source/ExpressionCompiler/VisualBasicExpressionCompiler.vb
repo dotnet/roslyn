@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Shared ReadOnly s_compilerId As New DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.VB)
 
+        Public Sub New()
+            MyBase.New(New VisualBasicFrameDecoder(), New VisualBasicLanguageInstructionDecoder())
+        End Sub
+
         Friend Overrides ReadOnly Property DiagnosticFormatter As DiagnosticFormatter
             Get
                 Return DebuggerDiagnosticFormatter.Instance
@@ -108,6 +112,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overrides Sub RemoveDataItem(appDomain As DkmClrAppDomain)
             appDomain.RemoveMetadataContext(Of VisualBasicMetadataContext)()
         End Sub
+
+        Friend Overrides Function GetMetadataBlocks(appDomain As DkmClrAppDomain, runtimeInstance As DkmClrRuntimeInstance) As ImmutableArray(Of MetadataBlock)
+            Dim previous = appDomain.GetMetadataContext(Of VisualBasicMetadataContext)()
+            Return runtimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks)
+        End Function
 
     End Class
 

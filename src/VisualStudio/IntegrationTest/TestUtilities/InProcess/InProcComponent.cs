@@ -66,5 +66,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected static void WaitForSystemIdle()
             => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
+
+        // Ensure InProcComponents live forever
+        public override object InitializeLifetimeService() => null;
     }
 }

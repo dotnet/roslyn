@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -46,13 +44,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             ExpressionSyntax initializerExpression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken) =>
-                semanticModel.GetTypeInfo(initializerExpression, cancellationToken).Type?.IsSpecialType() == true;
+                IsBuiltInType(semanticModel.GetTypeInfo(initializerExpression, cancellationToken).Type);
 
-        private static bool IsImplicitStylePreferred(TypeStylePreference stylePreferences,
-            bool isBuiltInTypeContext,
-            bool isTypeApparentContext)
+        public static bool IsBuiltInType(ITypeSymbol type)
+            => type?.IsSpecialType() == true;
+
+        public static bool IsImplicitStylePreferred(
+            OptionSet optionSet, bool isBuiltInTypeContext, bool isTypeApparentContext)
         {
+            return IsImplicitStylePreferred(
+                GetCurrentTypeStylePreferences(optionSet),
+                isBuiltInTypeContext,
+                isTypeApparentContext);
+        }
 
+        private static bool IsImplicitStylePreferred(
+            TypeStylePreference stylePreferences, bool isBuiltInTypeContext, bool isTypeApparentContext)
+        {
             return isBuiltInTypeContext
                     ? stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeForIntrinsicTypes)
                     : isTypeApparentContext
@@ -75,6 +83,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             CancellationToken cancellationToken,
             ITypeSymbol typeInDeclaration = null)
         {
+            // tuple literals
+            if (initializerExpression.IsKind(SyntaxKind.TupleExpression))
+            {
+                var tuple = (TupleExpressionSyntax)initializerExpression;
+                foreach (var argument in tuple.Arguments)
+                {
+                    if (!IsTypeApparentInAssignmentExpression(stylePreferences, argument.Expression, semanticModel, cancellationToken, typeInDeclaration))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
             // default(type)
             if (initializerExpression.IsKind(SyntaxKind.DefaultExpression))
             {
@@ -89,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
             // constructor invocations cases:
             //      = new type();
-            if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression) &&
+            if (initializerExpression.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ArrayCreationExpression) &&
                 !initializerExpression.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
             {
                 return true;
@@ -150,8 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         /// Looks for types that have static methods that return the same type as the container.
         /// e.g: int.Parse, XElement.Load, Tuple.Create etc.
         /// </summary>
-        private static bool IsPossibleCreationMethod(IMethodSymbol methodSymbol, 
-            ITypeSymbol typeInDeclaration, 
+        private static bool IsPossibleCreationMethod(IMethodSymbol methodSymbol,
+            ITypeSymbol typeInDeclaration,
             ITypeSymbol containingType)
         {
             if (!methodSymbol.IsStatic)
@@ -166,10 +189,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         /// If we have a method ToXXX and its return type is also XXX, then type name is apparent
         /// e.g: Convert.ToString.
         /// </summary>
-        private static bool IsPossibleConversionMethod(IMethodSymbol methodSymbol, 
-            ITypeSymbol typeInDeclaration, 
-            ITypeSymbol containingType, 
-            SemanticModel semanticModel, 
+        private static bool IsPossibleConversionMethod(IMethodSymbol methodSymbol,
+            ITypeSymbol typeInDeclaration,
+            ITypeSymbol containingType,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var returnType = methodSymbol.ReturnType;
@@ -186,8 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
         /// e.g: Tuple.Create(0, true) returns Tuple&lt;X,y&gt; which isn't the same as type Tuple.
         /// otherwise, we match for type equivalence
         /// </remarks>
-        private static bool IsContainerTypeEqualToReturnType(IMethodSymbol methodSymbol, 
-            ITypeSymbol typeInDeclaration, 
+        private static bool IsContainerTypeEqualToReturnType(IMethodSymbol methodSymbol,
+            ITypeSymbol typeInDeclaration,
             ITypeSymbol containingType)
         {
             var returnType = UnwrapTupleType(methodSymbol.ReturnType);
@@ -216,20 +239,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 
         private static ExpressionSyntax GetRightmostInvocationExpression(ExpressionSyntax node)
         {
-            var awaitExpression = node as AwaitExpressionSyntax;
-            if (awaitExpression != null && awaitExpression.Expression != null)
+            if (node is AwaitExpressionSyntax awaitExpression && awaitExpression.Expression != null)
             {
                 return GetRightmostInvocationExpression(awaitExpression.Expression);
             }
 
-            var invocationExpression = node as InvocationExpressionSyntax;
-            if (invocationExpression != null && invocationExpression.Expression != null)
+            if (node is InvocationExpressionSyntax invocationExpression && invocationExpression.Expression != null)
             {
                 return GetRightmostInvocationExpression(invocationExpression.Expression);
             }
 
-            var conditional = node as ConditionalAccessExpressionSyntax;
-            if (conditional != null)
+            if (node is ConditionalAccessExpressionSyntax conditional)
             {
                 return GetRightmostInvocationExpression(conditional.WhenNotNull);
             }
@@ -270,6 +290,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             return predefinedType != null
                 ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind())
                 : false;
+        }
+
+        /// <summary>
+        /// Return type syntax following code style options for the given type
+        /// </summary>
+        public static TypeSyntax GetTypeExpression(
+            this SyntaxGenerator generator, OptionSet options, ITypeSymbol type)
+        {
+            // types are not apparent in foreach statements.
+            var isBuiltInTypeContext = IsBuiltInType(type);
+            if (IsImplicitStylePreferred(options, isBuiltInTypeContext, isTypeApparentContext: false))
+            {
+                return SyntaxFactory.IdentifierName("var");
+            }
+            else
+            {
+                return (TypeSyntax)generator.TypeExpression(type);
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -20,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Public Async Function TestInObjectCreation() As Task
             Await VerifyItemExistsAsync(
 <Text>
-Class Foo
+Class Goo
 	Public Sub New(Optional a As Integer = 42)
 	End Sub
 
 	Private Sub Bar()
-		Dim b = New Foo($$
+		Dim b = New Goo($$
 	End Sub
 End Class
 </Text>.Value, "a:=")
@@ -35,13 +35,13 @@ End Class
         Public Async Function TestInBaseConstructor() As Task
             Await VerifyItemExistsAsync(
 <Text>
-Class Foo
+Class Goo
 	Public Sub New(Optional a As Integer = 42)
 	End Sub
 End Class
 
 Class FogBar
-	Inherits Foo
+	Inherits Goo
 	Public Sub New(b As Integer)
 		MyBase.New($$
 	End Sub
@@ -53,7 +53,7 @@ End Class
         Public Async Function TestAttributeConstructor() As Task
             Await VerifyItemIsAbsentAsync(
 <Text>
-Class Foo
+Class Goo
 Class TestAttribute
 	Inherits Attribute
 	Public Sub New(Optional a As Integer = 42)
@@ -61,7 +61,7 @@ Class TestAttribute
 End Class
 
 &lt;Test($$)&gt; _
-Class Foo
+Class Goo
 End Class
 </Text>.Value, "a:=")
         End Function
@@ -93,7 +93,7 @@ Class TestAttribute
 End Class
 
 &lt;Test(s:="""",$$  &gt; _
-Class Foo
+Class Goo
 End Class
 </Text>.Value, "a:=")
         End Function
@@ -102,7 +102,7 @@ End Class
         Public Async Function TestInvocationExpression() As Task
             Await VerifyItemExistsAsync(
 <Text>
-Class Foo
+Class Goo
 	Private Sub Bar(a As Integer)
 		Bar($$
 	End Sub
@@ -114,7 +114,7 @@ End Class
         Public Async Function TestInvocationExpressionAfterComma() As Task
             Await VerifyItemExistsAsync(
 <Text>
-Class Foo
+Class Goo
 	Private Sub Bar(a As Integer, b as String)
 		Bar(b:="""", $$
 	End Sub
@@ -185,7 +185,7 @@ End Module
         Public Async Function TestNotAfterColonEquals() As Task
             Await VerifyNoItemsExistAsync(
 <Text>
-Class Foo
+Class Goo
     Private Sub Bar(a As Integer, b As String)
         Bar(a:=$$
     End Sub
@@ -197,7 +197,7 @@ End Class
         Public Async Function TestNotInCollectionInitializers() As Task
             Await VerifyNoItemsExistAsync(
 <Text>
-Class Foo
+Class Goo
     Private Sub Bar(a As Integer, b As String)
         Dim numbers = {1, 2, 3,$$ 4, 5}
     End Sub
@@ -211,13 +211,13 @@ End Class
 <Text>
 Class Class1
     Private Sub Test()
-        Foo(str:="""", $$)
+        Goo(str:="""", $$)
     End Sub
 
-    Private Sub Foo(str As String, character As Char)
+    Private Sub Goo(str As String, character As Char)
     End Sub
 
-    Private Sub Foo(str As String, bool As Boolean)
+    Private Sub Goo(str As String, bool As Boolean)
     End Sub
 End Class
 </Text>.Value
@@ -230,7 +230,7 @@ End Class
         Public Async Function TestMethodOverloads() As Task
             Dim markup =
 <Text>
-Class Foo
+Class Goo
     Private Sub Test()
         Dim m As Object = Nothing
         Method(obj:=m, $$
@@ -254,7 +254,7 @@ End Class
         Public Async Function TestExistingNamedParamsAreFilteredOut() As Task
             Dim markup =
 <Text>
-Class Foo
+Class Goo
     Private Sub Test()
         Dim m As Object = Nothing
         Method(obj:=m, str:="""", $$);
@@ -282,7 +282,7 @@ End Class
         Public Async Function TestKeywordAsEscapedIdentifier() As Task
             Await VerifyItemExistsAsync(
 <Text>
-Class Foo
+Class Goo
     Private Sub Bar([Boolean] As Boolean)
         Bar($$
     End Sub
@@ -364,7 +364,7 @@ End Module
         Public Async Function TestNotInTrivia() As Task
             Await VerifyNoItemsExistAsync(
 <Text>
-Class Foo
+Class Goo
 	Private Sub Bar(a As Integer)
 		Bar(a:=1 ' $$
 	End Sub
@@ -378,7 +378,7 @@ End Class
             Await VerifyItemExistsAsync(
 <Text>
 Imports System
-Class Foo
+Class Goo
     Private Sub Bar(a As Integer)
         Dim x as Action(Of Integer) = Nothing
         x?($$
@@ -393,7 +393,7 @@ End Class
             Await VerifyAnyItemExistsAsync(
 <Text>
 Imports System
-Class Foo
+Class Goo
     Private Sub Bar(a As Integer)
         Bar(1, 2, $$)
     End Sub

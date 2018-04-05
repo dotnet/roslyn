@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
 
@@ -11,10 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim src1 = "
 Class C
     Shared Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -24,11 +24,11 @@ End Class
 Class C
     Shared Sub Main()
         While True
-            <AS:1>Foo(2)</AS:1>
+            <AS:1>Goo(2)</AS:1>
         End While
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -38,7 +38,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Foo(2)"))
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Goo(2)"))
         End Sub
 
         <Fact>
@@ -46,10 +46,10 @@ End Class
             Dim src1 = "
 Class C
     Shared Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -59,11 +59,11 @@ End Class
 Class C
     Shared Sub Main()
         While True
-            <AS:1>Foo(1)</AS:1>
+            <AS:1>Goo(1)</AS:1>
         End While
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a + 1)</AS:0>
     End Sub
 End Class
@@ -79,10 +79,10 @@ End Class
             Dim src1 = "
 Class C
     Shared Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -91,10 +91,10 @@ End Class
             Dim src2 = "
 Class C
     Shared Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>'comment
     End Sub
 End Class
@@ -110,10 +110,10 @@ End Class
             Dim src1 = "
 Class C
     Shared Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -121,10 +121,10 @@ End Class
             Dim src2 = "
 Class C
     Shared Sub Main()
-        <AS:1>Foo(1)</AS:1>' comment
+        <AS:1>Goo(1)</AS:1>' comment
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -238,10 +238,10 @@ End Class
             Dim src1 = "
 Class C
     Shared Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -250,7 +250,7 @@ End Class
             Dim src2 = "
 <AS:0>Class C</AS:0>
     Shared Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 End Class
 "
@@ -268,10 +268,10 @@ End Class
             Dim src1 = "
 Class C
     Shared Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -288,10 +288,10 @@ End Class
             Dim src1 = " 
 Class C
     Shared Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -304,7 +304,7 @@ Class C
         End While
     <AS:1>End Sub</AS:1>
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -322,51 +322,51 @@ End Class
 Class C 
     Shared Sub Main()
         Do
-            <AS:1>Foo(1)</AS:1>
+            <AS:1>Goo(1)</AS:1>
         Loop
 
         If True
-            <AS:2>Foo(2)</AS:2>
+            <AS:2>Goo(2)</AS:2>
         Else
-            <AS:3>Foo(3)</AS:3>
+            <AS:3>Goo(3)</AS:3>
         End If
 
         Dim x As Integer = 1
         Select Case x
             Case 1, 2
-                <AS:4>Foo(4)</AS:4>
+                <AS:4>Goo(4)</AS:4>
 
             Case Else
-                <AS:5>Foo(5)</AS:5>
+                <AS:5>Goo(5)</AS:5>
         End Select
 
         While True
-            <AS:6>Foo(4)</AS:6>
+            <AS:6>Goo(4)</AS:6>
         End While
 
         Do Until True
-            <AS:7>Foo(7)</AS:7>
+            <AS:7>Goo(7)</AS:7>
         Loop
 
-        If True Then <AS:8>Foo(8)</AS:8> Else <AS:9>Foo(9)</AS:9>
+        If True Then <AS:8>Goo(8)</AS:8> Else <AS:9>Goo(9)</AS:9>
 
-        For i = 0 To 10 : <AS:10>Foo(10)</AS:10> : Next
+        For i = 0 To 10 : <AS:10>Goo(10)</AS:10> : Next
 
-        For Each i in {1, 2} : <AS:11>Foo(11)</AS:11> : Next
+        For Each i in {1, 2} : <AS:11>Goo(11)</AS:11> : Next
 
-        Using z = new C() : <AS:12>Foo(12)</AS:12> : End Using
+        Using z = new C() : <AS:12>Goo(12)</AS:12> : End Using
 
         With expr 
-            <AS:13>.Bar = Foo(13)</AS:13>
+            <AS:13>.Bar = Goo(13)</AS:13>
         End With
 
         <AS:14>label:</AS:14>
         Console.WriteLine(1)
 
-        SyncLock Nothing : <AS:15>Foo(15)</AS:15> : End SyncLock
+        SyncLock Nothing : <AS:15>Goo(15)</AS:15> : End SyncLock
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -410,7 +410,7 @@ Class C
         SyncLock Nothing : <AS:15>End SyncLock</AS:15> 
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -449,7 +449,7 @@ Class C
         End If
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -465,7 +465,7 @@ Class C
         End If
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -488,7 +488,7 @@ Class C
         End If
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -502,7 +502,7 @@ Class C
         <AS:1>End If</AS:1>
     End Sub
 
-    Shared Sub Foo(a As Integer)
+    Shared Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -518,10 +518,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Sub Foo(a As Integer)
+    Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -530,10 +530,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Sub Foo(a As Integer)
+    Sub Goo(a As Integer)
     <AS:0>End Sub</AS:0>
 End Class
 "
@@ -548,10 +548,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Sub Foo(a As Integer)
+    Sub Goo(a As Integer)
         Try
             <AS:0>Console.WriteLine(a)</AS:0>
         Catch
@@ -563,10 +563,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Sub Foo(a As Integer)
+    Sub Goo(a As Integer)
         <AS:0>Try</AS:0>
         Catch
         End Try
@@ -583,10 +583,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Sub Foo(a As Integer)
+    Sub Goo(a As Integer)
         Try
             Try
                 <AS:0>Console.WriteLine(a)</AS:0>
@@ -601,10 +601,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Sub Foo(a As Integer)
+    Sub Goo(a As Integer)
         <AS:0>Try</AS:0>
         Catch
         End Try
@@ -621,10 +621,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Sub Foo(a As Integer)
+    Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -633,10 +633,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        'Foo(1)
+        'Goo(1)
     <AS:1>End Sub</AS:1>
 
-    Sub Foo(a As Integer)
+    Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -653,10 +653,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Sub Foo(a As Integer)
+    Sub Goo(a As Integer)
         <AS:0>Console.WriteLine(a)</AS:0>
     End Sub
 End Class
@@ -665,10 +665,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo(1)</AS:1>
+        <AS:1>Goo(1)</AS:1>
     End Sub
 
-    Sub Foo(a As Integer)
+    Sub Goo(a As Integer)
         'Console.WriteLine(a)
     <AS:0>End Sub</AS:0>
 End Class
@@ -703,11 +703,11 @@ End Module
             Dim src1 = "
 Class Program
     Shared Sub Main()
-        Dim <AS:1>f As Foo = New Foo(5)</AS:1>
+        Dim <AS:1>f As Goo = New Goo(5)</AS:1>
     End Sub
 End Class
 
-Class Foo
+Class Goo
     Dim value As Integer
 
     Sub New(a As Integer)
@@ -719,11 +719,11 @@ End Class
             Dim src2 = "
 Class Program
     Shared Sub Main()
-        Dim <AS:1>f As Foo = New Foo(5*2)</AS:1>
+        Dim <AS:1>f As Goo = New Goo(5*2)</AS:1>
     End Sub
 End Class
 
-Class Foo
+Class Goo
     Dim value As Integer
 
     Sub New(a As Integer)
@@ -734,7 +734,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                                        Diagnostic(RudeEditKind.ActiveStatementUpdate, "f As Foo = New Foo(5*2)"))
+                                        Diagnostic(RudeEditKind.ActiveStatementUpdate, "f As Goo = New Goo(5*2)"))
         End Sub
 
         <WorkItem(741249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/741249")>
@@ -743,11 +743,11 @@ End Class
             Dim src1 = "
 Class Program
     Shared Sub Main()
-        Dim <AS:1>f As Foo = New Foo(5)</AS:1>
+        Dim <AS:1>f As Goo = New Goo(5)</AS:1>
     End Sub
 End Class
 
-Class Foo
+Class Goo
     Dim value As Integer
 
     Sub New(a As Integer)
@@ -759,11 +759,11 @@ End Class
             Dim src2 = "
 Class Program
     Shared Sub Main()
-        Dim <AS:1>f As Foo = New Foo(5)</AS:1>
+        Dim <AS:1>f As Goo = New Goo(5)</AS:1>
     End Sub
 End Class
 
-Class Foo
+Class Goo
     Dim value As Integer
 
     Sub New(a As Integer)
@@ -781,11 +781,11 @@ End Class
             Dim src1 = "
 Class Program
     Shared Sub Main()
-        Dim <AS:1>f = new Foo(5)</AS:1>
+        Dim <AS:1>f = new Goo(5)</AS:1>
     End Sub
 End Class
 
-Class Foo
+Class Goo
     Dim value As Integer
 
     <AS:0>Public Sub New(Optional a As Integer = 1)</AS:0>
@@ -796,11 +796,11 @@ End Class
             Dim src2 = "
 Class Program
     Shared Sub Main()
-        Dim <AS:1>f = new Foo(5)</AS:1>
+        Dim <AS:1>f = new Goo(5)</AS:1>
     End Sub
 End Class
 
-Class Foo
+Class Goo
     Dim value As Integer
 
     <AS:0>Public Sub New(Optional a As Integer = 2)</AS:0>
@@ -818,11 +818,11 @@ End Class
         <Fact>
         Public Sub Updated_Leaf_Constructor_Parameter_DefaultValue()
             Dim src1 = "
-Class Foo
+Class Goo
     Dim value As Integer
    
     Shared Sub Main()
-        Dim <AS:1>f = new Foo(5)</AS:1>
+        Dim <AS:1>f = new Goo(5)</AS:1>
     End Sub
 
     <AS:0>Sub New(Optional a As Integer = 5)</AS:0>
@@ -831,11 +831,11 @@ Class Foo
 End Class
 "
             Dim src2 = "
-Class Foo
+Class Goo
     Dim value As Integer
    
     Shared Sub Main()
-        Dim <AS:1>f = new Foo(5)</AS:1>
+        Dim <AS:1>f = new Goo(5)</AS:1>
     End Sub
 
     <AS:0>Sub New(Optional a As Integer = 42)</AS:0>
@@ -1913,7 +1913,7 @@ End Class
         Public Sub LocalInitializer_InsertConst1()
             Dim src1 = "
 Class C
-    Sub Foo
+    Sub Goo
         Private <AS:0>a As Integer = 1</AS:0>
     End Sub
 End Class
@@ -1921,7 +1921,7 @@ End Class
 
             Dim src2 = "
 Class C
-    Sub Foo
+    Sub Goo
         Private Const a As Integer = 1
     <AS:0>End Sub</AS:0>
 End Class
@@ -1958,7 +1958,7 @@ End Class
         Public Sub LocalInitializer_InsertConst2()
             Dim src1 = "
 Class C
-    Sub Foo
+    Sub Goo
         Dim <AS:0>a As Integer = 1</AS:0>, b As Integer = 2
     End Sub
 End Class
@@ -1966,7 +1966,7 @@ End Class
 
             Dim src2 = "
 Class C
-    Sub Foo
+    Sub Goo
         Const a As Integer = 1, b As Integer = 2
     <AS:0>End Sub</AS:0>
 End Class
@@ -3192,10 +3192,10 @@ End Class
             Dim src1 = "
 Class C
     Shared Sub Bar()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3205,12 +3205,12 @@ End Class
 Class C
     Shared Sub Bar()
         Try
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         Catch
         End Try
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3227,10 +3227,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3239,10 +3239,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
             <AS:0>Console.WriteLine(1)</AS:0>
         Catch
@@ -3261,12 +3261,12 @@ End Class
 Class C
     Sub Main()
         Try
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         Catch 
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3274,10 +3274,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3285,7 +3285,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo()", VBFeaturesResources.Try_block))
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Goo()", VBFeaturesResources.Try_block))
         End Sub
 
         <Fact>
@@ -3293,10 +3293,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>        
+        <AS:1>Goo()</AS:1>        
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
             <AS:0>Console.WriteLine(1)</AS:0>
         Catch
@@ -3308,10 +3308,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>        
+        <AS:1>Goo()</AS:1>        
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3327,12 +3327,12 @@ End Class
 Class C
     Sub Main()
         Try
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         Catch
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3342,12 +3342,12 @@ End Class
 Class C
     Sub Main()
         Try
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         Catch e As IOException
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3364,12 +3364,12 @@ End Class
 Class C
     Sub Main()
         Try
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         <ER:1.0>Catch
         End Try</ER:1.0>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3378,13 +3378,13 @@ End Class
 Class C
     Sub Main()
         Try
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         <ER:1.0>Catch
         End Try</ER:1.0>
         Console.WriteLine(2)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3400,12 +3400,12 @@ End Class
 Class C
     Sub Main()
         Try
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         <ER:1.0>Finally
         End Try</ER:1.0>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3414,13 +3414,13 @@ End Class
 Class C
     Sub Main()
         Try
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         <ER:1.0>Finally
         End Try</ER:1.0>
         Console.WriteLine(2)
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3435,10 +3435,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
             <AS:0>Console.WriteLine(1)</AS:0>
         Catch
@@ -3449,10 +3449,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
             <AS:0>Console.WriteLine(1)</AS:0>
         Catch e As IOException
@@ -3599,10 +3599,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3612,11 +3612,11 @@ Class C
     Sub Main()
         Try
         Catch
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3632,10 +3632,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3644,10 +3644,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
         Catch 
             <AS:0>Console.WriteLine(1)</AS:0>
@@ -3669,11 +3669,11 @@ Class C
     Sub Main()
         Try
         Catch 
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3682,10 +3682,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3694,7 +3694,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo()", VBFeaturesResources.Catch_clause))
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Goo()", VBFeaturesResources.Catch_clause))
         End Sub
 
         <Fact>
@@ -3702,10 +3702,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>        
+        <AS:1>Goo()</AS:1>        
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
         Catch
             <AS:0>Console.WriteLine(1)</AS:0>
@@ -3716,10 +3716,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3737,11 +3737,11 @@ Class C
     Sub Main()
         Try
         Catch
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3752,11 +3752,11 @@ Class C
     Sub Main()
         Try
         Catch e As IOException
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3772,10 +3772,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
         Catch
             <AS:0>Console.WriteLine(1)</AS:0>
@@ -3787,10 +3787,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
         Catch e As IOException
             <AS:0>Console.WriteLine(1)</AS:0>
@@ -3809,12 +3809,12 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:0>Foo()</AS:0>
+        <AS:0>Goo()</AS:0>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
-        <AS:1>Catch e As IOException When Foo(1)</AS:1>
+        <AS:1>Catch e As IOException When Goo(1)</AS:1>
             Console.WriteLine(1)
         End Try
     End Sub
@@ -3824,12 +3824,12 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:0>Foo()</AS:0>
+        <AS:0>Goo()</AS:0>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
-        <AS:1>Catch e As IOException When Foo(2)</AS:1>
+        <AS:1>Catch e As IOException When Goo(2)</AS:1>
             Console.WriteLine(1)
         End Try
     End Sub
@@ -3838,7 +3838,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Catch e As IOException When Foo(2)"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Catch e As IOException When Goo(2)"),
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Catch", VBFeaturesResources.Catch_clause))
         End Sub
 
@@ -3847,12 +3847,12 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
-        <AS:0>Catch e As IOException When Foo(1)</AS:0>
+        <AS:0>Catch e As IOException When Goo(1)</AS:0>
             Console.WriteLine(1)
         End Try
     End Sub
@@ -3862,12 +3862,12 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
-        <AS:0>Catch e As IOException When Foo(2)</AS:0>
+        <AS:0>Catch e As IOException When Goo(2)</AS:0>
             Console.WriteLine(1)
         End Try
     End Sub
@@ -3884,12 +3884,12 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
-        <AS:0>Catch e As IOException When Foo(1)</AS:0>
+        <AS:0>Catch e As IOException When Goo(1)</AS:0>
             Console.WriteLine(1)
         End Try
     End Sub
@@ -3899,12 +3899,12 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
-        <AS:0>Catch e As Exception When Foo(1)</AS:0>
+        <AS:0>Catch e As Exception When Goo(1)</AS:0>
             Console.WriteLine(1)
         End Try
     End Sub
@@ -3922,10 +3922,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3936,11 +3936,11 @@ Class C
     Sub Main()
         Try
         Finally 
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3956,10 +3956,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -3968,10 +3968,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
         Finally 
             <AS:0>Console.WriteLine(1)</AS:0>
@@ -3991,11 +3991,11 @@ Class C
     Sub Main()
         Try
         Finally 
-            <AS:1>Foo()</AS:1>
+            <AS:1>Goo()</AS:1>
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -4004,10 +4004,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -4015,7 +4015,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo()", VBFeaturesResources.Finally_clause))
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Goo()", VBFeaturesResources.Finally_clause))
         End Sub
 
         <Fact>
@@ -4023,10 +4023,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>        
+        <AS:1>Goo()</AS:1>        
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Try
         Finally
             <AS:0>Console.WriteLine(1)</AS:0>
@@ -4038,10 +4038,10 @@ End Class
             Dim src2 = "
 Class C
     Sub Main()
-        <AS:1>Foo()</AS:1>
+        <AS:1>Goo()</AS:1>
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -4063,7 +4063,7 @@ Class C
             Try
                 Try
                     Try
-                        <AS:1>Foo()</AS:1>
+                        <AS:1>Goo()</AS:1>
                     Catch 
                     End Try
                 Catch Exception
@@ -4073,7 +4073,7 @@ Class C
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -4087,7 +4087,7 @@ Class C
                 Try
                 Finally
                     Try
-                        <AS:1>Foo()</AS:1>
+                        <AS:1>Goo()</AS:1>
                     Catch 
                     End Try
                 End Try
@@ -4096,7 +4096,7 @@ Class C
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -4106,7 +4106,7 @@ End Class
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Catch", VBFeaturesResources.Catch_clause),
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Try", VBFeaturesResources.Try_block),
-                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo()", VBFeaturesResources.Try_block),
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Goo()", VBFeaturesResources.Try_block),
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Finally", VBFeaturesResources.Finally_clause))
         End Sub
 
@@ -4120,7 +4120,7 @@ Class C
             Try
                 Try
                     Try
-                        <AS:1>Foo()</AS:1>
+                        <AS:1>Goo()</AS:1>
                     Catch 
                     End Try
                 Catch e As Exception
@@ -4130,7 +4130,7 @@ Class C
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -4140,11 +4140,11 @@ Class C
     Sub Main()
         Try            
         <ER:1.0>Catch e As IOException
-            Try : Try : Try : <AS:1>Foo()</AS:1> : Catch : End Try : Catch e As Exception : End Try : Finally : End Try</ER:1.0>
+            Try : Try : Try : <AS:1>Goo()</AS:1> : Catch : End Try : Catch e As Exception : End Try : Finally : End Try</ER:1.0>
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Class
@@ -4158,14 +4158,14 @@ End Class
         Public Sub Try_Lambda1()
             Dim src1 = "
 Class C
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
         <AS:0>Return 1</AS:0>
     End Function
 
     Sub Main()
         Dim f As Func(Of Integer, Integer) = Nothing
         Try
-            f = Function(x) <AS:1>1 + Foo(x)</AS:1>
+            f = Function(x) <AS:1>1 + Goo(x)</AS:1>
         Catch
         End Try
 
@@ -4175,13 +4175,13 @@ End Class
 "
             Dim src2 = "
 Class C
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
         <AS:0>Return 1</AS:0>
     End Function
 
     Sub Main()
         Dim f As Func(Of Integer, Integer) = Nothing
-        f = Function(x) <AS:1>1 + Foo(x)</AS:1>
+        f = Function(x) <AS:1>1 + Goo(x)</AS:1>
         <AS:2>Console.Write(f(2))</AS:2>
     End Sub
 End Class
@@ -4195,14 +4195,14 @@ End Class
         Public Sub Try_Lambda2()
             Dim src1 = "
 Class C
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
         <AS:0>Return 1</AS:0>
     End Function
 
     Sub Main()
         Dim f = Function(x) 
                     Try
-                        <AS:1>Return 1 + Foo(x)</AS:1>
+                        <AS:1>Return 1 + Goo(x)</AS:1>
                     Catch
                     End Try
                 End Function
@@ -4213,13 +4213,13 @@ End Class
 "
             Dim src2 = "
 Class C
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
         <AS:0>Return 1</AS:0>
     End Function
 
     Sub Main()
         Dim f = Function(x) 
-                     <AS:1>Return 1 + Foo(x)</AS:1>
+                     <AS:1>Return 1 + Goo(x)</AS:1>
                 End Function
 
         <AS:2>Console.Write(f(2))</AS:2>
@@ -4229,14 +4229,14 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Return 1 + Foo(x)", VBFeaturesResources.Try_block))
+                Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Return 1 + Goo(x)", VBFeaturesResources.Try_block))
         End Sub
 
         <Fact>
         Public Sub Try_Query_Join1()
             Dim src1 = "
 Class C
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
         <AS:0>Return 1</AS:0>
     End Function
 
@@ -4254,7 +4254,7 @@ End Class
 "
             Dim src2 = "
 Class C
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
         <AS:0>Return 1</AS:0>
     End Function
 
@@ -4277,7 +4277,7 @@ End Class
         Public Sub Try_Query_Join2()
             Dim src1 = "
 Class C
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
         <AS:0>Return 1</AS:0>
     End Function
 
@@ -4297,7 +4297,7 @@ End Class
 "
             Dim src2 = "
 Class C
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
         <AS:0>Return 1</AS:0>
     End Function
 
@@ -4572,7 +4572,7 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        Dim s = From a In b Where <AS:0>b.foo</AS:0> Select b.bar
+        Dim s = From a In b Where <AS:0>b.goo</AS:0> Select b.bar
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4596,7 +4596,7 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        Dim s = From a In b Let x = <AS:0>a.foo</AS:0> Select x
+        Dim s = From a In b Let x = <AS:0>a.goo</AS:0> Select x
         <AS:1>s.ToArray()</AS:1>
     End Sub
 End Class
@@ -4624,7 +4624,7 @@ End Class
 Class C
     Sub Main()
         Dim s = From a In b
-                Join c In d On <AS:0>a.foo</AS:0> Equals c.bar
+                Join c In d On <AS:0>a.goo</AS:0> Equals c.bar
                 Select a.bar
 
         <AS:1>s.ToArray()</AS:1>
@@ -5375,12 +5375,12 @@ Module C
     Sub Main(args As String())
         Try
         Catch As IOException
-            Foo<AS:1>(</AS:1>)
-            Foo()
+            Goo<AS:1>(</AS:1>)
+            Goo()
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         Console.WriteLine(<AS:0>1</AS:0>)
     End Sub
 End Module"
@@ -5389,12 +5389,12 @@ Module C
     Sub Main(args As String())
         Try
         <ER:1.0>Catch e As IOException
-            <AS:1>Foo()</AS:1>
-            Foo()</ER:1.0>
+            <AS:1>Goo()</AS:1>
+            Goo()</ER:1.0>
         End Try
     End Sub
 
-    Sub Foo()
+    Sub Goo()
         <AS:0>Console.WriteLine(1)</AS:0>
     End Sub
 End Module"
@@ -5410,10 +5410,10 @@ Module C
     <AS:2>Const a As Integer = 1</AS:2>
  
     Sub Main(args As String())
-        Foo()
+        Goo()
     End Sub
 <AS:1>
-    Sub</AS:1> Foo()
+    Sub</AS:1> Goo()
         <AS:3>Console.WriteLine(1)</AS:3>
     End Sub
 End Module
@@ -5425,10 +5425,10 @@ Module C
     Const a As Integer = 1
 
     Sub Main(args As String())
-       Foo()
+       Goo()
     End Sub
 
-    <AS:1>Sub Foo()</AS:1>
+    <AS:1>Sub Goo()</AS:1>
         <AS:3>Console.WriteLine(1)</AS:3>
     End Sub
 End Module"

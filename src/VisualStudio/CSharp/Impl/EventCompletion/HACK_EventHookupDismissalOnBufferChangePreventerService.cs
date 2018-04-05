@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EventHookup
             HACK_SetShimQuickInfoSessionWorker(textView, null);
         }
 
+#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
         private void HACK_SetShimQuickInfoSessionWorker(ITextView textView, IQuickInfoSession quickInfoSession)
         {
             var properties = textView.Properties.PropertyList;
@@ -53,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EventHookup
             public event EventHandler ApplicableToSpanChanged;
             public event EventHandler PresenterChanged;
 #pragma warning restore 67
-
+#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
             public PropertyCollection Properties
             {
                 get

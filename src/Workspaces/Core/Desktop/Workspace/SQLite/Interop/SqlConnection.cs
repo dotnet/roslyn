@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 using SQLitePCL;
 
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
     /// to open the DB if it exists, or create it if it does not.
     /// 
     /// Connections are considered relatively heavyweight and are pooled until the <see cref="SQLitePersistentStorage"/>
-    /// is <see cref="SQLitePersistentStorage.Close"/>d.  Connections can be used by different threads,
+    /// is <see cref="SQLitePersistentStorage.Dispose"/>d.  Connections can be used by different threads,
     /// but only as long as they are used by one thread at a time.  They are not safe for concurrent
     /// use by several threads.
     /// 
@@ -30,6 +31,11 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         private readonly sqlite3 _handle;
 
         /// <summary>
+        /// For testing purposes to simulate failures during testing.
+        /// </summary>
+        private readonly IPersistentStorageFaultInjector _faultInjector;
+
+        /// <summary>
         /// Our cache of prepared statements for given sql strings.
         /// </summary>
         private readonly Dictionary<string, SqlStatement> _queryToStatement = new Dictionary<string, SqlStatement>();
@@ -41,10 +47,13 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         /// </summary>
         public bool IsInTransaction { get; private set; }
 
-        public SqlConnection(string databasePath)
+        public static SqlConnection Create(IPersistentStorageFaultInjector faultInjector, string databasePath)
         {
-            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE;
+            faultInjector?.OnNewConnection();
 
+            // Enable shared cache so that multiple connections inside of same process share cache
+            // see https://sqlite.org/threadsafe.html for more detail
+            var flags = OpenFlags.SQLITE_OPEN_CREATE | OpenFlags.SQLITE_OPEN_READWRITE | OpenFlags.SQLITE_OPEN_NOMUTEX | OpenFlags.SQLITE_OPEN_SHAREDCACHE;
             var result = (Result)raw.sqlite3_open_v2(databasePath, out var handle, (int)flags, vfs: null);
 
             if (result != Result.OK)
@@ -54,14 +63,23 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
 
             Contract.ThrowIfNull(handle);
 
+            raw.sqlite3_busy_timeout(handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
+
+            return new SqlConnection(faultInjector, handle);
+        }
+
+        private SqlConnection(IPersistentStorageFaultInjector faultInjector, sqlite3 handle)
+        {
+            _faultInjector = faultInjector;
             _handle = handle;
-            raw.sqlite3_busy_timeout(_handle, (int)TimeSpan.FromMinutes(1).TotalMilliseconds);
         }
 
         ~SqlConnection()
         {
             if (!Environment.HasShutdownStarted)
             {
+                var ex = new InvalidOperationException("SqlConnection was not properly closed");
+                _faultInjector?.OnFatalError(ex);
                 FatalError.Report(new InvalidOperationException("SqlConnection was not properly closed"));
             }
         }
@@ -128,6 +146,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             catch (SqlException ex) when (ex.Result == Result.FULL ||
                                           ex.Result == Result.IOERR ||
                                           ex.Result == Result.BUSY ||
+                                          ex.Result == Result.LOCKED ||
                                           ex.Result == Result.NOMEM)
             {
                 // See documentation here: https://sqlite.org/lang_transaction.html
@@ -138,6 +157,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
                 // SQLITE_FULL: database or disk full
                 // SQLITE_IOERR: disk I/ O error
                 // SQLITE_BUSY: database in use by another process
+                // SQLITE_LOCKED: database in use by another connection in the same process
                 // SQLITE_NOMEM: out or memory
 
                 // It is recommended that applications respond to the errors listed above by
@@ -187,7 +207,14 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         private Stream ReadBlob_InTransaction(string tableName, string columnName, long rowId)
         {
             const int ReadOnlyFlags = 0;
-            ThrowIfNotOk(raw.sqlite3_blob_open(_handle, "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob));
+            var result = raw.sqlite3_blob_open(_handle, "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob);
+            if (result == raw.SQLITE_ERROR)
+            {
+                // can happen when rowId points to a row that hasn't been written to yet.
+                return null;
+            }
+
+            ThrowIfNotOk(result);
             try
             {
                 return ReadBlob(blob);
@@ -252,6 +279,8 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             => Throw(_handle, result);
 
         public static void Throw(sqlite3 handle, Result result)
-            => throw new SqlException(result, raw.sqlite3_errmsg(handle));
+            => throw new SqlException(result,
+                raw.sqlite3_errmsg(handle) + "\r\n" +
+                raw.sqlite3_errstr(raw.sqlite3_extended_errcode(handle)));
     }
 }

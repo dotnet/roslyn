@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host.Mef
 {
@@ -24,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
         }
 
+        internal static void ResetHostServicesTestOnly()
+        {
+            s_defaultServices = null;
+        }
+
         private static ImmutableArray<Assembly> s_defaultAssemblies;
         public static ImmutableArray<Assembly> DefaultAssemblies
         {
@@ -31,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             {
                 if (s_defaultAssemblies == null)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref s_defaultAssemblies, CreateDefaultAssemblies(), default(ImmutableArray<Assembly>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref s_defaultAssemblies, CreateDefaultAssemblies(), default);
                 }
 
                 return s_defaultAssemblies;

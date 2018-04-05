@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition
 {
-    internal interface IGeneratedCodeRecognitionService : IWorkspaceService
+    internal interface IGeneratedCodeRecognitionService : ILanguageService
     {
         bool IsGeneratedCode(Document document, CancellationToken cancellationToken);
     }

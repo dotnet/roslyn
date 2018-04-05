@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -133,6 +134,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' Insert an identity conversion if necessary.
                                 Debug.Assert(boundFirstArgument.Kind <> BoundKind.Conversion, "Associated wrong node with conversion?")
                                 boundFirstArgument = New BoundConversion(node, boundFirstArgument, ConversionKind.Identity, CheckOverflow, True, delegateType)
+                            ElseIf boundFirstArgument.Kind = BoundKind.Conversion Then
+                                Debug.Assert(Not boundFirstArgument.WasCompilerGenerated)
+                                Dim boundConversion = DirectCast(boundFirstArgument, BoundConversion)
+                                boundFirstArgument = boundConversion.Update(boundConversion.Operand,
+                                                                            boundConversion.ConversionKind,
+                                                                            boundConversion.Checked,
+                                                                            True, ' ExplicitCastInCode
+                                                                            boundConversion.ConstantValueOpt,
+                                                                            boundConversion.ExtendedInfoOpt,
+                                                                            boundConversion.Type)
                             End If
 
                             Return boundFirstArgument

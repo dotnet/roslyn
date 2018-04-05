@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         // Internal for testing purposes
-        internal static int GetPairExtentsWorker(ITextView textView, Workspace workspace, IBraceMatchingService braceMatcher, int iLine, int iIndex, TextSpan[] pSpan, bool extendSelection, CancellationToken cancellationToken)
+        internal static int GetPairExtentsWorker(ITextView textView, CodeAnalysis.Workspace workspace, IBraceMatchingService braceMatcher, int iLine, int iIndex, TextSpan[] pSpan, bool extendSelection, CancellationToken cancellationToken)
         {
             pSpan[0].iStartLine = pSpan[0].iEndLine = iLine;
             pSpan[0].iStartIndex = pSpan[0].iEndIndex = iIndex;

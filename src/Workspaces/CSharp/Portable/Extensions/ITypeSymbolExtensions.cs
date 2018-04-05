@@ -54,6 +54,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return SyntaxFactory.RefType(refKeyword, underlyingType);
         }
 
+        public static TypeSyntax GenerateRefReadOnlyTypeSyntax(
+            this INamespaceOrTypeSymbol symbol)
+        {
+            var underlyingType = GenerateTypeSyntax(symbol)
+                .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
+                .WithAdditionalAnnotations(Simplifier.Annotation);
+            var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
+            var readOnlyKeyword = SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword);
+            return SyntaxFactory.RefType(refKeyword, readOnlyKeyword, underlyingType);
+        }
+
         public static bool ContainingTypesOrSelfHasUnsafeKeyword(this ITypeSymbol containingType)
         {
             do

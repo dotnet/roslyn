@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -2735,6 +2736,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+                Get
+                    Return ImmutableArray(Of Symbol).Empty
+                End Get
+            End Property
+
             Public ReadOnly Property LambdaSymbol As LambdaSymbol
                 Get
                     Return _lambdaSymbol
@@ -3429,13 +3436,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       True)
 
                         outerKey = outerKeyBinder.BindAnonymousObjectCreationExpression(join, descriptor, outerKeys.AsImmutableOrNull(),
-                                                                                        diagnostics).MakeCompilerGenerated()
+                                                                                        diagnostics)
                         innerKey = innerKeyBinder.BindAnonymousObjectCreationExpression(join, descriptor, innerKeys.AsImmutableOrNull(),
-                                                                                        diagnostics).MakeCompilerGenerated()
+                                                                                        diagnostics)
                     Else
                         outerKey = BadExpression(join, outerKeys.AsImmutableOrNull(), ErrorTypeSymbol.UnknownResultType)
                         innerKey = BadExpression(join, innerKeys.AsImmutableOrNull(), ErrorTypeSymbol.UnknownResultType)
                     End If
+
+                    outerKey.MakeCompilerGenerated()
+                    innerKey.MakeCompilerGenerated()
                 End If
 
                 If suppressDiagnostics IsNot Nothing Then

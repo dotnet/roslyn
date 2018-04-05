@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
+    <[UseExportProvider]>
     Public Class QualificationTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -23,7 +24,7 @@ Class X
     End Function
     Class B
         Property [|$$X|]()
-        Sub Foo()
+        Sub Goo()
             Dim y = {|stmt1:_Y|}()
         End Sub
     End Class

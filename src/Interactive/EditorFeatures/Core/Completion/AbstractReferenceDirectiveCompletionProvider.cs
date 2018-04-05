@@ -1,124 +1,61 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
-    internal abstract partial class AbstractReferenceDirectiveCompletionProvider : CommonCompletionProvider
+    internal abstract class AbstractReferenceDirectiveCompletionProvider : AbstractDirectivePathCompletionProvider
     {
-        protected abstract bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken);
-
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return PathCompletionUtilities.IsTriggerCharacter(text, characterPosition);
-        }
-
-        private TextSpan GetTextChangeSpan(SyntaxToken stringLiteral, int position)
-        {
-            return PathCompletionUtilities.GetTextChangeSpan(
-                quotedPath: stringLiteral.ToString(),
-                quotedPathStart: stringLiteral.SpanStart,
-                position: position);
-        }
-
-        private static ICurrentWorkingDirectoryDiscoveryService GetFileSystemDiscoveryService(ITextSnapshot textSnapshot)
-        {
-            return CurrentWorkingDirectoryDiscoveryService.GetService(textSnapshot);
-        }
-
-        private static readonly ImmutableArray<CharacterSetModificationRule> s_commitRules =
-            ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '"', '\\', ','));
-
-        private static readonly ImmutableArray<CharacterSetModificationRule> s_filterRules = ImmutableArray<CharacterSetModificationRule>.Empty;
-
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(
-            filterCharacterRules: s_filterRules, commitCharacterRules: s_commitRules, enterKeyRule: EnterKeyRule.Never);
+            filterCharacterRules: ImmutableArray<CharacterSetModificationRule>.Empty, 
+            commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, GetCommitCharacters())),
+            enterKeyRule: EnterKeyRule.Never,
+            selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
-        public override async Task ProvideCompletionsAsync(CompletionContext context)
+        private static readonly char[] s_pathIndicators = new char[] { '/', '\\', ':' };
+
+        private static ImmutableArray<char> GetCommitCharacters()
         {
-            var document = context.Document;
-            var position = context.Position;
-            var cancellationToken = context.CancellationToken;
+            var builder = ArrayBuilder<char>.GetInstance();
 
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            builder.Add('"');
 
-            // first try to get the #r string literal token.  If we couldn't, then we're not in a #r
-            // reference directive and we immediately bail.
-            SyntaxToken stringLiteral;
-            if (!TryGetStringLiteralToken(tree, position, out stringLiteral, cancellationToken))
+            if (PathUtilities.IsUnixLikePlatform)
             {
-                return;
-            }
-
-            var textChangeSpan = this.GetTextChangeSpan(stringLiteral, position);
-
-            var gacHelper = new GlobalAssemblyCacheCompletionHelper(this, textChangeSpan, itemRules: s_rules);
-            var text = await document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
-            var snapshot = text.FindCorrespondingEditorTextSnapshot();
-            if (snapshot == null)
-            {
-                // Passing null to GetFileSystemDiscoveryService raises an exception.
-                // Instead, return here since there is no longer snapshot for this document.
-                return;
-            }
-
-            var referenceResolver = document.Project.CompilationOptions.MetadataReferenceResolver;
-
-            // TODO: https://github.com/dotnet/roslyn/issues/5263
-            // Avoid dependency on a specific resolvers.
-            // The search paths should be provided by specialized workspaces:
-            // - InteractiveWorkspace for interactive window 
-            // - ScriptWorkspace for loose .csx files (we don't have such workspace today)
-            ImmutableArray<string> searchPaths;
-
-            RuntimeMetadataReferenceResolver rtResolver;
-            WorkspaceMetadataFileReferenceResolver workspaceResolver;
-
-            if ((rtResolver = referenceResolver as RuntimeMetadataReferenceResolver) != null)
-            {
-                searchPaths = rtResolver.PathResolver.SearchPaths;
-            }
-            else if ((workspaceResolver = referenceResolver as WorkspaceMetadataFileReferenceResolver) != null)
-            {
-                searchPaths = workspaceResolver.PathResolver.SearchPaths;
+                builder.Add('/');
             }
             else
             {
-                return;
+                builder.Add('/');
+                builder.Add('\\');
             }
 
-            var fileSystemHelper = new FileSystemCompletionHelper(
-                this, textChangeSpan,
-                GetFileSystemDiscoveryService(snapshot),
-                Glyph.OpenFolder,
-                Glyph.Assembly,
-                searchPaths: searchPaths,
-                allowableExtensions: new[] { ".dll", ".exe" },
-                exclude: path => path.Contains(","),
-                itemRules: s_rules);
+            if (GacFileResolver.IsAvailable)
+            {
+                builder.Add(',');
+            }
 
-            var pathThroughLastSlash = GetPathThroughLastSlash(stringLiteral, position);
-
-            var documentPath = document.Project.IsSubmission ? null : document.FilePath;
-            context.AddItems(gacHelper.GetItems(pathThroughLastSlash, documentPath));
-            context.AddItems(fileSystemHelper.GetItems(pathThroughLastSlash, documentPath));
+            return builder.ToImmutableAndFree();
         }
 
-        private static string GetPathThroughLastSlash(SyntaxToken stringLiteral, int position)
+        protected override async Task ProvideCompletionsAsync(CompletionContext context, string pathThroughLastSlash)
         {
-            return PathCompletionUtilities.GetPathThroughLastSlash(
-                quotedPath: stringLiteral.ToString(),
-                quotedPathStart: stringLiteral.SpanStart,
-                position: position);
+            if (GacFileResolver.IsAvailable && pathThroughLastSlash.IndexOfAny(s_pathIndicators) < 0)
+            {
+                var gacHelper = new GlobalAssemblyCacheCompletionHelper(s_rules);
+                context.AddItems(await gacHelper.GetItemsAsync(pathThroughLastSlash, context.CancellationToken).ConfigureAwait(false));
+            }
+
+            if (pathThroughLastSlash.IndexOf(',') < 0)
+            {
+                var helper = GetFileSystemCompletionHelper(context.Document, Glyph.Assembly, ImmutableArray.Create(".dll", ".exe"), s_rules);
+                context.AddItems(await helper.GetItemsAsync(pathThroughLastSlash, context.CancellationToken).ConfigureAwait(false));
+            }
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         public static SyntaxToken GetCloseToken(this BaseArgumentListSyntax node)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         public static BaseArgumentListSyntax WithArguments(

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -49,16 +50,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             if (documentsAndDiagnosticsToFixMap?.Any() == true)
             {
-                FixAllLogger.LogDiagnosticsStats(documentsAndDiagnosticsToFixMap);
+                FixAllLogger.LogDiagnosticsStats(fixAllState.CorrelationId, documentsAndDiagnosticsToFixMap);
 
                 var diagnosticsAndCodeActions = await GetDiagnosticsAndCodeActions(
                     documentsAndDiagnosticsToFixMap, fixAllState, cancellationToken).ConfigureAwait(false);
 
                 if (diagnosticsAndCodeActions.Length > 0)
                 {
-                    using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, cancellationToken))
+                    var functionId = FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Merge;
+                    using (Logger.LogBlock(functionId, FixAllLogger.CreateCorrelationLogMessage(fixAllState.CorrelationId), cancellationToken))
                     {
-                        FixAllLogger.LogFixesToMergeStats(diagnosticsAndCodeActions.Length);
+                        FixAllLogger.LogFixesToMergeStats(functionId, fixAllState.CorrelationId, diagnosticsAndCodeActions.Length);
                         return await TryGetMergedFixAsync(
                             diagnosticsAndCodeActions, fixAllState, cancellationToken).ConfigureAwait(false);
                     }
@@ -73,7 +75,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
             var fixesBag = new ConcurrentBag<(Diagnostic diagnostic, CodeAction action)>();
-            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Fixes, cancellationToken))
+            using (Logger.LogBlock(
+                FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Fixes,
+                FixAllLogger.CreateCorrelationLogMessage(fixAllState.CorrelationId),
+                cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -130,10 +135,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             if (projectsAndDiagnosticsToFixMap != null && projectsAndDiagnosticsToFixMap.Any())
             {
-                FixAllLogger.LogDiagnosticsStats(projectsAndDiagnosticsToFixMap);
+                FixAllLogger.LogDiagnosticsStats(fixAllState.CorrelationId, projectsAndDiagnosticsToFixMap);
 
                 var bag = new ConcurrentBag<(Diagnostic diagnostic, CodeAction action)>();
-                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Fixes, cancellationToken))
+                using (Logger.LogBlock(
+                    FunctionId.CodeFixes_FixAllOccurrencesComputation_Project_Fixes,
+                    FixAllLogger.CreateCorrelationLogMessage(fixAllState.CorrelationId),
+                    cancellationToken))
                 {
                     var projects = projectsAndDiagnosticsToFixMap.Keys;
                     var tasks = projects.Select(p => AddProjectFixesAsync(
@@ -145,9 +153,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var result = bag.ToImmutableArray();
                 if (result.Length > 0)
                 {
-                    using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Merge, cancellationToken))
+                    var functionId = FunctionId.CodeFixes_FixAllOccurrencesComputation_Project_Merge;
+                    using (Logger.LogBlock(functionId, cancellationToken))
                     {
-                        FixAllLogger.LogFixesToMergeStats(result.Length);
+                        FixAllLogger.LogFixesToMergeStats(functionId, fixAllState.CorrelationId, result.Length);
                         return await TryGetMergedFixAsync(
                             result, fixAllState, cancellationToken).ConfigureAwait(false);
                     }

@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
     Public Class CSharpIntelliSenseCommandHandlerTests
         <WpfFact>
         Public Async Function TestOpenParenDismissesCompletionAndBringsUpSignatureHelp1() As Task
@@ -10,21 +11,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                               <Document>
 class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }
 }
                               </Document>)
 
-                state.SendTypeChars("Fo")
+                state.SendTypeChars("Go")
                 Await state.AssertCompletionSession()
                 Await state.AssertNoSignatureHelpSession()
                 state.SendTypeChars("(")
                 Await state.AssertNoCompletionSession()
                 Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
-                Assert.Contains("Foo(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Goo()")
+                Assert.Contains("Goo(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -35,14 +36,14 @@ class C
                               <Document>
 class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }
 }
                               </Document>)
 
-                state.SendTypeChars("Foo(a")
+                state.SendTypeChars("Goo(a")
                 Await state.AssertCompletionSession()
                 Await state.AssertSignatureHelpSession()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -63,13 +64,13 @@ class C
                               <Document>
 class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }
 }
                               </Document>)
-                state.SendTypeChars("Foo(a")
+                state.SendTypeChars("Goo(a")
                 Await state.AssertCompletionSession()
                 Await state.AssertSignatureHelpSession()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -86,14 +87,14 @@ class C
                               <Document>
 class C
 {
-    void Foo()
+    void Goo()
     {
         $$
     }
 }
                               </Document>)
 
-                state.SendTypeChars("Foo(a")
+                state.SendTypeChars("Goo(a")
                 Await state.AssertCompletionSession()
                 Await state.AssertSignatureHelpSession()
                 Await state.WaitForAsynchronousOperationsAsync()

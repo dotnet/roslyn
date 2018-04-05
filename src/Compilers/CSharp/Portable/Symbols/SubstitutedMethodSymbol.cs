@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -38,9 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private int _hashCode; // computed on demand
 
-        internal SubstitutedMethodSymbol(SubstitutedNamedTypeSymbol containingSymbol, MethodSymbol originalDefinition)
+        internal SubstitutedMethodSymbol(NamedTypeSymbol containingSymbol, MethodSymbol originalDefinition)
             : this(containingSymbol, containingSymbol.TypeSubstitution, originalDefinition, constructedFrom: null)
         {
+            Debug.Assert(containingSymbol is SubstitutedNamedTypeSymbol || containingSymbol is SubstitutedErrorTypeSymbol);
+            Debug.Assert(originalDefinition.ContainingType == containingSymbol.OriginalDefinition);
         }
 
         protected SubstitutedMethodSymbol(NamedTypeSymbol containingSymbol, TypeMap map, MethodSymbol originalDefinition, MethodSymbol constructedFrom)
@@ -379,9 +382,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // may still be considered equal, we do not want to give different hashcode to such types.
             //
             // Example:
-            //   Having original method A<U>.Foo<V>() we create two _unconstructed_ methods
-            //    A<int>.Foo<V'>
-            //    A<int>.Foo<V">     
+            //   Having original method A<U>.Goo<V>() we create two _unconstructed_ methods
+            //    A<int>.Goo<V'>
+            //    A<int>.Goo<V">     
             //  Note that V' and V" are type parameters substituted via alpha-renaming of original V
             //  These are different objects, but represent the same "type parameter at index 1"
             //

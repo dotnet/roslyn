@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -134,8 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 results.Add(symbol);
 
                 // also report matching constructors (using same match result as type)
-                var namedType = symbol as INamedTypeSymbol;
-                if (namedType != null)
+                if (symbol is INamedTypeSymbol namedType)
                 {
                     foreach (var constructor in namedType.Constructors)
                     {
@@ -148,8 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
 
                 // report both parts of partial methods
-                var method = symbol as IMethodSymbol;
-                if (method != null && method.PartialImplementationPart != null)
+                if (symbol is IMethodSymbol method && method.PartialImplementationPart != null)
                 {
                     results.Add(method);
                 }

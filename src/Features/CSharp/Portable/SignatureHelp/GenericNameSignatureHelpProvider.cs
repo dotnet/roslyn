@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return true;
             }
 
-            genericIdentifier = default(SyntaxToken);
-            lessThanToken = default(SyntaxToken);
+            genericIdentifier = default;
+            lessThanToken = default;
             return false;
         }
 
@@ -245,6 +245,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 if (typeParam.HasReferenceTypeConstraint)
                 {
                     parts.Add(Keyword(SyntaxKind.ClassKeyword));
+                    needComma = true;
+                }
+                else if (typeParam.HasUnmanagedTypeConstraint)
+                {
+                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "unmanaged"));
                     needComma = true;
                 }
                 else if (typeParam.HasValueTypeConstraint)

@@ -61,7 +61,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             }
         }
 
-        protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
+        protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
         {
             if (_docComments == null)
             {

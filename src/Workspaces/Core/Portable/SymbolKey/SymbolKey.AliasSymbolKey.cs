@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                return default(SymbolKeyResolution);
+                return default;
             }
 
             private static SymbolKeyResolution? Resolve(

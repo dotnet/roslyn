@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -103,7 +103,11 @@ namespace RunTests
                     Console.Write($", {failures, 2} failures");
                 }
                 Console.WriteLine();
-                Task.WaitAny(running.ToArray());
+
+                if (running.Count > 0)
+                {
+                    await Task.WhenAny(running.ToArray());
+                }
             } while (running.Count > 0);
 
             Print(completed);
@@ -149,9 +153,8 @@ namespace RunTests
         private void PrintFailedTestResult(TestResult testResult)
         {
             // Save out the error output for easy artifact inspecting
-            var resultsDir = testResult.ResultsDirectory;
-            var outputLogPath = Path.Combine(resultsDir, $"{testResult.DisplayName}.out.log");
-            File.WriteAllText(outputLogPath, testResult.StandardOutput);
+            var outputLogPath = Path.Combine(_options.LogsDirectory, $"{testResult.DisplayName}.out.log");
+            File.WriteAllText(outputLogPath, testResult.StandardOutput ?? "");
 
             Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
             Console.WriteLine(testResult.ErrorOutput);

@@ -123,13 +123,13 @@ End Module
 
         Module Module1
         Sub Main()
-            Foo()
+            Goo()
             Bar()
-            Foo()
+            Goo()
             Bar()
         End Sub
 
-        Sub Foo()
+        Sub Goo()
             Static SLItem1 = 1
             Console.WriteLine("StaticLocalInSub")
             Console.WriteLine(SLItem1.GetType.ToString) 'Type Inferred
@@ -148,7 +148,7 @@ End Module
 
     </file>
     </compilation>).
-                VerifyIL("Module1.Foo", <![CDATA[
+                VerifyIL("Module1.Goo", <![CDATA[
 {
   // Code size      187 (0xbb)
   .maxstack  3
@@ -222,13 +222,13 @@ End Module
 
         Module Module1
         Sub Main()
-            Foo()
+            Goo()
             Bar()
-            Foo()
+            Goo()
             Bar()
         End Sub
 
-        Sub Foo()
+        Sub Goo()
             Static SLItem1 = 1
             Console.WriteLine("StaticLocalInSub")
             Console.WriteLine(SLItem1.GetType.ToString) 'Type Inferred
@@ -326,13 +326,13 @@ Imports System
 
         Module Module1
         Sub Main()
-            Foo()
-            Foo(1)
-            Foo()
-            Foo(2)
+            Goo()
+            Goo(1)
+            Goo()
+            Goo(2)
         End Sub
 
-        Sub Foo()
+        Sub Goo()
             Static SLItem1 = 1
             Console.WriteLine("StaticLocalInSub")
             Console.WriteLine(SLItem1.GetType.ToString) 'Type Inferred
@@ -340,7 +340,7 @@ Imports System
             SLItem1 += 1
         End Sub
 
-        Sub foo(x as Integer)
+        Sub goo(x as Integer)
             Static SLItem1 = 1
             Console.WriteLine("StaticLocalInSub")
             Console.WriteLine(SLItem1.GetType.ToString) 'Type Inferred
@@ -350,7 +350,7 @@ Imports System
 End Module
     </file>
     </compilation>).
-                VerifyIL("Module1.Foo", <![CDATA[
+                VerifyIL("Module1.Goo", <![CDATA[
 {
   // Code size      187 (0xbb)
   .maxstack  3
@@ -423,13 +423,13 @@ End Module
 
         Module Module1
         Sub Main()
-            Foo()
-            Foo(1)
-            Foo()
-            Foo(2)
+            Goo()
+            Goo(1)
+            Goo()
+            Goo(2)
         End Sub
 
-        Sub foo(x as Integer)
+        Sub goo(x as Integer)
             Static SLItem1 = 1
             Console.WriteLine("StaticLocalInSub")
             Console.WriteLine(SLItem1.GetType.ToString) 'Type Inferred
@@ -437,7 +437,7 @@ End Module
             SLItem1 += 1
         End Sub
 
-        Sub Foo()
+        Sub Goo()
             Static SLItem1 = 1
             Console.WriteLine("StaticLocalInSub")
             Console.WriteLine(SLItem1.GetType.ToString) 'Type Inferred
@@ -447,7 +447,7 @@ End Module
 End Module
     </file>
     </compilation>).
-    VerifyIL("Module1.foo", <![CDATA[
+    VerifyIL("Module1.goo", <![CDATA[
 {
   // Code size      187 (0xbb)
   .maxstack  3

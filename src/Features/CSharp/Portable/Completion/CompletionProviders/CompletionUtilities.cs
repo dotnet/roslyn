@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.Completion;
@@ -105,6 +105,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     return name;
                 }
+            }
+
+            if (symbol.Kind == SymbolKind.Label &&
+                symbol.DeclaringSyntaxReferences[0].GetSyntax().Kind() == SyntaxKind.DefaultSwitchLabel)
+            {
+                return symbol.Name;
             }
 
             return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);

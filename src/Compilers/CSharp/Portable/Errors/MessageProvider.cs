@@ -160,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_InvalidFileAlignment => (int)ErrorCode.ERR_InvalidFileAlignment;
         public override int ERR_InvalidSubsystemVersion => (int)ErrorCode.ERR_InvalidSubsystemVersion;
         public override int ERR_InvalidInstrumentationKind => (int)ErrorCode.ERR_InvalidInstrumentationKind;
+        public override int ERR_InvalidHashAlgorithmName => (int)ErrorCode.ERR_InvalidHashAlgorithmName;
 
         // reference manager:
         public override int ERR_MetadataFileNotAssembly => (int)ErrorCode.ERR_ImportNonAssembly;
@@ -218,6 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_PeWritingFailure => (int)ErrorCode.ERR_PeWritingFailure;
         public override int ERR_ModuleEmitFailure => (int)ErrorCode.ERR_ModuleEmitFailure;
         public override int ERR_EncUpdateFailedMissingAttribute => (int)ErrorCode.ERR_EncUpdateFailedMissingAttribute;
+        public override int ERR_InvalidDebugInfo => (int)ErrorCode.ERR_InvalidDebugInfo;
 
         public override void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute)
         {

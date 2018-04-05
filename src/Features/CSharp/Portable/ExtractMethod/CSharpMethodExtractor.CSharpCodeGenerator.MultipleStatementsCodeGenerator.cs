@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading;
@@ -101,16 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     Contract.ThrowIfNull(node);
                     Contract.ThrowIfFalse(node.IsStatementContainerNode());
 
-                    var blockNode = node as BlockSyntax;
-                    if (blockNode != null)
+                    switch (node)
                     {
-                        return blockNode.Statements;
-                    }
-
-                    var switchSectionNode = node as SwitchSectionSyntax;
-                    if (switchSectionNode != null)
-                    {
-                        return switchSectionNode.Statements;
+                        case BlockSyntax blockNode:
+                            return blockNode.Statements;
+                        case SwitchSectionSyntax switchSectionNode:
+                            return switchSectionNode.Statements;
                     }
 
                     return Contract.FailWithReturn<SyntaxList<StatementSyntax>>("unknown statements container!");

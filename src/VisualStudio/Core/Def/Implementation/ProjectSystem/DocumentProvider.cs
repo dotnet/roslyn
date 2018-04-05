@@ -30,10 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         #region Immutable readonly fields/properties that can be accessed from foreground or background threads - do not need locking for access.
         private readonly object _gate = new object();
         private readonly uint _runningDocumentTableEventCookie;
-        private readonly IVisualStudioHostProjectContainer _projectContainer;
+        private readonly VisualStudioProjectTracker _projectTracker;
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly IVsTextManager _textManager;
-        private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
@@ -54,22 +53,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Creates a document provider.
         /// </summary>
-        /// <param name="projectContainer">Project container for the documents.</param>
         /// <param name="serviceProvider">Service provider</param>
         /// <param name="documentTrackingService">An optional <see cref="VisualStudioDocumentTrackingService"/> to track active and visible documents.</param>
         public DocumentProvider(
-            IVisualStudioHostProjectContainer projectContainer,
+            VisualStudioProjectTracker projectTracker,
             IServiceProvider serviceProvider,
             VisualStudioDocumentTrackingService documentTrackingService)
         {
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
-            _projectContainer = projectContainer;
+            _projectTracker = projectTracker;
             this._documentTrackingServiceOpt = documentTrackingService;
             this._runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             this._editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             this._contentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
-            _textUndoHistoryRegistry = componentModel.GetService<ITextUndoHistoryRegistry>();
             _textManager = (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
 
             _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
@@ -85,6 +82,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Marshal.ThrowExceptionForHR(runningDocumentTableForEvents.AdviseRunningDocTableEvents(new RunningDocTableEventsSink(this), out _runningDocumentTableEventCookie));
         }
 
+        [Obsolete("This overload is a compatibility shim for TypeScript; please do not use it.")]
+        public IVisualStudioHostDocument TryGetDocumentForFile(
+            IVisualStudioHostProject hostProject,
+            string filePath,
+            SourceCodeKind sourceCodeKind,
+            Func<ITextBuffer, bool> canUseTextBuffer,
+            Func<uint, IReadOnlyList<string>> getFolderNames,
+            EventHandler updatedOnDiskHandler = null,
+            EventHandler<bool> openedHandler = null,
+            EventHandler<bool> closingHandler = null)
+        {
+            return TryGetDocumentForFile(
+                (AbstractProject)hostProject,
+                filePath,
+                sourceCodeKind,
+                canUseTextBuffer,
+                getFolderNames,
+                updatedOnDiskHandler,
+                openedHandler,
+                closingHandler);
+        }
+
         /// <summary>
         /// Gets the <see cref="IVisualStudioHostDocument"/> for the file at the given filePath.
         /// If we are on the foreground thread and this document is already open in the editor,
@@ -93,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// whenever <see cref="NotifyDocumentRegisteredToProjectAndStartToRaiseEvents"/> is invoked for the returned document.
         /// </summary>
         public IVisualStudioHostDocument TryGetDocumentForFile(
-            IVisualStudioHostProject hostProject,
+            AbstractProject hostProject,
             string filePath,
             SourceCodeKind sourceCodeKind,
             Func<ITextBuffer, bool> canUseTextBuffer,
@@ -163,7 +182,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     documentKey,
                     getFolderNames,
                     sourceCodeKind,
-                    _textUndoHistoryRegistry,
                     _fileChangeService,
                     openTextBuffer,
                     id,
@@ -192,9 +210,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            var shimTextBuffer = docData as IVsTextBuffer;
 
-            if (shimTextBuffer != null)
+            if (docData is IVsTextBuffer shimTextBuffer)
             {
                 return _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
             }
@@ -331,12 +348,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
             _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out var itemid);
 
-            var shimTextBuffer = _runningDocumentTable.GetDocumentData(docCookie) as IVsTextBuffer;
-
-            if (shimTextBuffer != null)
+            // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
+            // which saves us JIT time in this method.
+            if ((object)_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer shimTextBuffer)
             {
                 var hasAssociatedRoslynDocument = false;
-                foreach (var project in _projectContainer.GetProjects())
+                foreach (var project in _projectTracker.ImmutableProjects)
                 {
                     var documentKey = new DocumentKey(project, moniker);
 
@@ -393,11 +410,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // This is opening some other designer or property page. If it's tied to our IVsHierarchy, we should
                 // let the workspace know
-                foreach (var project in _projectContainer.GetProjects())
+                foreach (var project in _projectTracker.ImmutableProjects)
                 {
                     if (hierarchy == project.Hierarchy)
                     {
-                        _projectContainer.NotifyNonDocumentOpenedForProject(project);
+                        _projectTracker.NotifyNonDocumentOpenedForProject(project);
                     }
                 }
             }
@@ -580,15 +597,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // and HostDocuments implicitly have an immutable filename. Therefore, we choose to close 
             // all files associated with this docCookie, so they are no longer associated with an RDT document that
             // no longer matches their filenames. This removes all tracking information and associations
-            // between cookies and documents in this class. When the project system comes along and adds the
-            // files with the new name, they will ask the DocumentProvider for the documents under the
-            // new name. At that point, since we've removed all tracking, these will appear as new files
-            // and we'll hand out new HostDocuments that are properly tracking the already open files.
+            // between cookies and documents in this class.
 
             // In the case of miscellaneous files, we're also watching the RDT. If that saw the RDT event
             // before we did, it's possible we've already updated state to handle the rename. Therefore, we
             // should only handle the close if the moniker we had was out of date.
             CloseDocuments(docCookie, monikerToKeep: newMoniker);
+
+            // We might also have new documents that now need to be opened, so handle them too. If the document
+            // isn't initialized we will wait until it's actually initialized to trigger the open; we see
+            // from the OnAfterAttributeChangeEx notification.
+            if (_runningDocumentTable.IsDocumentInitialized(docCookie))
+            {
+                TryProcessOpenForDocCookie(docCookie, CancellationToken.None);
+            }
         }
 
         private void RenameFileCodeModelInstances(uint docCookie, string oldMoniker, string newMoniker)
@@ -613,10 +635,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             foreach (var document in documents)
             {
-                var workspace = document.Project.Workspace as VisualStudioWorkspace;
-                if (workspace != null)
+                if (document.Project.Workspace is VisualStudioWorkspace workspace)
                 {
-                    workspace.RenameFileCodeModelInstance(document.Id, newMoniker);
+                    document.Project.ProjectCodeModel?.OnSourceFileRenaming(document.FilePath, newMoniker);
                 }
             }
         }

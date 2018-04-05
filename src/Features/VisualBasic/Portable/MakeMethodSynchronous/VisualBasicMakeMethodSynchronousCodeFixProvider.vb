@@ -7,7 +7,8 @@ Imports Microsoft.CodeAnalysis.MakeMethodSynchronous
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.MakeMethodSynchronous), [Shared]>
+    <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddImport)>
     Friend Class VisualBasicMakeMethodSynchronousCodeFixProvider
         Inherits AbstractMakeMethodSynchronousCodeFixProvider
 
@@ -21,13 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
             End Get
         End Property
 
-        Protected Overrides Function IsMethodOrAnonymousFunction(node As SyntaxNode) As Boolean
-            Return node.IsKind(SyntaxKind.FunctionBlock) OrElse
-                node.IsKind(SyntaxKind.SubBlock) OrElse
-                node.IsKind(SyntaxKind.MultiLineFunctionLambdaExpression) OrElse
-                node.IsKind(SyntaxKind.MultiLineSubLambdaExpression) OrElse
-                node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) OrElse
-                node.IsKind(SyntaxKind.SingleLineSubLambdaExpression)
+        Protected Overrides Function IsAsyncSupportingFunctionSyntax(node As SyntaxNode) As Boolean
+            Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
         Protected Overrides Function RemoveAsyncTokenAndFixReturnType(methodSymbolOpt As IMethodSymbol, node As SyntaxNode, taskType As ITypeSymbol, taskOfTType As ITypeSymbol) As SyntaxNode

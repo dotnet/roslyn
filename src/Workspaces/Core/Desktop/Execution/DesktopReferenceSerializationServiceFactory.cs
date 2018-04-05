@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// this is desktop implementation of IReferenceSerializationService
     /// </summary>
     [ExportWorkspaceServiceFactory(typeof(IReferenceSerializationService), layer: ServiceLayer.Desktop), Shared]
-    internal class ReferenceSerializationServiceFactory : IWorkspaceServiceFactory
+    internal class DesktopReferenceSerializationServiceFactory : IWorkspaceServiceFactory
     {
         private static readonly SerializationAnalyzerAssemblyLoader s_loader = new SerializationAnalyzerAssemblyLoader();
 
@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 try
                 {
-                    byte[] value;
-                    if (!s_encodingCache.TryGetValue(encoding, out value))
+                    if (!s_encodingCache.TryGetValue(encoding, out var value))
                     {
                         // we don't have cache, cache it
                         var formatter = new BinaryFormatter();

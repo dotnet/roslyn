@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
     {
         internal CSharpInteractiveCompiler(string responseFile, BuildPaths buildPaths, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
             // Unlike C# compiler we do not use LIB environment variable. It's only supported for historical reasons.
-            : base(CSharpCommandLineParser.ScriptRunner, responseFile, args, buildPaths, null, analyzerLoader)
+            : base(CSharpCommandLineParser.Script, responseFile, args, buildPaths, null, analyzerLoader)
         {
         }
 

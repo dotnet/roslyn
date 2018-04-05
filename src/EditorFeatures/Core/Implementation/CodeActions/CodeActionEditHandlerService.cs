@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var applyChanges = op as ApplyChangesOperation;
-                if (applyChanges != null)
+                if (op is ApplyChangesOperation applyChanges)
                 {
                     var oldSolution = workspace.CurrentSolution;
                     var newSolution = applyChanges.ChangedSolution.WithMergedLinkedFileChangesAsync(oldSolution, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
@@ -69,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     }
                 }
 
-                var previewOp = op as PreviewOperation;
-                if (previewOp != null)
+                if (op is PreviewOperation previewOp)
                 {
                     currentResult = SolutionPreviewResult.Merge(currentResult,
                         new SolutionPreviewResult(new SolutionPreviewItem(
@@ -114,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 return;
             }
 
-#if DEBUG
+#if DEBUG && false
             var documentErrorLookup = new HashSet<DocumentId>();
             foreach (var project in workspace.CurrentSolution.Projects)
             {
@@ -176,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
 
             var updatedSolution = operations.OfType<ApplyChangesOperation>().FirstOrDefault()?.ChangedSolution ?? oldSolution;
-            TryStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
+            TryNavigateToLocationOrStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
         }
 
         private TextDocument TryGetSingleChangedText(
@@ -259,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
         }
 
-        private void TryStartRenameSession(Workspace workspace, Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
+        private void TryNavigateToLocationOrStartRenameSession(Workspace workspace, Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
         {
             var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
             foreach (var documentId in changedDocuments)
@@ -272,9 +270,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                 var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
-                var renameTokenOpt = root.GetAnnotatedNodesAndTokens(RenameAnnotation.Kind)
-                                         .Where(s => s.IsToken)
-                                         .Select(s => s.AsToken())
+                var navigationTokenOpt = root.GetAnnotatedTokens(NavigationAnnotation.Kind)
+                                             .FirstOrNullable();
+                if (navigationTokenOpt.HasValue)
+                {
+                    var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+                    navigationService.TryNavigateToPosition(workspace, documentId, navigationTokenOpt.Value.SpanStart);
+                    return;
+                }
+
+                var renameTokenOpt = root.GetAnnotatedTokens(RenameAnnotation.Kind)
                                          .FirstOrNullable();
 
                 if (renameTokenOpt.HasValue)

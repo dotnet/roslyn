@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new TypedConstant(_intType, TypedConstantKind.Primitive, 1),
                 new TypedConstant(_intType, TypedConstantKind.Primitive, 1));
 
-            var s1 = "foo";
-            var s2 = String.Format("{0}{1}{1}", "f", "o");
+            var s1 = "goo";
+            var s2 = String.Format("{0}{1}{1}", "g", "o");
 
             EqualityTesting.AssertEqual(
                 new TypedConstant(_stringType, TypedConstantKind.Primitive, s1),

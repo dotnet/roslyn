@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub TestTrailingComment()
-            TestNormalizeBlock("Dim foo as Bar     ' it is a Bar", "Dim foo as Bar ' it is a Bar" + vbCrLf)
+            TestNormalizeBlock("Dim goo as Bar     ' it is a Bar", "Dim goo as Bar ' it is a Bar" + vbCrLf)
         End Sub
 
 
@@ -91,36 +91,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub TestImportsStatements()
             TestNormalizeBlock("Imports           System", "Imports System" + vbCrLf)
-            TestNormalizeBlock("Imports System.Foo.Bar", "Imports System.Foo.Bar" + vbCrLf)
+            TestNormalizeBlock("Imports System.Goo.Bar", "Imports System.Goo.Bar" + vbCrLf)
             TestNormalizeBlock("Imports T2=System.String", "Imports T2 = System.String" + vbCrLf)
             TestNormalizeBlock("Imports          <xmlns:db=""http://example.org/database"">", "Imports <xmlns:db=""http://example.org/database"">" + vbCrLf)
         End Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestLabelStatements()
-            TestNormalizeStatement("while a<b" + vbCrLf + "foo:" + vbCrLf + "c" + vbCrLf + "end while", "while a < b" + vbCrLf + "foo:" + vbCrLf + "  c" + vbCrLf + "end while")
+            TestNormalizeStatement("while a<b" + vbCrLf + "goo:" + vbCrLf + "c" + vbCrLf + "end while", "while a < b" + vbCrLf + "goo:" + vbCrLf + "  c" + vbCrLf + "end while")
         End Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestMethodStatements()
-            TestNormalizeBlock("Sub foo()" + vbCrLf + "a()" + vbCrLf + "end Sub", "Sub foo()" + vbCrLf + "  a()" + vbCrLf + "end Sub" + vbCrLf)
-            TestNormalizeBlock("Function foo()         as   Integer" + vbCrLf + "return 23" + vbCrLf + "end function", "Function foo() as Integer" + vbCrLf + "  return 23" + vbCrLf + "end function" + vbCrLf)
-            TestNormalizeBlock("Function foo(  x as   System.Int32,[Char] as Integer)         as   Integer" + vbCrLf + "return 23" + vbCrLf + "end function", "Function foo(x as System.Int32, [Char] as Integer) as Integer" + vbCrLf + "  return 23" + vbCrLf + "end function" + vbCrLf)
-            TestNormalizeBlock("Sub foo()" + vbCrLf + "Dim a ( ) ( )=New Integer ( ) ( ) (   ){ }" + vbCrLf + "end Sub", "Sub foo()" + vbCrLf + "  Dim a()() = New Integer()()() {}" + vbCrLf + "end Sub" + vbCrLf)
+            TestNormalizeBlock("Sub goo()" + vbCrLf + "a()" + vbCrLf + "end Sub", "Sub goo()" + vbCrLf + "  a()" + vbCrLf + "end Sub" + vbCrLf)
+            TestNormalizeBlock("Function goo()         as   Integer" + vbCrLf + "return 23" + vbCrLf + "end function", "Function goo() as Integer" + vbCrLf + "  return 23" + vbCrLf + "end function" + vbCrLf)
+            TestNormalizeBlock("Function goo(  x as   System.Int32,[Char] as Integer)         as   Integer" + vbCrLf + "return 23" + vbCrLf + "end function", "Function goo(x as System.Int32, [Char] as Integer) as Integer" + vbCrLf + "  return 23" + vbCrLf + "end function" + vbCrLf)
+            TestNormalizeBlock("Sub goo()" + vbCrLf + "Dim a ( ) ( )=New Integer ( ) ( ) (   ){ }" + vbCrLf + "end Sub", "Sub goo()" + vbCrLf + "  Dim a()() = New Integer()()() {}" + vbCrLf + "end Sub" + vbCrLf)
         End Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestWithStatements()
             TestNormalizeBlock(
 <code>
-Sub foo()
-with foo
+Sub goo()
+with goo
 .bar()
 end with
 end Sub</code>.Value, _
  _
-<code>Sub foo()
-  with foo
+<code>Sub goo()
+  with goo
     .bar()
   end with
 end Sub
@@ -129,8 +129,8 @@ end Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
         Public Sub TestSyncLockStatements()
-            TestNormalizeBlock("Sub foo()" + vbCrLf + "SyncLock me" + vbCrLf + "bar()" + vbCrLf + "end synclock" + vbCrLf + "end Sub",
-                            "Sub foo()" + vbCrLf + "  SyncLock me" + vbCrLf + "    bar()" + vbCrLf + "  end synclock" + vbCrLf + "end Sub" + vbCrLf)
+            TestNormalizeBlock("Sub goo()" + vbCrLf + "SyncLock me" + vbCrLf + "bar()" + vbCrLf + "end synclock" + vbCrLf + "end Sub",
+                            "Sub goo()" + vbCrLf + "  SyncLock me" + vbCrLf + "    bar()" + vbCrLf + "  end synclock" + vbCrLf + "end Sub" + vbCrLf)
         End Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
@@ -346,72 +346,72 @@ end module
         Public Sub TestEnumStatements()
             TestNormalizeBlock("Module M1" + vbCrLf + vbCrLf +
                             "ENUM E1 as long" + vbCrLf +
-                            "         foo=23" + vbCrLf +
+                            "         goo=23" + vbCrLf +
                             "bar        " + vbCrLf +
-                            "boo=foo" + vbCrLf +
+                            "boo=goo" + vbCrLf +
                             "booya=1.4" + vbCrLf +
                             "end enum" + vbCrLf +
                             "end         MODule", _
  _
                             "Module M1" + vbCrLf + vbCrLf +
                             "  ENUM E1 as long" + vbCrLf +
-                            "    foo = 23" + vbCrLf +
+                            "    goo = 23" + vbCrLf +
                             "    bar" + vbCrLf +
-                            "    boo = foo" + vbCrLf +
+                            "    boo = goo" + vbCrLf +
                             "    booya = 1.4" + vbCrLf +
                             "  end enum" + vbCrLf +
                             "end MODule" + vbCrLf)
 
             TestNormalizeBlock("class c1" + vbCrLf +
                             "ENUM E1 as long" + vbCrLf +
-                            "         foo=23" + vbCrLf +
+                            "         goo=23" + vbCrLf +
                             "bar        " + vbCrLf +
-                            "boo=foo" + vbCrLf +
+                            "boo=goo" + vbCrLf +
                             "booya=1.4" + vbCrLf +
                             "end enum" + vbCrLf +
                             "end         class", _
  _
                             "class c1" + vbCrLf + vbCrLf +
                             "  ENUM E1 as long" + vbCrLf +
-                            "    foo = 23" + vbCrLf +
+                            "    goo = 23" + vbCrLf +
                             "    bar" + vbCrLf +
-                            "    boo = foo" + vbCrLf +
+                            "    boo = goo" + vbCrLf +
                             "    booya = 1.4" + vbCrLf +
                             "  end enum" + vbCrLf +
                             "end class" + vbCrLf)
 
             TestNormalizeBlock("public class c1" + vbCrLf + vbCrLf +
                             "ENUM E1 as long" + vbCrLf +
-                            "         foo=23" + vbCrLf +
+                            "         goo=23" + vbCrLf +
                             "bar        " + vbCrLf +
-                            "boo=foo" + vbCrLf +
+                            "boo=goo" + vbCrLf +
                             "booya=1.4" + vbCrLf +
                             "end enum" + vbCrLf +
                             "end         class", _
  _
                             "public class c1" + vbCrLf + vbCrLf +
                             "  ENUM E1 as long" + vbCrLf +
-                            "    foo = 23" + vbCrLf +
+                            "    goo = 23" + vbCrLf +
                             "    bar" + vbCrLf +
-                            "    boo = foo" + vbCrLf +
+                            "    boo = goo" + vbCrLf +
                             "    booya = 1.4" + vbCrLf +
                             "  end enum" + vbCrLf +
                             "end class" + vbCrLf)
 
             TestNormalizeBlock("class c1" + vbCrLf +
                             "public     ENUM E1 as long" + vbCrLf +
-                            "         foo=23" + vbCrLf +
+                            "         goo=23" + vbCrLf +
                             "bar        " + vbCrLf +
-                            "boo=foo" + vbCrLf +
+                            "boo=goo" + vbCrLf +
                             "booya=1.4" + vbCrLf +
                             "end enum" + vbCrLf +
                             "end         class", _
  _
                             "class c1" + vbCrLf + vbCrLf +
                             "  public ENUM E1 as long" + vbCrLf +
-                            "    foo = 23" + vbCrLf +
+                            "    goo = 23" + vbCrLf +
                             "    bar" + vbCrLf +
-                            "    boo = foo" + vbCrLf +
+                            "    boo = goo" + vbCrLf +
                             "    booya = 1.4" + vbCrLf +
                             "  end enum" + vbCrLf +
                             "end class" + vbCrLf)
@@ -466,39 +466,39 @@ end module
 
             TestNormalizeBlock("    Module M1" + vbCrLf +
                             "sub s1()" + vbCrLf +
-                            "select case foo" + vbCrLf +
+                            "select case goo" + vbCrLf +
                             "case    23 " + vbCrLf +
-                            "return    foo       " + vbCrLf +
+                            "return    goo       " + vbCrLf +
                             "case    42,11 " + vbCrLf +
-                            "return    foo       " + vbCrLf +
+                            "return    goo       " + vbCrLf +
                             "case    > 100 " + vbCrLf +
-                            "return    foo       " + vbCrLf +
+                            "return    goo       " + vbCrLf +
                             "case   200 to  300 " + vbCrLf +
-                            "return    foo       " + vbCrLf +
+                            "return    goo       " + vbCrLf +
                             "case    12," + vbCrLf +
                             "13" + vbCrLf +
-                            "return    foo       " + vbCrLf +
+                            "return    goo       " + vbCrLf +
                             "case else" + vbCrLf +
-                            "return   foo       " + vbCrLf +
+                            "return   goo       " + vbCrLf +
                             "end   select  " + vbCrLf +
                             "end   sub  " + vbCrLf +
                             "end   module  ", _
  _
                             "Module M1" + vbCrLf + vbCrLf +
                             "  sub s1()" + vbCrLf +
-                            "    select case foo" + vbCrLf +
+                            "    select case goo" + vbCrLf +
                             "      case 23" + vbCrLf +
-                            "        return foo" + vbCrLf +
+                            "        return goo" + vbCrLf +
                             "      case 42, 11" + vbCrLf +
-                            "        return foo" + vbCrLf +
+                            "        return goo" + vbCrLf +
                             "      case > 100" + vbCrLf +
-                            "        return foo" + vbCrLf +
+                            "        return goo" + vbCrLf +
                             "      case 200 to 300" + vbCrLf +
-                            "        return foo" + vbCrLf +
+                            "        return goo" + vbCrLf +
                             "      case 12, 13" + vbCrLf +
-                            "        return foo" + vbCrLf +
+                            "        return goo" + vbCrLf +
                             "      case else" + vbCrLf +
-                            "        return foo" + vbCrLf +
+                            "        return goo" + vbCrLf +
                             "    end select" + vbCrLf +
                             "  end sub" + vbCrLf +
                             "end module" + vbCrLf)
@@ -531,7 +531,7 @@ end module
             Dim generatedRightLiteralExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, generatedRightLiteralToken)
             Dim generatedRedLiteralExpression = SyntaxFactory.GreaterThanExpression(generatedLeftLiteralExpression, SyntaxFactory.Token(SyntaxKind.GreaterThanToken), generatedRightLiteralExpression)
             Dim generatedRedIfStatement = SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), generatedRedLiteralExpression, SyntaxFactory.Token(SyntaxKind.ThenKeyword, "THeN"))
-            Dim expression As ExpressionSyntax = SyntaxFactory.StringLiteralExpression(SyntaxFactory.StringLiteralToken("foo", "foo"))
+            Dim expression As ExpressionSyntax = SyntaxFactory.StringLiteralExpression(SyntaxFactory.StringLiteralToken("goo", "goo"))
             Dim callexpression = SyntaxFactory.InvocationExpression(expression:=expression)
             Dim callstatement = SyntaxFactory.CallStatement(SyntaxFactory.Token(SyntaxKind.CallKeyword), callexpression)
             Dim stmtlist = SyntaxFactory.List(Of StatementSyntax)({CType(callstatement, StatementSyntax), CType(callstatement, StatementSyntax)})
@@ -539,7 +539,7 @@ end module
 
             Dim mlib = SyntaxFactory.MultiLineIfBlock(generatedRedIfStatement, stmtlist, Nothing, Nothing, generatedEndIfStatement)
             Dim str = mlib.NormalizeWhitespace("  ").ToFullString()
-            Assert.Equal("If 42 > 23 THeN" + vbCrLf + "  Call foo" + vbCrLf + "  Call foo" + vbCrLf + "End If", str)
+            Assert.Equal("If 42 > 23 THeN" + vbCrLf + "  Call goo" + vbCrLf + "  Call goo" + vbCrLf + "End If", str)
         End Sub
 
         <Fact(), WorkItem(546397, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546397")>
@@ -761,14 +761,14 @@ End Property
         Public Sub TestStructuredTriviaAndAttributes()
             Dim source = "Module m1" + vbCrLf +
                             " '''<x>...</x>" + vbCrLf +
-                            "  <foo()>" + vbCrLf +
+                            "  <goo()>" + vbCrLf +
                             "  sub a()" + vbCrLf +
                             "  end sub" + vbCrLf +
                             "End Module" + vbCrLf + vbCrLf
 
             Dim expected = "Module m1" + vbCrLf + vbCrLf +
                             "  '''<x>...</x>" + vbCrLf +
-                            "  <foo()>" + vbCrLf +
+                            "  <goo()>" + vbCrLf +
                             "  sub a()" + vbCrLf +
                             "  end sub" + vbCrLf +
                             "End Module" + vbCrLf

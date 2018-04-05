@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     }
                 }
 
-                return default(ImmutableArray<CodeAction>);
+                return default;
             }
         }
 
@@ -199,11 +199,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             bool isConstant,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
 
             var semanticModel = document.SemanticModel;
-            var baseName = semanticFacts.GenerateNameForExpression(semanticModel, expression, isConstant);
+            var baseName = semanticFacts.GenerateNameForExpression(
+                semanticModel, expression, isConstant, cancellationToken);
 
             // A field can't conflict with any existing member names.
             var declaringType = semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken);
@@ -217,61 +218,18 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             SemanticDocument document,
             TExpressionSyntax expression,
             bool isConstant,
-            SyntaxNode container,
+            SyntaxNode containerOpt,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
-
             var semanticModel = document.SemanticModel;
-            var existingSymbols = GetExistingSymbols(semanticModel, container, cancellationToken);
 
-            var baseName = semanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize: isConstant);
-            var reservedNames = semanticModel.LookupSymbols(expression.SpanStart)
-                                             .Select(s => s.Name)
-                                             .Concat(existingSymbols.Select(s => s.Name));
+            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
+            var baseName = semanticFacts.GenerateNameForExpression(
+                semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
 
-            return syntaxFacts.ToIdentifierToken(
-                NameGenerator.EnsureUniqueness(baseName, reservedNames, syntaxFacts.IsCaseSensitive));
+            return semanticFacts.GenerateUniqueLocalName(
+                semanticModel, expression, containerOpt, baseName, cancellationToken);
         }
-
-        private static HashSet<ISymbol> GetExistingSymbols(
-            SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
-        {
-            var symbols = new HashSet<ISymbol>();
-            if (container != null)
-            {
-                GetExistingSymbols(semanticModel, container, symbols, cancellationToken);
-            }
-
-            return symbols;
-        }
-
-        private static void GetExistingSymbols(
-            SemanticModel semanticModel, SyntaxNode node, 
-            HashSet<ISymbol> symbols, CancellationToken cancellationToken)
-        {
-            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-
-            // Ignore an annonymous type property.  It's ok if they have a name that 
-            // matches the name of the local we're introducing.
-            if (symbol != null &&
-                !IsAnonymousTypeProperty(symbol))
-            {
-                symbols.Add(symbol);
-            }
-
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsNode)
-                {
-                    GetExistingSymbols(semanticModel, child.AsNode(), symbols, cancellationToken);
-                }
-            }
-        }
-
-        private static bool IsAnonymousTypeProperty(ISymbol symbol)
-            => symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType;
 
         protected ISet<TExpressionSyntax> FindMatches(
             SemanticDocument originalDocument,
@@ -313,7 +271,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 if (allOccurrences &&
                     this.CanReplace(nodeInCurrent))
                 {
-                    return SemanticEquivalence.AreSemanticallyEquivalent(
+                    return SemanticEquivalence.AreEquivalent(
                         originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent);
                 }
             }

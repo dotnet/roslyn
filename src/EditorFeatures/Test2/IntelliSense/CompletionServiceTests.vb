@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
     Public Class CompletionServiceTests
         <Fact>
         Public Async Function TestCompletionDoesNotCrashWhenSyntaxTreeNotPresent() As Task
@@ -24,11 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim completionService = New TestCompletionService(workspace)
 
                 Dim list = Await completionService.GetCompletionsAsync(
-                    document:=document,
-                    caretPosition:=0,
-                    trigger:=CompletionTrigger.Invoke,
-                    options:=Nothing,
-                    cancellationToken:=Nothing)
+                    document, caretPosition:=0, trigger:=CompletionTrigger.Invoke)
 
                 Assert.NotNull(list)
                 Assert.NotEmpty(list.Items)

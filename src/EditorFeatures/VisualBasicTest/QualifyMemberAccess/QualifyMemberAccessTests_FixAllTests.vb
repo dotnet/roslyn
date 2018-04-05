@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
@@ -79,7 +79,6 @@ End Class]]>
                 initialMarkup:=input,
                 expectedMarkup:=expected,
                 options:=[Option](CodeStyleOptions.QualifyPropertyAccess, True, NotificationOption.Suggestion),
-                ignoreTrivia:=False,
                 fixAllActionEquivalenceKey:=VBFeaturesResources.Add_Me)
         End Function
     End Class

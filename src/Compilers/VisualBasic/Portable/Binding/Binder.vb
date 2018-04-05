@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RuntimeMembers
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -323,6 +324,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable ReadOnly Property ContainingMember As Symbol
             Get
                 Return m_containingBinder.ContainingMember
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Additional members associated with the binding context
+        ''' Currently, this field is only used for multiple field/property symbols initialized by an AsNew initializer, e.g. "Dim x, y As New Integer" or "WithEvents x, y as New Object"
+        ''' </summary>
+        Public Overridable ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
+            Get
+                Return m_containingBinder.AdditionalContainingMembers
             End Get
         End Property
 

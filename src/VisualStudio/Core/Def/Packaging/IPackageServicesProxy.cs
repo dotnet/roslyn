@@ -7,7 +7,9 @@ using NuGet.VisualStudio;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
-    // Wrapper types to ensure we delay load the nuget libraries.
+    /// <summary>Wrapper type to ensure we delay load the nuget libraries.</summary> 
+    /// <remarks>All methods may throw exceptions due to <see cref="IVsPackageSourceProvider"/>
+    /// throwing in all sorts of bad nuget states (for example a bad nuget.config file)</remarks>
     internal interface IPackageServicesProxy
     {
         event EventHandler SourcesChanged;

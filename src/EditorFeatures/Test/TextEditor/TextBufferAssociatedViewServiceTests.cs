@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -35,20 +35,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
 
             var service = new TextBufferAssociatedViewService();
 
-            ((IWpfTextViewConnectionListener)service).SubjectBuffersConnected(viewMock.Object, dummyReason, bufferCollection);
+            ((ITextViewConnectionListener)service).SubjectBuffersConnected(viewMock.Object, dummyReason, bufferCollection);
             Assert.Equal(1, service.GetAssociatedTextViews(bufferMock.Object).Count());
 
-            ((IWpfTextViewConnectionListener)service).SubjectBuffersDisconnected(viewMock.Object, dummyReason, bufferCollection);
+            ((ITextViewConnectionListener)service).SubjectBuffersDisconnected(viewMock.Object, dummyReason, bufferCollection);
             Assert.Equal(0, service.GetAssociatedTextViews(bufferMock.Object).Count());
 
-            ((IWpfTextViewConnectionListener)service).SubjectBuffersConnected(viewMock.Object, dummyReason, bufferCollection);
-            ((IWpfTextViewConnectionListener)service).SubjectBuffersConnected(viewMock2.Object, dummyReason, bufferCollection);
+            ((ITextViewConnectionListener)service).SubjectBuffersConnected(viewMock.Object, dummyReason, bufferCollection);
+            ((ITextViewConnectionListener)service).SubjectBuffersConnected(viewMock2.Object, dummyReason, bufferCollection);
             Assert.Equal(2, service.GetAssociatedTextViews(bufferMock.Object).Count());
 
-            ((IWpfTextViewConnectionListener)service).SubjectBuffersDisconnected(viewMock.Object, dummyReason, bufferCollection);
+            ((ITextViewConnectionListener)service).SubjectBuffersDisconnected(viewMock.Object, dummyReason, bufferCollection);
             Assert.Equal(1, service.GetAssociatedTextViews(bufferMock.Object).Count());
 
-            ((IWpfTextViewConnectionListener)service).SubjectBuffersDisconnected(viewMock2.Object, dummyReason, bufferCollection);
+            ((ITextViewConnectionListener)service).SubjectBuffersDisconnected(viewMock2.Object, dummyReason, bufferCollection);
             Assert.Equal(0, service.GetAssociatedTextViews(bufferMock.Object).Count());
         }
     }

@@ -1,19 +1,20 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
+    <[UseExportProvider]>
     Public Class TryBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ApplyAfterTryStatement()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-Sub foo()
+Sub goo()
 Try
 End Sub
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-Sub foo()
+Sub goo()
 Try
 
 Catch ex As Exception
@@ -28,7 +29,7 @@ End Class",
         Public Sub DontApplyForMatchedTryWithCatch()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-Sub foo()
+Sub goo()
 Try
 Catch ex As Exception
 End Try
@@ -41,7 +42,7 @@ End Class",
         Public Sub DontApplyForMatchedTryWithoutCatch()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-Sub foo()
+Sub goo()
 Try
 End Try
 End Sub

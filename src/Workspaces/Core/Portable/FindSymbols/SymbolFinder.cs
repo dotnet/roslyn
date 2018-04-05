@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return FindSymbolAtPositionAsync(semanticModel, position, workspace, cancellationToken).WaitAndGetResult(cancellationToken);
         }
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var semanticInfo = await GetSemanticInfoAtPositionAsync(
                 semanticModel, position, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
             var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
-            if (token != default(SyntaxToken) &&
+            if (token != default &&
                 token.Span.IntersectsWith(position))
             {
                 return semanticModel.GetSemanticInfo(token, workspace, cancellationToken);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<ISymbol> FindSymbolAtPositionAsync(
             Document document,
             int position,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return await FindSymbolAtPositionAsync(semanticModel, position, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Returns null if no such symbol can be found in the specified solution.
         /// </summary>
         public static async Task<ISymbol> FindSourceDefinitionAsync(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken = default(CancellationToken))
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken = default)
         {
             var result = await FindSourceDefinitionAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static Task<SymbolAndProjectId> FindSourceDefinitionAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken = default(CancellationToken))
+            SymbolAndProjectId symbolAndProjectId, Solution solution, CancellationToken cancellationToken = default)
         {
             var symbol = symbolAndProjectId.Symbol;
             if (symbol != null)
@@ -150,11 +150,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else if (!symbol.Locations.Any(loc => loc.IsInMetadata))
             {
                 // We have a symbol that's neither in source nor metadata
-                return default(SymbolAndProjectId);
+                return default;
             }
 
             var project = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
-            if (project != null)
+            if (project != null && project.SupportsCompilation)
             {
                 var symbolId = symbol.GetSymbolKey();
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -169,10 +169,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return SymbolAndProjectId.Create(result.CandidateSymbols.FirstOrDefault(InSource), project.Id);
                 }
             }
-            else
-            {
-                return default(SymbolAndProjectId);
-            }
+
+            return default;
         }
 
         private static bool InSource(ISymbol symbol)
@@ -198,7 +196,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <param name="compilation">A compilation to find the corresponding symbol within. The compilation may or may not be the origin of the symbol.</param>
         /// <param name="cancellationToken">A CancellationToken.</param>
         /// <returns></returns>
-        public static IEnumerable<TSymbol> FindSimilarSymbols<TSymbol>(TSymbol symbol, Compilation compilation, CancellationToken cancellationToken = default(CancellationToken))
+        public static IEnumerable<TSymbol> FindSimilarSymbols<TSymbol>(TSymbol symbol, Compilation compilation, CancellationToken cancellationToken = default)
             where TSymbol : ISymbol
         {
             if (symbol == null)

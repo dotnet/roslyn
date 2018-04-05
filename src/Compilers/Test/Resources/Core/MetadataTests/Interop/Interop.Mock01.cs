@@ -72,10 +72,10 @@ namespace MockInterop01
     [InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)]
     [Guid("5720C75D-2448-447A-B786-64682CBEF156")]
     [TypeLibType(TypeLibTypeFlags.FAggregatable)]
-    public interface IFoo
+    public interface IGoo
     {
         [DispId(1010)]
-        InteropEnum IFooReadOnlyProp {
+        InteropEnum IGooReadOnlyProp {
             [return: MarshalAs(UnmanagedType.U4), ComConversionLoss]
             get;
         }
@@ -85,12 +85,12 @@ namespace MockInterop01
         ComplexStruct MethodForStruct(ref UnionStruct p1, out InteropDeleWithStructArray p2);
 
         [DispId(1012)]
-        string this[string p, IFoo p2] {
+        string this[string p, IGoo p2] {
             [return: MarshalAs(UnmanagedType.BStr)]
             get; set; }
 
         [DispId(1013)]
-        event InteropDeleWithStructArray IFooEvent;
+        event InteropDeleWithStructArray IGooEvent;
     }
 
     [ComImport, Guid("ABCDEF5D-2448-447A-B786-64682CBEF123")]
@@ -115,7 +115,7 @@ namespace MockInterop01
     public interface IEventSource
     {
         [DispId(101), PreserveSig]
-        void Event01(IFoo p1);
+        void Event01(IGoo p1);
         [DispId(102), PreserveSig]
         void Event02(InteropEnum p1);
         [DispId(103), PreserveSig]
@@ -133,7 +133,7 @@ namespace MockInterop01
         event EventDele03 OnEvent03;
     }
 
-    public delegate void EventDele01(IFoo p);
+    public delegate void EventDele01(IGoo p);
     public delegate void EventDele02(InteropEnum p);
     public delegate void EventDele03(ComplexStruct p);
 

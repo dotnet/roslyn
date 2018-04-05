@@ -105,7 +105,7 @@ namespace Roslyn.Utilities
                 return result;
             }
 
-            return default(TValue);
+            return default;
         }
 
         public TKey GetKeyOrDefault(TValue value)
@@ -115,7 +115,7 @@ namespace Roslyn.Utilities
                 return result;
             }
 
-            return default(TKey);
+            return default;
         }
     }
 }

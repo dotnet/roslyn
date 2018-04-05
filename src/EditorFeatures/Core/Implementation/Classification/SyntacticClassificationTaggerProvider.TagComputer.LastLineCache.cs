@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     lock (_gate)
                     {
-                        _span = default(SnapshotSpan);
+                        _span = default;
                         ClassificationUtilities.ReturnClassifiedSpanList(_classifications);
                         _classifications = null;
                     }

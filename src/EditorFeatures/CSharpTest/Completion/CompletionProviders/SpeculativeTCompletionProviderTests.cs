@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -265,7 +266,7 @@ class C
     /// <summary>
     /// $$
     /// </summary>
-    void Foo() { }
+    void Goo() { }
 }";
 
             await VerifyItemIsAbsentAsync(markup, "T");
@@ -302,17 +303,17 @@ class Program
         public async Task UnionOfItemsFromBothContexts()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
 class C
 {
-#if FOO
-    void foo() {
+#if GOO
+    void goo() {
 #endif
 
 $$
 
-#if FOO
+#if GOO
     }
 #endif
 }

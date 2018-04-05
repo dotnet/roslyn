@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -157,11 +158,11 @@ class C { }
 <Code>
 using System;
 
-[assembly: $$Foo(0, y: 42, Z = 42)]
+[assembly: $$Goo(0, y: 42, Z = 42)]
 
-class FooAttribute : Attribute
+class GooAttribute : Attribute
 {
-    public FooAttribute(int x, int y = 0) { }
+    public GooAttribute(int x, int y = 0) { }
 
     public int Z { get; set; }
 }
@@ -196,11 +197,11 @@ class FooAttribute : Attribute
 <Code>
 using System;
 
-[assembly: $$Foo(0, y: 42, Z = 42)]
+[assembly: $$Goo(0, y: 42, Z = 42)]
 
-class FooAttribute : Attribute
+class GooAttribute : Attribute
 {
-    public FooAttribute(int x, int y = 0) { }
+    public GooAttribute(int x, int y = 0) { }
 
     public int Z { get; set; }
 }
@@ -235,11 +236,11 @@ class FooAttribute : Attribute
 <Code>
 using System;
 
-[assembly: $$Foo(0, y: 42, Z = 42)]
+[assembly: $$Goo(0, y: 42, Z = 42)]
 
-class FooAttribute : Attribute
+class GooAttribute : Attribute
 {
-    public FooAttribute(int x, int y = 0) { }
+    public GooAttribute(int x, int y = 0) { }
 
     public int Z { get; set; }
 }
@@ -278,11 +279,11 @@ class FooAttribute : Attribute
 <Code>
 using System;
 
-[assembly: $$Foo(0, y: 42, Z = 42)]
+[assembly: $$Goo(0, y: 42, Z = 42)]
 
-class FooAttribute : Attribute
+class GooAttribute : Attribute
 {
-    public FooAttribute(int x, int y = 0) { }
+    public GooAttribute(int x, int y = 0) { }
 
     public int Z { get; set; }
 }
@@ -318,11 +319,11 @@ End Class
 <Code>
 using System;
 
-[assembly: $$Foo(0, y: 42, Z = 42)]
+[assembly: $$Goo(0, y: 42, Z = 42)]
 
-class FooAttribute : Attribute
+class GooAttribute : Attribute
 {
-    public FooAttribute(int x, int y = 0) { }
+    public GooAttribute(int x, int y = 0) { }
 
     public int Z { get; set; }
 }
@@ -358,11 +359,11 @@ End Class
 <Code>
 using System;
 
-[assembly: $$Foo(0, y: 42, Z = 42)]
+[assembly: $$Goo(0, y: 42, Z = 42)]
 
-class FooAttribute : Attribute
+class GooAttribute : Attribute
 {
-    public FooAttribute(int x, int y = 0) { }
+    public GooAttribute(int x, int y = 0) { }
 
     public int Z { get; set; }
 }
@@ -668,7 +669,7 @@ class C
         Public Async Function TestDelete1() As Task
             Dim code =
 <Code>
-[$$Foo]
+[$$Goo]
 class C
 {
 }
@@ -688,7 +689,7 @@ class C
         Public Async Function TestDelete2() As Task
             Dim code =
 <Code>
-[$$Foo, Bar]
+[$$Goo, Bar]
 class C { }
 </Code>
 
@@ -705,14 +706,14 @@ class C { }
         Public Async Function TestDelete3() As Task
             Dim code =
 <Code>
-[Foo]
+[Goo]
 [$$Bar]
 class C { }
 </Code>
 
             Dim expected =
 <Code>
-[Foo]
+[Goo]
 class C { }
 </Code>
 
@@ -723,7 +724,7 @@ class C { }
         Public Async Function TestDelete4() As Task
             Dim code =
 <Code>
-[assembly: $$Foo]
+[assembly: $$Goo]
 </Code>
 
             Dim expected =
@@ -737,7 +738,7 @@ class C { }
         Public Async Function TestDelete5() As Task
             Dim code =
 <Code>
-[assembly: $$Foo, Bar]
+[assembly: $$Goo, Bar]
 </Code>
 
             Dim expected =
@@ -752,13 +753,13 @@ class C { }
         Public Async Function TestDelete6() As Task
             Dim code =
 <Code>
-[assembly: Foo]
+[assembly: Goo]
 [assembly: $$Bar]
 </Code>
 
             Dim expected =
 <Code>
-[assembly: Foo]
+[assembly: Goo]
 </Code>
 
             Await TestDelete(code, expected)
@@ -771,7 +772,7 @@ class C { }
 /// <summary>
 /// Doc comment.
 /// </summary>
-[$$Foo]
+[$$Goo]
 class C { }
 ]]></Code>
 
@@ -790,7 +791,7 @@ class C { }
         Public Async Function TestDelete8() As Task
             Dim code =
 <Code><![CDATA[
-[$$Foo] // Comment comment comment
+[$$Goo] // Comment comment comment
 class C { }
 ]]></Code>
 
@@ -861,10 +862,10 @@ class CAttribute : Attribute { }
 
 #Region "Set Name tests"
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestSetName1() As Task
+        Public Async Function TestSetName_NewName() As Task
             Dim code =
 <Code>
-[$$Foo]
+[$$Goo]
 class C { }
 </Code>
 
@@ -875,6 +876,40 @@ class C { }
 </Code>
 
             Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_SimpleNameToDottedName() As Task
+            Dim code =
+<Code>
+[$$Goo]
+class C { }
+</Code>
+
+            Dim expected =
+<Code>
+[Bar.Baz]
+class C { }
+</Code>
+
+            Await TestSetName(code, expected, "Bar.Baz", NoThrow(Of String)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_DottedNameToSimpleName() As Task
+            Dim code =
+<Code>
+[$$Goo.Bar]
+class C { }
+</Code>
+
+            Dim expected =
+<Code>
+[Baz]
+class C { }
+</Code>
+
+            Await TestSetName(code, expected, "Baz", NoThrow(Of String)())
         End Function
 #End Region
 

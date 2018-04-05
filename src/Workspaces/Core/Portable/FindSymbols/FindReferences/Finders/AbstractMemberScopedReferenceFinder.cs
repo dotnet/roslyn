@@ -95,9 +95,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     }
                 }
 
-                var method = current as IMethodSymbol;
-                if (method != null && 
-                    method.MethodKind != MethodKind.AnonymousFunction && 
+                if (current is IMethodSymbol method &&
+                    method.MethodKind != MethodKind.AnonymousFunction &&
                     method.MethodKind != MethodKind.LocalFunction)
                 {
                     return method;

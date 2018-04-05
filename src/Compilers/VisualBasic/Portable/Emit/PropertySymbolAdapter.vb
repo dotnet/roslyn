@@ -11,21 +11,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Partial Class PropertySymbol
         Implements IPropertyDefinition
 
-        Private ReadOnly Property IPropertyDefinitionAccessors As IEnumerable(Of IMethodReference) Implements IPropertyDefinition.Accessors
-            Get
-                CheckDefinitionInvariant()
+        Private Iterator Function IPropertyDefinitionAccessors(context As EmitContext) As IEnumerable(Of IMethodReference) Implements IPropertyDefinition.GetAccessors
+            CheckDefinitionInvariant()
 
-                If Me.GetMethod IsNot Nothing And Me.SetMethod IsNot Nothing Then
-                    Return {Me.GetMethod, Me.SetMethod}
-                ElseIf Me.GetMethod IsNot Nothing Then
-                    Return SpecializedCollections.SingletonEnumerable(Me.GetMethod)
-                ElseIf Me.SetMethod IsNot Nothing Then
-                    Return SpecializedCollections.SingletonEnumerable(Me.SetMethod)
-                Else
-                    Return SpecializedCollections.EmptyEnumerable(Of IMethodReference)()
-                End If
-            End Get
-        End Property
+            Dim getter As MethodSymbol = Me.GetMethod
+            If getter IsNot Nothing AndAlso getter.ShouldInclude(context) Then
+                Yield getter
+            End If
+
+            Dim setter As MethodSymbol = Me.SetMethod
+            If setter IsNot Nothing AndAlso setter.ShouldInclude(context) Then
+                Yield setter
+            End If
+        End Function
 
         Private ReadOnly Property IPropertyDefinitionDefaultValue As MetadataConstant Implements IPropertyDefinition.DefaultValue
             Get

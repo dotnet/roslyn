@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new PartialTypeCompletionProvider(),
                 new XmlDocCommentCompletionProvider(),
                 new TupleNameCompletionProvider(),
-                new DeclarationNameCompletionProvider()
+                new DeclarationNameCompletionProvider(),
+                new InternalsVisibleToCompletionProvider()
             );
 
         private readonly Workspace _workspace;

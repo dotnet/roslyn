@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
@@ -79,8 +81,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
                 if (arguments.Count >= 2)
                 {
-                    var firstArgumentExpression = syntaxFactsService.GetExpressionOfArgument(arguments[0]) as TLiteralExpressionSyntax;
-                    if (firstArgumentExpression != null && syntaxFactsService.IsStringLiteral(firstArgumentExpression.GetFirstToken()))
+                    if (syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) is TLiteralExpressionSyntax firstArgumentExpression && syntaxFactsService.IsStringLiteral(firstArgumentExpression.GetFirstToken()))
                     {
                         invocationSymbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
                         if (formatMethods.Contains(invocationSymbol))
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             CancellationToken cancellationToken)
         {
             var arguments = nullableArguments.Value;
-            var firstExpression = syntaxFactsService.GetExpressionOfArgument(arguments[0]) as TLiteralExpressionSyntax;
+            var firstExpression = syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) as TLiteralExpressionSyntax;
             if (arguments.Count >= 2 &&
                 firstExpression != null &&
                 syntaxFactsService.IsStringLiteral(firstExpression.GetFirstToken()))
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 // string[] args;
                 // String.Format("{0}{1}{2}", args);
                 return IsArgumentListNotPassingArrayToParams(
-                    syntaxFactsService.GetExpressionOfArgument(arguments[1]),
+                    syntaxFactsService.GetExpressionOfArgument(GetParamsArgument(arguments, syntaxFactsService)),
                     invocationSymbol,
                     formatMethods,
                     semanticModel,
@@ -125,7 +126,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return false;
         }
 
-
         private async Task<Document> CreateInterpolatedString(
             TInvocationExpressionSyntax invocation,
             Document document,
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
-            var literalExpression = syntaxFactsService.GetExpressionOfArgument(arguments[0]) as TLiteralExpressionSyntax;
+            var literalExpression = syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) as TLiteralExpressionSyntax;
             var text = literalExpression.GetFirstToken().ToString();
             var syntaxGenerator = document.Project.LanguageServices.GetService<SyntaxGenerator>();
             var expandedArguments = GetExpandedArguments(semanticModel, arguments, syntaxGenerator, syntaxFactsService);
@@ -143,6 +143,27 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(invocation, newInterpolatedString.WithTriviaFrom(invocation));
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        private string GetArgumentName(TArgumentSyntax argument, ISyntaxFactsService syntaxFactsService)
+            => syntaxFactsService.GetNameForArgument(argument);
+
+        private SyntaxNode GetParamsArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
+        => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[1];
+
+        private TArgumentSyntax GetFormatArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
+            => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[0];
+
+        private TArgumentSyntax GetArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, int index, ISyntaxFactsService syntaxFactsService)
+        {
+            if (arguments.Count > 4)
+            {
+                return arguments[index];
+            }
+
+            return arguments.FirstOrDefault(
+                argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.ParamsArgumentNames[index], StringComparison.OrdinalIgnoreCase)) 
+                ?? arguments[index];
         }
 
         private ImmutableArray<TExpressionSyntax> GetExpandedArguments(
@@ -154,7 +175,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var builder = ArrayBuilder<TExpressionSyntax>.GetInstance();
             for (int i = 1; i < arguments.Count; i++)
             {
-                var argumentExpression = syntaxFactsService.GetExpressionOfArgument(arguments[i]);
+                var argumentExpression = syntaxFactsService.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFactsService));
                 var convertedType = semanticModel.GetTypeInfo(argumentExpression).ConvertedType;
                 if (convertedType == null)
                 {
@@ -181,8 +202,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 var interpolationSyntaxNode = newNode;
                 if (interpolationSyntaxNode != null)
                 {
-                    var literalExpression = syntaxFactsService.GetExpressionOfInterpolation(interpolationSyntaxNode) as TLiteralExpressionSyntax;
-                    if (literalExpression != null && syntaxFactsService.IsNumericLiteralExpression(literalExpression))
+                    if (syntaxFactsService.GetExpressionOfInterpolation(interpolationSyntaxNode) is TLiteralExpressionSyntax literalExpression && syntaxFactsService.IsNumericLiteralExpression(literalExpression))
                     {
                         if (int.TryParse(literalExpression.GetFirstToken().ValueText, out var index))
                         {
@@ -213,7 +233,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             var firstParameter = methodSymbol.Parameters[0];
-            if (firstParameter?.Name != "format")
+            if (firstParameter?.Name != StringFormatArguments.FormatArgumentName)
             {
                 return false;
             }
@@ -244,6 +264,16 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 base(title, createChangedDocument)
             {
             }
+        }
+
+        private static class StringFormatArguments
+        {
+            public const string FormatArgumentName = "format";
+
+            public const string ArgsArgumentName = "args";
+
+            public static readonly ImmutableArray<string> ParamsArgumentNames =
+                ImmutableArray.Create("", "arg0", "arg1", "arg2");
         }
     }
 }

@@ -1,9 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
@@ -11,6 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
 {
+    [UseExportProvider]
     public class TryGetDocumentTests
     {
         [Fact]
@@ -71,10 +71,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
                 Assert.True(buffer.CurrentSnapshot.Version.ReiteratedVersionNumber == 1);
 
                 var newText = buffer.CurrentSnapshot.AsText();
-                Assert.Same(text, newText);
+
+                // different buffer snapshot should never return same roslyn text snapshot
+                Assert.NotSame(text, newText);
 
                 Document newDocument = newText.GetRelatedDocumentsWithChanges().First();
-                Assert.Same(document, newDocument);
+
+                // different text snapshot never gives back same roslyn snapshot
+                Assert.NotSame(document, newDocument);
             }
         }
     }

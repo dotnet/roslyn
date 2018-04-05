@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using static Microsoft.CodeAnalysis.Test.Utilities.CommonTestBase;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -18,11 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string expectedOutput = null)
         {
             var isWin8 = OSVersion.IsWin8;
-            return testBase.CompileAndVerifyWinRt(
+            return testBase.CompileAndVerifyWithWinRt(
                 source,
-                additionalRefs: additionalRefs,
+                references: additionalRefs,
                 expectedOutput: isWin8 ? expectedOutput : null,
-                verify: isWin8);
+                verify: isWin8 ? Verification.Passes : Verification.Fails);
         }
 
     }

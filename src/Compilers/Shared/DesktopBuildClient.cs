@@ -2,20 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.IO.Pipes;
-using System.Runtime.InteropServices;
-using System.Security.Principal;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
-using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
-using System.Reflection;
-using System.Security.AccessControl;
-using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -37,28 +26,23 @@ namespace Microsoft.CodeAnalysis.CommandLine
             _analyzerAssemblyLoader = analyzerAssemblyLoader;
         }
 
-        internal static int Run(IEnumerable<string> arguments, IEnumerable<string> extraArguments, RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
+        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
         {
+            var sdkDir = GetSystemSdkDirectory();
+            if (CoreClrShim.IsRunningOnCoreClr)
+            {
+                // Register encodings for console
+                // https://github.com/dotnet/roslyn/issues/10785
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            }
+
             var client = new DesktopBuildClient(language, compileFunc, analyzerAssemblyLoader);
             var clientDir = AppContext.BaseDirectory;
-            var sdkDir = GetRuntimeDirectoryOpt();
             var workingDir = Directory.GetCurrentDirectory();
             var tempDir = BuildServerConnection.GetTempPath(workingDir);
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir);
-            var originalArguments = BuildClient.GetCommandLineArgs(arguments).Concat(extraArguments).ToArray();
+            var originalArguments = GetCommandLineArgs(arguments);
             return client.RunCompilation(originalArguments, buildPaths).ExitCode;
-        }
-
-        internal static string GetRuntimeDirectoryOpt()
-        {
-            Type runtimeEnvironmentType = Roslyn.Utilities.ReflectionUtilities.TryGetType(
-                "System.Runtime.InteropServices.RuntimeEnvironment, " +
-                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-
-            return (string)runtimeEnvironmentType
-                ?.GetTypeInfo()
-                .GetDeclaredMethod("GetRuntimeDirectory")
-                ?.Invoke(obj: null, parameters: null);
         }
 
         protected override int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)

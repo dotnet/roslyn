@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
@@ -32,9 +33,26 @@ namespace Roslyn.Utilities
         /// Map of serialized object's reference ids.  The object-reference-map uses reference equality
         /// for performance.  While the string-reference-map uses value-equality for greater cache hits 
         /// and reuse.
+        /// 
+        /// These are not readonly because they're structs and we mutate them.
+        /// 
+        /// When we write out objects/strings we give each successive, unique, item a monotonically 
+        /// increasing integral ID starting at 0.  I.e. the first object gets ID-0, the next gets 
+        /// ID-1 and so on and so forth.  We do *not* include these IDs with the object when it is
+        /// written out.  We only include the ID if we hit the object *again* while writing.
+        /// 
+        /// During reading, the reader knows to give each object it reads the same monotonically 
+        /// increasing integral value.  i.e. the first object it reads is put into an array at position
+        /// 0, the next at position 1, and so on.  Then, when the reader reads in an object-reference
+        /// it can just retrieved it directly from that array.
+        /// 
+        /// In other words, writing and reading take advantage of the fact that they know they will
+        /// write and read objects in the exact same order.  So they only need the IDs for references
+        /// and not the objects themselves because the ID is inferred from the order the object is
+        /// written or read in.
         /// </summary>
-        private readonly WriterReferenceMap _objectReferenceMap;
-        private readonly WriterReferenceMap _stringReferenceMap;
+        private WriterReferenceMap _objectReferenceMap;
+        private WriterReferenceMap _stringReferenceMap;
 
         /// <summary>
         /// Copy of the global binder data that maps from Types to the appropriate reading-function
@@ -54,7 +72,7 @@ namespace Roslyn.Utilities
         /// <param name="cancellationToken"></param>
         public ObjectWriter(
             Stream stream,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
@@ -100,6 +118,28 @@ namespace Roslyn.Utilities
         public void WriteUInt64(ulong value) => _writer.Write(value);
         public void WriteUInt16(ushort value) => _writer.Write(value);
         public void WriteString(string value) => WriteStringValue(value);
+
+        /// <summary>
+        /// Used so we can easily grab the low/high 64bits of a guid for serialization.
+        /// </summary>
+        [StructLayout(LayoutKind.Explicit)]
+        internal struct GuidAccessor
+        {
+            [FieldOffset(0)]
+            public Guid Guid;
+
+            [FieldOffset(0)]
+            public long Low64;
+            [FieldOffset(8)]
+            public long High64;
+        }
+
+        public void WriteGuid(Guid guid)
+        {
+            var accessor = new GuidAccessor { Guid = guid };
+            WriteInt64(accessor.Low64);
+            WriteInt64(accessor.High64);
+        }
 
         public void WriteValue(object value)
         {
@@ -215,8 +255,19 @@ namespace Roslyn.Utilities
             }
             else
             {
-                WriteObject(value);
+                WriteObject(instance: value, instanceAsWritableOpt: null);
             }
+        }
+
+        public void WriteValue(IObjectWritable value)
+        {
+            if (value == null)
+            {
+                _writer.Write((byte)EncodingKind.Null);
+                return;
+            }
+
+            WriteObject(instance: value, instanceAsWritableOpt: value);
         }
 
         private void WriteEncodedInt32(int v)
@@ -268,7 +319,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// An object reference to reference-id map, that can share base data efficiently.
         /// </summary>
-        private class WriterReferenceMap
+        private struct WriterReferenceMap
         {
             private readonly Dictionary<object, int> _valueToIdMap;
             private readonly bool _valueEquality;
@@ -283,16 +334,16 @@ namespace Roslyn.Utilities
             public WriterReferenceMap(bool valueEquality)
             {
                 _valueEquality = valueEquality;
-                _valueToIdMap = GetDictionaryPool().Allocate();
+                _valueToIdMap = GetDictionaryPool(valueEquality).Allocate();
                 _nextId = 0;
             }
 
-            private ObjectPool<Dictionary<object, int>> GetDictionaryPool()
-                => _valueEquality ? s_valueDictionaryPool : s_referenceDictionaryPool;
+            private static ObjectPool<Dictionary<object, int>> GetDictionaryPool(bool valueEquality)
+                => valueEquality ? s_valueDictionaryPool : s_referenceDictionaryPool;
 
             public void Dispose()
             {
-                var pool = GetDictionaryPool();
+                var pool = GetDictionaryPool(_valueEquality);
 
                 // If the map grew too big, don't return it to the pool.
                 // When testing with the Roslyn solution, this dropped only 2.5% of requests.
@@ -308,15 +359,12 @@ namespace Roslyn.Utilities
             }
 
             public bool TryGetReferenceId(object value, out int referenceId)
-            {
-                return _valueToIdMap.TryGetValue(value, out referenceId);
-            }
+                => _valueToIdMap.TryGetValue(value, out referenceId);
 
-            public int Add(object value)
+            public void Add(object value)
             {
                 var id = _nextId++;
                 _valueToIdMap.Add(value, id);
-                return id;
             }
         }
 
@@ -438,8 +486,7 @@ namespace Roslyn.Utilities
 
             var elementType = array.GetType().GetElementType();
 
-            EncodingKind elementKind;
-            if (s_typeMap.TryGetValue(elementType, out elementKind))
+            if (s_typeMap.TryGetValue(elementType, out var elementKind))
             {
                 this.WritePrimitiveType(elementType, elementKind);
                 this.WritePrimitiveTypeArrayElements(elementType, elementKind, array);
@@ -459,11 +506,20 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        () => WriteArrayValues(array), 
+                        a => WriteArrayValues((Array)a), 
+                        array,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
-                    task.Wait();
+
+                    // We must not proceed until the additional task completes. After returning from a write, the underlying
+                    // stream providing access to raw memory will be closed; if this occurs before the separate thread
+                    // completes its write then an access violation can occur attempting to write to unmapped memory.
+                    //
+                    // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
+                    // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
+                    // so the wait can complete.
+                    task.GetAwaiter().GetResult();
                 }
                 else
                 {
@@ -670,13 +726,15 @@ namespace Roslyn.Utilities
             this.WriteInt32(_binderSnapshot.GetTypeId(type));
         }
 
-        private void WriteObject(object instance)
+        private void WriteObject(object instance, IObjectWritable instanceAsWritableOpt)
         {
+            Debug.Assert(instance != null);
+            Debug.Assert(instanceAsWritableOpt == null || instance == instanceAsWritableOpt);
+
             _cancellationToken.ThrowIfCancellationRequested();
 
             // write object ref if we already know this instance
-            int id;
-            if (_objectReferenceMap.TryGetReferenceId(instance, out id))
+            if (_objectReferenceMap.TryGetReferenceId(instance, out var id))
             {
                 Debug.Assert(id >= 0);
                 if (id <= byte.MaxValue)
@@ -697,10 +755,14 @@ namespace Roslyn.Utilities
             }
             else
             {
-                var writable = instance as IObjectWritable;
+                var writable = instanceAsWritableOpt;
                 if (writable == null)
                 {
-                    throw NoSerializationWriterException($"{instance.GetType()} must implement {nameof(IObjectWritable)}");
+                    writable = instance as IObjectWritable;
+                    if (writable == null)
+                    {
+                        throw NoSerializationWriterException($"{instance.GetType()} must implement {nameof(IObjectWritable)}");
+                    }
                 }
 
                 var oldDepth = _recursionDepth;
@@ -712,15 +774,24 @@ namespace Roslyn.Utilities
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
                     var task = Task.Factory.StartNew(
-                        () => WriteObjectWorker(instance, writable), 
+                        obj => WriteObjectWorker((IObjectWritable)obj),
+                        writable,
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
-                    task.Wait(_cancellationToken);
+
+                    // We must not proceed until the additional task completes. After returning from a write, the underlying
+                    // stream providing access to raw memory will be closed; if this occurs before the separate thread
+                    // completes its write then an access violation can occur attempting to write to unmapped memory.
+                    //
+                    // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
+                    // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
+                    // so the wait can complete.
+                    task.GetAwaiter().GetResult();
                 }
                 else
                 {
-                    WriteObjectWorker(instance, writable);
+                    WriteObjectWorker(writable);
                 }
 
                 _recursionDepth--;
@@ -728,19 +799,17 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void WriteObjectWorker(object instance, IObjectWritable writable)
+        private void WriteObjectWorker(IObjectWritable writable)
         {
             // emit object header up front
-            this.WriteObjectHeader(instance, 0);
-            writable.WriteTo(this);
-        }
-
-        private void WriteObjectHeader(object instance, uint memberCount)
-        {
-            _objectReferenceMap.Add(instance);
+            _objectReferenceMap.Add(writable);
 
             _writer.Write((byte)EncodingKind.Object);
-            this.WriteKnownType(instance.GetType());
+
+            // Directly write out the type-id for this object.  i.e. no need to write out the 'Type'
+            // tag since we just wrote out the 'Object' tag
+            this.WriteInt32(_binderSnapshot.GetTypeId(writable.GetType()));
+            writable.WriteTo(this);
         }
 
         private static Exception NoSerializationTypeException(string typeName)
@@ -796,22 +865,22 @@ namespace Roslyn.Utilities
         /// <summary>
         /// byte marker mask for encoding compressed uint 
         /// </summary>
-        internal static readonly byte ByteMarkerMask = 3 << 6;
+        internal const byte ByteMarkerMask = 3 << 6;
 
         /// <summary>
         /// byte marker bits for uint encoded in 1 byte.
         /// </summary>
-        internal static readonly byte Byte1Marker = 0;
+        internal const byte Byte1Marker = 0;
 
         /// <summary>
         /// byte marker bits for uint encoded in 2 bytes.
         /// </summary>
-        internal static readonly byte Byte2Marker = 1 << 6;
+        internal const byte Byte2Marker = 1 << 6;
 
         /// <summary>
         /// byte marker bits for uint encoded in 4 bytes.
         /// </summary>
-        internal static readonly byte Byte4Marker = 2 << 6;
+        internal const byte Byte4Marker = 2 << 6;
 
         internal enum EncodingKind : byte
         {

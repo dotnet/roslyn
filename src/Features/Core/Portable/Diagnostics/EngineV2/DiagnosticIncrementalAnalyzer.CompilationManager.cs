@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // Create driver that holds onto compilation and associated analyzers
                 return CreateAnalyzerDriver(
-                    project, compilation, analyzers, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: includeSuppressedDiagnostics);
+                    project, compilation, analyzers, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: includeSuppressedDiagnostics);
             }
 
             private CompilationWithAnalyzers CreateAnalyzerDriver(
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
                 // async being used with syncronous blocking concurrency.
                 return new CompilationWithAnalyzersOptions(
-                    options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Workspace),
+                    options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution),
                     onAnalyzerException: GetOnAnalyzerException(project.Id),
                     analyzerExceptionFilter: GetAnalyzerExceptionFilter(project),
                     concurrentAnalysis: false,

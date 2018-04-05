@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -32,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             private ImmutableArray<CodeFixProvider> CreateFixers(string language)
             {
                 // check whether the analyzer reference knows how to return fixers directly.
-                var codeFixProviderFactory = _reference as ICodeFixProviderFactory;
-                if (codeFixProviderFactory != null)
+                if (_reference is ICodeFixProviderFactory codeFixProviderFactory)
                 {
                     return codeFixProviderFactory.GetFixers();
                 }

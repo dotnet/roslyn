@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string CompletionSet = nameof(CompletionSet);
         public const string DesignerAttribute = nameof(DesignerAttribute);
         public const string DiagnosticService = nameof(DiagnosticService);
+        public const string EncapsulateField = nameof(EncapsulateField);
         public const string ErrorList = nameof(ErrorList);
         public const string ErrorSquiggles = nameof(ErrorSquiggles);
         public const string EventHookup = nameof(EventHookup);

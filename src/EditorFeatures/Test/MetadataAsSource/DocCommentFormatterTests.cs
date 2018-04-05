@@ -1,8 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.DocumentationComments;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -188,7 +189,7 @@ This is a summary of something.
 <typeparam name=""U""></typeparam>
 <typeparam name=""V"">Another type parameter.</typeparam>
 <returns>This returns nothing.</returns>
-<exception cref=""System.FooException"">Thrown for an unknown reason</exception>
+<exception cref=""System.GooException"">Thrown for an unknown reason</exception>
 <exception cref=""System.BarException""></exception>
 <exception cref=""System.BlahException"">Thrown when blah blah blah</exception>
 <remarks>This doc comment is really not very remarkable.</remarks>";
@@ -219,7 +220,7 @@ $@"{FeaturesResources.Summary_colon}
     This returns nothing.
 
 {FeaturesResources.Exceptions_colon}
-  System.FooException:
+  System.GooException:
     Thrown for an unknown reason
 
   System.BarException:

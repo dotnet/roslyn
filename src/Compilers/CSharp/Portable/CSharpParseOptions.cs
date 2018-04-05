@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LanguageVersion languageVersion,
             DocumentationMode documentationMode,
             SourceCodeKind kind,
-            IEnumerable<string> preprocessorSymbols,
+            ImmutableArray<string> preprocessorSymbols,
             IReadOnlyDictionary<string, string> features)
             : base(kind, documentationMode)
         {
@@ -201,11 +202,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsFeatureEnabled(MessageID feature)
         {
-            string featureFlag = feature.RequiredFeature();
-            if (featureFlag != null)
-            {
-                return Features.ContainsKey(featureFlag);
-            }
             LanguageVersion availableVersion = LanguageVersion;
             LanguageVersion requiredVersion = feature.RequiredVersion();
             return availableVersion >= requiredVersion;

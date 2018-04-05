@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -399,8 +399,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 var namespaceContainersAndUsings = GetNamespaceContainersAndAddUsingsOrImport(isDialog, new List<string>(folders), generateTypeOptionsResult.AreFoldersValidIdentifiers, generateTypeOptionsResult.Project, triggeringProject);
 
-                var containers = namespaceContainersAndUsings.Item1;
-                var includeUsingsOrImports = namespaceContainersAndUsings.Item2;
+                var containers = namespaceContainersAndUsings.containers;
+                var includeUsingsOrImports = namespaceContainersAndUsings.usingOrImport;
 
                 Tuple<INamespaceSymbol, INamespaceOrTypeSymbol, Location> enclosingNamespaceGeneratedTypeToAddAndLocation = null;
                 if (_targetProjectChangeInLanguage == TargetProjectChangeInLanguage.NoChange)

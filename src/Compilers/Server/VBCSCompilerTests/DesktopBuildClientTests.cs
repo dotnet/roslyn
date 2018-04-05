@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private readonly Func<Task<BuildResponse>> _runServerCompilationFunc;
 
             public TestableDesktopBuildClient(
-                RequestLanguage langauge,
+                RequestLanguage language,
                 CompileFunc compileFunc,
                 string pipeName,
                 Func<string, bool> createServerFunc,
-                Func<Task<BuildResponse>> runServerCompilationFunc) : base(langauge, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object)
+                Func<Task<BuildResponse>> runServerCompilationFunc) : base(language, compileFunc, new Mock<IAnalyzerAssemblyLoader>().Object)
             {
                 _pipeName = pipeName;
                 _createServerFunc = createServerFunc;
@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return base.RunServerCompilation(arguments, buildPaths, sessionKey, keepAlive, libDirectory, cancellationToken);
             }
 
-            public bool TryConnectToNamedPipeWithSpinWait(int timeoutMs, CancellationToken cancellationToken)
+            public static async Task<bool> TryConnectToNamedPipe(string pipeName, int timeoutMs, CancellationToken cancellationToken)
             {
-                using (var pipeStream = new NamedPipeClientStream(".", _pipeName, PipeDirection.InOut, PipeOptions.Asynchronous))
+                using (var pipeStream = await BuildServerConnection.TryConnectToServerAsync(pipeName, timeoutMs, cancellationToken))
                 {
-                    return BuildServerConnection.TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, cancellationToken);
+                    return pipeStream != null;
                 }
             }
         }
@@ -146,35 +146,30 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
 
             [Fact]
-            public async Task ConnectToPipeWithSpinWait()
+            public async Task ConnectToPipe()
             {
-                // No server should be started with the current pipe name
-                var client = CreateClient();
+                string pipeName = Guid.NewGuid().ToString("N");
+
                 var oneSec = TimeSpan.FromSeconds(1);
 
-                Assert.False(client.TryConnectToNamedPipeWithSpinWait((int)oneSec.TotalMilliseconds,
-                                                                      default(CancellationToken)));
+                Assert.False(await TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
 
                 // Try again with infinite timeout and cancel
                 var cts = new CancellationTokenSource();
-                var connection = Task.Run(() => client.TryConnectToNamedPipeWithSpinWait(Timeout.Infinite,
-                                                                                         cts.Token),
-                                          cts.Token);
+                var connection = TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, Timeout.Infinite, cts.Token);
                 Assert.False(connection.IsCompleted);
                 cts.Cancel();
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(
                     async () => await connection.ConfigureAwait(false)).ConfigureAwait(false);
 
                 // Create server and try again
-                Assert.True(TryCreateServer(_pipeName));
-                Assert.True(client.TryConnectToNamedPipeWithSpinWait((int)oneSec.TotalMilliseconds,
-                                                                     default(CancellationToken)));
+                Assert.True(TryCreateServer(pipeName));
+                Assert.True(await TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, (int)oneSec.TotalMilliseconds, cancellationToken: default));
                 // With infinite timeout
-                Assert.True(client.TryConnectToNamedPipeWithSpinWait(Timeout.Infinite,
-                                                                     default(CancellationToken)));
+                Assert.True(await TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, Timeout.Infinite, cancellationToken: default));
             }
 
-            [Fact]
+            [ConditionalFact(typeof(DesktopOnly))]
             public void OnlyStartsOneServer()
             {
                 var ranLocal = false;
@@ -375,6 +370,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.Equal(name, BuildServerConnection.GetBasePipeName(path));
                 Assert.Equal(name, BuildServerConnection.GetBasePipeName(path + Path.DirectorySeparatorChar));
                 Assert.Equal(name, BuildServerConnection.GetBasePipeName(path + Path.DirectorySeparatorChar + Path.DirectorySeparatorChar));
+            }
+
+            [Fact]
+            public void GetBasePipeNameLength()
+            {
+                var path = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
+                var name = BuildServerConnection.GetBasePipeName(path);
+                // We only have ~50 total bytes to work with on mac, so the base path must be small
+                Assert.InRange(name.Length, 10, 30);
             }
         }
     }

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports ImplementInterfaceCodeAction = Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService.ImplementInterfaceCodeAction
 
@@ -117,7 +117,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
 
         <Fact>
@@ -240,7 +240,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
 
         <Fact>
@@ -371,7 +371,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
 
         <Fact>
@@ -508,7 +508,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
+            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=fixAllActionEquivalenceKey)
         End Function
     End Class
 End Namespace

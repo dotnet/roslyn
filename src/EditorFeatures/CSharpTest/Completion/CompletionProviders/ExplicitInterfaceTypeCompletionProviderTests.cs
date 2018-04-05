@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -34,6 +35,19 @@ class C : IList
             await VerifyItemExistsAsync(markup, "IEnumerable");
             await VerifyItemExistsAsync(markup, "ICollection");
             await VerifyItemExistsAsync(markup, "IList");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(459044, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=459044")]
+        public async Task TestInMisplacedUsing()
+        {
+            var markup = @"
+class C
+{
+    using ($$)
+}
+";
+            await VerifyNoItemsExistAsync(markup); // no crash
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -81,7 +95,7 @@ using System.Collections;
 
 class C : IList
 {
-    void Foo() { }
+    void Goo() { }
     int $$
 }
 ";
@@ -100,7 +114,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 }
 ";
@@ -119,7 +133,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 
     [Attr]
@@ -141,7 +155,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 
     public int Bar();
@@ -162,7 +176,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 
     int Bar();
@@ -183,7 +197,7 @@ using System.Collections;
 
 class C : IList
 {
-    int Foo() => 0;
+    int Goo() => 0;
     int $$
 
     X Bar();
@@ -204,7 +218,7 @@ using System.Collections;
 
 class C : IList
 {
-    void Foo()
+    void Goo()
     {
         int $$
     }

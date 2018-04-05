@@ -181,19 +181,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (document.Project.TryGetCompilation(out var compilation))
             {
                 // We already have a compilation, so at this point it's fastest to just get a SemanticModel
-                return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                // Make sure the compilation is kept alive so that GetSemanticModelAsync() doesn't become expensive
+                GC.KeepAlive(compilation);
+                return semanticModel;
             }
             else
             {
-                var frozenDocument = await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
+                var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
                 return await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
         public static bool IsGeneratedCode(this Document document, CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
-            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
+            var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
             return generatedCodeRecognitionService?.IsGeneratedCode(document, cancellationToken) == true;
         }
     }

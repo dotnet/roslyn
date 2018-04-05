@@ -13,17 +13,17 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     public interface ITemporaryTextStorage : IDisposable
     {
-        SourceText ReadText(CancellationToken cancellationToken = default(CancellationToken));
-        Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default(CancellationToken));
-        void WriteText(SourceText text, CancellationToken cancellationToken = default(CancellationToken));
-        Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default(CancellationToken));
+        SourceText ReadText(CancellationToken cancellationToken = default);
+        Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default);
+        void WriteText(SourceText text, CancellationToken cancellationToken = default);
+        Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default);
     }
 
     public interface ITemporaryStreamStorage : IDisposable
     {
-        Stream ReadStream(CancellationToken cancellationToken = default(CancellationToken));
-        Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default(CancellationToken));
-        void WriteStream(Stream stream, CancellationToken cancellationToken = default(CancellationToken));
-        Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default(CancellationToken));
+        Stream ReadStream(CancellationToken cancellationToken = default);
+        Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default);
+        void WriteStream(Stream stream, CancellationToken cancellationToken = default);
+        Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default);
     }
 }

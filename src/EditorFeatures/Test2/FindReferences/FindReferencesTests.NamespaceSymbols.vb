@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             class C
             {
-                void Foo()
+                void Goo()
                 {
                     [|N|].C x;
                 }
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             class C
             {
-                void Foo()
+                void Goo()
                 {
                     [|N|].C x;
                 }
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
             class D
             {
-                void Foo()
+                void Goo()
                 {
                     [|N|].C x;
                 }
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             class C
             {
-                void Foo()
+                void Goo()
                 {
                     [|N|].C x;
                 }
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
             class D
             {
-                void Foo()
+                void Goo()
                 {
                     [|$$N|].C x;
                 }
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             class C
             {
-                void Foo()
+                void Goo()
                 {
                     [|N|].C x;
                     n.C x;
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <ProjectReference>CSharpAssembly</ProjectReference>
         <Document>
         class D
-            sub Foo()
+            sub Goo()
                 dim c as [|n|].C = nothing
             end sub()
         end class

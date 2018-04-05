@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var typeName = methodSymbol.ContainingType.Name;
 
-            Func<SyntaxToken, bool> tokensMatch = t =>
+            bool tokensMatch(SyntaxToken t)
             {
                 if (syntaxFactsService.IsBaseConstructorInitializer(t))
                 {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
 
                 return false;
-            };
+            }
 
             var tokens = await document.GetConstructorInitializerTokensAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel.Language == LanguageNames.VisualBasic)

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -111,11 +111,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Protected Sub TestCommonIsTextualTriggerCharacter()
             Dim alwaysTriggerList =
             {
-                "foo$$.",
-                "foo$$[",
-                "foo$$#",
-                "foo$$ ",
-                "foo$$="
+                "goo$$.",
+                "goo$$[",
+                "goo$$#",
+                "goo$$ ",
+                "goo$$="
             }
 
             For Each markup In alwaysTriggerList
@@ -134,8 +134,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
             Dim neverTriggerList =
             {
-                "foo$$x",
-                "foo$$_"
+                "goo$$x",
+                "goo$$_"
             }
 
             For Each markup In neverTriggerList

@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -24,7 +25,7 @@ class Program
             await VerifyKeywordAsync(@"
 class Program
 {
-    void foo()
+    void goo()
     {
         $$
     }
@@ -37,7 +38,7 @@ class Program
             await VerifyKeywordAsync(@"
 class Program
 {
-    async void foo()
+    async void goo()
     {
         $$
     }
@@ -50,7 +51,7 @@ class Program
             await VerifyKeywordAsync(@"
 class Program
 {
-    async void foo()
+    async void goo()
     {
         var z = $$
     }
@@ -63,7 +64,7 @@ class Program
             await VerifyAbsenceAsync(@"
 class Program
 {
-    async void foo()
+    async void goo()
     {
         var z = from a in ""char""
                 select $$
@@ -78,7 +79,7 @@ class Program
             await VerifyKeywordAsync(@"
 class Program
 {
-    async void foo()
+    async void goo()
     {
         try { }
         finally { $$ } 
@@ -93,7 +94,7 @@ class Program
             await VerifyKeywordAsync(@"
 class Program
 {
-    async void foo()
+    async void goo()
     {
         try { }
         catch { $$ } 
@@ -107,7 +108,7 @@ class Program
             await VerifyAbsenceAsync(@"
 class Program
 {
-    async void foo()
+    async void goo()
     {
        lock(this) { $$ } 
     }
@@ -120,7 +121,7 @@ class Program
             await VerifyKeywordAsync(@"
 class Program
 {
-    async void foo()
+    async void goo()
     {
         try { }
         catch { var z = async () => $$ } 
@@ -134,7 +135,7 @@ class Program
             await VerifyKeywordAsync(@"
 class Program
 {
-    async void foo()
+    async void goo()
     {
         lock($$");
         }

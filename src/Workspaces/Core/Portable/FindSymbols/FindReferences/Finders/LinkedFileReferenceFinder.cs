@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class LinkedFileReferenceFinder : IReferenceFinder
     {
         public async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             var linkedSymbols = new HashSet<SymbolAndProjectId>();
 
@@ -62,18 +62,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return linkedSymbols.ToImmutableArray();
         }
 
-        public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
         {
             return SpecializedTasks.EmptyImmutableArray<Document>();
         }
 
-        public Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             return SpecializedTasks.EmptyImmutableArray<Project>();
         }
 
         public Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
-            SymbolAndProjectId symbolAndProjectId, Document document, CancellationToken cancellationToken = default(CancellationToken))
+            SymbolAndProjectId symbolAndProjectId, Document document, CancellationToken cancellationToken = default)
         {
             return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
         }

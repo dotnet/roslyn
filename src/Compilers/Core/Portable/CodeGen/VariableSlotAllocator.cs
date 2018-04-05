@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {

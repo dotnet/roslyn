@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return UnderlyingMethod.RefKind == RefKind.Ref;
+                return UnderlyingMethod.RefKind.IsManagedReference();
             }
         }
 

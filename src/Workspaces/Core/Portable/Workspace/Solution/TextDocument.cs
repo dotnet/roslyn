@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the current text for the document asynchronously.
         /// </summary>
-        public Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default)
         {
             return State.GetTextAsync(cancellationToken);
         }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the version of the document's text.
         /// </summary>
-        public Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken = default)
         {
             return State.GetTextVersionAsync(cancellationToken);
         }
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the version of the document's top level signature.
         /// </summary>
-        internal Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        internal Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken = default)
         {
             return State.GetTopLevelChangeTextVersionAsync(cancellationToken);
         }

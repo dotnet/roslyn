@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
@@ -18,12 +19,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_InsertionAndTabCompleting()
         {
             SetUpEditor(@"
 class C {
-    void Foo() {
+    void Goo() {
         $$
     }
 }");
@@ -35,12 +36,12 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("if (true) { }$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_Overtyping()
         {
             SetUpEditor(@"
 class C {
-    void Foo() {
+    void Goo() {
         $$
     }
 }");
@@ -52,12 +53,12 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("if (true) { }$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_OnReturnNoFormattingOnlyIndentationBeforeCloseBrace()
         {
             SetUpEditor(@"
 class C {
-    void Foo() {
+    void Goo() {
         $$
     }
 }");
@@ -69,7 +70,7 @@ class C {
 
             VisualStudio.Editor.Verify.TextContains(@"
 class C {
-    void Foo() {
+    void Goo() {
         if (true)
         {
             var a = 1;$$
@@ -79,12 +80,12 @@ class C {
 assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_OnReturnOvertypingTheClosingBrace()
         {
             SetUpEditor(@"
 class C {
-    void Foo() {
+    void Goo() {
         $$
     }
 }");
@@ -97,7 +98,7 @@ class C {
 
             VisualStudio.Editor.Verify.TextContains(@"
 class C {
-    void Foo() {
+    void Goo() {
         if (true)
         {
             var a = 1;
@@ -108,7 +109,7 @@ assertCaretPosition: true);
         }
 
         [WorkItem(653540, "DevDiv")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_OnReturnWithNonWhitespaceSpanInside()
         {
             VisualStudio.Editor.SendKeys(
@@ -120,7 +121,7 @@ $$}",
 assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Paren_InsertionAndTabCompleting()
         {
             SetUpEditor(@"
@@ -128,14 +129,14 @@ class C {
     $$
 }");
 
-            VisualStudio.Editor.SendKeys("void Foo(");
-            VisualStudio.Editor.Verify.CurrentLineText("void Foo($$)", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("void Goo(");
+            VisualStudio.Editor.Verify.CurrentLineText("void Goo($$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys("int x", VirtualKey.Tab);
-            VisualStudio.Editor.Verify.CurrentLineText("void Foo(int x)$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("void Goo(int x)$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Paren_Overtyping()
         {
             SetUpEditor(@"
@@ -144,14 +145,14 @@ class C {
 }");
 
             VisualStudio.Editor.SendKeys(
-                "void Foo(",
+                "void Goo(",
                 VirtualKey.Escape,
                 ")");
 
-            VisualStudio.Editor.Verify.CurrentLineText("void Foo()$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("void Goo()$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void SquareBracket_Insertion()
         {
             SetUpEditor(@"
@@ -163,7 +164,7 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("int [$$]", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void SquareBracket_Overtyping()
         {
             SetUpEditor(@"
@@ -175,7 +176,7 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("int []$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void DoubleQuote_InsertionAndTabCompletion()
         {
             SetUpEditor(@"
@@ -187,7 +188,7 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("string str = \"\"$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void DoubleQuote_InsertionAndOvertyping()
         {
             SetUpEditor(@"
@@ -199,7 +200,7 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("string str = \"Hi Roslyn!\"$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void AngleBracket_PossibleGenerics_InsertionAndCompletion()
         {
             SetUpEditor(@"
@@ -246,7 +247,7 @@ $$
             VisualStudio.Editor.Verify.CurrentLineText("class GenericClass<>$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void SingleQuote_InsertionAndCompletion()
         {
             SetUpEditor(@"
@@ -263,13 +264,13 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("char c = '\u6666'$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Nested_AllKinds()
         {
             SetUpEditor(@"
 class Bar<U>
 {
-    T Foo<T>(T t) { return t; }
+    T Goo<T>(T t) { return t; }
     void M()
     {
         $$
@@ -277,10 +278,10 @@ class Bar<U>
 }");
 
             VisualStudio.Editor.SendKeys(
-                "var arr=new object[,]{{Foo(0",
+                "var arr=new object[,]{{Goo(0",
                 VirtualKey.Tab,
                 VirtualKey.Tab,
-                ",{Foo(Foo(\"hello",
+                ",{Goo(Goo(\"hello",
                 VirtualKey.Tab,
                 VirtualKey.Tab,
                 VirtualKey.Tab,
@@ -288,10 +289,10 @@ class Bar<U>
                 VirtualKey.Tab,
                 ';');
 
-            VisualStudio.Editor.Verify.CurrentLineText("var arr = new object[,] { { Foo(0) }, { Foo(Foo(\"hello\")) } };$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("var arr = new object[,] { { Goo(0) }, { Goo(Goo(\"hello\")) } };$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionInSingleLineComments()
         {
             SetUpEditor(@"
@@ -303,7 +304,7 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("// {([\"'$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionInMultiLineComments()
         {
             SetUpEditor(@"
@@ -317,7 +318,7 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("{([\"'$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionStringVerbatimStringOrCharLiterals()
         {
             SetUpEditor(@"
@@ -339,7 +340,7 @@ class C {
             VisualStudio.Editor.Verify.CurrentLineText("char ch = '{([<\"'$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionInXmlDocComments()
         {
             SetUpEditor(@"
@@ -353,7 +354,7 @@ class C { }");
             VisualStudio.Editor.Verify.CurrentLineText("/// {([<\"'$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionInDisabledPreprocesser()
         {
             SetUpEditor(@"
@@ -363,11 +364,11 @@ $$
 #endif
 }");
 
-            VisualStudio.Editor.SendKeys("void Foo(");
-            VisualStudio.Editor.Verify.CurrentLineText("void Foo($$", assertCaretPosition: true);
+            VisualStudio.Editor.SendKeys("void Goo(");
+            VisualStudio.Editor.Verify.CurrentLineText("void Goo($$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionAfterRegionPreprocesser()
         {
             SetUpEditor(@"
@@ -380,7 +381,7 @@ $$
             VisualStudio.Editor.Verify.CurrentLineText("#region {([<\"'$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionAfterEndregionPreprocesser()
         {
             SetUpEditor(@"
@@ -393,7 +394,7 @@ $$
             VisualStudio.Editor.Verify.CurrentLineText("#endregion {([<\"'$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionAfterIfPreprocesser()
         {
             SetUpEditor(@"
@@ -404,7 +405,7 @@ $$
             VisualStudio.Editor.Verify.CurrentLineText("#if {([<\"'$$", assertCaretPosition: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionAfterPragmaPreprocesser()
         {
             SetUpEditor(@"
@@ -416,36 +417,36 @@ $$
         }
 
         [WorkItem(651954, "DevDiv")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InteractionWithOverrideStubGeneration()
         {
             SetUpEditor(@"
 class A
 {
-    public virtual void Foo() { }
+    public virtual void Goo() { }
 }
 class B : A
 {
-    // type ""override Foo(""
+    // type ""override Goo(""
     $$
 }
 ");
 
-            VisualStudio.Editor.SendKeys("override Foo(");
+            VisualStudio.Editor.SendKeys("override Goo(");
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 class B : A
 {
-    // type ""override Foo(""
-    public override void Foo()
+    // type ""override Goo(""
+    public override void Goo()
     {
-        base.Foo();
+        base.Goo();
     }
 }", actualText);
         }
 
         [WorkItem(531107, "DevDiv")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InteractionWithCompletionList()
         {
             SetUpEditor(@"
@@ -464,7 +465,7 @@ class C
         }
 
         [WorkItem(823958, "DevDiv")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void AutoBraceCompleteDoesNotFormatBracePairInInitializers()
         {
             SetUpEditor(@"
@@ -482,7 +483,7 @@ class C
         }
 
         [WorkItem(823958, "DevDiv")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void AutoBraceCompleteDoesNotFormatBracePairInObjectCreationExpression()
         {
             SetUpEditor(@"
@@ -500,7 +501,7 @@ class C
         }
 
         [WorkItem(823958, "DevDiv")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void AutoBraceCompleteFormatsBracePairInClassDeclarationAndAutoProperty()
         {
             SetUpEditor(@"

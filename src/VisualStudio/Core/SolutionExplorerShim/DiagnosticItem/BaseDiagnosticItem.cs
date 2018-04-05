@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        protected abstract Workspace Workspace { get; }
+        protected abstract Microsoft.CodeAnalysis.Workspace Workspace { get; }
         public abstract ProjectId ProjectId { get; }
         protected abstract AnalyzerReference AnalyzerReference { get; }
 

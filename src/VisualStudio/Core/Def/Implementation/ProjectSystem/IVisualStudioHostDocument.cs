@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The visual studio project this document is part of.
         /// </summary>
-        IVisualStudioHostProject Project { get; }
+        AbstractProject Project { get; }
 
         /// <summary>
         /// The Visual Studio identity of the document within its project.
@@ -113,8 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         void UpdateText(SourceText newText);
 
         /// <summary>
-        /// Fetches the <see cref="ITextUndoHistory"/> that should be used to undo edits to this document.
+        /// Fetches the <see cref="ITextBuffer"/> that should be used to undo edits to this document.
         /// </summary>
-        ITextUndoHistory GetTextUndoHistory();
+        ITextBuffer GetTextUndoHistoryBuffer();
     }
 }

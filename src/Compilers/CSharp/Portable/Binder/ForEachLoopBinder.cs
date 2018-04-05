@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 
@@ -167,7 +168,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
 
             ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
-            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, inferredType ?? CreateErrorType("var"));
+
+            // Tracking narrowest safe-to-escape scope by default, the proper val escape will be set when doing full binding of the foreach statement
+            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, this.LocalScopeDepth, inferredType ?? CreateErrorType("var"));
+
             DeclarationExpressionSyntax declaration = null;
             ExpressionSyntax expression = null;
             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
@@ -201,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression boundIterationVariableType;
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
+            uint collectionEscape = GetValEscape(collectionExpr, this.LocalScopeDepth);
             switch (_syntax.Kind())
             {
                 case SyntaxKind.ForEachStatement:
@@ -212,11 +217,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If the type in syntax is "var", then the type should be set explicitly so that the
                         // Type property doesn't fail.
-                        TypeSyntax typeSyntax = node.Type;
+                        TypeSyntax typeSyntax = node.Type.SkipRef(out _);
 
                         bool isVar;
                         AliasSymbol alias;
-                        TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out alias);
+                        TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out alias);
 
                         if (isVar)
                         {
@@ -229,7 +234,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         boundIterationVariableType = new BoundTypeExpression(typeSyntax, alias, iterationVariableType);
-                        this.IterationVariable.SetType(iterationVariableType);
+
+                        SourceLocalSymbol local = this.IterationVariable;
+                        local.SetType(iterationVariableType);
+                        local.SetValEscape(collectionEscape);
+
+                        if (!hasErrors)
+                        {
+                            BindValueKind requiredCurrentKind;
+                            switch (local.RefKind)
+                            {
+                                case RefKind.None:
+                                    requiredCurrentKind = BindValueKind.RValue;
+                                    break;
+                                case RefKind.Ref:
+                                    requiredCurrentKind = BindValueKind.Assignable | BindValueKind.RefersToLocation;
+                                    break;
+                                case RefKind.RefReadOnly:
+                                    requiredCurrentKind = BindValueKind.RefersToLocation;
+                                    break;
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(local.RefKind);
+                            }
+
+                            hasErrors |= !CheckMethodReturnValueKind(
+                                builder.CurrentPropertyGetter,
+                                callSyntaxOpt: null,
+                                collectionExpr.Syntax,
+                                requiredCurrentKind,
+                                checkingReceiver: false,
+                                diagnostics);
+                        }
+
                         break;
                     }
                 case SyntaxKind.ForEachVariableStatement:
@@ -240,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var variables = node.Variable;
                         if (variables.IsDeconstructionLeft())
                         {
-                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, iterationVariableType);
+                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType).MakeCompilerGenerated();
                             DeclarationExpressionSyntax declaration = null;
                             ExpressionSyntax expression = null;
                             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
@@ -259,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 hasErrors = true;
                             }
 
-                            deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder);
+                            deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder).MakeCompilerGenerated();
                         }
                         else if (!node.HasErrors)
                         {
@@ -268,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
 
-                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType);
+                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType).MakeCompilerGenerated();
                         break;
                     }
                 default:
@@ -282,8 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       I.E. - they will be considered declared and assigned in each iteration step. 
             ImmutableArray<LocalSymbol> iterationVariables = this.Locals;
 
-            Debug.Assert(hasErrors || 
-                _syntax.HasErrors || 
+            Debug.Assert(hasErrors ||
+                _syntax.HasErrors ||
                 iterationVariables.All(local => local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable),
                 "Should not have iteration variables that are not ForEachIterationVariable in valid code");
 
@@ -326,12 +362,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<MethodSymbol> originalUserDefinedConversions = elementConversion.OriginalUserDefinedConversions;
                 if (originalUserDefinedConversions.Length > 1)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AmbigUDConv, _syntax.ForEachKeyword.GetLocation(), originalUserDefinedConversions[0], originalUserDefinedConversions[1], inferredType, iterationVariableType);
+                    diagnostics.Add(ErrorCode.ERR_AmbigUDConv, foreachKeyword.GetLocation(), originalUserDefinedConversions[0], originalUserDefinedConversions[1], inferredType, iterationVariableType);
                 }
                 else
                 {
                     SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, inferredType, iterationVariableType);
-                    diagnostics.Add(ErrorCode.ERR_NoExplicitConv, _syntax.ForEachKeyword.GetLocation(), distinguisher.First, distinguisher.Second);
+                    diagnostics.Add(ErrorCode.ERR_NoExplicitConv, foreachKeyword.GetLocation(), distinguisher.First, distinguisher.Second);
                 }
                 hasErrors = true;
             }
@@ -346,7 +382,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.CollectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, builder.CollectionType, ref useSiteDiagnostics);
             builder.CurrentConversion = this.Conversions.ClassifyConversionFromType(builder.CurrentPropertyGetter.ReturnType, builder.ElementType, ref useSiteDiagnostics);
 
-            builder.EnumeratorConversion = this.Conversions.ClassifyConversionFromType(builder.GetEnumeratorMethod.ReturnType, GetSpecialType(SpecialType.System_Object, diagnostics, _syntax), ref useSiteDiagnostics);
+            var getEnumeratorType = builder.GetEnumeratorMethod.ReturnType;
+            // we never convert struct enumerators to object - it is done only for null-checks.
+            builder.EnumeratorConversion = getEnumeratorType.IsValueType ?
+                                                Conversion.Identity :
+                                                this.Conversions.ClassifyConversionFromType(getEnumeratorType, GetSpecialType(SpecialType.System_Object, diagnostics, _syntax), ref useSiteDiagnostics);
+
+            if (getEnumeratorType.IsRestrictedType() && (IsDirectlyInIterator || IsInAsyncMethod()))
+            {
+                diagnostics.Add(ErrorCode.ERR_BadSpecialByRefIterator, foreachKeyword.GetLocation(), getEnumeratorType);
+            }
 
             diagnostics.Add(_syntax.ForEachKeyword.GetLocation(), useSiteDiagnostics);
 
@@ -789,7 +834,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.OverloadResolution.MethodInvocationOverloadResolution(candidateMethods, typeArguments, arguments, overloadResolutionResult, ref useSiteDiagnostics);
+            // We create a dummy receiver of the invocation so MethodInvocationOverloadResolution knows it was invoked from an instance, not a type
+            var dummyReceiver = new BoundImplicitReceiver(_syntax.Expression, patternType);
+            this.OverloadResolution.MethodInvocationOverloadResolution(
+                methods: candidateMethods,
+                typeArguments: typeArguments,
+                receiver: dummyReceiver,
+                arguments: arguments,
+                result: overloadResolutionResult,
+                useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(_syntax.Expression, useSiteDiagnostics);
 
             MethodSymbol result = null;

@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static TextDocument WithText(this TextDocument textDocument, SourceText text)
         {
-            var document = textDocument as Document;
-            if (document != null)
+            if (textDocument is Document document)
             {
                 return document.WithText(text);
             }

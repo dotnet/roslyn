@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Class C
-    Property $$Foo As Integer
+    Property $$Goo As Integer
 End Class
 "
 
@@ -34,8 +34,8 @@ End Class
         Public Async Function WithAttributes() As Task
             Dim code = "
 Class C
-    {|hint:{|textspan:<Foo>
-    |}Property $$Foo As Integer|}
+    {|hint:{|textspan:<Goo>
+    |}Property $$Goo As Integer|}
 End Class
 "
 
@@ -49,8 +49,8 @@ End Class
 Class C
     {|hint:{|textspan:' Summary:
     '     This is a summary.
-    <Foo>
-    |}Property $$Foo As Integer|}
+    <Goo>
+    |}Property $$Goo As Integer|}
 End Class
 "
 
@@ -64,8 +64,8 @@ End Class
 Class C
     {|hint:{|textspan:' Summary:
     '     This is a summary.
-    <Foo>
-    |}Public Property $$Foo As Integer|}
+    <Goo>
+    |}Public Property $$Goo As Integer|}
 End Class
 "
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _sourceTypeParameter.HasValueTypeConstraint; }
         }
 
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get { return _sourceTypeParameter.HasUnmanagedTypeConstraint; }
+        }
+
         public override ImmutableArray<Location> Locations
         {
             get { throw ExceptionUtilities.Unreachable; }
@@ -119,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
         {
             var interfaces = _sourceTypeParameter.GetInterfaces(inProgress);
-            return this.TypeMap.SubstituteNamedTypes(Interfaces);
+            return this.TypeMap.SubstituteNamedTypes(InterfacesNoUseSiteDiagnostics()); // It looks like there is a bug on this line https://github.com/dotnet/roslyn/issues/23886
         }
 
         private TypeMap TypeMap

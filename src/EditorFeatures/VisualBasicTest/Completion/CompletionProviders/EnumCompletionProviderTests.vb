@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -112,18 +112,18 @@ Module Program
         Bar($$
     End Sub
  
-    Sub Bar(f As Foo)
+    Sub Bar(f As Goo)
     End Sub
 End Module
  
-Enum Foo
+Enum Goo
     AMember
     BMember
     CMember
 End
 ]]></Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "Foo.AMember", usePreviousCharAsTrigger:=True)
+            Await VerifyItemExistsAsync(markup, "Goo.AMember", usePreviousCharAsTrigger:=True)
         End Function
 
         <Fact>
@@ -133,19 +133,19 @@ End
             Dim markup = <Text><![CDATA[
 Module Program
     Sub Main(args As String())
-        Dim x as Foo
+        Dim x as Goo
         x = $$
     End Sub
 End Module
  
-Enum Foo
+Enum Goo
     AMember
     BMember
     CMember
 End
 ]]></Text>.Value
 
-            Await VerifyItemExistsAsync(markup, "Foo.AMember", usePreviousCharAsTrigger:=True)
+            Await VerifyItemExistsAsync(markup, "Goo.AMember", usePreviousCharAsTrigger:=True)
         End Function
 
         <Fact>
@@ -155,10 +155,10 @@ End
             Dim markup = <Text><![CDATA[
 Module Program
     Sub Main(args As String())
-        Dim z = New Foo() With {.z$$ }
+        Dim z = New Goo() With {.z$$ }
     End Sub
 
-    Class Foo
+    Class Goo
         Property A As Integer
             Get
 

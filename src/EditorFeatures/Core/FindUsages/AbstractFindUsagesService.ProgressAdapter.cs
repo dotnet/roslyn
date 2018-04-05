@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             public async Task OnReferenceFoundAsync(Document document, TextSpan span)
             {
-                var documentSpan = await ClassifiedSpansAndHighlightSpan.GetClassifiedDocumentSpanAsync(
+                var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                     document, span, _context.CancellationToken).ConfigureAwait(false);
                 await _context.OnReferenceFoundAsync(new SourceReferenceItem(
                     _definition, documentSpan, isWrittenTo: false)).ConfigureAwait(false);
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     if (!_definitionToItem.TryGetValue(definition.Symbol, out var definitionItem))
                     {
                         definitionItem = await definition.Symbol.ToClassifiedDefinitionItemAsync(
-                            _solution, includeHiddenLocations: false, cancellationToken: _context.CancellationToken).ConfigureAwait(false);
+                            _solution.GetProject(definition.ProjectId), includeHiddenLocations: false, cancellationToken: _context.CancellationToken).ConfigureAwait(false);
 
                         _definitionToItem[definition.Symbol] = definitionItem;
                     }

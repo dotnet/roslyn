@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -10,20 +10,23 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
-    internal class InteractiveWorkspace : Workspace
+    internal sealed class InteractiveWorkspace : Workspace
     {
+        public readonly InteractiveEvaluator Evaluator;
         private readonly ISolutionCrawlerRegistrationService _registrationService;
 
         internal IInteractiveWindow Window { get; set; }
         private SourceTextContainer _openTextContainer;
         private DocumentId _openDocumentId;
 
-        internal InteractiveWorkspace(HostServices hostServices)
+        internal InteractiveWorkspace(HostServices hostServices, InteractiveEvaluator evaluator)
             : base(hostServices, WorkspaceKind.Interactive)
         {
             // register work coordinator for this workspace
-            _registrationService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
+            _registrationService = Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(this);
+
+            Evaluator = evaluator;
         }
 
         protected override void Dispose(bool finalize)

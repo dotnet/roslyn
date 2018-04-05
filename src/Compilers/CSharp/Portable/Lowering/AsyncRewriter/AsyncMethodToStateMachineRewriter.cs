@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal void GenerateMoveNext(BoundStatement body, MethodSymbol moveNextMethod)
         {
-            F.CurrentMethod = moveNextMethod;
+            F.CurrentFunction = moveNextMethod;
 
             BoundStatement rewrittenBody = (BoundStatement)Visit(body);
 
@@ -516,6 +517,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var onCompleted = (useUnsafeOnCompleted ?
                 _asyncMethodBuilderMemberCollection.AwaitUnsafeOnCompleted :
                 _asyncMethodBuilderMemberCollection.AwaitOnCompleted).Construct(loweredAwaiterType, F.This().Type);
+            if (_asyncMethodBuilderMemberCollection.CheckGenericMethodConstraints)
+            {
+                onCompleted.CheckConstraints(F.Compilation.Conversions, F.Syntax, F.Compilation, this.Diagnostics);
+            }
 
             BoundExpression result =
                 F.Call(

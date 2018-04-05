@@ -10,21 +10,31 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
+using System.Text;
+using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
+    public enum Verification
+    {
+        Passes = 0,
+        Fails,
+        Skipped
+    }
+
     /// <summary>
     /// Base class for all language specific tests.
     /// </summary>
     public abstract partial class CommonTestBase : TestBase
     {
-        internal abstract IEnumerable<IModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public);
-
         #region Emit
 
         protected abstract Compilation GetCompilationForEmit(
@@ -35,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected abstract CompilationOptions CompilationOptionsReleaseDll { get; }
 
-        internal CompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerifyCommon(
             string source,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -47,9 +57,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
-            return CompileAndVerify(
+            return CompileAndVerifyCommon(
                 sources: new string[] { source },
                 additionalRefs: additionalRefs,
                 dependencies: dependencies,
@@ -64,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 verify: verify);
         }
 
-        internal CompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerifyCommon(
             IEnumerable<string> sources,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -73,10 +83,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            int? expectedReturnCode = null,
+            string[] args = null,
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             if (options == null)
             {
@@ -85,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var compilation = GetCompilationForEmit(sources, additionalRefs, options, parseOptions);
 
-            return this.CompileAndVerify(
+            return this.CompileAndVerifyCommon(
                 compilation,
                 null,
                 dependencies,
@@ -94,11 +106,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 symbolValidator,
                 expectedSignatures,
                 expectedOutput,
+                expectedReturnCode,
+                args,
                 emitOptions,
                 verify);
         }
 
-        internal CompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerifyCommon(
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -107,21 +121,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            int? expectedReturnCode = null,
+            string[] args = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             Assert.NotNull(compilation);
 
             Assert.True(expectedOutput == null ||
                 (compilation.Options.OutputKind == OutputKind.ConsoleApplication || compilation.Options.OutputKind == OutputKind.WindowsApplication),
                 "Compilation must be executable if output is expected.");
-
-            if (verify)
-            {
-                // Unsafe code might not verify, so don't try.
-                var csharpOptions = compilation.Options as CSharp.CSharpCompilationOptions;
-                verify = (csharpOptions == null || !csharpOptions.AllowUnsafe);
-            }
 
             if (sourceSymbolValidator != null)
             {
@@ -136,6 +145,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 manifestResources,
                                 expectedSignatures,
                                 expectedOutput,
+                                expectedReturnCode,
+                                args ?? Array.Empty<string>(),
                                 assemblyValidator,
                                 symbolValidator,
                                 emitOptions,
@@ -172,24 +183,31 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true)
         {
-            return CompileAndVerify(source, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
+            return CompileAndVerifyCommon(source, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
         }
 
         static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
         {
+            Assert.True(assemblyValidator != null || symbolValidator != null);
+
+            var emittedMetadata = verifier.GetMetadata();
+
             if (assemblyValidator != null)
             {
-                using (var emittedMetadata = AssemblyMetadata.Create(verifier.GetAllModuleMetadata()))
-                {
-                    assemblyValidator(emittedMetadata.GetAssembly());
-                }
+                Assert.Equal(MetadataImageKind.Assembly, emittedMetadata.Kind);
+
+                var assembly = ((AssemblyMetadata)emittedMetadata).GetAssembly();
+                assemblyValidator(assembly);
             }
 
             if (symbolValidator != null)
             {
-                var peModuleSymbol = verifier.GetModuleSymbolForEmittedImage();
-                Debug.Assert(peModuleSymbol != null);
-                symbolValidator(peModuleSymbol);
+                var reference = emittedMetadata.Kind == MetadataImageKind.Assembly
+                    ? ((AssemblyMetadata)emittedMetadata).GetReference()
+                    : ((ModuleMetadata)emittedMetadata).GetReference();
+
+                var moduleSymbol = verifier.GetSymbolFromMetadata(reference, verifier.Compilation.Options.MetadataImportOptions);
+                symbolValidator(moduleSymbol);
             }
         }
 
@@ -199,20 +217,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<ResourceDescription> manifestResources,
             SignatureDescription[] expectedSignatures,
             string expectedOutput,
+            int? expectedReturnCode,
+            string[] args,
             Action<PEAssembly> assemblyValidator,
             Action<IModuleSymbol> symbolValidator,
             EmitOptions emitOptions,
-            bool verify)
+            Verification verify)
         {
-            CompilationVerifier verifier = null;
+            var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
 
-            verifier = new CompilationVerifier(this, compilation, dependencies);
+            verifier.Emit(expectedOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 
-            verifier.Emit(expectedOutput, manifestResources, emitOptions, verify, expectedSignatures);
-
-            // We're dual-purposing emitters here.  In this context, it
-            // tells the validator the version of Emit that is calling it. 
-            RunValidators(verifier, assemblyValidator, symbolValidator);
+            if (assemblyValidator != null || symbolValidator != null)
+            {
+                // We're dual-purposing emitters here.  In this context, it
+                // tells the validator the version of Emit that is calling it. 
+                RunValidators(verifier, assemblyValidator, symbolValidator);
+            }
 
             return verifier;
         }
@@ -234,9 +255,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             out ImmutableArray<byte> assemblyBytes,
             out ImmutableArray<byte> pdbBytes)
         {
-            string assemblyPath;
-            string pdbPath;
-            IlasmUtilities.IlasmTempAssembly(ilSource, appendDefaultHeader, includePdb, out assemblyPath, out pdbPath);
+            IlasmUtilities.IlasmTempAssembly(ilSource, appendDefaultHeader, includePdb, out var assemblyPath, out var pdbPath);
 
             Assert.NotNull(assemblyPath);
             Assert.Equal(pdbPath != null, includePdb);
@@ -261,17 +280,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static MetadataReference CompileIL(string ilSource, bool prependDefaultHeader = true, bool embedInteropTypes = false)
         {
-            ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes);
             return AssemblyMetadata.CreateFromImage(assemblyBytes).GetReference(embedInteropTypes: embedInteropTypes);
         }
 
         internal static MetadataReference GetILModuleReference(string ilSource, bool prependDefaultHeader = true)
         {
-            ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes);
             return ModuleMetadata.CreateFromImage(assemblyBytes).GetReference();
         }
 
@@ -487,6 +502,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 linkerMinorVersion: 0);
         }
 
+        internal void AssertDeclaresType(PEModuleSymbol peModule, WellKnownType type, Accessibility expectedAccessibility)
+        {
+            var name = MetadataTypeName.FromFullName(type.GetMetadataName());
+            Assert.Equal(expectedAccessibility, peModule.LookupTopLevelMetadataType(ref name).DeclaredAccessibility);
+        }
+
         #endregion
 
         #region Metadata Validation
@@ -517,6 +538,139 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 MemberName = memberName,
                 ExpectedSignature = expectedSignature
             };
+        }
+
+        #endregion
+
+        #region Operation Test Helpers
+        internal static void VerifyParentOperations(SemanticModel model)
+        {
+            var parentMap = GetParentOperationsMap(model);
+
+            // check parent for each child
+            foreach (var (child, parent) in parentMap)
+            {
+                // check parent property returns same parent we gathered by walking down operation tree
+                Assert.Equal(child.Parent, parent);
+
+                // check SearchparentOperation return same parent
+                Assert.Equal(((Operation)child).SearchParentOperation(), parent);
+
+                if (parent == null)
+                {
+                    // this is root of operation tree
+                    VerifyOperationTreeContracts(child);
+                }
+            }
+        }
+
+        private static Dictionary<IOperation, IOperation> GetParentOperationsMap(SemanticModel model)
+        {
+            // get top operations first
+            var topOperations = new HashSet<IOperation>();
+            var root = model.SyntaxTree.GetRoot();
+
+            CollectTopOperations(model, root, topOperations);
+
+            // dig down the each operation tree to create the parent operation map
+            var map = new Dictionary<IOperation, IOperation>();
+            foreach (var topOperation in topOperations)
+            {
+                // this is top of the operation tree
+                map.Add(topOperation, null);
+
+                CollectParentOperations(topOperation, map);
+            }
+
+            return map;
+        }
+
+        private static void CollectParentOperations(IOperation operation, Dictionary<IOperation, IOperation> map)
+        {
+            // walk down to collect all parent operation map for this tree
+            foreach (var child in operation.Children.WhereNotNull())
+            {
+                map.Add(child, operation);
+
+                CollectParentOperations(child, map);
+            }
+        }
+
+        private static void CollectTopOperations(SemanticModel model, SyntaxNode node, HashSet<IOperation> topOperations)
+        {
+            foreach (var child in node.ChildNodes())
+            {
+                var operation = model.GetOperation(child);
+                if (operation != null)
+                {
+                    // found top operation
+                    topOperations.Add(operation);
+
+                    // don't dig down anymore
+                    continue;
+                }
+
+                // sub tree might have the top operation
+                CollectTopOperations(model, child, topOperations);
+            }
+        }
+
+        internal static void VerifyClone(SemanticModel model)
+        {
+            foreach (var node in model.SyntaxTree.GetRoot().DescendantNodes())
+            {
+                var operation = model.GetOperation(node);
+                if (operation == null)
+                {
+                    continue;
+                }
+
+                var clonedOperation = model.CloneOperation(operation);
+
+                // check whether cloned IOperation is same as original one
+                var original = OperationTreeVerifier.GetOperationTree(model.Compilation, operation);
+                var cloned = OperationTreeVerifier.GetOperationTree(model.Compilation, clonedOperation);
+
+                Assert.Equal(original, cloned);
+
+                // make sure cloned operation is value equal but doesn't share any IOperations
+                var originalSet = new HashSet<IOperation>(operation.DescendantsAndSelf());
+                var clonedSet = new HashSet<IOperation>(clonedOperation.DescendantsAndSelf());
+
+                Assert.Equal(originalSet.Count, clonedSet.Count);
+                Assert.Equal(0, originalSet.Intersect(clonedSet).Count());
+            }
+        }
+
+        private static void VerifyOperationTreeContracts(IOperation root)
+        {
+            var semanticModel = ((Operation)root).SemanticModel;
+            var set = new HashSet<IOperation>(root.DescendantsAndSelf());
+
+            foreach (var child in root.DescendantsAndSelf())
+            {
+                // all operations from spine should belong to the operation tree set
+                VerifyOperationTreeSpine(semanticModel, set, child.Syntax);
+
+                // operation tree's node must be part of root of semantic model which is 
+                // owner of operation's lifetime
+                Assert.True(semanticModel.Root.FullSpan.Contains(child.Syntax.FullSpan));
+            }
+        }
+
+        private static void VerifyOperationTreeSpine(
+            SemanticModel semanticModel, HashSet<IOperation> set, SyntaxNode node)
+        {
+            while (node != semanticModel.Root)
+            {
+                var operation = semanticModel.GetOperation(node);
+                if (operation != null)
+                {
+                    Assert.True(set.Contains(operation));
+                }
+
+                node = node.Parent;
+            }
         }
 
         #endregion

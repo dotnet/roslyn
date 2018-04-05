@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                          this.TabSize,
                          this.OptionSet.GetOption(FormattingOptions.IndentationSize, syntaxRoot.Language),
                          tokenStream: null,
-                         lastToken: default(SyntaxToken));
+                         lastToken: default);
             }
 
             public IndentationResult? GetDesiredIndentation(Document document)
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                     // This line is inside an inactive region. Examine the 
                     // first preceding line not in an inactive region.
                     var disabledSpan = _syntaxFacts.GetInactiveRegionSpanAroundPosition(this.Tree, actualLine.Span.Start, CancellationToken);
-                    if (disabledSpan != default(TextSpan))
+                    if (disabledSpan != default)
                     {
                         var targetLine = sourceText.Lines.GetLineFromPosition(disabledSpan.Start).LineNumber;
                         lineNumber = targetLine - 1;

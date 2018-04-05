@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -106,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' A non-empty SingleLookupResult with the result is returned.
         '
         ' For symbols from outside of this compilation the method also checks 
-        ' if the symbol is marked with 'Microsoft.VisualBasic.Embedded' attribute.
+        ' if the symbol is marked with 'Microsoft.VisualBasic.Embedded' or 'Microsoft.CodeAnalysis.Embedded' attributes.
         '
         ' If arity passed in is -1, no arity checks are done.
         Friend Function CheckViability(sym As Symbol,
@@ -152,9 +153,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 unwrappedSym = asAlias.Target
             End If
 
-            ' Check for external symbols marked with 'Microsoft.VisualBasic.Embedded' attribute
-            If unwrappedSym.ContainingModule IsNot Me.ContainingModule AndAlso unwrappedSym.IsHiddenByEmbeddedAttribute() Then
-                Return SingleLookupResult.Empty
+            ' Check for external symbols marked with 'Microsoft.VisualBasic.Embedded' or 'Microsoft.CodeAnalysis.Embedded' attributes
+            If unwrappedSym.ContainingModule IsNot Me.ContainingModule Then
+                If unwrappedSym.IsHiddenByVisualBasicEmbeddedAttribute() OrElse unwrappedSym.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
+                    Return SingleLookupResult.Empty
+                End If
             End If
 
             If unwrappedSym.Kind = SymbolKind.NamedType AndAlso unwrappedSym.EmbeddedSymbolKind = EmbeddedSymbolKind.EmbeddedAttribute AndAlso
@@ -273,11 +276,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Friend Function CanAddLookupSymbolInfo(sym As Symbol,
                                                     options As LookupOptions,
+                                                    nameSet As LookupSymbolsInfo,
                                                     accessThroughType As TypeSymbol) As Boolean
+            Debug.Assert(sym IsNot Nothing)
+
+            If Not nameSet.CanBeAdded(sym.Name) Then
+                Return False
+            End If
+
             Dim singleResult = CheckViability(sym, -1, options, accessThroughType, useSiteDiagnostics:=Nothing)
 
-            If sym IsNot Nothing AndAlso
-               (options And LookupOptions.MethodsOnly) <> 0 AndAlso
+            If (options And LookupOptions.MethodsOnly) <> 0 AndAlso
                sym.Kind <> SymbolKind.Method Then
                 Return False
             End If
@@ -523,7 +532,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Add names from the namespace
                 For Each sym In container.GetMembersUnordered()
                     ' UNDONE: filter by options
-                    If binder.CanAddLookupSymbolInfo(sym, options, Nothing) Then
+                    If binder.CanAddLookupSymbolInfo(sym, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(sym, sym.Name, sym.GetArity())
                     End If
                 Next
@@ -1994,6 +2003,10 @@ ExitForFor:
                                                                     typeParameter As TypeParameterSymbol,
                                                                     options As LookupOptions,
                                                                     binder As Binder)
+                If typeParameter.TypeParameterKind = TypeParameterKind.Cref Then
+                    Return
+                End If
+
                 AddLookupSymbolsInfoInTypeParameterNoExtensionMethods(nameSet, typeParameter, options, binder)
 
                 ' Search for extension methods.
@@ -2080,7 +2093,7 @@ ExitForFor:
                     ' validate them.
                     If TypeOf container Is NamedTypeSymbol Then
                         For Each sym In container.GetTypeMembersUnordered()
-                            If binder.CanAddLookupSymbolInfo(sym, options, accessThroughType) Then
+                            If binder.CanAddLookupSymbolInfo(sym, options, nameSet, accessThroughType) Then
                                 nameSet.AddSymbol(sym, sym.Name, sym.Arity)
                             End If
                         Next
@@ -2088,7 +2101,7 @@ ExitForFor:
                 ElseIf (options And LookupOptions.LabelsOnly) = 0 Then
                     ' Go through each member of the type.
                     For Each sym In container.GetMembersUnordered()
-                        If binder.CanAddLookupSymbolInfo(sym, options, accessThroughType) Then
+                        If binder.CanAddLookupSymbolInfo(sym, options, nameSet, accessThroughType) Then
                             nameSet.AddSymbol(sym, sym.Name, sym.GetArity())
                         End If
                     Next

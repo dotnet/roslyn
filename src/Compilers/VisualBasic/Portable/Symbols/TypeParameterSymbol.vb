@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports System.Runtime.InteropServices
 
@@ -55,12 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Duplicates and cycles are removed, although the collection may include redundant
         ''' constraints where one constraint is a base type of another.
         ''' </summary>
-        Public ReadOnly Property ConstraintTypes As ImmutableArray(Of TypeSymbol)
-            Get
-                Return ConstraintTypesNoUseSiteDiagnostics
-            End Get
-        End Property
-
         Friend MustOverride ReadOnly Property ConstraintTypesNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
 
         Friend Function ConstraintTypesWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of TypeSymbol)
@@ -318,6 +313,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property HasReferenceTypeConstraint As Boolean Implements ITypeParameterSymbol.HasReferenceTypeConstraint
 
         Public MustOverride ReadOnly Property HasValueTypeConstraint As Boolean Implements ITypeParameterSymbol.HasValueTypeConstraint
+
+        Private ReadOnly Property HasUnmanagedTypeConstraint As Boolean Implements ITypeParameterSymbol.HasUnmanagedTypeConstraint
+            Get
+                Return False
+            End Get
+        End Property
 
         Public MustOverride ReadOnly Property Variance As VarianceKind Implements ITypeParameterSymbol.Variance
 

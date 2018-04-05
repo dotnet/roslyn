@@ -737,14 +737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <typeparam name="TNode">The specific type of the element nodes.</typeparam>
         ''' <param name="nodes">A sequence of element nodes.</param>
         Public Shared Function List(Of TNode As SyntaxNode)(nodes As IEnumerable(Of TNode)) As SyntaxList(Of TNode)
-            If nodes IsNot Nothing Then
-                Dim builder = SyntaxListBuilder(Of TNode).Create()
-                For Each node In nodes
-                    builder.Add(node)
-                Next
-                Return builder.ToList
-            End If
-            Return New SyntaxList(Of TNode)
+            Return New SyntaxList(Of TNode)(nodes)
         End Function
 
         ''' <summary>
@@ -767,14 +760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="tokens">An array of tokens.</param>
         Public Shared Function TokenList(ParamArray tokens As SyntaxToken()) As SyntaxTokenList
-            If tokens IsNot Nothing Then
-                Dim builder As New SyntaxTokenListBuilder(tokens.Length)
-                For i = 0 To tokens.Length - 1
-                    builder.Add(DirectCast(tokens(i).Node, InternalSyntax.SyntaxToken))
-                Next
-                Return builder.ToList
-            End If
-            Return New SyntaxTokenList()
+            Return New SyntaxTokenList(tokens)
         End Function
 
         ''' <summary>
@@ -782,14 +768,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="tokens"></param>
         Public Shared Function TokenList(tokens As IEnumerable(Of SyntaxToken)) As SyntaxTokenList
-            If tokens IsNot Nothing Then
-                Dim builder = SyntaxTokenListBuilder.Create()
-                For Each t In tokens
-                    builder.Add(DirectCast(t.Node, InternalSyntax.SyntaxToken))
-                Next
-                Return builder.ToList
-            End If
-            Return New SyntaxTokenList()
+            Return New SyntaxTokenList(tokens)
         End Function
 
         ''' <summary>
@@ -812,12 +791,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="trivias">An array of trivia.</param>
         Public Shared Function TriviaList(ParamArray trivias As SyntaxTrivia()) As SyntaxTriviaList
-            If trivias IsNot Nothing Then
-                Dim builder As New SyntaxTriviaListBuilder(trivias.Length)
-                builder.Add(trivias)
-                Return builder.ToList
-            End If
-            Return New SyntaxTriviaList()
+            Return New SyntaxTriviaList(trivias)
         End Function
 
         ''' <summary>
@@ -825,7 +799,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="trivias">A sequence of trivia.</param>
         Public Shared Function TriviaList(trivias As IEnumerable(Of SyntaxTrivia)) As SyntaxTriviaList
-            Return SyntaxTriviaListBuilder.Create(trivias)
+            Return New SyntaxTriviaList(trivias)
         End Function
 
         ''' <summary>
@@ -991,13 +965,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="nodesAndTokens">A sequence of nodes and tokens.</param>
         Public Shared Function NodeOrTokenList(nodesAndTokens As IEnumerable(Of SyntaxNodeOrToken)) As SyntaxNodeOrTokenList
-            If nodesAndTokens Is Nothing Then
-                Throw New ArgumentNullException(NameOf(nodesAndTokens))
-            End If
-
-            Dim builder = New SyntaxNodeOrTokenListBuilder(8)
-            builder.Add(nodesAndTokens)
-            Return builder.ToList()
+            Return New SyntaxNodeOrTokenList(nodesAndTokens)
         End Function
 
         ''' <summary>
@@ -1005,7 +973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="nodesAndTokens">An array of nodes and tokens.</param>
         Public Shared Function NodeOrTokenList(ParamArray nodesAndTokens As SyntaxNodeOrToken()) As SyntaxNodeOrTokenList
-            Return NodeOrTokenList(DirectCast(nodesAndTokens, IEnumerable(Of SyntaxNodeOrToken)))
+            Return New SyntaxNodeOrTokenList(nodesAndTokens)
         End Function
 
 #End Region

@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -30,11 +32,12 @@ namespace Microsoft.CodeAnalysis.SQLite
                 new MultiDictionary<TWriteQueueKey, Action<SqlConnection>>();
 
             /// <summary>
-            /// Keep track of how many threads are trying to write out this particular queue.  All threads
-            /// trying to write out the queue will wait until all the writes are done.
+            /// The task responsible for writing out all the batched actions we have for a particular
+            /// queue.  When new reads come in for that queue they can 'await' this write-task completing
+            /// so that all reads for the queue observe any previously completed writes.
             /// </summary>
-            private readonly Dictionary<TWriteQueueKey, CountdownEvent> _writeQueueKeyToCountdown =
-                new Dictionary<TWriteQueueKey, CountdownEvent>();
+            private readonly Dictionary<TWriteQueueKey, Task> _writeQueueKeyToWriteTask =
+                new Dictionary<TWriteQueueKey, Task>();
 
             public Accessor(SQLitePersistentStorage storage)
             {
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             protected abstract void BindFirstParameter(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
 
-            public Task<Stream> ReadStreamAsync(TKey key, CancellationToken cancellationToken)
+            public async Task<Stream> ReadStreamAsync(TKey key, CancellationToken cancellationToken)
             {
                 // Note: we're technically fully synchronous.  However, we're called from several
                 // async methods.  We just return a Task<stream> here so that all our callers don't
@@ -57,32 +60,38 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
+                    bool haveDataId;
+                    TDatabaseId dataId;
                     using (var pooledConnection = Storage.GetPooledConnection())
                     {
-                        var connection = pooledConnection.Connection;
-                        if (TryGetDatabaseId(connection, key, out var dataId))
-                        {
-                            // Ensure all pending document writes to this name are flushed to the DB so that 
-                            // we can find them below.
-                            FlushPendingWrites(connection, key);
+                        haveDataId = TryGetDatabaseId(pooledConnection.Connection, key, out dataId);
+                    }
 
-                            try
+                    if (haveDataId)
+                    {
+                        // Ensure all pending document writes to this name are flushed to the DB so that 
+                        // we can find them below.
+                        await FlushPendingWritesAsync(key, cancellationToken).ConfigureAwait(false);
+
+                        try
+                        {
+                            using (var pooledConnection = Storage.GetPooledConnection())
                             {
                                 // Lookup the row from the DocumentData table corresponding to our dataId.
-                                return Task.FromResult(ReadBlob(connection, dataId));
+                                return ReadBlob(pooledConnection.Connection, dataId);
                             }
-                            catch (Exception ex)
-                            {
-                                StorageDatabaseLogger.LogException(ex);
-                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            StorageDatabaseLogger.LogException(ex);
                         }
                     }
                 }
 
-                return SpecializedTasks.Default<Stream>();
+                return null;
             }
 
-            public Task<bool> WriteStreamAsync(
+            public async Task<bool> WriteStreamAsync(
                 TKey key, Stream stream, CancellationToken cancellationToken)
             {
                 // Note: we're technically fully synchronous.  However, we're called from several
@@ -93,39 +102,41 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
+                    bool haveDataId;
+                    TDatabaseId dataId;
                     using (var pooledConnection = Storage.GetPooledConnection())
                     {
                         // Determine the appropriate data-id to store this stream at.
-                        if (TryGetDatabaseId(pooledConnection.Connection, key, out var dataId))
+                        haveDataId = TryGetDatabaseId(pooledConnection.Connection, key, out dataId);
+                    }
+
+                    if (haveDataId)
+                    {
+                        var (bytes, length, pooled) = GetBytes(stream);
+
+                        await AddWriteTaskAsync(key, con =>
                         {
-                            var (bytes, length, pooled) = GetBytes(stream);
-
-                            AddWriteTask(key, con =>
+                            InsertOrReplaceBlob(con, dataId, bytes, length);
+                            if (pooled)
                             {
-                                InsertOrReplaceBlob(con, dataId, bytes, length);
-                                if (pooled)
-                                {
-                                    ReturnPooledBytes(bytes);
-                                }
-                            });
+                                ReturnPooledBytes(bytes);
+                            }
+                        }, cancellationToken).ConfigureAwait(false);
 
-                            return SpecializedTasks.True;
-                        }
+                        return true;
                     }
                 }
 
-                return SpecializedTasks.False;
+                return false;
             }
 
-            private void FlushPendingWrites(SqlConnection connection, TKey key)
-                => Storage.FlushSpecificWrites(
-                    connection, _writeQueueKeyToWrites, _writeQueueKeyToCountdown, GetWriteQueueKey(key));
+            private Task FlushPendingWritesAsync(TKey key, CancellationToken cancellationToken)
+                => Storage.FlushSpecificWritesAsync(_writeQueueKeyToWrites, _writeQueueKeyToWriteTask, GetWriteQueueKey(key), cancellationToken);
 
-            private void AddWriteTask(TKey key, Action<SqlConnection> action)
-                => Storage.AddWriteTask(_writeQueueKeyToWrites, GetWriteQueueKey(key), action);
+            private Task AddWriteTaskAsync(TKey key, Action<SqlConnection> action, CancellationToken cancellationToken)
+                => Storage.AddWriteTaskAsync(_writeQueueKeyToWrites, GetWriteQueueKey(key), action, cancellationToken);
 
-            private Stream ReadBlob(
-                 SqlConnection connection, TDatabaseId dataId)
+            private Stream ReadBlob(SqlConnection connection, TDatabaseId dataId)
             {
                 if (TryGetRowId(connection, dataId, out var rowId))
                 {
@@ -141,7 +152,36 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return null;
             }
 
-            private bool TryGetRowId(SqlConnection connection, TDatabaseId dataId, out long rowId)
+            protected bool GetAndVerifyRowId(SqlConnection connection, long dataId, out long rowId)
+            {
+                // For the Document and Project tables, our dataId is our rowId:
+                // 
+                // https://sqlite.org/lang_createtable.html
+                // if a rowid table has a primary key that consists of a single column and the 
+                // declared type of that column is "INTEGER" in any mixture of upper and lower 
+                // case, then the column becomes an alias for the rowid. Such a column is usually
+                // referred to as an "integer primary key". A PRIMARY KEY column only becomes an
+                // integer primary key if the declared type name is exactly "INTEGER"
+#if DEBUG
+                // make sure that if we actually request the rowId from the database that it
+                // is equal to our data id.  Only do this in debug as this can be expensive
+                // and we definitely do not want to do this in release.
+                if (TryGetRowIdWorker(connection, (TDatabaseId)(object)dataId, out rowId))
+                {
+                    Debug.Assert(dataId == rowId);
+                }
+#endif
+
+                // Can just return out dataId as the rowId without actually having to hit the 
+                // database at all.
+                rowId = dataId;
+                return true;
+            }
+
+            protected virtual bool TryGetRowId(SqlConnection connection, TDatabaseId dataId, out long rowId)
+                => TryGetRowIdWorker(connection, dataId, out rowId);
+
+            private bool TryGetRowIdWorker(SqlConnection connection, TDatabaseId dataId, out long rowId)
             {
                 // See https://sqlite.org/autoinc.html
                 // > In SQLite, table rows normally have a 64-bit signed integer ROWID which is 

@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -20,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly Symbol _memberSymbol;
         private readonly SyntaxNode _root;
-        private readonly Func<Binder, SyntaxNode, Binder> _rootBinderAdjusterOpt;
+        private readonly Action<Binder, SyntaxNode> _binderUpdatedHandler;
         private SmallDictionary<SyntaxNode, Binder> _lazyBinderMap;
         private ImmutableArray<MethodSymbol> _methodSymbolsWithYield;
 
-        internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, Func<Binder, SyntaxNode, Binder> rootBinderAdjusterOpt = null)
+        internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, Action<Binder, SyntaxNode> binderUpdatedHandler = null)
             : this(root, memberSymbol, next, next.Flags)
         {
-            _rootBinderAdjusterOpt = rootBinderAdjusterOpt;
+            _binderUpdatedHandler = binderUpdatedHandler;
         }
 
         internal ExecutableCodeBinder(SyntaxNode root, Symbol memberSymbol, Binder next, BinderFlags additionalFlags)
@@ -63,15 +64,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var methodsWithYield = ArrayBuilder<SyntaxNode>.GetInstance();
                 var symbolsWithYield = ArrayBuilder<MethodSymbol>.GetInstance();
-                map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, methodsWithYield, _rootBinderAdjusterOpt);
+                map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, methodsWithYield, _binderUpdatedHandler);
                 foreach (var methodWithYield in methodsWithYield)
                 {
-                    Binder binder;
-                    if (map.TryGetValue(methodWithYield, out binder))
+                    Binder binder = this;
+                    if (methodWithYield.Kind() != SyntaxKind.GlobalStatement &&
+                        (methodWithYield == _root || map.TryGetValue(methodWithYield, out binder)))
                     {
                         Symbol containing = binder.ContainingMemberOrLambda;
 
-                        // get the closest inclosing InMethodBinder and make it an iterator
+                        // get the closest enclosing InMethodBinder and make it an iterator
                         InMethodBinder inMethod = null;
                         while (binder != null)
                         {
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_VarargsIterator, iterator.Locations[0]);
                 }
 
-                if (((iterator as SourceMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true)
+                if (((iterator as SourceMemberMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true)
                     && Compilation.Options.AllowUnsafe) // Don't cascade
                 {
                     diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, iterator.Locations[0]);

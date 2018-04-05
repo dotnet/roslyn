@@ -22,7 +22,7 @@ namespace Interop
     [ComImport, Guid("ABCDEF5D-2448-447A-B786-64682CBEF123")]
     [InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)]
     [TypeLibImportClass(typeof(object)), TypeLibType(TypeLibTypeFlags.FAggregatable)]
-    public interface IFoo
+    public interface IGoo
     {
         [AllowReversePInvokeCalls()]
         void DoSomething();
@@ -35,19 +35,19 @@ namespace Interop
     }
 
     [TypeLibType(TypeLibTypeFlags.FAppObject)]
-    public enum EFoo
+    public enum EGoo
     {
         One, Two, Three
     }
 
     [Serializable, ComVisible(false)]
     [UnmanagedFunctionPointerAttribute(CallingConvention.StdCall, BestFitMapping = true, CharSet = CharSet.Ansi, SetLastError = true, ThrowOnUnmappableChar = true)]
-    public delegate void DFoo(char p1, sbyte p2);
+    public delegate void DGoo(char p1, sbyte p2);
 
-    [TypeIdentifier("1234C65D-1234-447A-B786-64682CBEF136", "SFoo, INteropAttribute, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")]
+    [TypeIdentifier("1234C65D-1234-447A-B786-64682CBEF136", "SGoo, INteropAttribute, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")]
     [Guid("C3957C2A-07DD-4A56-AF01-FFD56664600F"), BestFitMapping(false, ThrowOnUnmappableChar = true)]
     [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Unicode, Pack = 8, Size = 64)]
-    public struct SFoo
+    public struct SGoo
     {
         [FieldOffset(0)]
         public sbyte field01;
@@ -61,7 +61,7 @@ namespace Interop
     }
 
     [ComDefaultInterface(typeof(object)), ProgId("ProgId")]
-    public class CFoo
+    public class CGoo
     {
         [DllImport("app.dll")]
         static extern bool DllImport();

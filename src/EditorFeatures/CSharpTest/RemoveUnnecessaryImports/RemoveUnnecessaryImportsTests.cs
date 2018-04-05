@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -151,7 +152,7 @@ class Program
         public async Task TestExtensionMethodLinq()
         {
             // NOTE: Intentionally not running this test with Script options, because in Script,
-            // NOTE: class "Foo" is placed inside the script class, and can't be seen by the extension
+            // NOTE: class "Goo" is placed inside the script class, and can't be seen by the extension
             // NOTE: method Select, which is not inside the script class.
             await TestMissingInRegularAndScriptAsync(
 @"[|using System;
@@ -162,15 +163,15 @@ class Program
 {
     static void Main()
     {
-        Foo qq = new Foo();
+        Goo qq = new Goo();
         IEnumerable x = from q in qq
                         select q;
     }
 }
 
-public class Foo
+public class Goo
 {
-    public Foo()
+    public Goo()
     {
     }
 }
@@ -179,7 +180,7 @@ namespace SomeNS
 {
     public static class SomeClass
     {
-        public static IEnumerable Select(this Foo o, Func<object, object> f)
+        public static IEnumerable Select(this Goo o, Func<object, object> f)
         {
             return null;
         }
@@ -373,7 +374,7 @@ class F
 @"[|using SomeNamespace;
 
 [SomeAttr]
-class Foo
+class Goo
 {
 }
 
@@ -389,7 +390,7 @@ namespace SomeNamespace
         public async Task TestAttributeArgument()
         {
             await TestMissingInRegularAndScriptAsync(
-@"[|using foo;
+@"[|using goo;
 
 [SomeAttribute(typeof(SomeClass))]
 class Program
@@ -406,7 +407,7 @@ public class SomeAttribute : System.Attribute
     }
 }
 
-namespace foo
+namespace goo
 {
     public class SomeClass
     {
@@ -441,8 +442,7 @@ class Program
     static void Main(string[] args)
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -475,8 +475,7 @@ class Program
     {
         List<int> list;
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -512,8 +511,7 @@ ignoreTrivia: false);
         {
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -552,8 +550,7 @@ ignoreTrivia: false);
             List<int> list;
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(541817, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541817")]
@@ -561,7 +558,7 @@ ignoreTrivia: false);
         public async Task TestComments8718()
         {
             await TestInRegularAndScriptAsync(
-@"[|using Foo; using System.Collections.Generic; /*comment*/ using Foo2;
+@"[|using Goo; using System.Collections.Generic; /*comment*/ using Goo2;
 
 class Program
 {
@@ -572,21 +569,21 @@ class Program
     }
 }
 
-namespace Foo
+namespace Goo
 {
     public class Bar
     {
     }
 }
 
-namespace Foo2
+namespace Goo2
 {
     public class Bar2
     {
     }
 }|]",
-@"using Foo;
-using Foo2;
+@"using Goo;
+using Goo2;
 
 class Program
 {
@@ -597,20 +594,19 @@ class Program
     }
 }
 
-namespace Foo
+namespace Goo
 {
     public class Bar
     {
     }
 }
 
-namespace Foo2
+namespace Goo2
 {
     public class Bar2
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(528609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528609")]
@@ -634,8 +630,7 @@ class Program
 class Program
 {
 }
-",
-ignoreTrivia: false);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
@@ -655,8 +650,7 @@ class Program
     static void Main()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(541827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541827")]
@@ -694,7 +688,7 @@ class Program
         public async Task TestUsingStaticClassAccessField1()
         {
             await TestAsync(
-@"[|using SomeNS.Foo;
+@"[|using SomeNS.Goo;
 
 class Program
 {
@@ -706,7 +700,7 @@ class Program
 
 namespace SomeNS
 {
-    static class Foo
+    static class Goo
     {
         public static int x;
     }
@@ -721,7 +715,7 @@ namespace SomeNS
 
 namespace SomeNS
 {
-    static class Foo
+    static class Goo
     {
         public static int x;
     }
@@ -733,7 +727,7 @@ namespace SomeNS
         public async Task TestUsingStaticClassAccessField2()
         {
             await TestMissingInRegularAndScriptAsync(
-@"[|using static SomeNS.Foo;
+@"[|using static SomeNS.Goo;
 
 class Program
 {
@@ -745,7 +739,7 @@ class Program
 
 namespace SomeNS
 {
-    static class Foo
+    static class Goo
     {
         public static int x;
     }
@@ -756,7 +750,7 @@ namespace SomeNS
         public async Task TestUsingStaticClassAccessMethod1()
         {
             await TestAsync(
-@"[|using SomeNS.Foo;
+@"[|using SomeNS.Goo;
 
 class Program
 {
@@ -768,7 +762,7 @@ class Program
 
 namespace SomeNS
 {
-    static class Foo
+    static class Goo
     {
         public static int X()
         {
@@ -786,7 +780,7 @@ namespace SomeNS
 
 namespace SomeNS
 {
-    static class Foo
+    static class Goo
     {
         public static int X()
         {
@@ -801,7 +795,7 @@ namespace SomeNS
         public async Task TestUsingStaticClassAccessMethod2()
         {
             await TestMissingInRegularAndScriptAsync(
-@"[|using static SomeNS.Foo;
+@"[|using static SomeNS.Goo;
 
 class Program
 {
@@ -813,7 +807,7 @@ class Program
 
 namespace SomeNS
 {
-    static class Foo
+    static class Goo
     {
         public static int X()
         {
@@ -828,7 +822,7 @@ namespace SomeNS
         public async Task TestUnusedTypeImportIsRemoved()
         {
             await TestInRegularAndScriptAsync(
-@"[|using SomeNS.Foo;
+@"[|using SomeNS.Goo;
 
 class Program
 {
@@ -839,7 +833,7 @@ class Program
 
 namespace SomeNS
 {
-    static class Foo
+    static class Goo
     {
     }
 }|]",
@@ -852,7 +846,7 @@ namespace SomeNS
 
 namespace SomeNS
 {
-    static class Foo
+    static class Goo
     {
     }
 }");
@@ -880,8 +874,7 @@ class Program
     }
 }
 
-",
-ignoreTrivia: false);
+");
         }
 
         [WorkItem(541914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541914")]
@@ -904,7 +897,7 @@ public static class Program
         public async Task TestAliasInUse()
         {
             await TestMissingInRegularAndScriptAsync(
-@"[|using GIBBERISH = Foo.Bar;
+@"[|using GIBBERISH = Goo.Bar;
 
 class Program
 {
@@ -914,7 +907,7 @@ class Program
     }
 }
 
-namespace Foo
+namespace Goo
 {
     public class Bar
     {
@@ -959,8 +952,7 @@ class Program
     {
 
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(542016, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542016")]
@@ -991,8 +983,7 @@ ignoreTrivia: false);
 
         }
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(542134, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542134")]
@@ -1015,7 +1006,7 @@ namespace GenericThingie
 
 public class Program
 {
-    void foo()
+    void goo()
     {
         GenericType<Something> type;
     }
@@ -1029,13 +1020,13 @@ public class Program
             await TestAsync(
 @"[|using System.Collections.Generic;
 
-namespace Foo
+namespace Goo
 {
     using Bar = Dictionary<string, string>;
 }|]",
 @"using System.Collections.Generic;
 
-namespace Foo
+namespace Goo
 {
 }",
 parseOptions: null);
@@ -1048,7 +1039,7 @@ parseOptions: null);
             await TestMissingAsync(
 @"[|using System.Collections.Generic;
 
-namespace Foo
+namespace Goo
 {
     using Bar = Dictionary<string, string>;
 
@@ -1082,7 +1073,7 @@ class B
 {
     static void Main()
     {
-        Bar(x => x.Foo());
+        Bar(x => x.Goo());
     }
 
     static void Bar(Action<int> x)
@@ -1098,11 +1089,11 @@ namespace X
 {
     public static class A
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
         }
 
-        public static void Foo(this string x)
+        public static void Goo(this string x)
         {
         }
     }
@@ -1112,7 +1103,7 @@ namespace Y
 {
     public static class B
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
         }
     }
@@ -1132,7 +1123,7 @@ class B
 {
     static void Main()
     {
-        Bar(x => x.Foo(), null); // Prints 1
+        Bar(x => x.Goo(), null); // Prints 1
     }
 
     static void Bar(Action<string> x, object y)
@@ -1150,11 +1141,11 @@ namespace X
 {
     public static class A
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
         }
 
-        public static void Foo(this string x)
+        public static void Goo(this string x)
         {
         }
     }
@@ -1164,7 +1155,7 @@ namespace Y
 {
     public static class B
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
         }
     }
@@ -1175,7 +1166,7 @@ namespace Y
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public async Task TestCasesWithLambdas1()
         {
-            // NOTE: Y is used when speculatively binding "x => x.Foo()".  As such, it is marked as
+            // NOTE: Y is used when speculatively binding "x => x.Goo()".  As such, it is marked as
             // used even though it isn't in the final bind, and could be removed.  However, as we do
             // not know if it was necessary to eliminate a speculative lambda bind, we must leave
             // it.
@@ -1188,7 +1179,7 @@ class B
 {
     static void Main()
     {
-        Bar(x => x.Foo(), null); // Prints 1
+        Bar(x => x.Goo(), null); // Prints 1
     }
 
     static void Bar(Action<string> x, object y)
@@ -1200,7 +1191,7 @@ namespace X
 {
     public static class A
     {
-        public static void Foo(this string x)
+        public static void Goo(this string x)
         {
         }
     }
@@ -1210,7 +1201,7 @@ namespace Y
 {
     public static class B
     {
-        public static void Foo(this int x)
+        public static void Goo(this int x)
         {
         }
     }
@@ -1362,6 +1353,35 @@ class Program
         Console.WriteLine();
     }
 }");
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(20377, "https://github.com/dotnet/roslyn/issues/20377")]
+        public async Task TestWarningLevel(int warningLevel)
+        {
+            await TestInRegularAndScriptAsync(
+@"[|using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}|]",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel));
         }
     }
 }

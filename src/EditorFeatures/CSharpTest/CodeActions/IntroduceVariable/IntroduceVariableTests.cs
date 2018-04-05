@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,8 +8,8 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -37,12 +37,86 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        M(() [||]=> { });
+    }
+}",
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        Action {|Rename:action1|} = () => { };
+        M(action1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void M(int a, int b)
+    {
+        var x = a [||]+ b + 3;
+    }
+}",
+@"using System;
+class C
+{
+    void M(int a, int b)
+    {
+        int {|Rename:v|} = a + b;
+        var x = v + 3;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan3()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    void M(int a)
+    {
+        var x = [||]a;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestEmptySpan4()
+        {
+            await TestMissingAsync(
+@"using System;
+class C
+{
+    void M(Action action)
+    {
+        M(() => { var x [||]= y; });
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestMethodFix1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         Bar([|1 + 1|]);
         Bar(1 + 1);
@@ -50,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 }",
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         const int {|Rename:V|} = 1 + 1;
         Bar(V);
@@ -66,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         Bar([|1 + 1|]);
         Bar(1 + 1);
@@ -74,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 }",
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         const int {|Rename:V|} = 1 + 1;
         Bar(V);
@@ -90,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             var code =
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(([|1 + 1|]));
         Bar((1 + 1));
@@ -100,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             var expected =
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         const int {|Rename:V|} = 1 + 1;
         Bar(V);
@@ -108,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -117,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             var code =
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         Bar(([|1 + 1|]));
         Bar((1 + 1));
@@ -127,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             var expected =
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         const int {|Rename:V|} = 1 + 1;
         Bar(V);
@@ -135,7 +209,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 3, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 3);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestThrowExpression()
+        {
+            var code =
+@"class C
+{
+    void M(bool b)
+    {
+        var x = b ? 1 : [|throw null|];
+    }
+}";
+            await TestActionCountAsync(code, count: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestThrowExpression2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool b)
+    {
+        var x = [|b ? 1 : throw null|];
+    }
+}",
+@"class C
+{
+    void M(bool b)
+    {
+        int {|Rename:v|} = b ? 1 : throw null;
+        var x = v;
+    }
+}",
+                index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestThrowStatement()
+        {
+            var code =
+@"class C
+{
+    void M()
+    {
+        [|throw null|];
+    }
+}";
+            await TestActionCountAsync(code, count: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -154,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     int i = V + (1 + 1);
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -173,7 +297,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     int i = V + V;
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [WorkItem(21747, "https://github.com/dotnet/roslyn/issues/21747")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestTriviaFieldFix1()
+        {
+            var code =
+@"class C
+{
+    int i = (/* CommentLeading */ [|1 + 1|] /* CommentTrailing */) + (1 + 1);
+}";
+
+            var expected =
+@"class C
+{
+    private const int {|Rename:V|} = 1 + 1;
+    int i = /* CommentLeading */ V /* CommentTrailing */ + V;
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [WorkItem(21747, "https://github.com/dotnet/roslyn/issues/21747")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestTriviaFieldFix2()
+        {
+            var code =
+@"class C
+{
+    int i = (/* CommentLeading */ [|1 + /*CommentEmbedded*/ 1|] /* CommentTrailing */) + (1 + 1);
+}";
+
+            var expected =
+@"class C
+{
+    private const int {|Rename:V|} = 1 + /*CommentEmbedded*/ 1;
+    int i = /* CommentLeading */ V /* CommentTrailing */ + V;
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -192,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     const int i = V + (1 + 1);
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -211,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
     const int i = V + V;
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -304,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    [Foo([|1 + 1|], 1 + 1)]
+    [Goo([|1 + 1|], 1 + 1)]
     void Bar()
     {
     }
@@ -313,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     private const int {|Rename:V|} = 1 + 1;
 
-    [Foo(V, 1 + 1)]
+    [Goo(V, 1 + 1)]
     void Bar()
     {
     }
@@ -327,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    [Foo([|1 + 1|], 1 + 1)]
+    [Goo([|1 + 1|], 1 + 1)]
     void Bar()
     {
     }
@@ -336,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     private const int {|Rename:V|} = 1 + 1;
 
-    [Foo(V, V)]
+    [Goo(V, V)]
     void Bar()
     {
     }
@@ -350,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         int V = 0;
         Bar([|1 + 1|]);
@@ -359,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 }",
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         int V = 0;
         const int {|Rename:V1|} = 1 + 1;
@@ -393,8 +557,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             await TestInRegularAndScriptAsync(
                 code,
                 expected,
-                index: 0,
-                ignoreTrivia: false);
+                index: 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -405,7 +568,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     static int Baz;
 
-    void Foo()
+    void Goo()
     {
         Bar([|C.Baz|]);
         Bar(1 + 1);
@@ -415,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     static int Baz;
 
-    void Foo()
+    void Goo()
     {
         var {|Rename:baz|} = C.Baz;
         Bar(baz);
@@ -434,7 +597,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     static int Baz;
 
-    void Foo()
+    void Goo()
     {
         Bar([|C.Baz|]);
         Bar(1 + 1);
@@ -444,7 +607,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
 {
     static int Baz;
 
-    void Foo()
+    void Goo()
     {
         int {|Rename:baz|} = C.Baz;
         Bar(baz);
@@ -556,7 +719,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 }
@@ -574,7 +737,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 }
@@ -600,7 +763,7 @@ options: ImplicitTypingEverywhere());
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 }
@@ -618,7 +781,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 }
@@ -643,7 +806,7 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 
@@ -658,14 +821,14 @@ class Program
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 
     static void Main()
     {
-        var {|Rename:class1|} = new G<int>.@class();
-        G<int>.Add(class1);
+        var {|Rename:@class|} = new G<int>.@class();
+        G<int>.Add(@class);
     }
 }",
 options: ImplicitTypingEverywhere());
@@ -681,7 +844,7 @@ options: ImplicitTypingEverywhere());
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 
@@ -696,14 +859,14 @@ options: ImplicitTypingEverywhere());
     {
     }
 
-    public static void Add(object t)
+    public static void Add(object @class)
     {
     }
 
     static void Main()
     {
-        G<int>.@class {|Rename:class1|} = new G<int>.@class();
-        G<int>.Add(class1);
+        G<int>.@class {|Rename:@class|} = new G<int>.@class();
+        G<int>.Add(@class);
     }
 }");
         }
@@ -744,8 +907,7 @@ options: ImplicitTypingEverywhere());
         int i = V + 3;
     }
 }",
-index: 2,
-ignoreTrivia: false);
+index: 2);
         }
 
         [WorkItem(540468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540468")]
@@ -761,7 +923,7 @@ class Program
 {
     static void Main<T>(string[] args)
     {
-        Foo([|(T)2.ToString()|]);
+        Goo([|(T)2.ToString()|]);
     }
 }",
 @"using System;
@@ -773,7 +935,7 @@ class Program
     static void Main<T>(string[] args)
     {
         var {|Rename:t|} = (T)2.ToString();
-        Foo(t);
+        Goo(t);
     }
 }",
 options: ImplicitTypingEverywhere());
@@ -792,7 +954,7 @@ class Program
 {
     static void Main<T>(string[] args)
     {
-        Foo([|(T)2.ToString()|]);
+        Goo([|(T)2.ToString()|]);
     }
 }",
 count: 2);
@@ -835,8 +997,7 @@ count: 2);
         int i = V + 3;
     }
 }",
-index: 2,
-ignoreTrivia: false);
+index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -866,28 +1027,28 @@ index: 2);
         public async Task TestFieldConstant()
         {
             await TestInRegularAndScriptAsync(
-@"[Foo(2 + 3 + 4)]
+@"[Goo(2 + 3 + 4)]
 class Program
 {
     int x = [|2 + 3|] + 4;
 }
 
-internal class FooAttribute : System.Attribute
+internal class GooAttribute : System.Attribute
 {
-    public FooAttribute(int x)
+    public GooAttribute(int x)
     {
     }
 }",
-@"[Foo(V + 4)]
+@"[Goo(V + 4)]
 class Program
 {
     private const int {|Rename:V|} = 2 + 3;
     int x = V + 4;
 }
 
-internal class FooAttribute : System.Attribute
+internal class GooAttribute : System.Attribute
 {
-    public FooAttribute(int x)
+    public GooAttribute(int x)
     {
     }
 }",
@@ -1385,7 +1546,7 @@ class TestAttribute : Attribute
 }
 
 [Test([|a|]: 1)]
-class Foo
+class Goo
 {
 }");
         }
@@ -1461,7 +1622,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -1474,7 +1635,7 @@ class C
     void Main()
     {
 #line default
-        Foo([|1 + 1|]);
+        Goo([|1 + 1|]);
     }
 }", new TestParameters(Options.Regular));
         }
@@ -1489,7 +1650,7 @@ class Program
 #line default
     void Main()
     {
-        Foo([|1 + 1|]);
+        Goo([|1 + 1|]);
     }
 #line hidden
 }
@@ -1501,12 +1662,11 @@ class Program
     void Main()
     {
         const int {|Rename:V|} = 1 + 1;
-        Foo(V);
+        Goo(V);
     }
 #line hidden
 }
-#line default",
-ignoreTrivia: false);
+#line default");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -1526,7 +1686,7 @@ ignoreTrivia: false);
         public async Task TestMissingInAttributeInPartiallyHiddenType()
         {
             await TestMissingAsync(
-@"[Foo([|1 + 1|])]
+@"[Goo([|1 + 1|])]
 class Program
 {
 #line hidden
@@ -1620,7 +1780,6 @@ class Program
     }
 }
 #line default",
-ignoreTrivia: false,
 parseOptions: Options.Regular);
         }
 
@@ -1671,7 +1830,7 @@ parseOptions: Options.Regular);
 {
     void Main()
     {
-#line 1 ""foo""
+#line 1 ""goo""
         Console.WriteLine([|5|]);
 #line default
 #line hidden
@@ -1688,7 +1847,7 @@ class Program
 {
     void Main ( )
     {
-#line 1 ""foo""
+#line 1 ""goo""
         if (true)
         {
             Console.WriteLine([|5|]);
@@ -1706,7 +1865,7 @@ class Program
 {
     void Main ( )
     {
-#line 1 ""foo""
+#line 1 ""goo""
         if (true)
         {
             const int {|Rename:V|} = 5;
@@ -1715,7 +1874,7 @@ class Program
 #line default
 #line hidden
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -1725,7 +1884,7 @@ class Program
 @"
 class Program
 {
-#line 1 ""foo""
+#line 1 ""goo""
     void Main ( )
     {
         if (true)
@@ -1786,7 +1945,7 @@ public class Button
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello""|] + ""World"";
     }
@@ -1795,7 +1954,7 @@ public class Button
 {
     private const string {|Rename:V|} = ""Hello"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = V + ""World"";
     }
@@ -1809,7 +1968,7 @@ public class Button
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello""|] + ""World"";
     }
@@ -1818,7 +1977,7 @@ public class Button
 {
     private const string {|Rename:V|} = ""Hello"";
 
-    void foo(string s = V)
+    void goo(string s = V)
     {
         var s2 = V + ""World"";
     }
@@ -1833,14 +1992,14 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello""|] + ""World"";
     }
 }",
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string {|Rename:V|} = ""Hello"";
         var s2 = V + ""World"";
@@ -1856,14 +2015,14 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello""|] + ""World"";
     }
 }",
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string {|Rename:V|} = ""Hello"";
         var s2 = V + ""World"";
@@ -1879,7 +2038,7 @@ index: 3);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string s1 = ""World"";
         var s2 = [|""Hello"" + s1|];
@@ -1887,7 +2046,7 @@ index: 3);
 }",
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string s1 = ""World"";
         const string {|Rename:V|} = ""Hello"" + s1;
@@ -1903,7 +2062,7 @@ index: 3);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string s1 = ""World"";
         var s2 = [|""Hello"" + s1|];
@@ -1911,7 +2070,7 @@ index: 3);
 }",
 @"class C
 {
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string s1 = ""World"";
         const string {|Rename:V|} = ""Hello"" + s1;
@@ -1930,7 +2089,7 @@ index: 1);
 {
     const string s1 = ""World"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello"" + s1|];
     }
@@ -1940,7 +2099,7 @@ index: 1);
     const string s1 = ""World"";
     private const string {|Rename:V|} = ""Hello"" + s1;
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = V;
     }
@@ -1956,7 +2115,7 @@ index: 1);
 {
     const string s1 = ""World"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello"" + s1|];
     }
@@ -1966,7 +2125,7 @@ index: 1);
     const string s1 = ""World"";
     private const string {|Rename:V|} = ""Hello"" + s1;
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = V;
     }
@@ -1983,7 +2142,7 @@ index: 1);
 {
     const string s1 = ""World"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello"" + s1|];
     }
@@ -1992,7 +2151,7 @@ index: 1);
 {
     const string s1 = ""World"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string {|Rename:V|} = ""Hello"" + s1;
         var s2 = V;
@@ -2010,7 +2169,7 @@ index: 2);
 {
     const string s1 = ""World"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         var s2 = [|""Hello"" + s1|];
     }
@@ -2019,7 +2178,7 @@ index: 2);
 {
     const string s1 = ""World"";
 
-    void foo(string s = ""Hello"")
+    void goo(string s = ""Hello"")
     {
         const string {|Rename:V|} = ""Hello"" + s1;
         var s2 = V;
@@ -2044,11 +2203,11 @@ static class C
     static void Outer(Action<string> x, object y) { Console.WriteLine(1); }
     static void Outer(Action<int> x, string y) { Console.WriteLine(2); }
 
-    static T Foo<T>(T x) { return x; }
+    static T Goo<T>(T x) { return x; }
 
     static void Main()
     {
-        Outer(y => Inner(x => { [|Foo(x)|].ToString(); }, y), null);
+        Outer(y => Inner(x => { [|Goo(x)|].ToString(); }, y), null);
     }
 }",
 
@@ -2063,15 +2222,15 @@ static class C
     static void Outer(Action<string> x, object y) { Console.WriteLine(1); }
     static void Outer(Action<int> x, string y) { Console.WriteLine(2); }
 
-    static T Foo<T>(T x) { return x; }
+    static T Goo<T>(T x) { return x; }
 
     static void Main()
     {
-        Outer(y => Inner(x => { var {|Rename:v|} = Foo(x); v.ToString(); }, y), null);
+        Outer(y => Inner(x => { var {|Rename:v|} = Goo(x); v.ToString(); }, y), null);
     }
 }",
 
-ignoreTrivia: false, options: ImplicitTypingEverywhere());
+options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347")]
@@ -2090,11 +2249,11 @@ static class C
     static void Outer(Action<string> x, object y) { Console.WriteLine(1); }
     static void Outer(Action<int> x, string y) { Console.WriteLine(2); }
 
-    static T Foo<T>(T x) { return x; }
+    static T Goo<T>(T x) { return x; }
 
     static void Main()
     {
-        Outer(y => Inner(x => { [|Foo(x)|].ToString(); }, y), null);
+        Outer(y => Inner(x => { [|Goo(x)|].ToString(); }, y), null);
     }
 }",
 
@@ -2109,14 +2268,13 @@ static class C
     static void Outer(Action<string> x, object y) { Console.WriteLine(1); }
     static void Outer(Action<int> x, string y) { Console.WriteLine(2); }
 
-    static T Foo<T>(T x) { return x; }
+    static T Goo<T>(T x) { return x; }
 
     static void Main()
     {
-        Outer(y => Inner(x => { string {|Rename:v|} = Foo(x); v.ToString(); }, y), (object)null);
+        Outer(y => Inner(x => { string {|Rename:v|} = Goo(x); v.ToString(); }, y), (object)null);
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(606347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606347"), WorkItem(714632, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
@@ -2131,11 +2289,11 @@ class Program
     static void Main()
     {
         byte z = 0;
-        Foo([|x => 0|], y => 0, z, z);
+        Goo([|x => 0|], y => 0, z, z);
     }
 
-    static void Foo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-    static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
 }",
 
 @"using System;
@@ -2146,14 +2304,12 @@ class Program
     {
         byte z = 0;
         Func<byte, byte> {|Rename:p|} = x => 0;
-        Foo<byte, byte>(p, y => 0, z, z);
+        Goo<byte, byte>(p, y => 0, z, z);
     }
 
-    static void Foo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
-    static void Foo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
-}",
-
-ignoreTrivia: false);
+    static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
+    static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
+}");
         }
 
         [WorkItem(546512, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546512")]
@@ -2180,8 +2336,8 @@ ignoreTrivia: false);
         switch (1)
         {
             case 0:
-                const int {|Rename:V|} = 1 + 1;
-                var f = Main(V);
+                const int {|Rename:I|} = 1 + 1;
+                var f = Main(I);
                 Console.WriteLine(f);
         }
     }
@@ -2209,7 +2365,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, int> f = x => {
+        Func<int, int> f = x =>
+        {
             var {|Rename:v|} = x + 1;
             return v;
         };
@@ -2238,7 +2395,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x => {
+        Func<int, Func<int, int>> f = x =>
+        {
             var {|Rename:v|} = x + 1;
             return y => v;
         };
@@ -2267,7 +2425,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x => y => {
+        Func<int, Func<int, int>> f = x => y =>
+        {
             var {|Rename:v|} = y + 1;
             return v;
         };
@@ -2322,7 +2481,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int, Func<int, int>> f = x => {
+        Func<int, Func<int, int>> f = x =>
+        {
             Func<int, int> {|Rename:p|} = y => x + 1;
             return p;
         };
@@ -2341,7 +2501,7 @@ class Program
 {
     void M()
     {
-        Action<int> foo = x => [|x.Foo|];
+        Action<int> goo = x => [|x.Goo|];
     }
 }",
 @"using System;
@@ -2350,8 +2510,9 @@ class Program
 {
     void M()
     {
-        Action<int> foo = x => {
-            object {|Rename:foo1|} = x.Foo;
+        Action<int> goo = x =>
+        {
+            object {|Rename:goo1|} = x.Goo;
         };
     }
 }");
@@ -2432,8 +2593,8 @@ class C
     static void Main(string[] args)
     {
         var set = new HashSet<string>();
-        var {|Rename:v|} = set.ToString();
-        set.Add(v);
+        var {|Rename:item|} = set.ToString();
+        set.Add(item);
     }
 }",
 options: ImplicitTypingEverywhere());
@@ -2448,7 +2609,7 @@ options: ImplicitTypingEverywhere());
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         ([|(C.Bar)|].Invoke)();
     }
@@ -2460,16 +2621,14 @@ class C
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Action {|Rename:bar|} = (C.Bar);
         bar.Invoke();
     }
 
     static Action Bar;
-}",
-
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(682683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/682683")]
@@ -2497,8 +2656,7 @@ class Program
         Console.WriteLine(5 - (V + 2));
     }
 }",
-index: 2,
-ignoreTrivia: false);
+index: 2);
         }
 
         [WorkItem(828108, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828108")]
@@ -2530,11 +2688,11 @@ class Program
     static void Main(string[] args)
     {
         var d = new Dictionary<string, Exception>();
-        var {|Rename:exception|} = new Exception();
-        d.Add(""a"", exception);
+        var {|Rename:value|} = new Exception();
+        d.Add(""a"", value);
     }
 }",
-ignoreTrivia: false, options: ImplicitTypingEverywhere());
+options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
@@ -2561,7 +2719,7 @@ class C
         var l = new List<int>() { tickCount };
     }
 }",
-ignoreTrivia: false, options: ImplicitTypingEverywhere());
+options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
@@ -2587,8 +2745,7 @@ class C
         int {|Rename:tickCount|} = Environment.TickCount;
         var l = new List<int>() { tickCount };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(854662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854662")]
@@ -2619,7 +2776,7 @@ class C
         return new Program { A = { { v, 0 } } }.A.Count;
     }
 }",
-ignoreTrivia: false, options: ImplicitTypingEverywhere());
+options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
@@ -2646,7 +2803,7 @@ class C
         var a = new int[] { tickCount };
     }
 }",
-ignoreTrivia: false, options: ImplicitTypingEverywhere());
+options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(884961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/884961")]
@@ -2672,8 +2829,7 @@ class C
         int {|Rename:tickCount|} = Environment.TickCount;
         var a = new int[] { tickCount };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [WorkItem(1022447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1022447")]
@@ -2709,7 +2865,6 @@ class C
     }
 }",
 index: 1,
-ignoreTrivia: false,
 options: ImplicitTypingEverywhere());
         }
 
@@ -2720,7 +2875,7 @@ options: ImplicitTypingEverywhere());
             var code =
     @"class C
 {
-    void Foo()
+    void Goo()
     {
         var d = [|true|] // TODO: comment
             ? 1
@@ -2731,7 +2886,7 @@ options: ImplicitTypingEverywhere());
             var expected =
     @"class C
 {
-    void Foo()
+    void Goo()
     {
         const bool {|Rename:V|} = true;
         var d = V // TODO: comment
@@ -2740,7 +2895,7 @@ options: ImplicitTypingEverywhere());
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 3, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 3);
         }
 
         [WorkItem(939259, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939259")]
@@ -2750,7 +2905,7 @@ options: ImplicitTypingEverywhere());
             var code =
     @"class C
 {
-    void Foo()
+    void Goo()
     {
         var d = true
             ? 1
@@ -2761,7 +2916,7 @@ options: ImplicitTypingEverywhere());
             var expected =
     @"class C
 {
-    void Foo()
+    void Goo()
     {
         const int {|Rename:V|} = 2;
         var d = true
@@ -2770,7 +2925,7 @@ options: ImplicitTypingEverywhere());
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 3, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 3);
         }
 
         [WorkItem(1064803, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064803")]
@@ -2780,7 +2935,7 @@ options: ImplicitTypingEverywhere());
             var code =
     @"class C
 {
-    void Foo()
+    void Goo()
     {
         var s = $""Alpha Beta { [|int.Parse(""12345"")|] } Gamma"";
     }
@@ -2789,14 +2944,14 @@ options: ImplicitTypingEverywhere());
             var expected =
     @"class C
 {
-    void Foo()
+    void Goo()
     {
         var {|Rename:v|} = int.Parse(""12345"");
         var s = $""Alpha Beta { v } Gamma"";
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1037057, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1037057")]
@@ -2826,7 +2981,7 @@ class C
         int y = v * (x + 5);
     }
 }
-", ignoreTrivia: false, options: ImplicitTypingEverywhere());
+", options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")]
@@ -2874,7 +3029,7 @@ string.Format(FeaturesResources.Introduce_local_for_0, @"$@""a b c"""));
     @"using System;
 class C
 {
-    static void Foo(string s)
+    static void Goo(string s)
     {
         var l = [|s?.Length|] ?? 0;
     }
@@ -2884,14 +3039,14 @@ class C
     @"using System;
 class C
 {
-    static void Foo(string s)
+    static void Goo(string s)
     {
         var {|Rename:length|} = s?.Length;
         var l = length ?? 0;
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
@@ -2902,7 +3057,7 @@ class C
     @"using System;
 class C
 {
-    static void Foo(string s)
+    static void Goo(string s)
     {
         var l = [|s?.ToLower()|] ?? string.Empty;
     }
@@ -2912,14 +3067,14 @@ class C
     @"using System;
 class C
 {
-    static void Foo(string s)
+    static void Goo(string s)
     {
         var {|Rename:v|} = s?.ToLower();
         var l = v ?? string.Empty;
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
@@ -2965,7 +3120,7 @@ class B
     public int Length { get; set; }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
@@ -3013,7 +3168,7 @@ class B
     public int GetAge() { return age; }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3040,7 +3195,7 @@ class T
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3064,7 +3219,7 @@ class T
     int M1() => V + 2 + 3 + m;
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3091,8 +3246,8 @@ class Complex
     int real; int imaginary;
     public static Complex operator +(Complex a, Complex b)
     {
-        var {|Rename:v|} = b.real + 1;
-        return a.Add(v);
+        var {|Rename:b1|} = b.real + 1;
+        return a.Add(b1);
     }
 
     private Complex Add(int b)
@@ -3101,7 +3256,7 @@ class Complex
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3135,7 +3290,7 @@ class Complex
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3161,7 +3316,7 @@ public struct DBBool
     @"using System;
 public struct DBBool
 {
-    private const int {|Rename:V|} = 1;
+    private const int {|Rename:Value|} = 1;
     public static readonly DBBool dbFalse = new DBBool(-1);
     int value;
 
@@ -3170,10 +3325,10 @@ public struct DBBool
         this.value = value;
     }
 
-    public static implicit operator DBBool(bool x) => x ? new DBBool(V) : dbFalse;
+    public static implicit operator DBBool(bool x) => x ? new DBBool(Value) : dbFalse;
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3196,7 +3351,7 @@ class T
     int M1 => V + 2;
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3224,7 +3379,7 @@ class T
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3248,7 +3403,7 @@ class SampleCollection<T>
     public T this[int i] => i > V ? arr[i + 1] : arr[i + 2];
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3278,7 +3433,7 @@ class SampleCollection<T>
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3309,7 +3464,7 @@ class T
     void Cat() { }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3336,7 +3491,7 @@ class T
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3363,7 +3518,7 @@ class T
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3392,7 +3547,7 @@ class TestClass
     };
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3414,7 +3569,7 @@ class TestClass
     Func<int, int> Y() => delegate (int x) { const int {|Rename:V|} = 9; return V; };
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3443,7 +3598,7 @@ class TestClass
     };
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3468,7 +3623,7 @@ class TestClass
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3497,7 +3652,7 @@ class TestClass
     };
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3522,7 +3677,7 @@ class TestClass
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [WorkItem(528, "http://github.com/dotnet/roslyn/issues/528")]
@@ -3551,7 +3706,7 @@ class TestClass
     });
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
@@ -3574,12 +3729,12 @@ class TestClass
 {
     static void Test(string[] args)
     {
-        var {|Rename:v|} = $""{DateTime.Now.ToString()}Text{args[0]}"";
-        Console.WriteLine(v);
+        var {|Rename:value|} = $""{DateTime.Now.ToString()}Text{args[0]}"";
+        Console.WriteLine(value);
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
@@ -3603,13 +3758,13 @@ class TestClass
 {
     static void Test(string[] args)
     {
-        var {|Rename:v|} = $""Text{{s}}"";
-        Console.WriteLine(v);
-        Console.WriteLine(v);
+        var {|Rename:value|} = $""Text{{s}}"";
+        Console.WriteLine(value);
+        Console.WriteLine(value);
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(909152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909152")]
@@ -3662,7 +3817,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
@@ -3692,7 +3847,7 @@ class C
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false, options: ImplicitTypingEverywhere());
+            await TestInRegularAndScriptAsync(code, expected, options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(1130990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130990")]
@@ -3773,13 +3928,13 @@ namespace N
     {
         public async Task M()
         {
-            FormattableString {|Rename:v|} = $"""";
-            var f = FormattableString.Invariant(v);
+            FormattableString {|Rename:formattable|} = $"""";
+            var f = FormattableString.Invariant(formattable);
         }
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
@@ -3800,7 +3955,7 @@ class C
 
     int Prop1 { get; } = V;
 }";
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
@@ -3821,7 +3976,7 @@ class C
 
     public DateTime TimeStamp { get; } = utcNow;
 }";
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
@@ -3840,7 +3995,7 @@ class C
 {
     Func<int, int> X { get; } = a => { const int {|Rename:V|} = 7; return V; };
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 2, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3879,7 +4034,7 @@ class C
 }";
 
             await TestInRegularAndScriptAsync(
-                code, expected, ignoreTrivia: false);
+                code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3898,7 +4053,7 @@ class C
     var i = p.ToString();
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3917,7 +4072,7 @@ class C
     var i = p.ToString();
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3936,7 +4091,7 @@ class C
     var i = p.ToString() + p.ToString();
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3955,7 +4110,7 @@ class C
     var i = p.ToString() + p.ToString();
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3974,7 +4129,7 @@ class C
     var i = p.ToString() + (c: 1, d: ""hello"").ToString();
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -3993,7 +4148,7 @@ class C
     var i = p.ToString() + p.ToString();
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
 
             // no third action available
             await TestActionCountAsync(code, count: 2, parameters: new TestParameters(TestOptions.Regular));
@@ -4007,7 +4162,7 @@ class C
              TestInRegularAndScriptAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         Bar([|(1, ""hello"")|]);
         Bar((1, ""hello"");
@@ -4035,8 +4190,7 @@ class C
         }
     }
 }",
-@"
-class Program
+@"class Program
 {
     class MySpan { public int Start { get; } public int End { get; } }
     void Method(MySpan span)
@@ -4078,7 +4232,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestAsync(code, expected, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -4107,7 +4261,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestAsync(code, expected, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -4137,7 +4291,7 @@ class Program
         var t2 = (y: y1, x);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+            await TestAsync(code, expected, index: 1, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -4165,7 +4319,7 @@ class Program
         var t = (y1, y1);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -4194,7 +4348,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -4223,7 +4377,7 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -4252,7 +4406,257 @@ class Program
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnArgument1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(string a, string b)
+    {
+        new TextSpan([|int.Parse(a)|], int.Parse(b));
+    }
+}
+
+struct TextSpan
+{
+    public TextSpan(int start, int length)
+    {
+
+    }
+}",
+@"class C
+{
+    public C(string a, string b)
+    {
+        int {|Rename:start|} = int.Parse(a);
+        new TextSpan(start, int.Parse(b));
+    }
+}
+
+struct TextSpan
+{
+    public TextSpan(int start, int length)
+    {
+
+    }
+}");
+        }
+
+        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnArgument2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public C(string a, string b)
+    {
+        new TextSpan(int.Parse(a), [|int.Parse(b)|]);
+    }
+}
+
+struct TextSpan
+{
+    public TextSpan(int start, int length)
+    {
+
+    }
+}",
+@"class C
+{
+    public C(string a, string b)
+    {
+        int {|Rename:length|} = int.Parse(b);
+        new TextSpan(int.Parse(a), length);
+    }
+}
+
+struct TextSpan
+{
+    public TextSpan(int start, int length)
+    {
+
+    }
+}");
+        }
+
+        [WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnValueTupleFieldName1()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public C(string a, string b)
+    {
+        var tuple = (id: 1, date: [|DateTime.Now.ToString()|]);
+    }
+}",
+@"using System;
+
+class C
+{
+    public C(string a, string b)
+    {
+        string {|Rename:date|} = DateTime.Now.ToString();
+        var tuple = (id: 1, date: date);
+    }
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+        }
+
+        [WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnValueTupleFieldName2()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public C()
+    {
+        var tuple = (key: 1, value: [|1 + 1|]);
+    }
+}",
+@"using System;
+
+class C
+{
+    private const int {|Rename:Value|} = 1 + 1;
+
+    public C()
+    {
+        var tuple = (key: 1, value: Value);
+    }
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 0);
+        }
+
+        [WorkItem(21665, "https://github.com/dotnet/roslyn/issues/21665")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestPickNameBasedOnValueTupleFieldName3()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    public C()
+    {
+        var tuple = (key: 1, value: [|1 + 1|]);
+    }
+}",
+@"using System;
+
+class C
+{
+    public C()
+    {
+        const int {|Rename:Value|} = 1 + 1;
+        var tuple = (key: 1, value: Value);
+    }
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), index: 2);
+        }
+
+        [WorkItem(21373, "https://github.com/dotnet/roslyn/issues/21373")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestInAttribute()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    public string Foo { get; set; }
+
+    [Example([|2+2|])]
+    public string Bar { get; set; }
+}",
+@"public class C
+{
+    private const int {|Rename:V|} = 2 + 2;
+
+    public string Foo { get; set; }
+
+    [Example(V)]
+    public string Bar { get; set; }
+}");
+        }
+
+        [WorkItem(21687, "https://github.com/dotnet/roslyn/issues/21687")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIfClassHasSameNameAsNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace C
+{
+    class C
+    {
+        void M()
+        {
+            var t = new { foo = [|1 + 1|] };
+        }
+    }
+}",
+@"namespace C
+{
+    class C
+    {
+        private const int {|Rename:V|} = 1 + 1;
+
+        void M()
+        {
+            var t = new { foo = V };
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceLocalInCallRefExpression()
+        {
+            // This test indicates that ref-expressions are l-values and
+            // introduce local still introduces a local, not a ref-local.
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    void M(int x)
+    {
+        ref int y = ref x;
+        M2([|(y = ref x)|]);
+    }
+    void M2(int p) { }
+}", @"
+class C
+{
+    void M(int x)
+    {
+        ref int y = ref x;
+        int {|Rename:p|} = (y = ref x);
+        M2(p);
+    }
+    void M2(int p) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceLocalInRefCallRefExpression()
+        {
+            // Cannot extract expressions passed by ref
+            await TestMissingInRegularAndScriptAsync(@"
+class C
+{
+    void M(int x)
+    {
+        ref int y = ref x;
+        M2(ref [|(y = ref x)|]);
+    }
+    void M2(ref int p) { }
+}");
         }
     }
 }

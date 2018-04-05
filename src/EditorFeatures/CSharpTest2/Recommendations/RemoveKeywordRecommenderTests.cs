@@ -1,8 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -44,7 +43,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -59,7 +58,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-   event Foo Bar { $$");
+   event Goo Bar { $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -67,7 +66,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-   event Foo Bar { [Bar] $$");
+   event Goo Bar { [Bar] $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -75,7 +74,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-   event Foo Bar { add { } $$");
+   event Goo Bar { add { } $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -83,7 +82,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-   event Foo Bar { add { } [Bar] $$");
+   event Goo Bar { add { } [Bar] $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -91,7 +90,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-   event Foo Bar { add { } $$");
+   event Goo Bar { add { } $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -99,7 +98,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-   event Foo Bar { remove $$");
+   event Goo Bar { remove $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -107,7 +106,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-   event Foo Bar { remove { } $$");
+   event Goo Bar { remove { } $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -115,7 +114,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-   int Foo { $$");
+   int Goo { $$");
         }
     }
 }

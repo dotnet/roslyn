@@ -95,6 +95,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
+        public static void TestRuleWithoutCapitalization()
+        {
+            var dictionary = new Dictionary<string, object>()
+            {
+                ["dotnet_naming_rule.async_methods_must_end_with_async.symbols"] = "any_async_methods",
+                ["dotnet_naming_rule.async_methods_must_end_with_async.style"] = "end_in_async",
+                ["dotnet_naming_rule.async_methods_must_end_with_async.severity"] = "suggestion",
+                ["dotnet_naming_symbols.any_async_methods.applicable_kinds"] = "method",
+                ["dotnet_naming_symbols.any_async_methods.applicable_accessibilities"] = "*",
+                ["dotnet_naming_symbols.any_async_methods.required_modifiers"] = "async",
+                ["dotnet_naming_style.end_in_async.required_suffix"] = "Async",
+            };
+            var result = ParseDictionary(dictionary);
+            Assert.Empty(result.NamingStyles);
+        }
+
+        [Fact]
         public static void TestPublicMembersCapitalizedRule()
         {
             var dictionary = new Dictionary<string, object>()

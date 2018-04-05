@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -71,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Return the nearest enclosing node being bound as a nameof(...) argument, if any, or null if none.
         protected virtual SyntaxNode EnclosingNameofArgument => null;
+
+        private bool IsInsideNameof => this.EnclosingNameofArgument != null;
 
         /// <summary>
         /// Get the next binder in which to look up a name, if not found by this binder.
@@ -303,6 +306,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Get <see cref="QuickAttributeChecker"/> that can be used to quickly
+        /// check for certain attribute applications in context of this binder.
+        /// </summary>
+        internal virtual QuickAttributeChecker QuickAttributeChecker
+        {
+            get
+            {
+                return _next.QuickAttributeChecker;
+            }
+        }
+
         internal virtual Imports GetImports(ConsList<Symbol> basesBeingResolved)
         {
             return _next.GetImports(basesBeingResolved);
@@ -334,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 var containingMember = this.ContainingMemberOrLambda;
-                switch (containingMember.Kind)
+                switch (containingMember?.Kind)
                 {
                     case SymbolKind.Method:
                         // global statements
@@ -611,70 +626,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return AccessCheck.IsSymbolAccessible(symbol, within, throughTypeOpt, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
-        }
-
-        /// <summary>
-        /// Expression lvalue and rvalue requirements.
-        /// </summary>
-        internal enum BindValueKind : byte
-        {
-            /// <summary>
-            /// Expression is the RHS of an assignment operation.
-            /// </summary>
-            /// <remarks>
-            /// The following are rvalues: values, variables, null literals, properties
-            /// and indexers with getters, events. The following are not rvalues:
-            /// namespaces, types, method groups, anonymous functions.
-            /// </remarks>
-            RValue,
-
-            /// <summary>
-            /// Expression is the RHS of an assignment operation
-            /// and may be a method group.
-            /// </summary>
-            RValueOrMethodGroup,
-
-            /// <summary>
-            /// Expression is the LHS of a simple assignment operation.
-            /// </summary>
-            Assignment,
-
-            /// <summary>
-            /// Expression is the operand of an increment
-            /// or decrement operation.
-            /// </summary>
-            IncrementDecrement,
-
-            /// <summary>
-            /// Expression is the LHS of a compound assignment
-            /// operation (such as +=).
-            /// </summary>
-            CompoundAssignment,
-
-            /// <summary>
-            /// Expression is passed as a ref or out parameter or assigned to a byref variable.
-            /// </summary>
-            RefOrOut,
-
-            /// <summary>
-            /// Expression is the operand of an address-of operation (&amp;).
-            /// </summary>
-            AddressOf,
-
-            /// <summary>
-            /// Expression is the receiver of a fixed buffer field access
-            /// </summary>
-            FixedReceiver,
-
-            /// <summary>
-            /// Expression is assigned by reference.
-            /// </summary>
-            RefAssign,
-
-            /// <summary>
-            /// Expression is returned by reference.
-            /// </summary>
-            RefReturn,
         }
 
         /// <summary>

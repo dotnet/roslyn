@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
+using Microsoft.CodeAnalysis.PooledObjects;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
@@ -53,12 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 parameters: SyntaxFactory.SeparatedList(parameters));
         }
 
-        internal static List<ParameterSyntax> GetParameters(
+        internal static ImmutableArray<ParameterSyntax> GetParameters(
             IEnumerable<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
             CodeGenerationOptions options)
         {
-            var result = new List<ParameterSyntax>();
+            var result = ArrayBuilder<ParameterSyntax>.GetInstance();
             var seenOptional = false;
             var isFirstParam = true;
 
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 isFirstParam = false;
             }
 
-            return result;
+            return result.ToImmutableAndFree();
         }
 
         internal static ParameterSyntax GetParameter(IParameterSymbol p, CodeGenerationOptions options, bool isExplicit, bool isFirstParam, bool seenOptional)
@@ -91,23 +92,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxTokenList GenerateModifiers(
             IParameterSymbol parameter, bool isFirstParam)
         {
+            SyntaxTokenList list = CSharpSyntaxGenerator.GetParameterModifiers(parameter.RefKind);
+
             if (isFirstParam &&
-                parameter.ContainingSymbol is IMethodSymbol &&
-                ((IMethodSymbol)parameter.ContainingSymbol).IsExtensionMethod)
+                parameter.ContainingSymbol is IMethodSymbol methodSymbol &&
+                methodSymbol.IsExtensionMethod)
             {
-                return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
+                list = list.Add(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
             }
 
             if (parameter.IsParams)
             {
-                return SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
+                list = list.Add(SyntaxFactory.Token(SyntaxKind.ParamsKeyword));
             }
 
-            return parameter.RefKind == RefKind.None
-                ? new SyntaxTokenList()
-                : parameter.RefKind == RefKind.Out
-                    ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.OutKeyword))
-                    : SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword));
+            return list;
         }
 
         private static EqualsValueClauseSyntax GenerateEqualsValueClause(
@@ -145,13 +144,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (isExplicit)
             {
-                return default(SyntaxList<AttributeListSyntax>);
+                return default;
             }
 
             var attributes = parameter.GetAttributes();
             if (attributes.Length == 0)
             {
-                return default(SyntaxList<AttributeListSyntax>);
+                return default;
             }
 
             return AttributeGenerator.GenerateAttributeLists(attributes, options);

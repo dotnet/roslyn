@@ -3,18 +3,17 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public partial class SyntaxNodeTests : TestBase
     {
         [Fact]
@@ -52,15 +51,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var newRoot = await root.ReplaceNodesAsync(nodes, (o, n, c) =>
             {
                 computations++;
-                var classDecl = n as ClassDeclarationSyntax;
-                if (classDecl != null)
+                if (n is ClassDeclarationSyntax classDecl)
                 {
                     var id = classDecl.Identifier;
                     return Task.FromResult<SyntaxNode>(classDecl.WithIdentifier(SyntaxFactory.Identifier(id.LeadingTrivia, id.ToString() + "1", id.TrailingTrivia)));
                 }
 
-                var varDecl = n as VariableDeclaratorSyntax;
-                if (varDecl != null)
+                if (n is VariableDeclaratorSyntax varDecl)
                 {
                     var id = varDecl.Identifier;
                     return Task.FromResult<SyntaxNode>(varDecl.WithIdentifier(SyntaxFactory.Identifier(id.LeadingTrivia, id.ToString() + "1", id.TrailingTrivia)));

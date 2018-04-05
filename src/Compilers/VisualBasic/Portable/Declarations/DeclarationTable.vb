@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -182,8 +183,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _compilation = compilation
             End Sub
 
+            <PerformanceSensitive(
+                "https://github.com/dotnet/roslyn/issues/23582",
+                Constraint:="Avoid " + NameOf(SingleNamespaceOrTypeDeclaration.Location) + " since it probably also has a costly allocation on this fast path (VB equivalent of issue found in C# code).")>
             Public Function Compare(x As SingleNamespaceDeclaration, y As SingleNamespaceDeclaration) As Integer Implements IComparer(Of SingleNamespaceDeclaration).Compare
-                Return _compilation.CompareSourceLocations(x.Location, y.Location)
+                Return _compilation.CompareSourceLocations(x.SyntaxReference, y.SyntaxReference)
             End Function
         End Class
 
