@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -179,12 +178,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 inheritanceNames: builder.ToImmutableAndFree(),
                 parameterCount: GetParameterCount(flags),
                 typeParameterCount: GetTypeParameterCount(flags));
-        }
-
-        public async Task<ISymbol> TryResolveAsync(Document document, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return TryResolve(semanticModel, cancellationToken);
         }
 
         public ISymbol TryResolve(SemanticModel semanticModel, CancellationToken cancellationToken)

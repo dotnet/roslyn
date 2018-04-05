@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
-                => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
+                => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation(typeof(TTag).Name), cancellationToken);
 
             private void Connect()
             {

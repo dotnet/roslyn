@@ -3397,7 +3397,7 @@ class C { }";
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_BadElement()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3416,7 +3416,7 @@ class C { }";
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_BadTaskImport()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3435,7 +3435,7 @@ class C { }";
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_BadTaskImport()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -3455,7 +3455,7 @@ class C { }";
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenProject_MsbuildError()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
