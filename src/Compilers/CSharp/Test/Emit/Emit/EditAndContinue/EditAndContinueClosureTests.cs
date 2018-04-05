@@ -683,7 +683,7 @@ class C
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<>9__0_1, <>9__0_2, <>9__0_3, <>9__0_4, <>9__0_5, <>9__0_0, <F>b__0_1, <F>b__0_2, <F>b__0_3, <F>b__0_4, <F>b__0_5, <F>b__0_0}",
+                "C.<>c: {<>9__0_0, <>9__0_1, <>9__0_2, <>9__0_3, <>9__0_4, <>9__0_5, <F>b__0_0, <F>b__0_1, <F>b__0_2, <F>b__0_3, <F>b__0_4, <F>b__0_5}",
                 "<>f__AnonymousType1<<c>j__TPar>: {Equals, GetHashCode, ToString}",
                 "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}");
 
@@ -3041,9 +3041,9 @@ class C
             // new lambda for GroupBy(..., a => a + 1)
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<>9__0_0#1, <>9__0_0, <F>b__0_0#1, <F>b__0_0}");
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
 
-            diff1.VerifyIL("C.<>c.<F>b__0_0#1", @"
+            diff1.VerifyIL("C.<>c.<F>b__0_1#1", @"
 {
   // Code size        4 (0x4)
   .maxstack  2
@@ -3079,36 +3079,33 @@ class C
             // new query:
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       78 (0x4e)
-  .maxstack  3
-  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0, //result
-                System.Func<int, int> V_1)
+  // Code size       76 (0x4c)
+  .maxstack  4
+  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldfld      ""int[] C.array""
-  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0#1""
+  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
   IL_000c:  dup
   IL_000d:  brtrue.s   IL_0026
   IL_000f:  pop
   IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0015:  ldftn      ""int C.<>c.<F>b__0_0#1(int)""
+  IL_0015:  ldftn      ""int C.<>c.<F>b__0_0(int)""
   IL_001b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_0020:  dup
-  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0#1""
-  IL_0026:  stloc.1
-  IL_0027:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
-  IL_002c:  dup
-  IL_002d:  brtrue.s   IL_0046
-  IL_002f:  pop
-  IL_0030:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0035:  ldftn      ""int C.<>c.<F>b__0_0(int)""
-  IL_003b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_0040:  dup
-  IL_0041:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
-  IL_0046:  ldloc.1
-  IL_0047:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>, System.Func<int, int>)""
-  IL_004c:  stloc.0
-  IL_004d:  ret
+  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
+  IL_0026:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
+  IL_002b:  dup
+  IL_002c:  brtrue.s   IL_0045
+  IL_002e:  pop
+  IL_002f:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0034:  ldftn      ""int C.<>c.<F>b__0_1#1(int)""
+  IL_003a:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_003f:  dup
+  IL_0040:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1#1""
+  IL_0045:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>, System.Func<int, int>)""
+  IL_004a:  stloc.0
+  IL_004b:  ret
 }
 ");
         }
@@ -3169,15 +3166,14 @@ class C
             // lambda for GroupBy(..., a => a + 1) is gone
             diff1.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<>9__0_1, <F>b__0_1}");
+                "C.<>c: {<>9__0_0, <F>b__0_0}");
 
             // old query:
             v0.VerifyIL("C.F", @"
 {
-  // Code size       78 (0x4e)
-  .maxstack  3
-  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0, //result
-                System.Func<int, int> V_1)
+  // Code size       76 (0x4c)
+  .maxstack  4
+  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldfld      ""int[] C.array""
@@ -3190,20 +3186,18 @@ class C
   IL_001b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_0020:  dup
   IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
-  IL_0026:  stloc.1
-  IL_0027:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
-  IL_002c:  dup
-  IL_002d:  brtrue.s   IL_0046
-  IL_002f:  pop
-  IL_0030:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0035:  ldftn      ""int C.<>c.<F>b__0_1(int)""
-  IL_003b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_0040:  dup
-  IL_0041:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
-  IL_0046:  ldloc.1
-  IL_0047:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>, System.Func<int, int>)""
-  IL_004c:  stloc.0
-  IL_004d:  ret
+  IL_0026:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
+  IL_002b:  dup
+  IL_002c:  brtrue.s   IL_0045
+  IL_002e:  pop
+  IL_002f:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0034:  ldftn      ""int C.<>c.<F>b__0_1(int)""
+  IL_003a:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_003f:  dup
+  IL_0040:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
+  IL_0045:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>, System.Func<int, int>)""
+  IL_004a:  stloc.0
+  IL_004b:  ret
 }
 ");
             // new query:
@@ -3211,20 +3205,19 @@ class C
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0, //result
-                [unchanged] V_1)
+  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldfld      ""int[] C.array""
-  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
+  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
   IL_000c:  dup
   IL_000d:  brtrue.s   IL_0026
   IL_000f:  pop
   IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0015:  ldftn      ""int C.<>c.<F>b__0_1(int)""
+  IL_0015:  ldftn      ""int C.<>c.<F>b__0_0(int)""
   IL_001b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_0020:  dup
-  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
+  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
   IL_0026:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
   IL_002b:  stloc.0
   IL_002c:  ret

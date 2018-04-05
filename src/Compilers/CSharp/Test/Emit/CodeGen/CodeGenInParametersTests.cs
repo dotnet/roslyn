@@ -3035,11 +3035,10 @@ public class Test
 
             verifier.VerifyIL("Test.Main(string[])", @"
 {
-  // Code size       54 (0x36)
+  // Code size       52 (0x34)
   .maxstack  5
   .locals init (Test.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
-                System.Action V_1,
-                int V_2)
+                int V_1)
   IL_0000:  newobj     ""Test.<>c__DisplayClass0_0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -3051,18 +3050,16 @@ public class Test
   IL_0011:  stelem.i4
   IL_0012:  stfld      ""int[] Test.<>c__DisplayClass0_0.x""
   IL_0017:  ldloc.0
-  IL_0018:  ldftn      ""void Test.<>c__DisplayClass0_0.<Main>b__0()""
-  IL_001e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0023:  stloc.1
-  IL_0024:  ldloc.0
-  IL_0025:  ldfld      ""int[] Test.<>c__DisplayClass0_0.x""
-  IL_002a:  ldc.i4.0
-  IL_002b:  ldelem.i4
-  IL_002c:  stloc.2
-  IL_002d:  ldloca.s   V_2
-  IL_002f:  ldloc.1
-  IL_0030:  call       ""void Test.Moo(in int, System.Action)""
-  IL_0035:  ret
+  IL_0018:  ldfld      ""int[] Test.<>c__DisplayClass0_0.x""
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldelem.i4
+  IL_001f:  stloc.1
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  ldloc.0
+  IL_0023:  ldftn      ""void Test.<>c__DisplayClass0_0.<Main>b__0()""
+  IL_0029:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_002e:  call       ""void Test.Moo(in int, System.Action)""
+  IL_0033:  ret
 }
 ");
         }
