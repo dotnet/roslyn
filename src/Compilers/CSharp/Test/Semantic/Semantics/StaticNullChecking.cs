@@ -139,26 +139,6 @@ class C
         }
 
         [Fact]
-        public void TestExternalAnnotation_Bool_Parse()
-        {
-            // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
-            var source =
-@"class C
-{
-    static void F(string? s)
-    {
-        bool.Parse(s);
-    }
-}";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (5,20): warning CS8604: Possible null reference argument for parameter 'value' in 'bool bool.Parse(string value)'.
-                //         bool.Parse(s);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "bool bool.Parse(string value)").WithLocation(5, 20)
-                );
-        }
-
-        [Fact]
         public void MissingInt()
         {
             var source0 =
@@ -198,12 +178,27 @@ class C
         }
 
         [Fact]
-        public void UnannotatedAssemblies_00()
+        public void UnannotatedAssemblies_WithSomeExtraAnnotations()
         {
+            // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
             var comp = CreateStandardCompilation("", parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var systemNamespace = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingNamespace;
-            VerifyNoNullability(systemNamespace);
+
+            var expected = ImmutableArray.Create(
+"System.String! System.String.Concat(System.String?, System.String?)",
+"System.Boolean System.Boolean.Parse(System.String!)",
+"void System.Buffer.BlockCopy(System.Array!, System.Int32, System.Array!, System.Int32, System.Int32)",
+"System.Byte System.Buffer.GetByte(System.Array!, System.Int32)",
+"void System.Buffer.SetByte(System.Array!, System.Int32, System.Byte)",
+"System.Int32 System.Buffer.ByteLength(System.Array!)",
+"System.Byte System.Byte.Parse(System.String!)",
+"System.Byte System.Byte.Parse(System.String!, System.Globalization.NumberStyles)",
+"System.Byte System.Byte.Parse(System.String!, System.IFormatProvider)",
+"System.Byte System.Byte.Parse(System.String!, System.Globalization.NumberStyles, System.IFormatProvider)"
+            );
+
+            VerifyUsesOfNullability(systemNamespace, expected);
         }
 
         [Fact]

@@ -615,13 +615,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithParameterOptions(SymbolDisplayParameterOptions options)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 this.GlobalNamespaceStyle,
                 this.TypeQualificationStyle,
                 this.GenericsOptions,
                 this.MemberOptions,
+                options,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                options,
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,

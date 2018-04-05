@@ -611,8 +611,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
-                return NullableTypeDecoder.TransformType(this, extraAnnotations);
+                if (extraAnnotations.IsEmpty)
+                {
+                    // ex: a method has annotations, but some parameters do not require any
+                    Debug.Assert(this.TypeSymbol.IsStructType() || this.TypeSymbol.IsEnumType());
+                    return this.SetUnknownNullabilityForReferenceTypesIfNecessary(module);
+                }
+                else
+                {
+                    // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
+                    return NullableTypeDecoder.TransformType(this, extraAnnotations);
+                }
             }
         }
 

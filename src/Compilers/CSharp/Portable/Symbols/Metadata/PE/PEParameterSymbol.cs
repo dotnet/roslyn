@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private ImmutableArray<CSharpAttributeData> _lazyHiddenAttributes;
 
-        private readonly ushort _ordinal;
+        private readonly short _ordinal;
 
         private PackedFlags _packedFlags;
 
@@ -183,13 +183,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             Debug.Assert((object)moduleSymbol != null);
             Debug.Assert((object)containingSymbol != null);
-            Debug.Assert(ordinal >= 0);
+            Debug.Assert(ordinal >= -1); // -1 means the return position
             Debug.Assert((object)type != null);
 
             isBad = false;
             _moduleSymbol = moduleSymbol;
             _containingSymbol = containingSymbol;
-            _ordinal = (ushort)ordinal;
+            _ordinal = (short)ordinal;
 
             _handle = handle;
 

@@ -32,7 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     case false:
-                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
+                        if (!typeSymbol.IsStructType() &&
+                            !typeSymbol.IsEnumType() &&
+                            format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
                         {
                             AddPunctuation(SyntaxKind.ExclamationToken);
                         }

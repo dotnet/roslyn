@@ -338,16 +338,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
                         {
-                            var expr = getEnclosingExpression(token);
-                            if (expr is null)
-                            {
-                                continue;
-                            }
                             var text = trivia.ToFullString();
                             const string prefix = "/*T:";
                             const string suffix = "*/";
                             if (text.StartsWith(prefix) && text.EndsWith(suffix))
                             {
+                                var expr = getEnclosingExpression(token);
+                                Assert.True(expr != null, $"VerifyTypes could not find a matching expression for annotation '{text}'.");
+
                                 var content = text.Substring(prefix.Length, text.Length - prefix.Length - suffix.Length);
                                 builder.Add((expr, content));
                             }

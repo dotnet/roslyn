@@ -603,7 +603,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             paramInfo[0].Type = returnType;
 
-            var returnParam = PEParameterSymbol.Create(moduleSymbol, this, 0, paramInfo[0], out isBadParameter);
+            // Ordinal -1 allows us to look up extra annotations, but serves no other purpose
+            var returnParam = PEParameterSymbol.Create(moduleSymbol, this, ordinal: -1, paramInfo[0], out isBadParameter);
 
             if (makeBad || isBadParameter)
             {

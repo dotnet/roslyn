@@ -4,11 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
-    // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized 
+    // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
     internal class ExtraAnnotations
     {
         // APIs that are useful to annotate:
@@ -18,7 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal static readonly Dictionary<string, ImmutableArray<ImmutableArray<bool>>> Annotations =
             new Dictionary<string, ImmutableArray<ImmutableArray<bool>>>
             {
-                { "System.Boolean System.Boolean.Parse(System.String)", Parameters(skip, Nullable(false)) }
+                { "System.Boolean System.Boolean.Parse(System.String)", Parameters(skip, Nullable(false)) },
+                { "System.Void System.Buffer.BlockCopy(System.Array, System.Int32, System.Array, System.Int32, System.Int32)", Parameters(skip, Nullable(false), skip, Nullable(false), skip, skip) },
+                { "System.Int32 System.Buffer.ByteLength(System.Array)", Parameters(skip, Nullable(false)) },
+                { "System.Byte System.Buffer.GetByte(System.Array, System.Int32)", Parameters(skip, Nullable(false), skip) },
+                { "System.Void System.Buffer.SetByte(System.Array, System.Int32, System.Byte)", Parameters(skip, Nullable(false), skip, skip) },
+                { "System.Byte System.Byte.Parse(System.String)", Parameters(skip, Nullable(false)) },
+                { "System.Byte System.Byte.Parse(System.String, System.IFormatProvider)", Parameters(skip, Nullable(false), skip) },
+                { "System.Byte System.Byte.Parse(System.String, System.Globalization.NumberStyles)", Parameters(skip, Nullable(false), Nullable(false)) },
+                { "System.Byte System.Byte.Parse(System.String, System.Globalization.NumberStyles, System.IFormatProvider)", Parameters(skip, Nullable(false), Nullable(false), skip) },
+                { "System.String System.String.Concat(System.String, System.String)", Parameters(Nullable(false), Nullable(true), Nullable(true)) },
             };
 
         internal static string MakeKey(PEModuleSymbol moduleSymbol, Handle handle)
@@ -34,7 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return builder.ToStringAndFree();
         }
 
-        private static readonly ImmutableArray<bool> skip = default;
+        /// <summary>
+        /// All types in a member should be annotated, except for struct or enum types, which can be skipped.
+        /// </summary>
+        private static readonly ImmutableArray<bool> skip = ImmutableArray<bool>.Empty;
 
         static ImmutableArray<ImmutableArray<bool>> Parameters(params ImmutableArray<bool>[] values)
         {
@@ -56,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return flags[ordinal];
         }
 
-        private static void Add(MethodDefinitionHandle methodHandle, MetadataReader metadata, PooledStringBuilder builder, PEModuleSymbol moduleSymbol)
+        private static void Add(MethodDefinitionHandle methodHandle, MetadataReader metadata, StringBuilder builder, PEModuleSymbol moduleSymbol)
         {
             var metadataDecoder = new MetadataDecoder(moduleSymbol);
             SignatureHeader signatureHeader;
@@ -68,44 +81,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             TypeSymbol type1 = methodParams[0].Type;
             Add(type1, builder);
 
-            builder.Builder.Append(' ');
+            builder.Append(' ');
 
             TypeDefinition type = metadata.GetTypeDefinition(method.GetDeclaringType());
             Add(type, metadata, builder);
-            builder.Builder.Append('.');
+            builder.Append('.');
 
             string name = metadata.GetString(method.Name);
-            builder.Builder.Append(name);
-            builder.Builder.Append('(');
+            builder.Append(name);
+            builder.Append('(');
 
             for (int i = 1; i < methodParams.Length; i++)
             {
                 Add(methodParams[i].Type, builder);
                 if (i < methodParams.Length - 1)
                 {
-                    builder.Builder.Append(", ");
+                    builder.Append(", ");
                 }
             }
 
-            builder.Builder.Append(')');
+            builder.Append(')');
 
             // PROTOTYPE(NullableReferenceTypes): Many cases are not yet handled
             // generic type args
             // ref kind
             // 'this'
+            // static vs. instance
         }
 
-        private static void Add(TypeSymbol type1, PooledStringBuilder builder) =>
-                        builder.Builder.Append(type1.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat.RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+        private static void Add(TypeSymbol type1, StringBuilder builder) =>
+                        builder.Append(type1.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat.RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
-        private static void Add(TypeDefinition type, MetadataReader metadata, PooledStringBuilder builder)
+        private static void Add(TypeDefinition type, MetadataReader metadata, StringBuilder builder)
         {
             string ns = metadata.GetString(type.Namespace);
-            builder.Builder.Append(ns);
-            builder.Builder.Append('.');
+            builder.Append(ns);
+            builder.Append('.');
 
             string name = metadata.GetString(type.Name);
-            builder.Builder.Append(name);
+            builder.Append(name);
         }
     }
 }

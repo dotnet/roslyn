@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 VisitList(symbol.Parameters);
         }
 
+        public override bool VisitParameter(ParameterSymbol symbol)
+        {
+            return AddIfUsesIsNullable(symbol.ContainingSymbol, symbol.Type);
+        }
+
         public override bool VisitProperty(PropertySymbol symbol)
         {
             return AddIfUsesIsNullable(symbol, symbol.Type) ||
