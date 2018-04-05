@@ -898,10 +898,10 @@ End Class";
                     var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawler);
 
                     // first, wait for first work to be queued.
-                    await crawlerListener.CreateWaitTask(tokens => tokens.Any(token => token.Name == "EnqueueWorkItemAsync"));
+                    await crawlerListener.WaitUntilCondiationIsMetAsync(tokens => tokens.Any(token => token.Name == "EnqueueWorkItemAsync"));
 
                     // and then wait them to be processed
-                    await crawlerListener.CreateWaitTask(tokens => tokens.Where(token => token.Tag == workspace).IsEmpty());
+                    await crawlerListener.WaitUntilCondiationIsMetAsync(tokens => tokens.Where(token => token.Tag == workspace).IsEmpty());
 
                     // let analyzer to process
                     operation.Done();
@@ -1261,7 +1261,7 @@ End Class";
             #endregion
         }
 
-        [ExportWorkspaceService(typeof(IGlobalOperationNotificationService), SolutionCrawler), Shared]
+        [ExportWorkspaceService(typeof(IGlobalOperationNotificationService), SolutionCrawler), Shared, PartNotDiscoverable]
         private class TestGlobalOperationService : GlobalOperationNotificationService
         {
             // this test only global notification service
