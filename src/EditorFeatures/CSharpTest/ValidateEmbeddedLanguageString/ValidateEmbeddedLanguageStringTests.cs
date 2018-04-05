@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.ValidateJsonString;
+using Microsoft.CodeAnalysis.CSharp.ValidateEmbeddedLanguageString;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
@@ -14,10 +14,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateJsonString
 {
-    public class ValidateJsonStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class ValidateValidateEmbeddedLanguageStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpValidateJsonStringDiagnosticAnalyzer(), null);
+            => (new CSharpValidateEmbeddedLanguageStringDiagnosticAnalyzer(), null);
 
         private IDictionary<OptionKey, object> OptionOn()
         {
@@ -41,7 +41,7 @@ class Program
                 options: OptionOn(),
                 diagnosticId: IDEDiagnosticIds.JsonPatternDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
-                diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, WorkspacesResources.Constructors_not_allowed));
+                diagnosticMessage: string.Format(WorkspacesResources.JSON_issue_0, WorkspacesResources.Constructors_not_allowed));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
@@ -58,7 +58,7 @@ class Program
                 options: OptionOn(),
                 diagnosticId: IDEDiagnosticIds.JsonPatternDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
-                diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, 
+                diagnosticMessage: string.Format(WorkspacesResources.JSON_issue_0, 
                     string.Format(WorkspacesResources._0_unexpected, '}')));
         }
     }

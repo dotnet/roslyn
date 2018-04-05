@@ -1,22 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Threading;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.ValidateJsonString
 {
-    internal abstract class AbstractValidateEmbeddedLanguageDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class AbstractValidateEmbeddedLanguageStringDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private readonly ImmutableArray<IEmbeddedDiagnosticAnalyzer> _analyzers;
 
-        protected AbstractValidateEmbeddedLanguageDiagnosticAnalyzer(
+        protected AbstractValidateEmbeddedLanguageStringDiagnosticAnalyzer(
             IEmbeddedLanguageProvider embeddedLanguageProvider)
         {
             var supportedDiagnostics = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
