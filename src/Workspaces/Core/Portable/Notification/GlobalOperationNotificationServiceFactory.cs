@@ -1,55 +1,51 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
 using System.Composition;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Notification
 {
     [ExportWorkspaceServiceFactory(typeof(IGlobalOperationNotificationService), ServiceLayer.Default), Shared]
     internal class GlobalOperationNotificationServiceFactory : IWorkspaceServiceFactory
     {
-        private static readonly NoOpService s_singleton = new NoOpService();
+        private readonly IAsynchronousOperationListener _listener;
+        private readonly Service _singleton;
+
+        [ImportingConstructor]
+        public GlobalOperationNotificationServiceFactory(IAsynchronousOperationListenerProvider listenerProvider)
+        {
+            _listener = listenerProvider.GetListener(FeatureAttribute.GlobalOperation);
+            _singleton = new Service(_listener);
+        }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            // all different workspace kinds will share same service
-            return s_singleton;
+            return _singleton;
         }
 
-        /// <summary>
-        /// a service which will never raise start event
-        /// </summary>
-        private class NoOpService : AbstractGlobalOperationNotificationService
+        private class Service : GlobalOperationNotificationService
         {
-            private readonly GlobalOperationRegistration _noOpRegistration;
+            private readonly IAsynchronousOperationListener _listener;
 
-            public NoOpService()
+            public Service(IAsynchronousOperationListener listener)
             {
-                _noOpRegistration = new GlobalOperationRegistration(this, "NoOp");
-
-                // here to shut up never used warnings.
-                var started = Started;
-                var stopped = Stopped;
+                _listener = listener;
             }
 
-            public override event EventHandler Started;
-            public override event EventHandler<GlobalOperationEventArgs> Stopped;
-
-            public override GlobalOperationRegistration Start(string reason)
+            protected override Task RaiseGlobalOperationStarted()
             {
-                return _noOpRegistration;
+                var eventToken = _listener.BeginAsyncOperation("GlobalOperationStarted");
+                return base.RaiseGlobalOperationStarted().CompletesAsyncOperation(eventToken);
             }
 
-            public override void Cancel(GlobalOperationRegistration registration)
+            protected override Task RaiseGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
             {
-                // do nothing
-            }
-
-            public override void Done(GlobalOperationRegistration registration)
-            {
-                // do nothing
+                var eventToken = _listener.BeginAsyncOperation("GlobalOperationStopped");
+                return base.RaiseGlobalOperationStopped(operations, cancelled).CompletesAsyncOperation(eventToken);
             }
         }
     }
