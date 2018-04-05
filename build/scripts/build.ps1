@@ -585,7 +585,9 @@ function Run-SignTool() {
     try {
         $signTool = Join-Path (Get-PackageDir "RoslynTools.SignTool") "tools\SignTool.exe"
         $signToolArgs = "-msbuildPath `"$msbuild`""
-        $signToolArgs += " -msbuildBinaryLog $logsDir\Signing.binlog"
+        if ($binaryLog) {
+            $signToolArgs += " -msbuildBinaryLog $logsDir\Signing.binlog"
+        }
         switch ($signType) {
             "real" { break; }
             "test" { $signToolArgs += " -testSign"; break; }

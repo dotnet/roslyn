@@ -500,5 +500,10 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new MethodBodyOperation(((Operation)operation).SemanticModel, operation.Syntax, Visit(operation.BlockBody), Visit(operation.ExpressionBody));
         }
+
+        public override IOperation VisitDiscardOperation(IDiscardOperation operation, object argument)
+        {
+            return new DiscardOperation(operation.DiscardSymbol, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
     }
 }
