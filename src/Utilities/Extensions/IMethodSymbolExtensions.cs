@@ -13,17 +13,46 @@ namespace Analyzer.Utilities.Extensions
     internal static class IMethodSymbolExtensions
     {
         /// <summary>
-        /// Checks if the given method overrides Object.Equals.
+        /// Checks if the given method overrides <see cref="object.Equals(object)"/>.
         /// </summary>
-        public static bool IsEqualsOverride(this IMethodSymbol method)
+        public static bool IsObjectEqualsOverride(this IMethodSymbol method)
         {
             return method != null &&
-                   method.IsOverride &&
-                   method.Name == WellKnownMemberNames.ObjectEquals &&
-                   method.ReturnType.SpecialType == SpecialType.System_Boolean &&
-                   method.Parameters.Length == 1 &&
-                   method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-                   IsObjectMethodOverride(method);
+                method.IsOverride &&
+                method.Name == WellKnownMemberNames.ObjectEquals &&
+                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                method.Parameters.Length == 1 &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+                IsObjectMethodOverride(method);
+        }
+
+        /// <summary>
+        /// Checks if the given method is <see cref="object.Equals(object)"/>.
+        /// </summary>
+        public static bool IsObjectEquals(this IMethodSymbol method)
+        {
+            return method != null &&
+                method.ContainingType.SpecialType == SpecialType.System_Object &&
+                method.IsVirtual &&
+                method.Name == WellKnownMemberNames.ObjectEquals &&
+                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                method.Parameters.Length == 1 &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
+        }
+
+        /// <summary>
+        /// Checks if the given <paramref name="method"/> is <see cref="object.Equals(object, object)"/> or <see cref="object.ReferenceEquals(object, object)"/>.
+        /// </summary>
+        public static bool IsStaticObjectEqualsOrReferenceEquals(this IMethodSymbol method)
+        {
+            return method != null &&
+                method.IsStatic &&
+                method.ContainingType.SpecialType == SpecialType.System_Object &&
+                method.Parameters.Length == 2 &&
+                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+                method.Parameters[1].Type.SpecialType == SpecialType.System_Object &&
+                (method.Name == WellKnownMemberNames.ObjectEquals || method.Name == "ReferenceEquals");
         }
 
         /// <summary>
