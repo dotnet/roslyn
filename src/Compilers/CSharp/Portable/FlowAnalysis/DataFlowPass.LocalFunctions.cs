@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -132,6 +133,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.State = this.ReachableState();
 
             if (!localFunc.WasCompilerGenerated) EnterParameters(localFuncSymbol.Parameters);
+
+            // Check for parameter default expressions
+            var diagnostics = DiagnosticBag.GetInstance();
+            foreach (var param in localFuncSymbol.Parameters)
+            {
+                if (param.HasExplicitDefaultValue)
+                {
+                    var defaultSyntax = ((ParameterSyntax)param.DeclaringSyntaxReferences[0].GetSyntax()).Default;
+                    Debug.Assert(defaultSyntax != null);
+
+                    var binder = localFuncSymbol.ParameterBinder.CreateBinderForParameterDefaultValue(param, defaultSyntax);
+                    var boundParameterEquals = binder.BindParameterDefaultValue(
+                        defaultSyntax,
+                        param,
+                        diagnostics,
+                        out _);
+
+                    VisitParameterEqualsValue(boundParameterEquals);
+                }
+            }
+            diagnostics.Free();
 
             // Captured variables are definitely assigned if they are assigned on
             // all branches into the local function, so we store all reads from
