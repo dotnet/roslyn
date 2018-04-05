@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Composition;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -13,40 +11,18 @@ namespace Microsoft.CodeAnalysis.Notification
     internal class GlobalOperationNotificationServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IAsynchronousOperationListener _listener;
-        private readonly Service _singleton;
+        private readonly IGlobalOperationNotificationService _singleton;
 
         [ImportingConstructor]
         public GlobalOperationNotificationServiceFactory(IAsynchronousOperationListenerProvider listenerProvider)
         {
             _listener = listenerProvider.GetListener(FeatureAttribute.GlobalOperation);
-            _singleton = new Service(_listener);
+            _singleton = new GlobalOperationNotificationService(_listener);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return _singleton;
-        }
-
-        private class Service : GlobalOperationNotificationService
-        {
-            private readonly IAsynchronousOperationListener _listener;
-
-            public Service(IAsynchronousOperationListener listener)
-            {
-                _listener = listener;
-            }
-
-            protected override Task RaiseGlobalOperationStarted()
-            {
-                var eventToken = _listener.BeginAsyncOperation("GlobalOperationStarted");
-                return base.RaiseGlobalOperationStarted().CompletesAsyncOperation(eventToken);
-            }
-
-            protected override Task RaiseGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
-            {
-                var eventToken = _listener.BeginAsyncOperation("GlobalOperationStopped");
-                return base.RaiseGlobalOperationStopped(operations, cancelled).CompletesAsyncOperation(eventToken);
-            }
         }
     }
 }
