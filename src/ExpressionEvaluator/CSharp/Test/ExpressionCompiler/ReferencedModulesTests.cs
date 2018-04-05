@@ -532,7 +532,8 @@ IL_0005:  ret
                     default(CSharpMetadataContext),
                     typeBlocks,
                     moduleVersionId,
-                    typeToken);
+                    typeToken,
+                    MakeAssemblyReferencesKind.AllAssemblies);
 
                 Assert.Equal(identityAS2, context.Compilation.GlobalNamespace.GetMembers("A").OfType<INamedTypeSymbol>().Single().ContainingAssembly.Identity);
                 Assert.Equal(identityBS2, context.Compilation.GlobalNamespace.GetMembers("B").OfType<INamedTypeSymbol>().Single().ContainingAssembly.Identity);
@@ -594,7 +595,8 @@ IL_0005:  ret
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken);
+                    localSignatureToken: localSignatureToken,
+                    MakeAssemblyReferencesKind.AllAssemblies);
                 Assert.Equal(previous.Compilation, context.Compilation); // re-use type context compilation
                 testData = new CompilationTestData();
                 // A could be ambiguous, but the ambiguity is resolved in favor of the newer assembly.

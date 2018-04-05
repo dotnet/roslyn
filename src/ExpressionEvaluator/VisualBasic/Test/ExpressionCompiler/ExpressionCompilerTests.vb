@@ -59,7 +59,8 @@ End Class
                         methodToken,
                         methodVersion,
                         ilOffset,
-                        localSignatureToken)
+                        localSignatureToken,
+                        MakeAssemblyReferencesKind.AllAssemblies)
 
                     Dim errorMessage As String = Nothing
                     Dim result = context.CompileExpression("1", errorMessage)
@@ -76,7 +77,8 @@ End Class
                         methodToken,
                         methodVersion,
                         ilOffset,
-                        localSignatureToken)
+                        localSignatureToken,
+                        MakeAssemblyReferencesKind.AllAssemblies)
 
                     result = context.CompileExpression("2", errorMessage)
                     Dim mvid2 = result.Assembly.GetModuleVersionId()
@@ -293,16 +295,16 @@ End Class"
             endOffset = outerScope.EndOffset
 
             ' At start of outer scope.
-            Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(startOffset, UInteger), localSignatureToken)
+            Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(startOffset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
             Assert.Equal(Nothing, previous)
             previous = New VisualBasicMetadataContext(methodBlocks, context)
 
             ' At end of outer scope - not reused because of the nested scope.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(endOffset, UInteger), localSignatureToken)
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(endOffset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
             Assert.NotEqual(context, previous.EvaluationContext) ' Not required, just documentary.
 
             ' At type context.
-            context = EvaluationContext.CreateTypeContext(previous, typeBlocks, moduleVersionId, typeToken)
+            context = EvaluationContext.CreateTypeContext(previous, typeBlocks, moduleVersionId, typeToken, MakeAssemblyReferencesKind.AllAssemblies)
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.Null(context.MethodContextReuseConstraints)
             Assert.Equal(context.Compilation, previous.Compilation)
@@ -317,7 +319,7 @@ End Class"
                     Assert.Equal(scope Is previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset))
                 End If
 
-                context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(offset, UInteger), localSignatureToken)
+                context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(offset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
                 If scope Is previousScope Then
                     Assert.Equal(context, previous.EvaluationContext)
                 Else
@@ -343,7 +345,7 @@ End Class"
             GetContextState(runtime, "C.F", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
             ' Different references. No reuse.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(endOffset - 1, UInteger), localSignatureToken)
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(endOffset - 1, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
             Assert.NotEqual(context.Compilation, previous.Compilation)
@@ -351,14 +353,14 @@ End Class"
 
             ' Different method. Should reuse Compilation.
             GetContextState(runtime, "C.G", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken)
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.False(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, 0))
             Assert.Equal(context.Compilation, previous.Compilation)
 
             ' No EvaluationContext. Should reuse Compilation
             previous = New VisualBasicMetadataContext(previous.Compilation)
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken)
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, ilOffset:=0, localSignatureToken:=localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
             Assert.Null(previous.EvaluationContext)
             Assert.NotNull(context)
             Assert.Equal(context.Compilation, previous.Compilation)
@@ -4143,7 +4145,8 @@ End Class
                     methodToken:=methodToken,
                     methodVersion:=1,
                     ilOffset:=0,
-                    localSignatureToken:=localSignatureToken)
+                    localSignatureToken:=localSignatureToken,
+                    kind:=MakeAssemblyReferencesKind.AllAssemblies)
 
                 Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
                 Dim typeName As String = Nothing
@@ -4163,7 +4166,8 @@ End Class
                     methodToken:=methodToken,
                     methodVersion:=2,
                     ilOffset:=0,
-                    localSignatureToken:=localSignatureToken)
+                    localSignatureToken:=localSignatureToken,
+                    kind:=MakeAssemblyReferencesKind.AllAssemblies)
 
                 locals.Clear()
                 context2.CompileGetLocals(
@@ -4555,7 +4559,8 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=ExpressionCompilerTestHelpers.NoILOffset,
-                        localSignatureToken:=localSignatureToken)
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
 
                     Dim errorMessage As String = Nothing
                     Dim testData = New CompilationTestData()
@@ -4582,7 +4587,8 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
-                        localSignatureToken:=localSignatureToken)
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
                     Assert.Same(previous, context)
 
                     ' Verify the context is re-used for NoILOffset.
@@ -4596,7 +4602,8 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=ExpressionCompilerTestHelpers.NoILOffset,
-                        localSignatureToken:=localSignatureToken)
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
                     Assert.Same(previous, context)
                 End Sub)
         End Sub

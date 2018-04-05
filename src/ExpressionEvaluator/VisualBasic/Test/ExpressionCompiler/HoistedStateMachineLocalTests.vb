@@ -1456,7 +1456,8 @@ End Class
                         methodToken,
                         methodVersion,
                         ilOffset,
-                        localSignatureToken)
+                        localSignatureToken,
+                        MakeAssemblyReferencesKind.AllAssemblies)
 
                     Dim errorMessage As String = Nothing
                     context.CompileExpression("x", errorMessage)
@@ -1474,7 +1475,8 @@ End Class
                         methodToken,
                         methodVersion,
                         ilOffset,
-                        localSignatureToken)
+                        localSignatureToken,
+                        MakeAssemblyReferencesKind.AllAssemblies)
 
                     context.CompileExpression("x", errorMessage)
                     Assert.Null(errorMessage)

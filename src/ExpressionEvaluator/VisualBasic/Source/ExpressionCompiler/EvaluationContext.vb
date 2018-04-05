@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             metadataBlocks As ImmutableArray(Of MetadataBlock),
             moduleVersionId As Guid,
             typeToken As Integer,
-            Optional kind As MakeAssemblyReferencesKind = MakeAssemblyReferencesKind.AllAssemblies) As EvaluationContext
+            kind As MakeAssemblyReferencesKind) As EvaluationContext
 
             ' Re-use the previous compilation if possible.
             Dim compilation = If(previous IsNot Nothing,
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             methodVersion As Integer,
             ilOffset As UInteger,
             localSignatureToken As Integer,
-            Optional kind As MakeAssemblyReferencesKind = MakeAssemblyReferencesKind.AllAssemblies) As EvaluationContext
+            kind As MakeAssemblyReferencesKind) As EvaluationContext
 
             Dim offset = NormalizeILOffset(ilOffset)
 

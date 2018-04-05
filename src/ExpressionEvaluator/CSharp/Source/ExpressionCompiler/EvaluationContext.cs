@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ImmutableArray<MetadataBlock> metadataBlocks,
             Guid moduleVersionId,
             int typeToken,
-            MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllAssemblies) // TODO: Should not be optional. Make all callers explicit.
+            MakeAssemblyReferencesKind kind)
         {
             // Re-use the previous compilation if possible.
             var compilation = previous != null ?
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             int methodVersion,
             uint ilOffset,
             int localSignatureToken,
-            MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllAssemblies) // TODO: Should not be optional. Make all callers explicit.
+            MakeAssemblyReferencesKind kind)
         {
             var offset = NormalizeILOffset(ilOffset);
 

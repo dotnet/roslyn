@@ -235,7 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 methodToken: methodToken,
                 methodVersion: 1,
                 ilOffset: ilOffset,
-                localSignatureToken: localSignatureToken);
+                localSignatureToken: localSignatureToken,
+                kind: MakeAssemblyReferencesKind.AllAssemblies);
         }
 
         internal static EvaluationContext CreateTypeContext(
@@ -252,7 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 default(CSharpMetadataContext),
                 blocks,
                 moduleVersionId,
-                typeToken);
+                typeToken,
+                kind: MakeAssemblyReferencesKind.AllAssemblies);
         }
 
         internal CompilationTestData Evaluate(

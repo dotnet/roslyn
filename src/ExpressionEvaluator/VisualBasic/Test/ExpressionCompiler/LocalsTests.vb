@@ -3357,7 +3357,8 @@ End Class"
                 methodToken,
                 methodVersion:=1,
                 ilOffset:=0,
-                localSignatureToken:=localSignatureToken)
+                localSignatureToken:=localSignatureToken,
+                kind:=MakeAssemblyReferencesKind.AllAssemblies)
 
             Dim assembly = context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=Nothing, testData:=Nothing)
 

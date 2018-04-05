@@ -198,7 +198,8 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
-                        localSignatureToken:=localSignatureToken)
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
                     Dim testData = New CompilationTestData()
                     Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
                     Dim typeName As String = Nothing
@@ -240,7 +241,8 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
-                        localSignatureToken:=localSignatureToken)
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
                     testData = New CompilationTestData()
                     locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
                     assembly = context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=typeName, testData:=testData)

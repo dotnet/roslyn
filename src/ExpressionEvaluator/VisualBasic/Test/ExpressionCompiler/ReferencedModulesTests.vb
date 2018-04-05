@@ -105,7 +105,8 @@ End Class"
                         Nothing,
                         typeBlocks,
                         moduleVersionId,
-                        typeToken)
+                        typeToken,
+                        MakeAssemblyReferencesKind.AllAssemblies)
 
                     ' If VB supported extern aliases, the following would be true:
                     ' Assert.Equal(identityAS2, context.Compilation.GlobalNamespace.GetMembers("A").OfType(Of INamedTypeSymbol)().Single().ContainingAssembly.Identity)
@@ -130,7 +131,8 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
-                        localSignatureToken:=localSignatureToken)
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
                     Assert.Equal(previous.Compilation, context.Compilation) ' re-use type context compilation
                     ' Ideally, B should be resolved to BS1.
                     context.CompileExpression("New B()", errorMessage)
@@ -344,7 +346,8 @@ End Class"
                         methodToken,
                         methodVersion:=1,
                         ilOffset:=0,
-                        localSignatureToken:=localSignatureToken)
+                        localSignatureToken:=localSignatureToken,
+                        kind:=MakeAssemblyReferencesKind.AllAssemblies)
                     Dim errorMessage As String = Nothing
                     context.CompileExpression("F()", errorMessage)
                     Assert.Equal(errorMessage, "error BC30562: 'F' is ambiguous between declarations in Modules 'N.M, N.M'.")

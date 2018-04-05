@@ -152,7 +152,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
                 methodToken,
                 methodVersion,
                 ilOffset,
-                localSignatureToken)
+                localSignatureToken,
+                MakeAssemblyReferencesKind.AllAssemblies)
         End Function
 
         Friend Shared Function MakeDummyLazyAssemblyReaders() As Lazy(Of ImmutableArray(Of AssemblyReaders))
@@ -178,7 +179,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
                 Nothing,
                 blocks,
                 moduleVersionId,
-                typeToken)
+                typeToken,
+                MakeAssemblyReferencesKind.AllAssemblies)
         End Function
 
         Friend Function Evaluate(
