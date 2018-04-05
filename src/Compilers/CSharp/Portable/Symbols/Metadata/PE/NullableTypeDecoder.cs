@@ -60,8 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEModuleSymbol containingModule,
             ImmutableArray<bool> extraAnnotations)
         {
-            if (extraAnnotations.IsDefault)
+            if (extraAnnotations.IsDefaultOrEmpty)
             {
+                if (!extraAnnotations.IsDefault)
+                {
+                    ExtraAnnotations.AssertTypeNeedsNoAnnotation(metadataType.TypeSymbol);
+                }
                 return  NullableTypeDecoder.TransformOrEraseNullability(metadataType, targetSymbolToken, containingModule);
             }
             else

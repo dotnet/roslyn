@@ -605,23 +605,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
         public TypeSymbolWithAnnotations SetUnknownNullabilityForReferenceTypesIfNecessary(ModuleSymbol module, ImmutableArray<bool> extraAnnotations)
         {
-            if (extraAnnotations.IsDefault)
+            if (extraAnnotations.IsDefaultOrEmpty)
             {
+                if (!extraAnnotations.IsDefault)
+                {
+                    ExtraAnnotations.AssertTypeNeedsNoAnnotation(this.TypeSymbol);
+                }
                 return this.SetUnknownNullabilityForReferenceTypesIfNecessary(module);
             }
             else
             {
-                if (extraAnnotations.IsEmpty)
-                {
-                    // ex: a method has annotations, but some parameters do not require any
-                    Debug.Assert(this.TypeSymbol.IsStructType() || this.TypeSymbol.IsEnumType());
-                    return this.SetUnknownNullabilityForReferenceTypesIfNecessary(module);
-                }
-                else
-                {
-                    // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
-                    return NullableTypeDecoder.TransformType(this, extraAnnotations);
-                }
+                // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
+                return NullableTypeDecoder.TransformType(this, extraAnnotations);
             }
         }
 

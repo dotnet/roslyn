@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -120,6 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             string name = metadata.GetString(type.Name);
             builder.Append(name);
+        }
+
+        [Conditional("DEBUG")]
+        internal static void AssertTypeNeedsNoAnnotation(TypeSymbol typeSymbol)
+        {
+            // ex: a method has annotations, but some parameters do not require any
+            Debug.Assert(typeSymbol.IsStructType() || typeSymbol.IsEnumType());
         }
     }
 }
