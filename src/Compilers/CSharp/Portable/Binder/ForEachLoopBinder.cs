@@ -240,6 +240,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         local.SetType(iterationVariableType);
                         local.SetValEscape(collectionEscape);
 
+                        if (local.RefKind != RefKind.None)
+                        {
+                            // The ref-escape of a ref-returning property is decided
+                            // by the value escape of its receiverm, in this case the
+                            // collection
+                            local.SetRefEscape(collectionEscape);
+                        }
+
                         if (!hasErrors)
                         {
                             BindValueKind requiredCurrentKind;
