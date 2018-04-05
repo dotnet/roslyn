@@ -321,7 +321,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _foregroundThreadAffinitization.AssertIsForeground();
 
-            var vsTextBuffer = (IVsTextBuffer)_runningDocumentTable.GetDocumentData(docCookie);
+            // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
+            // which saves us JIT time in this method.
+            var vsTextBuffer = (IVsTextBuffer)(object)_runningDocumentTable.GetDocumentData(docCookie);
             var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(vsTextBuffer);
 
             if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer))

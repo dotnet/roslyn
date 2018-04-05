@@ -20,12 +20,12 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 {
     internal static class CSharpHelpers
     {
-        public static CSharpProjectShimWithServices CreateCSharpProject(TestEnvironment environment, string projectName)
+        public static CSharpProjectShim CreateCSharpProject(TestEnvironment environment, string projectName)
         {
             var projectBinPath = Path.GetTempPath();
             var hierarchy = environment.CreateHierarchy(projectName, projectBinPath, "CSharp");
 
-            return new CSharpProjectShimWithServices(
+            return new CSharpProjectShim(
                 new MockCSharpProjectRoot(hierarchy),
                 environment.ProjectTracker,
                 reportExternalErrorCreatorOpt: null,

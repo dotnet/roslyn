@@ -471,7 +471,7 @@ End Class
             Assert.Equal(TypeKind.Class, semanticSummary.Type.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
-            Assert.Equal("[Me] As Program", semanticSummary.Symbol.ToTestDisplayString())
+            Assert.Equal("Me As Program", semanticSummary.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Parameter, semanticSummary.Symbol.Kind)
 
         End Sub

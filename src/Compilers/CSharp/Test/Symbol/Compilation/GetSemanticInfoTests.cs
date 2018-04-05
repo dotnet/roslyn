@@ -5714,7 +5714,7 @@ class C { }
             Assert.Equal(ConversionKind.MethodGroup, conversionB.Kind);
 
             var conversionC = model.ClassifyConversion(methodGroupSyntax, typeFuncC);
-            Assert.Equal(ConversionKind.MethodGroup, conversionC.Kind);
+            Assert.Equal(ConversionKind.NoConversion, conversionC.Kind);
         }
 
         [WorkItem(872064, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872064")]

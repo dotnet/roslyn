@@ -1340,17 +1340,19 @@ class A : Attribute
             string text = @"
 int a;
 int b = a;
-int c = this.a;
-this.c = this.a;
-int prop { get { return 1; } set { this.a = 1;} }
+int c = this.a; // 1
+this.c = // 2
+    this.a; // 3
+int prop { get { return 1; } set { this.a = 1;} } // 4
 
 void goo() {
-    this.goo();
-    this.a = this.b;
-    object c = this;
+    this.goo(); // 5
+    this.a =    // 6
+        this.b; // 7
+    object c = this; // 8
 }
 
-this.prop = 1;
+this.prop = 1; // 9
 
 class C
 {
@@ -1360,30 +1362,40 @@ class C
 
     void goo()
     {
-        this.goo();
+        this.goo(); // OK
     }
 }";
             var comp = CreateCompilationWithMscorlib45(
                 new[] { SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script) });
             comp.VerifyDiagnostics(
                 // (4,9): error CS0027: Keyword 'this' is not available in the current context
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
+                // int c = this.a; // 1
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(4, 9),
                 // (5,1): error CS0027: Keyword 'this' is not available in the current context
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
-                // (5,10): error CS0027: Keyword 'this' is not available in the current context
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
-                // (14,1): error CS0027: Keyword 'this' is not available in the current context
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
-                // (6,36): error CS0027: Keyword 'this' is not available in the current context
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
-                // (9,5): error CS0027: Keyword 'this' is not available in the current context
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
+                // this.c = // 2
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(5, 1),
+                // (6,5): error CS0027: Keyword 'this' is not available in the current context
+                //     this.a; // 3
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(6, 5),
+                // (16,1): error CS0027: Keyword 'this' is not available in the current context
+                // this.prop = 1; // 9
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(16, 1),
+                // (7,36): error CS0027: Keyword 'this' is not available in the current context
+                // int prop { get { return 1; } set { this.a = 1;} } // 4
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(7, 36),
                 // (10,5): error CS0027: Keyword 'this' is not available in the current context
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
-                // (10,14): error CS0027: Keyword 'this' is not available in the current context
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
-                // (11,16): error CS0027: Keyword 'this' is not available in the current context
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"));
+                //     this.goo(); // 5
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(10, 5),
+                // (11,5): error CS0027: Keyword 'this' is not available in the current context
+                //     this.a =    // 6
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(11, 5),
+                // (12,9): error CS0027: Keyword 'this' is not available in the current context
+                //         this.b; // 7
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(12, 9),
+                // (13,16): error CS0027: Keyword 'this' is not available in the current context
+                //     object c = this; // 8
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(13, 16)
+                );
         }
 
         [Fact]
@@ -2661,17 +2673,23 @@ class C
 ")
             .VerifyDiagnostics(
                 // (8,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.field'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "field").WithArguments("C.field"),
+                //         field = Property;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "field").WithArguments("C.field").WithLocation(8, 9),
                 // (8,17): error CS0120: An object reference is required for the non-static field, method, or property 'C.Property'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Property").WithArguments("C.Property"),
+                //         field = Property;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Property").WithArguments("C.Property").WithLocation(8, 17),
                 // (9,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.field'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.field").WithArguments("C.field"),
+                //         C.field = C.Property;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.field").WithArguments("C.field").WithLocation(9, 9),
                 // (9,19): error CS0120: An object reference is required for the non-static field, method, or property 'C.Property'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.Property").WithArguments("C.Property"),
+                //         C.field = C.Property;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.Property").WithArguments("C.Property").WithLocation(9, 19),
                 // (10,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.Method()'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Method").WithArguments("C.Method()"),
+                //         Method();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Method").WithArguments("C.Method()").WithLocation(10, 9),
                 // (11,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.Method()'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.Method").WithArguments("C.Method()"));
+                //         C.Method();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.Method").WithArguments("C.Method()").WithLocation(11, 9));
         }
 
         [Fact]
@@ -2698,7 +2716,7 @@ class Program
         [Fact]
         public void CS0120ERR_ObjectRequired03()
         {
-            CreateCompilation(
+            var source =
 @"delegate int boo();
 interface I
 {
@@ -2717,14 +2735,22 @@ class C
         goo += new boo(I.bar);
         goo();
     }
-}")
-            .VerifyDiagnostics(
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (16,24): error CS0120: An object reference is required for the non-static field, method, or property 'I.bar()'
                 //         goo += new boo(I.bar);
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "I.bar").WithArguments("I.bar()"),
                 // (14,13): warning CS0219: The variable 'p' is assigned but its value is never used
                 //         abc p = new abc();
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p")
+            );
+            CreateCompilation(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
+                // (16,24): error CS0120: An object reference is required for the non-static field, method, or property 'I.bar()'
+                //         goo += new boo(I.bar);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "I.bar").WithArguments("I.bar()").WithLocation(16, 24),
+                // (14,13): warning CS0219: The variable 'p' is assigned but its value is never used
+                //         abc p = new abc();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(14, 13)
             );
         }
 
@@ -2794,28 +2820,28 @@ class C : B
             .VerifyDiagnostics(
                 // (19,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.instanceField'
                 //         instanceField, //CS0120
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "instanceField").WithArguments("C.instanceField"),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "instanceField").WithArguments("C.instanceField").WithLocation(19, 9),
                 // (21,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceProperty'
                 //         InstanceProperty, //CS0120
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceProperty").WithArguments("C.InstanceProperty"),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceProperty").WithArguments("C.InstanceProperty").WithLocation(21, 9),
                 // (23,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod()'
                 //         InstanceMethod(), //CS0120
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod()").WithArguments("C.InstanceMethod()"),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod()").WithLocation(23, 9),
                 // (25,9): error CS0027: Keyword 'this' is not available in the current context
                 //         this.instanceField, //CS0027
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(25, 9),
                 // (27,9): error CS0027: Keyword 'this' is not available in the current context
                 //         this.InstanceProperty, //CS0027
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(27, 9),
                 // (29,9): error CS0027: Keyword 'this' is not available in the current context
                 //         this.InstanceMethod(), //CS0027
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(29, 9),
                 // (8,9): warning CS0649: Field 'C.instanceField' is never assigned to, and will always have its default value 0
                 //     int instanceField;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "instanceField").WithArguments("C.instanceField", "0"),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "instanceField").WithArguments("C.instanceField", "0").WithLocation(8, 9),
                 // (9,16): warning CS0649: Field 'C.staticField' is never assigned to, and will always have its default value 0
                 //     static int staticField;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "staticField").WithArguments("C.staticField", "0"));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "staticField").WithArguments("C.staticField", "0").WithLocation(9, 16));
         }
 
         [Fact]
@@ -2838,17 +2864,23 @@ class C : B
 ")
             .VerifyDiagnostics(
                 // (8,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.field'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "field").WithArguments("C.field"),
+                //         field = Property;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "field").WithArguments("C.field").WithLocation(8, 9),
                 // (8,17): error CS0120: An object reference is required for the non-static field, method, or property 'C.Property'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Property").WithArguments("C.Property"),
+                //         field = Property;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Property").WithArguments("C.Property").WithLocation(8, 17),
                 // (9,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.field'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.field").WithArguments("C.field"),
+                //         C.field = C.Property;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.field").WithArguments("C.field").WithLocation(9, 9),
                 // (9,19): error CS0120: An object reference is required for the non-static field, method, or property 'C.Property'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.Property").WithArguments("C.Property"),
+                //         C.field = C.Property;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.Property").WithArguments("C.Property").WithLocation(9, 19),
                 // (10,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.Method()'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Method").WithArguments("C.Method()"),
+                //         Method();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Method").WithArguments("C.Method()").WithLocation(10, 9),
                 // (11,9): error CS0120: An object reference is required for the non-static field, method, or property 'C.Method()'
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.Method").WithArguments("C.Method()"));
+                //         C.Method();
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.Method").WithArguments("C.Method()").WithLocation(11, 9));
         }
 
         [Fact]
@@ -6439,7 +6471,7 @@ class A
             CreateCompilation(source).VerifyDiagnostics(
                 // (9,13): error CS0176: Member 'A.B.Method()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //             this.Method();
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.Method").WithArguments("A.B.Method()")
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.Method").WithArguments("A.B.Method()").WithLocation(9, 13)
                 );
         }
 
@@ -6488,19 +6520,20 @@ class B<T> where T : A
 {
     static void M(T t)
     {
-        t.ReferenceEquals(t.F, null);
+        object q = t.F;
+        t.ReferenceEquals(q, null);
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,27): error CS0176: Member 'A.F' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         t.ReferenceEquals(t.F, null);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "t.F").WithArguments("A.F"),
-                // (9,9): error CS0176: Member 'object.ReferenceEquals(object, object)' cannot be accessed with an instance reference; qualify it with a type name instead
-                //         t.ReferenceEquals(t.F, null);
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "t.ReferenceEquals").WithArguments("object.ReferenceEquals(object, object)"),
+                // (9,20): error CS0176: Member 'A.F' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         object q = t.F;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "t.F").WithArguments("A.F").WithLocation(9, 20),
+                // (10,9): error CS0176: Member 'object.ReferenceEquals(object, object)' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         t.ReferenceEquals(q, null);
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "t.ReferenceEquals").WithArguments("object.ReferenceEquals(object, object)").WithLocation(10, 9),
                 // (3,28): warning CS0649: Field 'A.F' is never assigned to, and will always have its default value null
                 //     internal static object F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("A.F", "null"));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("A.F", "null").WithLocation(3, 28));
         }
 
         [WorkItem(543361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543361")]
@@ -6520,9 +6553,9 @@ class Test
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,9): error CS0176: Member Member 'System.Delegate.CreateDelegate(System.Type, System.Type, string)' cannot be accessed with an instance reference; qualify it with a type name instead
-                //             this.Method();
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "D.CreateDelegate").WithArguments("System.Delegate.CreateDelegate(System.Type, System.Type, string)")
+                // (9,9): error CS0176: Member 'Delegate.CreateDelegate(Type, object, string)' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         D.CreateDelegate(null, null, null); // CS0176
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "D.CreateDelegate").WithArguments("System.Delegate.CreateDelegate(System.Type, object, string)").WithLocation(9, 9)
                 );
         }
 
@@ -8019,10 +8052,10 @@ public class MyClass
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,23): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //       fixed (int *j = &i) { }  // CS0213
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&i"),
-                // (14,26): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&i").WithLocation(7, 23),
+                // (14,26): error CS9385: The given expression cannot be used in a fixed statement
                 //          fixed (int *c = b) { }  // CS0213
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "b"));
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "b").WithLocation(14, 26));
         }
 
         [Fact]
@@ -8327,46 +8360,47 @@ public class MyClass
             comp.VerifyDiagnostics(
                 // (12,13): error CS0236: A field initializer cannot reference the non-static field, method, or property 'MyClass.b'
                 //     int c = b; //CS0236
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "b").WithArguments("MyClass.b"),
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "b").WithArguments("MyClass.b").WithLocation(12, 13),
                 // (13,13): error CS0027: Keyword 'this' is not available in the current context
                 //     int d = this.b; //CS0027
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(13, 13),
                 // (14,13): error CS0236: A field initializer cannot reference the non-static field, method, or property 'MyClass.InstanceMethod()'
                 //     int e = InstanceMethod(); //CS0236
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod()").WithArguments("MyClass.InstanceMethod()"),
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod").WithArguments("MyClass.InstanceMethod()").WithLocation(14, 13),
                 // (15,13): error CS0027: Keyword 'this' is not available in the current context
                 //     int f = this.InstanceMethod(); //CS0027
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(15, 13),
                 // (18,13): error CS0236: A field initializer cannot reference the non-static field, method, or property 'MyClass.GenericInstanceMethod<int>(int)'
                 //     int i = GenericInstanceMethod<int>(1); //CS0236
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "GenericInstanceMethod<int>(1)").WithArguments("MyClass.GenericInstanceMethod<int>(int)"),
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "GenericInstanceMethod<int>").WithArguments("MyClass.GenericInstanceMethod<int>(int)").WithLocation(18, 13),
                 // (19,13): error CS0027: Keyword 'this' is not available in the current context
                 //     int j = this.GenericInstanceMethod<int>(1); //CS0027
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(19, 13),
                 // (22,13): error CS0236: A field initializer cannot reference the non-static field, method, or property 'MyClass.InstanceProperty'
                 //     int m = InstanceProperty; //CS0236
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceProperty").WithArguments("MyClass.InstanceProperty"),
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceProperty").WithArguments("MyClass.InstanceProperty").WithLocation(22, 13),
                 // (23,13): error CS0027: Keyword 'this' is not available in the current context
                 //     int n = this.InstanceProperty; //CS0027
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(23, 13),
                 // (26,13): error CS0236: A field initializer cannot reference the non-static field, method, or property 'MyClass.instanceArray'
                 //     int q = instanceArray[0]; //CS0236
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "instanceArray").WithArguments("MyClass.instanceArray"),
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "instanceArray").WithArguments("MyClass.instanceArray").WithLocation(26, 13),
                 // (27,13): error CS0027: Keyword 'this' is not available in the current context
                 //     int r = this.instanceArray[0]; //CS0027
-                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(27, 13),
                 // (4,11): warning CS0649: Field 'MyClass.instanceArray' is never assigned to, and will always have its default value null
                 //     int[] instanceArray;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "instanceArray").WithArguments("MyClass.instanceArray", "null"),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "instanceArray").WithArguments("MyClass.instanceArray", "null").WithLocation(4, 11),
                 // (5,18): warning CS0649: Field 'MyClass.staticArray' is never assigned to, and will always have its default value null
                 //     static int[] staticArray;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "staticArray").WithArguments("MyClass.staticArray", "null"),
-                // (32,9): warning CS0414: The field 'MyClass.w' is assigned but its value is never used
-                //     int w = constField;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "w").WithArguments("MyClass.w"),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "staticArray").WithArguments("MyClass.staticArray", "null").WithLocation(5, 18),
                 // (33,9): warning CS0414: The field 'MyClass.x' is assigned but its value is never used
                 //     int x = MyClass.constField;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("MyClass.x"));
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "x").WithArguments("MyClass.x").WithLocation(33, 9),
+                // (32,9): warning CS0414: The field 'MyClass.w' is assigned but its value is never used
+                //     int w = constField;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "w").WithArguments("MyClass.w").WithLocation(32, 9)
+            );
         }
 
         [Fact]
@@ -8734,9 +8768,9 @@ class FixedTest
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (20,23): error CS0254: The right hand side of a fixed statement assignment may not be a cast expression
+                // (20,23): error CS9385: The given expression cannot be used in a fixed statement
                 //       fixed (int* p = (int*)&pt.x)   // CS0254
-                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(int*)&pt.x"));
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(int*)&pt.x").WithLocation(20, 23));
         }
 
         [Fact]
@@ -9544,24 +9578,34 @@ struct S
 
             CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
                 // (9,36): error CS0310: 'U' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
+                //     internal static void E<U>(D<U> d) { } // Error: missing constraint on E<U> to satisfy constraint on D<U>
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "d").WithArguments("D<T>", "T", "U").WithLocation(9, 36),
-                // (29,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'C<A>.M<U>()'
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "C<A>.M<B>").WithArguments("C<A>.M<U>()", "U", "B").WithLocation(29, 9),
+                // (29,14): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'C<A>.M<U>()'
+                //         C<A>.M<B>();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<B>").WithArguments("C<A>.M<U>()", "U", "B").WithLocation(29, 14),
                 // (30,11): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //         C<B>.M<A>();
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "B").WithArguments("C<T>", "T", "B").WithLocation(30, 11),
                 // (31,11): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //         C<B>.M<B>();
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "B").WithArguments("C<T>", "T", "B").WithLocation(31, 11),
-                // (31,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'C<B>.M<U>()'
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "C<B>.M<B>").WithArguments("C<B>.M<U>()", "U", "B").WithLocation(31, 9),
+                // (31,14): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'C<B>.M<U>()'
+                //         C<B>.M<B>();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<B>").WithArguments("C<B>.M<U>()", "U", "B").WithLocation(31, 14),
                 // (32,11): error CS0310: 'G' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //         C<G>.M<H>();
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "G").WithArguments("C<T>", "T", "G").WithLocation(32, 11),
-                // (33,9): error CS0310: 'G' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'C<H>.M<U>()'
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "C<H>.M<G>").WithArguments("C<H>.M<U>()", "U", "G").WithLocation(33, 9),
+                // (33,14): error CS0310: 'G' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'C<H>.M<U>()'
+                //         C<H>.M<G>();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<G>").WithArguments("C<H>.M<U>()", "U", "G").WithLocation(33, 14),
                 // (34,11): error CS0310: 'I' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //         C<I>.M<S>();
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "I").WithArguments("C<T>", "T", "I").WithLocation(34, 11),
-                // (36,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'E.F<T>(D<T>)'
+                // (36,11): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'E.F<T>(D<T>)'
+                //         E.F(S.F<B>);
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "F").WithArguments("E.F<T>(D<T>)", "T", "B").WithLocation(36, 11),
                 // (38,19): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //         E.F(S.F<C<B>>);
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "B").WithArguments("C<T>", "T", "B").WithLocation(38, 19),
 
                 // This invocation of E.F(S.F<C<B>>) is an extremely interesting one. 
@@ -9595,13 +9639,15 @@ struct S
                 // We might want to put some gear in place to suppress this cascading error. It is not
                 // entirely clear what that machinery might look like.
 
-                // (38,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                // (38,11): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
                 //         E.F(S.F<C<B>>);
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "F").WithArguments("C<T>", "T", "B"),
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "F").WithArguments("C<T>", "T", "B").WithLocation(38, 11),
 
-                // (41,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'E.M<T>(object)'
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "o.M<B>").WithArguments("E.M<T>(object)", "T", "B").WithLocation(41, 9),
+                // (41,11): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'E.M<T>(object)'
+                //         o.M<B>();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<B>").WithArguments("E.M<T>(object)", "T", "B").WithLocation(41, 11),
                 // (42,22): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'F<T, U>'
+                //         o = new F<A, B>();
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "B").WithArguments("F<T, U>", "U", "B").WithLocation(42, 22));
         }
 
@@ -9642,13 +9688,18 @@ static class S
 }";
             CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
                 // (15,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'V' in the generic type or method 'C<T, U>.M<V>(V)'
+                //         M(b);
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M").WithArguments("C<T, U>.M<V>(V)", "V", "B").WithLocation(15, 9),
-                // (16,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'S.E<T>(T)'
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "b.E").WithArguments("S.E<T>(T)", "T", "B").WithLocation(16, 9),
+                // (16,11): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'S.E<T>(T)'
+                //         b.E();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "E").WithArguments("S.E<T>(T)", "T", "B").WithLocation(16, 11),
                 // (18,9): error CS0310: 'T' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'V' in the generic type or method 'C<T, U>.M<V>(V)'
+                //         M(t);
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M").WithArguments("C<T, U>.M<V>(V)", "V", "T").WithLocation(18, 9),
-                // (19,9): error CS0310: 'T' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'S.E<T>(T)'
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "t.E").WithArguments("S.E<T>(T)", "T", "T").WithLocation(19, 9));
+                // (19,11): error CS0310: 'T' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'S.E<T>(T)'
+                //         t.E();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "E").WithArguments("S.E<T>(T)", "T", "T").WithLocation(19, 11)
+);
         }
 
         /// <summary>
@@ -9696,27 +9747,38 @@ namespace N
     }
 }";
             CreateCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
-                // (4,7): error CS0310: 'N.B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'N.C<T>'
+                // (4,7): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                // using CB = N.C<N.B>;
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "CB").WithArguments("N.C<T>", "T", "N.B").WithLocation(4, 7),
-                // (8,11): error CS0310: 'N.B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'N.C<T>'
+                // (8,11): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //     using CBD = C<N.B>.D;
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "CBD").WithArguments("N.C<T>", "T", "N.B").WithLocation(8, 11),
-                // (24,13): error CS0310: 'N.B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'N.C<N.A>.M<U>()'
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "C<N.A>.M<N.B>").WithArguments("N.C<N.A>.M<U>()", "U", "N.B").WithLocation(24, 13),
-                // (25,15): error CS0310: 'N.B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'N.C<T>'
+                // (24,20): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'C<A>.M<U>()'
+                //             C<N.A>.M<N.B>();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<N.B>").WithArguments("N.C<N.A>.M<U>()", "U", "N.B").WithLocation(24, 20),
+                // (25,15): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //             C<NB>.M<NA>();
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "NB").WithArguments("N.C<T>", "T", "N.B").WithLocation(25, 15),
-                // (26,15): error CS0310: 'N.C<N.A>.D' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'N.C<T>'
+                // (26,15): error CS0310: 'C<A>.D' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //             C<C<N.A>.D>.M<N.A>();
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "C<N.A>.D").WithArguments("N.C<T>", "T", "N.C<N.A>.D").WithLocation(26, 15),
-                // (27,13): error CS0310: 'N.B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'N.C<N.A>.D.M<U>()'
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "C<N.A>.D.M<N.B>").WithArguments("N.C<N.A>.D.M<U>()", "U", "N.B").WithLocation(27, 13),
-                // (28,15): error CS0310: 'N.B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'N.C<T>'
+                // (27,22): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'C<A>.D.M<U>()'
+                //             C<N.A>.D.M<N.B>();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<N.B>").WithArguments("N.C<N.A>.D.M<U>()", "U", "N.B").WithLocation(27, 22),
+                // (28,15): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //             C<N.B>.D.M<N.A>();
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "N.B").WithArguments("N.C<T>", "T", "N.B").WithLocation(28, 15),
-                // (29,13): error CS0310: 'N.B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'N.C<N.A>.M<U>()'
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "CA.M<N.B>").WithArguments("N.C<N.A>.M<U>()", "U", "N.B").WithLocation(29, 13),
-                // (31,13): error CS0310: 'N.B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'N.C<N.A>.D.M<U>()'
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "CAD.M<N.B>").WithArguments("N.C<N.A>.D.M<U>()", "U", "N.B").WithLocation(31, 13),
-                // (33,15): error CS0310: 'N.C<N.A>.D' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'N.C<T>'
+                // (29,16): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'C<A>.M<U>()'
+                //             CA.M<N.B>();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<N.B>").WithArguments("N.C<N.A>.M<U>()", "U", "N.B").WithLocation(29, 16),
+                // (31,17): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'U' in the generic type or method 'C<A>.D.M<U>()'
+                //             CAD.M<N.B>();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<N.B>").WithArguments("N.C<N.A>.D.M<U>()", "U", "N.B").WithLocation(31, 17),
+                // (33,15): error CS0310: 'C<A>.D' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //             C<CAD>.M<N.A>();
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "CAD").WithArguments("N.C<T>", "T", "N.C<N.A>.D").WithLocation(33, 15),
-                // (34,15): error CS0310: 'N.C<N.B>.D' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'N.C<T>'
+                // (34,15): error CS0310: 'C<B>.D' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                //             C<CBD>.M<N.A>();
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "CBD").WithArguments("N.C<T>", "T", "N.C<N.B>.D").WithLocation(34, 15));
         }
 
@@ -9848,10 +9910,12 @@ class C<T1, T2, T3>
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (16,24): error CS0311: The type 'object' cannot be used as type parameter 'U' in the generic type or method 'N.C<T, U>'. There is no implicit reference conversion from 'object' to 'int'.
+                // (16,24): error CS0311: The type 'object' cannot be used as type parameter 'U' in the generic type or method 'C<T, U>'. There is no implicit reference conversion from 'object' to 'int'.
+                //             o = C<int, object>.F();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "object").WithArguments("N.C<T, U>", "int", "U", "object").WithLocation(16, 24),
-                // (17,17): error CS0311: The type 'string' cannot be used as type parameter 'V' in the generic type or method 'N.C<int, int>.G<V>()'. There is no implicit reference conversion from 'string' to 'int'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "N.C<int, int>.G<string>").WithArguments("N.C<int, int>.G<V>()", "int", "V", "string").WithLocation(17, 17));
+                // (17,31): error CS0311: The type 'string' cannot be used as type parameter 'V' in the generic type or method 'C<int, int>.G<V>()'. There is no implicit reference conversion from 'string' to 'int'.
+                //             o = N.C<int, int>.G<string>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "G<string>").WithArguments("N.C<int, int>.G<V>()", "int", "V", "string").WithLocation(17, 31));
         }
 
         [Fact]
@@ -9870,9 +9934,11 @@ class B<T>
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (7,26): error CS0312: The type 'int?' cannot be used as type parameter 'T' in the generic type or method 'A<T, U>'. The nullable type 'int?' does not satisfy the constraint of 'int'.
+                //         object o = new A<int?, int>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedNullableEnum, "int?").WithArguments("A<T, U>", "int", "T", "int?").WithLocation(7, 26),
-                // (8,9): error CS0312: The type 'int?' cannot be used as type parameter 'U' in the generic type or method 'B<T>.M<U>()'. The nullable type 'int?' does not satisfy the constraint of 'int'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedNullableEnum, "B<int>.M<int?>").WithArguments("B<int>.M<U>()", "int", "U", "int?").WithLocation(8, 9));
+                // (8,16): error CS0312: The type 'int?' cannot be used as type parameter 'U' in the generic type or method 'B<int>.M<U>()'. The nullable type 'int?' does not satisfy the constraint of 'int'.
+                //         B<int>.M<int?>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedNullableEnum, "M<int?>").WithArguments("B<int>.M<U>()", "int", "U", "int?").WithLocation(8, 16));
         }
 
         [Fact]
@@ -10106,9 +10172,16 @@ class C
     }
 }
 ";
+            CreateCompilation(text, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+                // (11,28): error CS0407: 'void C.G()' has the wrong return type
+                //         d = new MyDelegate(G);  // CS0407 - G doesn't return int
+                Diagnostic(ErrorCode.ERR_BadRetType, "G").WithArguments("C.G()", "void").WithLocation(11, 28)
+                );
             CreateCompilation(text).VerifyDiagnostics(
                 // (11,28): error CS0407: 'void C.G()' has the wrong return type
-                Diagnostic(ErrorCode.ERR_BadRetType, "G").WithArguments("C.G()", "void"));
+                //         d = new MyDelegate(G);  // CS0407 - G doesn't return int
+                Diagnostic(ErrorCode.ERR_BadRetType, "G").WithArguments("C.G()", "void").WithLocation(11, 28)
+                );
         }
 
         [WorkItem(925899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925899")]
@@ -10129,13 +10202,21 @@ class C
     }
 }
 ";
+            CreateCompilation(text, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+                // (10,43): error CS0407: 'object System.Func<object, object>.Invoke(object)' has the wrong return type
+                //         var os = new Func<object, string>(oo);
+                Diagnostic(ErrorCode.ERR_BadRetType, "oo").WithArguments("System.Func<object, object>.Invoke(object)", "object").WithLocation(10, 43),
+                // (11,43): error CS0407: 'object System.Func<object, object>.Invoke(object)' has the wrong return type
+                //         var ss = new Func<string, string>(oo);
+                Diagnostic(ErrorCode.ERR_BadRetType, "oo").WithArguments("System.Func<object, object>.Invoke(object)", "object").WithLocation(11, 43)
+                );
             CreateCompilation(text).VerifyDiagnostics(
-    // (10,43): error CS0407: 'object System.Func<object, object>.Invoke(object)' has the wrong return type
-    //         var os = new Func<object, string>(oo);
-    Diagnostic(ErrorCode.ERR_BadRetType, "oo").WithArguments("System.Func<object, object>.Invoke(object)", "object").WithLocation(10, 43),
-    // (11,43): error CS0407: 'object System.Func<object, object>.Invoke(object)' has the wrong return type
-    //         var ss = new Func<string, string>(oo);
-    Diagnostic(ErrorCode.ERR_BadRetType, "oo").WithArguments("System.Func<object, object>.Invoke(object)", "object").WithLocation(11, 43)
+                // (10,43): error CS0407: 'object Func<object, object>.Invoke(object)' has the wrong return type
+                //         var os = new Func<object, string>(oo);
+                Diagnostic(ErrorCode.ERR_BadRetType, "oo").WithArguments("System.Func<object, object>.Invoke(object)", "object").WithLocation(10, 43),
+                // (11,43): error CS0407: 'object Func<object, object>.Invoke(object)' has the wrong return type
+                //         var ss = new Func<string, string>(oo);
+                Diagnostic(ErrorCode.ERR_BadRetType, "oo").WithArguments("System.Func<object, object>.Invoke(object)", "object").WithLocation(11, 43)
                 );
         }
 
@@ -14557,10 +14638,10 @@ class C : IEnumerable
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (11,46): error CS1623: Iterators cannot have ref or out parameters
+                // (11,46): error CS1623: Iterators cannot have ref, in or out parameters
                 //     public IEnumerator GetEnumerator(ref int i)  // CS1623
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "i"),
-                // (16,48): error CS1623: Iterators cannot have ref or out parameters
+                // (16,48): error CS1623: Iterators cannot have ref, in or out parameters
                 //     public IEnumerator GetEnumerator(out float f)  // CS1623
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "f")
                 );
@@ -15326,6 +15407,93 @@ class C
         }
 
         [Fact]
+        public void CS1666ERR_FixedBufferNotFixedErr()
+        {
+            var text = @"
+unsafe struct S
+{
+    public fixed int buffer[1];
+}
+
+unsafe class Test
+{
+    public static void Main()
+    {
+        var inst = new Test();
+        System.Console.Write(inst.example1());
+        System.Console.Write(inst.field.buffer[0]);
+        System.Console.Write(inst.example2());
+        System.Console.Write(inst.field.buffer[0]);
+    }
+
+    S field = new S();
+
+    private int example1()
+    {
+        return (field.buffer[0] = 7);   // OK
+    }
+
+    private int example2()
+    {
+        fixed (int* p = field.buffer)
+        {
+            return (p[0] = 8);   // OK
+        }
+    }
+}
+";
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (13,30): error CS8320: Feature 'indexing movable fixed buffers' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         System.Console.Write(inst.field.buffer[0]);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "inst.field.buffer").WithArguments("indexing movable fixed buffers", "7.3").WithLocation(13, 30),
+                // (15,30): error CS8320: Feature 'indexing movable fixed buffers' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         System.Console.Write(inst.field.buffer[0]);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "inst.field.buffer").WithArguments("indexing movable fixed buffers", "7.3").WithLocation(15, 30),
+                // (22,17): error CS8320: Feature 'indexing movable fixed buffers' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         return (field.buffer[0] = 7);   // OK
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "field.buffer").WithArguments("indexing movable fixed buffers", "7.3").WithLocation(22, 17)
+                 );
+        }
+
+        [Fact]
+        public void CS1666ERR_FixedBufferNotUnsafeErr()
+        {
+            var text = @"
+unsafe struct S
+{
+    public fixed int buffer[1];
+}
+
+class Test
+{
+    public static void Main()
+    {
+        var inst = new Test();
+        System.Console.Write(inst.example1());
+        System.Console.Write(inst.field.buffer[0]);
+    }
+
+    S field = new S();
+
+    private int example1()
+    {
+        return (field.buffer[0] = 7);   // OK
+    }
+}
+";
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+                // (13,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         System.Console.Write(inst.field.buffer[0]);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "inst.field.buffer").WithLocation(13, 30),
+                // (20,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         return (field.buffer[0] = 7);   // OK
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "field.buffer").WithLocation(20, 17)
+                 );
+        }
+
+        [Fact]
         public void CS1666ERR_FixedBufferNotFixed()
         {
             var text = @"
@@ -15336,26 +15504,73 @@ unsafe struct S
 
 unsafe class Test
 {
+    public static void Main()
+    {
+        var inst = new Test();
+        System.Console.Write(inst.example1());
+        System.Console.Write(inst.field.buffer[0]);
+        System.Console.Write(inst.example2());
+        System.Console.Write(inst.field.buffer[0]);
+    }
+
     S field = new S();
 
-    private bool example1()
+    private int example1()
     {
-        return (field.buffer[0] == 0);   // CS1666 error
+        return (field.buffer[0] = 7);   // OK
     }
-    private bool example2()
+
+    private int example2()
     {
         fixed (int* p = field.buffer)
         {
-            return (p[0] == 0);   // OK
+            return (p[0] = 8);   // OK
         }
     }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (13,17): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
-                //         return (field.buffer[0] == 0);   // CS1666 error
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "field.buffer")
-                );
+
+            var c = CompileAndVerify(text, expectedOutput: "7788", verify: Verification.Fails, options:TestOptions.UnsafeReleaseExe);
+
+            c.VerifyIL("Test.example1()", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""S Test.field""
+  IL_0006:  ldflda     ""int* S.buffer""
+  IL_000b:  ldflda     ""int S.<buffer>e__FixedBuffer.FixedElementField""
+  IL_0010:  ldc.i4.7
+  IL_0011:  dup
+  IL_0012:  stloc.0
+  IL_0013:  stind.i4
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+}
+");
+
+            c.VerifyIL("Test.example2()", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  .locals init (pinned int*& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""S Test.field""
+  IL_0006:  ldflda     ""int* S.buffer""
+  IL_000b:  ldflda     ""int S.<buffer>e__FixedBuffer.FixedElementField""
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  conv.u
+  IL_0013:  ldc.i4.8
+  IL_0014:  dup
+  IL_0015:  stloc.1
+  IL_0016:  stind.i4
+  IL_0017:  ldloc.1
+  IL_0018:  ret
+}
+");
         }
 
         [Fact]
@@ -15768,23 +15983,24 @@ public unsafe class C
     {
         C myC = new C();
         myC.UnsafeMethod().name[3] = 'a';  // CS1708
-        C._s1.name[3] = 'a';  // CS1708
-        myC._s2.name[3] = 'a';  // CS1708
+        C._s1.name[3] = 'a';  // CS1648
+        myC._s2.name[3] = 'a';  // CS1648
     }
 
     static readonly S _s1;
     public readonly S _s2;
 }";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (18,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                // (18,9): error CS1708: Fixed size buffers can only be accessed through locals or fields
                 //         myC.UnsafeMethod().name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC.UnsafeMethod().name").WithLocation(18, 9),
-                // (19,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
-                //         C._s1.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "C._s1.name").WithLocation(19, 9),
-                // (20,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
-                //         myC._s2.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC._s2.name").WithLocation(20, 9));
+                Diagnostic(ErrorCode.ERR_FixedNeedsLvalue, "myC.UnsafeMethod().name").WithLocation(18, 9),
+                // (19,9): error CS1650: Fields of static readonly field 'C._s1' cannot be assigned to (except in a static constructor or a variable initializer)
+                //         C._s1.name[3] = 'a';  // CS1648
+                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic2, "C._s1.name[3]").WithArguments("C._s1").WithLocation(19, 9),
+                // (20,9): error CS1648: Members of readonly field 'C._s2' cannot be modified (except in a constructor or a variable initializer)
+                //         myC._s2.name[3] = 'a';  // CS1648
+                Diagnostic(ErrorCode.ERR_AssgReadonly2, "myC._s2.name[3]").WithArguments("C._s2").WithLocation(20, 9)
+                );
         }
 
         [Fact, WorkItem(543995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543995"), WorkItem(544258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544258")]
@@ -16835,9 +17051,29 @@ class Test
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (7,75): error CS1951: An expression tree lambda may not contain an out or ref parameter
+                // (7,75): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
                 //         System.Linq.Expressions.Expression<TestDelegate> tree1 = (ref int x) => x; // CS1951
-                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x")
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x").WithLocation(7, 75)
+                );
+        }
+
+        [Fact]
+        public void CS1951ERR_InParameterInExpressionTree()
+        {
+            var text = @"
+public delegate int TestDelegate(in int i);
+class Test
+{
+    static void Main()
+    {
+        System.Linq.Expressions.Expression<TestDelegate> tree1 = (in int x) => x; // CS1951
+    }
+}
+";
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (7,74): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                //         System.Linq.Expressions.Expression<TestDelegate> tree1 = (in int x) => x; // CS1951
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x").WithLocation(7, 74)
                 );
         }
 
@@ -17821,9 +18057,12 @@ unsafe  class C : IEnumerable<object>
             { d, delegate() { } },
             { d, 1, p },
             { d, __arglist },
-            { d, GetEnumerator }
+            { d, GetEnumerator },
+            { d, SomeStaticMethod },
         };
     }
+
+    public static void SomeStaticMethod() {}
 
     public void Add(dynamic d, int x, int* ptr)
     {
@@ -17854,13 +18093,23 @@ unsafe  class C : IEnumerable<object>
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source, new[] { CSharpRef }, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (16,18): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
-                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "delegate() { }"),
+                //             { d, delegate() { } },
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "delegate() { }").WithLocation(16, 18),
                 // (17,21): error CS1978: Cannot use an expression of type 'int*' as an argument to a dynamically dispatched operation.
-                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "p").WithArguments("int*"),
-                // (18,18): error CS1978: Cannot use an expression of type 'System.RuntimeArgumentHandle' as an argument to a dynamically dispatched operation.
-                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "__arglist").WithArguments("System.RuntimeArgumentHandle"),
-                // (19,18): error CS1976: Cannot use a method group as an argument to a dynamically dispatched operation. Did you intend to invoke the method?
-                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgMemgrp, "GetEnumerator"));
+                //             { d, 1, p },
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "p").WithArguments("int*").WithLocation(17, 21),
+                // (18,18): error CS1978: Cannot use an expression of type 'RuntimeArgumentHandle' as an argument to a dynamically dispatched operation.
+                //             { d, __arglist },
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(18, 18),
+                // (19,13): error CS1950: The best overloaded Add method 'C.Add(dynamic, RuntimeArgumentHandle)' for the collection initializer has some invalid arguments
+                //             { d, GetEnumerator },
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "{ d, GetEnumerator }").WithArguments("C.Add(dynamic, System.RuntimeArgumentHandle)").WithLocation(19, 13),
+                // (19,18): error CS1503: Argument 2: cannot convert from 'method group' to 'RuntimeArgumentHandle'
+                //             { d, GetEnumerator },
+                Diagnostic(ErrorCode.ERR_BadArgType, "GetEnumerator").WithArguments("2", "method group", "System.RuntimeArgumentHandle").WithLocation(19, 18),
+                // (20,18): error CS1976: Cannot use a method group as an argument to a dynamically dispatched operation. Did you intend to invoke the method?
+                //             { d, SomeStaticMethod },
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgMemgrp, "SomeStaticMethod").WithLocation(20, 18));
         }
 
         [Fact]
@@ -22034,25 +22283,25 @@ namespace CSSample
             comp.VerifyDiagnostics(
                 // (28,25): error CS0149: Method name expected
                 //             d1 = new D1(2 + 2);
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "2 + 2"),
-                // (29,18): error CS0123: No overload for 'D3' matches delegate 'CSSample.Program.D1'
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "2 + 2").WithLocation(28, 25),
+                // (29,18): error CS0123: No overload for 'Program.D3.Invoke(int)' matches delegate 'Program.D1'
                 //             d1 = new D1(d3);
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new D1(d3)").WithArguments("D3", "CSSample.Program.D1"),
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new D1(d3)").WithArguments("CSSample.Program.D3.Invoke(int)", "CSSample.Program.D1").WithLocation(29, 18),
                 // (30,25): error CS0149: Method name expected
                 //             d1 = new D1(2, 3);
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "2, 3"),
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "2, 3").WithLocation(30, 25),
                 // (31,28): error CS0149: Method name expected
                 //             d1 = new D1(x: 3);
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "3"),
-                // (32,18): error CS0123: No overload for 'M2' matches delegate 'CSSample.Program.D1'
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "3").WithLocation(31, 28),
+                // (32,18): error CS0123: No overload for 'M2' matches delegate 'Program.D1'
                 //             d1 = new D1(M2);
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new D1(M2)").WithArguments("M2", "CSSample.Program.D1"),
-                // (16,19): warning CS0169: The field 'CSSample.Program.d2' is never used
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new D1(M2)").WithArguments("M2", "CSSample.Program.D1").WithLocation(32, 18),
+                // (16,19): warning CS0169: The field 'Program.d2' is never used
                 //         static D2 d2;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "d2").WithArguments("CSSample.Program.d2"),
-                // (17,19): warning CS0649: Field 'CSSample.Program.d3' is never assigned to, and will always have its default value null
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "d2").WithArguments("CSSample.Program.d2").WithLocation(16, 19),
+                // (17,19): warning CS0649: Field 'Program.d3' is never assigned to, and will always have its default value null
                 //         static D3 d3;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "d3").WithArguments("CSSample.Program.d3", "null"));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "d3").WithArguments("CSSample.Program.d3", "null").WithLocation(17, 19));
         }
 
         [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]

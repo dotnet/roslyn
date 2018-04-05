@@ -215,7 +215,7 @@ class C
             diff1.VerifyPdb(Enumerable.Range(0x06000001, 0x20), @"
 <symbols>
   <files>
-    <file id=""1"" name=""a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""61, E4, 46, A3, DE, 2B, DE, 69, 1A, 31,  7, F6, EA,  2, CE, B0, 5F, 38,  3, 79, "" />
+    <file id=""1"" name=""a.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""61-E4-46-A3-DE-2B-DE-69-1A-31-07-F6-EA-02-CE-B0-5F-38-03-79"" />
   </files>
   <methods>
     <method token=""0x600000b"">
@@ -1046,7 +1046,7 @@ class C
                     v0.VerifyPdb("C+<F>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;F&gt;d__0"" name=""MoveNext"">

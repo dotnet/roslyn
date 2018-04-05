@@ -1950,6 +1950,7 @@ End Module
             Assert.False(DirectCast(gt.Value, TypeSymbol).IsErrorType)
             Dim arg = DirectCast(gt.Value, UnboundGenericType)
             Assert.Equal("ClassLibrary1.C1(Of )", arg.ToDisplayString)
+            Assert.False(DirectCast(arg, INamedTypeSymbol).IsSerializable)
         End Sub
 
         <Fact>

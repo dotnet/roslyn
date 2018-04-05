@@ -1368,7 +1368,7 @@ class C
     static void Test5<Y>(Y y, N<Y> ny) { }
     static void Test6<Z>(N<Z> nz) where Z : struct {}
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (67,36): error CS0453: The type 'Y' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'
                 //     static void Test5<Y>(Y y, N<Y> ny) { }
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ny").WithArguments("C.N<T>", "T", "Y").WithLocation(67, 36),
@@ -1381,6 +1381,26 @@ class C
                 // (36,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'X' in the generic type or method 'C.Test4<X>(X)'
                 //         Test4(s);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test4").WithArguments("C.Test4<X>(X)", "X", "string").WithLocation(36, 9),
+                // (47,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'
+                //         Test5(s, null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test5").WithArguments("C.N<T>", "T", "string").WithLocation(47, 9),
+                // (58,17): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'
+                //         Test6<L<string>>(null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("C.L<S>", "S", "string").WithLocation(58, 17),
+                // (58,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'S' in the generic type or method 'C.L<S>'
+                //         Test6<L<string>>(null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test6<L<string>>").WithArguments("C.L<S>", "S", "string").WithLocation(58, 9));
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (67,36): error CS0453: The type 'Y' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'
+                //     static void Test5<Y>(Y y, N<Y> ny) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "ny").WithArguments("C.N<T>", "T", "Y").WithLocation(67, 36),
+                // (17,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U' in the generic type or method 'C.Test1<U>(U, C.N<U>)'
+                //         Test1<string>(s, null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test1<string>").WithArguments("C.Test1<U>(U, C.N<U>)", "U", "string").WithLocation(17, 9),
+                // (21,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'V' in the generic type or method 'C.Test2<V>(V, C.N<V>)'
+                //         Test2(s, null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test2").WithArguments("C.Test2<V>(V, C.N<V>)", "V", "string").WithLocation(21, 9),
                 // (47,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.N<T>'
                 //         Test5(s, null);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Test5").WithArguments("C.N<T>", "T", "string").WithLocation(47, 9),
@@ -7796,12 +7816,12 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
-
-            compilation.VerifyDiagnostics(
+            CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
     // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>)' and 'Program.Bar<T, V>.Create(Func<T, V>, params Func<T, bool>[])'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>)", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params System.Func<T, bool>[])").WithLocation(25, 38)
+                );
+            CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
         }
 
@@ -7876,12 +7896,12 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
-
-            compilation.VerifyDiagnostics(
+            CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
     // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])' and 'Program.Bar<T, V>.Create(Func<T, V>)'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>)").WithLocation(25, 38)
+                );
+            CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
         }
 
@@ -7918,12 +7938,12 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
-
-            compilation.VerifyDiagnostics(
+            CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
     // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, V>)' and 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>)", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])").WithLocation(25, 38)
+                );
+            CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
         }
 
@@ -7960,12 +7980,12 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
-
-            compilation.VerifyDiagnostics(
+            CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
     // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, V>, params Func<T, bool>[])' and 'Program.Bar<T, V>.Create(Func<T, bool>)'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params System.Func<T, bool>[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>)").WithLocation(25, 38)
+                );
+            CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
         }
 
@@ -8000,12 +8020,12 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
-
-            compilation.VerifyDiagnostics(
+            CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
     // (23,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])' and 'Program.Bar<T, V>.Create(Func<T, V>, params int[])'
     //             var x = Bar<Goo, double>.Create(Goo.IsThing);
     Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params int[])").WithLocation(23, 38)
+                );
+            CreateCompilation(source1, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
         }
 

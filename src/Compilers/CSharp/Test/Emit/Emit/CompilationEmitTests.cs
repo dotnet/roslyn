@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#if NET461
 
 using System;
 using System.Collections.Immutable;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Reflection.PortableExecutable;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -1528,6 +1530,27 @@ comp => comp.VerifyDiagnostics(
             var signedDllOptions = TestOptions.ReleaseDll.
                  WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
                  WithStrongNameProvider(s_defaultDesktopProvider);
+
+            var comp = CreateCompilation("public class C{}", options: signedDllOptions);
+
+            comp.VerifyDiagnostics();
+            var (image, refImage) = EmitRefOut(comp);
+            var refOnlyImage = EmitRefOnly(comp);
+            VerifySigned(image);
+            VerifySigned(refImage);
+            VerifySigned(refOnlyImage);
+            VerifyIdentitiesMatch(image, refImage, expectPublicKey: true);
+            VerifyIdentitiesMatch(image, refOnlyImage, expectPublicKey: true);
+        }
+
+        [Fact]
+        public void RefAssembly_StrongNameProvider_Arm64()
+        {
+            var signedDllOptions = TestOptions.ReleaseDll.
+                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
+                 WithStrongNameProvider(s_defaultDesktopProvider).
+                 WithPlatform(Platform.Arm64).
+                 WithDeterministic(true);
 
             var comp = CreateCompilation("public class C{}", options: signedDllOptions);
 
@@ -3704,7 +3727,7 @@ public sealed class ContentType
             var result = compilation.Emit(new MemoryStream(), options: new EmitOptions(outputNameOverride: "x\0x"));
             result.Diagnostics.Verify(
                 // error CS2041: Invalid output name: Name contains invalid characters.
-                Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameContainsInvalidCharacter).WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments("Name contains invalid characters.").WithLocation(1, 1));
 
             Assert.False(result.Success);
         }
@@ -4648,6 +4671,7 @@ class C
             string source = @"class Goo {}";
             var compilation = CreateCompilation(source);
 
+            using (new EnsureEnglishUICulture())
             using (var output = new MemoryStream())
             {
                 var pdbStream = new BrokenStream();
@@ -4928,6 +4952,7 @@ public class X
             var comp = CreateCompilation("class C {}");
             var broken = new BrokenStream();
             broken.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+            using (new EnsureEnglishUICulture())
             using (var peStream = new MemoryStream())
             {
                 var portablePdbOptions = EmitOptions.Default
@@ -5024,3 +5049,5 @@ public class DerivingClass<T> : BaseClass<T>
         }
     }
 }
+
+#endif

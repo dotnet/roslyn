@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
+    <[UseExportProvider]>
     Public MustInherit Class AbstractSimplificationTests
 
         Protected Async Function TestAsync(definition As XElement, expected As XElement, Optional simplificationOptions As Dictionary(Of OptionKey, Object) = Nothing) As System.Threading.Tasks.Task

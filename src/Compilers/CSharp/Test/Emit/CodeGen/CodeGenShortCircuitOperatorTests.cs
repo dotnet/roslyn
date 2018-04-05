@@ -1957,7 +1957,7 @@ print2");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement02()
         {
@@ -2009,12 +2009,12 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
 print1
 print2");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement03()
         {
@@ -2066,7 +2066,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
 print1
 print2");
         }

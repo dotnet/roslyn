@@ -11,10 +11,15 @@
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks46)</TargetFrameworks>
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
+    <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
+    <NoWarn>$(NoWarn);CA1819</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
+    <None Include="Microsoft.Managed.Core.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Microsoft.CSharp.Core.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -68,6 +73,9 @@
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreFixedVersion)" />
     <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" />
     <PackageReference Include="System.Security.AccessControl" Version="$(SystemSecurityAccessControlVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
   </ItemGroup>
   <Import Project="..\CommandLine\CommandLine.projitems" Label="Shared" />
 </Project>

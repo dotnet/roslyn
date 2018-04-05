@@ -16,6 +16,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class SemanticModelTests : CSharpTestBase
     {
         [Fact]
+        public void RefForEachVar()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(Span<int> span)
+    {
+        foreach (ref readonly int rx in span) { }
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetCompilationUnitRoot();
+            var rxDecl = root.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var model = comp.GetSemanticModel(tree);
+            ILocalSymbol rx = model.GetDeclaredSymbol(rxDecl);
+            Assert.NotNull(rx);
+            Assert.True(rx.IsRef);
+            Assert.Equal(RefKind.RefReadOnly, rx.RefKind);
+        }
+
+        [Fact]
+        public void RefForVar()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(int x)
+    {
+        for (ref readonly int rx = ref x;;) { }
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetCompilationUnitRoot();
+            var rxDecl = root.DescendantNodes().OfType<ForStatementSyntax>().Single().Declaration;
+            var model = comp.GetSemanticModel(tree);
+            ISymbol rx = model.GetDeclaredSymbol(rxDecl.Variables.Single());
+            Assert.NotNull(rx);
+            var rxLocal = Assert.IsAssignableFrom<ILocalSymbol>(rx);
+            Assert.True(rxLocal.IsRef);
+            Assert.Equal(RefKind.RefReadOnly, rxLocal.RefKind);
+        }
+
+        [Fact]
         public void TestGetDeclaredSymbolFromNamespace()
         {
             var compilation = CreateCompilation(@"
@@ -1872,8 +1918,10 @@ static class E
 }";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (8,9): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "b.F").WithArguments("E.F<T>(T)", "A", "T", "B").WithLocation(8, 9));
+                // (8,11): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
+                //         b.F();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "F").WithArguments("E.F<T>(T)", "A", "T", "B").WithLocation(8, 11)
+);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1911,8 +1959,9 @@ static class E
 }";
             compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
-                // (8,9): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "b.F").WithArguments("E.F<T>(T)", "A", "T", "B").WithLocation(8, 9));
+                // (8,11): error CS0311: The type 'B' cannot be used as type parameter 'T' in the generic type or method 'E.F<T>(T)'. There is no implicit reference conversion from 'B' to 'A'.
+                //         b.F();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "F").WithArguments("E.F<T>(T)", "A", "T", "B").WithLocation(8, 11));
 
             tree = compilation.SyntaxTrees.Single();
             model = compilation.GetSemanticModel(tree);

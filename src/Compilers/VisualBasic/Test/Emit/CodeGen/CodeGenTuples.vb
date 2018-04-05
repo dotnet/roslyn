@@ -4676,6 +4676,7 @@ BC30311: Value of type '(Integer, String, C As Integer)' cannot be converted to 
             Dim xSymbol = DirectCast(model.GetDeclaredSymbol(x), LocalSymbol).Type
             Assert.Equal("(System.Int32, A As System.String)", xSymbol.ToTestDisplayString())
             Assert.True(xSymbol.IsTupleType)
+            Assert.False(DirectCast(xSymbol, INamedTypeSymbol).IsSerializable)
 
             Assert.Equal({"System.Int32", "System.String"}, xSymbol.TupleElementTypes.SelectAsArray(Function(t) t.ToTestDisplayString()))
             Assert.Equal({Nothing, "A"}, xSymbol.TupleElementNames)
@@ -9743,10 +9744,12 @@ additionalReferences:=s_valueTupleRefs)
             Assert.True(validFieldWithAttribute.Type.IsErrorType())
             Assert.False(validFieldWithAttribute.Type.IsTupleType)
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(validFieldWithAttribute.Type)
+            Assert.False(DirectCast(validFieldWithAttribute.Type, INamedTypeSymbol).IsSerializable)
 
             Dim tooFewNames = c.GetMember(Of FieldSymbol)("TooFewNames")
             Assert.True(tooFewNames.Type.IsErrorType())
             Assert.IsType(Of UnsupportedMetadataTypeSymbol)(tooFewNames.Type)
+            Assert.False(DirectCast(tooFewNames.Type, INamedTypeSymbol).IsSerializable)
 
             Dim tooManyNames = c.GetMember(Of FieldSymbol)("TooManyNames")
             Assert.True(tooManyNames.Type.IsErrorType())
@@ -21476,6 +21479,42 @@ End Module
             Assert.Null(tupleSymbol.Type)
 
             Assert.Equal("(X As System.Int32, P As Module1.MyDelegate)", tupleSymbol.ConvertedType.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        <WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")>
+        Public Sub InferenceWithTuple()
+
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Interface IAct(Of T)
+    Function Act(Of TReturn)(fn As Func(Of T, TReturn)) As IResult(Of TReturn)
+End Interface
+
+Public Interface IResult(Of TReturn)
+End Interface
+
+Module Module1
+    Sub M(impl As IAct(Of (Integer, Integer)))
+        Dim case3 = impl.Act(Function(a As (x As Integer, y As Integer)) a.x * a.y)
+    End Sub
+End Module
+    </file>
+</compilation>, additionalRefs:=s_valueTupleRefs)
+            comp.AssertTheseDiagnostics()
+
+            Dim tree = comp.SyntaxTrees(0)
+
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim actSyntax = nodes.OfType(Of InvocationExpressionSyntax)().Single()
+            Assert.Equal("impl.Act(Function(a As (x As Integer, y As Integer)) a.x * a.y)", actSyntax.ToString())
+
+            Dim actSymbol = DirectCast(model.GetSymbolInfo(actSyntax).Symbol, IMethodSymbol)
+            Assert.Equal("IResult(Of System.Int32)", actSymbol.ReturnType.ToTestDisplayString())
         End Sub
 
         <Fact>

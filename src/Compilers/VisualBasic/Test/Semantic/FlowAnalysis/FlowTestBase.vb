@@ -215,7 +215,9 @@ tryAgain:
                 Optional readOutside() As String = Nothing,
                 Optional variablesDeclared() As String = Nothing,
                 Optional writtenInside() As String = Nothing,
-                Optional writtenOutside() As String = Nothing)
+                Optional writtenOutside() As String = Nothing,
+                Optional capturedInside() As String = Nothing,
+                Optional capturedOutside() As String = Nothing)
             Dim analysis = CompileAndAnalyzeDataFlow(code)
 
             Assert.True(analysis.Succeeded)
@@ -228,6 +230,8 @@ tryAgain:
             Assert.Equal(If(variablesDeclared, {}), analysis.VariablesDeclared.Select(Function(s) s.Name).ToArray())
             Assert.Equal(If(writtenInside, {}), analysis.WrittenInside.Select(Function(s) s.Name).ToArray())
             Assert.Equal(If(writtenOutside, {}), analysis.WrittenOutside.Select(Function(s) s.Name).ToArray())
+            Assert.Equal(If(capturedInside, {}), analysis.CapturedInside.Select(Function(s) s.Name).ToArray())
+            Assert.Equal(If(capturedOutside, {}), analysis.CapturedOutside.Select(Function(s) s.Name).ToArray())
         End Sub
 
     End Class

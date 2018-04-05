@@ -246,10 +246,20 @@ public static class TestReferences
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemRuntimeRef => s_systemRuntime.Value;
 
+        private static readonly Lazy<PortableExecutableReference> s_systemCore = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.System_Core).GetReference(display: "System.Core.dll (netstandard 2.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference SystemCoreRef => s_systemCore.Value;
+
         private static readonly Lazy<PortableExecutableReference> s_systemDynamicRuntime = new Lazy<PortableExecutableReference>(
         () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 2.0 ref)"),
         LazyThreadSafetyMode.PublicationOnly);
         public static PortableExecutableReference SystemDynamicRuntimeRef => s_systemDynamicRuntime.Value;
+
+        private static readonly Lazy<PortableExecutableReference> s_microsoftCSharp = new Lazy<PortableExecutableReference>(
+        () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard20.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.dll (netstandard 2.0 ref)"),
+        LazyThreadSafetyMode.PublicationOnly);
+        public static PortableExecutableReference MicrosoftCSharpRef => s_microsoftCSharp.Value;
     }
 
     public static class DiagnosticTests

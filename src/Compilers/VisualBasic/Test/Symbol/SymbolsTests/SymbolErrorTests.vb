@@ -6118,6 +6118,9 @@ End Class
 BC30573: Error in project-level import '<xmlns:p="p2">' at '<xmlns:p="p2">' : XML namespace prefix 'p' is already declared.
 BC30573: Error in project-level import '<xmlns="default2">' at '<xmlns="default2">' : XML namespace prefix '' is already declared.
 ]]></errors>)
+            Dim embedded = compilation.GetTypeByMetadataName("Microsoft.VisualBasic.Embedded")
+            Assert.IsType(Of EmbeddedSymbolManager.EmbeddedNamedTypeSymbol)(embedded)
+            Assert.False(DirectCast(embedded, INamedTypeSymbol).IsSerializable)
         End Sub
 
         <Fact>

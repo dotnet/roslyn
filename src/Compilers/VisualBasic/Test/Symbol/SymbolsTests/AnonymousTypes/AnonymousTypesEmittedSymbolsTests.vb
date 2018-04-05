@@ -583,6 +583,8 @@ End Module
                                                         Dim node0 = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.AnonymousObjectCreationExpression).AsNode(), ExpressionSyntax)
                                                         Dim info0 = model.GetSemanticInfoSummary(node0)
                                                         Assert.NotNull(info0.Type)
+                                                        Assert.IsType(GetType(AnonymousTypeManager.AnonymousTypePublicSymbol), info0.Type)
+                                                        Assert.False(DirectCast(info0.Type, INamedTypeSymbol).IsSerializable)
 
                                                         Dim expr1 = SyntaxFactory.ParseExpression(<text>New With { .aa = 1, .BB = "", .CCC = new SSS() }</text>.Value)
                                                         Dim info1 = model.GetSpeculativeTypeInfo(position, expr1, SpeculativeBindingOption.BindAsExpression)

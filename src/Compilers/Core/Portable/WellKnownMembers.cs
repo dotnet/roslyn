@@ -2968,6 +2968,14 @@ namespace Microsoft.CodeAnalysis
                  0,                                                                                                                                             // Arity
                     0,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    
+                 // System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
+                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute - WellKnownType.ExtSentinel),       // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                     0,                                                                                                                                         // Method Signature
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3338,6 +3346,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_ReadOnlySpan__ctor
                 "get_Item",                                 // System_ReadOnlySpan__get_Item
                 "get_Length",                               // System_ReadOnlySpan__get_Length
+                ".ctor",                                    // System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

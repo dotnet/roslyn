@@ -4728,14 +4728,14 @@ End Class
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation)
@@ -4808,14 +4808,14 @@ End Class
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation)
@@ -4899,14 +4899,14 @@ End Class"
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.FieldName,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation)
@@ -4923,6 +4923,52 @@ End Class"
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Punctuation)
+        End Sub
+
+        <Fact>
+        <WorkItem(23970, "https://github.com/dotnet/roslyn/pull/23970")>
+        Public Sub MeDisplayParts()
+            Dim Text =
+<compilation>
+    <file name="b.vb">
+Class A
+    Sub M([Me] As Integer)
+        Me.M([Me])
+    End Sub
+End Class
+    </file>
+</compilation>
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(Text)
+            comp.VerifyDiagnostics()
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim invocation = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().Single()
+            Assert.Equal("Me.M([Me])", invocation.ToString())
+
+            Dim actualThis = DirectCast(invocation.Expression, MemberAccessExpressionSyntax).Expression
+            Assert.Equal("Me", actualThis.ToString())
+
+            Verify(
+                ToDisplayParts(model.GetSymbolInfo(actualThis).Symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "Me As A",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName)
+
+            Dim escapedThis = invocation.ArgumentList.Arguments(0).GetExpression()
+            Assert.Equal("[Me]", escapedThis.ToString())
+
+            Verify(
+                ToDisplayParts(model.GetSymbolInfo(escapedThis).Symbol, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                "[Me] As Integer",
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
         End Sub
 
         ' SymbolDisplayMemberOptions.IncludeRef is ignored in VB.
