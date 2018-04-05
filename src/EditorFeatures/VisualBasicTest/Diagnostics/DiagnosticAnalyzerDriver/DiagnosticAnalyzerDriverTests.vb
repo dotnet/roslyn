@@ -4,10 +4,10 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
+<[UseExportProvider]>
 Public Class DiagnosticAnalyzerDriverTests
     <Fact>
     Public Async Function DiagnosticAnalyzerDriverAllInOne() As Task

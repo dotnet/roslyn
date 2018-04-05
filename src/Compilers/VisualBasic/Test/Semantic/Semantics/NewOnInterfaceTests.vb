@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact()>
         Public Sub NewOnRegularInterface_SimpleError()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -41,7 +41,7 @@ BC30375: 'New' cannot be used on an interface.
 
         <Fact()>
         Public Sub NewOnCoClassInterface_NewOperator()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -69,7 +69,7 @@ End Module
 
         <Fact()>
         Public Sub NewOnCoClassInterface_AsNewOnLocal()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -97,7 +97,7 @@ End Module
 
         <Fact()>
         Public Sub NewOnCoClassInterface_AsNewOnPropertyAndField()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -131,7 +131,7 @@ End Class
 
         <Fact()>
         Public Sub NewOnCoClassInterface_NoDefaultConstructorError()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -166,7 +166,7 @@ BC30455: Argument not specified for parameter 'i' of 'Public Sub New(i As Intege
 
         <Fact()>
         Public Sub NewOnCoClassInterface_NonDefaultConstructor()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -198,7 +198,7 @@ End Module
 
         <Fact()>
         Public Sub NewOnCoClassInterface_ErrorForArrayCoClass()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -233,7 +233,7 @@ BC31450: Type 'CoClassImplementation()(*,*,*)' cannot be used as an implementing
 
         <Fact()>
         Public Sub NewOnCoClassInterface_ModuleCoClass()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -268,7 +268,7 @@ BC30517: Overload resolution failed because no 'New' is accessible.
         Public Sub NewOnCoClassInterface_EnumCoClass()
             ' WARNING: Roslyn detects the default parameterless 
             ' WARNING: constructor, while Dev11 does not
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -308,7 +308,7 @@ BC30057: Too many arguments to 'Public Sub New()'.
         Public Sub NewOnCoClassInterface_StrictCoClass()
             ' WARNING: Roslyn detects the default parameterless 
             ' WARNING: constructor, while Dev11 does not
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -351,7 +351,7 @@ BC30516: Overload resolution failed because no accessible 'New' accepts this num
 
         <Fact()>
         Public Sub NewOnCoClassInterface_InterfaceCoClass()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -388,7 +388,7 @@ BC31094: Implementing class 'CoClassImplementation' for interface 'IInterface' c
 
         <Fact()>
         Public Sub NewOnCoClassInterface_AbstractClassCoClass()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -421,7 +421,7 @@ BC31450: Type 'CoClassImplementation' cannot be used as an implementing class.
 
         <Fact()>
         Public Sub NewOnCoClassInterface_GenericInterfaces()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -453,7 +453,7 @@ End Module
 
         <Fact()>
         Public Sub NewOnCoClassInterface_InterfacesInGenericType()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -505,7 +505,7 @@ BC32079: Type parameters or types constructed with type parameters are not allow
 
         <Fact()>
         Public Sub NewOnCoClassInterface_DelegateCoClass()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -555,7 +555,7 @@ End Interface
 } // end of class StructWithOptional
 ]]>.Value)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -573,7 +573,7 @@ Public Interface IComplicated
 End Interface
 ]]>
                         </file>
-                    </compilation>, additionalRefs:={reference}, options:=TestOptions.ReleaseExe)
+                    </compilation>, references:={reference}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -614,7 +614,7 @@ BC30311: Value of type 'StructWithOptional' cannot be converted to 'IComplicated
 
 ]]>.Value)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -628,7 +628,7 @@ Module Module1
 End Module
 ]]>
                         </file>
-                    </compilation>, additionalRefs:={reference}, options:=TestOptions.ReleaseExe)
+                    </compilation>, references:={reference}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -640,7 +640,7 @@ End Module
         <WorkItem(546682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546682")>
         <Fact()>
         Public Sub NewOnCoClassInterface_16543_StrictOn()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -692,7 +692,7 @@ BC30512: Option Strict On disallows implicit conversions from 'C1' to 'I1'.
         <WorkItem(546682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546682")>
         <Fact()>
         Public Sub NewOnCoClassInterface_16543_StrictOff()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -778,7 +778,7 @@ End Module
 }
 ]]>.Value)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -792,7 +792,7 @@ Class C
 End Class
 ]]>
                         </file>
-                    </compilation>, additionalRefs:={reference}, options:=TestOptions.ReleaseExe)
+                    </compilation>, references:={reference}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -845,7 +845,7 @@ BC31450: Type 'A(Of )' cannot be used as an implementing class.
 } // end of class A`1
 ]]>.Value)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -859,7 +859,7 @@ Class C
 End Class
 ]]>
                         </file>
-                    </compilation>, additionalRefs:={reference}, options:=TestOptions.ReleaseExe)
+                    </compilation>, references:={reference}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors></errors>)
         End Sub
@@ -905,7 +905,7 @@ End Class
 } // end of class A`1
 ]]>.Value)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -919,7 +919,7 @@ Class C
 End Class
 ]]>
                         </file>
-                    </compilation>, additionalRefs:={reference}, options:=TestOptions.ReleaseExe)
+                    </compilation>, references:={reference}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -970,7 +970,7 @@ BC31450: Type 'A(Of ).B(Of )' cannot be used as an implementing class.
 } // end of class A`1
 ]]>.Value)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -984,7 +984,7 @@ Class C
 End Class
 ]]>
                         </file>
-                    </compilation>, additionalRefs:={reference}, options:=TestOptions.ReleaseExe)
+                    </compilation>, references:={reference}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
@@ -996,7 +996,7 @@ BC31094: Implementing class '?' for interface 'I' cannot be found.
 
         <Fact()>
         Public Sub NewOnCoClassInterface_UnboundGenericType()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1032,7 +1032,7 @@ BC31450: Type 'GenericType(Of )' cannot be used as an implementing class.
 
         <Fact()>
         Public Sub NewOnCoClassInterface_ObsoleteOnCoClass()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1066,7 +1066,7 @@ BC40008: 'CoClassType' is obsolete.
 
         <Fact()>
         Public Sub NewOnCoClassInterface_ObsoleteOnInterface()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1100,7 +1100,7 @@ BC40008: 'IComplicated' is obsolete.
 
         <Fact()>
         Public Sub NewOnCoClassInterface_Inaccessible()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1135,7 +1135,7 @@ BC31109: Implementing class 'B.CoClassType' for interface 'B.IComplicated' is no
 
         <Fact()>
         Public Sub NewOnCoClassInterface_NullCoClass()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1165,7 +1165,7 @@ BC30375: 'New' cannot be used on an interface.
 
         <Fact()>
         Public Sub SemanticInfo_1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1203,7 +1203,7 @@ End Module
 
         <Fact()>
         Public Sub SemanticInfo_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1246,7 +1246,7 @@ End Module
 
         <Fact()>
         Public Sub SemanticInfo_3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1290,7 +1290,7 @@ End Module
 
         <Fact()>
         Public Sub NewOnCoClassInterface_RuntimeException()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1327,7 +1327,7 @@ End Interface
 
         <Fact()>
         Public Sub NewOnCoClassInterface_Lookup_Implements1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1364,7 +1364,7 @@ End Class
 
         <Fact()>
         Public Sub NewOnCoClassInterface_Lookup_Implements2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1412,7 +1412,7 @@ BC31040: 'Quit' exists in multiple base interfaces. Use the name of the interfac
 
         <Fact()>
         Public Sub NewOnCoClassInterface_Lookup_Implements3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1499,7 +1499,7 @@ BC31040: 'Quit' exists in multiple base interfaces. Use the name of the interfac
 
         <Fact()>
         Public Sub NewOnCoClassInterface_Lookup_Handles()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1578,7 +1578,7 @@ BC30590: Event 'Quit' cannot be found.
 
         <Fact()>
         Public Sub NewOnCoClassInterface_Lookup_AddRemoveHandler()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1661,7 +1661,7 @@ BC30456: 'Quit' is not a member of 'GooClass'.
         <WorkItem(23810, "https://github.com/dotnet/roslyn/issues/23810")>
         <Fact()>
         Public Sub NewOnCoClassInterface_Lookup_AddRemoveHandler2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1790,7 +1790,7 @@ Public Interface Goo
 End Interface
                     </file>
                 </compilation>
-            Dim compilation1 = CreateCompilationWithMscorlib(vbSource1)
+            Dim compilation1 = CreateCompilationWithMscorlib40(vbSource1)
             compilation1.AssertTheseDiagnostics(<errors></errors>)
 
             Dim vbSource2 =
@@ -1802,7 +1802,7 @@ Public Interface Goo2
 End Interface
                     </file>
                 </compilation>
-            Dim compilation2 = CreateCompilationWithMscorlibAndReferences(vbSource2, {New VisualBasicCompilationReference(compilation1)})
+            Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(vbSource2, {New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<expected></expected>)
 
             Dim vbSource3 =
@@ -1816,7 +1816,7 @@ Class Clazz
 End Class
                     </file>
                 </compilation>
-            Dim compilation3 = CreateCompilationWithMscorlibAndReferences(vbSource3, {New VisualBasicCompilationReference(compilation2)})
+            Dim compilation3 = CreateCompilationWithMscorlib40AndReferences(vbSource3, {New VisualBasicCompilationReference(compilation2)})
             compilation3.AssertTheseDiagnostics(
 <expected>
 BC30652: Reference required to assembly 'abc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Goo'. Add one to your project.
@@ -1833,7 +1833,7 @@ BC30401: 'Bar' cannot implement 'Bar' because there is no matching sub on interf
 
         <Fact(), WorkItem(657731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657731")>
         Public Sub Bug657731()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[
@@ -1858,7 +1858,7 @@ End Class
 
         <Fact()>
         Public Sub Bug873059()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                     <compilation>
                         <file name="a.vb">
                             <![CDATA[

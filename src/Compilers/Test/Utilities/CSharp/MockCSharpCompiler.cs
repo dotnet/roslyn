@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     internal class MockCSharpCompiler : CSharpCompiler
     {
-        private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
+        protected readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         internal Compilation Compilation;
 
         public MockCSharpCompiler(string responseFile, string baseDirectory, string[] args)
@@ -20,8 +20,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
         }
 
+        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args)
+            : this(responseFile, buildPaths, args, ImmutableArray<DiagnosticAnalyzer>.Empty, RuntimeUtilities.CreateAnalyzerAssemblyLoader())
+        {
+        }
+
         public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerAssemblyLoader loader)
-            : base(CSharpCommandLineParser.Default, responseFile, args, CreateBuildPaths(workingDirectory), Environment.GetEnvironmentVariable("LIB"), loader)
+            : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, loader)
+        {
+        }
+
+        public MockCSharpCompiler(string responseFile, BuildPaths buildPaths, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerAssemblyLoader loader)
+            : base(CSharpCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), loader)
         {
             _analyzers = analyzers;
         }

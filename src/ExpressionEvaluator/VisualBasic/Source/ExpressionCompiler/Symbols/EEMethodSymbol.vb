@@ -439,14 +439,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-#Disable Warning RS0010
+#Disable Warning CA1200 ' Avoid using cref tags with a prefix
         ''' <remarks>
         ''' The corresponding C# method, 
         ''' <see cref="M:Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.EEMethodSymbol.GenerateMethodBody(Microsoft.CodeAnalysis.CSharp.TypeCompilationState,Microsoft.CodeAnalysis.DiagnosticBag)"/>, 
         ''' invokes the <see cref="LocalRewriter"/> and the <see cref="LambdaRewriter"/> explicitly.
         ''' In VB, the caller (of this method) does that.
         ''' </remarks>
-#Enable Warning RS0010
+#Enable Warning CA1200 ' Avoid using cref tags with a prefix
         Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out> ByRef Optional methodBodyBinder As Binder = Nothing) As BoundBlock
             Dim body = _generateMethodBody(Me, diagnostics, _lazyResultProperties)
             Debug.Assert(body IsNot Nothing)

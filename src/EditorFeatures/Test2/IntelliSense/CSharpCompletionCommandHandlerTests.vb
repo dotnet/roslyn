@@ -6,19 +6,21 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.CSharp
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Microsoft.VisualStudio.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests
         <WorkItem(541201, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541201")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -1548,10 +1550,22 @@ class Goo
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function EnumCompletionNotTriggeredOnOtherCommitCharacters() As Task
+        Public Async Function EnumCompletionNotTriggeredOnPlusCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn("+"c)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function EnumCompletionNotTriggeredOnLeftBraceCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn("{"c)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function EnumCompletionNotTriggeredOnSpaceCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn(" "c)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function EnumCompletionNotTriggeredOnSemicolonCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn(";"c)
         End Function
 
@@ -2673,7 +2687,7 @@ class C
                     disposableView.TextView.Caret.MoveTo(New SnapshotPoint(disposableView.TextView.TextBuffer.CurrentSnapshot, 0))
 
                     Dim editorOperations = editorOperationsFactory.GetEditorOperations(disposableView.TextView)
-                    state.CompletionCommandHandler.ExecuteCommand(New DeleteKeyCommandArgs(disposableView.TextView, state.SubjectBuffer), Sub() editorOperations.Delete())
+                    state.CompletionCommandHandler.ExecuteCommand(New DeleteKeyCommandArgs(disposableView.TextView, state.SubjectBuffer), Sub() editorOperations.Delete(), TestCommandExecutionContext.Create())
 
                     Await state.AssertNoCompletionSession()
                 End Using
@@ -3722,6 +3736,109 @@ class C
                 Await state.AssertNoCompletionSession()
                 Assert.Equal("    #endregion", state.GetLineFromCurrentCaretPosition().GetText())
                 Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
+
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AfterIdentifierInCaseLabel() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case identifier $$
+        }
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars("w")
+                Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
+
+                state.SendBackspace()
+                state.SendTypeChars("i")
+                Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
+
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AfterIdentifierInCaseLabel_ColorColor() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+class identifier { }
+class C
+{
+    const identifier identifier = null;
+    void M()
+    {
+        switch (true)
+        {
+            case identifier $$
+        }
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars("w")
+                Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=False)
+
+                state.SendBackspace()
+                state.SendTypeChars("i")
+                Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
+
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AfterIdentifierInCaseLabel_ClassNameOnly() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+class identifier { }
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case identifier $$
+        }
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars("w")
+                Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
+
+                state.SendBackspace()
+                state.SendTypeChars("i")
+                Await state.AssertSelectedCompletionItem(displayText:="identifier", isHardSelected:=False)
+
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AfterDoubleIdentifierInCaseLabel() As Task
+            Using state = TestState.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case identifier identifier $$
+        }
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars("w")
+                Await state.AssertSelectedCompletionItem(displayText:="when", isHardSelected:=True)
 
             End Using
         End Function

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool ShouldAddWinRTMembers => false;
 
-        internal override bool IsSerializable => false;
+        public override bool IsSerializable => false;
 
         internal override TypeLayout Layout => default(TypeLayout);
 
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-                factory.CurrentMethod = this;
+                factory.CurrentFunction = this;
 
                 var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
                 if (baseConstructorCall == null)

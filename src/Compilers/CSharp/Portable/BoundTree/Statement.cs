@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => this.ChildBoundNodes;
     }
 
-    partial class BoundLocalFunctionStatement
-    {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Body);
-    }
-
     partial class BoundFixedStatement
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Declarations, this.Body);

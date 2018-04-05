@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         o.M(0, value: 2);
     }
 }";
-            var compilation = CreateStandardCompilation(source, new[] { reference });
+            var compilation = CreateCompilation(source, new[] { reference });
             compilation.VerifyDiagnostics(
                 // (5,16): error CS1744: Named argument 'value' specifies a parameter for which a positional argument has already been given
                 Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "value").WithArguments("value").WithLocation(5, 16));

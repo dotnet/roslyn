@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -17,7 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void QuickInfo_MetadataDocumentation()
         {
             SetUpEditor(@"
@@ -34,7 +35,7 @@ class Program
                 VisualStudio.Editor.GetQuickInfo());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void QuickInfo_Documentation()
         {
             SetUpEditor(@"
@@ -49,7 +50,7 @@ class Program$$
             Assert.Equal("class\u200e Program\r\nHello!", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void International()
         {
             SetUpEditor(@"
@@ -68,7 +69,7 @@ class العربية123
 This is an XML doc comment defined in code.", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void SectionOrdering()
         {
             SetUpEditor(@"
