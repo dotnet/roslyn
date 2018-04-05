@@ -75,15 +75,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     var data = Dequeue();
 
-                    // we have a hint. check whether we can take advantage of it
-                    if (await TryEnqueueFromHint(data.Document, data.ChangedMember).ConfigureAwait(continueOnCapturedContext: false))
+                    try
+                    {
+                        // we have a hint. check whether we can take advantage of it
+                        if (await TryEnqueueFromHint(data.Document, data.ChangedMember).ConfigureAwait(continueOnCapturedContext: false))
+                        {
+                            return;
+                        }
+
+                        EnqueueFullProjectDependency(data.Document);
+                    }
+                    finally
                     {
                         data.AsyncToken.Dispose();
-                        return;
                     }
-
-                    EnqueueFullProjectDependency(data.Document);
-                    data.AsyncToken.Dispose();
                 }
 
                 private Data Dequeue()
@@ -257,14 +262,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         if (_pendingWork.TryGetValue(document.Id, out var data))
                         {
                             // create new async token and dispose old one.
-                            var newAsyncToken = this.Listener.BeginAsyncOperation("EnqueueSemanticChange");
+                            var newAsyncToken = Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace);
                             data.AsyncToken.Dispose();
 
                             _pendingWork[document.Id] = new Data(document, data.ChangedMember == changedMember ? changedMember : null, newAsyncToken);
                             return;
                         }
 
-                        _pendingWork.Add(document.Id, new Data(document, changedMember, this.Listener.BeginAsyncOperation("EnqueueSemanticChange")));
+                        _pendingWork.Add(document.Id, new Data(document, changedMember, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace)));
                         _gate.Release();
                     }
 
@@ -382,7 +387,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 return;
                             }
 
-                            var data = new Data(projectId, needDependencyTracking, this.Listener.BeginAsyncOperation("EnqueueWorkItemForSemanticChangeAsync"));
+                            var data = new Data(projectId, needDependencyTracking, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace));
+
                             _pendingWork.Add(projectId, data);
                             _gate.Release();
                         }
@@ -401,7 +407,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         _processor.Enqueue(
                             new WorkItem(document.Id, document.Project.Language, InvocationReasons.SemanticChanged,
-                            isLowPriority, this.Listener.BeginAsyncOperation("Semantic WorkItem")));
+                                isLowPriority, Listener.BeginAsyncOperation(nameof(EnqueueWorkItemAsync))));
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
@@ -412,7 +418,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     protected override async Task ExecuteAsync()
                     {
                         var data = Dequeue();
-                        using (data.AsyncToken)
+
+                        try
                         {
                             var project = _registration.CurrentSolution.GetProject(data.ProjectId);
                             if (project == null)
@@ -433,6 +440,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 project = solution.GetProject(projectId);
                                 await EnqueueWorkItemAsync(project).ConfigureAwait(false);
                             }
+                        }
+                        finally
+                        {
+                            data.AsyncToken.Dispose();
                         }
                     }
 

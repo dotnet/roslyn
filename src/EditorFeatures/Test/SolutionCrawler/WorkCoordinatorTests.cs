@@ -2,11 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -880,9 +883,31 @@ End Class";
 
                 await WaitWaiterAsync(workspace.ExportProvider);
 
-                // mutate solution
-                workspace.OnSolutionAdded(solution);
+                // block solution cralwer from processing.
+                var globalOperation = workspace.Services.GetService<IGlobalOperationNotificationService>();
+                using (var operation = globalOperation.Start("Block SolutionCrawler"))
+                {
+                    // mutate solution
+                    workspace.OnSolutionAdded(solution);
 
+                    // wait for workspace events to be all processed
+                    var workspaceWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.Workspace);
+                    await workspaceWaiter.CreateWaitTask();
+
+                    // now wait for semantic processor to finish
+                    var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawler);
+
+                    // first, wait for first work to be queued.
+                    await crawlerListener.CreateWaitTask(tokens => tokens.Any(token => token.Name == "EnqueueWorkItemAsync"));
+
+                    // and then wait them to be processed
+                    await crawlerListener.CreateWaitTask(tokens => tokens.Where(token => token.Tag == workspace).IsEmpty());
+
+                    // let analyzer to process
+                    operation.Done();
+                }
+
+                // wait analyzers to finish process
                 await WaitAsync(service, workspace);
 
                 Assert.Equal(1, worker.DocumentIds.Take(5).Select(d => d.ProjectId).Distinct().Count());
@@ -1045,11 +1070,12 @@ End Class";
 
         private class WorkCoordinatorWorkspace : TestWorkspace
         {
+            private static readonly IExportProviderFactory s_exportFactory = CreateExportProviderFactory();
             private readonly IAsynchronousOperationWaiter _workspaceWaiter;
             private readonly IAsynchronousOperationWaiter _solutionCrawlerWaiter;
 
             public WorkCoordinatorWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
-                : base(EditorServicesUtil.ExportProvider, workspaceKind, disablePartialSolutions)
+                : base(s_exportFactory.CreateExportProvider(), workspaceKind, disablePartialSolutions)
             {
                 _workspaceWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.Workspace);
                 _solutionCrawlerWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.SolutionCrawler);
@@ -1066,6 +1092,18 @@ End Class";
 
                 Assert.False(_workspaceWaiter.HasPendingWork);
                 Assert.False(_solutionCrawlerWaiter.HasPendingWork);
+            }
+
+            private static IExportProviderFactory CreateExportProviderFactory()
+            {
+                var assemblies = TestExportProvider
+                    .GetCSharpAndVisualBasicAssemblies()
+                    .Concat(new[] { typeof(EditorServicesUtil).Assembly });
+
+                return ExportProviderCache.GetOrCreateExportProviderFactory(
+                    ExportProviderCache.GetOrCreateAssemblyCatalog(
+                        assemblies, ExportProviderCache.CreateResolver()).WithPart(
+                        typeof(TestGlobalOperationService)));
             }
         }
 
@@ -1221,6 +1259,12 @@ End Class";
             public void RemoveDocument(DocumentId documentId) { }
             public void RemoveProject(ProjectId projectId) { }
             #endregion
+        }
+
+        [ExportWorkspaceService(typeof(IGlobalOperationNotificationService), SolutionCrawler), Shared]
+        private class TestGlobalOperationService : GlobalOperationNotificationService
+        {
+            // this test only global notification service
         }
 
 #if false
