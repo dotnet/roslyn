@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             private RegexCharacterClassFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Character_class;
+                this.DisplayName = EditorFeaturesWpfResources.Regex_Character_Class;
                 this.ForegroundColor = s_characterClassColor;
             }
         }

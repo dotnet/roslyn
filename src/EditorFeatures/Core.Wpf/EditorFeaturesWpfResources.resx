@@ -129,8 +129,8 @@
   <data name="Regex_Comment" xml:space="preserve">
     <value>Regex - Comment</value>
   </data>
-  <data name="Regex_Character_class" xml:space="preserve">
-    <value>Regex - Character class</value>
+  <data name="Regex_Character_Class" xml:space="preserve">
+    <value>Regex - Character Class</value>
   </data>
   <data name="Regex_Alternation" xml:space="preserve">
     <value>Regex - Alternation</value>

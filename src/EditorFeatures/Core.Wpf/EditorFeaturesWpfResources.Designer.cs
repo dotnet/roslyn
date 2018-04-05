@@ -106,11 +106,11 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regex - Character class.
+        ///   Looks up a localized string similar to Regex - Character Class.
         /// </summary>
-        internal static string Regex_Character_class {
+        internal static string Regex_Character_Class {
             get {
-                return ResourceManager.GetString("Regex_Character_class", resourceCulture);
+                return ResourceManager.GetString("Regex_Character_Class", resourceCulture);
             }
         }
         

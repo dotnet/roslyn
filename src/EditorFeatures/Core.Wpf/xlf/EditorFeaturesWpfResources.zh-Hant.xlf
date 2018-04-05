@@ -22,11 +22,6 @@
         <target state="new">Regex - Comment</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_Character_class">
-        <source>Regex - Character class</source>
-        <target state="new">Regex - Character class</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regex_Quantifier">
         <source>Regex - Quantifier</source>
         <target state="new">Regex - Quantifier</target>
@@ -60,6 +55,11 @@
       <trans-unit id="Regex_OtherEscape">
         <source>Regex - Other Escape</source>
         <target state="new">Regex - Other Escape</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Character_Class">
+        <source>Regex - Character Class</source>
+        <target state="new">Regex - Character Class</target>
         <note />
       </trans-unit>
     </body>
