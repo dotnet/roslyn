@@ -5947,7 +5947,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Local function symbol.
         /// </summary>
         public IMethodSymbol Symbol { get; }
-        protected abstract IBlockOperation BodyImpl { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -5956,12 +5955,15 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     yield return Body;
                 }
+                if (IgnoredBody != null)
+                {
+                    yield return IgnoredBody;
+                }
             }
         }
-        /// <summary>
-        /// Body of the local function.
-        /// </summary>
-        public IBlockOperation Body => Operation.SetParentOperation(BodyImpl, this);
+        public abstract IBlockOperation Body { get; }
+        public abstract IBlockOperation IgnoredBody { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitLocalFunction(this);
@@ -5977,13 +5979,15 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class LocalFunctionStatement : BaseLocalFunctionStatement, ILocalFunctionOperation
     {
-        public LocalFunctionStatement(IMethodSymbol symbol, IBlockOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LocalFunctionStatement(IMethodSymbol symbol, IBlockOperation body, IBlockOperation ignoredBody, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            BodyImpl = body;
+            Body = SetParentOperation<IBlockOperation>(body, this);
+            IgnoredBody = SetParentOperation<IBlockOperation>(ignoredBody, this);
         }
 
-        protected override IBlockOperation BodyImpl { get; }
+        public override IBlockOperation Body { get; }
+        public override IBlockOperation IgnoredBody { get; }
     }
 
     /// <summary>
@@ -5992,14 +5996,17 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class LazyLocalFunctionStatement : BaseLocalFunctionStatement, ILocalFunctionOperation
     {
         private readonly Lazy<IBlockOperation> _lazyBody;
+        private readonly Lazy<IBlockOperation> _lazyIgnoredBody;
 
-        public LazyLocalFunctionStatement(IMethodSymbol symbol, Lazy<IBlockOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
+        public LazyLocalFunctionStatement(IMethodSymbol symbol, Lazy<IBlockOperation> body, Lazy<IBlockOperation> ignoredBody, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(symbol, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
+            _lazyIgnoredBody = ignoredBody ?? throw new System.ArgumentNullException(nameof(ignoredBody));
         }
 
-        protected override IBlockOperation BodyImpl => _lazyBody.Value;
+        public override IBlockOperation Body => SetParentOperation(_lazyBody.Value, this);
+        public override IBlockOperation IgnoredBody => SetParentOperation(_lazyIgnoredBody.Value, this);
     }
 
     /// <summary>
@@ -6722,5 +6729,28 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
         public override IBlockOperation BlockBody => SetParentOperation(_lazyBlockBody.Value, this);
         public override IBlockOperation ExpressionBody => SetParentOperation(_lazyExpressionBody.Value, this);
+    }
+
+    internal sealed class DiscardOperation : Operation, IDiscardOperation
+    {
+        public DiscardOperation(IDiscardSymbol discardSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.Discard, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            DiscardSymbol = discardSymbol;
+        }
+
+        public IDiscardSymbol DiscardSymbol { get; }
+
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDiscardOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDiscardOperation(this, argument);
+        }
     }
 }

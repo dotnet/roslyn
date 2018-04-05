@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Exten
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using VSLangProj;
 using VSLangProj140;
@@ -36,6 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private static readonly IntPtr s_docDataExisting_Unknown = new IntPtr(-1);
         private const string AppCodeFolderName = "App_Code";
+
+        private readonly ITextBufferFactoryService _textBufferFactoryService;
+        private readonly ITextBufferCloneService _textBufferCloneService;
 
         // document worker coordinator
         private ISolutionCrawlerRegistrationService _registrationService;
@@ -58,7 +62,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 MefV1HostServices.Create(exportProvider),
                 backgroundWork: WorkspaceBackgroundWork.ParseAndCompile)
         {
-            PrimaryWorkspace.Register(this);
+            _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
+            _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
+            _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
+            exportProvider.GetExportedValue<PrimaryWorkspace>().Register(this);
         }
 
         /// <summary>
@@ -211,6 +218,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
 
             return newOptions == updated;
+        }
+
+        private void AddTextBufferCloneServiceToBuffer(object sender, TextBufferCreatedEventArgs e)
+        {
+            e.TextBuffer.Properties.AddProperty(typeof(ITextBufferCloneService), _textBufferCloneService);
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)
@@ -1081,6 +1093,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override void Dispose(bool finalize)
         {
+            if (!finalize)
+            {
+                _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
+            }
+
             // workspace is going away. unregister this workspace from work coordinator
             StopSolutionCrawler();
 

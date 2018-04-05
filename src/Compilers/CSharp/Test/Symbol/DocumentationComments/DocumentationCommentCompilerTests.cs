@@ -2102,7 +2102,7 @@ class C {{ }}
 
             // NOTE: separate error comment for each part.
             var comp = CreateCompilationUtil(source);
-            var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+            var actual = GetDocumentationCommentText(comp,
                 // (2,4): warning CS1570: XML comment has badly formed XML -- 'The '\u1680' character, hexadecimal value 0x1680, cannot be included in a name.'
                 // /// <see cref='C'/>
                 Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("The '\u1680' character, hexadecimal value 0x1680, cannot be included in a name."));
@@ -2586,7 +2586,7 @@ class C {{ }}
             using (File.Open(xmlFilePath, FileMode.Open, FileAccess.Write, FileShare.None))
             {
                 var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
-                var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+                var actual = GetDocumentationCommentText(comp,
                     // (2,5): warning CS1589: Unable to include XML fragment 'path' of file 'c3af0dc5a3cf.xml' -- The process cannot access the file 'c3af0dc5a3cf.xml' because it is being used by another process.
                     // /// <include file='c3af0dc5a3cf.xml' path='path'/>
                     Diagnostic(ErrorCode.WRN_FailedInclude, includeElement).WithArguments(xmlFilePath, "path", string.Format("The process cannot access the file '{0}' because it is being used by another process.", xmlFilePath)));
@@ -2623,7 +2623,7 @@ class C {{ }}
             using (File.Open(xmlFilePath1, FileMode.Open, FileAccess.Write, FileShare.None))
             {
                 var comp = CreateCompilationUtil(string.Format(sourceTemplate, xmlFilePath2));
-                var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+                var actual = GetDocumentationCommentText(comp,
                     // 3fba660141b6.xml(1,2): warning CS1589: Unable to include XML fragment 'path' of file 'd4241d125755.xml' -- The process cannot access the file 'd4241d125755.xml' because it is being used by another process.
                     Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath1, "path", string.Format("The process cannot access the file '{0}' because it is being used by another process.", xmlFilePath1)));
                 var expectedTemplate = (@"
@@ -2657,7 +2657,7 @@ class C {{ }}
 class C {{ }}
 ";
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
-            var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+            var actual = GetDocumentationCommentText(comp,
                 // (2,5): warning CS1589: Unable to include XML fragment 'path' of file 'c3af0dc5a3cf.xml' -- The process cannot access the file 'c3af0dc5a3cf.xml' because it is being used by another process.
                 // /// <include file='c3af0dc5a3cf.xml' path='path'/>
                 Diagnostic(ErrorCode.WRN_FailedInclude, includeElement).WithArguments(xmlFilePath, ":", "':' has an invalid token."));
@@ -2691,7 +2691,7 @@ class C {{ }}
 class C {{ }}
 ";
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, xmlFilePath2));
-            var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+            var actual = GetDocumentationCommentText(comp,
                 // 3fba660141b6.xml(1,2): warning CS1589: Unable to include XML fragment 'path' of file 'd4241d125755.xml' -- The process cannot access the file 'd4241d125755.xml' because it is being used by another process.
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath1, ":", "':' has an invalid token."));
             var expectedTemplate = (@"
@@ -2724,7 +2724,7 @@ class C {{ }}
 class C {{ }}
 ";
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
-            var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+            var actual = GetDocumentationCommentText(comp,
                 // 327697461814.xml(1,19): warning CS1592: Badly formed XML in included comments file -- 'Unexpected end of file has occurred. The following elements are not closed: OpenWithoutClose.'
                 Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("Unexpected end of file has occurred. The following elements are not closed: OpenWithoutClose."));
             var expectedTemplate = (@"
@@ -2758,7 +2758,7 @@ class C {{ }}
 class C {{ }}
 ";
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, xmlFilePath2));
-            var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+            var actual = GetDocumentationCommentText(comp,
                 // 408eee49f410.xml(1,19): warning CS1592: Badly formed XML in included comments file -- 'Unexpected end of file has occurred. The following elements are not closed: OpenWithoutClose.'
                 Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("Unexpected end of file has occurred. The following elements are not closed: OpenWithoutClose."));
             var expectedTemplate = (@"
@@ -3005,7 +3005,7 @@ enum D {{ }}
 ";
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, xmlFilePath));
 
-            var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+            var actual = GetDocumentationCommentText(comp,
                 // (2,5): warning CS1589: Unable to include XML fragment '/' of file '012bf028d62c.xml' -- The XPath expression evaluated to unexpected type System.Xml.Linq.XDocument.
                 // /// <include file="012bf028d62c.xml" path="/"/>
                 Diagnostic(ErrorCode.WRN_FailedInclude, string.Format(@"<include file=""{0}"" path=""/""/>", xmlFilePath)).WithArguments(xmlFilePath, "/", "The XPath expression evaluated to unexpected type System.Xml.Linq.XDocument."),
@@ -3714,7 +3714,7 @@ class C
 ";
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
 
-            var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+            var actual = GetDocumentationCommentText(comp,
                 // df33b60df5a9.xml(1,17): warning CS1592: Badly formed XML in included comments file -- ''name' is a duplicate attribute name.'
                 Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("'name' is a duplicate attribute name."));
             var expectedTemplate = (@"
@@ -4542,7 +4542,7 @@ class C {{ }}
 ";
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, xmlFile.Path));
 
-            var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+            var actual = GetDocumentationCommentText(comp,
                 // 054c2dcb7959.xml(1,1): warning CS1592: Badly formed XML in included comments file -- 'Data at the root level is invalid.'
                 Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("Data at the root level is invalid."));
             var expectedTemplate = (@"
@@ -4979,7 +4979,7 @@ class A { }
 ";
             var comp = CreateCompilationUtil(source);
 
-            var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+            var actual = GetDocumentationCommentText(comp,
                 // (2,4): warning CS1570: XML comment has badly formed XML -- ''WpfUtils' is an undeclared prefix.'
                 // /// <summary>
                 Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("'WpfUtils' is an undeclared prefix."));
@@ -5711,7 +5711,7 @@ public class C {} // CS1587
 class C { }
 ";
             var comp = CreateCompilationUtil(source);
-            var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+            var actual = GetDocumentationCommentText(comp,
                 // (2,4): warning CS1570: XML comment has badly formed XML -- 'The ':' character, hexadecimal value 0x3A, cannot be included in a name.'
                 // /// <summary>
                 Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("The ':' character, hexadecimal value 0x3A, cannot be included in a name."));
@@ -6182,7 +6182,7 @@ class Module1
 $@"/// <include file='{Path.Combine(path, "---.xml")}' path='//summary'/>
 class C {{ }}";
             var comp = CreateCompilationUtil(source);
-            var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
+            var actual = GetDocumentationCommentText(comp,
                 // warning CS1592: Badly formed XML in included comments file -- ''attrib' is a duplicate attribute name.'
                 Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("'attrib' is a duplicate attribute name.").WithLocation(1, 1));
             var expected =

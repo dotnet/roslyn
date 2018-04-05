@@ -18,6 +18,7 @@ Imports Microsoft.VisualStudio.Text.Projection
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
+    <[UseExportProvider]>
     Public Class SmartIndenterTests
         Private Shared s_htmlMarkup As String = <text>
 &lt;html&gt;

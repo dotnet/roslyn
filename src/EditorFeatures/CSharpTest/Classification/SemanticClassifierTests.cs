@@ -2182,7 +2182,7 @@ struct Type<T>
                 WpfTestCase.RequireWpfFact("Creates an IWpfTextView explicitly with an unrelated buffer");
                 using (var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer))
                 {
-                    var listenerProvider = new AsynchronousOperationListenerProvider();
+                    var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
                     var provider = new SemanticClassificationViewTaggerProvider(
                         workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
@@ -2213,7 +2213,7 @@ struct Type<T>
             {
                 var document = workspace.Documents.First();
 
-                var listenerProvider = new AsynchronousOperationListenerProvider();
+                var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
                 var provider = new SemanticClassificationBufferTaggerProvider(
                     workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
@@ -2502,6 +2502,56 @@ namespace OtherScope
     interface unmanaged {}
 }
 delegate void D<T>() where T : unmanaged;",
+                TypeParameter("T"),
+                Keyword("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_LocalFunction_Keyword()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        void M<T>() where T : unmanaged { }
+    }
+}",
+                TypeParameter("T"),
+                Keyword("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+class X
+{
+    void N()
+    {
+        void M<T>() where T : unmanaged { }
+    }
+}",
+                TypeParameter("T"),
+                Interface("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+class X
+{
+    void N()
+    {
+        void M<T>() where T : unmanaged { }
+    }
+}",
                 TypeParameter("T"),
                 Keyword("unmanaged"));
         }

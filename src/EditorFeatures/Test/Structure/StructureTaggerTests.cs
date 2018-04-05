@@ -19,6 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
+    [UseExportProvider]
     public class StructureTaggerTests
     {
         [WpfFact(Skip="https://github.com/dotnet/roslyn/issues/22345"), Trait(Traits.Feature, Traits.Features.Outlining)]
