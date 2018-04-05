@@ -7,15 +7,15 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
-    public class AsyncSimpleLambdaHighlighterTests : AbstractCSharpKeywordHighlighterTests
+    public class AsyncLocalFunctionHighlighterTests : AbstractCSharpKeywordHighlighterTests
     {
         internal override IHighlighter CreateHighlighter()
         {
-            return new AsyncSimpleLambdaHighlighter();
+            return new AsyncLocalFunctionHighlighter();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample3_1()
+        public async Task TestLocalFunction()
         {
             await TestAsync(
 @"using System;
@@ -31,14 +31,14 @@ class AsyncExample
 
     async Task UseAsync()
     {
-        Func<Task<int, int>> lambda = {|Cursor:[|async|]|} _ =>
+        {|Cursor:[|async|]|} Task<int> function()
         {
             return [|await|] AsyncMethod();
-        };
+        }
         int result = await AsyncMethod();
         Task<int> resultTask = AsyncMethod();
         result = await resultTask;
-        result = await lambda();
+        result = await function();
     }
 }");
         }

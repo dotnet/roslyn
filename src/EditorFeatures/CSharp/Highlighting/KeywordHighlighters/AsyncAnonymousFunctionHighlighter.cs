@@ -10,9 +10,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
 {
     [ExportHighlighter(LanguageNames.CSharp)]
-    internal class AsyncSimpleLambdaHighlighter : AbstractAsyncHighlighter<SimpleLambdaExpressionSyntax>
+    internal class AsyncAnonymousFunctionHighlighter : AbstractAsyncHighlighter<AnonymousFunctionExpressionSyntax>
     {
-        protected override IEnumerable<TextSpan> GetHighlights(SimpleLambdaExpressionSyntax node, CancellationToken cancellationToken)
+        protected override IEnumerable<TextSpan> GetHighlights(AnonymousFunctionExpressionSyntax node, CancellationToken cancellationToken)
         {
             if (node.AsyncKeyword.Kind() != SyntaxKind.AsyncKeyword)
             {
