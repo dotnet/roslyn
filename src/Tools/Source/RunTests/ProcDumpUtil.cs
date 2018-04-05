@@ -63,9 +63,8 @@ namespace RunTests
             // /accepteula command line option to automatically accept the Sysinternals license agreement.
             // -ma	Write a 'Full' dump file. Includes All the Image, Mapped and Private memory.
             // -e	Write a dump when the process encounters an unhandled exception. Include the 1 to create dump on first chance exceptions.
-            // -f C00000FD.STACK_OVERFLOW Dump when a stack overflow first chance exception is encountered.
-            // -f 80131506 Dump when COR_E_EXECUTIONENGINE first chance exception is encountered.
-            const string procDumpSwitches = "/accepteula -ma -e -f C00000FD.STACK_OVERFLOW,80131506";
+            // -g	Attach the native debugger only; ignore managed code.
+            const string procDumpSwitches = "/accepteula -ma -e 1 -g";
             Directory.CreateDirectory(dumpDirectory);
             dumpDirectory = dumpDirectory.TrimEnd('\\');
 
