@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 new JsonPatternTokenClassifier(),
                 new NameSyntaxClassifier(),
                 new SyntaxTokenClassifier(),
-                new RegexPatternTokenClassifier(),
                 new UsingDirectiveSyntaxClassifier());
 
         public override ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
