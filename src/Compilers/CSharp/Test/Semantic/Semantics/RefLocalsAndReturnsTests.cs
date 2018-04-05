@@ -13,6 +13,240 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class RefLocalsAndReturnsTests : CompilingTestBase
     {
         [Fact]
+        public void ReassignExpressionTree()
+        {
+            var comp = CreateCompilation(@"
+using System;
+using System.Linq.Expressions;
+class C
+{
+    void M()
+    {
+        int x = 0;
+        ref int rx = ref x;
+        Expression<Func<int>> e = () => (rx = ref x);
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (10,42): error CS8175: Cannot use ref local 'rx' inside an anonymous method, lambda expression, or query expression
+                //         Expression<Func<int>> e = () => (rx = ref x);
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "rx").WithArguments("rx").WithLocation(10, 42));
+        }
+
+        [Fact]
+        public void RefEscapeInFor()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(ref int r1)
+    {
+        int x = 0;
+        ref int rx = ref x;
+        for (int i = 0; i < (r1 = ref rx); i++)
+        {
+        }
+        for (int i = 0; i < 5; (r1 = ref rx)++)
+        {
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,30): error CS8374: Cannot ref-assign 'rx' to 'r1' because 'rx' has a narrower escape scope than 'r1'.
+                //         for (int i = 0; i < (r1 = ref rx); i++)
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r1 = ref rx").WithArguments("r1", "rx").WithLocation(8, 30),
+                // (11,33): error CS8374: Cannot ref-assign 'rx' to 'r1' because 'rx' has a narrower escape scope than 'r1'.
+                //         for (int i = 0; i < 5; (r1 = ref rx)++)
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r1 = ref rx").WithArguments("r1", "rx").WithLocation(11, 33));
+        }
+
+        [Fact]
+        public void RefForMultipleDeclarations()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        int x = 0;
+        for (ref int rx = ref x, ry = ref x;;) 
+        { 
+            rx += ry;
+        }
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefForNoInitializer()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        int i = 0;
+        for (ref int rx; i < 5; i++) { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,22): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         for (ref int rx; i < 5; i++) { }
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "rx").WithLocation(7, 22),
+                // (7,22): warning CS0168: The variable 'rx' is declared but never used
+                //         for (ref int rx; i < 5; i++) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "rx").WithArguments("rx").WithLocation(7, 22));
+        }
+
+        [Fact]
+        public void RefReassignVolatileField()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    volatile int _f;
+    void M()
+    {
+        ref int rx = ref _f;
+        rx = ref _f;
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefReassignDynamic()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(ref dynamic rd)
+    {
+        ref var rd2 = ref rd.Length; // Legal
+        rd = ref rd.Length; // Error, escape scope is local
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8374: Cannot ref-assign 'rd.Length' to 'rd' because 'rd.Length' has a narrower escape scope than 'rd'.
+                //         rd = ref rd.Length; // Error, escape scope is local
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "rd = ref rd.Length").WithArguments("rd", "rd.Length").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void RefReassignIsUse()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    private int _f = 0;
+
+    void M()
+    {
+        int x = 0, y = 0;
+        ref int rx = ref x;
+        rx = ref y;
+        rx = ref _f;
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NoRefReassignThisInStruct()
+        {
+            var comp = CreateCompilation(@"
+struct S
+{
+    void M(ref S s)
+    {
+        s = ref this;
+        this = ref s;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8374: Cannot ref-assign 'this' to 's' because 'this' has a narrower escape scope than 's'.
+                //         s = ref this;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref this").WithArguments("s", "this").WithLocation(6, 9),
+                // (7,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         this = ref s;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void RefReassignLifetimeIsLHS()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    ref int M()
+    {
+        int x = 0;
+        ref int rx = ref x;
+        return ref (rx = ref (new int[1])[0]);
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,21): error CS8157: Cannot return 'rx' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref (rx = ref (new int[1])[0]);
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "rx = ref (new int[1])[0]").WithArguments("rx").WithLocation(8, 21));
+        }
+
+        [Fact]
+        public void InReassignmentWithConversion()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(string s)
+    {
+        ref string rs = ref s;
+        M2(in (rs = ref s));
+    }
+    void M2(in object o) {}
+}");
+            comp.VerifyDiagnostics(
+                // (7,16): error CS1503: Argument 1: cannot convert from 'in string' to 'in object'
+                //         M2(in (rs = ref s));
+                Diagnostic(ErrorCode.ERR_BadArgType, "rs = ref s").WithArguments("1", "in string", "in object").WithLocation(7, 16));
+        }
+
+        [Fact]
+        public void RefEscapeInForeach()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    ref int M(Span<int> s)
+    {
+        foreach (ref int x in s)
+        {
+            if (x == 0)
+            {
+                return ref x; // OK
+            }
+        }
+
+        Span<int> s2 = stackalloc int[10];
+        foreach (ref int x in s2)
+        {
+            if (x == 0)
+            {
+                return ref x; // error
+            }
+        }
+
+        return ref s[0];
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (20,28): error CS8157: Cannot return 'x' by reference because it was initialized to a value that cannot be returned by reference
+                //                 return ref x; // error
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "x").WithArguments("x").WithLocation(20, 28));
+        }
+
+        [Fact]
         public void RefFor72()
         {
             var comp = CreateCompilation(@"
