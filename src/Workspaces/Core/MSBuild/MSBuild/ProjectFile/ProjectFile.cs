@@ -162,7 +162,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 commandLineArgs = ReadCommandLineArgs(project);
             }
 
-            // return AdjustPlatformCommandLineArg(commandLineArgs);
             return commandLineArgs;
         }
 
