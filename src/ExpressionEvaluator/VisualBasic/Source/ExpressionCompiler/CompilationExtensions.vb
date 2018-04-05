@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim options = s_compilationOptions
             If referencesByIdentity IsNot Nothing Then
                 Debug.Assert(kind = MakeAssemblyReferencesKind.AllReferences)
-                Dim resolver = New EEMetadataReferenceResolver(referencesByIdentity)
+                Dim resolver = New EEMetadataReferenceResolver(IdentityComparer, referencesByIdentity)
                 options = options.WithMetadataReferenceResolver(resolver)
             End If
             Return VisualBasicCompilation.Create(

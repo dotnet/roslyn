@@ -8,14 +8,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal sealed class EEMetadataReferenceResolver : MetadataReferenceResolver
     {
-        private readonly Dictionary<AssemblyIdentity, MetadataReference> _referencesByIdentity;
+        private readonly AssemblyIdentityComparer _identityComparer;
+        private readonly Dictionary<string, ImmutableArray<(AssemblyIdentity, MetadataReference)>> _referencesByIdentity;
 
 #if DEBUG
-        internal readonly Dictionary<AssemblyIdentity, int> Requests = new Dictionary<AssemblyIdentity, int>();
+        internal readonly Dictionary<AssemblyIdentity, (AssemblyIdentity Identity, int Count)> Requests = new Dictionary<AssemblyIdentity, (AssemblyIdentity Identity, int Count)>();
 #endif
 
-        internal EEMetadataReferenceResolver(Dictionary<AssemblyIdentity, MetadataReference> referencesByIdentity)
+        internal EEMetadataReferenceResolver(AssemblyIdentityComparer identityComparer, Dictionary<string, ImmutableArray<(AssemblyIdentity, MetadataReference)>> referencesByIdentity)
         {
+            _identityComparer = identityComparer;
             _referencesByIdentity = referencesByIdentity;
         }
 
@@ -23,14 +25,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public override PortableExecutableReference ResolveMissingAssembly(MetadataReference definition, AssemblyIdentity referenceIdentity)
         {
+            ImmutableArray<(AssemblyIdentity, MetadataReference)> pairs;
+            (AssemblyIdentity, MetadataReference) pair = default;
+            if (_referencesByIdentity.TryGetValue(referenceIdentity.Name, out pairs))
+            {
+                // TODO: Use _identityComparer to return the appropriate version.
+                pair = pairs[0];
+            }
 #if DEBUG
-            int n;
-            Requests.TryGetValue(referenceIdentity, out n);
-            Requests[referenceIdentity] = n + 1;
+            (AssemblyIdentity Identity, int Count) request;
+            if (!Requests.TryGetValue(referenceIdentity, out request))
+            {
+                request = (referenceIdentity, 0);
+            }
+            Requests[referenceIdentity] = (pair.Item1, request.Count + 1);
 #endif
-            MetadataReference reference;
-            _referencesByIdentity.TryGetValue(referenceIdentity, out reference);
-            return (PortableExecutableReference)reference;
+            return (PortableExecutableReference)pair.Item2;
         }
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)

@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 previous = null;
             }
-            if (previous != null && previous.ModuleVersionId != moduleVersionId)
+            if (previous != null && previous.ModuleVersionId != moduleVersionId) // TODO: ModuleVersionId should be compared against default if AllAssemblies.
             {
                 previous = null;
             }

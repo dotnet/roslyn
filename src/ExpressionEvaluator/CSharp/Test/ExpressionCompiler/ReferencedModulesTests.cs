@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     testData: null);
                 Assert.Equal("error CS0012: The type 'A1' is defined in an assembly that is not referenced. You must add a reference to assembly 'A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.", error);
                 AssertEx.Equal(new[] { identityA1 }, missingAssemblyIdentities);
-                VerifyResolutionRequests(context, (identityA1, 1));
+                VerifyResolutionRequests(context, (identityA1, identityA1, 1));
 
                 context = EvaluationContext.CreateMethodContext(
                     default(CSharpMetadataContext),
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 IL_0000:  newobj     ""B2..ctor()""
 IL_0005:  ret
 }");
-                VerifyResolutionRequests(context, (identityA1, 1));
+                VerifyResolutionRequests(context, (identityA1, identityA1, 1));
 
                 context = EvaluationContext.CreateMethodContext(
                     default(CSharpMetadataContext),
@@ -113,9 +113,198 @@ IL_0005:  ret
 IL_0000:  newobj     ""B2..ctor()""
 IL_0005:  ret
 }");
-                VerifyResolutionRequests(context, (identityA1, 1));
+                VerifyResolutionRequests(context, (identityA1, identityA1, 1));
 
                 // TODO: Test { A1.M, B1.M, C.M } with all assemblies.
+            }
+        }
+
+        [Fact]
+        public void DifferentVersions()
+        {
+            var (identityMscorlib, moduleMscorlib) = (MscorlibRef.GetAssemblyIdentity(), MscorlibRef.ToModuleInstance());
+            var (identityA1, moduleA1, refA1) = Compile(new AssemblyIdentity("A", new Version(1, 1, 1, 1)), "public class A { }", MscorlibRef);
+            var (identityA2, moduleA2, refA2) = Compile(new AssemblyIdentity("A", new Version(2, 2, 2, 2)), "public class A { }", MscorlibRef);
+            var (identityA3, moduleA3, refA3) = Compile(new AssemblyIdentity("a", new Version(3, 3, 3, 3)), "public class A { }", MscorlibRef);
+            var (identityB1, moduleB1, refB1) = Compile(new AssemblyIdentity("B", new Version(1, 1, 1, 1)), "public class B : A { static void M() { } }", refA2, MscorlibRef);
+
+            using (var runtime = CreateRuntimeInstance(new[] { moduleMscorlib, moduleA1, moduleA2, moduleA3, moduleB1 }))
+            {
+                var (moduleVersionId, symReader, methodToken, localSignatureToken, ilOffset) = GetContextState(runtime, "B.M");
+
+                // Expected version of A.
+                var context = EvaluationContext.CreateMethodContext(
+                    default(CSharpMetadataContext),
+                    ImmutableArray.Create(moduleMscorlib, moduleA2, moduleB1).SelectAsArray(m => m.MetadataBlock),
+                    symReader,
+                    moduleVersionId,
+                    methodToken: methodToken,
+                    methodVersion: 1,
+                    ilOffset: ilOffset,
+                    localSignatureToken: localSignatureToken,
+                    kind: MakeAssemblyReferencesKind.AllReferences);
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("new B()", out error, testData);
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""B..ctor()""
+IL_0005:  ret
+}");
+                VerifyResolutionRequests(context, (identityA2, identityA2, 1));
+
+                // Higher version of A.
+                context = EvaluationContext.CreateMethodContext(
+                    default(CSharpMetadataContext),
+                    ImmutableArray.Create(moduleMscorlib, moduleA3, moduleB1).SelectAsArray(m => m.MetadataBlock),
+                    symReader,
+                    moduleVersionId,
+                    methodToken: methodToken,
+                    methodVersion: 1,
+                    ilOffset: ilOffset,
+                    localSignatureToken: localSignatureToken,
+                    kind: MakeAssemblyReferencesKind.AllReferences);
+                testData = new CompilationTestData();
+                context.CompileExpression("new B()", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""B..ctor()""
+IL_0005:  ret
+}");
+                VerifyResolutionRequests(context, (identityA2, identityA3, 1));
+
+                // Lower version of A.
+                context = EvaluationContext.CreateMethodContext(
+                    default(CSharpMetadataContext),
+                    ImmutableArray.Create(moduleMscorlib, moduleA1, moduleB1).SelectAsArray(m => m.MetadataBlock),
+                    symReader,
+                    moduleVersionId,
+                    methodToken: methodToken,
+                    methodVersion: 1,
+                    ilOffset: ilOffset,
+                    localSignatureToken: localSignatureToken,
+                    kind: MakeAssemblyReferencesKind.AllReferences);
+                testData = new CompilationTestData();
+                context.CompileExpression("new B()", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""B..ctor()""
+IL_0005:  ret
+}");
+                VerifyResolutionRequests(context, (identityA2, identityA1, 1));
+
+                // Multiple versions of A.
+                context = EvaluationContext.CreateMethodContext(
+                    default(CSharpMetadataContext),
+                    ImmutableArray.Create(moduleMscorlib, moduleA1, moduleA3, moduleA2, moduleB1).SelectAsArray(m => m.MetadataBlock),
+                    symReader,
+                    moduleVersionId,
+                    methodToken: methodToken,
+                    methodVersion: 1,
+                    ilOffset: ilOffset,
+                    localSignatureToken: localSignatureToken,
+                    kind: MakeAssemblyReferencesKind.AllReferences);
+                testData = new CompilationTestData();
+                context.CompileExpression("new B()", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""B..ctor()""
+IL_0005:  ret
+}");
+                VerifyResolutionRequests(context, (identityA2, identityA2, 1));
+
+                // Duplicate versions of A.
+                context = EvaluationContext.CreateMethodContext(
+                    default(CSharpMetadataContext),
+                    ImmutableArray.Create(moduleMscorlib, moduleA3, moduleA1, moduleA3, moduleA1, moduleB1).SelectAsArray(m => m.MetadataBlock),
+                    symReader,
+                    moduleVersionId,
+                    methodToken: methodToken,
+                    methodVersion: 1,
+                    ilOffset: ilOffset,
+                    localSignatureToken: localSignatureToken,
+                    kind: MakeAssemblyReferencesKind.AllReferences);
+                testData = new CompilationTestData();
+                context.CompileExpression("new B()", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""B..ctor()""
+IL_0005:  ret
+}");
+                VerifyResolutionRequests(context, (identityA2, identityA3, 1));
+            }
+        }
+
+        [Fact]
+        public void DuplicateNamedCorLib()
+        {
+            var (identityMscorlib, moduleMscorlib) = (MscorlibRef.GetAssemblyIdentity(), MscorlibRef.ToModuleInstance());
+            var (identityA, moduleA, refA) = Compile(new AssemblyIdentity(identityMscorlib.Name, new Version(1, 1, 1, 1)), "public class A { }", MscorlibRef);
+            var (identityB, moduleB, refB) = Compile(new AssemblyIdentity("B", new Version(1, 1, 1, 1)), "public class B : A { static void M() { } }", refA, MscorlibRef);
+
+            using (var runtime = CreateRuntimeInstance(new[] { moduleMscorlib, moduleA, moduleB }))
+            {
+                var (moduleVersionId, symReader, methodToken, localSignatureToken, ilOffset) = GetContextState(runtime, "B.M");
+
+                var context = EvaluationContext.CreateMethodContext(
+                    default(CSharpMetadataContext),
+                    ImmutableArray.Create(moduleMscorlib, moduleA, moduleB).SelectAsArray(m => m.MetadataBlock),
+                    symReader,
+                    moduleVersionId,
+                    methodToken: methodToken,
+                    methodVersion: 1,
+                    ilOffset: ilOffset,
+                    localSignatureToken: localSignatureToken,
+                    kind: MakeAssemblyReferencesKind.AllReferences);
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("new B()", out error, testData);
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""B..ctor()""
+IL_0005:  ret
+}");
+                VerifyResolutionRequests(context, (identityA, identityA, 1));
+
+                context = EvaluationContext.CreateMethodContext(
+                    default(CSharpMetadataContext),
+                    ImmutableArray.Create(moduleB, moduleA, moduleMscorlib).SelectAsArray(m => m.MetadataBlock),
+                    symReader,
+                    moduleVersionId,
+                    methodToken: methodToken,
+                    methodVersion: 1,
+                    ilOffset: ilOffset,
+                    localSignatureToken: localSignatureToken,
+                    kind: MakeAssemblyReferencesKind.AllReferences);
+                testData = new CompilationTestData();
+                context.CompileExpression("new B()", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""B..ctor()""
+IL_0005:  ret
+}");
+                VerifyResolutionRequests(context, (identityA, identityA, 1));
             }
         }
 
@@ -152,7 +341,7 @@ IL_0005:  ret
                 context = CreateMethodContext(appDomain, blocks, stateB2);
                 Assert.NotSame(context, previous.AssemblyContext.EvaluationContext);
                 Assert.Same(context.Compilation, previous.AssemblyContext.Compilation);
-                VerifyResolutionRequests(context, (identityA1, 1));
+                VerifyResolutionRequests(context, (identityA1, identityA1, 1));
                 // A1.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateA1);
@@ -193,13 +382,13 @@ IL_0005:  ret
                 context = CreateMethodContext(appDomain, blocks, stateB1);
                 Assert.NotSame(context, previous.AssemblyContext.EvaluationContext);
                 Assert.NotSame(context.Compilation, previous.AssemblyContext.Compilation);
-                VerifyResolutionRequests(context, (identityA1, 1));
+                VerifyResolutionRequests(context, (identityA1, identityA1, 1));
                 // B2.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateB2);
                 Assert.NotSame(context, previous.AssemblyContext.EvaluationContext);
                 Assert.Same(context.Compilation, previous.AssemblyContext.Compilation);
-                VerifyResolutionRequests(context, (identityA1, 1));
+                VerifyResolutionRequests(context, (identityA1, identityA1, 1));
             }
         }
 
@@ -469,6 +658,14 @@ IL_0005:  ret
             return (compilation.Assembly.Identity, module, module.GetReference());
         }
 
+        private static (AssemblyIdentity Identity, ModuleInstance Module, MetadataReference Reference) Compile(AssemblyIdentity identity, string source, params MetadataReference[] references)
+        {
+            var compilation = CreateCompilation(identity, new[] { source }, references: references, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+            var module = compilation.ToModuleInstance();
+            return (compilation.Assembly.Identity, module, module.GetReference());
+        }
+
         private static void VerifyAssemblyReferences(
             MetadataReference target,
             ImmutableArray<MetadataReference> references,
@@ -481,7 +678,7 @@ IL_0005:  ret
                 var moduleVersionId = target.GetModuleVersionId();
                 var blocks = runtime.Modules.SelectAsArray(m => m.MetadataBlock);
 
-                Dictionary<AssemblyIdentity, MetadataReference> referencesByIdentity;
+                Dictionary<string, ImmutableArray<(AssemblyIdentity, MetadataReference)>> referencesByIdentity;
                 var actualReferences = blocks.MakeAssemblyReferences(moduleVersionId, CompilationExtensions.IdentityComparer, MakeAssemblyReferencesKind.DirectReferencesOnly, out referencesByIdentity);
                 Assert.Null(referencesByIdentity);
                 // Verify identities.
@@ -497,30 +694,28 @@ IL_0005:  ret
                 foreach (var reference in references)
                 {
                     var identity = reference.GetAssemblyIdentity();
-                    var other = referencesByIdentity[identity];
-                    Assert.Equal(identity, other.GetAssemblyIdentity());
+                    var other = referencesByIdentity[identity.Name];
+                    Assert.Equal(identity, other[0].Item1);
                 }
             }
         }
 
-        private static void VerifyResolutionRequests(EvaluationContext context, params (AssemblyIdentity, int)[] expectedRequests)
+        private static void VerifyResolutionRequests(EvaluationContext context, params (AssemblyIdentity, AssemblyIdentity, int)[] expectedRequests)
         {
             var resolver = (EEMetadataReferenceResolver)context.Compilation.Options.MetadataReferenceResolver;
-            var expected = ArrayBuilder<(AssemblyIdentity, int)>.GetInstance();
-            var actual = ArrayBuilder<(AssemblyIdentity, int)>.GetInstance();
+            var expected = ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)>.GetInstance();
+            var actual = ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)>.GetInstance();
             expected.AddRange(expectedRequests);
-            expected.Sort(compare);
-            actual.AddRange(resolver.Requests.Select(pair => (pair.Key, pair.Value)));
-            actual.Sort(compare);
+            sort(expected);
+            actual.AddRange(resolver.Requests.Select(pair => (pair.Key, pair.Value.Identity, pair.Value.Count)));
+            sort(actual);
             AssertEx.Equal(expected, actual);
             actual.Free();
             expected.Free();
 
-            int compare((AssemblyIdentity, int) x, (AssemblyIdentity, int) y)
+            void sort(ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)> builder)
             {
-                var xName = x.Item1.GetDisplayName();
-                var yName = y.Item1.GetDisplayName();
-                return xName.CompareTo(yName);
+                builder.Sort((x, y) => AssemblyIdentityComparer.SimpleNameComparer.Compare(x.Item1, y.Item1));
             }
         }
 

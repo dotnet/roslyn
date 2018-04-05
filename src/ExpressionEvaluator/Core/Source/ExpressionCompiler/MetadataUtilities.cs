@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Guid moduleVersionId,
             AssemblyIdentityComparer identityComparer,
             MakeAssemblyReferencesKind kind,
-            out Dictionary<AssemblyIdentity, MetadataReference> referencesByIdentity)
+            out Dictionary<string, ImmutableArray<(AssemblyIdentity, MetadataReference)>> referencesByIdentity)
         {
             Debug.Assert(kind == MakeAssemblyReferencesKind.AllAssemblies || moduleVersionId != default(Guid));
             Debug.Assert(kind == MakeAssemblyReferencesKind.AllAssemblies || identityComparer != null);
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // Build assembly references from modules in primary module manifests.
             var referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
             var identitiesBuilder = (kind == MakeAssemblyReferencesKind.DirectReferencesOnly) ? ArrayBuilder<AssemblyIdentity>.GetInstance() : null;
-            referencesByIdentity = (kind == MakeAssemblyReferencesKind.AllReferences) ? new Dictionary<AssemblyIdentity, MetadataReference>() : null;
+            referencesByIdentity = (kind == MakeAssemblyReferencesKind.AllReferences) ? new Dictionary<string, ImmutableArray<(AssemblyIdentity, MetadataReference)>>(StringComparer.OrdinalIgnoreCase) : null;
             ModuleMetadata targetModule = null;
             AssemblyIdentity intrinsicsAssembly = null;
             MetadataReference targetReference = null;
@@ -145,11 +145,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var identity = reader.ReadAssemblyIdentityOrThrow();
                     if (referencesByIdentity != null)
                     {
-                        // TODO: Store different versions, indexed by same key.
-                        if (!referencesByIdentity.ContainsKey(identity))
+                        string identityKey = identity.Name;
+                        ImmutableArray<(AssemblyIdentity, MetadataReference)> references;
+                        if (!referencesByIdentity.TryGetValue(identityKey, out references))
                         {
-                            referencesByIdentity.Add(identity, reference);
+                            references = ImmutableArray<(AssemblyIdentity, MetadataReference)>.Empty;
                         }
+                        referencesByIdentity[identityKey] = references.Add((identity, reference));
                     }
                     if (targetReference == null &&
                         reader.GetModuleVersionIdOrThrow() == moduleVersionId)
@@ -184,9 +186,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // CommonReferenceManager<TCompilation, TAssemblySymbol>.Bind()
                 // expects COR library to be included in the explicit assemblies (see bug #...).
                 Debug.Assert(corLibrary != null);
-                if (corLibrary != null && referencesByIdentity.TryGetValue(corLibrary, out var corLibraryReference))
+                if (corLibrary != null && referencesByIdentity.TryGetValue(corLibrary.Name, out var corLibraryReferences))
                 {
-                    referencesBuilder.Add(corLibraryReference);
+                    referencesBuilder.Add(corLibraryReferences[0].Item2);
                 }
                 Debug.Assert(targetReference != null);
                 if (targetReference != null)
