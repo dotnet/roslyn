@@ -463,7 +463,7 @@ Block[B0] - Entry
 }
 .finally {R3}
 {
-    Block[B2] - Block [UnReachable]
+    Block[B2] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = 1')
