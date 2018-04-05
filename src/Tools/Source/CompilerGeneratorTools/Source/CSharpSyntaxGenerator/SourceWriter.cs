@@ -927,6 +927,13 @@ namespace CSharpSyntaxGenerator
             }
         }
 
+        private List<Field> GetNodeOrNodeListFields(TreeType node)
+            => node is AbstractNode an
+                ? an.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList()
+                : node is Node nd
+                    ? nd.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList()
+                    : new List<Field>();
+
         private void WriteRedType(TreeType node)
         {
             WriteComment(node.TypeComment, "  ");
@@ -942,7 +949,7 @@ namespace CSharpSyntaxGenerator
                 WriteLine("    }");
 
                 var valueFields = nd.Fields.Where(n => !IsNodeOrNodeList(n.Type)).ToList();
-                var nodeFields = nd.Fields.Where(n => IsNodeOrNodeList(n.Type)).ToList();
+                var nodeFields = GetNodeOrNodeListFields(nd);
 
                 for (int i = 0, n = nodeFields.Count; i < n; i++)
                 {
@@ -950,10 +957,12 @@ namespace CSharpSyntaxGenerator
                     if (IsNodeOrNodeList(field.Type))
                     {
                         //red SyntaxLists can't contain tokens, so we switch to SyntaxTokenList
-                        var fieldType = field.Type == "SyntaxList<SyntaxToken>" ? "SyntaxTokenList" : field.Type;
+                        var fieldType = GetRedFieldType(field);
                         WriteLine();
                         WriteComment(field.PropertyComment, "    ");
                         WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), fieldType, field.Name);
+                        WriteLine($"    public {node.Name} With{field.Name}({fieldType} {CamelCase(field.Name)}) => With{field.Name}Core({CamelCase(field.Name)});");
+                        WriteLine($"    internal abstract {node.Name} With{field.Name}Core({fieldType} {CamelCase(field.Name)});");
                     }
                 }
 
@@ -963,6 +972,21 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                     WriteComment(field.PropertyComment, "    ");
                     WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                }
+
+                var baseType = GetTreeType(node.Base);
+                if (baseType != null)
+                {
+                    var baseNodeFields = GetNodeOrNodeListFields(baseType);
+                    if (baseNodeFields.Count > 0)
+                    {
+                        WriteLine();
+                    }
+
+                    foreach (var baseField in baseNodeFields)
+                    {
+                        WriteLine($"    public new {node.Name} With{baseField.Name}({GetRedFieldType(baseField)} {CamelCase(baseField.Name)}) => ({node.Name})With{baseField.Name}Core({CamelCase(baseField.Name)});");
+                    }
                 }
 
                 WriteLine("  }");
@@ -1141,11 +1165,16 @@ namespace CSharpSyntaxGenerator
                 this.WriteRedAcceptMethods(nd);
                 this.WriteRedUpdateMethod(nd);
                 // this.WriteRedWithMethod(nd);
-                this.WriteRedSetters(nd);
+                this.WriteRedWithMethods(nd);
                 this.WriteRedListHelperMethods(nd);
 
                 WriteLine("  }");
             }
+        }
+
+        private static string GetRedFieldType(Field field)
+        {
+            return field.Type == "SyntaxList<SyntaxToken>" ? "SyntaxTokenList" : field.Type;
         }
 
         private string GetChildPosition(int i)
@@ -1320,7 +1349,7 @@ namespace CSharpSyntaxGenerator
             WriteLine("    }");
         }
 
-        private void WriteRedSetters(Node node)
+        private void WriteRedWithMethods(Node node)
         {
             for (int f = 0; f < node.Fields.Count; f++)
             {
@@ -1328,7 +1357,20 @@ namespace CSharpSyntaxGenerator
                 var type = this.GetRedPropertyType(field);
 
                 WriteLine();
-                WriteLine("    {0} {1} With{2}({3} {4})", "public", node.Name, StripPost(field.Name, "Opt"), type, CamelCase(field.Name));
+
+                var isNew = false;
+                if (IsOverride(field))
+                {
+                    var baseType = GetBaseTypeWithField(node, field.Name);
+                    if (baseType != null)
+                    {
+                        // Console.WriteLine($"Could not find base type for {node.Name}.{field.Name}");
+                        WriteLine($"    internal override {baseType.Name} With{field.Name}Core({type} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)});");
+                        isNew = true;
+                    }
+                }
+
+                WriteLine($"    public{(isNew ? " new " : " ")}{node.Name} With{StripPost(field.Name, "Opt")}({type} {CamelCase(field.Name)})");
                 WriteLine("    {");
 
                 // call update inside each setter
@@ -1353,6 +1395,29 @@ namespace CSharpSyntaxGenerator
                 WriteLine("    }");
             }
         }
+
+        private TreeType GetBaseTypeWithField(TreeType node, string name)
+        {
+            TreeType bestType = null;
+            for (var current = node; current != null; current = TryGetBaseType(current))
+            {
+                var fields = GetNodeOrNodeListFields(current);
+                var field = fields.FirstOrDefault(f => f.Name == name);
+                if (field != null)
+                {
+                    bestType = current;
+                }
+            }
+
+            return bestType;
+        }
+
+        private TreeType TryGetBaseType(TreeType node)
+            => node is AbstractNode an
+                ? GetTreeType(an.Base)
+                : node is Node n
+                    ? GetTreeType(n.Base)
+                    : null;
 
         private void WriteRedListHelperMethods(Node node)
         {
