@@ -1699,10 +1699,10 @@ namespace Microsoft.CodeAnalysis.Operations
             var whenNull = new BasicBlock(BasicBlockKind.Block);
             Optional<object> constantValue = operation.Value.ConstantValue;
 
-            SemanticModel semanticModel = ((Operation)operation).SemanticModel;
+            Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
             LinkBlocks(CurrentBasicBlock,
-                       (Operation.SetParentOperation(MakeIsNullOperation(semanticModel,
-                                                                         new FlowCaptureReference(testExpressionCaptureId, valueSyntax, valueTypeOpt, constantValue)),
+                       (Operation.SetParentOperation(MakeIsNullOperation(new FlowCaptureReference(testExpressionCaptureId, valueSyntax, valueTypeOpt, constantValue),
+                                                                         compilation),
                                                      null),
                         true,
                         RegularBranch(whenNull)));
@@ -1719,7 +1719,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (ITypeSymbolHelpers.IsNullableType(valueTypeOpt) &&
                     (!testConversion.IsIdentity || !ITypeSymbolHelpers.IsNullableType(operation.Type)))
                 {
-                    possiblyUnwrappedValue = TryUnwrapNullableValue(capturedValue, semanticModel);
+                    possiblyUnwrappedValue = TryUnwrapNullableValue(capturedValue, compilation);
                     // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
                 }
                 else
@@ -1776,21 +1776,21 @@ namespace Microsoft.CodeAnalysis.Operations
                                         constantValue: default, isImplicit: true);
         }
 
-        private static IsNullOperation MakeIsNullOperation(SemanticModel semanticModel, IOperation operand)
+        private static IsNullOperation MakeIsNullOperation(IOperation operand, Compilation compilation)
         {
             Optional<object> constantValue = operand.ConstantValue;
             return new IsNullOperation(operand.Syntax, operand,
-                                       semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean),
+                                       compilation.GetSpecialType(SpecialType.System_Boolean),
                                        constantValue.HasValue ? new Optional<object>(constantValue.Value == null) : default);
         }
 
-        private static IOperation TryUnwrapNullableValue(IOperation value, SemanticModel semanticModel)
+        private static IOperation TryUnwrapNullableValue(IOperation value, Compilation compilation)
         {
             ITypeSymbol valueType = value.Type;
 
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(valueType));
 
-            var method = (IMethodSymbol)semanticModel.Compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            var method = (IMethodSymbol)compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             if (method != null)
             {
@@ -1822,7 +1822,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             var whenNull = new BasicBlock(BasicBlockKind.Block);
 
-            SemanticModel semanticModel = ((Operation)operation).SemanticModel;
+            Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
             IConditionalAccessOperation currentConditionalAccess = operation;
             IOperation testExpression;
 
@@ -1836,8 +1836,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 Optional<object> constantValue = testExpression.ConstantValue;
 
                 LinkBlocks(CurrentBasicBlock,
-                           (Operation.SetParentOperation(MakeIsNullOperation(semanticModel,
-                                                                             new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, constantValue)),
+                           (Operation.SetParentOperation(MakeIsNullOperation(new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, constantValue),
+                                                                             compilation),
                                                          null),
                             true,
                             RegularBranch(whenNull)));
@@ -1847,7 +1847,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (ITypeSymbolHelpers.IsNullableType(testExpressionType))
                 {
-                    receiver = TryUnwrapNullableValue(receiver, semanticModel) ??
+                    receiver = TryUnwrapNullableValue(receiver, compilation) ??
                                // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
                                MakeInvalidOperation(((INamedTypeSymbol)testExpressionType).TypeArguments[0], receiver);
                 }
@@ -1892,7 +1892,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     IOperation access = Visit(currentConditionalAccess.WhenNotNull);
                     AddStatement(new FlowCapture(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax,
-                                                 TryMakeNullableValue((INamedTypeSymbol)operation.Type, access, semanticModel) ??
+                                                 TryMakeNullableValue((INamedTypeSymbol)operation.Type, access, compilation) ??
                                                  // PROTOTYPE(dataflow): The scenario with missing constructor is not covered by unit-tests.
                                                  MakeInvalidOperation(operation.Type, access)));
                 }
@@ -1924,11 +1924,11 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private static IOperation TryMakeNullableValue(INamedTypeSymbol type, IOperation underlyingValue, SemanticModel semanticModel)
+        private static IOperation TryMakeNullableValue(INamedTypeSymbol type, IOperation underlyingValue, Compilation compilation)
         {
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(type));
 
-            var method = (IMethodSymbol)semanticModel.Compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor);
+            var method = (IMethodSymbol)compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor);
 
             if (method != null)
             {
@@ -2331,8 +2331,8 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Debug.Assert(operation == _currentStatement);
 
-            SemanticModel semanticModel = ((Operation)operation).SemanticModel;
-            ITypeSymbol iDisposable = semanticModel.Compilation.GetSpecialType(SpecialType.System_IDisposable);
+            Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
+            ITypeSymbol iDisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
 
             if (operation.Resources.Kind == OperationKind.VariableDeclarationGroup)
             {
@@ -2459,7 +2459,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (!(resource.Type?.IsValueType == true && !ITypeSymbolHelpers.IsNullableType(resource.Type)))
                 {
-                    IOperation condition = MakeIsNullOperation(semanticModel, OperationCloner.CloneOperation(resource));
+                    IOperation condition = MakeIsNullOperation(OperationCloner.CloneOperation(resource), compilation);
                     condition = Operation.SetParentOperation(condition, null);
                     LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: true, RegularBranch(endOfFinally)));
                     _currentBasicBlock = null;
@@ -2493,7 +2493,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 Debug.Assert(value.Type == iDisposable);
 
-                var method = (IMethodSymbol)semanticModel.Compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
+                var method = (IMethodSymbol)compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
                 if (method != null)
                 {
                     return new InvocationExpression(method, value, isVirtual: true,
