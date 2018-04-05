@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="dag"></param>
         /// <param name="replacement"></param>
         /// <returns></returns>
-        public BoundDecisionDagNode TrivialReplacement(BoundDecisionDagNode dag, Func<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
+        public static BoundDecisionDagNode TrivialReplacement(BoundDecisionDagNode dag, Func<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
         {
             switch (dag)
             {
@@ -192,5 +192,99 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+#if DEBUG
+        /// <summary>
+        /// Starting with `this` state, produce a human-readable description of the state tables.
+        /// This is very useful for debugging and optimizing the dag state construction.
+        /// </summary>
+        internal new string Dump()
+        {
+            var allStates = this.TopologicallySortedNodes;
+            var stateIdentifierMap = PooledDictionary<BoundDecisionDagNode, int>.GetInstance();
+            for (int i = 0; i < allStates.Length; i++)
+            {
+                stateIdentifierMap.Add(allStates[i], i);
+            }
+
+            int nextTempNumber = 0;
+            var tempIdentifierMap = PooledDictionary<BoundDagEvaluation, int>.GetInstance();
+            int tempIdentifier(BoundDagEvaluation e)
+            {
+                return (e == null) ? 0 : tempIdentifierMap.TryGetValue(e, out int value) ? value : tempIdentifierMap[e] = ++nextTempNumber;
+            }
+
+            string tempName(BoundDagTemp t)
+            {
+                return $"t{tempIdentifier(t.Source)}{(t.Index != 0 ? $".{t.Index.ToString()}" : "")}";
+            }
+
+            var resultBuilder = PooledStringBuilder.GetInstance();
+            var result = resultBuilder.Builder;
+
+            foreach (var state in allStates)
+            {
+                result.AppendLine($"State " + stateIdentifierMap[state]);
+                switch (state)
+                {
+                    case BoundTestDecisionDagNode node:
+                        result.AppendLine($"  Test: {dump(node.Test)}");
+                        if (node.WhenTrue != null)
+                        {
+                            result.AppendLine($"  WhenTrue: {stateIdentifierMap[node.WhenTrue]}");
+                        }
+
+                        if (node.WhenFalse != null)
+                        {
+                            result.AppendLine($"  WhenFalse: {stateIdentifierMap[node.WhenFalse]}");
+                        }
+                        break;
+                    case BoundEvaluationDecisionDagNode node:
+                        result.AppendLine($"  Test: {dump(node.Evaluation)}");
+                        if (node.Next != null)
+                        {
+                            result.AppendLine($"  Next: {stateIdentifierMap[node.Next]}");
+                        }
+                        break;
+                    case BoundWhenDecisionDagNode node:
+                        result.AppendLine($"  WhenClause: " + node.WhenExpression.Syntax);
+                        if (node.WhenTrue != null)
+                        {
+                            result.AppendLine($"  WhenTrue: {stateIdentifierMap[node.WhenTrue]}");
+                        }
+
+                        if (node.WhenFalse != null)
+                        {
+                            result.AppendLine($"  WhenFalse: {stateIdentifierMap[node.WhenFalse]}");
+                        }
+                        break;
+                    case BoundLeafDecisionDagNode node:
+                        result.AppendLine($"  Case: " + node.Syntax);
+                        break;
+                }
+            }
+
+            stateIdentifierMap.Free();
+            tempIdentifierMap.Free();
+            return resultBuilder.ToStringAndFree();
+
+            string dump(BoundDagTest d)
+            {
+                switch (d)
+                {
+                    case BoundDagTypeEvaluation a:
+                        return $"t{tempIdentifier(a)}={a.Kind}({a.Type.ToString()})";
+                    case BoundDagEvaluation e:
+                        return $"t{tempIdentifier(e)}={e.Kind}";
+                    case BoundDagTypeTest b:
+                        return $"?{d.Kind}({b.Type.ToString()}, {tempName(d.Input)})";
+                    case BoundDagValueTest v:
+                        return $"?{d.Kind}({v.Value.ToString()}, {tempName(d.Input)})";
+                    default:
+                        return $"?{d.Kind}({tempName(d.Input)})";
+                }
+            }
+        }
+#endif
     }
 }

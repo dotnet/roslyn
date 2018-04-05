@@ -145,6 +145,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this._mightAssignSomething;
                 }
 
+                public override BoundNode VisitReturnStatement(BoundReturnStatement node)
+                {
+                    if (node.RefKind != RefKind.None)
+                    {
+                        // might be taking a ref to a variable in a lambda that the caller assigns.
+                        this._mightAssignSomething = true;
+                        return null;
+                    }
+
+                    return base.VisitReturnStatement(node);
+                }
+
                 public override BoundNode VisitCall(BoundCall node)
                 {
                     _mightAssignSomething =
@@ -173,11 +185,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
+                public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
+                {
+                    // perhaps we are passing a variable by ref and mutating it that way
+                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
+                    return base.VisitDynamicInvocation(node);
+                }
+
                 public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
                 {
                     // perhaps we are passing a variable by ref and mutating it that way
                     _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
                     return base.VisitObjectCreationExpression(node);
+                }
+
+                public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
+                {
+                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
+                    return base.VisitDynamicObjectCreationExpression(node);
+                }
+
+                public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
+                {
+                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
+                    return base.VisitObjectInitializerMember(node);
+                }
+
+                public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
+                {
+                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
+                    return base.VisitIndexerAccess(node);
+                }
+
+                public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
+                {
+                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
+                    return base.VisitDynamicIndexerAccess(node);
                 }
             }
             protected BoundDecisionDag ShareTempsIfPossibleAndEvaluateInput(
@@ -396,11 +439,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     EnsureStringHashFunction(cases.Count, node.Syntax);
                     stringEquality = _localRewriter.UnsafeGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality);
-                }
-
-                if (_dagNodeLabels.TryGetValue(node, out LabelSymbol nodeLabel))
-                {
-                    _loweredDecisionDag.Add(_factory.Label(nodeLabel));
                 }
 
                 LabelSymbol defaultLabel = GetDagNodeLabel(previous.WhenFalse);

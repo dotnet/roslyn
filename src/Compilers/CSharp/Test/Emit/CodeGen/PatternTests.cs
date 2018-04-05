@@ -1121,7 +1121,9 @@ class Program
 }");
         }
 
-        [Fact, WorkItem(20641, "https://github.com/dotnet/roslyn/issues/20641")]
+        [Fact]
+        [WorkItem(20641, "https://github.com/dotnet/roslyn/issues/20641")]
+        [WorkItem(1395, "https://github.com/dotnet/csharplang/issues/1395")]
         public void TupleSwitch01()
         {
             var source = @"using System;
@@ -1134,10 +1136,17 @@ public class Door
 
     public enum Action { Open, Close, Lock, Unlock }
 
-    public void Act(Action action, bool haveKey = false)
+    public void Act0(Action action, bool haveKey = false)
     {
         Console.Write($""{State} {action}{(haveKey ? "" withKey"" : null)}"");
         State = ChangeState0(State, action, haveKey);
+        Console.WriteLine($"" -> {State}"");
+    }
+
+    public void Act1(Action action, bool haveKey = false)
+    {
+        Console.Write($""{State} {action}{(haveKey ? "" withKey"" : null)}"");
+        State = ChangeState1(State, action, haveKey);
         Console.WriteLine($"" -> {State}"");
     }
 
@@ -1172,17 +1181,35 @@ class Program
     static void Main(string[] args)
     {
         var door = new Door();
-        door.Act(Door.Action.Close);
-        door.Act(Door.Action.Lock);
-        door.Act(Door.Action.Lock, true);
-        door.Act(Door.Action.Open);
-        door.Act(Door.Action.Unlock);
-        door.Act(Door.Action.Unlock, true);
-        door.Act(Door.Action.Open);
+        door.Act0(Door.Action.Close);
+        door.Act0(Door.Action.Lock);
+        door.Act0(Door.Action.Lock, true);
+        door.Act0(Door.Action.Open);
+        door.Act0(Door.Action.Unlock);
+        door.Act0(Door.Action.Unlock, true);
+        door.Act0(Door.Action.Open);
+        Console.WriteLine();
+
+        door = new Door();
+        door.Act1(Door.Action.Close);
+        door.Act1(Door.Action.Lock);
+        door.Act1(Door.Action.Lock, true);
+        door.Act1(Door.Action.Open);
+        door.Act1(Door.Action.Unlock);
+        door.Act1(Door.Action.Unlock, true);
+        door.Act1(Door.Action.Open);
     }
 }";
             var expectedOutput =
 @"Opened Close -> Closed
+Closed Lock -> Closed
+Closed Lock withKey -> Locked
+Locked Open -> Locked
+Locked Unlock -> Locked
+Locked Unlock withKey -> Closed
+Closed Open -> Opened
+
+Opened Close -> Closed
 Closed Lock -> Closed
 Closed Lock withKey -> Locked
 Locked Open -> Locked
@@ -1195,126 +1222,91 @@ Closed Open -> Opened
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Door.ChangeState0",
 @"{
-  // Code size       94 (0x5e)
-  .maxstack  3
-  .locals init (Door.DoorState V_0, //oldState
-                System.ValueTuple<Door.DoorState, Door.Action> V_1,
-                Door.Action V_2)
-  IL_0000:  ldloca.s   V_1
-  IL_0002:  ldarg.0
-  IL_0003:  ldarg.1
-  IL_0004:  call       ""System.ValueTuple<Door.DoorState, Door.Action>..ctor(Door.DoorState, Door.Action)""
-  IL_0009:  ldloc.1
-  IL_000a:  ldfld      ""Door.DoorState System.ValueTuple<Door.DoorState, Door.Action>.Item1""
-  IL_000f:  stloc.0
-  IL_0010:  ldloc.0
-  IL_0011:  switch    (
-        IL_0024,
-        IL_0031,
-        IL_0041)
-  IL_0022:  br.s       IL_005c
-  IL_0024:  ldloc.1
-  IL_0025:  ldfld      ""Door.Action System.ValueTuple<Door.DoorState, Door.Action>.Item2""
-  IL_002a:  stloc.2
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (Door.DoorState V_0) //oldState
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  switch    (
+        IL_0016,
+        IL_001c,
+        IL_0025)
+  IL_0014:  br.s       IL_0039
+  IL_0016:  ldc.i4.1
+  IL_0017:  ldarg.1
+  IL_0018:  beq.s      IL_002b
+  IL_001a:  br.s       IL_0039
+  IL_001c:  ldarg.1
+  IL_001d:  brfalse.s  IL_002d
+  IL_001f:  ldarg.1
+  IL_0020:  ldc.i4.2
+  IL_0021:  beq.s      IL_002f
+  IL_0023:  br.s       IL_0039
+  IL_0025:  ldc.i4.3
+  IL_0026:  ldarg.1
+  IL_0027:  beq.s      IL_0034
+  IL_0029:  br.s       IL_0039
   IL_002b:  ldc.i4.1
-  IL_002c:  ldloc.2
-  IL_002d:  beq.s      IL_004e
-  IL_002f:  br.s       IL_005c
-  IL_0031:  ldloc.1
-  IL_0032:  ldfld      ""Door.Action System.ValueTuple<Door.DoorState, Door.Action>.Item2""
-  IL_0037:  stloc.2
-  IL_0038:  ldloc.2
-  IL_0039:  brfalse.s  IL_0050
-  IL_003b:  ldloc.2
-  IL_003c:  ldc.i4.2
-  IL_003d:  beq.s      IL_0052
-  IL_003f:  br.s       IL_005c
-  IL_0041:  ldloc.1
-  IL_0042:  ldfld      ""Door.Action System.ValueTuple<Door.DoorState, Door.Action>.Item2""
-  IL_0047:  stloc.2
-  IL_0048:  ldc.i4.3
-  IL_0049:  ldloc.2
-  IL_004a:  beq.s      IL_0057
-  IL_004c:  br.s       IL_005c
-  IL_004e:  ldc.i4.1
-  IL_004f:  ret
-  IL_0050:  ldc.i4.0
-  IL_0051:  ret
-  IL_0052:  ldarg.2
-  IL_0053:  brfalse.s  IL_005c
-  IL_0055:  ldc.i4.2
-  IL_0056:  ret
-  IL_0057:  ldarg.2
-  IL_0058:  brfalse.s  IL_005c
-  IL_005a:  ldc.i4.1
-  IL_005b:  ret
-  IL_005c:  ldloc.0
-  IL_005d:  ret
+  IL_002c:  ret
+  IL_002d:  ldc.i4.0
+  IL_002e:  ret
+  IL_002f:  ldarg.2
+  IL_0030:  brfalse.s  IL_0039
+  IL_0032:  ldc.i4.2
+  IL_0033:  ret
+  IL_0034:  ldarg.2
+  IL_0035:  brfalse.s  IL_0039
+  IL_0037:  ldc.i4.1
+  IL_0038:  ret
+  IL_0039:  ldloc.0
+  IL_003a:  ret
 }");
             compVerifier.VerifyIL("Door.ChangeState1",
 @"{
-  // Code size      104 (0x68)
-  .maxstack  3
-  .locals init (System.ValueTuple<Door.DoorState, Door.Action> V_0,
-                Door.DoorState V_1,
-                Door.Action V_2,
-                Door.DoorState V_3)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldarg.0
-  IL_0003:  ldarg.1
-  IL_0004:  call       ""System.ValueTuple<Door.DoorState, Door.Action>..ctor(Door.DoorState, Door.Action)""
-  IL_0009:  ldloc.0
-  IL_000a:  ldfld      ""Door.DoorState System.ValueTuple<Door.DoorState, Door.Action>.Item1""
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.1
-  IL_0011:  switch    (
-        IL_0024,
-        IL_0031,
-        IL_0041)
-  IL_0022:  br.s       IL_0064
-  IL_0024:  ldloc.0
-  IL_0025:  ldfld      ""Door.Action System.ValueTuple<Door.DoorState, Door.Action>.Item2""
-  IL_002a:  stloc.2
-  IL_002b:  ldc.i4.1
-  IL_002c:  ldloc.2
-  IL_002d:  beq.s      IL_004e
-  IL_002f:  br.s       IL_0064
-  IL_0031:  ldloc.0
-  IL_0032:  ldfld      ""Door.Action System.ValueTuple<Door.DoorState, Door.Action>.Item2""
-  IL_0037:  stloc.2
-  IL_0038:  ldloc.2
-  IL_0039:  brfalse.s  IL_0052
-  IL_003b:  ldloc.2
-  IL_003c:  ldc.i4.2
-  IL_003d:  beq.s      IL_0056
-  IL_003f:  br.s       IL_0064
+  // Code size       67 (0x43)
+  .maxstack  2
+  .locals init (Door.DoorState V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  switch    (
+        IL_0014,
+        IL_001a,
+        IL_0023)
+  IL_0012:  br.s       IL_003f
+  IL_0014:  ldc.i4.1
+  IL_0015:  ldarg.1
+  IL_0016:  beq.s      IL_0029
+  IL_0018:  br.s       IL_003f
+  IL_001a:  ldarg.1
+  IL_001b:  brfalse.s  IL_002d
+  IL_001d:  ldarg.1
+  IL_001e:  ldc.i4.2
+  IL_001f:  beq.s      IL_0031
+  IL_0021:  br.s       IL_003f
+  IL_0023:  ldc.i4.3
+  IL_0024:  ldarg.1
+  IL_0025:  beq.s      IL_0038
+  IL_0027:  br.s       IL_003f
+  IL_0029:  ldc.i4.1
+  IL_002a:  stloc.0
+  IL_002b:  br.s       IL_0041
+  IL_002d:  ldc.i4.0
+  IL_002e:  stloc.0
+  IL_002f:  br.s       IL_0041
+  IL_0031:  ldarg.2
+  IL_0032:  brfalse.s  IL_003f
+  IL_0034:  ldc.i4.2
+  IL_0035:  stloc.0
+  IL_0036:  br.s       IL_0041
+  IL_0038:  ldarg.2
+  IL_0039:  brfalse.s  IL_003f
+  IL_003b:  ldc.i4.1
+  IL_003c:  stloc.0
+  IL_003d:  br.s       IL_0041
+  IL_003f:  ldarg.0
+  IL_0040:  stloc.0
   IL_0041:  ldloc.0
-  IL_0042:  ldfld      ""Door.Action System.ValueTuple<Door.DoorState, Door.Action>.Item2""
-  IL_0047:  stloc.2
-  IL_0048:  ldc.i4.3
-  IL_0049:  ldloc.2
-  IL_004a:  beq.s      IL_005d
-  IL_004c:  br.s       IL_0064
-  IL_004e:  ldc.i4.1
-  IL_004f:  stloc.3
-  IL_0050:  br.s       IL_0066
-  IL_0052:  ldc.i4.0
-  IL_0053:  stloc.3
-  IL_0054:  br.s       IL_0066
-  IL_0056:  ldarg.2
-  IL_0057:  brfalse.s  IL_0064
-  IL_0059:  ldc.i4.2
-  IL_005a:  stloc.3
-  IL_005b:  br.s       IL_0066
-  IL_005d:  ldarg.2
-  IL_005e:  brfalse.s  IL_0064
-  IL_0060:  ldc.i4.1
-  IL_0061:  stloc.3
-  IL_0062:  br.s       IL_0066
-  IL_0064:  ldarg.0
-  IL_0065:  stloc.3
-  IL_0066:  ldloc.3
-  IL_0067:  ret
+  IL_0042:  ret
 }");
         }
     }

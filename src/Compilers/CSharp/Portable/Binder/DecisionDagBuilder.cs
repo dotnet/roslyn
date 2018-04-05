@@ -1214,8 +1214,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.DagValueTest:
                         return ((BoundDagValueTest)x).Value == ((BoundDagValueTest)y).Value;
 
-                    default:
+                    case BoundKind.DagNullTest:
+                    case BoundKind.DagNonNullTest:
                         return true;
+
+                    default:
+                        // For an evaluation, we defer to its .Equals
+                        return x.Equals(y);
                 }
             }
 

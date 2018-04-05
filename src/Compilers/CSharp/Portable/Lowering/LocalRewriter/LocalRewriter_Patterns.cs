@@ -55,6 +55,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _map.Free();
                 }
 
+#if DEBUG
+                public string Dump()
+                {
+                    var poolElemenet = PooledStringBuilder.GetInstance();
+                    var builder = poolElemenet.Builder;
+                    foreach (var kv in _map)
+                    {
+                        builder.Append("Key: ");
+                        builder.AppendLine(kv.Key.Dump());
+                        builder.Append("Value: ");
+                        builder.AppendLine(kv.Value.Dump());
+                    }
+
+                    var result = builder.ToString();
+                    poolElemenet.Free();
+                    return result;
+                }
+#endif
+
                 public BoundExpression GetTemp(BoundDagTemp dagTemp)
                 {
                     if (!_map.TryGetValue(dagTemp, out BoundExpression result))
@@ -365,15 +384,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (loweredInput.Kind == BoundKind.TupleLiteral &&
-                    !decisionDag.TopologicallySortedNodes.Any(n => !usesOriginalInput(n)) &&
-                    false)
+                if (loweredInput.Type.IsTupleType &&
+                    loweredInput.Syntax.Kind() == SyntaxKind.TupleExpression &&
+                    loweredInput is BoundObjectCreationExpression expr &&
+                    !decisionDag.TopologicallySortedNodes.Any(n => usesOriginalInput(n)))
                 {
-                    // If the switch governing expression is a tuple literal that is not used anywhere,
+                    // If the switch governing expression is a tuple literal whose whole value is not used anywhere,
                     // (though perhaps its component parts are used), then we can save the component parts
                     // and assign them into temps (or perhaps user variables) to avoid the creation of
                     // the tuple altogether.
-                    decisionDag = RewriteTupleInput(decisionDag, (BoundTupleLiteral)loweredInput, addCode);
+                    decisionDag = RewriteTupleInput(decisionDag, expr, addCode);
                 }
                 else
                 {
@@ -418,10 +438,77 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <returns>A new decision dag that does not reference the input directly</returns>
             private BoundDecisionDag RewriteTupleInput(
                 BoundDecisionDag decisionDag,
-                BoundTupleLiteral loweredInput,
+                BoundObjectCreationExpression loweredInput,
                 Action<BoundExpression> addCode)
             {
-                throw new NotImplementedException();
+                int count = loweredInput.Arguments.Length;
+                var tupleElementEvaluated = new bool[count];
+                var rewrittenDag = decisionDag.Rewrite(makeReplacement);
+
+                // If any remaining input elements remain unevaluated, evaluate them now
+                var originalInput = BoundDagTemp.ForOriginalInput(loweredInput.Syntax, loweredInput.Type);
+                for (int i = 0; i < count; i++)
+                {
+                    if (!tupleElementEvaluated[i])
+                    {
+                        var expr = loweredInput.Arguments[i];
+                        var field = loweredInput.Type.TupleElements[i].CorrespondingTupleField;
+                        Debug.Assert(field != null);
+                        var fieldFetchEvaluation = new BoundDagFieldEvaluation(expr.Syntax, field, originalInput);
+                        var temp = new BoundDagTemp(expr.Syntax, expr.Type, fieldFetchEvaluation, 0);
+                        storeToTemp(temp, expr);
+                    }
+                }
+
+                return rewrittenDag;
+
+                void storeToTemp(BoundDagTemp temp, BoundExpression expr)
+                {
+                    if ((expr.Kind == BoundKind.Parameter || expr.Kind == BoundKind.Local) && _tempAllocator.TrySetTemp(temp, expr))
+                    {
+                        // we've arranged to use the input value from the variable it is already stored in
+                    }
+                    else
+                    {
+                        var tempToHoldInput = _tempAllocator.GetTemp(temp);
+                        addCode(_factory.AssignmentExpression(tempToHoldInput, expr));
+                    }
+                }
+
+                BoundDecisionDagNode makeReplacement(BoundDecisionDagNode node, Func<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
+                {
+                    switch (node)
+                    {
+                        case BoundEvaluationDecisionDagNode evalNode:
+                            if (evalNode.Evaluation is BoundDagFieldEvaluation eval &&
+                                eval.Input.IsOriginalInput &&
+                                eval.Field is var field &&
+                                field.IsTupleField &&
+                                field.CorrespondingTupleField != null &&
+                                field.TupleElementIndex is int i)
+                            {
+                                if (!tupleElementEvaluated[i])
+                                {
+                                    // Store the value in the right temp
+                                    var temp = new BoundDagTemp(eval.Syntax, field.Type, eval, 0);
+                                    BoundExpression expr = loweredInput.Arguments[i];
+                                    storeToTemp(temp, expr);
+                                    tupleElementEvaluated[i] = true;
+                                }
+
+                                return replacement(evalNode.Next);
+                            }
+
+                            Debug.Assert(!evalNode.Evaluation.Input.IsOriginalInput);
+                            break;
+
+                        case BoundTestDecisionDagNode testNode:
+                            Debug.Assert(!testNode.Test.Input.IsOriginalInput);
+                            break;
+                    }
+
+                    return BoundDecisionDag.TrivialReplacement(node, replacement);
+                }
             }
         }
     }
