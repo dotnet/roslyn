@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if ((!forceLambdaSpilling || !IsLambdaConversion(argument)) &&
+                if ((!forceLambdaSpilling || !isLambdaConversion(argument)) &&
                     IsSafeForReordering(argument, argRefKind))
                 {
                     arguments[p] = argument;
@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return;
 
-            bool IsLambdaConversion(BoundExpression expr)
+            bool isLambdaConversion(BoundExpression expr)
                 => expr is BoundConversion conv && conv.ConversionKind == ConversionKind.AnonymousFunction;
         }
 
