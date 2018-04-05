@@ -9078,12 +9078,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
-        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <target state="translated">Neplatný název algoritmu hash: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_InterpolatedStrings">
         <source>interpolated strings</source>
-        <target state="new">interpolated strings</target>
+        <target state="translated">interpolované řetězce</target>
         <note />
       </trans-unit>
     </body>
