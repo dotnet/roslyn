@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -103,14 +101,6 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return false;
-        }
-
-        public static bool IsAssignableTo(this ITypeSymbol fromSymbol, ITypeSymbol toSymbol, Compilation compilation)
-        {
-            return fromSymbol != null
-                && toSymbol != null
-                && ((compilation is CSharpCompilation && ((CSharpCompilation)compilation).ClassifyConversion(fromSymbol, toSymbol).IsImplicit)
-                    || (compilation is VisualBasicCompilation && ((VisualBasicCompilation)compilation).ClassifyConversion(fromSymbol, toSymbol).IsWidening));
         }
 
         public static IEnumerable<AttributeData> GetApplicableAttributes(this INamedTypeSymbol type)
