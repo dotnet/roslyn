@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Services;
 using Microsoft.CodeAnalysis.Remote.Storage;
+using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
@@ -302,6 +304,62 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
                     }
+                }
+            }, cancellationToken);
+        }
+
+        public Task SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async token =>
+            {
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, Checksum.GetChecksumLogInfo, baseTextChecksum, token))
+                {
+                    var service = SolutionService.PrimaryWorkspace.Services.GetService<ISerializerService>();
+                    if (service == null)
+                    {
+                        return;
+                    }
+
+                    var text = await GetSourceText().ConfigureAwait(false);
+                    if (text == null)
+                    {
+                        // it won't bring in base text if it is not there already.
+                        // text needed will be pulled in when there is request
+                        return;
+                    }
+
+                    var newText = text.WithChanges(textChanges);
+                    var newChecksum = service.CreateChecksum(newText, token);
+
+                    // save new text in the cache so that when asked, the data is most likely already there
+                    AssetStorage.TryAddAsset(newChecksum, newText);
+                }
+
+                async Task<SourceText> GetSourceText()
+                {
+                    // check the cheap and fast one first.
+                    // see if the cache has the source text
+                    if (AssetStorage.TryGetAsset<SourceText>(baseTextChecksum, out var sourceText))
+                    {
+                        return sourceText;
+                    }
+
+                    // do slower one
+                    // check whether existing solution has it
+                    var document = SolutionService.PrimaryWorkspace.CurrentSolution.GetDocument(documentId);
+                    if (document == null)
+                    {
+                        return null;
+                    }
+
+                    // check checksum if it is already there
+                    if (!document.State.TryGetStateChecksums(out var state) ||
+                        !state.Text.Equals(baseTextChecksum))
+                    {
+                        return null;
+                    }
+
+                    return await document.GetTextAsync(token).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
