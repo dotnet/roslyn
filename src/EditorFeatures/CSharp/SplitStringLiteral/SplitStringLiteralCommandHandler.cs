@@ -1,21 +1,25 @@
-﻿using System;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
-    [ExportCommandHandler(nameof(SplitStringLiteralCommandHandler), ContentTypeNames.CSharpContentType)]
-    internal partial class SplitStringLiteralCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(nameof(SplitStringLiteralCommandHandler))]
+    internal partial class SplitStringLiteralCommandHandler : VSCommanding.ICommandHandler<ReturnKeyCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
@@ -29,17 +33,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args, Func<CommandState> nextHandler)
+        public string DisplayName => CSharpEditorResources.Split_String_Literal_Command_Handler;
+
+        public VSCommanding.CommandState GetCommandState(ReturnKeyCommandArgs args)
         {
-            return nextHandler();
+            return VSCommanding.CommandState.Unspecified;
         }
 
-        public void ExecuteCommand(ReturnKeyCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
-            if (!ExecuteCommandWorker(args))
-            {
-                nextHandler();
-            }
+            return ExecuteCommandWorker(args);
         }
 
         public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)

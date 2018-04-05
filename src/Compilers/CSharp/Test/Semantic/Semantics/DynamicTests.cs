@@ -2372,6 +2372,7 @@ class C
         #region Collection and Object initializers
 
         [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
         public void DynamicNew()
         {
             string source = @"
@@ -2379,22 +2380,55 @@ class C
 {
     static void M()
     {
-		var x = new dynamic
+		var x = /*<bind>*/ new dynamic
         {
             a = 1,
             b = 
             {
                 c = f()
             }
-        };
+        } /*</bind>*/ ;
     }
 } 
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
-                // (6,15): error CS0143: The type 'dynamic' has no constructors defined
-                Diagnostic(ErrorCode.ERR_NoConstructors, "dynamic").WithArguments("dynamic"),
-                // (11,21): error CS0103: The name 'f' does not exist in the current context
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f"));
+
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: dynamic, IsInvalid) (Syntax: 'new dynamic ... }')
+  Children(1):
+      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: dynamic, IsInvalid) (Syntax: '{ ... }')
+        Initializers(2):
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'a = 1')
+              Left: 
+                IOperation:  (OperationKind.None, Type: null) (Syntax: 'a')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IMemberInitializerOperation (OperationKind.MemberInitializer, Type: dynamic, IsInvalid) (Syntax: 'b = ... }')
+              InitializedMember: 
+                IOperation:  (OperationKind.None, Type: null) (Syntax: 'b')
+              Initializer: 
+                IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: dynamic, IsInvalid) (Syntax: '{ ... }')
+                  Initializers(1):
+                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic, IsInvalid) (Syntax: 'c = f()')
+                        Left: 
+                          IOperation:  (OperationKind.None, Type: null) (Syntax: 'c')
+                        Right: 
+                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'f()')
+                            Children(1):
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'f')
+                                  Children(0)
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(11,21): error CS0103: The name 'f' does not exist in the current context
+                //                 c = f()
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "f").WithArguments("f").WithLocation(11, 21),
+                // file.cs(6,26): error CS8382: Invalid object creation
+                // 		var x = /*<bind>*/ new dynamic
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithArguments("dynamic").WithLocation(6, 26)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -2603,72 +2637,74 @@ class C : List<int>
 } 
 ";
             CreateCompilationWithMscorlib40AndSystemCore(new[] { Parse(source, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)) }).VerifyDiagnostics(
+
                 // (43,55): warning CS1981: Using 'is' to test compatibility with 'dynamic' is essentially identical to testing compatibility with 'Object' and will succeed for all non-null values
                 //         Expression<Func<dynamic, dynamic>> e18 = x => d is dynamic; // ok, warning
-                Diagnostic(ErrorCode.WRN_IsDynamicIsConfusing, "d is dynamic").WithArguments("is", "dynamic", "Object"),
-                // (46,59): error CS0143: The type 'dynamic' has no constructors defined
+                Diagnostic(ErrorCode.WRN_IsDynamicIsConfusing, "d is dynamic").WithArguments("is", "dynamic", "Object").WithLocation(43, 55),
+                // (46,59): error CS8382: Invalid object creation
                 //         Expression<Func<dynamic, dynamic>> e21 = x => new dynamic();
-                Diagnostic(ErrorCode.ERR_NoConstructors, "dynamic").WithArguments("dynamic"),
+                Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "dynamic").WithArguments("dynamic").WithLocation(46, 59),
                 // (25,52): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e0 = () => new C { P = d };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(25, 52),
                 // (27,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e2 = () => new C { D = { X = { Y = 1 }, Z = 1 } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "X"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "X").WithLocation(27, 54),
                 // (27,60): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e2 = () => new C { D = { X = { Y = 1 }, Z = 1 } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "Y"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "Y").WithLocation(27, 60),
                 // (27,69): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<C>> e2 = () => new C { D = { X = { Y = 1 }, Z = 1 } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "Z"),
-                // (28,50): error CS1963: An expression tree may not contain a dynamic operation
-                //         Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d }"),
-                // (28,57): error CS1963: An expression tree may not contain a dynamic operation
-                //         Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d, d, d }"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "Z").WithLocation(27, 69),
+                // (28,44): error CS1963: An expression tree may not contain a dynamic operation
+                // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d }").WithLocation(28, 44),
+                // (28,51): error CS1963: An expression tree may not contain a dynamic operation
+                // 		Expression<Func<C>> e3 = () => new C() { { d }, { d, d, d } };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "{ d, d, d }").WithLocation(28, 51),
                 // (29,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e4 = x => x.goo();
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.goo()"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.goo()").WithLocation(29, 54),
                 // (29,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e4 = x => x.goo();
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.goo"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.goo").WithLocation(29, 54),
                 // (30,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e5 = x => x[1];
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x[1]"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x[1]").WithLocation(30, 54),
                 // (31,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e6 = x => x.y.z;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.y.z"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.y.z").WithLocation(31, 54),
                 // (31,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e6 = x => x.y.z;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.y"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x.y").WithLocation(31, 54),
                 // (32,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e7 = x => x + 1;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x + 1"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "x + 1").WithLocation(32, 54),
                 // (33,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e8 = x => -x;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "-x"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "-x").WithLocation(33, 54),
                 // (34,54): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e9 = x => f(d);
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f(d)"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f(d)").WithLocation(34, 54),
                 // (36,55): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e11 = x => f((dynamic)1);
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f((dynamic)1)"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f((dynamic)1)").WithLocation(36, 55),
                 // (37,55): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e12 = x => f(d ?? null);
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f(d ?? null)"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "f(d ?? null)").WithLocation(37, 55),
                 // (38,55): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e13 = x => d ? 1 : 2;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "d").WithLocation(38, 55),
                 // (39,56): error CS1989: Async lambda expressions cannot be converted to expression trees
                 //         Expression<Func<dynamic, Task<dynamic>>> e14 = async x => await d;
-                Diagnostic(ErrorCode.ERR_BadAsyncExpressionTree, "async x => await d"),
+                Diagnostic(ErrorCode.ERR_BadAsyncExpressionTree, "async x => await d").WithLocation(39, 56),
                 // (47,84): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e22 = x => from a in new[] { d } select a + 1;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "a + 1"),
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "a + 1").WithLocation(47, 84),
                 // (49,55): error CS1963: An expression tree may not contain a dynamic operation
                 //         Expression<Func<dynamic, dynamic>> e24 = x => new string(x);
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "new string(x)"));
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsDynamicOperation, "new string(x)").WithLocation(49, 55)
+                );
         }
 
         [Fact, WorkItem(578401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578401")]

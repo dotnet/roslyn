@@ -684,11 +684,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetRoot(cancellationToken);
             var span = root.FullSpan;
-            var builder = new List<DeclarationInfo>();
-            model.ComputeDeclarationsInSpan(span, getSymbol: true, builder: builder, cancellationToken: cancellationToken);
+            var declarationInfoBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
+            model.ComputeDeclarationsInSpan(span, getSymbol: true, builder: declarationInfoBuilder, cancellationToken: cancellationToken);
 
             ImmutableHashSet<ISymbol>.Builder generatedSymbolsBuilderOpt = null;
-            foreach (var declarationInfo in builder)
+            foreach (var declarationInfo in declarationInfoBuilder)
             {
                 var symbol = declarationInfo.DeclaredSymbol;
                 if (symbol != null &&
@@ -699,6 +699,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+            declarationInfoBuilder.Free();
             return generatedSymbolsBuilderOpt != null ? generatedSymbolsBuilderOpt.ToImmutable() : ImmutableHashSet<ISymbol>.Empty;
         }
 
@@ -1391,8 +1392,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockAnalyzerAction>> _lazyOperationBlockActionsByAnalyzer;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockAnalyzerAction>> _lazyOperationBlockEndActionsByAnalyzer;
 
-        private static readonly ObjectPool<DeclarationAnalysisData> s_declarationAnalysisDataPool = new ObjectPool<DeclarationAnalysisData>(() => new DeclarationAnalysisData());
-
         /// <summary>
         /// Create an analyzer driver.
         /// </summary>
@@ -1675,30 +1674,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SyntaxReference declaration,
             SemanticModel semanticModel,
             AnalysisScope analysisScope,
-            Func<DeclarationAnalysisData> allocateData,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var declarationAnalysisData = allocateData();
-            var builder = declarationAnalysisData.DeclarationsInNode;
-
-            var declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
-            var topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
+            var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
+            SyntaxNode declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
+            SyntaxNode topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
             ComputeDeclarationsInNode(semanticModel, symbol, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
+            ImmutableArray<DeclarationInfo> declarationInfos = builder.ToImmutableAndFree();
 
-            var isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
-            var nodesToAnalyze = GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, builder, analysisScope, isPartialDeclAnalysis, semanticModel, analyzerExecutor);
-
-            declarationAnalysisData.DeclaringReferenceSyntax = declaringReferenceSyntax;
-            declarationAnalysisData.TopmostNodeForAnalysis = topmostNodeForAnalysis;
-            declarationAnalysisData.DescendantNodesToAnalyze.AddRange(nodesToAnalyze);
-            declarationAnalysisData.IsPartialAnalysis = isPartialDeclAnalysis;
-
-            return declarationAnalysisData;
+            bool isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
+            ImmutableArray<SyntaxNode> nodesToAnalyze = GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, declarationInfos, analysisScope, isPartialDeclAnalysis, semanticModel, analyzerExecutor);
+            return new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, declarationInfos, nodesToAnalyze, isPartialDeclAnalysis);
         }
 
-        private static void ComputeDeclarationsInNode(SemanticModel semanticModel, ISymbol declaredSymbol, SyntaxNode declaringReferenceSyntax, SyntaxNode topmostNodeForAnalysis, List<DeclarationInfo> builder, CancellationToken cancellationToken)
+        private static void ComputeDeclarationsInNode(SemanticModel semanticModel, ISymbol declaredSymbol, SyntaxNode declaringReferenceSyntax, SyntaxNode topmostNodeForAnalysis, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken)
         {
             // We only care about the top level symbol declaration and its immediate member declarations.
             int? levelsToCompute = 2;
@@ -1740,8 +1731,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var declarationAnalysisData = compilationData.GetOrComputeDeclarationAnalysisData(
                 decl,
-                allocateData => ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, allocateData, cancellationToken),
-                cacheAnalysisData);
+                computeDeclarationAnalysisData: () => ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, cancellationToken),
+                cacheAnalysisData: cacheAnalysisData);
 
             if (!analysisScope.ShouldAnalyze(declarationAnalysisData.TopmostNodeForAnalysis))
             {
@@ -1971,10 +1962,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static IEnumerable<SyntaxNode> GetSyntaxNodesToAnalyze(
+        private static ImmutableArray<SyntaxNode> GetSyntaxNodesToAnalyze(
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
-            IEnumerable<DeclarationInfo> declarationsInNode,
+            ImmutableArray<DeclarationInfo> declarationsInNode,
             AnalysisScope analysisScope,
             bool isPartialDeclAnalysis,
             SemanticModel semanticModel,
@@ -1982,7 +1973,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // Eliminate descendant member declarations within declarations.
             // There will be separate symbols declared for the members.
-            HashSet<SyntaxNode> descendantDeclsToSkip = null;
+            HashSet<SyntaxNode> descendantDeclsToSkipOpt = null;
             bool first = true;
             foreach (var declInNode in declarationsInNode)
             {
@@ -2013,23 +2004,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         declarationNodeToSkip = semanticModel.GetTopmostNodeForDiagnosticAnalysis(declaredSymbolOfDeclInNode, declInNode.DeclaredNode);
                     }
 
-                    descendantDeclsToSkip = descendantDeclsToSkip ?? new HashSet<SyntaxNode>();
-                    descendantDeclsToSkip.Add(declarationNodeToSkip);
+                    descendantDeclsToSkipOpt = descendantDeclsToSkipOpt ?? new HashSet<SyntaxNode>();
+                    descendantDeclsToSkipOpt.Add(declarationNodeToSkip);
                 }
 
                 first = false;
             }
 
-            var nodesToAnalyze = descendantDeclsToSkip == null ?
-                declaredNode.DescendantNodesAndSelf(descendIntoTrivia: true) :
-                GetSyntaxNodesToAnalyze(declaredNode, descendantDeclsToSkip);
-
-            if (isPartialDeclAnalysis)
+            bool shouldAddNode(SyntaxNode node) => descendantDeclsToSkipOpt == null || !descendantDeclsToSkipOpt.Contains(node);
+            var nodeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
+            foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: shouldAddNode, descendIntoTrivia: true))
             {
-                nodesToAnalyze = nodesToAnalyze.Where(node => analysisScope.ShouldAnalyze(node));
+                if (shouldAddNode(node) &&
+                    (!isPartialDeclAnalysis || analysisScope.ShouldAnalyze(node)))
+                {
+                    nodeBuilder.Add(node);
+                }
             }
 
-            return nodesToAnalyze;
+            return nodeBuilder.ToImmutableAndFree();
         }
 
         private static bool IsEquivalentSymbol(ISymbol declaredSymbol, ISymbol otherSymbol)
@@ -2108,20 +2101,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Debug.Assert(operationsToAnalyze.ToImmutableHashSet().Count == operationsToAnalyze.Count);
             return operationsToAnalyze.ToImmutableAndFree();
-        }
-
-        private static IEnumerable<SyntaxNode> GetSyntaxNodesToAnalyze(SyntaxNode declaredNode, HashSet<SyntaxNode> descendantDeclsToSkip)
-        {
-            Debug.Assert(declaredNode != null);
-            Debug.Assert(descendantDeclsToSkip != null);
-
-            foreach (var node in declaredNode.DescendantNodesAndSelf(n => !descendantDeclsToSkip.Contains(n), descendIntoTrivia: true))
-            {
-                if (!descendantDeclsToSkip.Contains(node))
-                {
-                    yield return node;
-                }
-            }
         }
     }
 }

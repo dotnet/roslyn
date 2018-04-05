@@ -930,6 +930,9 @@
   <data name="ERR_FixedNotNeeded" xml:space="preserve">
     <value>You cannot use the fixed statement to take the address of an already fixed expression</value>
   </data>
+  <data name="ERR_ExprCannotBeFixed" xml:space="preserve">
+    <value>The given expression cannot be used in a fixed statement</value>
+  </data>
   <data name="ERR_UnsafeNeeded" xml:space="preserve">
     <value>Pointers and fixed size buffers may only be used in an unsafe context</value>
   </data>
@@ -2747,7 +2750,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.</value>
   </data>
   <data name="ERR_BadIteratorArgType" xml:space="preserve">
-    <value>Iterators cannot have ref or out parameters</value>
+    <value>Iterators cannot have ref, in or out parameters</value>
   </data>
   <data name="ERR_BadIteratorReturn" xml:space="preserve">
     <value>The body of '{0}' cannot be an iterator block because '{1}' is not an iterator interface type</value>
@@ -3272,7 +3275,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>The best overloaded Add method '{0}' for the collection initializer has some invalid arguments</value>
   </data>
   <data name="ERR_ByRefParameterInExpressionTree" xml:space="preserve">
-    <value>An expression tree lambda may not contain an out or ref parameter</value>
+    <value>An expression tree lambda may not contain a ref, in or out parameter</value>
   </data>
   <data name="ERR_VarArgsInExpressionTree" xml:space="preserve">
     <value>An expression tree lambda may not contain a method with variable arguments</value>
@@ -3609,7 +3612,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Async methods cannot have unsafe parameters or return types</value>
   </data>
   <data name="ERR_BadAsyncArgType" xml:space="preserve">
-    <value>Async methods cannot have ref or out parameters</value>
+    <value>Async methods cannot have ref, in or out parameters</value>
   </data>
   <data name="ERR_BadAwaitWithoutAsync" xml:space="preserve">
     <value>The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier</value>
@@ -4286,6 +4289,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureRefForEach" xml:space="preserve">
     <value>ref foreach iteration variables</value>
+  </data>
+  <data name="IDS_FeatureExtensibleFixedStatement" xml:space="preserve">
+    <value>extensible fixed statement</value>
   </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>
@@ -5298,13 +5304,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The 'unmanaged' constraint must come before any other constraints</value>
   </data>
   <data name="ERR_UnmanagedConstraintNotSatisfied" xml:space="preserve">
-    <value>The type '{2}' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</value>
-  </data>
-  <data name="ERR_UnmanagedConstraintWithLocalFunctions" xml:space="preserve">
-    <value>Using 'unmanaged' constraint on local functions type parameters is not supported.</value>
+    <value>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</value>
   </data>
   <data name="ERR_ConWithUnmanagedCon" xml:space="preserve">
     <value>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</value>
+  </data>
+  <data name="ERR_InvalidObjectCreation" xml:space="preserve">
+    <value>Invalid object creation</value>
   </data>
   <data name="IDS_FeatureStackAllocInitializer" xml:space="preserve">
     <value>stackalloc initializer</value>
@@ -5314,5 +5320,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureExpressionVariablesInQueriesAndInitializers" xml:space="preserve">
     <value>declaration of expression variables in member initializers and queries</value>
+  </data>
+  <data name="IDS_FeatureIndexingMovableFixedBuffers" xml:space="preserve">
+    <value>indexing movable fixed buffers</value>
   </data>
 </root>

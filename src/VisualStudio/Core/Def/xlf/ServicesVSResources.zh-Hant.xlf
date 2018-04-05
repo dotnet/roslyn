@@ -1103,11 +1103,6 @@ Additional information: {1}</source>
         <target state="translated">管理規格</target>
         <note />
       </trans-unit>
-      <trans-unit id="Manage_styles">
-        <source>Manage styles</source>
-        <target state="translated">管理樣式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reorder">
         <source>Reorder</source>
         <target state="translated">重新排序</target>
@@ -1399,7 +1394,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
-        <target state="translated">使用區域函式優於使用匿名函式</target>
+        <target state="translated">使用區域函式優先於匿名函式</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_deconstructed_variable_declaration">
@@ -1498,14 +1493,39 @@ I agree to all of the foregoing:</source>
         <target state="translated">在此處進行的設定僅適用於您的電腦。若要這些設定隨著您的解決方案移動，請使用 .editorconfig 檔案。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Live_code_analysis">
-        <source>Live code analysis</source>
-        <target state="translated">Live Code 分析</target>
+      <trans-unit id="Snippet_Command_Handler">
+        <source>Snippet Command Handler</source>
+        <target state="new">Snippet Command Handler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Class_View_Command_Handler">
+        <source>Sync Class View Command Handler</source>
+        <target state="new">Sync Class View Command Handler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="new">Manage naming styles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="new">Field preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="new">Prefer readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
         <source>Analyzing '{0}'</source>
-        <target state="translated">正在分析 '{0}'</target>
+        <target state="new">Analyzing '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="new">Live code analysis</target>
         <note />
       </trans-unit>
     </body>

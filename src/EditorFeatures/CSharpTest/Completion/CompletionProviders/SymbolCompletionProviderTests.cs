@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1263,9 +1264,15 @@ $$";
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SwitchLabelCase()
         {
-            var content = @"switch(i)
-    {
-        case $$";
+            var content = @"switch(i) { case $$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SwitchPatternLabelCase()
+        {
+            var content = @"switch(i) { case $$ when";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
         }
@@ -2911,6 +2918,36 @@ class P
             await VerifyItemExistsAsync(markup, "Length");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ConstantsInIsExpression()
+        {
+            var markup = @"
+class C
+{
+    public const int MAX_SIZE = 10;
+    void M()
+    {
+        int i = 10;
+        if (i is $$ int"; // 'int' to force this to be parsed as an IsExpression rather than IsPatternExpression
+
+            await VerifyItemExistsAsync(markup, "MAX_SIZE");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ConstantsInIsPatternExpression()
+        {
+            var markup = @"
+class C
+{
+    public const int MAX_SIZE = 10;
+    void M()
+    {
+        int i = 10;
+        if (i is $$ 1";
+
+            await VerifyItemExistsAsync(markup, "MAX_SIZE");
+        }
+
         [WorkItem(542429, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ConstantsInSwitchCase()
@@ -2925,6 +2962,24 @@ class C
         switch (i)
         {
             case $$";
+
+            await VerifyItemExistsAsync(markup, "MAX_SIZE");
+        }
+
+        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084#issuecomment-370148553")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ConstantsInSwitchPatternCase()
+        {
+            var markup = @"
+class C
+{
+    public const int MAX_SIZE = 10;
+    void M()
+    {
+        int i = 10;
+        switch (i)
+        {
+            case $$ when";
 
             await VerifyItemExistsAsync(markup, "MAX_SIZE");
         }
@@ -8926,6 +8981,25 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExceptionFilter1_NotBeforeOpenParen()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void M(bool x)
+    {
+        try
+        {
+        }
+        catch when $$
+";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ExceptionFilter2()
         {
             var markup = @"
@@ -8939,6 +9013,59 @@ class C
         {
         }
         catch (Exception ex) when ($$
+";
+
+            await VerifyItemExistsAsync(markup, "x");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ExceptionFilter2_NotBeforeOpenParen()
+        {
+            var markup = @"
+using System;
+
+class C
+{
+    void M(bool x)
+    {
+        try
+        {
+        }
+        catch (Exception ex) when $$
+";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SwitchCaseWhenClause1()
+        {
+            var markup = @"
+class C
+{
+    void M(bool x)
+    {
+        switch (1)
+        {
+            case 1 when $$
+";
+
+            await VerifyItemExistsAsync(markup, "x");
+        }
+
+        [WorkItem(25084, "https://github.com/dotnet/roslyn/issues/25084")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SwitchCaseWhenClause2()
+        {
+            var markup = @"
+class C
+{
+    void M(bool x)
+    {
+        switch (1)
+        {
+            case int i when $$
 ";
 
             await VerifyItemExistsAsync(markup, "x");

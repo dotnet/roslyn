@@ -1324,7 +1324,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // The well-formed cases:
             // var ($$, y) = e;
             // (var $$, var y) = e;
-            if (leftToken.Parent.IsKind(SyntaxKind.SingleVariableDesignation, SyntaxKind.ParenthesizedVariableDesignation))
+            if (leftToken.Parent.IsKind(SyntaxKind.ParenthesizedVariableDesignation) ||
+                leftToken.Parent.IsParentKind(SyntaxKind.ParenthesizedVariableDesignation))
             {
                 return true;
             }
@@ -1804,16 +1805,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        public static bool IsConstantExpressionContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
+        public static bool IsConstantExpressionContext(this SyntaxTree syntaxTree, int position,
+            SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
-            var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
-
-            // case |
-            if (token.IsKind(SyntaxKind.CaseKeyword) &&
-                token.Parent.IsKind(SyntaxKind.CaseSwitchLabel))
+            if (IsPatternContext(syntaxTree, tokenOnLeftOfPosition, position))
             {
                 return true;
             }
+
+            var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
             // goto case |
             if (token.IsKind(SyntaxKind.CaseKeyword) &&
@@ -2416,6 +2416,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // when ( |
             if (token.IsKind(SyntaxKind.OpenParenToken) &&
                 token.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.WhenKeyword))
+            {
+                return true;
+            }
+
+            // case ... when |
+            if (token.IsKind(SyntaxKind.WhenKeyword) && token.Parent.IsKind(SyntaxKind.WhenClause))
             {
                 return true;
             }
