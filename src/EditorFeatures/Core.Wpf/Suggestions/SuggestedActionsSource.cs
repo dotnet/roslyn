@@ -441,9 +441,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 _owner, workspace, _subjectBuffer, fix, fixCollection.Provider,
                                 nestedAction, getFixAllSuggestedActionSet(nestedAction)));
 
-                        var set = new SuggestedActionSet(
-                            nestedActions, SuggestedActionSetPriority.Medium,
-                            fix.PrimaryDiagnostic.Location.SourceSpan.ToSpan());
+                        var set = new SuggestedActionSet(categoryName: null, 
+                            actions: nestedActions, priority: SuggestedActionSetPriority.Medium,
+                            applicableToSpan: fix.PrimaryDiagnostic.Location.SourceSpan.ToSpan());
 
                         suggestedAction = new SuggestedActionWithNestedActions(
                             _owner, workspace, _subjectBuffer,
@@ -512,7 +512,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 return new SuggestedActionSet(
-                    fixAllSuggestedActions.ToImmutableAndFree(),
+                    categoryName: null,
+                    actions: fixAllSuggestedActions.ToImmutableAndFree(),
                     title: EditorFeaturesResources.Fix_all_occurrences_in);
             }
 
@@ -897,6 +898,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using (var asyncToken = _owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync)))
                 {
                     var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document == null)
+                    {
+                        return null;
+                    }
+
                     using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
                     {
                         var linkedToken = linkedTokenSource.Token;

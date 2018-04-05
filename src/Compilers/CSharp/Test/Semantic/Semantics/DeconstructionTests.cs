@@ -6204,8 +6204,8 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(_, _)')
         NaturalType: (System.Int32, System.Int32)
         Elements(2):
-            IOperation:  (OperationKind.None, Type: null) (Syntax: '_')
-            IOperation:  (OperationKind.None, Type: null) (Syntax: '_')
+            IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
+            IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(0, 0)')
       NaturalType: (System.Int32, System.Int32)
@@ -6239,7 +6239,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       NaturalType: (System.Int32 x, System.Int32)
       Elements(2):
           ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
-          IOperation:  (OperationKind.None, Type: null) (Syntax: '_')
+          IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
   Right: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int32, System.Int32)) (Syntax: '(0, 0)')
       NaturalType: (System.Int32, System.Int32)
@@ -6271,7 +6271,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'var _')
+IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: 'var _')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

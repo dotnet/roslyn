@@ -1660,45 +1660,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "for(ref T a = ref b, c = ref d;;) { }";
             var statement = this.ParseStatement(text);
 
-            Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
-            Assert.Equal(text, statement.ToString());
-            Assert.Equal(0, statement.Errors().Length);
-
-            var fs = (ForStatementSyntax)statement;
-            Assert.NotNull(fs.ForKeyword);
-            Assert.False(fs.ForKeyword.IsMissing);
-            Assert.Equal(SyntaxKind.ForKeyword, fs.ForKeyword.Kind());
-            Assert.NotNull(fs.OpenParenToken);
-
-            Assert.NotNull(fs.Declaration);
-            Assert.NotNull(fs.Declaration.Type);
-            Assert.Equal("ref T", fs.Declaration.Type.ToString());
-            Assert.Equal(2, fs.Declaration.Variables.Count);
-
-            Assert.NotNull(fs.Declaration.Variables[0].Identifier);
-            Assert.Equal("a", fs.Declaration.Variables[0].Identifier.ToString());
-            var initializer = fs.Declaration.Variables[0].Initializer as EqualsValueClauseSyntax;
-            Assert.NotNull(initializer);
-            Assert.NotNull(initializer.EqualsToken);
-            Assert.Equal(SyntaxKind.RefExpression, initializer.Value.Kind());
-            Assert.Equal("ref b", initializer.Value.ToString());
-
-            Assert.NotNull(fs.Declaration.Variables[1].Identifier);
-            Assert.Equal("c", fs.Declaration.Variables[1].Identifier.ToString());
-            initializer = fs.Declaration.Variables[1].Initializer as EqualsValueClauseSyntax;
-            Assert.NotNull(initializer);
-            Assert.NotNull(initializer.EqualsToken);
-            Assert.Equal(SyntaxKind.RefExpression, initializer.Value.Kind());
-            Assert.Equal("ref d", initializer.Value.ToString());
-
-            Assert.Equal(0, fs.Initializers.Count);
-            Assert.NotNull(fs.FirstSemicolonToken);
-            Assert.Null(fs.Condition);
-            Assert.NotNull(fs.SecondSemicolonToken);
-            Assert.Equal(0, fs.Incrementors.Count);
-            Assert.NotNull(fs.CloseParenToken);
-            Assert.NotNull(fs.Statement);
+            UsingNode(statement);
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "d");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.Block);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
         }
 
         [Fact]

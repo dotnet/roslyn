@@ -135,9 +135,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 var alias = semanticModel.GetAliasInfo(name, cancellationToken);
                 if (alias == null || alias.Name != "var")
                 {
-                    if (!IsSymbolCalledVar(symbol))
+                    if (!IsSymbolWithName(symbol, "var"))
                     {
                         // We bound to a symbol.  If we bound to a symbol called "var" then we want to
+                        // classify this appropriately as a type.  Otherwise, we want to classify this as
+                        // a keyword.
+                        classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
+                        return true;
+                    }
+                }
+            }
+
+            if (name.IsUnmanaged && name.Parent.IsKind(SyntaxKind.TypeConstraint))
+            {
+                var alias = semanticModel.GetAliasInfo(name, cancellationToken);
+                if (alias == null || alias.Name != "unmanaged")
+                {
+                    if (!IsSymbolWithName(symbol, "unmanaged"))
+                    {
+                        // We bound to a symbol.  If we bound to a symbol called "unmanaged" then we want to
                         // classify this appropriately as a type.  Otherwise, we want to classify this as
                         // a keyword.
                         classifiedSpan = new ClassifiedSpan(name.Span, ClassificationTypeNames.Keyword);
@@ -159,13 +175,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         return true;
                     }
                     break;
+
                 case IFieldSymbol fieldSymbol:
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForField(fieldSymbol));
                     return true;
                 case IMethodSymbol methodSymbol:
                     token = name.GetNameToken();
-                    classifiedSpan = new ClassifiedSpan(token.Span, methodSymbol.IsExtensionMethod ? ClassificationTypeNames.ExtensionMethodName : ClassificationTypeNames.MethodName);
+                    classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForMethod(methodSymbol));
                     return true;
                 case IPropertySymbol propertySymbol:
                     token = name.GetNameToken();
@@ -180,12 +197,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     {
                         break;
                     }
+
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.ParameterName);
                     return true;
                 case ILocalSymbol localSymbol:
                     token = name.GetNameToken();
-                    classifiedSpan = new ClassifiedSpan(token.Span, localSymbol.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName);
+                    classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForLocal(localSymbol));
                     return true;
             }
 
@@ -197,9 +215,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             if (fieldSymbol.IsConst)
             {
-                return fieldSymbol.ContainingType.IsEnumType() ? ClassificationTypeNames.EnumFieldName : ClassificationTypeNames.ConstantName;
+                return fieldSymbol.ContainingType.IsEnumType() ? ClassificationTypeNames.EnumMemberName : ClassificationTypeNames.ConstantName;
             }
+
             return ClassificationTypeNames.FieldName;
+        }
+
+        private static string GetClassificationForLocal(ILocalSymbol localSymbol)
+        {
+            return localSymbol.IsConst
+                ? ClassificationTypeNames.ConstantName
+                : ClassificationTypeNames.LocalName;
+        }
+
+        private static string GetClassificationForMethod(IMethodSymbol methodSymbol)
+        {
+            // Note: We only classify an extension method if it is in reduced form.
+            // If an extension method is called as a static method invocation (e.g. Enumerable.Select(...)),
+            // it is classified as an ordinary method.
+            return methodSymbol.MethodKind == MethodKind.ReducedExtension
+                ? ClassificationTypeNames.ExtensionMethodName
+                : ClassificationTypeNames.MethodName;
         }
 
         private bool IsInVarContext(NameSyntax name)
@@ -319,14 +355,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             return false;
         }
 
-        private bool IsSymbolCalledVar(ISymbol symbol)
+        private bool IsSymbolWithName(ISymbol symbol, string name)
         {
-            if (symbol is INamedTypeSymbol namedType)
+            if (symbol is null || symbol.Name != name)
             {
-                return namedType.Arity == 0 && symbol.Name == "var";
+                return false;
             }
 
-            return symbol != null && symbol.Name == "var";
+            if (symbol is INamedTypeSymbol namedType)
+            {
+                return namedType.Arity == 0;
+            }
+
+            return true;
         }
     }
 }

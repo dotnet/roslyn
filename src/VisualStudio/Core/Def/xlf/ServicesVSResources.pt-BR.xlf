@@ -1103,11 +1103,6 @@ Informações adicionais: {1}</target>
         <target state="translated">Gerenciar especificações</target>
         <note />
       </trans-unit>
-      <trans-unit id="Manage_styles">
-        <source>Manage styles</source>
-        <target state="translated">Gerenciar estilos</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reorder">
         <source>Reorder</source>
         <target state="translated">Reordenar</target>
@@ -1496,6 +1491,31 @@ Eu concordo com todo o conteúdo supracitado:</target>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
         <target state="translated">As configurações definidas aqui se aplicam somente a seu computador. Para definir essas configurações para viajar com sua solução, use arquivos .editorconfig.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Snippet_Command_Handler">
+        <source>Snippet Command Handler</source>
+        <target state="new">Snippet Command Handler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Class_View_Command_Handler">
+        <source>Sync Class View Command Handler</source>
+        <target state="new">Sync Class View Command Handler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="new">Manage naming styles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="new">Field preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="new">Prefer readonly</target>
         <note />
       </trans-unit>
     </body>

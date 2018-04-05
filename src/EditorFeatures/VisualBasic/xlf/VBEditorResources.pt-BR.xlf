@@ -107,6 +107,21 @@
         <target state="translated">Confirmação de linha</target>
         <note />
       </trans-unit>
+      <trans-unit id="Commit_Command_Handler">
+        <source>Line Commit Command Handler</source>
+        <target state="new">Line Commit Command Handler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="End_Construct_Command_Handler">
+        <source>End Construct Command Handler</source>
+        <target state="new">End Construct Command Handler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Abstract_Class_Or_Interface_Command_Handler">
+        <source>Implement Abstract Class Or Interface Command Handler</source>
+        <target state="new">Implement Abstract Class Or Interface Command Handler</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

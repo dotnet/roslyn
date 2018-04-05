@@ -216,6 +216,9 @@
   <data name="IDS_FeaturePrivateProtected" xml:space="preserve">
     <value>private protected</value>
   </data>
+  <data name="IDS_FeatureTupleEquality" xml:space="preserve">
+    <value>tuple equality</value>
+  </data>
   <data name="IDS_FeatureNullable" xml:space="preserve">
     <value>nullable types</value>
   </data>
@@ -927,6 +930,9 @@
   <data name="ERR_FixedNotNeeded" xml:space="preserve">
     <value>You cannot use the fixed statement to take the address of an already fixed expression</value>
   </data>
+  <data name="ERR_ExprCannotBeFixed" xml:space="preserve">
+    <value>The given expression cannot be used in a fixed statement</value>
+  </data>
   <data name="ERR_UnsafeNeeded" xml:space="preserve">
     <value>Pointers and fixed size buffers may only be used in an unsafe context</value>
   </data>
@@ -1329,6 +1335,9 @@
   <data name="ERR_RefValBoundWithClass" xml:space="preserve">
     <value>'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint</value>
   </data>
+  <data name="ERR_UnmanagedBoundWithClass" xml:space="preserve">
+    <value>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</value>
+  </data>
   <data name="ERR_NewBoundWithVal" xml:space="preserve">
     <value>The 'new()' constraint cannot be used with the 'struct' constraint</value>
   </data>
@@ -1473,7 +1482,6 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeNotFound" xml:space="preserve">
-    <!-- We need a specific error code for ValueTuple as an IDE codefix depends on it (AddNuget) -->
     <value>Predefined type '{0}' is not defined or imported</value>
   </data>
   <data name="ERR_PredefinedValueTupleTypeAmbiguous3" xml:space="preserve">
@@ -2171,6 +2179,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_ExpressionTreeContainsBaseAccess" xml:space="preserve">
     <value>An expression tree may not contain a base access</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsTupleBinOp" xml:space="preserve">
+    <value>An expression tree may not contain a tuple == or != operator</value>
   </data>
   <data name="ERR_ExpressionTreeContainsAssignment" xml:space="preserve">
     <value>An expression tree may not contain an assignment operator</value>
@@ -2916,7 +2927,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>A namespace declaration cannot have modifiers or attributes</value>
   </data>
   <data name="ERR_BadPlatformType" xml:space="preserve">
-    <value>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium or x64</value>
+    <value>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64</value>
   </data>
   <data name="ERR_ThisStructNotInAnonMeth" xml:space="preserve">
     <value>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</value>
@@ -4270,6 +4281,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefConditional" xml:space="preserve">
     <value>ref conditional expression</value>
   </data>
+  <data name="IDS_FeatureRefReassignment" xml:space="preserve">
+    <value>ref reassignment</value>
+  </data>
+  <data name="IDS_FeatureRefFor" xml:space="preserve">
+    <value>ref for-loop variables</value>
+  </data>
+  <data name="IDS_FeatureRefForEach" xml:space="preserve">
+    <value>ref foreach iteration variables</value>
+  </data>
+  <data name="IDS_FeatureExtensibleFixedStatement" xml:space="preserve">
+    <value>extensible fixed statement</value>
+  </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>
   </data>
@@ -4468,7 +4491,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /doc:&lt;file&gt;                   XML Documentation file to generate
  /refout:&lt;file&gt;                Reference assembly output to generate
  /platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred, or
+                               Itanium, x64, arm, arm64, anycpu32bitpreferred, or
                                anycpu. The default is anycpu.
 
                         - INPUT FILES -
@@ -5028,6 +5051,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
     <value>The tuple element name is ignored because a different name or no name is specified by the assignment target.</value>
   </data>
+  <data name="WRN_TupleBinopLiteralNameMismatch" xml:space="preserve">
+    <value>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</value>
+  </data>
+  <data name="WRN_TupleBinopLiteralNameMismatch_Title" xml:space="preserve">
+    <value>The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</value>
+  </data>
   <data name="ERR_PredefinedValueTupleTypeMustBeStruct" xml:space="preserve">
     <value>Predefined type '{0}' must be a struct.</value>
   </data>
@@ -5072,12 +5101,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_VarInvocationLvalueReserved" xml:space="preserve">
     <value>The syntax 'var (...)' as an lvalue is reserved.</value>
-  </data>
-  <data name="ERR_ExpressionVariableInConstructorOrFieldInitializer" xml:space="preserve">
-    <value>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</value>
-  </data>
-  <data name="ERR_ExpressionVariableInQueryClause" xml:space="preserve">
-    <value>Out variable and pattern variable declarations are not allowed within a query clause.</value>
   </data>
   <data name="ERR_SemiOrLBraceOrArrowExpected" xml:space="preserve">
     <value>{ or ; or =&gt; expected</value>
@@ -5226,9 +5249,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_StackAllocConversionNotPossible" xml:space="preserve">
     <value>Conversion of a stackalloc expression of type '{0}' to type '{1}' is not possible.</value>
   </data>
-  <data name="IDS_StackAllocExpression" xml:space="preserve">
-    <value>stackalloc {0}[{1}]</value>
-  </data>
   <data name="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne" xml:space="preserve">
     <value>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</value>
   </data>
@@ -5258,5 +5278,50 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InDynamicMethodArg" xml:space="preserve">
     <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</value>
+  </data>
+  <data name="ERR_TupleSizesMismatchForBinOps" xml:space="preserve">
+    <value>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</value>
+  </data>
+  <data name="ERR_RefLocalOrParamExpected" xml:space="preserve">
+    <value>The left-hand side of a ref assignment must be a ref local or parameter.</value>
+  </data>
+  <data name="ERR_RefAssignNarrower" xml:space="preserve">
+    <value>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</value>
+  </data>
+  <data name="IDS_FeatureEnumGenericTypeConstraint" xml:space="preserve">
+    <value>enum generic type constraints</value>
+  </data>
+  <data name="IDS_FeatureDelegateGenericTypeConstraint" xml:space="preserve">
+    <value>delegate generic type constraints</value>
+  </data>
+  <data name="IDS_FeatureUnmanagedGenericTypeConstraint" xml:space="preserve">
+    <value>unmanaged generic type constraints</value>
+  </data>
+  <data name="ERR_NewBoundWithUnmanaged" xml:space="preserve">
+    <value>The 'new()' constraint cannot be used with the 'unmanaged' constraint</value>
+  </data>
+  <data name="ERR_UnmanagedConstraintMustBeFirst" xml:space="preserve">
+    <value>The 'unmanaged' constraint must come before any other constraints</value>
+  </data>
+  <data name="ERR_UnmanagedConstraintNotSatisfied" xml:space="preserve">
+    <value>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</value>
+  </data>
+  <data name="ERR_ConWithUnmanagedCon" xml:space="preserve">
+    <value>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</value>
+  </data>
+  <data name="ERR_InvalidObjectCreation" xml:space="preserve">
+    <value>Invalid object creation</value>
+  </data>
+  <data name="IDS_FeatureStackAllocInitializer" xml:space="preserve">
+    <value>stackalloc initializer</value>
+  </data>
+  <data name="ERR_InvalidStackAllocArray" xml:space="preserve">
+    <value>"Invalid rank specifier: expected ']'</value>
+  </data>
+  <data name="IDS_FeatureExpressionVariablesInQueriesAndInitializers" xml:space="preserve">
+    <value>declaration of expression variables in member initializers and queries</value>
+  </data>
+  <data name="IDS_FeatureIndexingMovableFixedBuffers" xml:space="preserve">
+    <value>indexing movable fixed buffers</value>
   </data>
 </root>

@@ -7,12 +7,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Structure;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
+    [UseExportProvider]
     public abstract class AbstractSyntaxStructureProviderTests
     {
         protected abstract string LanguageName { get; }

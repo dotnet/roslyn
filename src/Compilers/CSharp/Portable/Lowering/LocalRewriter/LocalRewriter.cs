@@ -234,6 +234,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sawLocalFunctions = true;
             CheckRefReadOnlySymbols(node.Symbol);
 
+            if (node.Symbol.TypeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
+            {
+                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
+            }
+
             var oldContainingSymbol = _factory.CurrentMethod;
             try
             {
@@ -427,7 +432,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (IsFieldOrPropertyInitializer(initializer))
                 {
-                    statements.Add(RewriteExpressionStatement((BoundExpressionStatement)initializer, suppressInstrumentation: true));
+                    if (initializer.Kind == BoundKind.Block)
+                    {
+                        var block = (BoundBlock)initializer; 
+                        statements.Add(block.Update(block.Locals, block.LocalFunctions, 
+                                                    ImmutableArray.Create(RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), 
+                                                                                                     suppressInstrumentation: true))));
+                    }
+                    else
+                    {
+                        statements.Add(RewriteExpressionStatement((BoundExpressionStatement)initializer, suppressInstrumentation: true));
+                    }
                 }
                 else
                 {
@@ -471,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (IsFieldOrPropertyInitializer(originalStatements[i]))
                         {
-                            var original = (BoundExpressionStatement)originalStatements[i];
+                            BoundStatement original = originalStatements[i];
                             if (Instrument && !original.WasCompilerGenerated)
                             {
                                 rewritten = _instrumenter.InstrumentFieldOrPropertyInitializer(original, rewritten);
@@ -500,7 +515,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.VariableDeclarator:
                     case SyntaxKind.PropertyDeclaration:
-                        return (initializer as BoundExpressionStatement)?.Expression.Kind == BoundKind.AssignmentOperator;
+
+                        switch (initializer.Kind)
+                        {
+                            case BoundKind.Block:
+                                var block = (BoundBlock)initializer;
+                                if (block.Statements.Length == 1)
+                                {
+                                    initializer = (BoundStatement)block.Statements.First();
+                                    if (initializer.Kind == BoundKind.ExpressionStatement)
+                                    {
+                                        goto case BoundKind.ExpressionStatement;
+                                    }
+                                }
+                                break;
+
+                            case BoundKind.ExpressionStatement:
+                                return ((BoundExpressionStatement)initializer).Expression.Kind == BoundKind.AssignmentOperator;
+
+                        }
+                        break;
                 }
             }
 

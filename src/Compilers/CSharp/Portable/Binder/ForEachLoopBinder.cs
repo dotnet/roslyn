@@ -205,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression boundIterationVariableType;
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
+            BoundExpression iterationErrorExpression = null;
             uint collectionEscape = GetValEscape(collectionExpr, this.LocalScopeDepth);
             switch (_syntax.Kind())
             {
@@ -217,11 +218,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If the type in syntax is "var", then the type should be set explicitly so that the
                         // Type property doesn't fail.
-                        TypeSyntax typeSyntax = node.Type;
+                        TypeSyntax typeSyntax = node.Type.SkipRef(out _);
 
                         bool isVar;
                         AliasSymbol alias;
-                        TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out alias);
+                        TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out alias);
 
                         if (isVar)
                         {
@@ -238,6 +239,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SourceLocalSymbol local = this.IterationVariable;
                         local.SetType(iterationVariableType);
                         local.SetValEscape(collectionEscape);
+
+                        if (!hasErrors)
+                        {
+                            BindValueKind requiredCurrentKind;
+                            switch (local.RefKind)
+                            {
+                                case RefKind.None:
+                                    requiredCurrentKind = BindValueKind.RValue;
+                                    break;
+                                case RefKind.Ref:
+                                    requiredCurrentKind = BindValueKind.Assignable | BindValueKind.RefersToLocation;
+                                    break;
+                                case RefKind.RefReadOnly:
+                                    requiredCurrentKind = BindValueKind.RefersToLocation;
+                                    break;
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(local.RefKind);
+                            }
+
+                            hasErrors |= !CheckMethodReturnValueKind(
+                                builder.CurrentPropertyGetter,
+                                callSyntaxOpt: null,
+                                collectionExpr.Syntax,
+                                requiredCurrentKind,
+                                checkingReceiver: false,
+                                diagnostics);
+                        }
 
                         break;
                     }
@@ -270,11 +298,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder).MakeCompilerGenerated();
                         }
-                        else if (!node.HasErrors)
+                        else
                         {
-                            // error: must declare foreach loop iteration variables.
-                            Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                            // Bind the expression for error recovery, but discard all new diagnostics
+                            iterationErrorExpression = BindExpression(node.Variable, new DiagnosticBag());
                             hasErrors = true;
+
+                            if (!node.HasErrors)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                            }
                         }
 
                         boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType).MakeCompilerGenerated();
@@ -307,6 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default(Conversion),
                     boundIterationVariableType,
                     iterationVariables,
+                    iterationErrorExpression,
                     collectionExpr,
                     deconstructStep,
                     body,

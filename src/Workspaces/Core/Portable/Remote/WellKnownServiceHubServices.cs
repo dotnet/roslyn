@@ -25,7 +25,5 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public const string ServiceHubServiceBase_Initialize = "Initialize";
         public const string AssetService_RequestAssetAsync = "RequestAssetAsync";
-
-        public const string CodeAnalysisService_CalculateDiagnosticsAsync = "CalculateDiagnosticsAsync";
     }
 }
