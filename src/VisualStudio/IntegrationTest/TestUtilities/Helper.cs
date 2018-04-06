@@ -10,6 +10,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class Helper
     {
+        /// <summary>
+        /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
+        /// </summary>
+        public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(1);
+
         private static IUIAutomation2 _automation;
 
         public static IUIAutomation2 Automation

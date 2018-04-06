@@ -750,11 +750,9 @@ d.cs
             var longI = new String('i', 260);
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", String.Format("{0},e,private", longI), _baseDirectory, diags, embedded: false);
-            diags.Verify(); // Now checked during emit.
-            diags.Clear();
-            Assert.Equal(longI, desc.FileName);
-            Assert.Equal("e", desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            diags.Verify(
+                // error CS2021: File name 'iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii").WithLocation(1, 1));
         }
 
         [Fact]
@@ -7409,7 +7407,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             var fsDll = new FileStream(libDll.Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", libSrc.Path }).Run(outWriter);
+            int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", "/preferreduilang:en", libSrc.Path }).Run(outWriter);
             Assert.Contains($"error CS2012: Cannot open '{libDll.Path}' for writing", outWriter.ToString());
 
             AssertEx.Equal(new[] { (byte)'D', (byte)'L', (byte)'L' }, ReadBytes(libDll.Path, 3));
@@ -7428,7 +7426,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             var libDll = dir.CreateDirectory("Lib.dll");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", libSrc.Path }).Run(outWriter);
+            int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", "/preferreduilang:en", libSrc.Path }).Run(outWriter);
             Assert.Contains($"error CS2012: Cannot open '{libDll.Path}' for writing", outWriter.ToString());
         }
 
@@ -9582,7 +9580,7 @@ public class C
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, dir.Path,
-                new[] { "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "a.cs" });
+                new[] { "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "/preferreduilang:en", "a.cs" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
 
@@ -9931,6 +9929,46 @@ class C
             {
                 VerifyQuotedValid("langversion", "2", LanguageVersion.CSharp2, x => x.ParseOptions.LanguageVersion);
             }
+        }
+
+        [Fact]
+        [WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")]
+        public void InvalidPathCharacterInPathMap()
+        {
+            string filePath = Temp.CreateFile().WriteAllText("").Path;
+            var compiler = new MockCSharpCompiler(null, _baseDirectory, new[]
+            {
+                filePath,
+                "/debug:embedded",
+                "/pathmap:test\\=\"",
+                "/target:library",
+                "/preferreduilang:en"
+            });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = compiler.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.Contains("error CS8101: The pathmap option was incorrectly formatted.", outWriter.ToString(), StringComparison.Ordinal);
+        }
+
+        [Fact]
+        [WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")]
+        public void InvalidPathCharacterInPdbPath()
+        {
+            string filePath = Temp.CreateFile().WriteAllText("").Path;
+            var compiler = new MockCSharpCompiler(null, _baseDirectory, new[]
+            {
+                filePath,
+                "/debug:embedded",
+                "/pdb:test\\?.pdb",
+                "/target:library",
+                "/preferreduilang:en"
+            });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = compiler.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.Contains("error CS2021: File name 'test\\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long", outWriter.ToString(), StringComparison.Ordinal);
         }
     }
 

@@ -39,26 +39,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void FileWithErrors()
         {
-            var code = "#load \"a.csx\"";
-            var resolver = TestSourceReferenceResolver.Create(
-                KeyValuePair.Create("a.csx", @"
+            using (new EnsureEnglishUICulture())
+            {
+                var code = "#load \"a.csx\"";
+                var resolver = TestSourceReferenceResolver.Create(
+                    KeyValuePair.Create("a.csx", @"
                     #load ""b.csx""
                     asdf();"));
-            var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
-            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
+                var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
+                var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 
-            Assert.Equal(2, compilation.SyntaxTrees.Length);
-            compilation.GetParseDiagnostics().Verify(
-                // a.csx(2,27): error CS1504: Source file 'b.csx' could not be opened -- Could not find file.
-                //                     #load "b.csx";
-                Diagnostic(ErrorCode.ERR_NoSourceFile, @"""b.csx""").WithArguments("b.csx", "Could not find file.").WithLocation(2, 27));
-            compilation.GetDiagnostics().Verify(
-                // a.csx(2,27): error CS1504: Source file 'b.csx' could not be opened -- Could not find file.
-                //                     #load "b.csx";
-                Diagnostic(ErrorCode.ERR_NoSourceFile, @"""b.csx""").WithArguments("b.csx", "Could not find file.").WithLocation(2, 27),
-                // a.csx(3,21): error CS0103: The name 'asdf' does not exist in the current context
-                //                     asdf();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "asdf").WithArguments("asdf").WithLocation(3, 21));
+                Assert.Equal(2, compilation.SyntaxTrees.Length);
+                compilation.GetParseDiagnostics().Verify(
+                    // a.csx(2,27): error CS1504: Source file 'b.csx' could not be opened -- Could not find file.
+                    //                     #load "b.csx";
+                    Diagnostic(ErrorCode.ERR_NoSourceFile, @"""b.csx""").WithArguments("b.csx", "Could not find file.").WithLocation(2, 27));
+                compilation.GetDiagnostics().Verify(
+                    // a.csx(2,27): error CS1504: Source file 'b.csx' could not be opened -- Could not find file.
+                    //                     #load "b.csx";
+                    Diagnostic(ErrorCode.ERR_NoSourceFile, @"""b.csx""").WithArguments("b.csx", "Could not find file.").WithLocation(2, 27),
+                    // a.csx(3,21): error CS0103: The name 'asdf' does not exist in the current context
+                    //                     asdf();
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "asdf").WithArguments("asdf").WithLocation(3, 21));
+            }
         }
 
         [Fact]

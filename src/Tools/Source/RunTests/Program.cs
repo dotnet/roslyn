@@ -155,7 +155,16 @@ namespace RunTests
 
             async Task DumpProcess(Process targetProcess, string dumpFilePath)
             {
-                Console.Write($"Dumping {targetProcess.ProcessName} {targetProcess.Id} to {dumpFilePath} ... ");
+                var name = targetProcess.ProcessName;
+
+                // Our space for saving dump files is limited. Skip dumping for processes that won't contribute
+                // to bug investigations.
+                if (name == "procdump" || name == "conhost")
+                {
+                    return;
+                }
+
+                Console.Write($"Dumping {name} {targetProcess.Id} to {dumpFilePath} ... ");
                 try
                 {
                     var args = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
