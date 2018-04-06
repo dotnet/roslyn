@@ -1082,6 +1082,11 @@
         <target state="new">JSON issue: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Style">
+        <source>Style</source>
+        <target state="new">Style</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

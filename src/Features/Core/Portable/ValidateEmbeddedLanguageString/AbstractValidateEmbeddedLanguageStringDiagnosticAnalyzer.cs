@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ValidateJsonString
 
             foreach (var language in embeddedLanguageProvider.GetEmbeddedLanguages())
             {
-                var analyzer = language.GetDiagnosticAnalyzer(DiagnosticCategory.Style);
+                var analyzer = language.DiagnosticAnalyzer;
                 if (analyzer != null)
                 {
                     analyzers.Add(analyzer);

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 {
+    using System.Diagnostics;
     using static EmbeddedSyntaxHelpers;
 
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
@@ -19,12 +20,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
     {
         private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
 
+        private readonly int _stringLiteralKind;
         private readonly ISyntaxFactsService _syntaxFacts;
         private readonly ISemanticFactsService _semanticFacts;
         private readonly IVirtualCharService _virtualCharService;
 
-        public JsonEmbeddedClassifier(ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, IVirtualCharService virtualCharService)
+        public JsonEmbeddedClassifier(int stringLiteralKind, ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, IVirtualCharService virtualCharService)
         {
+            _stringLiteralKind = stringLiteralKind;
             _syntaxFacts = syntaxFacts;
             _semanticFacts = semanticFacts;
             _virtualCharService = virtualCharService;
@@ -34,6 +37,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(token.RawKind == _stringLiteralKind);
+
             if (!workspace.Options.GetOption(JsonOptions.ColorizeJsonPatterns, token.Language))
             {
                 return;

@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         private readonly DiagnosticDescriptor _descriptor;
 
         public JsonDiagnosticAnalyzer(
-            string style,
             int stringLiteralKind,
             ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,
@@ -31,10 +30,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             _semanticFacts = semanticFacts;
             _virtualCharService = virtualCharService;
 
-            _descriptor = new DiagnosticDescriptor("IDE0047",
+            _descriptor = new DiagnosticDescriptor("JSON001",
                 new LocalizableResourceString(nameof(WorkspacesResources.JSON_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                 new LocalizableResourceString(nameof(WorkspacesResources.JSON_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
-                style,
+                WorkspacesResources.Style,
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
 

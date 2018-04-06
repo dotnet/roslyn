@@ -784,4 +784,7 @@
   <data name="JSON_issue_0" xml:space="preserve">
     <value>JSON issue: {0}</value>
   </data>
+  <data name="Style" xml:space="preserve">
+    <value>Style</value>
+  </data>
 </root>
