@@ -10,6 +10,10 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 {
+    /// <summary>
+    /// Analyzer that helps find strings that are likely to be JSON and which we should offer the
+    /// enable language service features for.
+    /// </summary>
     internal class JsonDetectionAnalyzer : IEmbeddedDiagnosticAnalyzer
     {
         public const string DiagnosticId = "JSON002";

@@ -10,6 +10,9 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 {
+    /// <summary>
+    /// Analyzer that reports diagnostics in strings that we know are JSON text.
+    /// </summary>
     internal class JsonDiagnosticAnalyzer : IEmbeddedDiagnosticAnalyzer
     {
         public const string DiagnosticId = "JSON001";
