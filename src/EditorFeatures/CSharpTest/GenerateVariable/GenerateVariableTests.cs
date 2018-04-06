@@ -7621,7 +7621,7 @@ class C
     void M2()
     {
         object o = null;
-        if (o is Blah { [|X|] is int i })
+        if (o is Blah { [|X|]: int i })
         {
         }
     }
@@ -7636,7 +7636,7 @@ class C
     void M2()
     {
         object o = null;
-        if (o is Blah { X is int i })
+        if (o is Blah { X: int i })
         {
         }
     }
