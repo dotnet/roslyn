@@ -7,6 +7,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 {
+    // Note: this type could be concrete, but we cannot export IBraceMatcher's for multiple
+    // languages at once.  So all logic is contained here.  The derived types only exist for
+    // exporting purposes.
     internal abstract class AbstractEmbeddedLanguageBraceMatcher : IBraceMatcher
     {
         public async Task<BraceMatchingResult?> FindBracesAsync(
