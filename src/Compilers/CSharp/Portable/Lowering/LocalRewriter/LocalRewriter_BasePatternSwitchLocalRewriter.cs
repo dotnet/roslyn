@@ -236,8 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var mightAssignWalker = new WhenClauseMightAssignWalker(isSwitchStatement: this._isSwitchStatement);
                 bool canShareTemps =
                     !decisionDag.TopologicallySortedNodes
-                    .OfType<BoundWhenDecisionDagNode>()
-                    .Any(w => mightAssignWalker.MightAssignSomething(w.WhenExpression));
+                    .Any(node => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression));
 
                 if (canShareTemps)
                 {

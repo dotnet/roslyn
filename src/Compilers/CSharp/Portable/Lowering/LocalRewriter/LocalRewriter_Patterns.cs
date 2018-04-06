@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _tempAllocator.Free();
             }
 
-            protected BoundDagTemp InputTemp(BoundExpression expr) => new BoundDagTemp(expr.Syntax, expr.Type, null, 0);
+            protected static BoundDagTemp InputTemp(BoundExpression expr) => new BoundDagTemp(expr.Syntax, expr.Type, null, 0);
 
             public class DagTempAllocator
             {
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (node)
                     {
                         case BoundWhenDecisionDagNode n:
-                            return (n.Bindings.Any(b => b.TempContainingValue.IsOriginalInput));
+                            return n.Bindings.Any(b => b.TempContainingValue.IsOriginalInput);
                         case BoundTestDecisionDagNode t:
                             return t.Test.Input.IsOriginalInput;
                         case BoundEvaluationDecisionDagNode e:
