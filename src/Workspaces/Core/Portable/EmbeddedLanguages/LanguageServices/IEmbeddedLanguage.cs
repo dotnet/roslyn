@@ -1,25 +1,33 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.Threading;
-using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Classification;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
+    /// <summary>
+    /// Services related to a specific embedded language.
+    /// </summary>
     internal interface IEmbeddedLanguage
     {
+        /// <summary>
+        /// A optional brace matcher that can match braces in an embedded language string.
+        /// </summary>
         IEmbeddedBraceMatcher BraceMatcher { get; }
+
+        /// <summary>
+        /// A optional classifier that can produce <see cref="ClassifiedSpan"/>s for an embedded language string.
+        /// </summary>
         IEmbeddedClassifier Classifier { get; }
 
+        /// <summary>
+        /// An optional analyzer that produces diagnostics for an embedded language string.
+        /// </summary>
         IEmbeddedDiagnosticAnalyzer DiagnosticAnalyzer { get; }
+
+        /// <summary>
+        /// An optional fix provider that can fix the diagnostics produced by <see
+        /// cref="DiagnosticAnalyzer"/>
+        /// </summary>
         IEmbeddedCodeFixProvider CodeFixProvider { get; }
-    }
-
-    internal interface IEmbeddedCodeFixProvider
-    {
-        string Title { get; }
-        ImmutableArray<string> FixableDiagnosticIds { get; }
-
-        void Fix(SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken);
     }
 }

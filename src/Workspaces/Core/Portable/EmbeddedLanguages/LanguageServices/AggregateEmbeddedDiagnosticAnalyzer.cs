@@ -7,6 +7,10 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
+    /// <summary>
+    /// An <see cref="IEmbeddedDiagnosticAnalyzer"/> built out of many individual 
+    /// <see cref="IEmbeddedDiagnosticAnalyzer"/>s
+    /// </summary>
     internal class AggregateEmbeddedDiagnosticAnalyzer : IEmbeddedDiagnosticAnalyzer
     {
         private readonly ImmutableArray<IEmbeddedDiagnosticAnalyzer> _analyzers;
