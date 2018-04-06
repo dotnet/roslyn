@@ -1543,7 +1543,6 @@ class UsePia4
 
                     param = m20.ReturnTypeParameter;
                     Assert.Equal((ParameterAttributes)0, param.Flags);
-                    Assert.Equal(-1, param.Ordinal);
 
                     var m21 = (PEMethodSymbol)itest19.GetMembers("M21").Single();
 

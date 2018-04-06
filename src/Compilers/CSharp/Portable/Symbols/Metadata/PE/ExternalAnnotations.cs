@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -32,102 +30,70 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 { "System.String System.String.Concat(System.String, System.String)", Parameters(Nullable(false), Nullable(true), Nullable(true)) },
             };
 
-        internal static string MakeKey(PEModuleSymbol moduleSymbol, Handle handle)
+        internal static string MakeMethodKey(PEMethodSymbol method, ParamInfo<TypeSymbol>[] paramInfo)
         {
-            var metadata = moduleSymbol.Module.MetadataReader;
-            var builder = PooledStringBuilder.GetInstance();
+            var pooledBuilder = PooledStringBuilder.GetInstance();
 
-            if (handle.Kind == HandleKind.MethodDefinition)
-            {
-                Add((MethodDefinitionHandle)handle, metadata, builder, moduleSymbol);
-            }
-
-            return builder.ToStringAndFree();
-        }
-
-        /// <summary>
-        /// All types in a member should be annotated, except for struct or enum types, which can be skipped.
-        /// </summary>
-        private static readonly ImmutableArray<bool> skip = ImmutableArray<bool>.Empty;
-
-        static ImmutableArray<ImmutableArray<bool>> Parameters(params ImmutableArray<bool>[] values)
-        {
-            return values.ToImmutableArray();
-        }
-
-        static ImmutableArray<bool> Nullable(params bool[] values)
-        {
-            return values.ToImmutableArray();
-        }
-
-        internal static ImmutableArray<bool> GetExtraAnnotations(string key, int ordinal)
-        {
-            if (!Annotations.TryGetValue(key, out var flags))
-            {
-                return default;
-            }
-
-            return flags[ordinal];
-        }
-
-        private static void Add(MethodDefinitionHandle methodHandle, MetadataReader metadata, StringBuilder builder, PEModuleSymbol moduleSymbol)
-        {
-            var metadataDecoder = new MetadataDecoder(moduleSymbol);
-            SignatureHeader signatureHeader;
-            BadImageFormatException mrEx;
-            ParamInfo<TypeSymbol>[] methodParams = metadataDecoder.GetSignatureForMethod(methodHandle, out signatureHeader, out mrEx, setParamHandles: false);
-
-            MethodDefinition method = metadata.GetMethodDefinition(methodHandle);
-
-            TypeSymbol type1 = methodParams[0].Type;
-            Add(type1, builder);
-
+            StringBuilder builder = pooledBuilder.Builder;
+            Add(paramInfo[0].Type, builder);
             builder.Append(' ');
 
-            TypeDefinition type = metadata.GetTypeDefinition(method.GetDeclaringType());
-            Add(type, metadata, builder);
+            Add(method.ContainingType, builder);
             builder.Append('.');
 
-            string name = metadata.GetString(method.Name);
-            builder.Append(name);
+            builder.Append(method.Name);
             builder.Append('(');
 
-            for (int i = 1; i < methodParams.Length; i++)
+            for (int i = 1; i < paramInfo.Length; i++)
             {
-                Add(methodParams[i].Type, builder);
-                if (i < methodParams.Length - 1)
+                Add(paramInfo[i].Type, builder);
+                if (i < paramInfo.Length - 1)
                 {
                     builder.Append(", ");
                 }
             }
 
             builder.Append(')');
+            return pooledBuilder.ToStringAndFree();
 
             // PROTOTYPE(NullableReferenceTypes): Many cases are not yet handled
             // generic type args
             // ref kind
             // 'this'
             // static vs. instance
+            // use assembly qualified name format (used in metadata) rather than symbol display?
         }
 
-        private static void Add(TypeSymbol type1, StringBuilder builder) =>
-                        builder.Append(type1.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat.RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
+        /// <summary>
+        /// All types in a member which can be annotated should be annotated. Value types can be skipped.
+        /// </summary>
+        private static readonly ImmutableArray<bool> skip = ImmutableArray<bool>.Empty;
 
-        private static void Add(TypeDefinition type, MetadataReader metadata, StringBuilder builder)
+        static ImmutableArray<ImmutableArray<bool>> Parameters(params ImmutableArray<bool>[] values)
+            => values.ToImmutableArray();
+
+        static ImmutableArray<bool> Nullable(params bool[] values)
+            => values.ToImmutableArray();
+
+        internal static ImmutableArray< ImmutableArray<bool>> GetExtraAnnotations(string key)
         {
-            string ns = metadata.GetString(type.Namespace);
-            builder.Append(ns);
-            builder.Append('.');
+            if (!Annotations.TryGetValue(key, out var flags))
+            {
+                return default;
+            }
 
-            string name = metadata.GetString(type.Name);
-            builder.Append(name);
+            return flags;
         }
+
+        private static void Add(TypeSymbol type, StringBuilder builder)
+            => builder.Append(
+                type.ToDisplayString(
+                    SymbolDisplayFormat.CSharpErrorMessageFormat.RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
         [Conditional("DEBUG")]
         internal static void AssertTypeNeedsNoAnnotation(TypeSymbol typeSymbol)
         {
-            // ex: a method has annotations, but some parameters do not require any
-            Debug.Assert(typeSymbol.IsStructType() || typeSymbol.IsEnumType());
+            Debug.Assert(!typeSymbol.IsValueType);
         }
     }
 }

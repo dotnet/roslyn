@@ -609,6 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!extraAnnotations.IsDefault)
                 {
+                    // empty extra annotations are only allowed for types that don't need annotations
                     ExtraAnnotations.AssertTypeNeedsNoAnnotation(this.TypeSymbol);
                 }
                 return this.SetUnknownNullabilityForReferenceTypesIfNecessary(module);

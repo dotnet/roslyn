@@ -673,7 +673,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var paramHandle = i < numAccessorParams ? accessorParams[i].Handle : propertyParam.Handle;
                 var ordinal = i - 1;
                 bool isBad;
-                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, ordinal, paramHandle, propertyParam, out isBad);
+                // PROTOTYPE(NullableReferenceTypes): handle extra annotations
+                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, ordinal, paramHandle, propertyParam, extraAnnotations: default, out isBad);
 
                 if (isBad)
                 {

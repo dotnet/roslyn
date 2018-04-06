@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
-        internal static TypeSymbolWithAnnotations  TransformOrEraseNullability(
+        internal static TypeSymbolWithAnnotations TransformOrEraseNullability(
             TypeSymbolWithAnnotations metadataType,
             EntityHandle targetSymbolToken,
             PEModuleSymbol containingModule,

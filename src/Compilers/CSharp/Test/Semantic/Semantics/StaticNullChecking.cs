@@ -202,6 +202,39 @@ class C
         }
 
         [Fact]
+        public void AnnotatedAssemblies_WithSomeExtraAnnotations()
+        {
+            // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
+            // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
+            var lib = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class ValueType { }
+    public struct Boolean { }
+    public class String
+    {
+        public String? Concat(String a, String b) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation(lib, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp2.VerifyDiagnostics();
+
+            var expected = ImmutableArray.Create(
+"System.String! System.String.Concat(System.String?, System.String?)",
+"System.Runtime.CompilerServices.NullableAttribute.NullableAttribute(System.Boolean[]!)"
+            );
+            var systemNamespace = comp2.GetMember<NamedTypeSymbol>("System.String").ContainingNamespace;
+            VerifyUsesOfNullability(systemNamespace, expected);
+        }
+
+        [Fact]
         public void UnannotatedAssemblies_01()
         {
             var source0 =

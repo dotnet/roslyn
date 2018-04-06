@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private ImmutableArray<CSharpAttributeData> _lazyHiddenAttributes;
 
-        private readonly short _ordinal;
+        private readonly ushort _ordinal;
 
         private PackedFlags _packedFlags;
 
@@ -143,9 +143,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEMethodSymbol containingSymbol,
             int ordinal,
             ParamInfo<TypeSymbol> parameter,
+            ImmutableArray<bool> extraAnnotations,
             out bool isBad)
         {
-            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.RefCustomModifiers, parameter.Type, containingSymbol.Handle, parameter.Handle, parameter.CustomModifiers, out isBad);
+            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.RefCustomModifiers, parameter.Type, extraAnnotations, parameter.Handle, parameter.CustomModifiers, out isBad);
         }
 
         /// <summary>
@@ -165,9 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int ordinal,
             ParameterHandle handle,
             ParamInfo<TypeSymbol> parameter,
+            ImmutableArray<bool> extraAnnotations,
             out bool isBad)
         {
-            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.RefCustomModifiers, parameter.Type, containingSymbol.Handle, handle, parameter.CustomModifiers, out isBad);
+            return Create(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.RefCustomModifiers, parameter.Type, extraAnnotations, handle, parameter.CustomModifiers, out isBad);
         }
 
         private PEParameterSymbol(
@@ -176,27 +178,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int ordinal,
             bool isByRef,
             TypeSymbolWithAnnotations type,
-            Handle containingHandle,
+            ImmutableArray<bool> extraAnnotations,
             ParameterHandle handle,
             int countOfCustomModifiers,
             out bool isBad)
         {
             Debug.Assert((object)moduleSymbol != null);
             Debug.Assert((object)containingSymbol != null);
-            Debug.Assert(ordinal >= -1); // -1 means the return position
+            Debug.Assert(ordinal >= 0);
             Debug.Assert((object)type != null);
 
             isBad = false;
             _moduleSymbol = moduleSymbol;
             _containingSymbol = containingSymbol;
-            _ordinal = (short)ordinal;
+            _ordinal = (ushort)ordinal;
 
             _handle = handle;
 
             RefKind refKind = RefKind.None;
-
-            string key = ExtraAnnotations.MakeKey(moduleSymbol, containingHandle);
-            ImmutableArray<bool> extraAnnotations = ExtraAnnotations.GetExtraAnnotations(key, ordinal + 1);
 
             if (handle.IsNil)
             {
@@ -280,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isByRef,
             ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers,
             TypeSymbol type,
-            Handle containingHandle,
+            ImmutableArray<bool> extraAnnotations,
             ParameterHandle handle,
             ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
             out bool isBad)
@@ -288,10 +287,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var typeWithModifiers = TypeSymbolWithAnnotations.Create(type, CSharpCustomModifier.Convert(customModifiers));
             if (customModifiers.IsDefaultOrEmpty && refCustomModifiers.IsDefaultOrEmpty)
             {
-                return new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, containingHandle, handle, 0, out isBad);
+                return new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, typeWithModifiers, extraAnnotations, handle, 0, out isBad);
             }
 
-            return new PEParameterSymbolWithCustomModifiersPrecedingByRef(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, typeWithModifiers, containingHandle, handle, out isBad);
+            return new PEParameterSymbolWithCustomModifiersPrecedingByRef(moduleSymbol, containingSymbol, ordinal, isByRef, refCustomModifiers, typeWithModifiers, extraAnnotations, handle, out isBad);
         }
 
         private sealed class PEParameterSymbolWithCustomModifiersPrecedingByRef : PEParameterSymbol
@@ -305,10 +304,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool isByRef,
                 ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers,
                 TypeSymbolWithAnnotations type,
-                Handle containingHandle,
+                ImmutableArray<bool> extraAnnotations,
                 ParameterHandle handle,
                 out bool isBad) :
-                    base(moduleSymbol, containingSymbol, ordinal, isByRef, type, containingHandle, handle,
+                    base(moduleSymbol, containingSymbol, ordinal, isByRef, type, extraAnnotations, handle,
                          refCustomModifiers.NullToEmpty().Length + type.CustomModifiers.Length,
                          out isBad)
             {
