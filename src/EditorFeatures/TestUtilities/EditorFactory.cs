@@ -45,7 +45,7 @@ namespace Roslyn.Test.EditorUtilities
             params string[] lines)
         {
             TestWorkspace.ResetThreadAffinity();
-            WpfTestRunner.RequireWpfFact($"Creates an IWpfTextView through {nameof(EditorFactory)}.{nameof(CreateView)}");
+            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} through {nameof(EditorFactory)}.{nameof(CreateView)}");
 
             var buffer = CreateBuffer(contentType, exportProvider, lines);
             return exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(buffer);

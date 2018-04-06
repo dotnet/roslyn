@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
 
         IWpfTextView IInteractiveWindowEditorFactoryService.CreateTextView(IInteractiveWindow window, ITextBuffer buffer, ITextViewRoleSet roles)
         {
-            WpfTestRunner.RequireWpfFact($"Creates an IWpfTextView in {nameof(InteractiveWindowEditorsFactoryService)}");
+            WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} in {nameof(InteractiveWindowEditorsFactoryService)}");
 
             var textView = _textEditorFactoryService.CreateTextView(buffer, roles);
             return _textEditorFactoryService.CreateTextViewHost(textView, false).TextView;

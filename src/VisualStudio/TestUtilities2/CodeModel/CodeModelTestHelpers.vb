@@ -144,7 +144,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Dim result As EnvDTE.CodeElement = Nothing
 
             For Each candidateScope In candidateScopes
-                WpfTestRunner.RequireWpfFact($"{NameOf(GetCodeElementAtCursor)} creates CodeElements and thus uses the affinited CleanableWeakComHandleTable")
+                WpfTestRunner.RequireWpfFact($"{NameOf(GetCodeElementAtCursor)} creates {NameOf(EnvDTE.CodeElement)}s and thus uses the affinited {NameOf(CleanableWeakComHandleTable(Of SyntaxNodeKey, EnvDTE.CodeElement))}")
 
                 Try
                     result = state.FileCodeModelObject.CodeElementFromPosition(cursorPosition, candidateScope)
