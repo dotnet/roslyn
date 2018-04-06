@@ -2,12 +2,14 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.Completion, PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
+    [Name(PredefinedCommandHandlerNames.Completion)]
     [Order(After = PredefinedCommandHandlerNames.SignatureHelp)]
     internal sealed class InteractiveCompletionCommandHandler : AbstractCompletionCommandHandler
     {

@@ -477,11 +477,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Convert &apos;If&apos; to &apos;Select Case&apos;.
+        '''  Looks up a localized string similar to Convert  to &apos;For&apos;.
         '''</summary>
-        Friend ReadOnly Property Convert_If_to_Select_Case() As String
+        Friend ReadOnly Property Convert_to_For() As String
             Get
-                Return ResourceManager.GetString("Convert_If_to_Select_Case", resourceCulture)
+                Return ResourceManager.GetString("Convert_to_For", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Convert to &apos;For Each&apos;.
+        '''</summary>
+        Friend ReadOnly Property Convert_to_For_Each() As String
+            Get
+                Return ResourceManager.GetString("Convert_to_For_Each", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Convert to &apos;Select Case&apos;.
+        '''</summary>
+        Friend ReadOnly Property Convert_to_Select_Case() As String
+            Get
+                Return ResourceManager.GetString("Convert_to_Select_Case", resourceCulture)
             End Get
         End Property
         
@@ -3353,7 +3371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
                 Return ResourceManager.GetString("Using_statement", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to When a run-time error occurs, execution transfers to the statement following the statement or procedure call that resulted in the error..
         '''</summary>

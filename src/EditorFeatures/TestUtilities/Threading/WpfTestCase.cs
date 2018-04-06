@@ -57,7 +57,7 @@ namespace Roslyn.Test.Utilities
                         // Sync up FTAO to the context that we are creating here. 
                         ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = new ForegroundThreadData(
                             Thread.CurrentThread,
-                            StaTaskScheduler.DefaultSta,
+                            new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background)),
                             ForegroundThreadDataKind.StaUnitTest);
 
                         // Reset our flag ensuring that part of this test actually needs WpfFact

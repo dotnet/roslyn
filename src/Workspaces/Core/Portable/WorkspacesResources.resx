@@ -453,6 +453,9 @@
   <data name="Exceptions_colon" xml:space="preserve">
     <value>Exceptions:</value>
   </data>
+  <data name="Variables_captured_colon" xml:space="preserve">
+    <value>Variables captured:</value>
+  </data>
   <data name="_0_returned_an_uninitialized_ImmutableArray" xml:space="preserve">
     <value>'{0}' returned an uninitialized ImmutableArray</value>
   </data>

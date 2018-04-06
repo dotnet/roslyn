@@ -218,23 +218,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             SemanticDocument document,
             TExpressionSyntax expression,
             bool isConstant,
-            SyntaxNode container,
+            SyntaxNode containerOpt,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
-
             var semanticModel = document.SemanticModel;
-            var existingSymbols = semanticModel.GetExistingSymbols(container, cancellationToken);
 
+            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
-            var reservedNames = semanticModel.LookupSymbols(expression.SpanStart)
-                                             .Select(s => s.Name)
-                                             .Concat(existingSymbols.Select(s => s.Name));
 
-            return syntaxFacts.ToIdentifierToken(
-                NameGenerator.EnsureUniqueness(baseName, reservedNames, syntaxFacts.IsCaseSensitive));
+            return semanticFacts.GenerateUniqueLocalName(
+                semanticModel, expression, containerOpt, baseName, cancellationToken);
         }
 
         protected ISet<TExpressionSyntax> FindMatches(
@@ -277,7 +271,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 if (allOccurrences &&
                     this.CanReplace(nodeInCurrent))
                 {
-                    return SemanticEquivalence.AreSemanticallyEquivalent(
+                    return SemanticEquivalence.AreEquivalent(
                         originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent);
                 }
             }
