@@ -783,8 +783,8 @@ Additional information: {1}</value>
   <data name="Manage_specifications" xml:space="preserve">
     <value>Manage specifications</value>
   </data>
-  <data name="Manage_styles" xml:space="preserve">
-    <value>Manage styles</value>
+  <data name="Manage_naming_styles" xml:space="preserve">
+    <value>Manage naming styles</value>
   </data>
   <data name="Reorder" xml:space="preserve">
     <value>Reorder</value>
@@ -1021,6 +1021,12 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
     <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
+  </data>
+  <data name="Field_preferences_colon" xml:space="preserve">
+    <value>Field preferences:</value>
+  </data>
+  <data name="Prefer_readonly" xml:space="preserve">
+    <value>Prefer readonly</value>
   </data>
   <data name="Analyzing_0" xml:space="preserve">
     <value>Analyzing '{0}'</value>

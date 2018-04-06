@@ -1103,11 +1103,6 @@ Información adicional: {1}</target>
         <target state="translated">Administrar especificaciones</target>
         <note />
       </trans-unit>
-      <trans-unit id="Manage_styles">
-        <source>Manage styles</source>
-        <target state="translated">Administrar estilos</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reorder">
         <source>Reorder</source>
         <target state="translated">Reordenar</target>
@@ -1506,6 +1501,21 @@ Estoy de acuerdo con todo lo anterior:</target>
       <trans-unit id="Sync_Class_View_Command_Handler">
         <source>Sync Class View Command Handler</source>
         <target state="new">Sync Class View Command Handler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="new">Manage naming styles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="new">Field preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="new">Prefer readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
