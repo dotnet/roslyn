@@ -57,9 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 var textRuns = texts.Select(s => new ClassifiedTextRun(ClassificationTypeNames.Text, s));
                 var content = new[] { new ClassifiedTextElement(textRuns) };
 
-                // Issue tracked in https://github.com/dotnet/roslyn/issues/25608
-                // Use string[] for now to unblock tests for now, otherwise editor throws ArgumentNullException when running unit tests
-                _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, new[] { string.Join(string.Empty, texts)});
+                _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, content);
 
                 // For test purposes only!
                 TEST_MostRecentToolTipContent = content;
