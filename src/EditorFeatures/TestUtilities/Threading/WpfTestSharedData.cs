@@ -109,7 +109,7 @@ namespace Roslyn.Test.Utilities
                     if (!asyncContext.WaitForCompletionAsync().IsCompleted)
                     {
                         var span = DateTime.UtcNow - startTime;
-                        if (span > TimeSpan.FromSeconds(30))
+                        if (span > TimeSpan.FromSeconds(30) && !Debugger.IsAttached)
                         {
                             asyncContext?.Post(_ => throw new Exception($"Unfulfilled {nameof(SynchronizationContext)} detected"), null);
                             runCallbacks();
