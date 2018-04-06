@@ -262,14 +262,14 @@
         <target state="translated">Object.ReferenceEquals(..., Nothing)' yerine 'Is Nothing' tercih et</target>
         <note />
       </trans-unit>
+      <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
+        <source>Report invalid placeholders in 'String.Format' calls</source>
+        <target state="translated">String.Format' çağrılarındaki geçersiz yer tutucuları bildir</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Separate_import_directive_groups">
         <source>Separate import directive groups</source>
         <target state="translated">İçeri aktarma yönerge gruplarını ayır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
-        <source>Report invalid placeholders in 'String.Format' calls</source>
-        <target state="new">Report invalid placeholders in 'String.Format' calls</target>
         <note />
       </trans-unit>
     </body>
