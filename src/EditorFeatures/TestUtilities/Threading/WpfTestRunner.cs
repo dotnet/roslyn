@@ -78,17 +78,7 @@ namespace Roslyn.Test.Utilities
 
                         // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
                         var invoker = new WpfTestInvoker(SharedData, Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource);
-                        var baseTask = invoker.RunAsync();
-                        do
-                        {
-                            var delay = Task.Delay(TimeSpan.FromMilliseconds(10), CancellationTokenSource.Token);
-                            var completed = await Task.WhenAny(baseTask, delay).ConfigureAwait(false);
-                            if (completed == baseTask)
-                            {
-                                return await baseTask.ConfigureAwait(false);
-                            }
-                        }
-                        while (true);
+                        return invoker.RunAsync().JoinUsingDispatcher(CancellationTokenSource.Token);
                     }
                     finally
                     {
