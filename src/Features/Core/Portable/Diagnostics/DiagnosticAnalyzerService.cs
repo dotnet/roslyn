@@ -28,13 +28,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IAsynchronousOperationListenerProvider listenerProvider,
             [Import(AllowDefault = true)]IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService = null,
             [Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null)
-            : this(diagnosticAnalyzerProviderService != null ? diagnosticAnalyzerProviderService.GetHostDiagnosticAnalyzerPackages() : SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(),
+            : this(new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => GetHostDiagnosticAnalyzerPackage(diagnosticAnalyzerProviderService), isThreadSafe: true),
                 diagnosticAnalyzerProviderService?.GetAnalyzerAssemblyLoader(),
                 hostDiagnosticUpdateSource,
                 registrationService, listenerProvider.GetListener(FeatureAttribute.DiagnosticService))
         {
             // diagnosticAnalyzerProviderService and hostDiagnosticUpdateSource can only be null in test hardness otherwise, it should
             // never be null
+        }
+
+        private DiagnosticAnalyzerService(
+            Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>> workspaceAnalyzerPackages,
+            IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            IDiagnosticUpdateSourceRegistrationService registrationService,
+            IAsynchronousOperationListener listener = null)
+            : this(new HostAnalyzerManager(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, registrationService, listener)
+        {
         }
 
         public IAsynchronousOperationListener Listener => _listener;
@@ -46,7 +56,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListener listener = null)
-            : this(new HostAnalyzerManager(workspaceAnalyzerPackages, hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, registrationService, listener)
+            : this(
+                  new Lazy<ImmutableArray<HostDiagnosticAnalyzerPackage>>(() => workspaceAnalyzerPackages.ToImmutableArrayOrEmpty()),
+                  hostAnalyzerAssemblyLoader, hostDiagnosticUpdateSource, registrationService, listener)
         {
         }
 
@@ -251,6 +263,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, analyzer, diagnostic, _hostDiagnosticUpdateSource, projectId);
             };
+        }
+
+        private static ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackage(IWorkspaceDiagnosticAnalyzerProviderService diagnosticAnalyzerProviderService)
+        {
+            return (diagnosticAnalyzerProviderService != null ? diagnosticAnalyzerProviderService.GetHostDiagnosticAnalyzerPackages() : SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>()).ToImmutableArrayOrEmpty();
         }
     }
 }
