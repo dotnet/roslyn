@@ -114,13 +114,13 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        public async Task WaitUntilCondiationIsMetAsync(Func<IEnumerable<DiagnosticAsyncToken>, bool> selector)
+        public async Task WaitUntilConditionIsMetAsync(Func<IEnumerable<DiagnosticAsyncToken>, bool> condition)
         {
             Contract.ThrowIfFalse(TrackActiveTokens);
 
             while (true)
             {
-                if (selector(ActiveDiagnosticTokens))
+                if (condition(ActiveDiagnosticTokens))
                 {
                     break;
                 }

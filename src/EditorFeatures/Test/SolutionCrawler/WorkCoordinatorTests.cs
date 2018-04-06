@@ -898,10 +898,14 @@ End Class";
                     var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawler);
 
                     // first, wait for first work to be queued.
-                    await crawlerListener.WaitUntilCondiationIsMetAsync(tokens => tokens.Any(token => token.Name == "EnqueueWorkItemAsync"));
+                    // asyncToken named "EnqueueWorkItemAsync" will be added after semantic propagation event queue is processed.
+                    //
+                    // since asyncToken doesn't distinguish whether (1) certain event is happened but all processed or (2) it never happened yet,
+                    // to check (1), we must wait for first item, and then wait for all items to be processed.
+                    await crawlerListener.WaitUntilConditionIsMetAsync(pendingTokens => pendingTokens.Any(token => token.Name == "EnqueueWorkItemAsync"));
 
                     // and then wait them to be processed
-                    await crawlerListener.WaitUntilCondiationIsMetAsync(tokens => tokens.Where(token => token.Tag == workspace).IsEmpty());
+                    await crawlerListener.WaitUntilConditionIsMetAsync(pendingTokens => pendingTokens.Where(token => token.Tag == workspace).IsEmpty());
 
                     // let analyzer to process
                     operation.Done();
@@ -1100,10 +1104,12 @@ End Class";
                     .GetCSharpAndVisualBasicAssemblies()
                     .Concat(new[] { typeof(EditorServicesUtil).Assembly });
 
-                return ExportProviderCache.GetOrCreateExportProviderFactory(
-                    ExportProviderCache.GetOrCreateAssemblyCatalog(
-                        assemblies, ExportProviderCache.CreateResolver()).WithPart(
-                        typeof(TestGlobalOperationService)));
+                return ExportProviderCache
+                    .GetOrCreateExportProviderFactory(
+                        ExportProviderCache
+                            .GetOrCreateAssemblyCatalog(
+                                assemblies, ExportProviderCache.CreateResolver())
+                            .WithPart(typeof(TestGlobalOperationService)));
             }
         }
 
