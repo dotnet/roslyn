@@ -4361,8 +4361,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorArgType">
-        <source>Iterators cannot have ref or out parameters</source>
-        <target state="translated">Iteratory nie mogą mieć parametrów „ref” ani „out”.</target>
+        <source>Iterators cannot have ref, in or out parameters</source>
+        <target state="needs-review-translation">Iteratory nie mogą mieć parametrów „ref” ani „out”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturn">
@@ -5231,8 +5231,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByRefParameterInExpressionTree">
-        <source>An expression tree lambda may not contain an out or ref parameter</source>
-        <target state="translated">Drzewo wyrażenia lambda nie może zawierać parametru out ani ref</target>
+        <source>An expression tree lambda may not contain a ref, in or out parameter</source>
+        <target state="needs-review-translation">Drzewo wyrażenia lambda nie może zawierać parametru out ani ref</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarArgsInExpressionTree">
@@ -5794,8 +5794,8 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
-        <source>Async methods cannot have ref or out parameters</source>
-        <target state="translated">Metody asynchroniczne nie mogą zawierać parametrów „ref” ani „out”.</target>
+        <source>Async methods cannot have ref, in or out parameters</source>
+        <target state="needs-review-translation">Metody asynchroniczne nie mogą zawierać parametrów „ref” ani „out”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsync">
@@ -8686,13 +8686,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
-        <source>The type '{2}' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="new">The type '{2}' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnmanagedConstraintWithLocalFunctions">
-        <source>Using 'unmanaged' constraint on local functions type parameters is not supported.</source>
-        <target state="new">Using 'unmanaged' constraint on local functions type parameters is not supported.</target>
+        <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
+        <target state="new">The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">

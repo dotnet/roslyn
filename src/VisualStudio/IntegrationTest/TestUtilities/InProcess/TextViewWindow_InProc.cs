@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -15,6 +16,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
+using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -75,11 +77,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForLightBulbSession()
-            => ExecuteOnActiveView(view =>
+        {
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var view = GetActiveTextView();
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                LightBulbHelper.WaitForLightBulbSession(broker, view);
+                await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view);
             });
+        }
 
         /// <remarks>
         /// This method does not wait for async operations before
@@ -274,14 +281,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
        });
 
         public string[] GetLightBulbActions()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModel().GetService<ILightBulbBroker>();
-                return GetLightBulbActions(broker, view).Select(a => a.DisplayText).ToArray();
-            });
-
-        private IEnumerable<ISuggestedAction> GetLightBulbActions(ILightBulbBroker broker, IWpfTextView view)
         {
+            return ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var view = GetActiveTextView();
+                var broker = GetComponentModel().GetService<ILightBulbBroker>();
+                return (await GetLightBulbActionsAsync(broker, view)).Select(a => a.DisplayText).ToArray();
+            });
+        }
+
+        private async Task<IEnumerable<ISuggestedAction>> GetLightBulbActionsAsync(ILightBulbBroker broker, IWpfTextView view)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             if (!broker.IsLightBulbSessionActive(view))
             {
                 var bufferType = view.TextBuffer.ContentType.DisplayName;
@@ -300,19 +314,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 actionSets = Array.Empty<SuggestedActionSet>();
             }
 
-            return SelectActions(actionSets);
+            return await SelectActionsAsync(actionSets);
         }
 
         public void ApplyLightBulbAction(string actionName, FixAllScope? fixAllScope, bool blockUntilComplete)
         {
             var lightBulbAction = GetLightBulbApplicationAction(actionName, fixAllScope);
+            var task = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var activeTextView = GetActiveTextView();
+                await lightBulbAction(activeTextView);
+            });
+
             if (blockUntilComplete)
             {
-                ExecuteOnActiveView(lightBulbAction);
-            }
-            else
-            {
-                BeginInvokeExecuteOnActiveView(lightBulbAction);
+                task.Join();
             }
         }
 
@@ -322,13 +340,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private void BeginInvokeExecuteOnActiveView(Action<IWpfTextView> action)
             => BeginInvokeOnUIThread(GetExecuteOnActionViewCallback(action));
 
-        private Action<IWpfTextView> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope)
+        private Func<IWpfTextView, Task> GetLightBulbApplicationAction(string actionName, FixAllScope? fixAllScope)
         {
-            return view =>
+            return async view =>
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();
 
-                var actions = GetLightBulbActions(broker, view).ToArray();
+                var actions = (await GetLightBulbActionsAsync(broker, view)).ToArray();
                 var action = actions.FirstOrDefault(a => a.DisplayText == actionName);
 
                 if (action == null)
@@ -351,8 +371,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         throw new InvalidOperationException($"Suggested action '{action.DisplayText}' does not support FixAllOccurrences.");
                     }
 
-                    var actionSetsForAction = HostWaitHelper.PumpingWaitResult(action.GetActionSetsAsync(CancellationToken.None));
-                    action = GetFixAllSuggestedAction(actionSetsForAction, fixAllScope.Value);
+                    var actionSetsForAction = await action.GetActionSetsAsync(CancellationToken.None);
+                    action = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value);
                     if (action == null)
                     {
                         throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
@@ -371,8 +391,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             };
         }
 
-        private IEnumerable<ISuggestedAction> SelectActions(IEnumerable<SuggestedActionSet> actionSets)
+        private async Task<IEnumerable<ISuggestedAction>> SelectActionsAsync(IEnumerable<SuggestedActionSet> actionSets)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             var actions = new List<ISuggestedAction>();
 
             if (actionSets != null)
@@ -384,7 +406,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         foreach (var action in actionSet.Actions)
                         {
                             actions.Add(action);
-                            actions.AddRange(SelectActions(HostWaitHelper.PumpingWaitResult(action.GetActionSetsAsync(CancellationToken.None))));
+                            var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None);
+                            var nestedActions = await SelectActionsAsync(nestedActionSets);
+                            actions.AddRange(nestedActions);
                         }
                     }
                 }
@@ -393,8 +417,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return actions;
         }
 
-        private static FixAllSuggestedAction GetFixAllSuggestedAction(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
+        private static async Task<FixAllSuggestedAction> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             foreach (var actionSet in actionSets)
             {
                 foreach (var action in actionSet.Actions)
@@ -410,8 +436,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                     if (action.HasActionSets)
                     {
-                        var nestedActionSets = HostWaitHelper.PumpingWaitResult(action.GetActionSetsAsync(CancellationToken.None));
-                        fixAllSuggestedAction = GetFixAllSuggestedAction(nestedActionSets, fixAllScope);
+                        var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None);
+                        fixAllSuggestedAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope);
                         if (fixAllSuggestedAction != null)
                         {
                             return fixAllSuggestedAction;

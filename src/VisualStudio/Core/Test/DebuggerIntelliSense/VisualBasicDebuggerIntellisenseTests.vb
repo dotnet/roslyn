@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
+    <[UseExportProvider]>
     Public Class VisualBasicDebuggerIntellisenseTests
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function QueryVariables() As Task

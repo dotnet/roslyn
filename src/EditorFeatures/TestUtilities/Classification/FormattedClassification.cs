@@ -41,11 +41,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     switch (Text)
                     {
                         case "(":
-                            return "Punctation.OpenParen";
+                            return "Punctuation.OpenParen";
                         case ")":
-                            return "Punctation.CloseParen";
+                            return "Punctuation.CloseParen";
+                        case "{":
+                            return "Punctuation.OpenCurly";
+                        case "}":
+                            return "Punctuation.CloseCurly";
                         case ";":
-                            return "Punctation.Semicolon";
+                            return "Punctuation.Semicolon";
                         case ":":
                             return "Punctuation.Colon";
                         case ",":

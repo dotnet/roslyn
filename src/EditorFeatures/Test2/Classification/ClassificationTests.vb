@@ -16,6 +16,7 @@ Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
+    <[UseExportProvider]>
     Public Class ClassificationTests
         <WpfFact, WorkItem(13753, "https://github.com/dotnet/roslyn/issues/13753")>
         Public Async Function TestSemanticClassificationWithoutSyntaxTree() As Task
@@ -28,12 +29,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 </Project>
             </Workspace>
 
-            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.CreateAssemblyCatalogWithCSharpAndVisualBasic().WithParts(
-                    GetType(NoCompilationEditorClassificationService)))
+            Dim exportProvider = ExportProviderCache _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic().WithParts(GetType(NoCompilationEditorClassificationService))) _
+                .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=exportProvider)
-                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+                Dim listenerProvider = exportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim provider = New SemanticClassificationViewTaggerProvider(
                     workspace.GetService(Of IForegroundNotificationService),

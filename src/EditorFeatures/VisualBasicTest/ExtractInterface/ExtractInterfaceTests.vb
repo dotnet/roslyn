@@ -1178,7 +1178,7 @@ Partial Class C
     End Property
 End Class</text>.NormalizedValue()
 
-            Dim workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExtractInterfaceTestState.ExportProvider)
+            Dim workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExtractInterfaceTestState.ExportProviderFactory.CreateExportProvider())
             Using testState = New ExtractInterfaceTestState(workspace)
                 Dim result = testState.ExtractViaCommand()
                 Assert.True(result.Succeeded)
@@ -1261,8 +1261,9 @@ End Namespace
         <Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub TestExtractInterfaceCommandDisabledInSubmission()
-            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
+            Dim exportProvider = ExportProviderCache _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService))) _
+                .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(
                 <Workspace>

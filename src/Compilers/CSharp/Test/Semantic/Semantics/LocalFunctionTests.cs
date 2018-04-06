@@ -1182,19 +1182,19 @@ class C
     }
 }";
             VerifyDiagnostics(src,
-                // (8,40): error CS1623: Iterators cannot have ref or out parameters
+                // (8,40): error CS1623: Iterators cannot have ref, in or out parameters
                 //         IEnumerable<int> Local(ref int a) { yield break; }
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(8, 40),
-                // (17,44): error CS1623: Iterators cannot have ref or out parameters
+                // (17,44): error CS1623: Iterators cannot have ref, in or out parameters
                 //             IEnumerable<int> Local(ref int x) { yield break; }
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "x").WithLocation(17, 44),
-                // (27,40): error CS1623: Iterators cannot have ref or out parameters
+                // (27,40): error CS1623: Iterators cannot have ref, in or out parameters
                 //         IEnumerable<int> Local(ref int a) { yield break; }
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(27, 40),
-                // (33,40): error CS1623: Iterators cannot have ref or out parameters
+                // (33,40): error CS1623: Iterators cannot have ref, in or out parameters
                 //     public IEnumerable<int> M4(ref int a)
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "a").WithLocation(33, 40),
-                // (37,48): error CS1623: Iterators cannot have ref or out parameters
+                // (37,48): error CS1623: Iterators cannot have ref, in or out parameters
                 //                 IEnumerable<int> Local(ref int b) { yield break; }
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "b").WithLocation(37, 48));
         }
@@ -2173,6 +2173,33 @@ class Program
         }
 
         [Fact]
+        public void BadInClosure()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void A(in int x)
+    {
+        void Local()
+        {
+            Console.WriteLine(x);
+        }
+        Local();
+    }
+    static void Main()
+    {
+    }
+}";
+            VerifyDiagnostics(source,
+                // (10,31): error CS1628: Cannot use ref, out, or in parameter 'x' inside an anonymous method, lambda expression, query expression, or local function
+                //             Console.WriteLine(x);
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(10, 31)
+                );
+        }
+
+        [Fact]
         public void BadArglistUse()
         {
             var source = @"
@@ -2288,7 +2315,7 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (8,48): error CS1623: Iterators cannot have ref or out parameters
+    // (8,48): error CS1623: Iterators cannot have ref, in or out parameters
     //         IEnumerable<int> RefEnumerable(ref int x)
     Diagnostic(ErrorCode.ERR_BadIteratorArgType, "x").WithLocation(8, 48)
     );
@@ -2315,7 +2342,7 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (9,42): error CS1988: Async methods cannot have ref or out parameters
+    // (9,42): error CS1988: Async methods cannot have ref, in or out parameters
     //         async Task<int> RefAsync(ref int x)
     Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(9, 42)
     );

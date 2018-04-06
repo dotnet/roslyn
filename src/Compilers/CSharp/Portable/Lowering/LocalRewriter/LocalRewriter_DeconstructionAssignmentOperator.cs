@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression EvaluateSideEffectingArgumentToTemp(BoundExpression arg, ArrayBuilder<BoundExpression> effects,
             ref ArrayBuilder<LocalSymbol> temps)
         {
-            if (CanChangeValueBetweenReads(arg, localsMayBeAssignedOrCaptured: true))
+            if (CanChangeValueBetweenReads(arg, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true))
             {
                 BoundAssignmentOperator store;
                 var temp = _factory.StoreToTemp(arg, out store);

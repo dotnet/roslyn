@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
+    <[UseExportProvider]>
     Public Class CSharpCompletionSnippetNoteTests
         Private _markup As XElement = <document>
                                           <![CDATA[using System;

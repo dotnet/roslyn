@@ -592,11 +592,6 @@
         <target state="translated">添加 "this."</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_if_to_switch">
-        <source>Convert 'if' to 'switch'</source>
-        <target state="translated">将 "if" 转换为 "switch"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Warning_Extracting_a_local_function_reference_may_produce_invalid_code">
         <source>Warning: Extracting a local function reference may produce invalid code</source>
         <target state="translated">警告: 提取本地函数引用可能会生成无效代码</target>
@@ -632,9 +627,19 @@
         <target state="translated">添加括号</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_for_to_foreach">
-        <source>Convert 'for' to 'foreach'</source>
-        <target state="new">Convert 'for' to 'foreach'</target>
+      <trans-unit id="Convert_to_switch">
+        <source>Convert to 'switch'</source>
+        <target state="new">Convert to 'switch'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_foreach">
+        <source>Convert to 'foreach'</source>
+        <target state="new">Convert to 'foreach'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_for">
+        <source>Convert to 'for'</source>
+        <target state="new">Convert to 'for'</target>
         <note />
       </trans-unit>
     </body>

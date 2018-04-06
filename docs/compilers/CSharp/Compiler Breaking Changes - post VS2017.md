@@ -119,3 +119,8 @@ Example:
    }
    	```  
 
+- Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/25450 We added new restrictions on the use of the `default` expression in preparation for the planned addition of further pattern-matching features in C# 8.0:
+  - If you write `e is default`, you will get the new error
+    `error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.` 
+  - If you write `case default:`, you will get the new error
+    `error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.`

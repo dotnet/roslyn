@@ -5,10 +5,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 {
     using CSharp = Microsoft.CodeAnalysis.CSharp;
 
+    [UseExportProvider]
     public class CodeCleanupTests
     {
 #if false

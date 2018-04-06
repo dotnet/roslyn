@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
 {
+    [UseExportProvider]
     public class OptionViewModelTests
     {
         private class MockServiceProvider : IServiceProvider

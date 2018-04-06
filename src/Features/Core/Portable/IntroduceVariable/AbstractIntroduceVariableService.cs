@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
 
-            return semanticFacts.GenerateUniqueName(
+            return semanticFacts.GenerateUniqueLocalName(
                 semanticModel, expression, containerOpt, baseName, cancellationToken);
         }
 

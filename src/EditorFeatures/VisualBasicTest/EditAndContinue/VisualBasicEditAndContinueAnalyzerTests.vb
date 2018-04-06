@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
+    <[UseExportProvider]>
     Public Class VisualBasicEditAndContinueAnalyzerTests
 
 #Region "Helpers"
