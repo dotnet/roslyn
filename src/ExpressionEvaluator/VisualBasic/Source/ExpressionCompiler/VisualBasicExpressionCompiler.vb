@@ -67,8 +67,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     typeToken)
             End If
 
+            Dim contextId = MetadataContextId.GetContextId(moduleVersionId, kind)
             Dim previous = getMetadataContext(appDomain)
-            Dim previousContext = If(previous.Matches(metadataBlocks, moduleVersionId), previous.AssemblyContext, Nothing)
+            Dim previousContext As VisualBasicMetadataContext = Nothing
+            If previous.Matches(metadataBlocks) Then
+                previous.AssemblyContexts.TryGetValue(contextId, previousContext)
+            End If
             Dim context = EvaluationContext.CreateTypeContext(
                 previousContext,
                 metadataBlocks,
@@ -141,8 +145,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     localSignatureToken)
             End If
 
+            Dim contextId = MetadataContextId.GetContextId(moduleVersionId, kind)
             Dim previous = getMetadataContext(appDomain)
-            Dim previousContext = If(previous.Matches(metadataBlocks, moduleVersionId), previous.AssemblyContext, Nothing)
+            Dim assemblyContexts = If(previous.Matches(metadataBlocks), previous.AssemblyContexts, ImmutableDictionary(Of MetadataContextId, VisualBasicMetadataContext).Empty)
+            Dim previousContext As VisualBasicMetadataContext = Nothing
+            assemblyContexts.TryGetValue(contextId, previousContext)
+
             Dim context = EvaluationContext.CreateMethodContext(
                 previousContext,
                 metadataBlocks,
@@ -160,8 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     appDomain,
                     New MetadataContext(Of VisualBasicMetadataContext)(
                         metadataBlocks,
-                        moduleVersionId,
-                        New VisualBasicMetadataContext(context.Compilation, context)))
+                        assemblyContexts.SetItem(contextId, New VisualBasicMetadataContext(context.Compilation, context))))
             End If
 
             Return context

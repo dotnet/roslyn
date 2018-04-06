@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     testData: null);
                 Assert.Equal("error CS0012: The type 'A1' is defined in an assembly that is not referenced. You must add a reference to assembly 'A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.", error);
                 AssertEx.Equal(new[] { identityA1 }, missingAssemblyIdentities);
-                VerifyResolutionRequests(context, (identityA1, identityA1, 1));
+                VerifyResolutionRequests(context, (identityA1, null, 1));
 
                 context = EvaluationContext.CreateMethodContext(
                     default(CSharpMetadataContext),
@@ -336,26 +336,26 @@ IL_0005:  ret
                 // B2.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateB2);
-                Assert.NotSame(context, previous.AssemblyContext.EvaluationContext);
-                Assert.Same(context.Compilation, previous.AssemblyContext.Compilation);
+                Assert.NotSame(context, GetMetadataContext(previous).EvaluationContext);
+                Assert.Same(context.Compilation, GetMetadataContext(previous).Compilation);
                 VerifyResolutionRequests(context, (identityA1, identityA1, 1));
                 // A1.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateA1);
-                Assert.NotSame(context, previous.AssemblyContext.EvaluationContext);
-                Assert.NotSame(context.Compilation, previous.AssemblyContext.Compilation);
+                Assert.NotSame(context, GetMetadataContext(previous).EvaluationContext);
+                Assert.NotSame(context.Compilation, GetMetadataContext(previous).Compilation);
                 VerifyResolutionRequests(context);
                 // A2.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateA2);
-                Assert.NotSame(context, previous.AssemblyContext.EvaluationContext);
-                Assert.NotSame(context.Compilation, previous.AssemblyContext.Compilation);
+                Assert.NotSame(context, GetMetadataContext(previous).EvaluationContext);
+                Assert.NotSame(context.Compilation, GetMetadataContext(previous).Compilation);
                 VerifyResolutionRequests(context);
                 // A3.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateA3);
-                Assert.NotSame(context, previous.AssemblyContext.EvaluationContext);
-                Assert.Same(context.Compilation, previous.AssemblyContext.Compilation);
+                Assert.NotSame(context, GetMetadataContext(previous).EvaluationContext);
+                Assert.Same(context.Compilation, GetMetadataContext(previous).Compilation);
                 VerifyResolutionRequests(context);
 
                 // A1 -> A2 -> A3 -> B1 -> B2
@@ -365,28 +365,36 @@ IL_0005:  ret
                 // A2.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateA2);
-                Assert.NotSame(context, previous.AssemblyContext.EvaluationContext);
-                Assert.NotSame(context.Compilation, previous.AssemblyContext.Compilation);
+                Assert.NotSame(context, GetMetadataContext(previous).EvaluationContext);
+                Assert.NotSame(context.Compilation, GetMetadataContext(previous).Compilation);
                 VerifyResolutionRequests(context);
                 // A3.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateA3);
-                Assert.NotSame(context, previous.AssemblyContext.EvaluationContext);
-                Assert.Same(context.Compilation, previous.AssemblyContext.Compilation);
+                Assert.NotSame(context, GetMetadataContext(previous).EvaluationContext);
+                Assert.Same(context.Compilation, GetMetadataContext(previous).Compilation);
                 VerifyResolutionRequests(context);
                 // B1.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateB1);
-                Assert.NotSame(context, previous.AssemblyContext.EvaluationContext);
-                Assert.NotSame(context.Compilation, previous.AssemblyContext.Compilation);
+                Assert.NotSame(context, GetMetadataContext(previous).EvaluationContext);
+                Assert.NotSame(context.Compilation, GetMetadataContext(previous).Compilation);
                 VerifyResolutionRequests(context, (identityA1, identityA1, 1));
                 // B2.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateB2);
-                Assert.NotSame(context, previous.AssemblyContext.EvaluationContext);
-                Assert.Same(context.Compilation, previous.AssemblyContext.Compilation);
+                Assert.NotSame(context, GetMetadataContext(previous).EvaluationContext);
+                Assert.Same(context.Compilation, GetMetadataContext(previous).Compilation);
                 VerifyResolutionRequests(context, (identityA1, identityA1, 1));
             }
+        }
+
+        private static CSharpMetadataContext GetMetadataContext(MetadataContext<CSharpMetadataContext> appDomainContext)
+        {
+            var assemblyContexts = appDomainContext.AssemblyContexts;
+            return assemblyContexts != null && assemblyContexts.TryGetValue(default(MetadataContextId), out CSharpMetadataContext context) ?
+                context :
+                default;
         }
 
         private static void VerifyAppDomainMetadataContext(AppDomain appDomain)
@@ -693,8 +701,9 @@ IL_0005:  ret
                 foreach (var reference in references)
                 {
                     var identity = reference.GetAssemblyIdentity();
-                    var other = referencesByIdentity[identity.Name];
-                    Assert.Equal(identity, other[0].Item1);
+                    var pairs = referencesByIdentity[identity.Name];
+                    var other = pairs.FirstOrDefault(p => identity.Equals(p.Item1));
+                    Assert.Equal(identity, other.Item1);
                 }
             }
         }

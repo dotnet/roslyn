@@ -66,8 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     typeToken);
             }
 
+            var contextId = MetadataContextId.GetContextId(moduleVersionId, kind);
             var previous = getMetadataContext(appDomain);
-            var previousContext = previous.Matches(metadataBlocks, moduleVersionId) ? previous.AssemblyContext : default;
+            CSharpMetadataContext previousContext = default;
+            if (previous.Matches(metadataBlocks))
+            {
+                previous.AssemblyContexts.TryGetValue(contextId, out previousContext);
+            }
             var context = EvaluationContext.CreateTypeContext(
                 previousContext,
                 metadataBlocks,
@@ -138,8 +143,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     localSignatureToken);
             }
 
+            var contextId = MetadataContextId.GetContextId(moduleVersionId, kind);
             var previous = getMetadataContext(appDomain);
-            var previousContext = previous.Matches(metadataBlocks, moduleVersionId) ? previous.AssemblyContext : default;
+            var assemblyContexts = previous.Matches(metadataBlocks) ? previous.AssemblyContexts : ImmutableDictionary<MetadataContextId, CSharpMetadataContext>.Empty;
+            CSharpMetadataContext previousContext;
+            assemblyContexts.TryGetValue(contextId, out previousContext);
+
             var context = EvaluationContext.CreateMethodContext(
                 previousContext,
                 metadataBlocks,
@@ -157,8 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     appDomain,
                     new MetadataContext<CSharpMetadataContext>(
                         metadataBlocks,
-                        moduleVersionId,
-                        new CSharpMetadataContext(context.Compilation, context)));
+                        assemblyContexts.SetItem(contextId, new CSharpMetadataContext(context.Compilation, context))));
             }
 
             return context;

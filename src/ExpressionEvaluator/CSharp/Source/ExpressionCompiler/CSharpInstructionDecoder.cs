@@ -139,19 +139,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var previous = appDomain.GetMetadataContext<MetadataContext<CSharpMetadataContext>>();
             var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks);
 
-            CSharpCompilation compilation;
-            if (previous.Matches(metadataBlocks, moduleVersionId))
+            var kind = GetMakeAssemblyReferencesKind();
+            var contextId = MetadataContextId.GetContextId(moduleVersionId, kind);
+            var assemblyContexts = previous.Matches(metadataBlocks) ? previous.AssemblyContexts : ImmutableDictionary<MetadataContextId, CSharpMetadataContext>.Empty;
+            CSharpMetadataContext previousContext;
+            assemblyContexts.TryGetValue(contextId, out previousContext);
+
+            var compilation = previousContext.Compilation;
+            if (compilation == null)
             {
-                compilation = previous.AssemblyContext.Compilation;
-            }
-            else
-            {
-                compilation = metadataBlocks.ToCompilation(moduleVersionId, GetMakeAssemblyReferencesKind());
+                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind);
                 appDomain.SetMetadataContext(
                     new MetadataContext<CSharpMetadataContext>(
                         metadataBlocks,
-                        moduleVersionId,
-                        new CSharpMetadataContext(compilation)));
+                        assemblyContexts.SetItem(contextId, new CSharpMetadataContext(compilation))));
             }
 
             return compilation;

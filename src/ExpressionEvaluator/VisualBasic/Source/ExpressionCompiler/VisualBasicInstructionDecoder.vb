@@ -88,16 +88,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim previous = appDomain.GetMetadataContext(Of MetadataContext(Of VisualBasicMetadataContext))()
             Dim metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks)
 
-            Dim compilation As VisualBasicCompilation
-            If previous.Matches(metadataBlocks, moduleVersionId) Then
-                compilation = previous.AssemblyContext.Compilation
-            Else
-                compilation = metadataBlocks.ToCompilation(moduleVersionId, GetMakeAssemblyReferencesKind())
+            Dim kind = GetMakeAssemblyReferencesKind()
+            Dim contextId = MetadataContextId.GetContextId(moduleVersionId, kind)
+            Dim assemblyContexts = If(previous.Matches(metadataBlocks), previous.AssemblyContexts, ImmutableDictionary(Of MetadataContextId, VisualBasicMetadataContext).Empty)
+            Dim previousContext As VisualBasicMetadataContext = Nothing
+            assemblyContexts.TryGetValue(contextId, previousContext)
+
+            Dim compilation = previousContext.Compilation
+            If compilation Is Nothing Then
+                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind)
                 appDomain.SetMetadataContext(
                     New MetadataContext(Of VisualBasicMetadataContext)(
                         metadataBlocks,
-                        moduleVersionId,
-                        New VisualBasicMetadataContext(compilation)))
+                        assemblyContexts.SetItem(contextId, New VisualBasicMetadataContext(compilation))))
             End If
 
             Return compilation

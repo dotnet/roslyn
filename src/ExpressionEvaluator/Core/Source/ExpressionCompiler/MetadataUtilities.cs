@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out Dictionary<string, ImmutableArray<(AssemblyIdentity, MetadataReference)>> referencesByIdentity)
         {
             Debug.Assert(kind == MakeAssemblyReferencesKind.AllAssemblies || moduleVersionId != default(Guid));
-            Debug.Assert(kind == MakeAssemblyReferencesKind.AllAssemblies || identityComparer != null);
+            Debug.Assert(moduleVersionId == default(Guid) || identityComparer != null);
 
             // Get metadata for each module.
             var metadataBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();
