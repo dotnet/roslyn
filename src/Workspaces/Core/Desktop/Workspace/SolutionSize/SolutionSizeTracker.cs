@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.SolutionSize
     /// <summary>
     /// Track approximate solution size.
     /// </summary>
-    [Export]
+    [Export(typeof(ISolutionSizeTracker))]
     [ExportIncrementalAnalyzerProvider(nameof(SolutionSizeTracker), new[] { WorkspaceKind.Host }), Shared]
-    internal class SolutionSizeTracker : IIncrementalAnalyzerProvider
+    internal class SolutionSizeTracker : IIncrementalAnalyzerProvider, ISolutionSizeTracker
     {
         private readonly IncrementalAnalyzer _tracker = new IncrementalAnalyzer();
 

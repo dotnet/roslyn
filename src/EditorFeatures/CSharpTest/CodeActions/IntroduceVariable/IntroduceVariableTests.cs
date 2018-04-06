@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -826,8 +827,8 @@ class Program
 
     static void Main()
     {
-        var {|Rename:class1|} = new G<int>.@class();
-        G<int>.Add(class1);
+        var {|Rename:@class|} = new G<int>.@class();
+        G<int>.Add(@class);
     }
 }",
 options: ImplicitTypingEverywhere());
@@ -864,8 +865,8 @@ options: ImplicitTypingEverywhere());
 
     static void Main()
     {
-        G<int>.@class {|Rename:class1|} = new G<int>.@class();
-        G<int>.Add(class1);
+        G<int>.@class {|Rename:@class|} = new G<int>.@class();
+        G<int>.Add(@class);
     }
 }");
         }
@@ -5332,6 +5333,49 @@ class C
             var t = new { foo = V };
         }
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceLocalInCallRefExpression()
+        {
+            // This test indicates that ref-expressions are l-values and
+            // introduce local still introduces a local, not a ref-local.
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    void M(int x)
+    {
+        ref int y = ref x;
+        M2([|(y = ref x)|]);
+    }
+    void M2(int p) { }
+}", @"
+class C
+{
+    void M(int x)
+    {
+        ref int y = ref x;
+        int {|Rename:p|} = (y = ref x);
+        M2(p);
+    }
+    void M2(int p) { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceLocalInRefCallRefExpression()
+        {
+            // Cannot extract expressions passed by ref
+            await TestMissingInRegularAndScriptAsync(@"
+class C
+{
+    void M(int x)
+    {
+        ref int y = ref x;
+        M2(ref [|(y = ref x)|]);
+    }
+    void M2(ref int p) { }
 }");
         }
     }

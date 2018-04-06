@@ -10,6 +10,9 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -293,6 +296,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // user might have included exact same analyzer twice as project analyzers explicitly. we consider them as one
                 analyzerMap[analyzer.GetAnalyzerId()] = analyzer;
             }
+        }
+
+        public static IEnumerable<AnalyzerPerformanceInfo> ToAnalyzerPerformanceInfo(this IDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analysisResult, IDiagnosticAnalyzerService serviceOpt = null)
+        {
+            return Convert(analysisResult.Select(kv => (kv.Key, kv.Value.ExecutionTime)), serviceOpt);
+        }
+
+        private static IEnumerable<AnalyzerPerformanceInfo> Convert(IEnumerable<(DiagnosticAnalyzer analyzer, TimeSpan timeSpan)> analyzerPerf, IDiagnosticAnalyzerService serviceOpt = null)
+        {
+            return analyzerPerf.Select(kv => new AnalyzerPerformanceInfo(kv.analyzer.GetAnalyzerId(), DiagnosticAnalyzerLogger.AllowsTelemetry(kv.analyzer, serviceOpt), kv.timeSpan));
         }
     }
 }

@@ -595,7 +595,7 @@ class Query
 ";
             for (int i = 0; i < 100; i++)
             {
-                var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+                var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
 
                 var tasks = new Task[10];
                 for (int j = 0; j < tasks.Length; j++)
@@ -1286,7 +1286,7 @@ class Query
 ";
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll });
+                references: new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll });
         }
 
         [ClrOnlyFact]
@@ -1475,7 +1475,7 @@ class Class3
     }
 }
 ";
-            var compilation = (CSharpCompilation)GetCompilationForEmit(new string[] { source1, source2, source3 }, null, TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib40(new string[] { source1, source2, source3 }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), parseOptions: TestOptions.Regular);
 
             for (int i = 0; i < 10; i++)
             {
@@ -1661,7 +1661,7 @@ class Program
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().Single();
 
@@ -1702,7 +1702,7 @@ class Program
 }
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var programType = (NamedTypeSymbol)(comp.GlobalNamespace.GetTypeMembers("Program").Single());
             var mainMethod = (MethodSymbol)(programType.GetMembers("Main").Single());
@@ -1780,7 +1780,7 @@ class Program
             // Dev11: omits methods that are not defined on Object (see also Dev10 bug 487707)
             // Roslyn: we require Equals, ToString, GetHashCode, Format to be defined
 
-            var comp = CreateCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef });
+            var comp = CreateEmptyCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef });
             var result = comp.Emit(new MemoryStream());
 
             result.Diagnostics.Verify(
@@ -1808,7 +1808,7 @@ namespace System.Diagnostics
     }
 }
 ";
-            var stateLib = CreateCompilation(stateSource, new[] { MinCorlibRef });
+            var stateLib = CreateEmptyCompilation(stateSource, new[] { MinCorlibRef });
 
             var attributeSource = @"
 namespace System.Diagnostics
@@ -1822,7 +1822,7 @@ namespace System.Diagnostics
     }
 }
 ";
-            var attributeLib = CreateCompilation(attributeSource, new[] { MinCorlibRef, stateLib.ToMetadataReference() });
+            var attributeLib = CreateEmptyCompilation(attributeSource, new[] { MinCorlibRef, stateLib.ToMetadataReference() });
 
             var source = @"
 class Program
@@ -1834,7 +1834,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef, attributeLib.ToMetadataReference() });
+            var comp = CreateEmptyCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef, attributeLib.ToMetadataReference() });
             var result = comp.Emit(new MemoryStream());
 
             result.Diagnostics.Verify(
@@ -1868,7 +1868,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "local?.M()").WithLocation(12, 24),
@@ -1945,7 +1945,7 @@ class C
 
             CompileAndVerify(source).VerifyIL("C.Main", expectedIL);
 
-            var compilation = GetCompilationForEmit(new[] { source }, additionalRefs: null, options: null, parseOptions: null);
+            var compilation = GetCompilationForEmit(new[] { source }, references: null, options: null, parseOptions: null);
             compilation.CreateAnonymousTypeSymbol(
                 ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
                 ImmutableArray.Create("m1", "m2"));

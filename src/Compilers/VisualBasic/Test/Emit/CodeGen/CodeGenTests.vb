@@ -548,7 +548,7 @@ expectedOutput:=<![CDATA[
         <WorkItem(568475, "DevDiv")>
         <Fact()>
         Public Sub Bug14632b()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -645,7 +645,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 0.0000000000000000000000000031
 0.0000000000000000000000000030
 
@@ -703,7 +703,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
 00000000000000000000000000000000
 00000000000000000000000000010000
 00000000000000000000000000020000
@@ -734,7 +734,7 @@ End Module
         <WorkItem(568475, "DevDiv")>
         <Fact()>
         Public Sub DecimalZero_BreakingChange()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Imports System
@@ -5626,7 +5626,7 @@ End Namespace
         <WorkItem(538800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538800")>
         <Fact>
         Public Sub ObjectComparisonWithNoReferenceToVBRuntime()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -5645,7 +5645,7 @@ End Class
 
         <Fact>
         Public Sub ObjectComparisonWithNoReferenceToVBRuntime_1()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class Program
@@ -5661,7 +5661,7 @@ End Class
 
         <Fact>
         Public Sub ObjectComparisonWithNoReferenceToVBRuntime_2()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class Program
@@ -5677,7 +5677,7 @@ End Class
 
         <Fact>
         Public Sub ObjectComparisonWithNoReferenceToVBRuntime_3()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class Program
@@ -5941,7 +5941,7 @@ Module Program1
 
 End Module
     </file>
-</compilation>, additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef})
+</compilation>, references:={TestReferences.SymbolsTests.PropertiesWithByRef})
 
             verifier.VerifyIL("Module1.M",
             <![CDATA[
@@ -9976,7 +9976,7 @@ End Class
         <WorkItem(542593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542593")>
         <Fact>
         Public Sub InheritClassFromRetargetedAssemblyReference()
-            Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateCompilationWithReferences(
+            Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
                     <file name="a.vb">
 Imports System.Collections.Generic
@@ -9996,7 +9996,7 @@ End Class
                     </file>
                 </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
 
-            Dim comp = CompilationUtils.CreateCompilationWithReferences(
+            Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
                     <file name="b.vb">
 Imports System.Collections.Generic
@@ -10029,7 +10029,7 @@ End Class
         <WorkItem(542593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542593")>
         <Fact>
         Public Sub InheritClassFromRetargetedAssemblyReferenceProperty()
-            Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateCompilationWithReferences(
+            Dim ref1 = New VisualBasicCompilationReference(CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
                     <file name="a.vb">
 Imports System.Collections.Generic
@@ -10054,7 +10054,7 @@ End Class
                     </file>
                 </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
 
-            Dim comp = CompilationUtils.CreateCompilationWithReferences(
+            Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
                     <file name="b.vb">
 Imports System.Collections.Generic
@@ -11253,7 +11253,7 @@ expectedOutput:="2").
                                                            type = globalNamespace.GetMember(Of NamedTypeSymbol)("C")
                                                            Assert.False(type.IsComImport())
                                                        End Sub
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -11314,7 +11314,7 @@ End Class
                                                                    Assert.True(ctorB.IsExternalMethod)
                                                                End Sub
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Imports System
@@ -11358,7 +11358,7 @@ End Module
 
         <Fact()>
         Public Sub ExitPropertyDefaultReturnValue()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -11400,7 +11400,7 @@ End Class
 
         <Fact()>
         Public Sub ExitPropertyGetterSetReturnValue()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -11433,7 +11433,7 @@ End Class
 
         <Fact()>
         Public Sub ExitPropertySetterSetReturnValue()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="c.vb"><![CDATA[
 Option Strict On
@@ -11477,7 +11477,7 @@ BC42026: Expression recursively calls the containing property 'Public Property P
 
         <Fact()>
         Public Sub ExitPropertyOutput()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="c.vb"><![CDATA[
 Imports System
@@ -11831,7 +11831,7 @@ End Module
 ]]>
                     </file>
                 </compilation>
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1)
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(source1)
             compilation1.AssertTheseDiagnostics(
 <expected>
 BC30574: Option Strict On disallows late binding.
@@ -11861,7 +11861,7 @@ End Module
 ]]>
                     </file>
                 </compilation>
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntime(source2)
             compilation2.AssertNoErrors()
         End Sub
 
@@ -12016,7 +12016,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             AssertTheseEmitDiagnostics(compilation,
 <expected>
 BC40054: 'Public Sub New(a As Integer)' in designer-generated type 'FromDesigner1' should call InitializeComponent method.
@@ -12109,8 +12109,8 @@ End Module
     </file>
                 </compilation>
 
-            Dim compRelease = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseExe)
-            Dim compDebug = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugExe)
+            Dim compRelease = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseExe)
+            Dim compDebug = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.DebugExe)
 
             ' (2) is not met.
             CompileAndVerify(compRelease).VerifyIL("C.Main",
@@ -12194,7 +12194,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -12843,7 +12843,7 @@ End Module
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_Operators__CompareStringStringStringBoolean()
-            Dim compilation = CreateCompilationWithoutReferences(
+            Dim compilation = CreateEmptyCompilation(
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace System
@@ -12888,7 +12888,7 @@ BC35000: Requested operation is not available because the runtime library functi
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean()
-            Dim compilation = CreateCompilationWithoutReferences(
+            Dim compilation = CreateEmptyCompilation(
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace System
@@ -12935,7 +12935,7 @@ BC35000: Requested operation is not available because the runtime library functi
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
-            Dim compilation = CreateCompilationWithoutReferences(
+            Dim compilation = CreateEmptyCompilation(
 <compilation>
     <file name="a.vb"><![CDATA[
 Namespace System
@@ -12968,7 +12968,7 @@ BC35000: Requested operation is not available because the runtime library functi
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_Microsoft_VisualBasic_CompilerServices_ProjectData__SetProjectError()
-            Dim compilation = CreateCompilationWithoutReferences(
+            Dim compilation = CreateEmptyCompilation(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -13040,7 +13040,7 @@ End CLass
         <WorkItem(824308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824308")>
         <Fact()>
         Public Sub ConstCircular001()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -13071,7 +13071,7 @@ BC30500: Constant 'blah' cannot depend on its own value.
         <WorkItem(824308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824308")>
         <Fact()>
         Public Sub ConstCircular002()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -13105,7 +13105,7 @@ BC42104: Variable 'blah' is used before it has been assigned a value. A null ref
         <WorkItem(824308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/824308")>
         <Fact()>
         Public Sub ConstCircular003()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -13160,7 +13160,7 @@ End Module
 </compilation>
 
             Dim testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference()
-            Dim compilation = CompileAndVerify(source, additionalRefs:=New MetadataReference() {testReference})
+            Dim compilation = CompileAndVerify(source, references:=New MetadataReference() {testReference})
             compilation.VerifyIL("C.Main",
             <![CDATA[
 {
@@ -13203,7 +13203,7 @@ Class Test
     End Function
 End Class
 "
-            Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="True")
         End Sub
@@ -13245,7 +13245,7 @@ Class Test
     End Function
 End Class
 "
-            Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
+            Dim compilation = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
 
             CompileAndVerify(compilation, expectedOutput:="11461640193")
         End Sub
@@ -13273,7 +13273,7 @@ Class Test
     End Function
 End Class
 "
-                Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
+                Dim compilation = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
                 diagnostics = compilation.GetEmitDiagnostics()
 
                 If Not diagnostics.IsEmpty Then
@@ -13327,7 +13327,7 @@ Class Test
     End Function
 End Class
 "
-            Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseExe)
 
             compilation.VerifyEmitDiagnostics(
     Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "1").WithLocation(13, 16)
@@ -13374,7 +13374,7 @@ Class Test
 
 End Class
 "
-            Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="5180801
 5180801")
@@ -13416,7 +13416,7 @@ Structure S1
     End Operator
 End Structure
 "
-            Dim compilation = CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
+            Dim compilation = CreateCompilationWithMscorlib40({source}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
 
             compilation.VerifyEmitDiagnostics(
     Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "a").WithLocation(7, 16),

@@ -2032,7 +2032,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vbSource,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(vbSource,
                                                                                      {TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll},
                                                                                      options:=TestOptions.ReleaseExe)
 
@@ -2080,7 +2080,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(vbSource,
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(vbSource,
                                                                                      {TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll},
                                                                                      options:=TestOptions.ReleaseExe)
 

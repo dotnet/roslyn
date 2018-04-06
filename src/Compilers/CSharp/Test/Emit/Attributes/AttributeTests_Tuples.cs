@@ -101,15 +101,15 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
         [Fact]
         public void TestCompile()
         {
-            CompileAndVerify(s_tuplesTestSource,
+            CompileAndVerifyWithMscorlib40(s_tuplesTestSource,
                 options: TestOptions.ReleaseDll,
-                additionalRefs: s_attributeRefs);
+                references: s_attributeRefs);
         }
 
         [Fact]
         public void TestTupleAttributes()
         {
-            var comp = CreateStandardCompilation(s_tuplesTestSource,
+            var comp = CreateCompilationWithMscorlib40(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
                 references: s_attributeRefs);
 
@@ -122,7 +122,7 @@ public class Derived<T> : Outer<(int e1, (int e2, int e3) e4)>.Inner<
         [Fact]
         public void TupleAttributeWithOnlyOneConstructor()
         {
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilationWithMscorlib40(
                 s_tuplesTestSource + TestResources.NetFX.ValueTuple.tuplelib_cs + @"
 namespace System.Runtime.CompilerServices
 {
@@ -168,10 +168,10 @@ class C
         d((0, 0));
     }
 }";
-            var comp = CreateCompilation(source0);
+            var comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateCompilation(source1,
+            comp = CreateEmptyCompilation(source1,
                 references: s_attributeRefs.Concat(new[] { ref0 }));
             comp.VerifyDiagnostics(
                 // (6,11): error CS0518: Predefined type 'System.String' is not defined or imported
@@ -204,10 +204,10 @@ class C
 {
     static (int x, int y) M() => (0, 0);
 }";
-            var comp = CreateCompilation(source0);
+            var comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
-            comp = CreateCompilation(source1,
+            comp = CreateEmptyCompilation(source1,
                 references: new[] { ref0, ValueTupleRef });
             comp.VerifyDiagnostics(
                 // (4,12): error CS0518: Predefined type 'System.String' is not defined or imported
@@ -227,9 +227,9 @@ class C
         {
             ModuleSymbol sourceModule = null;
             ModuleSymbol peModule = null;
-            CompileAndVerify(s_tuplesTestSource,
+            CompileAndVerifyWithMscorlib40(s_tuplesTestSource,
                 options: TestOptions.UnsafeReleaseDll,
-                additionalRefs: s_attributeRefs, 
+                references: s_attributeRefs, 
                 verify: Verification.Passes,
                 sourceSymbolValidator: m => sourceModule = m,
                 symbolValidator: m => peModule = m);
@@ -640,7 +640,7 @@ class C
         [Fact]
         public void TupleAttributeMissing()
         {
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilationWithMscorlib40(
                 s_tuplesTestSource + TestResources.NetFX.ValueTuple.tuplelib_cs,
                 references: new[] { SystemCoreRef },
                 options: TestOptions.ReleaseDll);
@@ -802,7 +802,7 @@ public class C
 public struct S
 {
 }";
-            var comp = CreateStandardCompilation(text, references: s_attributeRefs);
+            var comp = CreateCompilationWithMscorlib40(text, references: s_attributeRefs);
             comp.VerifyDiagnostics(
                 // (31,2): error CS8331: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 // [TupleElementNames(new[] { "a", "b" })]
@@ -931,8 +931,8 @@ public interface I3<T>
                 }
             }
 
-            CompileAndVerify(src,
-                additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CompileAndVerifyWithMscorlib40(src,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 assemblyValidator: validator,
                 symbolValidator: symbolValidator);
         }
@@ -1030,8 +1030,8 @@ public interface I3 : I1<(int c, int d)> {}";
                 }
             }
 
-            CompileAndVerify(src,
-                additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+            CompileAndVerifyWithMscorlib40(src,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 assemblyValidator: validator,
                 symbolValidator: symbolValidator);
         }
