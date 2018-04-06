@@ -9,6 +9,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 {
+    /// <summary>
+    /// Code fix impl for embedded json strings.
+    /// </summary>
     internal class JsonEmbeddedCodeFixProvider : IEmbeddedCodeFixProvider
     {
         private readonly AbstractEmbeddedLanguageProvider _provider;

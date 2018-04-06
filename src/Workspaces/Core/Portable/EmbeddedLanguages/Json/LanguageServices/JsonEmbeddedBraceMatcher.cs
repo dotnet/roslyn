@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 {
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
 
+    /// <summary>
+    /// Brace matching impl for embedded json strings.
+    /// </summary>
     internal class JsonEmbeddedBraceMatcher : IEmbeddedBraceMatcher
     {
         private readonly JsonEmbeddedLanguage _language;
