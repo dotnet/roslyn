@@ -63,6 +63,16 @@ namespace Microsoft.CodeAnalysis.Syntax
             _nodes[_count++] = item;
         }
 
+        public void Add(SyntaxNode item)
+        {
+            this.Add(item.Green);
+        }
+
+        public void Add(in SyntaxToken item)
+        {
+            this.Add(item.Node);
+        }
+
         public void Add(in SyntaxNodeOrToken item)
         {
             this.Add(item.UnderlyingNode);
