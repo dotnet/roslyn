@@ -69,15 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// No locals since locals are associated with methods, not types.
         /// </remarks>
         internal static EvaluationContext CreateTypeContext(
-            MetadataContext<CSharpCompilation, EvaluationContext> previous,
+            CSharpMetadataContext previous,
             ImmutableArray<MetadataBlock> metadataBlocks,
             Guid moduleVersionId,
             int typeToken,
             MakeAssemblyReferencesKind kind)
         {
             // Re-use the previous compilation if possible.
-            var compilation = previous != null ?
-                previous.Compilation :
+            var compilation = previous.Compilation ??
                 metadataBlocks.ToCompilation(moduleVersionId, kind);
 
             return CreateTypeContext(compilation, moduleVersionId, typeToken);
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// <param name="localSignatureToken">Method local signature token</param>
         /// <returns>Evaluation context</returns>
         internal static EvaluationContext CreateMethodContext(
-            MetadataContext<CSharpCompilation, EvaluationContext> previous,
+            CSharpMetadataContext previous,
             ImmutableArray<MetadataBlock> metadataBlocks,
             object symReader,
             Guid moduleVersionId,
@@ -129,8 +128,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var offset = NormalizeILOffset(ilOffset);
 
             // Re-use the previous compilation if possible.
-            CSharpCompilation compilation;
-            if (previous != null)
+            var compilation = previous.Compilation;
+            if (compilation != null)
             {
                 // Re-use entire context if method scope has not changed.
                 var previousContext = previous.EvaluationContext;
@@ -140,7 +139,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     return previousContext;
                 }
-                compilation = previous.Compilation;
             }
             else
             {

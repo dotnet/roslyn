@@ -4,48 +4,29 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.VisualStudio.Debugger;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal abstract class MetadataContext<TCompilation, TEvaluationContext>
-        where TCompilation : Compilation
-        where TEvaluationContext : EvaluationContextBase
-    {
-        internal readonly TCompilation Compilation;
-        internal readonly TEvaluationContext EvaluationContext;
-
-        internal MetadataContext(TCompilation compilation, TEvaluationContext evaluationContext)
-        {
-            this.Compilation = compilation;
-            this.EvaluationContext = evaluationContext;
-        }
-    }
-
-    internal sealed class AppDomainMetadataContext<TCompilation, TEvaluationContext> : DkmDataItem
-        where TCompilation : Compilation
-        where TEvaluationContext : EvaluationContextBase
+    internal struct MetadataContext<TAssemblyContext>
+        where TAssemblyContext : struct
     {
         internal readonly ImmutableArray<MetadataBlock> MetadataBlocks;
         internal readonly Guid ModuleVersionId;
-        internal readonly MetadataContext<TCompilation, TEvaluationContext> AssemblyContext;
+        internal readonly TAssemblyContext AssemblyContext;
 
-        internal AppDomainMetadataContext(ImmutableArray<MetadataBlock> metadataBlocks, Guid moduleVersionId, MetadataContext<TCompilation, TEvaluationContext> assemblyContext)
+        internal MetadataContext(ImmutableArray<MetadataBlock> metadataBlocks, Guid moduleVersionId, TAssemblyContext assemblyContext)
         {
             Debug.Assert(moduleVersionId != default);
             this.MetadataBlocks = metadataBlocks;
             this.ModuleVersionId = moduleVersionId;
             this.AssemblyContext = assemblyContext;
         }
-    }
 
-    internal static class MetadataContextExtensions
-    {
-        internal static bool Matches<TCompilation, TEvaluationContext>(this AppDomainMetadataContext<TCompilation, TEvaluationContext> previousOpt, ImmutableArray<MetadataBlock> metadataBlocks)
-            where TCompilation : Compilation
-            where TEvaluationContext : EvaluationContextBase
+        internal bool Matches(ImmutableArray<MetadataBlock> metadataBlocks, Guid moduleVersionId)
         {
-            return previousOpt != null && previousOpt.MetadataBlocks.SequenceEqual(metadataBlocks);
+            return !this.MetadataBlocks.IsDefault &&
+                this.ModuleVersionId == moduleVersionId &&
+                this.MetadataBlocks.SequenceEqual(metadataBlocks);
         }
     }
 }

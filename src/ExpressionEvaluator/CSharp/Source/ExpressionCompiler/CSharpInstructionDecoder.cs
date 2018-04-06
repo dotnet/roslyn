@@ -136,20 +136,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var appDomain = moduleInstance.AppDomain;
             var moduleVersionId = moduleInstance.Mvid;
-            var previous = appDomain.GetMetadataContext<AppDomainMetadataContext<CSharpCompilation, EvaluationContext>>();
+            var previous = appDomain.GetMetadataContext<MetadataContext<CSharpMetadataContext>>();
             var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks);
 
-            if (!previous.Matches(metadataBlocks))
-            {
-                previous = null;
-            }
-            if (previous != null && previous.ModuleVersionId != moduleVersionId)
-            {
-                previous = null;
-            }
-
             CSharpCompilation compilation;
-            if (previous != null)
+            if (previous.Matches(metadataBlocks, moduleVersionId))
             {
                 compilation = previous.AssemblyContext.Compilation;
             }
@@ -157,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 compilation = metadataBlocks.ToCompilation(moduleVersionId, GetMakeAssemblyReferencesKind());
                 appDomain.SetMetadataContext(
-                    new AppDomainMetadataContext<CSharpCompilation, EvaluationContext>(
+                    new MetadataContext<CSharpMetadataContext>(
                         metadataBlocks,
                         moduleVersionId,
                         new CSharpMetadataContext(compilation)));

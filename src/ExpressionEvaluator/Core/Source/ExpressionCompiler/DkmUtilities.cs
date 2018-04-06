@@ -303,21 +303,33 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         internal static TMetadataContext GetMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain)
-            where TMetadataContext : DkmDataItem
+            where TMetadataContext : struct
         {
-            return appDomain.GetDataItem<TMetadataContext>();
+            var dataItem = appDomain.GetDataItem<MetadataContextItem<TMetadataContext>>();
+            return (dataItem == null) ? default(TMetadataContext) : dataItem.MetadataContext;
         }
 
         internal static void SetMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain, TMetadataContext context)
-            where TMetadataContext : DkmDataItem
+            where TMetadataContext : struct
         {
-            appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, context);
+            appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new MetadataContextItem<TMetadataContext>(context));
         }
 
         internal static void RemoveMetadataContext<TMetadataContext>(this DkmClrAppDomain appDomain)
-            where TMetadataContext : DkmDataItem
+            where TMetadataContext : struct
         {
-            appDomain.RemoveDataItem<TMetadataContext>();
+            appDomain.RemoveDataItem<MetadataContextItem<TMetadataContext>>();
+        }
+
+        private sealed class MetadataContextItem<TMetadataContext> : DkmDataItem
+            where TMetadataContext : struct
+        {
+            internal readonly TMetadataContext MetadataContext;
+
+            internal MetadataContextItem(TMetadataContext metadataContext)
+            {
+                this.MetadataContext = metadataContext;
+            }
         }
 
         private sealed class AppDomainLifetimeDataItem : DkmDataItem { }

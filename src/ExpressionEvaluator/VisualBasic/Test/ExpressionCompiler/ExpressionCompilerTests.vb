@@ -69,7 +69,7 @@ End Class
                     Assert.NotEqual(mvid1, Guid.Empty)
 
                     context = EvaluationContext.CreateMethodContext(
-                        New VisualBasicMetadataContext(blocks, context),
+                        New VisualBasicMetadataContext(context.Compilation, context),
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -297,7 +297,7 @@ End Class"
             ' At start of outer scope.
             Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(startOffset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
             Assert.Equal(Nothing, previous)
-            previous = New VisualBasicMetadataContext(methodBlocks, context)
+            previous = New VisualBasicMetadataContext(context.Compilation, context)
 
             ' At end of outer scope - not reused because of the nested scope.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(endOffset, UInteger), localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies)
@@ -311,7 +311,7 @@ End Class"
 
             ' Step through entire method.
             Dim previousScope As Scope = Nothing
-            previous = New VisualBasicMetadataContext(typeBlocks, context)
+            previous = New VisualBasicMetadataContext(context.Compilation, context)
             For offset = startOffset To endOffset - 1
                 Dim scope = scopes.GetInnermostScope(offset)
                 Dim constraints = previous.EvaluationContext.MethodContextReuseConstraints
@@ -331,7 +331,7 @@ End Class"
                     End If
                 End If
                 previousScope = scope
-                previous = New VisualBasicMetadataContext(methodBlocks, context)
+                previous = New VisualBasicMetadataContext(context.Compilation, context)
             Next
 
             ' With different references.
@@ -349,7 +349,7 @@ End Class"
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
             Assert.NotEqual(context.Compilation, previous.Compilation)
-            previous = New VisualBasicMetadataContext(methodBlocks, context)
+            previous = New VisualBasicMetadataContext(context.Compilation, context)
 
             ' Different method. Should reuse Compilation.
             GetContextState(runtime, "C.G", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
@@ -4579,7 +4579,7 @@ End Class"
                     ' Verify the context is re-used for ILOffset == 0.
                     Dim previous = context
                     context = EvaluationContext.CreateMethodContext(
-                        New VisualBasicMetadataContext(blocks, previous),
+                        New VisualBasicMetadataContext(previous.Compilation, previous),
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -4594,7 +4594,7 @@ End Class"
                     ' Verify the context is re-used for NoILOffset.
                     previous = context
                     context = EvaluationContext.CreateMethodContext(
-                        New VisualBasicMetadataContext(blocks, previous),
+                        New VisualBasicMetadataContext(previous.Compilation, previous),
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,

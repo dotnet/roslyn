@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return s_compilerId; }
         }
 
-        internal delegate AppDomainMetadataContext<CSharpCompilation, EvaluationContext> GetMetadataContextDelegate<TAppDomain>(TAppDomain appDomain);
-        internal delegate void SetMetadataContextDelegate<TAppDomain>(TAppDomain appDomain, AppDomainMetadataContext<CSharpCompilation, EvaluationContext> metadataContext);
+        internal delegate MetadataContext<CSharpMetadataContext> GetMetadataContextDelegate<TAppDomain>(TAppDomain appDomain);
+        internal delegate void SetMetadataContextDelegate<TAppDomain>(TAppDomain appDomain, MetadataContext<CSharpMetadataContext> metadataContext);
 
         internal override EvaluationContextBase CreateTypeContext(
             DkmClrAppDomain appDomain,
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             return CreateTypeContext(
                 appDomain,
-                ad => ad.GetMetadataContext<AppDomainMetadataContext<CSharpCompilation, EvaluationContext>>(),
+                ad => ad.GetMetadataContext<MetadataContext<CSharpMetadataContext>>(),
                 metadataBlocks,
                 moduleVersionId,
                 typeToken,
@@ -67,16 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             var previous = getMetadataContext(appDomain);
-            if (!previous.Matches(metadataBlocks))
-            {
-                previous = null;
-            }
-            if (previous != null && previous.ModuleVersionId != moduleVersionId)
-            {
-                previous = null;
-            }
-
-            var previousContext = previous?.AssemblyContext;
+            var previousContext = previous.Matches(metadataBlocks, moduleVersionId) ? previous.AssemblyContext : default;
             var context = EvaluationContext.CreateTypeContext(
                 previousContext,
                 metadataBlocks,
@@ -88,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // re-usable than the previous attached method context. (We could hold
             // on to it if we don't have a previous method context but it's unlikely
             // that we evaluated a type-level expression before a method-level.)
-            Debug.Assert(context != previousContext?.EvaluationContext);
+            Debug.Assert(context != previousContext.EvaluationContext);
 
             return context;
         }
@@ -107,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             return CreateMethodContext(
                 appDomain,
-                ad => ad.GetMetadataContext<AppDomainMetadataContext<CSharpCompilation, EvaluationContext>>(),
-                (ad, mc) => ad.SetMetadataContext<AppDomainMetadataContext<CSharpCompilation, EvaluationContext>>(mc),
+                ad => ad.GetMetadataContext<MetadataContext<CSharpMetadataContext>>(),
+                (ad, mc) => ad.SetMetadataContext<MetadataContext<CSharpMetadataContext>>(mc),
                 metadataBlocks,
                 symReader,
                 moduleVersionId,
@@ -148,16 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             var previous = getMetadataContext(appDomain);
-            if (!previous.Matches(metadataBlocks))
-            {
-                previous = null;
-            }
-            if (previous != null && previous.ModuleVersionId != moduleVersionId) // TODO: ModuleVersionId should be compared against default if AllAssemblies.
-            {
-                previous = null;
-            }
-
-            var previousContext = previous?.AssemblyContext;
+            var previousContext = previous.Matches(metadataBlocks, moduleVersionId) ? previous.AssemblyContext : default;
             var context = EvaluationContext.CreateMethodContext(
                 previousContext,
                 metadataBlocks,
@@ -169,11 +151,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 localSignatureToken,
                 kind);
 
-            if (context != previousContext?.EvaluationContext)
+            if (context != previousContext.EvaluationContext)
             {
                 setMetadataContext(
                     appDomain,
-                    new AppDomainMetadataContext<CSharpCompilation, EvaluationContext>(
+                    new MetadataContext<CSharpMetadataContext>(
                         metadataBlocks,
                         moduleVersionId,
                         new CSharpMetadataContext(context.Compilation, context)));
@@ -184,12 +166,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override void RemoveDataItem(DkmClrAppDomain appDomain)
         {
-            appDomain.RemoveMetadataContext<AppDomainMetadataContext<CSharpCompilation, EvaluationContext>>();
+            appDomain.RemoveMetadataContext<MetadataContext<CSharpMetadataContext>>();
         }
 
         internal override ImmutableArray<MetadataBlock> GetMetadataBlocks(DkmClrAppDomain appDomain, DkmClrRuntimeInstance runtimeInstance)
         {
-            var previous = appDomain.GetMetadataContext<AppDomainMetadataContext<CSharpCompilation, EvaluationContext>>();
+            var previous = appDomain.GetMetadataContext<MetadataContext<CSharpMetadataContext>>();
             return runtimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks);
         }
     }

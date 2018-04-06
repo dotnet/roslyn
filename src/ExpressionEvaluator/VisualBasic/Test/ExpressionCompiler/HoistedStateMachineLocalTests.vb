@@ -1467,7 +1467,7 @@ End Class
 
                     ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber:=200)
                     context = EvaluationContext.CreateMethodContext(
-                        New VisualBasicMetadataContext(blocks, context),
+                        New VisualBasicMetadataContext(context.Compilation, context),
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,

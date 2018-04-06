@@ -71,15 +71,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' No locals since locals are associated with methods, not types.
         ''' </remarks>
         Friend Shared Function CreateTypeContext(
-            previous As MetadataContext(Of VisualBasicCompilation, EvaluationContext),
+            previous As VisualBasicMetadataContext,
             metadataBlocks As ImmutableArray(Of MetadataBlock),
             moduleVersionId As Guid,
             typeToken As Integer,
             kind As MakeAssemblyReferencesKind) As EvaluationContext
 
             ' Re-use the previous compilation if possible.
-            Dim compilation = If(previous IsNot Nothing,
-                previous.Compilation,
+            Dim compilation = If(previous.Compilation,
                 metadataBlocks.ToCompilation(moduleVersionId, kind))
 
             Return CreateTypeContext(compilation, moduleVersionId, typeToken)
@@ -119,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' <param name="localSignatureToken">Method local signature token.</param>
         ''' <returns>Evaluation context.</returns>
         Friend Shared Function CreateMethodContext(
-            previous As MetadataContext(Of VisualBasicCompilation, EvaluationContext),
+            previous As VisualBasicMetadataContext,
             metadataBlocks As ImmutableArray(Of MetadataBlock),
             lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
             symReader As Object,
@@ -133,8 +132,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim offset = NormalizeILOffset(ilOffset)
 
             ' Re-use the previous compilation if possible.
-            Dim compilation As VisualBasicCompilation
-            If previous IsNot Nothing Then
+            Dim compilation = previous.Compilation
+            If compilation IsNot Nothing Then
                 ' Re-use entire context if method scope has not changed.
                 Dim previousContext = previous.EvaluationContext
                 If previousContext IsNot Nothing AndAlso
@@ -142,7 +141,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset) Then
                     Return previousContext
                 End If
-                compilation = previous.Compilation
             Else
                 compilation = metadataBlocks.ToCompilation(moduleVersionId, kind)
             End If

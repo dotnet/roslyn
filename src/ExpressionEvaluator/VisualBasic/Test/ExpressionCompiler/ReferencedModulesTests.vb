@@ -121,7 +121,7 @@ End Class"
                     Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
 
                     ' Compile expression with method context.
-                    Dim previous = New VisualBasicMetadataContext(typeBlocks, context)
+                    Dim previous = New VisualBasicMetadataContext(context.Compilation, context)
                     context = EvaluationContext.CreateMethodContext(
                         previous,
                         methodBlocks,

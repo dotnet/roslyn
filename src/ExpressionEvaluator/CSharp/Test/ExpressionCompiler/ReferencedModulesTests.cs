@@ -326,7 +326,7 @@ IL_0005:  ret
                 var stateB2 = GetContextState(runtime, "B2.M");
 
                 EvaluationContext context;
-                AppDomainMetadataContext<CSharpCompilation, EvaluationContext> previous;
+                MetadataContext<CSharpMetadataContext> previous;
 
                 // B1 -> B2 -> A1 -> A2 -> A3
                 // B1.M:
@@ -547,7 +547,7 @@ IL_0005:  ret
                 testData = new CompilationTestData();
                 context.CompileExpression("new B()", out error, testData);
                 Assert.Null(error);
-                var previous = new CSharpMetadataContext(typeBlocks, context);
+                var previous = new CSharpMetadataContext(context.Compilation, context);
 
                 // Compile expression with type context with referenced modules only.
                 context = EvaluationContext.CreateTypeContext(

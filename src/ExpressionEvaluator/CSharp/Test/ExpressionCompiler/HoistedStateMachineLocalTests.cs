@@ -1386,7 +1386,7 @@ class C
 
                 ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 200);
                 context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(blocks, context),
+                    new CSharpMetadataContext(context.Compilation, context),
                     blocks,
                     symReader,
                     moduleVersionId,

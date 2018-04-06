@@ -105,21 +105,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         internal sealed class AppDomain
         {
-            private AppDomainMetadataContext<CSharpCompilation, EvaluationContext> _metadataContext;
+            private MetadataContext<CSharpMetadataContext> _metadataContext;
 
-            internal AppDomainMetadataContext<CSharpCompilation, EvaluationContext> GetMetadataContext()
+            internal MetadataContext<CSharpMetadataContext> GetMetadataContext()
             {
                 return _metadataContext;
             }
 
-            internal void SetMetadataContext(AppDomainMetadataContext<CSharpCompilation, EvaluationContext> metadataContext)
+            internal void SetMetadataContext(MetadataContext<CSharpMetadataContext> metadataContext)
             {
                 _metadataContext = metadataContext;
             }
 
             internal void RemoveMetadataContext()
             {
-                _metadataContext = null;
+                _metadataContext = default;
             }
         }
 

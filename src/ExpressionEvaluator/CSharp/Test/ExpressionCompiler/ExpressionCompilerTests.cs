@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.NotEqual(mvid1, Guid.Empty);
 
                 context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(blocks, context),
+                    new CSharpMetadataContext(context.Compilation, context),
                     blocks,
                     symReader,
                     moduleVersionId,
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             // At start of outer scope.
             var context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)startOffset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
             Assert.Equal(default(CSharpMetadataContext), previous);
-            previous = new CSharpMetadataContext(methodBlocks, context);
+            previous = new CSharpMetadataContext(context.Compilation, context);
 
             // At end of outer scope - not reused because of the nested scope.
             context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)endOffset, localSignatureToken, MakeAssemblyReferencesKind.AllAssemblies);
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
             // Step through entire method.
             var previousScope = (Scope)null;
-            previous = new CSharpMetadataContext(typeBlocks, context);
+            previous = new CSharpMetadataContext(context.Compilation, context);
             for (int offset = startOffset; offset <= endOffset; offset++)
             {
                 var scope = scopes.GetInnermostScope(offset);
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                     }
                 }
                 previousScope = scope;
-                previous = new CSharpMetadataContext(methodBlocks, context);
+                previous = new CSharpMetadataContext(context.Compilation, context);
             }
 
             // With different references.
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             Assert.NotEqual(context, previous.EvaluationContext);
             Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset));
             Assert.NotEqual(context.Compilation, previous.Compilation);
-            previous = new CSharpMetadataContext(methodBlocks, context);
+            previous = new CSharpMetadataContext(context.Compilation, context);
 
             // Different method. Should reuse Compilation.
             GetContextState(runtime, "C.G", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
@@ -6057,7 +6057,7 @@ class C
                 // Verify the context is re-used for ILOffset == 0.
                 var previous = context;
                 context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(blocks, previous),
+                    new CSharpMetadataContext(previous.Compilation, previous),
                     blocks,
                     symReader,
                     moduleVersionId,
@@ -6071,7 +6071,7 @@ class C
                 // Verify the context is re-used for NoILOffset.
                 previous = context;
                 context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(blocks, previous),
+                    new CSharpMetadataContext(previous.Compilation, previous),
                     blocks,
                     symReader,
                     moduleVersionId,

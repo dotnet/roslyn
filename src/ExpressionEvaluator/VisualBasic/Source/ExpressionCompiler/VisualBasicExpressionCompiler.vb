@@ -30,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Friend Delegate Function GetMetadataContextDelegate(Of TAppDomain)(appDomain As TAppDomain) As AppDomainMetadataContext(Of VisualBasicCompilation, EvaluationContext)
-        Friend Delegate Sub SetMetadataContextDelegate(Of TAppDomain)(appDomain As TAppDomain, metadataContext As AppDomainMetadataContext(Of VisualBasicCompilation, EvaluationContext))
+        Friend Delegate Function GetMetadataContextDelegate(Of TAppDomain)(appDomain As TAppDomain) As MetadataContext(Of VisualBasicMetadataContext)
+        Friend Delegate Sub SetMetadataContextDelegate(Of TAppDomain)(appDomain As TAppDomain, metadataContext As MetadataContext(Of VisualBasicMetadataContext))
 
         Friend Overrides Function CreateTypeContext(
             appDomain As DkmClrAppDomain,
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Return CreateTypeContextHelper(
                 appDomain,
-                Function(ad) ad.GetMetadataContext(Of AppDomainMetadataContext(Of VisualBasicCompilation, EvaluationContext))(),
+                Function(ad) ad.GetMetadataContext(Of MetadataContext(Of VisualBasicMetadataContext))(),
                 metadataBlocks,
                 moduleVersionId,
                 typeToken,
@@ -68,14 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
 
             Dim previous = getMetadataContext(appDomain)
-            If Not previous.Matches(metadataBlocks) Then
-                previous = Nothing
-            End If
-            If previous IsNot Nothing AndAlso previous.ModuleVersionId <> moduleVersionId Then
-                previous = Nothing
-            End If
-
-            Dim previousContext = previous?.AssemblyContext
+            Dim previousContext = If(previous.Matches(metadataBlocks, moduleVersionId), previous.AssemblyContext, Nothing)
             Dim context = EvaluationContext.CreateTypeContext(
                 previousContext,
                 metadataBlocks,
@@ -87,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ' re-usable than the previous attached method context. (We could hold
             ' on to it if we don't have a previous method context but it's unlikely
             ' that we evaluated a type-level expression before a method-level.)
-            Debug.Assert(context IsNot previousContext?.EvaluationContext)
+            Debug.Assert(context IsNot previousContext.EvaluationContext)
 
             Return context
         End Function
@@ -106,8 +99,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Return CreateMethodContextHelper(
                 appDomain,
-                Function(ad) ad.GetMetadataContext(Of AppDomainMetadataContext(Of VisualBasicCompilation, EvaluationContext))(),
-                Sub(ad, mc) ad.SetMetadataContext(Of AppDomainMetadataContext(Of VisualBasicCompilation, EvaluationContext))(mc),
+                Function(ad) ad.GetMetadataContext(Of MetadataContext(Of VisualBasicMetadataContext))(),
+                Sub(ad, mc) ad.SetMetadataContext(Of MetadataContext(Of VisualBasicMetadataContext))(mc),
                 metadataBlocks,
                 lazyAssemblyReaders,
                 symReader,
@@ -149,14 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End If
 
             Dim previous = getMetadataContext(appDomain)
-            If Not previous.Matches(metadataBlocks) Then
-                previous = Nothing
-            End If
-            If previous IsNot Nothing AndAlso previous.ModuleVersionId <> moduleVersionId Then
-                previous = Nothing
-            End If
-
-            Dim previousContext = previous?.AssemblyContext
+            Dim previousContext = If(previous.Matches(metadataBlocks, moduleVersionId), previous.AssemblyContext, Nothing)
             Dim context = EvaluationContext.CreateMethodContext(
                 previousContext,
                 metadataBlocks,
@@ -169,10 +155,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 localSignatureToken,
                 kind)
 
-            If context IsNot previousContext?.EvaluationContext Then
+            If context IsNot previousContext.EvaluationContext Then
                 setMetadataContext(
                     appDomain,
-                    New AppDomainMetadataContext(Of VisualBasicCompilation, EvaluationContext)(
+                    New MetadataContext(Of VisualBasicMetadataContext)(
                         metadataBlocks,
                         moduleVersionId,
                         New VisualBasicMetadataContext(context.Compilation, context)))
@@ -182,11 +168,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Friend Overrides Sub RemoveDataItem(appDomain As DkmClrAppDomain)
-            appDomain.RemoveMetadataContext(Of AppDomainMetadataContext(Of VisualBasicCompilation, EvaluationContext))()
+            appDomain.RemoveMetadataContext(Of MetadataContext(Of VisualBasicMetadataContext))()
         End Sub
 
         Friend Overrides Function GetMetadataBlocks(appDomain As DkmClrAppDomain, runtimeInstance As DkmClrRuntimeInstance) As ImmutableArray(Of MetadataBlock)
-            Dim previous = appDomain.GetMetadataContext(Of AppDomainMetadataContext(Of VisualBasicCompilation, EvaluationContext))()
+            Dim previous = appDomain.GetMetadataContext(Of MetadataContext(Of VisualBasicMetadataContext))()
             Return runtimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks)
         End Function
 
