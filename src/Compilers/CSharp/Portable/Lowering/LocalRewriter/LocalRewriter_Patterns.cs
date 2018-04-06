@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagTypeEvaluation t:
                         {
                             TypeSymbol inputType = input.Type;
-                            if (inputType.IsDynamic())
+                            if (inputType.IsDynamic() || inputType.ContainsTypeParameter())
                             {
                                 inputType = _factory.SpecialType(SpecialType.System_Object);
                             }
@@ -252,7 +252,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (test is BoundDagTypeTest typeDecision &&
                     evaluation is BoundDagTypeEvaluation typeEvaluation &&
                     typeDecision.Type.IsReferenceType &&
-                    typeDecision.Input.Type.IsReferenceType &&
                     typeEvaluation.Type == typeDecision.Type &&
                     typeEvaluation.Input == typeDecision.Input
                     )

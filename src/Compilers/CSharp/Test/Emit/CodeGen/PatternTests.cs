@@ -1127,5 +1127,112 @@ class Program
   IL_0015:  ret
 }");
         }
+
+        [Fact]
+        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
+        public void ConstantPatternVsUnconstrainedTypeParameter01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Test1<object>(null));
+        Console.WriteLine(Test1<int>(1));
+        Console.WriteLine(Test1<int?>(null));
+        Console.WriteLine(Test1<int?>(1));
+
+        Console.WriteLine(Test2<object>(0));
+        Console.WriteLine(Test2<int>(1));
+        Console.WriteLine(Test2<int?>(0));
+        Console.WriteLine(Test2<string>(""frog""));
+
+        Console.WriteLine(Test3<object>(""frog""));
+        Console.WriteLine(Test3<int>(1));
+        Console.WriteLine(Test3<string>(""frog""));
+        Console.WriteLine(Test3<int?>(1));
+    }
+
+    public static bool Test1<T>(T t)
+    {
+        return t is null;
+    }
+    public static bool Test2<T>(T t)
+    {
+        return t is 0;
+    }
+    public static bool Test3<T>(T t)
+    {
+        return t is ""frog"";
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"True
+False
+True
+False
+True
+False
+True
+False
+True
+False
+True
+False
+";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("Program.Test1<T>(T)",
+@"{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  ldnull
+  IL_0007:  ceq
+  IL_0009:  ret
+}");
+            compVerifier.VerifyIL("Program.Test2<T>(T)",
+@"{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  isinst     ""int""
+  IL_000b:  brfalse.s  IL_001e
+  IL_000d:  ldarg.0
+  IL_000e:  box        ""T""
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  stloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  ldc.i4.0
+  IL_001b:  ceq
+  IL_001d:  ret
+  IL_001e:  ldc.i4.0
+  IL_001f:  ret
+}");
+            compVerifier.VerifyIL("Program.Test3<T>(T)",
+@"{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  isinst     ""string""
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brfalse.s  IL_001b
+  IL_000f:  ldstr      ""frog""
+  IL_0014:  ldloc.0
+  IL_0015:  call       ""bool string.op_Equality(string, string)""
+  IL_001a:  ret
+  IL_001b:  ldc.i4.0
+  IL_001c:  ret
+}");
+        }
     }
 }

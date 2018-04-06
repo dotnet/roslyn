@@ -168,35 +168,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, CSharpSyntaxNode node, BoundExpression expression, ref ConstantValue constantValue, DiagnosticBag diagnostics)
         {
-            // NOTE: This will allow user-defined conversions, even though they're not allowed here.  This is acceptable
-            // because the result of a user-defined conversion does not have a ConstantValue and we'll report a diagnostic
-            // to that effect later.
-            BoundExpression convertedExpression = GenerateConversionForAssignment(inputType, expression, diagnostics);
-
-            if (convertedExpression.Kind == BoundKind.Conversion)
+            BoundExpression convertedExpression;
+            if (inputType.ContainsTypeParameter())
             {
-                var conversion = (BoundConversion)convertedExpression;
-                BoundExpression operand = conversion.Operand;
-                if (inputType.IsNullableType() && (convertedExpression.ConstantValue == null || !convertedExpression.ConstantValue.IsNull))
+                // If we are pattern-matching against an open type, we do not convert the constant to the type of the input.
+                convertedExpression = expression;
+            }
+            else
+            {
+                // NOTE: This will allow user-defined conversions, even though they're not allowed here.  This is acceptable
+                // because the result of a user-defined conversion does not have a ConstantValue and we'll report a diagnostic
+                // to that effect later.
+                convertedExpression = GenerateConversionForAssignment(inputType, expression, diagnostics);
+
+                if (convertedExpression.Kind == BoundKind.Conversion)
                 {
-                    // Null is a special case here because we want to compare null to the Nullable<T> itself, not to the underlying type.
-                    var discardedDiagnostics = DiagnosticBag.GetInstance(); // We are not intested in the diagnostic that get created here
-                    convertedExpression = CreateConversion(operand, inputType.GetNullableUnderlyingType(), discardedDiagnostics);
-                    discardedDiagnostics.Free();
-                }
-                else if ((conversion.ConversionKind == ConversionKind.Boxing || conversion.ConversionKind == ConversionKind.ImplicitReference)
-                    && operand.ConstantValue != null && convertedExpression.ConstantValue == null)
-                {
-                    // A boxed constant (or string converted to object) is a special case because we prefer
-                    // to compare to the pre-converted value by casting the input value to the type of the constant
-                    // (that is, unboxing or downcasting it) and then testing the resulting value using primitives.
-                    // That is much more efficient than calling object.Equals(x, y), and we can share the downcasted
-                    // input value among many constant tests.
-                    convertedExpression = operand;
-                }
-                else if (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true)
-                {
-                    convertedExpression = operand;
+                    var conversion = (BoundConversion)convertedExpression;
+                    BoundExpression operand = conversion.Operand;
+                    if (inputType.IsNullableType() && (convertedExpression.ConstantValue == null || !convertedExpression.ConstantValue.IsNull))
+                    {
+                        // Null is a special case here because we want to compare null to the Nullable<T> itself, not to the underlying type.
+                        var discardedDiagnostics = DiagnosticBag.GetInstance(); // We are not intested in the diagnostic that get created here
+                        convertedExpression = CreateConversion(operand, inputType.GetNullableUnderlyingType(), discardedDiagnostics);
+                        discardedDiagnostics.Free();
+                    }
+                    else if ((conversion.ConversionKind == ConversionKind.Boxing || conversion.ConversionKind == ConversionKind.ImplicitReference)
+                        && operand.ConstantValue != null && convertedExpression.ConstantValue == null)
+                    {
+                        // A boxed constant (or string converted to object) is a special case because we prefer
+                        // to compare to the pre-converted value by casting the input value to the type of the constant
+                        // (that is, unboxing or downcasting it) and then testing the resulting value using primitives.
+                        // That is much more efficient than calling object.Equals(x, y), and we can share the downcasted
+                        // input value among many constant tests.
+                        convertedExpression = operand;
+                    }
+                    else if (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true)
+                    {
+                        convertedExpression = operand;
+                    }
                 }
             }
 
