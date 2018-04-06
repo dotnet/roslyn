@@ -15,6 +15,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
+    /// <summary>
+    /// A CodeFixProvider that hooks up the diagnostics produced by <see
+    /// cref="IEmbeddedDiagnosticAnalyzer"/> and to the appropriate <see
+    /// cref="IEmbeddedCodeFixProvider"/>.
+    /// </summary>
     internal abstract class AbstractEmbeddedLanguageCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         private readonly IEmbeddedLanguageProvider _embeddedLanguageProvider;
@@ -28,6 +33,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             _embeddedLanguageProvider = embeddedLanguageProvider;
             _diagnosticIdToCodeFixProvider = new Dictionary<string, IEmbeddedCodeFixProvider>();
 
+            // Create a mapping from each IEmbeddedCodeFixProvider.FixableDiagnosticIds back to the
+            // IEmbeddedCodeFixProvider itself.  That way, when we hear about diagnostics, we know
+            // which provider to actually do the fixing.
             foreach (var language in embeddedLanguageProvider.GetEmbeddedLanguages())
             {
                 var codeFixProvider = language.CodeFixProvider;
@@ -67,6 +75,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             {
                 if (_diagnosticIdToCodeFixProvider.TryGetValue(diagnostic.Id, out var provider))
                 {
+                    // Defer to the underlying IEmbeddedCodeFixProvider to actually fix.
                     provider.Fix(editor, diagnostic, cancellationToken);
                 }
             }
