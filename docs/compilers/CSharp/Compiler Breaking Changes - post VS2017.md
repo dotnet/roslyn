@@ -98,3 +98,5 @@ Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123
 
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/19792 C# compiler will now reject [IsReadOnly] symbols that should have an [InAttribute] modreq, but don't.
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/pull/25131 C# compiler will now check `stackalloc T [count]` expressions to see if T matches constraints of `Span<T>`.
+- Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/25399 C# compiler will now produce errors if partial methods parameters have different ref-kinds in implementation vs definition.
+- Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/23525 C# compiler will now produce errors if there was an invalid pdbpath supplied to an embedded pdb, instead of just writing it to the binary.
