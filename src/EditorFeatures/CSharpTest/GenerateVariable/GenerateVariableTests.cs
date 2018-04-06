@@ -7647,5 +7647,43 @@ class C
     }
 }");
         }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPattern2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M2()
+    {
+        Blah o = null;
+        if (o is { [|X|]: int i })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is { X: int i })
+        {
+        }
+    }
+
+    class Blah
+    {
+        public int X { get; internal set; }
+    }
+}");
+        }
     }
 }
