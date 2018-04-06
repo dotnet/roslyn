@@ -4784,6 +4784,60 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
+        public async Task TestWithLineBreak_WithSimpleComment()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int x = // start [| comment
+            5 * 2 |]
+            ;
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 5 * 2;
+
+    void M()
+    {
+        int x = // start  comment
+            V
+            ;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
+        public async Task TestWithLineBreak_WithMultipleComments()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int x = /*comment1*/ [| // comment2
+            /*comment3*/ 5 * 2 |] // comment4
+            /*comment5*/ ; /*comment6*/
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 5 * 2;
+
+    void M()
+    {
+        int x = /*comment1*/  // comment2
+                              /*comment3*/ V  // comment4
+                            /*comment5*/ ; /*comment6*/
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceLocalInCallRefExpression()
         {
             // This test indicates that ref-expressions are l-values and

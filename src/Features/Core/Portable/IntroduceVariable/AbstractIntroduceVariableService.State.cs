@@ -192,6 +192,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
 
                 var startToken = root.FindToken(textSpan.Start);
+                if (startToken.Span.End < textSpan.Start)
+                {
+                    // If we were pointing in the trailing trivia of a token, we shouldn't include that token
+                    startToken = startToken.GetNextToken();
+                    var newStart = startToken.Span.Start;
+                    textSpan = new TextSpan(newStart, textSpan.End - newStart);
+                }
+
                 var stopToken = root.FindToken(textSpan.End);
 
                 if (textSpan.End <= stopToken.SpanStart)
