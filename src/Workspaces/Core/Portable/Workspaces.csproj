@@ -14,12 +14,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <ItemGroup>
-    <Compile Remove="Json\**" />
-    <Compile Remove="RegularExpressions\**" />
-    <EmbeddedResource Remove="Json\**" />
-    <EmbeddedResource Remove="RegularExpressions\**" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
   </ItemGroup>
