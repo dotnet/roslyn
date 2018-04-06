@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -29,11 +28,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bound type if syntax binds to a type in the current context and
         /// null if syntax binds to "var" keyword in the current context.
         /// </returns>
-        internal TypeSymbol BindType(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar)
+        internal TypeSymbol BindTypeOrVarKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar)
         {
-            var symbol = BindTypeOrAlias(syntax, diagnostics, out isVar);
+            var symbol = BindTypeOrAliasOrVarKeyword(syntax, diagnostics, out isVar);
             Debug.Assert(isVar == ((object)symbol == null));
             return isVar ? null : (TypeSymbol)UnwrapAlias(symbol, diagnostics, syntax);
+        }
+
+        /// <summary>
+        /// Binds the type for the syntax taking into account possibility of "unmanaged" type.
+        /// </summary>
+        /// <param name="syntax">Type syntax to bind.</param>
+        /// <param name="diagnostics">Diagnostics.</param>
+        /// <param name="isUnmanaged">
+        /// Set to false if syntax binds to a type in the current context and true if
+        /// syntax is "unmanaged" and it binds to "unmanaged" keyword in the current context.
+        /// </param>
+        /// <returns>
+        /// Bound type if syntax binds to a type in the current context and
+        /// null if syntax binds to "unmanaged" keyword in the current context.
+        /// </returns>
+        internal TypeSymbol BindTypeOrUnmanagedKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isUnmanaged)
+        {
+            var symbol = BindTypeOrAliasOrUnmanagedKeyword(syntax, diagnostics, out isUnmanaged);
+            Debug.Assert(isUnmanaged == ((object)symbol == null));
+            return isUnmanaged ? null : (TypeSymbol)UnwrapAlias(symbol, diagnostics, syntax);
         }
 
         /// <summary>
@@ -50,9 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bound type if syntax binds to a type in the current context and
         /// null if syntax binds to "var" keyword in the current context.
         /// </returns>
-        internal TypeSymbol BindType(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar, out AliasSymbol alias)
+        internal TypeSymbol BindTypeOrVarKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar, out AliasSymbol alias)
         {
-            var symbol = BindTypeOrAlias(syntax, diagnostics, out isVar);
+            var symbol = BindTypeOrAliasOrVarKeyword(syntax, diagnostics, out isVar);
             Debug.Assert(isVar == ((object)symbol == null));
             if (isVar)
             {
@@ -64,129 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (TypeSymbol)UnwrapAlias(symbol, out alias, diagnostics, syntax);
             }
         }
-
-        /// <summary>
-        /// Binds the type for the syntax taking into account possibility of "var" type.
-        /// If the syntax binds to an alias symbol to a type, it returns the alias symbol.
-        /// </summary>
-        /// <param name="syntax">Type syntax to bind.</param>
-        /// <param name="diagnostics">Diagnostics.</param>
-        /// <param name="isVar">
-        /// Set to false if syntax binds to a type or alias to a type in the current context and true if
-        /// syntax is "var" and it binds to "var" keyword in the current context.
-        /// </param>
-        /// <returns>
-        /// Bound type or alias if syntax binds to a type or alias to a type in the current context and
-        /// null if syntax binds to "var" keyword in the current context.
-        /// </returns>
-        private Symbol BindTypeOrAlias(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar)
+           
+        private Symbol BindTypeOrAliasOrVarKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isVar)
         {
-            ConsList<Symbol> basesBeingResolved = null;
-            if (!syntax.IsVar)
+            if (syntax.IsVar)
             {
-                isVar = false;
-                return BindTypeOrAlias(syntax, diagnostics, basesBeingResolved);
-            }
-            else
-            {
-                // Only IdentifierNameSyntax instances may be 'var'.
-                var identifierValueText = ((IdentifierNameSyntax)syntax).Identifier.ValueText;
-
-                Symbol symbol = null;
-
-                // Perform name lookup without generating diagnostics as it could possibly be 
-                // "var" keyword in the current context.
-                var lookupResult = LookupResult.GetInstance();
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                this.LookupSymbolsInternal(lookupResult, identifierValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, basesBeingResolved: basesBeingResolved,
-                    options: LookupOptions.NamespacesOrTypesOnly, diagnose: false);
-                diagnostics.Add(syntax, useSiteDiagnostics);
-
-                // We have following possible cases for lookup:
-
-                //  1) LookupResultKind.Empty: isVar = true
-
-                //  2) LookupResultKind.Viable:
-                //      a) Single viable result that corresponds to 1) a non-error type: isVar = false
-                //                                                  2) an error type: isVar = true
-                //      b) Single viable result that corresponds to namespace: isVar = true
-                //      c) Multi viable result (ambiguous result), we must return an error type: isVar = false
-
-                // 3) Non viable, non empty lookup result: isVar = true
-
-                // BREAKING CHANGE:     Case (2)(c) is a breaking change from the native compiler.
-                // BREAKING CHANGE:     Native compiler interprets lookup with ambiguous result to correspond to bind
-                // BREAKING CHANGE:     to "var" keyword (isVar = true), rather than reporting an error.
-                // BREAKING CHANGE:     See test SemanticErrorTests.ErrorMeansSuccess_var() for an example.
-
-                switch (lookupResult.Kind)
-                {
-                    case LookupResultKind.Empty:
-                        // Case (1)
-                        isVar = true;
-                        symbol = null;
-                        break;
-
-                    case LookupResultKind.Viable:
-                        // Case (2)
-                        DiagnosticBag resultDiagnostics = DiagnosticBag.GetInstance();
-                        bool wasError;
-                        symbol = ResultSymbol(
-                            lookupResult,
-                            identifierValueText,
-                            arity: 0,
-                            where: syntax,
-                            diagnostics: resultDiagnostics,
-                            suppressUseSiteDiagnostics: false,
-                            wasError: out wasError);
-
-                        // Here, we're mimicking behavior of dev10.  If "var" fails to bind
-                        // as a type, even if the reason is (e.g.) a type/alias conflict, then treat
-                        // it as the contextual keyword.
-                        if (wasError && lookupResult.IsSingleViable)
-                        {
-                            // NOTE: don't report diagnostics - we're not going to use the lookup result.
-                            resultDiagnostics.Free();
-                            // Case (2)(a)(2)
-                            goto default;
-                        }
-
-                        diagnostics.AddRange(resultDiagnostics);
-                        resultDiagnostics.Free();
-
-                        if (lookupResult.IsSingleViable)
-                        {
-                            var type = UnwrapAlias(symbol, diagnostics, syntax) as TypeSymbol;
-
-                            if ((object)type != null)
-                            {
-                                // Case (2)(a)(1)
-                                isVar = false;
-                            }
-                            else
-                            {
-                                // Case (2)(b)
-                                Debug.Assert(UnwrapAliasNoDiagnostics(symbol) is NamespaceSymbol);
-                                isVar = true;
-                                symbol = null;
-                            }
-                        }
-                        else
-                        {
-                            // Case (2)(c)
-                            isVar = false;
-                        }
-
-                        break;
-
-                    default:
-                        // Case (3)
-                        isVar = true;
-                        symbol = null;
-                        break;
-                }
-
-                lookupResult.Free();
+                var symbol = BindTypeOrAliasOrKeyword(syntax, diagnostics, out isVar);
 
                 if (isVar)
                 {
@@ -195,6 +97,136 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return symbol;
             }
+            else
+            {
+                isVar = false;
+                return BindTypeOrAlias(syntax, diagnostics, basesBeingResolved: null);
+            }
+        }
+
+        private Symbol BindTypeOrAliasOrUnmanagedKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isUnmanaged)
+        {
+            if (syntax.IsUnmanaged)
+            {
+                var symbol = BindTypeOrAliasOrKeyword(syntax, diagnostics, out isUnmanaged);
+
+                if (isUnmanaged)
+                {
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUnmanagedGenericTypeConstraint, diagnostics);
+                }
+
+                return symbol;
+            }
+            else
+            {
+                isUnmanaged = false;
+                return BindTypeOrAlias(syntax, diagnostics, basesBeingResolved: null);
+            }
+        }
+
+        /// <summary>
+        /// Binds the type for the syntax taking into account possibility of the type being a keyword.
+        /// If the syntax binds to an alias symbol to a type, it returns the alias symbol.
+        /// PREREQUISITE: syntax should be checked to match the keyword, like <see cref="TypeSyntax.IsVar"/> or <see cref="TypeSyntax.IsUnmanaged"/>.
+        /// Otherwise, call <see cref="Binder.BindTypeOrAlias(ExpressionSyntax, DiagnosticBag, ConsList{Symbol})"/> instead.
+        /// </summary>
+        private Symbol BindTypeOrAliasOrKeyword(TypeSyntax syntax, DiagnosticBag diagnostics, out bool isKeyword)
+        {
+            // Keywords can only be IdentifierNameSyntax
+            var identifierValueText = ((IdentifierNameSyntax)syntax).Identifier.ValueText;
+            Symbol symbol = null;
+
+            // Perform name lookup without generating diagnostics as it could possibly be a keyword in the current context.
+            var lookupResult = LookupResult.GetInstance();
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            this.LookupSymbolsInternal(lookupResult, identifierValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, basesBeingResolved: null, options: LookupOptions.NamespacesOrTypesOnly, diagnose: false);
+
+            // We have following possible cases for lookup:
+
+            //  1) LookupResultKind.Empty: must be a keyword
+
+            //  2) LookupResultKind.Viable:
+            //      a) Single viable result that corresponds to 1) a non-error type: cannot be a keyword
+            //                                                  2) an error type: must be a keyword
+            //      b) Single viable result that corresponds to namespace: must be a keyword
+            //      c) Multi viable result (ambiguous result), we must return an error type: cannot be a keyword
+
+            // 3) Non viable, non empty lookup result: must be a keyword
+
+            // BREAKING CHANGE:     Case (2)(c) is a breaking change from the native compiler.
+            // BREAKING CHANGE:     Native compiler interprets lookup with ambiguous result to correspond to bind
+            // BREAKING CHANGE:     to "var" keyword (isVar = true), rather than reporting an error.
+            // BREAKING CHANGE:     See test SemanticErrorTests.ErrorMeansSuccess_var() for an example.
+
+            switch (lookupResult.Kind)
+            {
+                case LookupResultKind.Empty:
+                    // Case (1)
+                    isKeyword = true;
+                    symbol = null;
+                    break;
+
+                case LookupResultKind.Viable:
+                    // Case (2)
+                    DiagnosticBag resultDiagnostics = DiagnosticBag.GetInstance();
+                    bool wasError;
+                    symbol = ResultSymbol(
+                        lookupResult,
+                        identifierValueText,
+                        arity: 0,
+                        where: syntax,
+                        diagnostics: resultDiagnostics,
+                        suppressUseSiteDiagnostics: false,
+                        wasError: out wasError);
+
+                    // Here, we're mimicking behavior of dev10.  If the identifier fails to bind
+                    // as a type, even if the reason is (e.g.) a type/alias conflict, then treat
+                    // it as the contextual keyword.
+                    if (wasError && lookupResult.IsSingleViable)
+                    {
+                        // NOTE: don't report diagnostics - we're not going to use the lookup result.
+                        resultDiagnostics.Free();
+                        // Case (2)(a)(2)
+                        goto default;
+                    }
+
+                    diagnostics.AddRange(resultDiagnostics);
+                    resultDiagnostics.Free();
+
+                    if (lookupResult.IsSingleViable)
+                    {
+                        var type = UnwrapAlias(symbol, diagnostics, syntax) as TypeSymbol;
+
+                        if ((object)type != null)
+                        {
+                            // Case (2)(a)(1)
+                            isKeyword = false;
+                        }
+                        else
+                        {
+                            // Case (2)(b)
+                            Debug.Assert(UnwrapAliasNoDiagnostics(symbol) is NamespaceSymbol);
+                            isKeyword = true;
+                            symbol = null;
+                        }
+                    }
+                    else
+                    {
+                        // Case (2)(c)
+                        isKeyword = false;
+                    }
+
+                    break;
+
+                default:
+                    // Case (3)
+                    isKeyword = true;
+                    symbol = null;
+                    break;
+            }
+
+            lookupResult.Free();
+            return symbol;
         }
 
         // Binds the given expression syntax as Type.
@@ -371,7 +403,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
                         ReportUnsafeIfNotAllowed(node, diagnostics);
 
-                        if (elementType.IsManagedType)
+                        // Checking BinderFlags.GenericConstraintsClause to prevent cycles in binding
+                        if (Flags.HasFlag(BinderFlags.GenericConstraintsClause) && elementType.TypeKind == TypeKind.TypeParameter)
+                        {
+                            // Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                            Error(diagnostics, ErrorCode.ERR_BadConstraintType, node);
+                        }
+                        else if (elementType.IsManagedType)
                         {
                             // "Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')"
                             Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, elementType);
@@ -2088,19 +2126,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             diagnostics.Add(new CSDiagnostic(error, location));
-            return false;
-        }
-
-        internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            CSDiagnosticInfo error = GetFeatureAvailabilityDiagnosticInfo(syntax.SyntaxTree, feature);
-
-            if (error is null)
-            {
-                return true;
-            }
-
-            HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, error);
             return false;
         }
 

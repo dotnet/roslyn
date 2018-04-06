@@ -18,7 +18,7 @@
     <LibGit2SharpVersion>0.22.0</LibGit2SharpVersion>
     <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
     <MicroBuildCoreSentinelVersion>1.0.0</MicroBuildCoreSentinelVersion>
-    <MicroBuildPluginsSwixBuildVersion>1.1.0-g0701ee829f</MicroBuildPluginsSwixBuildVersion>
+    <MicroBuildPluginsSwixBuildVersion>1.0.295</MicroBuildPluginsSwixBuildVersion>
     <MicrosoftAzureKeyVaultVersion>2.0.6</MicrosoftAzureKeyVaultVersion>
     <MicrosoftBuildVersion>15.1.0-preview-000458-02</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>15.1.0-preview-000458-02</MicrosoftBuildFrameworkVersion>
@@ -32,7 +32,7 @@
     <MicrosoftCodeAnalysisCSharpWorkspacesVersion>1.0.1</MicrosoftCodeAnalysisCSharpWorkspacesVersion>
     <MicrosoftCodeAnalysisEditorFeaturesTextVersion>1.0.1</MicrosoftCodeAnalysisEditorFeaturesTextVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6</MicrosoftCodeAnalysisElfieVersion>
-    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.5</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
+    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.7</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicVersion>
     <MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>
     <MicrosoftCodeAnalysisWorkspacesCommonVersion>1.0.1</MicrosoftCodeAnalysisWorkspacesCommonVersion>
@@ -41,8 +41,8 @@
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
     <MicrosoftDiaSymReaderVersion>1.2.0</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta1-62221-01</MicrosoftDiaSymReaderConverterVersion>
-    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-62221-01</MicrosoftDiaSymReaderConverterXmlVersion>
+    <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta1-62628-01</MicrosoftDiaSymReaderConverterVersion>
+    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-62628-01</MicrosoftDiaSymReaderConverterXmlVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.7.0</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.4.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDotNetIBCMerge>4.7.2-alpha-00001</MicrosoftDotNetIBCMerge>
@@ -55,10 +55,10 @@
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
     <!-- Using a private build of Microsoft.Net.Test.SDK to work around issue https://github.com/Microsoft/vstest/issues/373 -->
     <MicrosoftNETTestSdkVersion>15.6.0-dev</MicrosoftNETTestSdkVersion>
-    <MicrosoftNetCompilersVersion>2.6.0</MicrosoftNetCompilersVersion>
-    <MicrosoftNetRoslynDiagnosticsVersion>2.6.0-beta2</MicrosoftNetRoslynDiagnosticsVersion>
+    <MicrosoftNetCompilersVersion>2.6.1</MicrosoftNetCompilersVersion>
+    <MicrosoftNetRoslynDiagnosticsVersion>2.6.1-beta1-62702-01</MicrosoftNetRoslynDiagnosticsVersion>
     <MicrosoftNetCoreILAsmVersion>2.0.0</MicrosoftNetCoreILAsmVersion>
-    <MicrosoftNETCoreCompilersVersion>2.6.0-beta3-62308-01</MicrosoftNETCoreCompilersVersion>
+    <MicrosoftNETCoreCompilersVersion>2.8.0-beta2-62712-07</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCoreVersion>5.0.0</MicrosoftNETCoreVersion>
     <MicrosoftNETCoreAppVersion>2.0.0</MicrosoftNETCoreAppVersion>
     <MicrosoftNETCorePlatformsVersion>2.0.0</MicrosoftNETCorePlatformsVersion>
@@ -75,33 +75,32 @@
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.0.26730-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.0.26730-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>15.0.26730-alpha</MicrosoftVisualStudioComponentModelHostVersion>
-    <MicrosoftVisualStudioCompositionVersion>15.0.71</MicrosoftVisualStudioCompositionVersion>
-    <MicrosoftVisualStudioCoreUtilityVersion>15.0.26606</MicrosoftVisualStudioCoreUtilityVersion>
+    <MicrosoftVisualStudioCompositionVersion>15.5.23</MicrosoftVisualStudioCompositionVersion>
+    <MicrosoftVisualStudioCoreUtilityVersion>15.6.253-preview</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerEngineVersion>15.0.26811-vsucorediag</MicrosoftVisualStudioDebuggerEngineVersion>
     <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.26811-vsucorediag</MicrosoftVisualStudioDebuggerMetadataVersion>
     <MicrosoftVisualStudioDebuggerInterop100Version>10.0.30319</MicrosoftVisualStudioDebuggerInterop100Version>
     <MicrosoftVisualStudioDesignerInterfacesVersion>1.1.4322</MicrosoftVisualStudioDesignerInterfacesVersion>
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>15.0.26730-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
-    <MicrosoftVisualStudioEditorVersion>15.0.26730-alpha</MicrosoftVisualStudioEditorVersion>
+    <MicrosoftVisualStudioEditorVersion>15.6.253-preview</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioGraphModelVersion>15.0.26730-alpha</MicrosoftVisualStudioGraphModelVersion>
     <MicrosoftVisualStudioImageCatalogVersion>15.0.26730-alpha</MicrosoftVisualStudioImageCatalogVersion>
     <MicrosoftVisualStudioImagingVersion>15.0.26730-alpha</MicrosoftVisualStudioImagingVersion>
-    <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>14.3.25407</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
+    <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>15.0.25726-Preview5</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioInteractiveWindowVersion>
-    <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.0.26730-alpha</MicrosoftVisualStudioLanguageCallHierarchyVersion>
-    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.0.26730-alpha</MicrosoftVisualStudioLanguageIntellisenseVersion>
-    <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>15.0.26730-alpha</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
-    <MicrosoftVisualStudioLanguageStandardClassificationVersion>15.0.26730-alpha</MicrosoftVisualStudioLanguageStandardClassificationVersion>
+    <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.3.1710.203</MicrosoftVisualStudioLanguageCallHierarchyVersion>
+    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.6.253-preview</MicrosoftVisualStudioLanguageIntellisenseVersion>
+    <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>15.6.253-preview</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
+    <MicrosoftVisualStudioLanguageStandardClassificationVersion>15.6.253-preview</MicrosoftVisualStudioLanguageStandardClassificationVersion>
     <MicrosoftVisualStudioOLEInteropVersion>7.10.6070</MicrosoftVisualStudioOLEInteropVersion>
-    <MicrosoftVisualStudioPlatformVSEditorVersion>15.0.26730-alpha</MicrosoftVisualStudioPlatformVSEditorVersion>
-    <MicrosoftVisualStudioPlatformVSEditorInteropVersion>15.0.26730-alpha</MicrosoftVisualStudioPlatformVSEditorInteropVersion>
+    <MicrosoftVisualStudioPlatformVSEditorVersion>15.6.253-preview</MicrosoftVisualStudioPlatformVSEditorVersion>
     <MicrosoftVisualStudioProgressionCodeSchemaVersion>15.0.26730-alpha</MicrosoftVisualStudioProgressionCodeSchemaVersion>
     <MicrosoftVisualStudioProgressionCommonVersion>15.0.26730-alpha</MicrosoftVisualStudioProgressionCommonVersion>
     <MicrosoftVisualStudioProgressionInterfacesVersion>15.0.26730-alpha</MicrosoftVisualStudioProgressionInterfacesVersion>
     <MicrosoftVisualStudioProjectSystemVersion>15.3.178-pre-g209fb07c2e</MicrosoftVisualStudioProjectSystemVersion>
     <MicrosoftVisualStudioQualityToolsUnitTestFrameworkVersion>10.0.0.0-alpha</MicrosoftVisualStudioQualityToolsUnitTestFrameworkVersion>
     <MicrosoftVisualStudioRemoteControlVersion>14.0.249-master2E2DC10C</MicrosoftVisualStudioRemoteControlVersion>
-    <MicrosoftVisualStudioSetupConfigurationInteropVersion>1.11.2290</MicrosoftVisualStudioSetupConfigurationInteropVersion>
+    <MicrosoftVisualStudioSetupConfigurationInteropVersion>1.15.103</MicrosoftVisualStudioSetupConfigurationInteropVersion>
     <MicrosoftVisualStudioSettings140Version>14.3.25407</MicrosoftVisualStudioSettings140Version>
     <MicrosoftVisualStudioShell140Version>14.3.25407</MicrosoftVisualStudioShell140Version>
     <MicrosoftVisualStudioShell150Version>15.0.26730-alpha</MicrosoftVisualStudioShell150Version>
@@ -113,18 +112,18 @@
     <MicrosoftVisualStudioShellInterop100Version>10.0.30319</MicrosoftVisualStudioShellInterop100Version>
     <MicrosoftVisualStudioShellInterop110Version>11.0.61030</MicrosoftVisualStudioShellInterop110Version>
     <MicrosoftVisualStudioShellInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioShellInterop121DesignTimeVersion>
-    <MicrosoftVisualStudioShellInterop140DesignTimeVersion>14.3.25407</MicrosoftVisualStudioShellInterop140DesignTimeVersion>
+    <MicrosoftVisualStudioShellInterop140DesignTimeVersion>15.0.25726-Preview5</MicrosoftVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop150DesignTimeVersion>15.0.26730-alpha</MicrosoftVisualStudioShellInterop150DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop153DesignTimeVersion>15.0.26730-alpha</MicrosoftVisualStudioShellInterop153DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop80Version>8.0.50727</MicrosoftVisualStudioShellInterop80Version>
     <MicrosoftVisualStudioShellInterop90Version>9.0.30729</MicrosoftVisualStudioShellInterop90Version>
     <MicrosoftVisualStudioTelemetryVersion>15.0.26730-alpha</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>
-    <MicrosoftVisualStudioTextDataVersion>15.0.26730-alpha</MicrosoftVisualStudioTextDataVersion>
-    <MicrosoftVisualStudioTextInternalVersion>15.0.26730-alpha</MicrosoftVisualStudioTextInternalVersion>
-    <MicrosoftVisualStudioTextLogicVersion>15.0.26730-alpha</MicrosoftVisualStudioTextLogicVersion>
-    <MicrosoftVisualStudioTextUIVersion>15.0.26730-alpha</MicrosoftVisualStudioTextUIVersion>
-    <MicrosoftVisualStudioTextUIWpfVersion>15.0.26730-alpha</MicrosoftVisualStudioTextUIWpfVersion>
+    <MicrosoftVisualStudioTextDataVersion>15.6.253-preview</MicrosoftVisualStudioTextDataVersion>
+    <MicrosoftVisualStudioTextInternalVersion>15.6.253-preview</MicrosoftVisualStudioTextInternalVersion>
+    <MicrosoftVisualStudioTextLogicVersion>15.6.253-preview</MicrosoftVisualStudioTextLogicVersion>
+    <MicrosoftVisualStudioTextUIVersion>15.6.253-preview</MicrosoftVisualStudioTextUIVersion>
+    <MicrosoftVisualStudioTextUIWpfVersion>15.6.253-preview</MicrosoftVisualStudioTextUIWpfVersion>
     <MicrosoftVisualStudioTextManagerInteropVersion>7.10.6070</MicrosoftVisualStudioTextManagerInteropVersion>
     <MicrosoftVisualStudioTextManagerInterop100Version>10.0.30319</MicrosoftVisualStudioTextManagerInterop100Version>
     <MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>
@@ -150,10 +149,10 @@
     <RoslynBuildUtilVersion>0.9.8-beta</RoslynBuildUtilVersion>
     <RoslynDependenciesOptimizationDataVersion>2.7.0-beta3-62526-01-2</RoslynDependenciesOptimizationDataVersion>
     <RoslynToolsMicrosoftLocateVSVersion>0.2.4-beta</RoslynToolsMicrosoftLocateVSVersion>
-    <RoslynToolsMicrosoftSignToolVersion>0.3.7-beta</RoslynToolsMicrosoftSignToolVersion>
     <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.4.0-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
     <RoslynToolsMSBuildVersion>0.4.0-alpha</RoslynToolsMSBuildVersion>
     <RoslynToolsReferenceAssembliesVersion>0.1.3</RoslynToolsReferenceAssembliesVersion>
+    <RoslynToolsSignToolVersion>1.0.0-beta2-dev2</RoslynToolsSignToolVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <StreamJsonRpcVersion>1.1.92</StreamJsonRpcVersion>
     <SystemAppContextVersion>4.3.0</SystemAppContextVersion>
@@ -161,6 +160,7 @@
     <SystemCollectionsConcurrentVersion>4.3.0</SystemCollectionsConcurrentVersion>
     <SystemCollectionsImmutableVersion>1.3.1</SystemCollectionsImmutableVersion>
     <SystemConsoleVersion>4.3.0</SystemConsoleVersion>
+    <SystemDataCommonVersion>4.3.0</SystemDataCommonVersion>
     <SystemDiagnosticsContractsVersion>4.3.0</SystemDiagnosticsContractsVersion>
     <SystemDiagnosticsDebugVersion>4.3.0</SystemDiagnosticsDebugVersion>
     <SystemDiagnosticsFileVersionInfoVersion>4.3.0</SystemDiagnosticsFileVersionInfoVersion>
@@ -217,6 +217,7 @@
     <SystemTextRegularExpressionsVersion>4.3.0</SystemTextRegularExpressionsVersion>
     <SystemThreadingVersion>4.3.0</SystemThreadingVersion>
     <SystemThreadingTasksVersion>4.3.0</SystemThreadingTasksVersion>
+    <SystemThreadingTasksDataflowVersion>4.5.24</SystemThreadingTasksDataflowVersion>
     <SystemThreadingTasksParallelVersion>4.3.0</SystemThreadingTasksParallelVersion>
     <SystemThreadingThreadVersion>4.3.0</SystemThreadingThreadVersion>
     <SystemValueTupleVersion>4.3.0</SystemValueTupleVersion>
@@ -226,7 +227,8 @@
     <SystemXmlXmlSerializerVersion>4.3.0</SystemXmlXmlSerializerVersion>
     <SystemXmlXPathXDocumentVersion>4.3.0</SystemXmlXPathXDocumentVersion>
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
-    <MicrosoftVSSDKBuildToolsVersion>15.1.192</MicrosoftVSSDKBuildToolsVersion>
+    <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
+    <MicrosoftVSSDKBuildToolsVersion>15.8.68-develop-g109a00ff</MicrosoftVSSDKBuildToolsVersion>
     <VSExternalAPIsCodingConventionsVersion>1.0.60704.2</VSExternalAPIsCodingConventionsVersion>
     <VSLangProjVersion>7.0.3300</VSLangProjVersion>
     <VSLangProj140Version>14.3.25407-alpha</VSLangProj140Version>

@@ -20,7 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEMethodSymbol : MethodSymbol
     {
-        private class SignatureData
+        /// <summary>
+        /// internal for testing purpose
+        /// </summary>
+        internal class SignatureData
         {
             public readonly SignatureHeader Header;
             public readonly ImmutableArray<ParameterSymbol> Parameters;
@@ -555,7 +558,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return false;
         }
 
-        private SignatureData Signature => _lazySignature ?? LoadSignature();
+        /// <summary>
+        /// internal for testing purpose
+        /// </summary>
+        internal SignatureData Signature => _lazySignature ?? LoadSignature();
 
         private SignatureData LoadSignature()
         {
@@ -583,7 +589,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var builder = ImmutableArray.CreateBuilder<ParameterSymbol>(count);
                 for (int i = 0; i < count; i++)
                 {
-                    builder.Add(PEParameterSymbol.Create(moduleSymbol, this, i, paramInfo[i + 1], out isBadParameter));
+                    builder.Add(PEParameterSymbol.Create(
+                        moduleSymbol, this, this.IsMetadataVirtual(), i,
+                        paramInfo[i + 1], isReturn: false, out isBadParameter));
+
                     if (isBadParameter)
                     {
                         makeBad = true;
@@ -605,7 +614,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             paramInfo[0].Type = returnType;
 
-            var returnParam = PEParameterSymbol.Create(moduleSymbol, this, 0, paramInfo[0], out isBadParameter);
+            var returnParam = PEParameterSymbol.Create(
+                moduleSymbol, this, this.IsMetadataVirtual(), 0,
+                paramInfo[0], isReturn: true, out isBadParameter);
 
             if (makeBad || isBadParameter)
             {

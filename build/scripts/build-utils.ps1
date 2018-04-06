@@ -136,7 +136,6 @@ function Ensure-NuGet() {
 # Ensure the proper SDK in installed in our %PATH%. This is how MSBuild locates the 
 # SDK. Returns the location to the dotnet exe
 function Ensure-DotnetSdk() {
-
     # Check to see if the specified dotnet installations meets our build requirements
     function Test-DotnetDir([string]$dotnetDir, [string]$runtimeVersion, [string]$sdkVersion) {
         $sdkPath = Join-Path $dotnetDir "sdk\$sdkVersion"
@@ -179,6 +178,9 @@ function Ensure-DotnetSdk() {
         $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
         Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
         Exec-Block { & $destFile -Version $runtimeVersion -SharedRuntime -InstallDir $cliDir } | Out-Null
+    }
+    else {
+        ${env:PATH} = "$cliDir;${env:PATH}"
     }
 
     return (Join-Path $cliDir "dotnet.exe")
@@ -414,7 +416,7 @@ function Clear-PackageCache() {
 }
 
 # Restore a single project
-function Restore-Project([string]$dotnetExe, [string]$projectFileName) {
+function Restore-Project([string]$dotnetExe, [string]$projectFileName, [string]$logFilePath = "") {
     $nugetConfig = Join-Path $repoDir "nuget.config"
 
     $projectFilePath = $projectFileName
@@ -422,37 +424,16 @@ function Restore-Project([string]$dotnetExe, [string]$projectFileName) {
         $projectFilePath = Join-Path $repoDir $projectFileName
     }
 
-    Exec-Console $dotnet "restore --verbosity quiet --configfile $nugetConfig $projectFilePath"
+    $logArg = ""
+    if ($logFilePath -ne "") {
+        $logArg = " /bl:$logFilePath"
+    }
+
+    Exec-Console $dotnet "restore --verbosity quiet --configfile $nugetConfig $projectFilePath $logArg"
 }
 
-# Restore all of the projects that the repo consumes
-function Restore-Packages([string]$dotnetExe = "", [string]$project = "") {
-    if ($dotnetExe -eq "") { 
-        $dotnetExe = Ensure-DotnetSdk
-    }
-
-    Write-Host "Restore using dotnet at $dotnetExe"
-
-    if ($project -ne "") {
-        Write-Host "Restoring project $project"
-        Restore-Project $dotnetExe $project
-    }
-    else {
-        $all = @(
-            "Roslyn Toolset:build\ToolsetPackages\RoslynToolset.csproj",
-            "Roslyn:Roslyn.sln",
-            "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln")
-
-        foreach ($cur in $all) {
-            $both = $cur.Split(':')
-            Write-Host "Restoring $($both[0])"
-            Restore-Project $dotnetExe $both[1]
-        }
-    }
-}
-
-# Restore all of the projects that the repo consumes
-function Restore-All([string]$dotnetExe = "") {
-    Restore-Packages -dotnetExe $dotnetExe
+function Unzip-File([string]$zipFilePath, [string]$outputDir) {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem | Out-Null
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($zipFilePath, $outputDir)
 }
 

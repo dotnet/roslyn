@@ -33,7 +33,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompilationUtils.AssertNoDiagnostics(comp)
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -68,7 +68,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompilationUtils.AssertTheseDiagnostics(comp,
                                         <expected>
 BC30201: Expression expected.
@@ -875,7 +875,7 @@ End Module]]>
                              </file>
                          </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             CompilationUtils.AssertNoDiagnostics(comp)
 
             Dim tree = comp.SyntaxTrees.Single()

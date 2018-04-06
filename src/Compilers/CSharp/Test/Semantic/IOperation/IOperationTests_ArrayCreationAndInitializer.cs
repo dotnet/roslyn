@@ -857,23 +857,26 @@ class C
         var a = /*<bind>*/new string[M()]/*</bind>*/;
     }
 
-    public object M() => null;
+    public static object M() => null;
 }
 ";
             string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[M()]')
   Dimension Sizes(1):
-      IInvocationOperation ( System.Object C.M()) (OperationKind.Invocation, Type: System.Object, IsInvalid) (Syntax: 'M()')
-        Instance Receiver: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
-        Arguments(0)
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IInvocationOperation (System.Object C.M()) (OperationKind.Invocation, Type: System.Object, IsInvalid) (Syntax: 'M()')
+            Instance Receiver: 
+              null
+            Arguments(0)
   Initializer: 
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0120: An object reference is required for the non-static field, method, or property 'C.M()'
+                // file.cs(6,27): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         var a = /*<bind>*/new string[M()]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "M").WithArguments("C.M()").WithLocation(6, 38)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new string[M()]").WithArguments("object", "int").WithLocation(6, 27)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

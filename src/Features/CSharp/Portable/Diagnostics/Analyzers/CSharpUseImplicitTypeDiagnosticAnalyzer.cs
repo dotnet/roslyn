@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -12,26 +11,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle.CSharpTypeStyleDiagnosticAnalyzerBase;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpUseImplicitTypeDiagnosticAnalyzer : CSharpTypeStyleDiagnosticAnalyzerBase
+    internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
     {
-        private static readonly LocalizableString s_Title =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_implicit_type), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
-
-        private static readonly LocalizableString s_Message =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.use_var_instead_of_explicit_type), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
-
-        public CSharpUseImplicitTypeDiagnosticAnalyzer()
-            : base(diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
-                   title: s_Title,
-                   message: s_Message)
-        {
-        }
-
         protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (variableDeclaration.Type.IsVar)
@@ -46,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         protected override bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (forEachStatement.Type.IsVar)
+            var type = forEachStatement.Type;
+            if (type.IsVar || (type.Kind() == SyntaxKind.RefType && ((RefTypeSyntax)type).Type.IsVar))
             {
                 // If the type is already 'var', this analyze has no work to do
                 return false;
@@ -56,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             return base.ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken);
         }
 
-        protected override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
+        internal override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
         {
             var stylePreferences = state.TypeStylePreference;
             var shouldNotify = state.ShouldNotify();
@@ -81,18 +67,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
         }
 
-        protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
+        internal override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
             Debug.Assert(!typeName.IsVar, "'var' special case should have prevented analysis of this variable.");
 
             var candidateReplacementNode = SyntaxFactory.IdentifierName("var");
-            var candidateIssueSpan = typeName.Span;
 
             // If there exists a type named var, return.
             var conflict = semanticModel.GetSpeculativeSymbolInfo(typeName.SpanStart, candidateReplacementNode, SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
             if (conflict?.IsKind(SymbolKind.NamedType) == true)
             {
-                issueSpan = default;
                 return false;
             }
 
@@ -104,7 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 // implicitly typed variables cannot be constants.
                 if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)
                 {
-                    issueSpan = default;
                     return false;
                 }
 
@@ -121,7 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
                     if (containsStackAlloc)
                     {
-                        issueSpan = default;
                         return false;
                     }
                 }
@@ -130,27 +112,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                         variable.Identifier, typeName, initializer,
                         semanticModel, optionSet, cancellationToken))
                 {
-                    issueSpan = candidateIssueSpan;
                     return true;
                 }
             }
             else if (typeName.Parent is ForEachStatementSyntax foreachStatement)
             {
                 var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
-                if (foreachStatementInfo.ElementConversion.IsIdentityOrImplicitReference())
+                if (foreachStatementInfo.ElementConversion.IsIdentity)
                 {
-                    issueSpan = candidateIssueSpan;
                     return true;
                 }
             }
             else if (typeName.Parent is DeclarationExpressionSyntax declarationExpression &&
                      TryAnalyzeDeclarationExpression(declarationExpression, semanticModel, optionSet, cancellationToken))
             {
-                issueSpan = candidateIssueSpan;
                 return true;
             }
 
-            issueSpan = default;
             return false;
         }
 
@@ -160,9 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            // It's not always safe to convert a decl expression like "Method(out int i)" to 
-            // "Method(out var i)".  Changing to 'var' may cause overload resolution errors.  
-            // Have to see if using 'var' means not resolving to the same type as before.  
+            // It's not always safe to convert a decl expression like "Method(out int i)" to
+            // "Method(out var i)".  Changing to 'var' may cause overload resolution errors.
+            // Have to see if using 'var' means not resolving to the same type as before.
             // Note: this is fairly expensive, so we try to avoid this if we can by seeing if
             // there are multiple candidates with the original call.  If not, then we don't
             // have to do anything.
@@ -171,9 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 argumentList.Parent is InvocationExpressionSyntax invocationExpression)
             {
                 // If there was only one member in the group, and it was non-generic itself,
-                // then this change is safe to make without doing any complex analysis.  
+                // then this change is safe to make without doing any complex analysis.
                 // Multiple methods mean that switching to 'var' might remove information
-                // that affects overload resolution.  And if the method is generic, then 
+                // that affects overload resolution.  And if the method is generic, then
                 // switching to 'var' may mean that inference might not work properly.
                 var memberGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken);
                 if (memberGroup.Length == 1 &&
@@ -183,9 +161,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 }
             }
 
-            // Do the expensive check.  Note: we can't use the SpeculationAnalyzer (or any 
+            // Do the expensive check.  Note: we can't use the SpeculationAnalyzer (or any
             // speculative analyzers) here.  This is due to https://github.com/dotnet/roslyn/issues/20724.
-            // Specifically, all the speculative helpers do not deal with with changes to code that 
+            // Specifically, all the speculative helpers do not deal with with changes to code that
             // introduces a variable (in this case, the declaration expression).  The compiler sees
             // this as an error because there are now two colliding variables, which causes all sorts
             // of errors to be reported.
@@ -224,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            var expression = GetInitializerExpression(initializer);
+            var expression = CSharpTypeStyleDiagnosticAnalyzerBase.GetInitializerExpression(initializer);
 
             // var cannot be assigned null
             if (expression.IsKind(SyntaxKind.NullLiteralExpression))
@@ -252,14 +230,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             // and if we're replacing the declaration with 'var' we'd be changing the semantics by inferring type of
             // initializer expression and thereby losing the conversion.
             var conversion = semanticModel.GetConversion(expression, cancellationToken);
-            if (conversion.Exists && conversion.IsImplicit && !conversion.IsIdentity)
+            if (conversion.IsIdentity)
             {
-                return false;
+                // final check to compare type information on both sides of assignment.
+                var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+                return declaredType.Equals(initializerType);
             }
 
-            // final check to compare type information on both sides of assignment.
-            var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-            return declaredType.Equals(initializerType);
+            return false;
         }
 
         protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -272,6 +250,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             // The base analyzer may impose further limitations
             return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    internal sealed class CSharpUseImplicitTypeDiagnosticAnalyzer : CSharpTypeStyleDiagnosticAnalyzerBase
+    {
+        private static readonly LocalizableString s_Title =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_implicit_type), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+
+        private static readonly LocalizableString s_Message =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.use_var_instead_of_explicit_type), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+
+        private static readonly CSharpUseImplicitTypeHelper s_Helper = new CSharpUseImplicitTypeHelper();
+        protected override CSharpTypeStyleHelper Helper => s_Helper;
+
+        public CSharpUseImplicitTypeDiagnosticAnalyzer()
+            : base(diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                   title: s_Title,
+                   message: s_Message)
+        {
         }
     }
 }

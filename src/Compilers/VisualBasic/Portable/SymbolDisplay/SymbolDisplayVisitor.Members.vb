@@ -488,7 +488,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) Then
-                builder.Add(CreatePart(SymbolDisplayPartKind.ParameterName, symbol, symbol.Name, False))
+                Dim kind = If(symbol.IsThis, SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.ParameterName)
+                builder.Add(CreatePart(kind, symbol, symbol.Name, False))
             End If
 
             If format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType) Then

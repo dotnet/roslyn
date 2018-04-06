@@ -125,11 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             }
 
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
+            var expressionType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type;
 
             return TryAnalyze(
-                semanticModel, local, variableDeclaration.Type,
-                declarator.Identifier, variableDeclaration.Parent.Parent,
-                out tupleType, out memberAccessExpressions, cancellationToken);
+                semanticModel, local, variableDeclaration.Type, declarator.Identifier, expressionType,
+                variableDeclaration.Parent.Parent, out tupleType, out memberAccessExpressions, cancellationToken);
         }
 
         public static bool TryAnalyzeForEachStatement(
@@ -140,9 +140,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             CancellationToken cancellationToken)
         {
             var local = semanticModel.GetDeclaredSymbol(forEachStatement, cancellationToken);
+            var elementType = semanticModel.GetForEachStatementInfo(forEachStatement).ElementType;
 
             return TryAnalyze(
-                semanticModel, local, forEachStatement.Type, forEachStatement.Identifier,
+                semanticModel, local, forEachStatement.Type, forEachStatement.Identifier, elementType,
                 forEachStatement, out tupleType, out memberAccessExpressions, cancellationToken);
         }
 
@@ -151,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             ILocalSymbol local,
             TypeSyntax typeNode,
             SyntaxToken identifier,
+            ITypeSymbol initializerType,
             SyntaxNode searchScope,
             out INamedTypeSymbol tupleType,
             out ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions,
@@ -170,7 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             }
 
             var type = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
-            if (type == null || !type.IsTupleType)
+            if (type == null || !type.IsTupleType ||
+                initializerType == null || !initializerType.IsTupleType)
             {
                 return false;
             }

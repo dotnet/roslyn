@@ -100,8 +100,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </summary>
         public abstract EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId);
 
-        internal abstract bool RenameFileCodeModelInstance(DocumentId documentId, string newFilePath);
-
         internal abstract object GetBrowseObject(SymbolListItem symbolListItem);
 
         public abstract bool TryGoToDefinition(ISymbol symbol, Project project, CancellationToken cancellationToken);
