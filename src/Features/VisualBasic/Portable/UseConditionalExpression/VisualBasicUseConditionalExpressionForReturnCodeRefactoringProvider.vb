@@ -9,10 +9,15 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicUseConditionalExpressionForReturnCodeRefactoringProvider
-        Inherits AbstractUseConditionalExpressionForReturnCodeFixProvider(Of TernaryConditionalExpressionSyntax)
+        Inherits AbstractUseConditionalExpressionForReturnCodeFixProvider(Of
+            StatementSyntax, MultiLineIfBlockSyntax, TernaryConditionalExpressionSyntax)
 
         Protected Overrides Function GetMultiLineFormattingRule() As IFormattingRule
             Return MultiLineConditionalExpressionFormattingRule.Instance
+        End Function
+
+        Protected Overrides Function WrapWithBlockIfAppropriate(ifStatement As MultiLineIfBlockSyntax, statement As StatementSyntax) As StatementSyntax
+            Return statement
         End Function
     End Class
 End Namespace

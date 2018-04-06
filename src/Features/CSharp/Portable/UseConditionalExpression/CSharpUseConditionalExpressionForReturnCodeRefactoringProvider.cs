@@ -3,6 +3,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.UseConditionalExpression;
 
@@ -10,9 +11,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseConditionalExpressionForReturnCodeRefactoringProvider
-        : AbstractUseConditionalExpressionForReturnCodeFixProvider<ConditionalExpressionSyntax>
+        : AbstractUseConditionalExpressionForReturnCodeFixProvider<StatementSyntax, IfStatementSyntax, ConditionalExpressionSyntax>
     {
         protected override IFormattingRule GetMultiLineFormattingRule()
             => MultiLineConditionalExpressionFormattingRule.Instance;
+
+        protected override StatementSyntax WrapWithBlockIfAppropriate(
+            IfStatementSyntax ifStatement, StatementSyntax statement)
+        {
+            if (ifStatement.Parent is ElseClauseSyntax &&
+                ifStatement.Statement is BlockSyntax block)
+            {
+                return block.WithStatements(SyntaxFactory.SingletonList(statement))
+                            .WithAdditionalAnnotations(Formatter.Annotation);
+            }
+
+            return statement;
+        }
     }
 }

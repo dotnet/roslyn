@@ -8,9 +8,10 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
-    internal abstract class AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer<TSyntaxKind>
+    internal abstract class AbstractUseConditionalExpressionForAssignmentDiagnosticAnalyzer<
+        TIfStatementSyntax>
         : AbstractCodeStyleDiagnosticAnalyzer
-        where TSyntaxKind : struct
+        where TIfStatementSyntax : SyntaxNode
     {
         public override bool OpenFileOnly(Workspace workspace) => false;
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
@@ -25,14 +26,14 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
-        protected abstract ImmutableArray<TSyntaxKind> GetIfStatementKinds();
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetIfStatementKinds());
+            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.Conditional);
 
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+        private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            var ifStatement = context.Node;
+            var ifOperation = (IConditionalOperation)context.Operation;
+            var ifStatement = ifOperation.Syntax as TIfStatementSyntax;
             if (ifStatement == null)
             {
                 return;
@@ -54,7 +55,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return;
             }
 
-            var ifOperation = (IConditionalOperation)context.SemanticModel.GetOperation(ifStatement);
             if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
                     GetSyntaxFactsService(), ifOperation, out _, out _))
             {

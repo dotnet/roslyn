@@ -16,10 +16,16 @@ using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpre
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
-    internal abstract class AbstractUseConditionalExpressionCodeFixProvider<TConditionalExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
+        TStatementSyntax,
+        TIfStatementSyntax,
+        TConditionalExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
+        where TStatementSyntax : SyntaxNode
+        where TIfStatementSyntax : TStatementSyntax
         where TConditionalExpressionSyntax : SyntaxNode
     {
         protected abstract IFormattingRule GetMultiLineFormattingRule();
+        protected abstract TStatementSyntax WrapWithBlockIfAppropriate(TIfStatementSyntax ifStatement, TStatementSyntax statement);
 
         protected abstract Task FixOneAsync(
             Document document, Diagnostic diagnostic,

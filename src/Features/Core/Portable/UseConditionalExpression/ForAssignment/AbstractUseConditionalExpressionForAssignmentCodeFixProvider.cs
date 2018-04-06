@@ -18,12 +18,16 @@ using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpre
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
     internal abstract class AbstractUseConditionalExpressionForAssignmentCodeFixProvider<
+        TStatementSyntax,
+        TIfStatementSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
         TExpressionSyntax,
         TConditionalExpressionSyntax>
-        : AbstractUseConditionalExpressionCodeFixProvider<TConditionalExpressionSyntax>
-        where TLocalDeclarationStatementSyntax : SyntaxNode
+        : AbstractUseConditionalExpressionCodeFixProvider<TStatementSyntax, TIfStatementSyntax, TConditionalExpressionSyntax>
+        where TStatementSyntax : SyntaxNode
+        where TIfStatementSyntax : TStatementSyntax
+        where TLocalDeclarationStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
@@ -88,12 +92,15 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             TExpressionSyntax conditionalExpression)
         {
             var generator = editor.Generator;
+            var ifStatement = (TIfStatementSyntax)ifOperation.Syntax;
+            var expressionStatement = (TStatementSyntax)generator.ExpressionStatement(
+                generator.AssignmentStatement(
+                    trueAssignment.Target.Syntax,
+                    conditionalExpression)).WithTriviaFrom(ifStatement);
+
             editor.ReplaceNode(
                 ifOperation.Syntax,
-                generator.ExpressionStatement(
-                    generator.AssignmentStatement(
-                        trueAssignment.Target.Syntax,
-                        conditionalExpression)).WithTriviaFrom(ifOperation.Syntax));
+                this.WrapWithBlockIfAppropriate(ifStatement, expressionStatement));
         }
 
         private bool TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(

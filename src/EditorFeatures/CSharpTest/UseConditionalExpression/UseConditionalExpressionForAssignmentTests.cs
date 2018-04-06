@@ -863,5 +863,68 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestElseIfWithBlock()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        if (true)
+        {
+        }
+        else [||]if (false)
+        {
+            i = 1;
+        }
+        else
+        {
+            i = 0;
+        }
+    }
+}",
+@"
+class C
+{
+    void M(int i)
+    {
+        if (true)
+        {
+        }
+        else
+        {
+            i = false ? 1 : 0;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestElseIfWithoutBlock()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(int i)
+    {
+        if (true) i = 2;
+        else [||]if (false) i = 1;
+        else i = 0;
+    }
+}",
+@"
+class C
+{
+    void M(int i)
+    {
+        if (true) i = 2;
+        else i = false ? 1 : 0;
+    }
+}");
+        }
     }
 }

@@ -19,8 +19,12 @@ using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpre
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
     internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider<
+        TStatementSyntax,
+        TIfStatementSyntax,
         TConditionalExpressionSyntax>
-        : AbstractUseConditionalExpressionCodeFixProvider<TConditionalExpressionSyntax>
+        : AbstractUseConditionalExpressionCodeFixProvider<TStatementSyntax, TIfStatementSyntax, TConditionalExpressionSyntax>
+        where TStatementSyntax : SyntaxNode
+        where TIfStatementSyntax : TStatementSyntax
         where TConditionalExpressionSyntax : SyntaxNode
     {
         public override ImmutableArray<string> FixableDiagnosticIds
@@ -39,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var ifStatement = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+            var ifStatement = (TIfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement);
@@ -56,10 +60,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 trueReturn.ReturnedValue, falseReturn.ReturnedValue,
                 cancellationToken).ConfigureAwait(false);
 
+            var returnStatement = (TStatementSyntax)editor.Generator.ReturnStatement(conditionalExpression)
+                                                                    .WithTriviaFrom(ifStatement);
             editor.ReplaceNode(
                 ifStatement,
-                editor.Generator.ReturnStatement(conditionalExpression)
-                    .WithTriviaFrom(ifStatement));
+                this.WrapWithBlockIfAppropriate(ifStatement, returnStatement));
 
             // if the if-statement had no 'else' clause, then we were using the following statement
             // as the 'false' statement.  If so, remove it explicitly.

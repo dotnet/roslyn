@@ -3,6 +3,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Simplification;
@@ -10,11 +11,10 @@ using Microsoft.CodeAnalysis.UseConditionalExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 {
-
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseConditionalExpressionForAssignmentCodeRefactoringProvider
         : AbstractUseConditionalExpressionForAssignmentCodeFixProvider<
-            LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax, ConditionalExpressionSyntax>
+            StatementSyntax, IfStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax, ConditionalExpressionSyntax>
     {
         protected override IFormattingRule GetMultiLineFormattingRule()
             => MultiLineConditionalExpressionFormattingRule.Instance;
@@ -28,5 +28,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         protected override LocalDeclarationStatementSyntax AddSimplificationToType(LocalDeclarationStatementSyntax statement)
             => statement.WithDeclaration(statement.Declaration.WithType(
                 statement.Declaration.Type.WithAdditionalAnnotations(Simplifier.Annotation)));
+
+        protected override StatementSyntax WrapWithBlockIfAppropriate(
+            IfStatementSyntax ifStatement, StatementSyntax statement)
+        {
+            if (ifStatement.Parent is ElseClauseSyntax &&
+                ifStatement.Statement is BlockSyntax block)
+            {
+                return block.WithStatements(SyntaxFactory.SingletonList(statement))
+                            .WithAdditionalAnnotations(Formatter.Annotation);
+            }
+
+            return statement;
+        }
     }
 }

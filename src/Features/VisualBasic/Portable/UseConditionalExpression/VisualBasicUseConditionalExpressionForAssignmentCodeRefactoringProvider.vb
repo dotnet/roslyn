@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicUseConditionalExpressionForAssignmentCodeRefactoringProvider
         Inherits AbstractUseConditionalExpressionForAssignmentCodeFixProvider(Of
-            LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax, TernaryConditionalExpressionSyntax)
+            StatementSyntax, MultiLineIfBlockSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax, TernaryConditionalExpressionSyntax)
 
         Protected Overrides Function GetMultiLineFormattingRule() As IFormattingRule
             Return MultiLineConditionalExpressionFormattingRule.Instance
@@ -31,6 +31,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Protected Overrides Function AddSimplificationToType(statement As LocalDeclarationStatementSyntax) As LocalDeclarationStatementSyntax
             Dim declarator = statement.Declarators(0)
             Return statement.ReplaceNode(declarator, declarator.WithAdditionalAnnotations(Simplifier.Annotation))
+        End Function
+
+        Protected Overrides Function WrapWithBlockIfAppropriate(ifStatement As MultiLineIfBlockSyntax, statement As StatementSyntax) As StatementSyntax
+            Return statement
         End Function
     End Class
 End Namespace
