@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 
@@ -21,8 +20,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             ISemanticFactsService semanticFacts,
             IVirtualCharService virtualCharService)
         {
-            _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguage>(
-                new JsonEmbeddedLanguage(this, stringLiteralKind, syntaxFacts, semanticFacts, virtualCharService));
+            _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguage>();
         }
 
         public ImmutableArray<IEmbeddedLanguage> GetEmbeddedLanguages()
