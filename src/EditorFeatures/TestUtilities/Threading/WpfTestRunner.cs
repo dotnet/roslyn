@@ -1,17 +1,17 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using Vim.EditorHost;
+using Roslyn.Utilities;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Vim.UnitTest.Utilities
+namespace Roslyn.Test.Utilities
 {
     /// <summary>
     /// This type is actually responsible for spinning up the STA context to run all of the
@@ -87,6 +87,5 @@ namespace Vim.UnitTest.Utilities
 
             return task.Unwrap();
         }
-        
     }
 }

@@ -1,19 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Concurrent;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using Vim.Extensions;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Vim.UnitTest.Utilities
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Threading;
+
+namespace Roslyn.Test.Utilities
 {
     public sealed class StaTaskScheduler : TaskScheduler, IDisposable
     {
-        /// <summary>Gets a StaTaskScheduler for the current AppDomain.</summary>
-        /// <remarks>We use a count of 1, because the editor ends up re-using <see cref="System.Windows.Threading.DispatcherObject"/>
+        /// <summary>Gets a <see cref="StaTaskScheduler"/> for the current <see cref="AppDomain"/>.</summary>
+        /// <remarks>We use a count of 1, because the editor ends up re-using <see cref="DispatcherObject"/>
         /// instances between tests, so we need to always use the same thread for our Sta tests.</remarks>
         public static StaTaskScheduler DefaultSta { get; } = new StaTaskScheduler();
 
@@ -25,7 +25,7 @@ namespace Vim.UnitTest.Utilities
 
         public bool IsRunningInScheduler => StaThread.ManagedThreadId == Thread.CurrentThread.ManagedThreadId;
 
-        /// <summary>Initializes a new instance of the StaTaskScheduler class with the specified concurrency level.</summary>
+        /// <summary>Initializes a new instance of the <see cref="StaTaskScheduler"/> class.</summary>
         public StaTaskScheduler()
         {
             // Initialize the tasks collection
@@ -40,7 +40,7 @@ namespace Vim.UnitTest.Utilities
                 {
                     if (!TryExecuteTask(t))
                     {
-                        System.Diagnostics.Debug.Assert(t.IsCompleted, "Can't run, not completed");
+                        Debug.Assert(t.IsCompleted, "Can't run, not completed");
                     }
                 }
             })

@@ -1,18 +1,17 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using Vim.EditorHost;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Vim.UnitTest.Utilities
+namespace Roslyn.Test.Utilities
 {
     [Serializable]
     public sealed class WpfTestSharedData
@@ -21,7 +20,7 @@ namespace Vim.UnitTest.Utilities
 
         /// <summary>
         /// The name of a <see cref="Semaphore"/> used to ensure that only a single
-        /// <see cref="WpfFactAttributeAttribute"/>-attributed test runs at once. This requirement must be made because,
+        /// <see cref="WpfFactAttribute"/>-attributed test runs at once. This requirement must be made because,
         /// currently, <see cref="WpfTestCase"/>'s logic sets various static state before a method runs. If two tests
         /// run interleaved on the same scheduler (i.e. if one yields with an await) then all bets are off.
         /// </summary>
@@ -92,9 +91,6 @@ namespace Vim.UnitTest.Utilities
                 var innerContext = fieldInfo.GetValue(asyncContext) as SynchronizationContext;
                 switch (innerContext)
                 {
-                    case TestableSynchronizationContext testContext:
-                        testContext.RunAll();
-                        break;
                     case DispatcherSynchronizationContext _:
                         dispatcher.DoEvents();
                         break;
@@ -115,7 +111,7 @@ namespace Vim.UnitTest.Utilities
                         var span = DateTime.UtcNow - startTime;
                         if (span > TimeSpan.FromSeconds(30))
                         {
-                            asyncContext?.Post(_ => throw new Exception("Unfulfilled TestableSynchronizationContext detected"), null);
+                            asyncContext?.Post(_ => throw new Exception($"Unfulfilled {nameof(SynchronizationContext)} detected"), null);
                             runCallbacks();
                         }
                         else
@@ -132,7 +128,7 @@ namespace Vim.UnitTest.Utilities
                 }
                 catch (Exception ex)
                 {
-                    Debug.Fail($"Exception monitoring {nameof(TestableSynchronizationContext)}: {ex.Message}");
+                    Debug.Fail($"Exception monitoring {nameof(SynchronizationContext)}: {ex.Message}");
                 }
             }
 

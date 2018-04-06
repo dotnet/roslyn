@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Sdk;
-using Xunit.Extensions;
-using Xunit.Abstractions;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Vim.UnitTest.Utilities
+using System.Collections.Generic;
+using Xunit.Abstractions;
+using Xunit.Sdk;
+
+namespace Roslyn.Test.Utilities
 {
     public class WpfFactDiscoverer : FactDiscoverer
     {

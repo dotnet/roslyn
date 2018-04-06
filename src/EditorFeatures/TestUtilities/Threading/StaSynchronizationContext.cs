@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Vim.UnitTest.Utilities
+using System;
+using System.Collections.Concurrent;
+using System.Threading;
+
+namespace Roslyn.Test.Utilities
 {
     public sealed class StaSynchronizationContext : SynchronizationContext, IDisposable
     {
@@ -21,7 +19,6 @@ namespace Vim.UnitTest.Utilities
         internal bool IsRunningInScheduler => _thread.ManagedThreadId == Thread.CurrentThread.ManagedThreadId;
 
         /// <summary>Initializes a new instance of the StaTaskScheduler class with the specified concurrency level.</summary>
-        /// <param name="numberOfThreads">The number of threads that should be created and used by this scheduler.</param>
         public StaSynchronizationContext()
         {
             _thread = new Thread(() =>
