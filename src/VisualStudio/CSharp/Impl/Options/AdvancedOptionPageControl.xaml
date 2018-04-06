@@ -99,7 +99,6 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                 </StackPanel>
             </GroupBox>
-
             <GroupBox x:Uid="ExtractMethodGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}">
                 <StackPanel>
