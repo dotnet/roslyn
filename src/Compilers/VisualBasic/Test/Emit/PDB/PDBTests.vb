@@ -5,6 +5,7 @@ Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Reflection.PortableExecutable
 Imports System.Text
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -4597,6 +4598,19 @@ End Class"
         </method>
     </methods>
 </symbols>)
+        End Sub
+
+        <Fact>
+        <WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")>
+        Public Sub InvalidCharacterInPdbPath()
+            Using outStream = Temp.CreateFile().Open()
+                Dim Compilation = CreateEmptyCompilation("")
+                Dim result = Compilation.Emit(outStream, options:=New EmitOptions(pdbFilePath:="test\\?.pdb", debugInformationFormat:=DebugInformationFormat.Embedded))
+
+                Assert.False(result.Success)
+                ' // error BC2032: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                result.Diagnostics.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("test\\?.pdb").WithLocation(1, 1))
+            End Using
         End Sub
     End Class
 End Namespace

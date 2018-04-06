@@ -280,7 +280,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
             // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(expanded, argsToParamsOpt, parameters, argumentRefKinds, rewrittenArguments, actualArguments, refKinds, storesToTemps);
+            BuildStoresToTemps(
+                expanded,
+                argsToParamsOpt,
+                parameters,
+                argumentRefKinds,
+                rewrittenArguments,
+                forceLambdaSpilling: true, // lambdas must produce exactly one delegate so they must be spilled into a temp
+                actualArguments,
+                refKinds,
+                storesToTemps);
 
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
@@ -661,11 +670,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///        l += goo(ref l);
         /// 
         /// even though l is a local, we must access it via a temp since "goo(ref l)" may change it
-        /// on between accesses. 
+        /// on between accesses.
+        ///
+        /// Note: In `this.x++`, `this` cannot change between reads. But in `(this, ...) == (..., this.Mutate())` it can.
         /// </summary>
         internal static bool CanChangeValueBetweenReads(
             BoundExpression expression,
-            bool localsMayBeAssignedOrCaptured = true)
+            bool localsMayBeAssignedOrCaptured = true,
+            bool structThisCanChangeValueBetweenReads = false)
         {
             if (expression.IsDefaultValue())
             {
@@ -681,6 +693,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expression.Kind)
             {
                 case BoundKind.ThisReference:
+                    return structThisCanChangeValueBetweenReads && ((BoundThisReference)expression).Type.IsStructType();
+
                 case BoundKind.BaseReference:
                     return false;
 

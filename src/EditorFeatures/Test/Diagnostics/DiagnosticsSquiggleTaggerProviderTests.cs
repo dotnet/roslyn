@@ -23,6 +23,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
+    [UseExportProvider]
     public class DiagnosticsSquiggleTaggerProviderTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using (var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }" }, CSharpParseOptions.Default))
             using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
             {
-                var listenerProvider = new AsynchronousOperationListenerProvider();
+                var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
                 var diagnosticService = new MockDiagnosticService(workspace);
                 var provider = new DiagnosticsSquiggleTaggerProvider(
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using (var workspace = TestWorkspace.CreateCSharp(new string[] { "class A { }" }, CSharpParseOptions.Default))
             using (var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider>(workspace))
             {
-                var listenerProvider = new AsynchronousOperationListenerProvider();
+                var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
                 var diagnosticService = new MockDiagnosticService(workspace);
                 var provider = new DiagnosticsSquiggleTaggerProvider(

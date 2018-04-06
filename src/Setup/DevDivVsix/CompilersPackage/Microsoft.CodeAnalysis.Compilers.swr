@@ -6,6 +6,9 @@ package name=Microsoft.CodeAnalysis.Compilers
 vs.dependencies
   vs.dependency id=Microsoft.Net.PackageGroup.4.6.1.Redist
 
+vs.nonCriticalProcesses 
+  vs.nonCriticalProcess name="VBCSCompiler" 
+
 folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Exes\VBCSCompiler\net46\VBCSCompiler.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1
     file source=$(OutputPath)\Exes\csc\net46\csc.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1

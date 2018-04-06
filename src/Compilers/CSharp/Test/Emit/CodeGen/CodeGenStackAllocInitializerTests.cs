@@ -10,6 +10,208 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenStackAllocInitializerTests : CompilingTestBase
     {
         [Fact]
+        public void TestUnmanaged_Pointer()
+        {
+            var text = @"
+using System;
+unsafe class Test
+{
+    static void Print<T>(T* p) where T : unmanaged
+    {
+        for (int i = 0; i < 3; i++)
+            Console.Write(p[i]);
+    }
+
+    static void M<T>(T arg) where T : unmanaged
+    {
+        var obj1 = stackalloc T[3] { arg, arg, arg };
+        Print<T>(obj1);
+        var obj2 = stackalloc T[ ] { arg, arg, arg };
+        Print<T>(obj2);
+        var obj3 = stackalloc  [ ] { arg, arg, arg };
+        Print<T>(obj3);
+    }
+
+    public static void Main()
+    {
+        M(42);
+    }
+}";
+            CompileAndVerify(text,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
+                options: TestOptions.UnsafeReleaseExe,
+                expectedOutput: "424242424242424242",
+                verify: Verification.Fails).VerifyIL("Test.M<T>(T)", 
+@"{
+  // Code size      163 (0xa3)
+  .maxstack  4
+  IL_0000:  ldc.i4.3
+  IL_0001:  conv.u
+  IL_0002:  sizeof     ""T""
+  IL_0008:  mul.ovf.un
+  IL_0009:  localloc
+  IL_000b:  dup
+  IL_000c:  ldarg.0
+  IL_000d:  stobj      ""T""
+  IL_0012:  dup
+  IL_0013:  sizeof     ""T""
+  IL_0019:  add
+  IL_001a:  ldarg.0
+  IL_001b:  stobj      ""T""
+  IL_0020:  dup
+  IL_0021:  ldc.i4.2
+  IL_0022:  conv.i
+  IL_0023:  sizeof     ""T""
+  IL_0029:  mul
+  IL_002a:  add
+  IL_002b:  ldarg.0
+  IL_002c:  stobj      ""T""
+  IL_0031:  call       ""void Test.Print<T>(T*)""
+  IL_0036:  ldc.i4.3
+  IL_0037:  conv.u
+  IL_0038:  sizeof     ""T""
+  IL_003e:  mul.ovf.un
+  IL_003f:  localloc
+  IL_0041:  dup
+  IL_0042:  ldarg.0
+  IL_0043:  stobj      ""T""
+  IL_0048:  dup
+  IL_0049:  sizeof     ""T""
+  IL_004f:  add
+  IL_0050:  ldarg.0
+  IL_0051:  stobj      ""T""
+  IL_0056:  dup
+  IL_0057:  ldc.i4.2
+  IL_0058:  conv.i
+  IL_0059:  sizeof     ""T""
+  IL_005f:  mul
+  IL_0060:  add
+  IL_0061:  ldarg.0
+  IL_0062:  stobj      ""T""
+  IL_0067:  call       ""void Test.Print<T>(T*)""
+  IL_006c:  ldc.i4.3
+  IL_006d:  conv.u
+  IL_006e:  sizeof     ""T""
+  IL_0074:  mul.ovf.un
+  IL_0075:  localloc
+  IL_0077:  dup
+  IL_0078:  ldarg.0
+  IL_0079:  stobj      ""T""
+  IL_007e:  dup
+  IL_007f:  sizeof     ""T""
+  IL_0085:  add
+  IL_0086:  ldarg.0
+  IL_0087:  stobj      ""T""
+  IL_008c:  dup
+  IL_008d:  ldc.i4.2
+  IL_008e:  conv.i
+  IL_008f:  sizeof     ""T""
+  IL_0095:  mul
+  IL_0096:  add
+  IL_0097:  ldarg.0
+  IL_0098:  stobj      ""T""
+  IL_009d:  call       ""void Test.Print<T>(T*)""
+  IL_00a2:  ret
+}");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25997")]
+        public void TestUnmanaged_Span()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class Test
+{
+    public void M<T>(T arg) where T : unmanaged
+    {
+        Span<T> obj1 = stackalloc T[3] { arg, arg, arg };
+        Span<T> obj2 = stackalloc T[ ] { arg, arg, arg };
+        Span<T> obj3 = stackalloc  [ ] { arg, arg, arg };
+    }
+}
+", options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
+
+            CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("Test.M<T>(T)",
+@"{
+  // Code size      169 (0xa9)
+  .maxstack  4
+  IL_0000:  ldc.i4.3
+  IL_0001:  conv.u
+  IL_0002:  sizeof     ""T""
+  IL_0008:  mul.ovf.un
+  IL_0009:  localloc
+  IL_000b:  dup
+  IL_000c:  ldarg.1
+  IL_000d:  stobj      ""T""
+  IL_0012:  dup
+  IL_0013:  sizeof     ""T""
+  IL_0019:  add
+  IL_001a:  ldarg.1
+  IL_001b:  stobj      ""T""
+  IL_0020:  dup
+  IL_0021:  ldc.i4.2
+  IL_0022:  conv.i
+  IL_0023:  sizeof     ""T""
+  IL_0029:  mul
+  IL_002a:  add
+  IL_002b:  ldarg.1
+  IL_002c:  stobj      ""T""
+  IL_0031:  ldc.i4.3
+  IL_0032:  newobj     ""System.Span<T>..ctor(void*, int)""
+  IL_0037:  pop
+  IL_0038:  ldc.i4.3
+  IL_0039:  conv.u
+  IL_003a:  sizeof     ""T""
+  IL_0040:  mul.ovf.un
+  IL_0041:  localloc
+  IL_0043:  dup
+  IL_0044:  ldarg.1
+  IL_0045:  stobj      ""T""
+  IL_004a:  dup
+  IL_004b:  sizeof     ""T""
+  IL_0051:  add
+  IL_0052:  ldarg.1
+  IL_0053:  stobj      ""T""
+  IL_0058:  dup
+  IL_0059:  ldc.i4.2
+  IL_005a:  conv.i
+  IL_005b:  sizeof     ""T""
+  IL_0061:  mul
+  IL_0062:  add
+  IL_0063:  ldarg.1
+  IL_0064:  stobj      ""T""
+  IL_0069:  ldc.i4.3
+  IL_006a:  newobj     ""System.Span<T>..ctor(void*, int)""
+  IL_006f:  pop
+  IL_0070:  ldc.i4.3
+  IL_0071:  conv.u
+  IL_0072:  sizeof     ""T""
+  IL_0078:  mul.ovf.un
+  IL_0079:  localloc
+  IL_007b:  dup
+  IL_007c:  ldarg.1
+  IL_007d:  stobj      ""T""
+  IL_0082:  dup
+  IL_0083:  sizeof     ""T""
+  IL_0089:  add
+  IL_008a:  ldarg.1
+  IL_008b:  stobj      ""T""
+  IL_0090:  dup
+  IL_0091:  ldc.i4.2
+  IL_0092:  conv.i
+  IL_0093:  sizeof     ""T""
+  IL_0099:  mul
+  IL_009a:  add
+  IL_009b:  ldarg.1
+  IL_009c:  stobj      ""T""
+  IL_00a1:  ldc.i4.3
+  IL_00a2:  newobj     ""System.Span<T>..ctor(void*, int)""
+  IL_00a7:  pop
+  IL_00a8:  ret
+}");
+        }
+
+        [Fact]
         public void TestLambdaCapture()
         {
             var text = @"

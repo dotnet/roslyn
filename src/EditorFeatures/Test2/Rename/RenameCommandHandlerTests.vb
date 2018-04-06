@@ -15,6 +15,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
+    <[UseExportProvider]>
     Public Class RenameCommandHandlerTests
         Private Function CreateCommandHandler(workspace As TestWorkspace) As RenameCommandHandler
             Return New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
@@ -49,8 +50,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub RenameCommandDisabledInSubmission()
-            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
+            Dim exportProvider = ExportProviderCache _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService))) _
+                .CreateExportProvider()
 
             Using workspace = TestWorkspace.Create(
                 <Workspace>

@@ -2239,7 +2239,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindArgumentAndName(
                 result,
                 diagnostics,
-                ref hadError,
                 ref hadLangVersionError,
                 argumentSyntax,
                 boundArgument,
@@ -2413,7 +2412,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void BindArgumentAndName(
             AnalyzedArguments result,
             DiagnosticBag diagnostics,
-            ref bool hadError,
             ref bool hadLangVersionError,
             CSharpSyntaxNode argumentSyntax,
             BoundExpression boundArgumentExpression,
@@ -2456,28 +2454,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         result.Names.Add(null);
                     }
-                }
-
-                string name = nameColonSyntax.Name.Identifier.ValueText;
-
-                // Note that because of this nested loop this is an O(n^2) algorithm; 
-                // however, the set of named arguments in an invocation is likely to be small.
-
-                bool hasNameCollision = false;
-                for (int i = 0; i < result.Names.Count; ++i)
-                {
-                    if (result.Name(i) == name)
-                    {
-                        hasNameCollision = true;
-                        break;
-                    }
-                }
-
-                if (hasNameCollision && !hadError)
-                {
-                    // CS: Named argument '{0}' cannot be specified multiple times
-                    Error(diagnostics, ErrorCode.ERR_DuplicateNamedArgument, nameColonSyntax.Name, name);
-                    hadError = true;
                 }
 
                 result.Names.Add(nameColonSyntax.Name);

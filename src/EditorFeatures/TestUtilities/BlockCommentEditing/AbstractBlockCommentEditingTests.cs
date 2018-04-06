@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -14,6 +15,7 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.BlockCommentEditing
 {
+    [UseExportProvider]
     public abstract class AbstractBlockCommentEditingTests
     {
         internal abstract VSCommanding.ICommandHandler<ReturnKeyCommandArgs> CreateCommandHandler(

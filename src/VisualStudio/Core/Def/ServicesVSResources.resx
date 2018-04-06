@@ -780,8 +780,8 @@ Additional information: {1}</value>
   <data name="Manage_specifications" xml:space="preserve">
     <value>Manage specifications</value>
   </data>
-  <data name="Manage_styles" xml:space="preserve">
-    <value>Manage styles</value>
+  <data name="Manage_naming_styles" xml:space="preserve">
+    <value>Manage naming styles</value>
   </data>
   <data name="Reorder" xml:space="preserve">
     <value>Reorder</value>

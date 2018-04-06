@@ -11,6 +11,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.EditorUtilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
+    <[UseExportProvider]>
     Public Class FormattingTestBase
         Protected Async Function AssertFormatSpanAsync(content As String, expected As String, Optional baseIndentation As Integer? = Nothing, Optional span As TextSpan = Nothing) As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(content)

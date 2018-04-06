@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             // First the active document
                             var activeDocumentId = this.Processor._documentTracker.GetActiveDocument();
-                            if (activeDocumentId != null && _higherPriorityDocumentsNotProcessed.ContainsKey(activeDocumentId))
+                            if (activeDocumentId != null)
                             {
                                 yield return activeDocumentId;
                             }
@@ -240,10 +240,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // Now any visible documents
                             foreach (var visibleDocumentId in this.Processor._documentTracker.GetVisibleDocuments())
                             {
-                                if (_higherPriorityDocumentsNotProcessed.ContainsKey(visibleDocumentId))
-                                {
-                                    yield return visibleDocumentId;
-                                }
+                                yield return visibleDocumentId;
                             }
                         }
 
@@ -264,6 +261,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 {
                                     return true;
                                 }
+
                                 // this is a best effort algorithm with some shortcomings.
                                 //
                                 // the most obvious issue is if there is a new work item (without a solution change - but very unlikely) 
