@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
         protected CodeElement GetCodeElement(params object[] path)
         {
-            WpfTestCase.RequireWpfFact("Tests create CodeElements which use the affinitized CleanableWeakComHandleTable");
+            WpfTestRunner.RequireWpfFact("Tests create CodeElements which use the affinitized CleanableWeakComHandleTable");
 
             if (path.Length == 0)
             {
