@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using Roslyn.Utilities;
@@ -293,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             if (PdbChecksumAlgorithm.Name != null)
-            {                
+            {
                 try
                 {
                     IncrementalHash.CreateHash(PdbChecksumAlgorithm).Dispose();
@@ -306,6 +307,11 @@ namespace Microsoft.CodeAnalysis.Emit
             else if (isDeterministic)
             {
                 diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidHashAlgorithmName, Location.None, ""));
+            }
+
+            if (PdbFilePath != null && !PathUtilities.IsValidFilePath(PdbFilePath))
+            {
+                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.FTL_InputFileNameTooLong, Location.None, PdbFilePath));
             }
         }
 

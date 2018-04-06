@@ -272,22 +272,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(LoopKind.ForEach, operation.LoopKind);
             VisitLocals(operation);
 
-            IEnumerable<IOperation> children;
-
-            // operation.LoopControlVariable shouldn't be null.
-            // The following conditional logic should be removed once https://github.com/dotnet/roslyn/issues/23820
-            // is fixed.
-            if (operation.LoopControlVariable == null)
-            {
-                Assert.Equal(LanguageNames.CSharp, operation.Language);
-                children = new[] { operation.Collection, operation.Body };
-            }
-            else
-            {
-                children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body };
-            }
-
-            children = children.Concat(operation.NextVariables);
+            IEnumerable<IOperation> children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body }.Concat(operation.NextVariables);
             AssertEx.Equal(children, operation.Children);
         }
 
@@ -717,10 +702,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.Body != null)
             {
-                Assert.Same(operation.Body, operation.Children.Single());
+                var children = operation.Children.ToImmutableArray();
+                Assert.Same(operation.Body, children[0]);
+                if (operation.IgnoredBody != null)
+                {
+                    Assert.Same(operation.IgnoredBody, children[1]);
+                    Assert.Equal(2, children.Length);
+                }
+                else
+                {
+                    Assert.Equal(1, children.Length);
+                }
             }
             else
             {
+                Assert.Null(operation.IgnoredBody);
                 Assert.Empty(operation.Children);
             }
         }
@@ -1169,6 +1165,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 Assert.Empty(operation.Children);
             }
+        }
+
+        public override void VisitDiscardOperation(IDiscardOperation operation)
+        {
+            Assert.Equal(OperationKind.Discard, operation.Kind);
+            Assert.Empty(operation.Children);
+
+            var discardSymbol = operation.DiscardSymbol;
+            Assert.Equal(operation.Type, discardSymbol.Type);
         }
     }
 }

@@ -827,8 +827,8 @@ class Program
 
     static void Main()
     {
-        var {|Rename:class1|} = new G<int>.@class();
-        G<int>.Add(class1);
+        var {|Rename:@class|} = new G<int>.@class();
+        G<int>.Add(@class);
     }
 }",
 options: ImplicitTypingEverywhere());
@@ -865,8 +865,8 @@ options: ImplicitTypingEverywhere());
 
     static void Main()
     {
-        G<int>.@class {|Rename:class1|} = new G<int>.@class();
-        G<int>.Add(class1);
+        G<int>.@class {|Rename:@class|} = new G<int>.@class();
+        G<int>.Add(@class);
     }
 }");
         }
@@ -4612,6 +4612,173 @@ class C
         {
             var t = new { foo = V };
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestSimpleParameterName()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(int a)
+    {
+        System.Console.Write([|a|]);
+    }
+}",
+@"
+class C
+{
+    void M(int a)
+    {
+        int {|Rename:a1|} = a;
+        System.Console.Write(a1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestSimpleParamterName_EmptySelection()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int a)
+    {
+        System.Console.Write([||]a);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestSimpleParamterName_SmallSelection()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int parameter)
+    {
+        System.Console.Write([|par|]ameter);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestFieldName_QualifiedWithThis()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int a;
+    void M()
+    {
+        System.Console.Write([|this.a|]);
+    }
+}",
+@"
+class C
+{
+    int a;
+    void M()
+    {
+        int {|Rename:a1|} = this.a;
+        System.Console.Write(a1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestFieldName_QualifiedWithType()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    static int a;
+    void M()
+    {
+        System.Console.Write([|C.a|]);
+    }
+}",
+@"
+class C
+{
+    static int a;
+    void M()
+    {
+        int {|Rename:a1|} = C.a;
+        System.Console.Write(a1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestFieldName_QualifiedWithType_TinySelection1()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    static int a;
+    void M()
+    {
+        System.Console.Write(C[|.|]a);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestFieldName_QualifiedWithType_TinySelection2()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    static int a;
+    void M()
+    {
+        System.Console.Write([|C.|]a);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestFieldName_QualifiedWithType_TinySelection3()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    static int a;
+    void M()
+    {
+        System.Console.Write(C.[|a|]);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestFieldName_QualifiedWithType_EmptySelection()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    static int a;
+    void M()
+    {
+        System.Console.Write(C.[||]a);
     }
 }");
         }

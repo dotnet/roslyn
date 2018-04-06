@@ -665,8 +665,8 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main(Of T)(x As Integer)
-        Dim {|Rename:t1|} As T = CType(2.ToString(), T)
-        Goo(t1)
+        Dim {|Rename:t|} As T = CType(2.ToString(), T)
+        Goo(t)
     End Sub
 End Module")
         End Function
@@ -1712,8 +1712,8 @@ Public Class C1
 End Class
 Public Class C2
     Public Shared Sub Main()
-        Dim {|Rename:c11|} As C1 = New C1() With {.FieldStr = .FieldInt.ToString()}
-        Dim x = 1 + c11
+        Dim {|Rename:c1|} As C1 = New C1() With {.FieldStr = .FieldInt.ToString()}
+        Dim x = 1 + c1
     End Sub
 End Class
 "
@@ -1960,8 +1960,8 @@ End Module",
 "Module Program
     Sub Main()
         With """"
-            Dim {|Rename:getHashCode1|} As Integer = .GetHashCode
-            Dim x = getHashCode1 Xor &H7F3E ' Introduce Local 
+            Dim {|Rename:getHashCode|} As Integer = .GetHashCode
+            Dim x = getHashCode Xor &H7F3E ' Introduce Local 
         End With
     End Sub
 End Module",
@@ -2400,8 +2400,8 @@ End Class
 Imports System
 Class C
     Function F(Of T)(x As T) As T
-        Dim {|Rename:c1|} As C = F(New C)
-        Dim y = c1?.F(New C)?.F(New C)
+        Dim {|Rename:c|} As C = F(New C)
+        Dim y = c?.F(New C)?.F(New C)
         Return x
     End Function
 End Class
@@ -2951,6 +2951,72 @@ structure TextSpan
     public sub new(start as integer, length as integer)
     end sub
 end structure")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")>
+        Public Async Function TestSimpleParameterName() As Task
+            Dim source = "Module Program
+    Sub Main(x As Integer)
+        Goo([|x|])
+    End Sub
+End Module"
+            Dim expected = "Module Program
+    Sub Main(x As Integer)
+        Dim {|Rename:x1|} As Integer = x
+        Goo(x1)
+    End Sub
+End Module"
+            Await TestInRegularAndScriptAsync(source, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")>
+        Public Async Function TestSimpleParameterName_EmptySelection() As Task
+            Dim source = "Module Program
+    Sub Main(x As Integer)
+        Goo([||]x)
+    End Sub
+End Module"
+            Await TestMissingAsync(source)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")>
+        Public Async Function TestFieldName_QualifiedWithMe() As Task
+            Dim source = "Module Program
+    Dim x As Integer
+    Sub Main()
+        Goo([|x|])
+    End Sub
+End Module"
+            Dim expected = "Module Program
+    Dim x As Integer
+    Sub Main()
+        Dim {|Rename:x1|} As Integer = x
+        Goo(x1)
+    End Sub
+End Module"
+            Await TestInRegularAndScriptAsync(source, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")>
+        Public Async Function TestFieldName_QualifiedWithType() As Task
+            Dim source = "Module Program
+    Shared Dim x As Integer
+    Sub Main()
+        Goo([|Program.x|])
+    End Sub
+End Module"
+            Dim expected = "Module Program
+    Shared Dim x As Integer
+    Sub Main()
+        Dim {|Rename:x1|} As Integer = Program.x
+        Goo(x1)
+    End Sub
+End Module"
+            Await TestInRegularAndScriptAsync(source, expected)
         End Function
 
         <WorkItem(21373, "https://github.com/dotnet/roslyn/issues/21373")>

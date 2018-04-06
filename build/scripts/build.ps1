@@ -180,7 +180,10 @@ function Restore-Packages() {
         Write-Host "Restoring $($both[0])"
         $projectFilePath = $both[1]
         $projectFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
-        $logFilePath = Join-Path $logsDir "Restore-$($projectFileName).binlog"
+        $logFilePath = ""
+        if ($binaryLog) { 
+            $logFilePath = Join-Path $logsDir "Restore-$($projectFileName).binlog"
+        }
         Restore-Project $dotnet $both[1] $logFilePath
     }
 }
@@ -283,6 +286,10 @@ function Build-ExtraSignArtifacts() {
         Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
         Write-Host "Publishing MSBuildTask"
         Run-MSBuild "..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
+        Write-Host "Building PortableFacades Swix"
+        Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.swixproj"
+        Write-Host "Building CompilersCodeAnalysis Swix"
+        Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.swixproj"
 
         $dest = @($configDir)
         foreach ($dir in $dest) { 
@@ -463,6 +470,9 @@ function Test-XUnitCoreClr() {
 # Core function for running our unit / integration tests tests
 function Test-XUnit() { 
 
+    # Used by tests to locate dotnet CLI
+    $env:DOTNET_INSTALL_DIR = Split-Path $dotnet -Parent
+
     if ($testCoreClr) {
         Test-XUnitCoreClr
         return
@@ -488,7 +498,13 @@ function Test-XUnit() {
         }
     }
     elseif ($testVsi) {
-        $dlls = Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir
+        # Since they require Visual Studio to be installed, ensure that the MSBuildWorkspace tests run along with our VS
+        # integration tests in CI.
+        if ($cibuild) {
+            $dlls += @(Get-Item (Join-Path $unitDir "Workspaces.MSBuild.Test\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
+        }
+
+        $dlls += @(Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir)
     }
     else {
         $dlls = Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir
@@ -573,8 +589,11 @@ function Deploy-VsixViaTool() {
 function Run-SignTool() { 
     Push-Location $repoDir
     try {
-        $signTool = Join-Path (Get-PackageDir "RoslynTools.Microsoft.SignTool") "tools\SignTool.exe"
+        $signTool = Join-Path (Get-PackageDir "RoslynTools.SignTool") "tools\SignTool.exe"
         $signToolArgs = "-msbuildPath `"$msbuild`""
+        if ($binaryLog) {
+            $signToolArgs += " -msbuildBinaryLog $logsDir\Signing.binlog"
+        }
         switch ($signType) {
             "real" { break; }
             "test" { $signToolArgs += " -testSign"; break; }
@@ -621,9 +640,9 @@ function Ensure-ProcDump() {
 function Redirect-Temp() {
     $temp = Join-Path $binariesDir "Temp"
     Create-Directory $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\.editorconfig") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.props") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.targets") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\.editorconfig") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.props") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.targets") $temp
     ${env:TEMP} = $temp
     ${env:TMP} = $temp
 }

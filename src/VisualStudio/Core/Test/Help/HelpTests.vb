@@ -9,6 +9,7 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Help
+    <[UseExportProvider]>
     Public Class HelpTests
         Public Async Function TestAsync(markup As String, expected As String) As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(markup)

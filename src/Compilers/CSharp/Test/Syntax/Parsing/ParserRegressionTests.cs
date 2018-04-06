@@ -199,8 +199,8 @@ class A
             var parsedTree = ParseWithRoundTripCheck(source.ToString());
             IEnumerable<Diagnostic> actualErrors = parsedTree.GetDiagnostics();
             Assert.Equal("202", actualErrors.Count().ToString());
-            Assert.Equal("(1,1201): error CS1056: Unexpected character '\\u003C'", actualErrors.ElementAt(200).ToString());
-            Assert.Equal("(1,1207): error CS1056: Unexpected character '\\u003E\\u003E\\u003E\\u003E'", actualErrors.ElementAt(201).ToString());
+            Assert.Equal("(1,1201): error CS1056: Unexpected character '\\u003C'", actualErrors.ElementAt(200).ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal("(1,1207): error CS1056: Unexpected character '\\u003E\\u003E\\u003E\\u003E'", actualErrors.ElementAt(201).ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
         [Fact]
@@ -217,8 +217,8 @@ class A
             var parsedTree = ParseWithRoundTripCheck(source.ToString());
             IEnumerable<Diagnostic> actualErrors = parsedTree.GetDiagnostics();
             Assert.Equal("202", actualErrors.Count().ToString());
-            Assert.Equal("(1,2001): error CS1056: Unexpected character '\\U0000003C'", actualErrors.ElementAt(200).ToString());
-            Assert.Equal("(1,2011): error CS1056: Unexpected character '\\u003E\\u003E\\u003E\\u003E'", actualErrors.ElementAt(201).ToString());
+            Assert.Equal("(1,2001): error CS1056: Unexpected character '\\U0000003C'", actualErrors.ElementAt(200).ToString(EnsureEnglishUICulture.PreferredOrNull));
+            Assert.Equal("(1,2011): error CS1056: Unexpected character '\\u003E\\u003E\\u003E\\u003E'", actualErrors.ElementAt(201).ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
         #region "Helpers"

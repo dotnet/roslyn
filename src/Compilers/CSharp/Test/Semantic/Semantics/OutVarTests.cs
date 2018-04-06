@@ -1073,14 +1073,6 @@ public class Cls
             // unlike GetSymbolInfo or GetTypeInfo, GetOperation doesn't use SemanticModel's recovery mode.
             // what that means is that GetOperation might return null for ones GetSymbol/GetTypeInfo do return info from
             // error recovery mode
-            var foreachLoop = decl.Ancestors().OfType<ForEachVariableStatementSyntax>().FirstOrDefault();
-            if (foreachLoop?.Variable?.FullSpan.Contains(decl.Span) == true &&
-                foreachLoop?.Variable.IsKind(SyntaxKind.InvocationExpression) == true)
-            {
-                // invalid syntax case where operation is not supported
-                return;
-            }
-
             var typeofExpression = decl.Ancestors().OfType<TypeOfExpressionSyntax>().FirstOrDefault();
             if (typeofExpression?.Type?.FullSpan.Contains(decl.Span) == true)
             {
@@ -19795,18 +19787,12 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilation(text,
-                                                            options: TestOptions.ReleaseExe,
-                                                            parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (7,25): error CS1740: Named argument 'y' cannot be specified multiple times
-                //         Test1(y: ref x, y: out var y);
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(7, 25),
                 // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Cls.Test1(int, ref int)'
                 //         Test1(y: ref x, y: out var y);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test1").WithArguments("x", "Cls.Test1(int, ref int)").WithLocation(7, 9)
-                );
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test1").WithArguments("x", "Cls.Test1(int, ref int)").WithLocation(7, 9));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

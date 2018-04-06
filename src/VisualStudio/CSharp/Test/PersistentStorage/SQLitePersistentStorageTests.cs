@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class SQLitePersistentStorageTests : AbstractPersistentStorageTests
     {
+        static SQLitePersistentStorageTests()
+        {
+            Assert.True(SQLitePersistentStorageService.TryInitializeLibraries());
+        }
+
         internal override IPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, ISolutionSizeTracker solutionSizeTracker, IPersistentStorageFaultInjector faultInjector)
             => new SQLitePersistentStorageService(_persistentEnabledOptionService, locationService, solutionSizeTracker, faultInjector);
 
