@@ -4733,19 +4733,16 @@ public class Test
             // Extra errors
             CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (7,34): error CS1002: ; expected
-                //         int *pp = stackalloc int 30; 
+                //         int *pp = stackalloc int 30;
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "30").WithLocation(7, 34),
-                // (6,18): error CS1525: Invalid expression term 'stackalloc'
-                //         int *p = stackalloc int (30); 
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 18),
                 // (6,29): error CS1575: A stackalloc expression requires [] after type
-                //         int *p = stackalloc int (30); 
+                //         int *p = stackalloc int (30);
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(6, 29),
                 // (7,30): error CS1575: A stackalloc expression requires [] after type
-                //         int *pp = stackalloc int 30; 
+                //         int *pp = stackalloc int 30;
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(7, 30),
                 // (7,34): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         int *pp = stackalloc int 30; 
+                //         int *pp = stackalloc int 30;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "30").WithLocation(7, 34)
                 );
         }

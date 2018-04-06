@@ -134,32 +134,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
+            Visit(node.Body);
+            Visit(node.ExpressionBody);
         }
 
         public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
+            Binder enclosing = new ExpressionVariableBinder(node, _enclosing);
+            AddToMap(node, enclosing);
+
+            Visit(node.Initializer, enclosing);
+            Visit(node.Body, enclosing);
+            Visit(node.ExpressionBody, enclosing);
         }
 
         public override void VisitDestructorDeclaration(DestructorDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
+            Visit(node.Body);
+            Visit(node.ExpressionBody);
         }
 
         public override void VisitAccessorDeclaration(AccessorDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
+            Visit(node.Body);
+            Visit(node.ExpressionBody);
         }
 
         public override void VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
+            Visit(node.Body);
+            Visit(node.ExpressionBody);
         }
 
         public override void VisitOperatorDeclaration(OperatorDeclarationSyntax node)
         {
-            VisitBlock(node.Body);
+            Visit(node.Body);
+            Visit(node.ExpressionBody);
         }
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
@@ -290,23 +300,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override void VisitArgumentList(ArgumentListSyntax node)
+        public override void VisitConstructorInitializer(ConstructorInitializerSyntax node)
         {
-            if (_root == node)
-            {
-                // We are supposed to get here only for constructor initializers
-                Debug.Assert(node.Parent is ConstructorInitializerSyntax);
-                var argBinder = new ExpressionVariableBinder(node, _enclosing);
-                AddToMap(node, argBinder);
+            var binder = _enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);
+            AddToMap(node, binder);
 
-                foreach (var arg in node.Arguments)
-                {
-                    Visit(arg.Expression, argBinder);
-                }
-            }
-            else
+            if (node.ArgumentList != null)
             {
-                base.VisitArgumentList(node);
+                if (_root == node)
+                {
+                    binder = new ExpressionVariableBinder(node.ArgumentList, binder);
+                    AddToMap(node.ArgumentList, binder);
+                }
+
+                Visit(node.ArgumentList, binder);
             }
         }
 
