@@ -279,6 +279,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property Style_PreferReadonly As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferReadonly)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferReadonly, value)
+            End Set
+        End Property
+
         Public Property Option_PlaceSystemNamespaceFirst As Boolean
             Get
                 Return GetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst)

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -77,11 +78,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitBlock(IBlockOperation operation)
         {
             Assert.Equal(OperationKind.Block, operation.Kind);
-
-            foreach (var local in operation.Locals)
-            {
-                Assert.NotNull(local);
-            }
+            VisitLocals(operation.Locals);
 
             AssertEx.Equal(operation.Operations, operation.Children);
         }
@@ -266,22 +263,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(LoopKind.ForEach, operation.LoopKind);
             VisitLocals(operation);
 
-            IEnumerable<IOperation> children;
-
-            // operation.LoopControlVariable shouldn't be null.
-            // The following conditional logic should be removed once https://github.com/dotnet/roslyn/issues/23820
-            // is fixed.
-            if (operation.LoopControlVariable == null)
-            {
-                Assert.Equal(LanguageNames.CSharp, operation.Language);
-                children = new[] { operation.Collection, operation.Body };
-            }
-            else
-            {
-                children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body };
-            }
-
-            children = children.Concat(operation.NextVariables);
+            IEnumerable<IOperation> children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body }.Concat(operation.NextVariables);
             AssertEx.Equal(children, operation.Children);
         }
 
@@ -625,6 +607,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.Children);
         }
 
+        public override void VisitTupleBinaryOperator(ITupleBinaryOperation operation)
+        {
+            Assert.Equal(OperationKind.TupleBinaryOperator, operation.Kind);
+            var binaryOperationKind = operation.OperatorKind;
+
+            AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.Children);
+        }
+
         public override void VisitConversion(IConversionOperation operation)
         {
             Assert.Equal(OperationKind.Conversion, operation.Kind);
@@ -725,10 +715,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.Body != null)
             {
-                Assert.Same(operation.Body, operation.Children.Single());
+                var children = operation.Children.ToImmutableArray();
+                Assert.Same(operation.Body, children[0]);
+                if (operation.IgnoredBody != null)
+                {
+                    Assert.Same(operation.IgnoredBody, children[1]);
+                    Assert.Equal(2, children.Length);
+                }
+                else
+                {
+                    Assert.Equal(1, children.Length);
+                }
             }
             else
             {
+                Assert.Null(operation.IgnoredBody);
                 Assert.Empty(operation.Children);
             }
         }
@@ -844,6 +845,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void VisitSymbolInitializer(ISymbolInitializerOperation operation)
         {
+            VisitLocals(operation.Locals);
             Assert.Same(operation.Value, operation.Children.Single());
         }
 
@@ -860,6 +862,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitVariableInitializer(IVariableInitializerOperation operation)
         {
             Assert.Equal(OperationKind.VariableInitializer, operation.Kind);
+            Assert.Empty(operation.Locals);
             VisitSymbolInitializer(operation);
         }
 
@@ -1124,6 +1127,66 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 AssertEx.Equal(new[] { operation.MinimumValue, operation.MaximumValue }, operation.Children);
             }
+        }
+
+        public override void VisitConstructorBodyOperation(IConstructorBodyOperation operation)
+        {
+            Assert.Equal(OperationKind.ConstructorBodyOperation, operation.Kind);
+            VisitLocals(operation.Locals);
+
+            var builder = ArrayBuilder<IOperation>.GetInstance();
+
+            if (operation.Initializer != null)
+            {
+                builder.Add(operation.Initializer);
+            }
+
+            if (operation.BlockBody != null)
+            {
+                builder.Add(operation.BlockBody);
+            }
+
+            if (operation.ExpressionBody != null)
+            {
+                builder.Add(operation.ExpressionBody);
+            }
+
+            AssertEx.Equal(builder, operation.Children);
+            builder.Free();
+        }
+
+        public override void VisitMethodBodyOperation(IMethodBodyOperation operation)
+        {
+            Assert.Equal(OperationKind.MethodBodyOperation, operation.Kind);
+
+            if (operation.BlockBody != null)
+            {
+                if (operation.ExpressionBody != null)
+                {
+                    AssertEx.Equal(new[] { operation.BlockBody, operation.ExpressionBody }, operation.Children);
+                }
+                else
+                {
+                    Assert.Same(operation.BlockBody, operation.Children.Single());
+                }
+            }
+            else if (operation.ExpressionBody != null)
+            {
+                Assert.Same(operation.ExpressionBody, operation.Children.Single());
+            }
+            else
+            {
+                Assert.Empty(operation.Children);
+            }
+        }
+
+        public override void VisitDiscardOperation(IDiscardOperation operation)
+        {
+            Assert.Equal(OperationKind.Discard, operation.Kind);
+            Assert.Empty(operation.Children);
+
+            var discardSymbol = operation.DiscardSymbol;
+            Assert.Equal(operation.Type, discardSymbol.Type);
         }
 
         public override void VisitFlowCapture(IFlowCaptureOperation operation)

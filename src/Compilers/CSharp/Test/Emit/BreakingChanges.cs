@@ -1006,7 +1006,8 @@ public class c
             comp.VerifyDiagnostics();
         }
 
-        [Fact, WorkItem(530518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530518")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(530518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530518")]
         public void ExpressionTreeExplicitOpVsConvert()
         {
             var text = @"
@@ -1027,13 +1028,14 @@ Console.WriteLine(testExpr2);
 ";
 
             // Native Compiler: x => Convert(Convert(op_Explicit(x)))
-            CompileAndVerify(text, references: new[] { LinqAssemblyRef }, expectedOutput:
+            CompileAndVerify(text, expectedOutput:
 @"x => Convert(Convert(Convert(x)))
 x => Convert(Convert(Convert(x)))
 ");
         }
-        [Fact, WorkItem(530531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530531")]
 
+        [WorkItem(530531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530531")]
+        [ConditionalFact(typeof(DesktopOnly))]
         private void ExpressionTreeNoCovertForIdentityConversion()
         {
             var source = @"
@@ -1053,7 +1055,7 @@ static void Main()
 ";
 
             // Native compiler: x => (Convert(x) != Convert(null))
-            CompileAndVerify(source, references: new[] { LinqAssemblyRef }, expectedOutput:
+            CompileAndVerify(source, expectedOutput:
 @"x => (Convert(x) != null)
 True
 ");
@@ -1317,7 +1319,8 @@ namespace VS7_336319
     Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "PredefinedTypes").WithArguments("VS7_336319.ExpressionBinder.PredefinedTypes"));
         }
 
-        [Fact, WorkItem(530666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530666")]
+        [WorkItem(530666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530666")]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ExpressionTreeWithNullableUDCandOperator()
         {
             string source = @"

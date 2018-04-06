@@ -276,15 +276,18 @@ namespace Microsoft.CodeAnalysis
                     return result;
                 }
 
-                // it looks like someone has set it. try to reuse same semantic model
-                if (original.TryGetTarget(out semanticModel))
+                // It looks like someone has set it. Try to reuse same semantic model, or assign the new model if that
+                // fails. The lock is required since there is no compare-and-set primitive for WeakReference<T>.
+                lock (original)
                 {
-                    return semanticModel;
-                }
+                    if (original.TryGetTarget(out semanticModel))
+                    {
+                        return semanticModel;
+                    }
 
-                // it looks like cache is gone. reset the cache.
-                original.SetTarget(result);
-                return result;
+                    original.SetTarget(result);
+                    return result;
+                }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {

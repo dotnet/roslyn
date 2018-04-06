@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -19,11 +20,15 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     {
         private readonly Project _project;
         private readonly Dictionary<DiagnosticAnalyzer, HashSet<DiagnosticData>> _exceptions;
+        private readonly IPerformanceTrackerService _performanceTracker;
 
         public DiagnosticComputer(Project project)
         {
             _project = project;
             _exceptions = new Dictionary<DiagnosticAnalyzer, HashSet<DiagnosticData>>();
+
+            // we only track performance from primary branch. all forked branch we don't care such as preview.
+            _performanceTracker = project.IsFromPrimaryBranch() ? project.Solution.Workspace.Services.GetService<IPerformanceTrackerService>() : null;
         }
 
         public async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> GetDiagnosticsAsync(
@@ -86,6 +91,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
                 // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
                 var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+
+                // record performance if tracker is available
+                if (_performanceTracker != null)
+                {
+                    // +1 to include project itself
+                    _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(), _project.DocumentIds.Count + 1);
+                }
 
                 var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
 

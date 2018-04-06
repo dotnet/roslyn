@@ -45,9 +45,6 @@
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>Hosting\Resolvers\RelativePathResolver.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Shared\CoreClrShim.cs">
-      <Link>CoreClrShim.cs</Link>
-    </Compile>
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\ClrGlobalAssemblyCache.cs">
       <Link>Hosting\Resolvers\ClrGlobalAssemblyCache.cs</Link>
     </Compile>

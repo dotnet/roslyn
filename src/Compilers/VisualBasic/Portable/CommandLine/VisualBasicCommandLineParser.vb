@@ -1625,7 +1625,7 @@ lVbRuntimePlus:
                 Return Nothing
             End If
 
-            If fullPath Is Nothing OrElse fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 Then
+            If fullPath Is Nothing OrElse Not PathUtilities.IsValidFilePath(fileName) Then
                 AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, filePath)
                 Return Nothing
             End If
@@ -2054,6 +2054,8 @@ lVbRuntimePlus:
                         Return Platform.AnyCpu32BitPreferred
                     Case "arm"
                         Return Platform.Arm
+                    Case "arm64"
+                        Return Platform.Arm64
                     Case Else
                         AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, name, value)
                 End Select

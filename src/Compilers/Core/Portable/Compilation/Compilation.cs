@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -1550,6 +1551,10 @@ namespace Microsoft.CodeAnalysis
             Machine machine;
             switch (platform)
             {
+                case Platform.Arm64:
+                    machine = (Machine)0xAA64; //Machine.Arm64; https://github.com/dotnet/roslyn/issues/25185 
+                    break;
+
                 case Platform.Arm:
                     machine = Machine.ArmThumb2;
                     break;
@@ -2409,7 +2414,7 @@ namespace Microsoft.CodeAnalysis
             EmitStreamProvider peStreamProvider,
             EmitStreamProvider metadataPEStreamProvider,
             EmitStreamProvider pdbStreamProvider,
-            Func<object> testSymWriterFactory,
+            Func<ISymWriterMetadataProvider, SymUnmanagedWriter> testSymWriterFactory,
             DiagnosticBag diagnostics,
             bool metadataOnly,
             bool includePrivateMembers,
@@ -2442,7 +2447,7 @@ namespace Microsoft.CodeAnalysis
 
             if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded && !string.IsNullOrEmpty(pePdbFilePath))
             {
-                pePdbFilePath = Path.GetFileName(pePdbFilePath);
+                pePdbFilePath = PathUtilities.GetFileName(pePdbFilePath);
             }
 
             try
@@ -2507,7 +2512,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
-                catch (Cci.PdbWritingException ex)
+                catch (SymUnmanagedWriterException ex)
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PdbWritingFailed, Location.None, ex.Message));
                     return false;
@@ -2702,7 +2707,7 @@ namespace Microsoft.CodeAnalysis
             Stream pdbStream,
             ICollection<MethodDefinitionHandle> updatedMethods,
             DiagnosticBag diagnostics,
-            Func<object> testSymWriterFactory,
+            Func<ISymWriterMetadataProvider, SymUnmanagedWriter> testSymWriterFactory,
             string pdbFilePath,
             CancellationToken cancellationToken)
         {
@@ -2741,7 +2746,7 @@ namespace Microsoft.CodeAnalysis
 
                     return diagnostics.HasAnyErrors() ? null : writer.GetDelta(baseline, this, encId, metadataSizes);
                 }
-                catch (Cci.PdbWritingException e)
+                catch (SymUnmanagedWriterException e)
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PdbWritingFailed, Location.None, e.Message));
                     return null;
