@@ -787,4 +787,10 @@
   <data name="Style" xml:space="preserve">
     <value>Style</value>
   </data>
+  <data name="Probable_JSON_string_detected" xml:space="preserve">
+    <value>Probable JSON string detected</value>
+  </data>
+  <data name="Enable_JSON_editor_features" xml:space="preserve">
+    <value>Enable JSON editor features</value>
+  </data>
 </root>

@@ -2,20 +2,18 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.JsonStringDetector;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.JsonStringDetector
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
 {
     public class JsonStringDetectorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpJsonStringDetectorDiagnosticAnalyzer(), new CSharpEnableIDEJsonFeaturesCodeFixProvider());
+            => (new CSharpEmbeddedLanguageDiagnosticAnalyzer(), new CSharpEmbeddedLanguageCodeFixProvider());
          
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
         public async Task TestStrict()

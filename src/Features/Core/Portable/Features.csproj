@@ -109,5 +109,8 @@
   <ItemGroup>
     <PackageReference Include="System.Reflection" Version="$(SystemReflectionVersion)" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="JsonStringDetector\" />
+  </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
 </Project>

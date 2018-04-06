@@ -5,13 +5,13 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.ValidateJsonString
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
-    internal abstract class AbstractValidateEmbeddedLanguageStringDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class AbstractEmbeddedLanguageDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
         private readonly ImmutableArray<IEmbeddedDiagnosticAnalyzer> _analyzers;
 
-        protected AbstractValidateEmbeddedLanguageStringDiagnosticAnalyzer(
+        protected AbstractEmbeddedLanguageDiagnosticAnalyzer(
             IEmbeddedLanguageProvider embeddedLanguageProvider)
         {
             var supportedDiagnostics = ArrayBuilder<DiagnosticDescriptor>.GetInstance();

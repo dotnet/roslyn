@@ -15,10 +15,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 
     internal class JsonEmbeddedBraceMatcher : IEmbeddedBraceMatcher
     {
-        public static IEmbeddedBraceMatcher Instance = new JsonEmbeddedBraceMatcher();
+        private readonly JsonEmbeddedLanguage _language;
 
-        private JsonEmbeddedBraceMatcher()
+        public JsonEmbeddedBraceMatcher(JsonEmbeddedLanguage language)
         {
+            _language = language;
         }
 
         public async Task<EmbeddedBraceMatchingResult?> FindBracesAsync(
@@ -40,8 +41,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = JsonPatternDetector.GetOrCreate(
-                semanticModel, syntaxFacts, document.GetLanguageService<ISemanticFactsService>(), document.GetLanguageService<IVirtualCharService>());
+            var detector = JsonPatternDetector.GetOrCreate(semanticModel, _language);
             if (!detector.IsDefinitelyJson(token, cancellationToken))
             {
                 return default;

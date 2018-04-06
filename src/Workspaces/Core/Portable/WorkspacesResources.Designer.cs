@@ -720,6 +720,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable JSON editor features.
+        /// </summary>
+        internal static string Enable_JSON_editor_features {
+            get {
+                return ResourceManager.GetString("Enable_JSON_editor_features", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enum.
         /// </summary>
         internal static string Enum {
@@ -1328,6 +1337,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Private_or_Internal_Static_Field {
             get {
                 return ResourceManager.GetString("Private_or_Internal_Static_Field", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Probable JSON string detected.
+        /// </summary>
+        internal static string Probable_JSON_string_detected {
+            get {
+                return ResourceManager.GetString("Probable_JSON_string_detected", resourceCulture);
             }
         }
         

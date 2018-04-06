@@ -2,14 +2,14 @@
 
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ValidateJsonString;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
-namespace Microsoft.CodeAnalysis.CSharp.ValidateEmbeddedLanguageString
+namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpValidateEmbeddedLanguageStringDiagnosticAnalyzer : AbstractValidateEmbeddedLanguageStringDiagnosticAnalyzer
+    internal class CSharpEmbeddedLanguageDiagnosticAnalyzer : AbstractEmbeddedLanguageDiagnosticAnalyzer
     {
-        public CSharpValidateEmbeddedLanguageStringDiagnosticAnalyzer() 
+        public CSharpEmbeddedLanguageDiagnosticAnalyzer()
             : base(CSharpEmbeddedLanguageProvider.Instance)
         {
         }

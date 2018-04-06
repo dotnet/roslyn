@@ -1036,15 +1036,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable JSON editor features.
-        /// </summary>
-        internal static string Enable_JSON_editor_features {
-            get {
-                return ResourceManager.GetString("Enable_JSON_editor_features", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Encapsulate field: &apos;{0}&apos; (and use property).
         /// </summary>
         internal static string Encapsulate_field_colon_0_and_use_property {
@@ -2496,15 +2487,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Prefer_explicitly_provided_tuple_element_name {
             get {
                 return ResourceManager.GetString("Prefer_explicitly_provided_tuple_element_name", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Probable JSON string detected.
-        /// </summary>
-        internal static string Probable_JSON_string_detected {
-            get {
-                return ResourceManager.GetString("Probable_JSON_string_detected", resourceCulture);
             }
         }
         

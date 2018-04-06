@@ -8,18 +8,34 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 {
     internal class JsonEmbeddedLanguage : IEmbeddedLanguage
     {
+        public int StringLiteralKind { get; }
+        public ISyntaxFactsService SyntaxFacts { get; }
+        public ISemanticFactsService SemanticFacts { get; }
+        public IVirtualCharService VirtualCharService { get; }
+
         public JsonEmbeddedLanguage(
+            AbstractEmbeddedLanguageProvider languageProvider,
             int stringLiteralKind,
             ISyntaxFactsService syntaxFacts,
             ISemanticFactsService semanticFacts,
             IVirtualCharService virtualCharService)
         {
-            Classifier = new JsonEmbeddedClassifier(stringLiteralKind, syntaxFacts, semanticFacts, virtualCharService);
-            DiagnosticAnalyzer = new JsonDiagnosticAnalyzer(stringLiteralKind, syntaxFacts, semanticFacts, virtualCharService);
+            StringLiteralKind = stringLiteralKind;
+            SyntaxFacts = syntaxFacts;
+            SemanticFacts = semanticFacts;
+            VirtualCharService = virtualCharService;
+
+            BraceMatcher = new JsonEmbeddedBraceMatcher(this);
+            Classifier = new JsonEmbeddedClassifier(this);
+            DiagnosticAnalyzer = new AggregateEmbeddedDiagnosticAnalyzer(
+                new JsonDiagnosticAnalyzer(this),
+                new JsonDetectionAnalyzer(this));
+            CodeFixProvider = new JsonEmbeddedCodeFixProvider(languageProvider, this);
         }
 
-        public IEmbeddedBraceMatcher BraceMatcher => JsonEmbeddedBraceMatcher.Instance;
+        public IEmbeddedBraceMatcher BraceMatcher { get; }
         public IEmbeddedClassifier Classifier { get; }
         public IEmbeddedDiagnosticAnalyzer DiagnosticAnalyzer { get; }
+        public IEmbeddedCodeFixProvider CodeFixProvider { get; }
     }
 }

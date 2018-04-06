@@ -66,11 +66,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string MakeFieldReadonlyDiagnosticId = "IDE0044";
 
-        // diagnostic for when we detect a string that should have /*language=json*/ added to it.
-        public const string JsonDetectionDiagnosticId = "IDE0046";
-        // diagnostic for when we have a known json string and we detect something wrong with it.
-        public const string JsonPatternDiagnosticId = "IDE0047";
-
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

@@ -1980,16 +1980,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">indexeur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Probable_JSON_string_detected">
-        <source>Probable JSON string detected</source>
-        <target state="new">Probable JSON string detected</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_JSON_editor_features">
-        <source>Enable JSON editor features</source>
-        <target state="new">Enable JSON editor features</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
         <target state="new">Alias ambiguous type '{0}'</target>

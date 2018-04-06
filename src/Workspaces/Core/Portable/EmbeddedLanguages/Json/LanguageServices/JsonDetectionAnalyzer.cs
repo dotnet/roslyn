@@ -10,22 +10,23 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 {
-    internal class JsonDiagnosticAnalyzer : IEmbeddedDiagnosticAnalyzer
+    internal class JsonDetectionAnalyzer : IEmbeddedDiagnosticAnalyzer
     {
-        public const string DiagnosticId = "JSON001";
+        public const string DiagnosticId = "JSON002";
+        public const string StrictKey = nameof(StrictKey);
 
         private readonly JsonEmbeddedLanguage _language;
         private readonly DiagnosticDescriptor _descriptor;
 
-        public JsonDiagnosticAnalyzer(JsonEmbeddedLanguage language)
+        public JsonDetectionAnalyzer(JsonEmbeddedLanguage language)
         {
             _language = language;
 
             _descriptor = new DiagnosticDescriptor(DiagnosticId,
-                new LocalizableResourceString(nameof(WorkspacesResources.JSON_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
-                new LocalizableResourceString(nameof(WorkspacesResources.JSON_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
+                new LocalizableResourceString(nameof(WorkspacesResources.Probable_JSON_string_detected), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
+                new LocalizableResourceString(nameof(WorkspacesResources.Probable_JSON_string_detected), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                 WorkspacesResources.Style,
-                DiagnosticSeverity.Warning,
+                DiagnosticSeverity.Info,
                 isEnabledByDefault: true);
 
             SupportedDiagnostics = ImmutableArray.Create(_descriptor);
@@ -39,8 +40,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var options = context.Options;
-
-            var option = optionSet.GetOption(JsonOptions.ReportInvalidJsonPatterns, syntaxTree.Options.Language);
+            var option = optionSet.GetOption(JsonOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, syntaxTree.Options.Language);
             if (!option)
             {
                 return;
@@ -68,19 +68,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
                 {
                     var token = child.AsToken();
                     if (token.RawKind == _language.StringLiteralKind &&
-                        detector.IsDefinitelyJson(token, cancellationToken))
+                        !JsonPatternDetector.IsDefinitelyNotJson(token, _language.SyntaxFacts) &&
+                        !detector.IsDefinitelyJson(token, cancellationToken) &&
+                        detector.IsProbablyJson(token))
                     {
-                        var tree = detector.TryParseJson(token);
-                        if (tree != null)
-                        {
-                            foreach (var diag in tree.Diagnostics)
-                            {
-                                context.ReportDiagnostic(Diagnostic.Create(
-                                    _descriptor,
-                                    Location.Create(context.SemanticModel.SyntaxTree, diag.Span),
-                                    diag.Message));
-                            }
-                        }
+                        var chars = _language.VirtualCharService.TryConvertToVirtualChars(token);
+                        var strictTree = JsonParser.TryParse(chars, strict: true);
+                        var properties = strictTree != null && strictTree.Diagnostics.Length == 0
+                            ? ImmutableDictionary<string, string>.Empty.Add(StrictKey, "")
+                            : ImmutableDictionary<string, string>.Empty;
+
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            _descriptor, token.GetLocation(), properties));
                     }
                 }
             }

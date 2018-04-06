@@ -3,21 +3,22 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.ValidateEmbeddedLanguageString;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateJsonString
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
 {
     public class ValidateValidateEmbeddedLanguageStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpValidateEmbeddedLanguageStringDiagnosticAnalyzer(), null);
+            => (new CSharpEmbeddedLanguageDiagnosticAnalyzer(), null);
 
         private IDictionary<OptionKey, object> OptionOn()
         {
@@ -39,7 +40,7 @@ class Program
     }     
 }",
                 options: OptionOn(),
-                diagnosticId: IDEDiagnosticIds.JsonPatternDiagnosticId,
+                diagnosticId: JsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(WorkspacesResources.JSON_issue_0, WorkspacesResources.Constructors_not_allowed));
         }
@@ -56,7 +57,7 @@ class Program
     }     
 }",
                 options: OptionOn(),
-                diagnosticId: IDEDiagnosticIds.JsonPatternDiagnosticId,
+                diagnosticId: JsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(WorkspacesResources.JSON_issue_0, 
                     string.Format(WorkspacesResources._0_unexpected, '}')));

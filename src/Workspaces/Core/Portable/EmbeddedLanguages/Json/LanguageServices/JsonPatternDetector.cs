@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
 {
     /// <summary>
     /// Helper class to detect json in string tokens in a document efficiently.
@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             new ConditionalWeakTable<SemanticModel, JsonPatternDetector>();
 
         private readonly SemanticModel _semanticModel;
-        private readonly ISyntaxFactsService _syntaxFacts;
-        private readonly ISemanticFactsService _semanticFacts;
-        private readonly IVirtualCharService _virtualCharService;
+        private readonly JsonEmbeddedLanguage _language;
         private readonly ISet<INamedTypeSymbol> _typesOfInterest;
 
         /// <summary>
@@ -48,23 +46,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         public JsonPatternDetector(
             SemanticModel semanticModel,
-            ISyntaxFactsService syntaxFacts,
-            ISemanticFactsService semanticFacts,
-            IVirtualCharService virtualCharService,
+            JsonEmbeddedLanguage language,
             ISet<INamedTypeSymbol> typesOfInterest)
         {
             _semanticModel = semanticModel;
-            _syntaxFacts = syntaxFacts;
-            _semanticFacts = semanticFacts;
-            _virtualCharService = virtualCharService;
+            _language = language;
             _typesOfInterest = typesOfInterest;
         }
 
         public static JsonPatternDetector GetOrCreate(
-            SemanticModel semanticModel,
-            ISyntaxFactsService syntaxFacts,
-            ISemanticFactsService semanticFacts,
-            IVirtualCharService virtualCharService)
+            SemanticModel semanticModel, JsonEmbeddedLanguage language)
         {
             // Do a quick non-allocating check first.
             if (_modelToDetector.TryGetValue(semanticModel, out var detector))
@@ -73,18 +64,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
 
             return _modelToDetector.GetValue(
-                semanticModel, _ => Create(semanticModel, syntaxFacts, semanticFacts, virtualCharService));
+                semanticModel, _ => Create(semanticModel, language));
         }
 
         private static JsonPatternDetector Create(
-            SemanticModel semanticModel,
-            ISyntaxFactsService syntaxFacts,
-            ISemanticFactsService semanticFacts,
-            IVirtualCharService virtualCharService)
+            SemanticModel semanticModel, JsonEmbeddedLanguage language)
         {
             var types = _typeNamesOfInterest.Select(t => semanticModel.Compilation.GetTypeByMetadataName(t)).WhereNotNull().ToSet();
             return new JsonPatternDetector(
-                semanticModel, syntaxFacts, semanticFacts, virtualCharService, types);
+                semanticModel, language, types);
         }
 
         public static bool IsDefinitelyNotJson(SyntaxToken token, ISyntaxFactsService syntaxFacts)
@@ -174,17 +162,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         public bool IsDefinitelyJson(SyntaxToken token, CancellationToken cancellationToken)
         {
-            if (IsDefinitelyNotJson(token, _syntaxFacts))
+            var syntaxFacts = _language.SyntaxFacts;
+            if (IsDefinitelyNotJson(token, syntaxFacts))
             {
                 return false;
             }
 
-            if (HasJsonLanguageComment(token, _syntaxFacts, out _))
+            if (HasJsonLanguageComment(token, syntaxFacts, out _))
             {
                 return true;
             }
 
-            if (!IsMethodArgument(token, _syntaxFacts))
+            if (!IsMethodArgument(token, syntaxFacts))
             {
                 return false;
             }
@@ -192,15 +181,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             var stringLiteral = token;
             var literalNode = stringLiteral.Parent;
             var argumentNode = literalNode.Parent;
-            Debug.Assert(_syntaxFacts.IsArgument(argumentNode));
+            Debug.Assert(syntaxFacts.IsArgument(argumentNode));
 
             var argumentList = argumentNode.Parent;
             var invocationOrCreation = argumentList.Parent;
-            if (_syntaxFacts.IsInvocationExpression(invocationOrCreation))
+            if (syntaxFacts.IsInvocationExpression(invocationOrCreation))
             {
-                var invokedExpression = _syntaxFacts.GetExpressionOfInvocationExpression(invocationOrCreation);
+                var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(invocationOrCreation);
                 var name = GetNameOfInvokedExpression(invokedExpression);
-                if (_syntaxFacts.StringComparer.Equals(name, _methodNameOfInterest))
+                if (syntaxFacts.StringComparer.Equals(name, _methodNameOfInterest))
                 {
                     // Is a string argument to a method that looks like it could be a json-parsing
                     // method. Need to do deeper analysis
@@ -221,14 +210,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
         public JsonTree TryParseJson(SyntaxToken token)
         {
-            if (IsDefinitelyNotJson(token, _syntaxFacts))
+            var syntaxFacts = _language.SyntaxFacts;
+            if (IsDefinitelyNotJson(token, syntaxFacts))
             {
                 return null;
             }
 
-            HasJsonLanguageComment(token, _syntaxFacts, out var strict);
+            HasJsonLanguageComment(token, syntaxFacts, out var strict);
 
-            var chars = _virtualCharService.TryConvertToVirtualChars(token);
+            var chars = _language.VirtualCharService.TryConvertToVirtualChars(token);
             if (chars.IsDefaultOrEmpty)
             {
                 return null;
@@ -240,19 +230,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private bool IsArgumentToParameterWithName(
             SyntaxNode argumentNode, string name, CancellationToken cancellationToken)
         {
-            var parameter = _semanticFacts.FindParameterForArgument(_semanticModel, argumentNode, cancellationToken);
+            var parameter = _language.SemanticFacts.FindParameterForArgument(_semanticModel, argumentNode, cancellationToken);
             return parameter?.Name == name;
         }
 
         private string GetNameOfInvokedExpression(SyntaxNode invokedExpression)
         {
-            if (_syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
+            var syntaxFacts = _language.SyntaxFacts;
+            if (syntaxFacts.IsSimpleMemberAccessExpression(invokedExpression))
             {
-                return _syntaxFacts.GetIdentifierOfSimpleName(_syntaxFacts.GetNameOfMemberAccessExpression(invokedExpression)).ValueText;
+                return syntaxFacts.GetIdentifierOfSimpleName(syntaxFacts.GetNameOfMemberAccessExpression(invokedExpression)).ValueText;
             }
-            else if (_syntaxFacts.IsIdentifierName(invokedExpression))
+            else if (syntaxFacts.IsIdentifierName(invokedExpression))
             {
-                return _syntaxFacts.GetIdentifierOfSimpleName(invokedExpression).ValueText;
+                return syntaxFacts.GetIdentifierOfSimpleName(invokedExpression).ValueText;
             }
 
             return null;

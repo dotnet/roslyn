@@ -19,25 +19,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
     internal class JsonEmbeddedClassifier : IEmbeddedClassifier
     {
         private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
+        private readonly JsonEmbeddedLanguage _language;
 
-        private readonly int _stringLiteralKind;
-        private readonly ISyntaxFactsService _syntaxFacts;
-        private readonly ISemanticFactsService _semanticFacts;
-        private readonly IVirtualCharService _virtualCharService;
-
-        public JsonEmbeddedClassifier(int stringLiteralKind, ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, IVirtualCharService virtualCharService)
+        public JsonEmbeddedClassifier(JsonEmbeddedLanguage language)
         {
-            _stringLiteralKind = stringLiteralKind;
-            _syntaxFacts = syntaxFacts;
-            _semanticFacts = semanticFacts;
-            _virtualCharService = virtualCharService;
+            _language = language;
         }
 
         public void AddClassifications(
             Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(token.RawKind == _stringLiteralKind);
+            Debug.Assert(token.RawKind == _language.StringLiteralKind);
 
             if (!workspace.Options.GetOption(JsonOptions.ColorizeJsonPatterns, token.Language))
             {
@@ -45,12 +38,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             }
 
             // Do some quick syntactic checks before doing any complex work.
-            if (JsonPatternDetector.IsDefinitelyNotJson(token, _syntaxFacts))
+            if (JsonPatternDetector.IsDefinitelyNotJson(token, _language.SyntaxFacts))
             {
                 return;
             }
 
-            var detector = JsonPatternDetector.GetOrCreate(semanticModel, _syntaxFacts, _semanticFacts, _virtualCharService);
+            var detector = JsonPatternDetector.GetOrCreate(semanticModel, _language);
             if (!detector.IsDefinitelyJson(token, cancellationToken))
             {
                 return;
