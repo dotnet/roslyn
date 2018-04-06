@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
 {
     [ExportBraceMatcher(LanguageNames.CSharp)]
-    internal class CSharpEmbeddedLanguageMatcher : AbstractEmbeddedLanguageBraceMatcher
+    internal class CSharpEmbeddedLanguageBraceMatcher : AbstractEmbeddedLanguageBraceMatcher
     {
     }
 }
