@@ -9,10 +9,6 @@
     <AssemblyName>Microsoft.CodeAnalysis.Features</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="JsonStringDetector\**" />
-    <EmbeddedResource Remove="JsonStringDetector\**" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj" />
