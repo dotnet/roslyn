@@ -363,9 +363,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 (receiverType.IsNullableType() && expression.HasValueMethodOpt != null), "conditional receiver cannot be a struct");
 
             var receiverConstant = receiver.ConstantValue;
-            if (receiverConstant != null)
+            if (receiverConstant?.IsNull == false)
             {
-                // const but not default, must be a reference type
+                // const but not null, must be a reference type
                 Debug.Assert(receiverType.IsVerifierReference());
                 // receiver is a reference type, so addresskind does not matter, but we do not intend to write.
                 receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly);
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var temp = EmitAddress(expression.Operand, AddressKind.ReadOnlyStrict);
             Debug.Assert(temp == null, "If the operand is addressable, then a temp shouldn't be required.");
 
-            if (used)
+            if (used && !expression.IsManaged)
             {
                 // When computing an address to be used to initialize a fixed-statement variable, we have to be careful
                 // not to convert the managed reference to an unmanaged pointer before storing it.  Otherwise the GC might
@@ -813,14 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 foreach (var se in sideEffects)
                 {
-                    if (se is BoundExpression e)
-                    {
-                        EmitExpression(e, false);
-                    }
-                    else
-                    {
-                        EmitStatement((BoundStatement)se);
-                    }
+                    EmitExpression(se, false);
                 }
             }
         }

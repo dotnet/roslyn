@@ -180,6 +180,7 @@
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustive:
+                case ErrorCode.WRN_IsTypeNamedUnderscore:
                     return true;
                 default:
                     return false;

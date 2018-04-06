@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
+        private bool _needsSpilling;
         private readonly DiagnosticBag _diagnostics;
         private readonly Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _compilation = compilation;
             _factory = factory;
-            _factory.CurrentMethod = containingMethod;
+            _factory.CurrentFunction = containingMethod;
             Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
             _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             _previousSubmissionFields = previousSubmissionFields;
@@ -92,10 +93,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
                                                       dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
 
+                statement.CheckLocalsDefined();
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
+                loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
+
+                if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
+                {
+                    // Move spill sequences to a top-level statement. This handles "lifting" await and the switch expression.
+                    // PROTOTYPE(patterns2): should this be something that the caller does? It isn't really a "local" rewrite.
+                    var spilledStatement = SpillSequenceSpiller.Rewrite(loweredStatement, method, compilationState, diagnostics);
+                    spilledStatement.CheckLocalsDefined();
+                    loweredStatement = spilledStatement;
+                }
+
                 if (dynamicInstrumenter != null)
                 {
                     dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
@@ -217,15 +230,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sawLambdas = true;
             CheckRefReadOnlySymbols(node.Symbol);
 
-            var oldContainingSymbol = _factory.CurrentMethod;
+            var oldContainingSymbol = _factory.CurrentFunction;
             try
             {
-                _factory.CurrentMethod = node.Symbol;
+                _factory.CurrentFunction = node.Symbol;
                 return base.VisitLambda(node);
             }
             finally
             {
-                _factory.CurrentMethod = oldContainingSymbol;
+                _factory.CurrentFunction = oldContainingSymbol;
             }
         }
 
@@ -234,15 +247,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sawLocalFunctions = true;
             CheckRefReadOnlySymbols(node.Symbol);
 
-            var oldContainingSymbol = _factory.CurrentMethod;
+            var oldContainingSymbol = _factory.CurrentFunction;
             try
             {
-                _factory.CurrentMethod = node.Symbol;
+                _factory.CurrentFunction = node.Symbol;
                 return base.VisitLocalFunctionStatement(node);
             }
             finally
             {
-                _factory.CurrentMethod = oldContainingSymbol;
+                _factory.CurrentFunction = oldContainingSymbol;
             }
         }
 
@@ -453,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (statements[i] == null || (optimize && IsFieldOrPropertyInitializer(originalStatements[i]) && ShouldOptimizeOutInitializer(statements[i])))
                 {
                     optimizedInitializers++;
-                    if (!_factory.CurrentMethod.IsStatic)
+                    if (!_factory.CurrentFunction.IsStatic)
                     {
                         // NOTE: Dev11 removes static initializers if ONLY all of them are optimized out
                         statements[i] = null;

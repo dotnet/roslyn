@@ -944,6 +944,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Field preferences:.
+        /// </summary>
+        internal static string Field_preferences_colon {
+            get {
+                return ResourceManager.GetString("Field_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File already exists.
         /// </summary>
         internal static string File_already_exists {
@@ -1804,6 +1813,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer readonly.
+        /// </summary>
+        internal static string Prefer_readonly {
+            get {
+                return ResourceManager.GetString("Prefer_readonly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer simple &apos;default&apos; expression.
         /// </summary>
         internal static string Prefer_simple_default_expression {
@@ -2224,6 +2242,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Snippet Command Handler.
+        /// </summary>
+        internal static string Snippet_Command_Handler {
+            get {
+                return ResourceManager.GetString("Snippet_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Some naming rules are incomplete. Please complete or remove them..
         /// </summary>
         internal static string Some_naming_rules_are_incomplete_Please_complete_or_remove_them {
@@ -2319,6 +2346,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Symbol_Specification_Title_colon {
             get {
                 return ResourceManager.GetString("Symbol_Specification_Title_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sync Class View Command Handler.
+        /// </summary>
+        internal static string Sync_Class_View_Command_Handler {
+            get {
+                return ResourceManager.GetString("Sync_Class_View_Command_Handler", resourceCulture);
             }
         }
         

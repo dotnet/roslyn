@@ -1151,17 +1151,19 @@ y
         }
 
         [Fact]
-        public void TestStackAllocArrayInitializer()
+        public void TestImplicitStackAllocArrayInitializer()
         {
             var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C {
     static void Main()
     {
+        int z = 1;
         int y = 1;
         var x = stackalloc[] { 
 /*<bind>*/
 y
 /*</bind>*/
+, z++
         };
     }
 }
@@ -1171,9 +1173,37 @@ y
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-            Assert.Equal("y, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+            Assert.Equal("z, y, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact]
+        public void TestStackAllocArrayInitializer()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    static void Main()
+    {
+        int z = 1;
+        int y = 1;
+        var x = stackalloc int[] { 
+/*<bind>*/
+y
+/*</bind>*/
+, z++
+        };
+    }
+}
+");
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("z, y, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
         [WorkItem(539286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")]

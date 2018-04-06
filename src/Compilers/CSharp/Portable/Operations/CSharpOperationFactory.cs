@@ -773,11 +773,14 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             IMethodSymbol symbol = boundLocalFunctionStatement.Symbol;
             Lazy<IBlockOperation> body = new Lazy<IBlockOperation>(() => (IBlockOperation)Create(boundLocalFunctionStatement.Body));
+            Lazy<IBlockOperation> ignoredBody = new Lazy<IBlockOperation>(() => boundLocalFunctionStatement.BlockBody != null && boundLocalFunctionStatement.ExpressionBody != null ?
+                                                                                        (IBlockOperation)Create(boundLocalFunctionStatement.ExpressionBody) :
+                                                                                        null);
             SyntaxNode syntax = boundLocalFunctionStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundLocalFunctionStatement.WasCompilerGenerated;
-            return new LazyLocalFunctionStatement(symbol, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyLocalFunctionStatement(symbol, body, ignoredBody, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IOperation CreateBoundConversionOperation(BoundConversion boundConversion)
@@ -1827,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 Debug.Assert(boundPatternSwitchLabel.Pattern.Kind == BoundKind.DiscardPattern);
                 return new DefaultCaseClause(_semanticModel, syntax, type, constantValue, isImplicit);
             }
-            else if (boundPatternSwitchLabel.Guard == null &&
+            else if (boundPatternSwitchLabel.WhenClause == null &&
                      boundPatternSwitchLabel.Pattern.Kind == BoundKind.ConstantPattern &&
                      boundPatternSwitchLabel.Pattern is BoundConstantPattern cp &&
                      cp.Value.Type.IsValidV6SwitchGoverningType())
@@ -1839,7 +1842,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 LabelSymbol label = boundPatternSwitchLabel.Label;
                 Lazy<IPatternOperation> pattern = new Lazy<IPatternOperation>(() => (IPatternOperation)Create(boundPatternSwitchLabel.Pattern));
-                Lazy<IOperation> guardExpression = new Lazy<IOperation>(() => Create(boundPatternSwitchLabel.Guard));
+                Lazy<IOperation> guardExpression = new Lazy<IOperation>(() => Create(boundPatternSwitchLabel.WhenClause));
                 return new LazyPatternCaseClause(label, pattern, guardExpression, _semanticModel, syntax, type, constantValue, isImplicit);
             }
         }

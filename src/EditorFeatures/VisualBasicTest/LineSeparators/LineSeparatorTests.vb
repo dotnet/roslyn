@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
+    <[UseExportProvider]>
     Public Class LineSeparatorTests
         <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestNoLinesInEmptyFile() As Task

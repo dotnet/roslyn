@@ -201,6 +201,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
+        Public Function IsLocalFunction(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalFunction
+            Return False
+        End Function
+
         Public Function IsGenericName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsGenericName
             Return TypeOf node Is GenericNameSyntax
         End Function
@@ -299,6 +303,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsQueryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsQueryExpression
             Return node.Kind() = SyntaxKind.QueryExpression
+        End Function
+
+        Public Function IsQueryKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsQueryKeyword
+            Select Case token.Kind()
+                Case SyntaxKind.GroupKeyword,
+                     SyntaxKind.JoinKeyword,
+                     SyntaxKind.IntoKeyword,
+                     SyntaxKind.AggregateKeyword,
+                     SyntaxKind.DistinctKeyword,
+                     SyntaxKind.SkipKeyword,
+                     SyntaxKind.TakeKeyword,
+                     SyntaxKind.LetKeyword,
+                     SyntaxKind.ByKeyword,
+                     SyntaxKind.OrderKeyword,
+                     SyntaxKind.EqualsKeyword,
+                     SyntaxKind.AscendingKeyword,
+                     SyntaxKind.DescendingKeyword,
+                     SyntaxKind.WhereKeyword
+                    Return True
+                Case SyntaxKind.InKeyword
+                    Select Case token.Parent.Kind()
+                        Case SyntaxKind.FromClause,
+                             SyntaxKind.SimpleJoinClause,
+                             SyntaxKind.GroupJoinClause
+                            Return True
+                        Case Else
+                            Return False ' e.g. ForEach ... in
+                    End Select
+                Case SyntaxKind.OnKeyword
+                    Select Case token.Parent.Kind()
+                        Case SyntaxKind.SimpleJoinClause,
+                             SyntaxKind.GroupJoinClause
+                            Return True
+                        Case Else
+                            Return False ' e.g. On Error Goto
+                    End Select
+                Case SyntaxKind.FromKeyword
+                    Return token.Parent.Kind() = SyntaxKind.FromClause ' False for e.g. Object collection initializer
+                Case SyntaxKind.WhileKeyword
+                    Select Case token.Parent.Kind()
+                        Case SyntaxKind.SkipWhileClause,
+                             SyntaxKind.TakeWhileClause
+                            Return True
+                        Case Else
+                            Return False ' e.g. Exit While
+                    End Select
+                Case SyntaxKind.SelectKeyword
+                    Return token.Parent.Kind() = SyntaxKind.SelectClause ' False for e.g. Select Case
+                Case Else
+                    Return False
+            End Select
         End Function
 
         Public Function IsThrowExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsThrowExpression
@@ -582,9 +637,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return RefKind.None
         End Function
 
+        Public Function IsArgument(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsArgument
+            Return TypeOf node Is ArgumentSyntax
+        End Function
+
         Public Function IsSimpleArgument(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSimpleArgument
-            Dim argument = DirectCast(node, ArgumentSyntax)
-            Return Not argument.IsNamed AndAlso Not argument.IsOmitted
+            Dim argument = TryCast(node, ArgumentSyntax)
+            Return argument IsNot Nothing AndAlso Not argument.IsNamed AndAlso Not argument.IsOmitted
         End Function
 
         Public Function IsInConstantContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInConstantContext
@@ -1446,6 +1505,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.IsKind(SyntaxKind.LocalDeclarationStatement)
         End Function
 
+        Public Function IsLocalFunctionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalFunctionStatement
+            ' VB does not have local funtions
+            Return False
+        End Function
+
         Public Function IsDeclaratorOfLocalDeclarationStatement(declarator As SyntaxNode, localDeclarationStatement As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDeclaratorOfLocalDeclarationStatement
             Return DirectCast(localDeclarationStatement, LocalDeclarationStatementSyntax).Declarators.
                 Contains(DirectCast(declarator, VariableDeclaratorSyntax))
@@ -1686,6 +1750,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetInitializerOfVariableDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetInitializerOfVariableDeclarator
             Return DirectCast(node, VariableDeclaratorSyntax).Initializer
+        End Function
+
+        Public Function GetTypeOfVariableDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetTypeOfVariableDeclarator
+            Dim declarator = DirectCast(node, VariableDeclaratorSyntax)
+            Return TryCast(declarator.AsClause, SimpleAsClauseSyntax)?.Type
         End Function
 
         Public Function GetValueOfEqualsValueClause(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetValueOfEqualsValueClause

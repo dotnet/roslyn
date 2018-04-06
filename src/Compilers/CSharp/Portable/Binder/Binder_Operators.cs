@@ -727,16 +727,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(kind == BinaryOperatorKind.LogicalAnd || kind == BinaryOperatorKind.LogicalOr);
 
-            // If either operand is bad, don't try to do binary operator overload resolution; that will just
-            // make cascading errors.  
-
-            if (left.HasAnyErrors || right.HasAnyErrors)
-            {
-                // NOTE: no candidate user-defined operators.
-                return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, methodOpt: null,
-                    resultKind: LookupResultKind.Empty, type: GetBinaryOperatorErrorType(kind, diagnostics, node), hasErrors: true);
-            }
-
             // Let's take an easy out here. The vast majority of the time the operands will
             // both be bool. This is the only situation in which the expression can be a 
             // constant expression, so do the folding now if we can.
@@ -749,6 +739,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE: no candidate user-defined operators.
                 return new BoundBinaryOperator(node, kind | BinaryOperatorKind.Bool, left, right, constantValue, methodOpt: null,
                     resultKind: LookupResultKind.Viable, type: left.Type, hasErrors: constantValue != null && constantValue.IsBad);
+            }
+
+            // If either operand is bad, don't try to do binary operator overload resolution; that will just
+            // make cascading errors.
+
+            if (left.HasAnyErrors || right.HasAnyErrors)
+            {
+                // NOTE: no candidate user-defined operators.
+                return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, methodOpt: null,
+                    resultKind: LookupResultKind.Empty, type: GetBinaryOperatorErrorType(kind, diagnostics, node), hasErrors: true);
             }
 
             if (left.HasDynamicType() || right.HasDynamicType())
@@ -2736,6 +2736,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operandHasErrors || IsOperatorErrors(node, operand.Type, typeExpression, diagnostics))
             {
                 return new BoundIsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
+            }
+
+            if (node.Right is IdentifierNameSyntax name && name.Identifier.Text == "_")
+            {
+                // PROTOTYPE(patterns2): Need compat council confirmation that this new warning in existing code is acceptable.
+                diagnostics.Add(ErrorCode.WRN_IsTypeNamedUnderscore, name.Location, alias ?? (Symbol)targetType);
             }
 
             // Is and As operator should have null ConstantValue as they are not constant expressions.

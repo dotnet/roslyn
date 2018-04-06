@@ -4361,8 +4361,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorArgType">
-        <source>Iterators cannot have ref or out parameters</source>
-        <target state="translated">迭代器不能有 ref 或 out 參數</target>
+        <source>Iterators cannot have ref, in or out parameters</source>
+        <target state="needs-review-translation">迭代器不能有 ref 或 out 參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturn">
@@ -5231,8 +5231,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByRefParameterInExpressionTree">
-        <source>An expression tree lambda may not contain an out or ref parameter</source>
-        <target state="translated">運算式樹狀架構 Lambda 不可包含 out 或 ref 參數</target>
+        <source>An expression tree lambda may not contain a ref, in or out parameter</source>
+        <target state="needs-review-translation">運算式樹狀架構 Lambda 不可包含 out 或 ref 參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarArgsInExpressionTree">
@@ -5794,8 +5794,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
-        <source>Async methods cannot have ref or out parameters</source>
-        <target state="translated">非同步方法不可出現 ref 或 out 參數</target>
+        <source>Async methods cannot have ref, in or out parameters</source>
+        <target state="needs-review-translation">非同步方法不可出現 ref 或 out 參數</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsync">
@@ -8592,7 +8592,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
-        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <target state="translated">雜湊演算法名稱無效: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
@@ -8695,6 +8695,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="new">declaration of expression variables in member initializers and queries</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExprCannotBeFixed">
+        <source>The given expression cannot be used in a fixed statement</source>
+        <target state="new">The given expression cannot be used in a fixed statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensibleFixedStatement">
+        <source>extensible fixed statement</source>
+        <target state="new">extensible fixed statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
+        <source>indexing movable fixed buffers</source>
+        <target state="new">indexing movable fixed buffers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidObjectCreation">
+        <source>Invalid object creation</source>
+        <target state="new">Invalid object creation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureIsExperimental">
         <source>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</source>
         <target state="new">Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</target>
@@ -8768,6 +8788,31 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="new">The switch expression does not handle all possible inputs (it is not exhaustive).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
+        <source>An expression tree may not contain a switch expression.</source>
+        <target state="new">An expression tree may not contain a switch expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnderscoreDeclaredAndDiscardPattern">
+        <source>The discard pattern '_' cannot be used where '{0}' is in scope.</source>
+        <target state="new">The discard pattern '_' cannot be used where '{0}' is in scope.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ConstantPatternNamedUnderscore">
+        <source>A constant named '_' cannot be used as a pattern.</source>
+        <target state="new">A constant named '_' cannot be used as a pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsTypeNamedUnderscore">
+        <source>The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</source>
+        <target state="new">The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsTypeNamedUnderscore_Title">
+        <source>Do not use '_' to refer to the type in an is-type expression.</source>
+        <target state="new">Do not use '_' to refer to the type in an is-type expression.</target>
         <note />
       </trans-unit>
     </body>

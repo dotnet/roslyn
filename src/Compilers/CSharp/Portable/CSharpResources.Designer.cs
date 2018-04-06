@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async methods cannot have ref or out parameters.
+        ///   Looks up a localized string similar to Async methods cannot have ref, in or out parameters.
         /// </summary>
         internal static string ERR_BadAsyncArgType {
             get {
@@ -1619,7 +1619,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Iterators cannot have ref or out parameters.
+        ///   Looks up a localized string similar to Iterators cannot have ref, in or out parameters.
         /// </summary>
         internal static string ERR_BadIteratorArgType {
             get {
@@ -2357,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree lambda may not contain an out or ref parameter.
+        ///   Looks up a localized string similar to An expression tree lambda may not contain a ref, in or out parameter.
         /// </summary>
         internal static string ERR_ByRefParameterInExpressionTree {
             get {
@@ -3046,6 +3046,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ConstantExpected {
             get {
                 return ResourceManager.GetString("ERR_ConstantExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A constant named &apos;_&apos; cannot be used as a pattern..
+        /// </summary>
+        internal static string ERR_ConstantPatternNamedUnderscore {
+            get {
+                return ResourceManager.GetString("ERR_ConstantPatternNamedUnderscore", resourceCulture);
             }
         }
         
@@ -4292,6 +4301,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The given expression cannot be used in a fixed statement.
+        /// </summary>
+        internal static string ERR_ExprCannotBeFixed {
+            get {
+                return ResourceManager.GetString("ERR_ExprCannotBeFixed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected expression.
         /// </summary>
         internal static string ERR_ExpressionExpected {
@@ -4441,6 +4459,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ExpressionTreeContainsPointerOp {
             get {
                 return ResourceManager.GetString("ERR_ExpressionTreeContainsPointerOp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression tree may not contain a switch expression..
+        /// </summary>
+        internal static string ERR_ExpressionTreeContainsSwitchExpression {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionTreeContainsSwitchExpression", resourceCulture);
             }
         }
         
@@ -5935,6 +5962,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InvalidNumber {
             get {
                 return ResourceManager.GetString("ERR_InvalidNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid object creation.
+        /// </summary>
+        internal static string ERR_InvalidObjectCreation {
+            get {
+                return ResourceManager.GetString("ERR_InvalidObjectCreation", resourceCulture);
             }
         }
         
@@ -9719,6 +9755,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The discard pattern &apos;_&apos; cannot be used where &apos;{0}&apos; is in scope..
+        /// </summary>
+        internal static string ERR_UnderscoreDeclaredAndDiscardPattern {
+            get {
+                return ResourceManager.GetString("ERR_UnderscoreDeclaredAndDiscardPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A &apos;{0}&apos; character must be escaped (by doubling) in an interpolated string..
         /// </summary>
         internal static string ERR_UnescapedCurly {
@@ -10647,6 +10692,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to extensible fixed statement.
+        /// </summary>
+        internal static string IDS_FeatureExtensibleFixedStatement {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExtensibleFixedStatement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to extension method.
         /// </summary>
         internal static string IDS_FeatureExtensionMethod {
@@ -10706,6 +10760,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureImplicitLocal {
             get {
                 return ResourceManager.GetString("IDS_FeatureImplicitLocal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to indexing movable fixed buffers.
+        /// </summary>
+        internal static string IDS_FeatureIndexingMovableFixedBuffers {
+            get {
+                return ResourceManager.GetString("IDS_FeatureIndexingMovableFixedBuffers", resourceCulture);
             }
         }
         
@@ -13804,6 +13867,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_IsDynamicIsConfusing_Title {
             get {
                 return ResourceManager.GetString("WRN_IsDynamicIsConfusing_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name &apos;_&apos; refers to the type &apos;{0}&apos;, not the discard pattern. Use &apos;@_&apos; for the type, or &apos;var _&apos; to discard..
+        /// </summary>
+        internal static string WRN_IsTypeNamedUnderscore {
+            get {
+                return ResourceManager.GetString("WRN_IsTypeNamedUnderscore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not use &apos;_&apos; to refer to the type in an is-type expression..
+        /// </summary>
+        internal static string WRN_IsTypeNamedUnderscore_Title {
+            get {
+                return ResourceManager.GetString("WRN_IsTypeNamedUnderscore_Title", resourceCulture);
             }
         }
         

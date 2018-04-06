@@ -2246,14 +2246,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var se in sideEffects)
                 {
-                    if (se is BoundExpression e)
-                    {
-                        VisitRvalue(e);
-                    }
-                    else
-                    {
-                        VisitStatement((BoundStatement)se);
-                    }
+                    VisitRvalue(se);
+                }
+            }
+
+            VisitRvalue(node.Value);
+            return null;
+        }
+
+        public override BoundNode VisitSpillSequence(BoundSpillSequence node)
+        {
+            var sideEffects = node.SideEffects;
+            if (!sideEffects.IsEmpty)
+            {
+                foreach (var se in sideEffects)
+                {
+                    VisitStatement(se);
                 }
             }
 
@@ -2764,9 +2772,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetState(dispatchState.Clone());
                 VisitPattern(node.Expression, arm.Pattern);
                 SetState(StateWhenTrue);
-                if (arm.Guard != null)
+                if (arm.Pattern.HasErrors)
                 {
-                    VisitCondition(arm.Guard);
+                    // suppress definite assignment errors on broken switch arms
+                    SetUnreachable();
+                }
+                if (arm.WhenClause != null)
+                {
+                    VisitCondition(arm.WhenClause);
                     SetState(StateWhenTrue);
                 }
 
@@ -2778,15 +2791,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitConstructorMethodBody(BoundConstructorMethodBody node)
+        public override BoundNode VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node)
         {
-            Visit(node.Initializer);
             VisitMethodBodies(node.BlockBody, node.ExpressionBody);
             return null;
         }
 
-        public override BoundNode VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node)
+        public override BoundNode VisitConstructorMethodBody(BoundConstructorMethodBody node)
         {
+            Visit(node.Initializer);
             VisitMethodBodies(node.BlockBody, node.ExpressionBody);
             return null;
         }

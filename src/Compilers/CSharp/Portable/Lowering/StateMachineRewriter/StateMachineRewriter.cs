@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected FieldSymbol stateField;
         protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
         protected int nextFreeHoistedLocalSlot;
-        protected IReadOnlySet<Symbol> hoistedVariables;
+        protected IOrderedReadOnlySet<Symbol> hoistedVariables;
         protected Dictionary<Symbol, CapturedSymbolReplacement> initialParameters;
 
         protected StateMachineRewriter(
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (local.RefKind != RefKind.None)
                     {
                         // we'll create proxies for these variables later:
-                        Debug.Assert(synthesizedKind == SynthesizedLocalKind.AwaitSpill);
+                        Debug.Assert(synthesizedKind == SynthesizedLocalKind.Spill);
                         continue;
                     }
 
@@ -257,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement GenerateKickoffMethodBody()
         {
-            F.CurrentMethod = method;
+            F.CurrentFunction = method;
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
             var frameType = method.IsGenericMethod ? stateMachineType.Construct(method.TypeArguments) : stateMachineType;
@@ -302,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = new SynthesizedStateMachineDebuggerHiddenMethod(methodName, methodToImplement, (StateMachineTypeSymbol)F.CurrentType, null, hasMethodBodyDependency);
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result);
-            F.CurrentMethod = result;
+            F.CurrentFunction = result;
             return result;
         }
 
@@ -314,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var getter = prop.GetMethod;
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, getter);
 
-            F.CurrentMethod = getter;
+            F.CurrentFunction = getter;
             return getter;
         }
 
@@ -322,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = new SynthesizedStateMachineMoveNextMethod(methodToImplement, (StateMachineTypeSymbol)F.CurrentType);
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result);
-            F.CurrentMethod = result;
+            F.CurrentFunction = result;
             return result;
         }
     }

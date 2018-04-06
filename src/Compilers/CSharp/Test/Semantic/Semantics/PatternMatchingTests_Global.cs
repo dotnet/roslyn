@@ -3515,7 +3515,7 @@ class H
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
         public void GlobalCode_LabeledStatement_06()
         {
             string source =
@@ -7267,10 +7267,7 @@ var r11 = from x1 in new[] { 1 is var y11 ? y11 : 0}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z9").WithArguments("z9").WithLocation(82, 7),
                 // (83,7): error CS0103: The name 'u9' does not exist in the current context
                 // Dummy(u9); 
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(83, 7),
-                // (62,46): error CS0165: Use of unassigned local variable 'u7'
-                //                     x > y7 && 1 is var u7 && u7 == 
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "u7").WithArguments("u7").WithLocation(62, 46)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "u9").WithArguments("u9").WithLocation(83, 7)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();

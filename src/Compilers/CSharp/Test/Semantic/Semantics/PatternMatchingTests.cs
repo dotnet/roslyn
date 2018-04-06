@@ -4359,9 +4359,15 @@ public class C
                 // (12,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
                 //             case _:
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(12, 18),
+                // (9,29): error CS8412: A constant named '_' cannot be used as a pattern.
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_ConstantPatternNamedUnderscore, "_").WithLocation(9, 29),
                 // (9,29): error CS0150: A constant value is expected
                 //         Write($"is _: {i is _}, ");
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29),
+                // (12,18): error CS8411: The discard pattern '_' cannot be used where '_' is in scope.
+                //             case _:
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("_").WithLocation(12, 18)
                 );
         }
 

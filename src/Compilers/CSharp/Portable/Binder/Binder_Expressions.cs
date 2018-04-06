@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -522,8 +521,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindAnonymousObjectCreation((AnonymousObjectCreationExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.QualifiedName:
-                    // Not reachable during method body binding, but
-                    // may be used by SemanticModel for error cases.
                     return BindQualifiedName((QualifiedNameSyntax)node, diagnostics);
 
                 case SyntaxKind.ComplexElementInitializerExpression:
@@ -1082,7 +1079,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// This function is only needed for SemanticModel to perform binding for erroneous cases.
+        /// This can be reached for the qualified name on the right-hand-side of an `is` operator.
+        /// For compatibility we parse it as a qualified name, as the is-type expression only permitted
+        /// a type on the right-hand-side in C# 6. But the same syntax now, in C# 7 and later, can
+        /// refer to a constant, which would normally be represented as a *simple member access expression*.
+        /// Since the parser cannot distinguish, it parses it as before and depends on the binder
+        /// to handle a qualified name appearing as an expression.
         /// </summary>
         private BoundExpression BindQualifiedName(QualifiedNameSyntax node, DiagnosticBag diagnostics)
         {
@@ -1423,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return TryBindInteractiveReceiver(syntax, this.ContainingMemberOrLambda, currentType, declaringType);
+                return TryBindInteractiveReceiver(syntax, ContainingMember(), currentType, declaringType);
             }
         }
 
@@ -1586,7 +1588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Field:
                     {
                         BoundExpression receiver = SynthesizeReceiver(node, symbol, diagnostics);
-                        return BindFieldAccess(node, receiver, (FieldSymbol)symbol, diagnostics, resultKind, hasErrors: isError);
+                        return BindFieldAccess(node, receiver, (FieldSymbol)symbol, diagnostics, resultKind, indexed: false, hasErrors: isError);
                     }
 
                 case SymbolKind.Namespace:
@@ -1676,13 +1678,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return TryBindInteractiveReceiver(node, this.ContainingMemberOrLambda, currentType, member.ContainingType);
+                return TryBindInteractiveReceiver(node, ContainingMember(), currentType, member.ContainingType);
             }
         }
 
         internal Symbol ContainingMember()
         {
-            // We skip intervening lambdas to find the actual member.
+            // We skip intervening lambdas and local functions to find the actual member.
             var containingMember = this.ContainingMemberOrLambda;
             while (containingMember.Kind != SymbolKind.NamedType && (object)containingMember.ContainingSymbol != null && containingMember.ContainingSymbol.Kind != SymbolKind.NamedType)
             {
@@ -3614,14 +3616,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // script class is synthesized and should not be used as a type of a new expression:
                     throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
 
-                case TypeKind.Dynamic:
-                    // we didn't find any type called "dynamic" so we are using the builtin dynamic type, which has no constructors:
-                    Error(diagnostics, ErrorCode.ERR_NoConstructors, node.Type, type);
-                    return BadExpression(node, LookupResultKind.NotCreatable);
-
                 case TypeKind.Pointer:
                     type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
                         diagnostics.Add(ErrorCode.ERR_UnsafeTypeInObjectCreation, node.Location, type));
+                    goto case TypeKind.Class;
+
+                case TypeKind.Dynamic:
+                    // we didn't find any type called "dynamic" so we are using the builtin dynamic type, which has no constructors:
+                case TypeKind.Array:
+                    // ex: new ref[]
+                    type = new ExtendedErrorTypeSymbol(type, LookupResultKind.NotCreatable,
+                        diagnostics.Add(ErrorCode.ERR_InvalidObjectCreation, node.Type.Location, type));
                     goto case TypeKind.Class;
 
                 default:
@@ -4003,6 +4008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
                     typeArguments: default(ImmutableArray<TypeSymbol>),
                     invoked: false,
+                    indexed: false,
                     diagnostics: diagnostics);
 
                 resultKind = boundMember.ResultKind;
@@ -5489,7 +5495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (this.EnclosingNameofArgument == node)
                             {
                                 // Support selecting an extension method from a type name in nameof(.)
-                                return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics);
+                                return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                             }
                             else
                             {
@@ -5498,7 +5504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 diagnostics.Add(right, useSiteDiagnostics);
                                 if (lookupResult.IsMultiViable)
                                 {
-                                    return BindMemberOfType(node, right, rightName, rightArity, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.None, diagnostics: diagnostics);
+                                    return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.None, diagnostics: diagnostics);
                                 }
                             }
                             break;
@@ -5508,7 +5514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // CheckValue call will occur in ReplaceTypeOrValueReceiver.
                             // NOTE: This means that we won't get CheckValue diagnostics in error scenarios,
                             // but they would be cascading anyway.
-                            return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics);
+                            return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                         }
                     default:
                         {
@@ -5526,7 +5532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if ((object)leftType != null)
                             {
                                 boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
-                                return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics);
+                                return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                             }
                             break;
                         }
@@ -5597,6 +5603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
             ImmutableArray<TypeSymbol> typeArguments,
             bool invoked,
+            bool indexed,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(rightArity == (typeArguments.IsDefault ? 0 : typeArguments.Length));
@@ -5638,7 +5645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (lookupResult.IsMultiViable)
                 {
-                    return BindMemberOfType(node, right, rightName, rightArity, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, flags, diagnostics);
+                    return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, flags, diagnostics);
                 }
 
                 if (searchExtensionMethodsIfNecessary)
@@ -5872,6 +5879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode right,
             string plainName,
             int arity,
+            bool indexed,
             BoundExpression left,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
             ImmutableArray<TypeSymbol> typeArguments,
@@ -5971,7 +5979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // UNDONE: the value of the static field I in E.
                         // UNDONE: Otherwise, the result is a variable, namely the static field I in E.
                         // UNDONE: Need a way to mark an expression node as "I am a variable, not a value".
-                        result = BindFieldAccess(node, left, (FieldSymbol)symbol, diagnostics, lookupResult.Kind, hasErrors: wasError);
+                        result = BindFieldAccess(node, left, (FieldSymbol)symbol, diagnostics, lookupResult.Kind, indexed, hasErrors: wasError);
                         break;
 
                     default:
@@ -6133,6 +6141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol fieldSymbol,
             DiagnosticBag diagnostics,
             LookupResultKind resultKind,
+            bool indexed,
             bool hasErrors)
         {
             bool hasError = false;
@@ -6163,8 +6172,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Symbol accessedLocalOrParameterOpt;
                     if (IsNonMoveableVariable(receiver, out accessedLocalOrParameterOpt) == isFixedStatementExpression)
                     {
-                        Error(diagnostics, isFixedStatementExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedBufferNotFixed, node);
-                        hasErrors = hasError = true;
+                        if (indexed)
+                        {
+                            CheckFeatureAvailability(node, MessageID.IDS_FeatureIndexingMovableFixedBuffers, diagnostics);
+                        }
+                        else
+                        {
+                            Error(diagnostics, isFixedStatementExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedBufferNotFixed, node);
+                            hasErrors = hasError = true;
+                        }
                     }
                 }
 
