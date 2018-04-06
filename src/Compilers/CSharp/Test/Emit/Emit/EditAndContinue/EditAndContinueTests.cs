@@ -6919,6 +6919,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var bytes0 = compilation0.EmitToArray();
+            using (new EnsureEnglishUICulture())
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var method0F = compilation0.GetMember<MethodSymbol>("C.F");
@@ -7009,6 +7010,7 @@ class C
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
             var bytes0 = compilation0.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
+            using (new EnsureEnglishUICulture())
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
                 var method0F = compilation0.GetMember<MethodSymbol>("C.F");

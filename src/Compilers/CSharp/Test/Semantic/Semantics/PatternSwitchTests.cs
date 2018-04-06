@@ -998,7 +998,8 @@ null";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem(25846, "https://github.com/dotnet/roslyn/issues/25846")]
         public void DuplicateDouble()
         {
             var source =
