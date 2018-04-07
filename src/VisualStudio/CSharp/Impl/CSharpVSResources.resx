@@ -528,35 +528,14 @@
   <data name="Separate_using_directive_groups" xml:space="preserve">
     <value>Separate using directive groups</value>
   </data>
-  <data name="In_arithmetic_expressions" xml:space="preserve">
-    <value>In arithmetic expressions:   *   /   %   +   -</value>
+  <data name="In_arithmetic_binary_operators" xml:space="preserve">
+    <value>In arithmetic operators:  *  /  %  +  -  &lt;&lt;  &gt;&gt;  &amp;  ^  |</value>
   </data>
-  <data name="In_bitwise_expressions" xml:space="preserve">
-    <value>In bitwise expressions:   &amp;   |   ^</value>
-  </data>
-  <data name="In_coalesce_expression" xml:space="preserve">
-    <value>In coalesce expression:   ??</value>
-  </data>
-  <data name="In_equality_expressions" xml:space="preserve">
-    <value>In_equality expressions:   ==   !=</value>
-  </data>
-  <data name="In_logical_expressions" xml:space="preserve">
-    <value>In logical expressions:   &amp;&amp;   ||</value>
-  </data>
-  <data name="In_relational_expressions" xml:space="preserve">
-    <value>In relational expressions:   &lt;   &lt;=   &gt;   &gt;=   is   as</value>
-  </data>
-  <data name="In_shift_expressions" xml:space="preserve">
-    <value>In shift expressions:   &lt;&lt;   &gt;&gt;</value>
+  <data name="In_other_binary_operators" xml:space="preserve">
+    <value>In other binary operators:  &lt;  &gt;  &lt;=  &gt;=  is  as  ==  !=  &amp;&amp;  ||  ??</value>
   </data>
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
-  </data>
-  <data name="In_assignment_expressions" xml:space="preserve">
-    <value>In assignment expressions:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=</value>
-  </data>
-  <data name="In_cast_expression" xml:space="preserve">
-    <value>In cast expression:  (type)expression</value>
   </data>
   <data name="Event_Hookup_Command_Handler" xml:space="preserve">
     <value>Generate Event Subscription Command Handler</value>

@@ -236,47 +236,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to In arithmetic expressions:   ^   *   /   \   Mod   +   -   &amp;.
+        '''  Looks up a localized string similar to In arithmetic expressions:  ^  *  /  \  Mod  +  -  &amp;  &lt;&lt;  &gt;&gt;.
         '''</summary>
-        Friend Shared ReadOnly Property In_arithmetic_expressions() As String
+        Friend Shared ReadOnly Property In_arithmetic_binary_operators() As String
             Get
-                Return ResourceManager.GetString("In_arithmetic_expressions", resourceCulture)
+                Return ResourceManager.GetString("In_arithmetic_binary_operators", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to In assignment expressions:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=.
+        '''  Looks up a localized string similar to In other binary operators:  =  &lt;&gt;  &lt;  &gt;  &lt;=  &gt;=  Like Is  And  Or  .
         '''</summary>
-        Friend Shared ReadOnly Property In_assignment_expressions() As String
+        Friend Shared ReadOnly Property In_other_binary_operators() As String
             Get
-                Return ResourceManager.GetString("In_assignment_expressions", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to In logical expressions:   And   AndAlso   Or   OrElse.
-        '''</summary>
-        Friend Shared ReadOnly Property In_logical_expressions() As String
-            Get
-                Return ResourceManager.GetString("In_logical_expressions", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to In relational expressions:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like.
-        '''</summary>
-        Friend Shared ReadOnly Property In_relational_expressions() As String
-            Get
-                Return ResourceManager.GetString("In_relational_expressions", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to In shift expressions:   &lt;&lt;   &gt;&gt;.
-        '''</summary>
-        Friend Shared ReadOnly Property In_shift_expressions() As String
-            Get
-                Return ResourceManager.GetString("In_shift_expressions", resourceCulture)
+                Return ResourceManager.GetString("In_other_binary_operators", resourceCulture)
             End Get
         End Property
         

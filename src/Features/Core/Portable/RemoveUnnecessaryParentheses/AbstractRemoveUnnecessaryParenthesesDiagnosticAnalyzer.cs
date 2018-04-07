@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 {
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         {
         }
 
+        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         protected abstract TLanguageKindEnum GetSyntaxNodeKind();
         protected abstract bool CanRemoveParentheses(
             TParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
-            out PrecedenceKind precedenceKind, out bool clarifiesPrecedence);
+            out PrecedenceKind precedence, out bool clarifiesPrecedence);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
@@ -48,12 +51,39 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             var parenthesizedExpression = (TParenthesizedExpressionSyntax)context.Node;
 
             if (!CanRemoveParentheses(parenthesizedExpression, context.SemanticModel,
-                    out var precedenceKind, out var clarifiesPrecedence))
+                    out var precedence, out var clarifiesPrecedence))
             {
                 return;
             }
 
-            var option = GetLanguageOption(precedenceKind);
+            // Do not remove parentheses from these expressions when there are different kinds
+            // between the parent and child of the parenthesized expr..  This is because removing
+            // these parens can significantly decrease readability and can confuse many people
+            // (including several people quizzed on Roslyn).  For example, most people see
+            // "1 + 2 << 3" as "1 + (2 << 3)", when it's actually "(1 + 2) << 3".  To avoid 
+            // making code bases more confusing, we just do not touch parens for these constructs 
+            // unless both the child and parent have the same kinds.
+            switch (precedence)
+            {
+                case PrecedenceKind.Shift:
+                case PrecedenceKind.Bitwise:
+                case PrecedenceKind.Coalesce:
+                    var syntaxFacts = this.GetSyntaxFactsService();
+                    var child = syntaxFacts.GetExpressionOfParenthesizedExpression(parenthesizedExpression);
+
+                    var parentKind = parenthesizedExpression.Parent.RawKind;
+                    var childKind = child.RawKind;
+                    if (parentKind != childKind)
+                    {
+                        return;
+                    }
+
+                    // Ok to remove if it was the exact same kind.  i.e. ```(a | b) | c```
+                    // not ok to remove if kinds changed.  i.e. ```(a + b) << c```
+                    break;
+            }
+
+            var option = GetLanguageOption(precedence);
             var preference = optionSet.GetOption(option, parenthesizedExpression.Language);
 
             if (preference.Value == ParenthesesPreference.Ignore)

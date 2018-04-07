@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddRequiredParentheses
-    Partial Public Class AddRequiredParenthesesForBinaryLikeExpressionTests
+    Partial Public Class AddRequiredParenthesesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(Workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
@@ -56,7 +56,7 @@ end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClar
     sub M()
         dim x = 1 + 2 $$+ 3
     end sub
-end class", parameters:=New TestParameters(options:=RequireLogicalParenthesesForClarity))
+end class", parameters:=New TestParameters(options:=RequireOtherBinaryParenthesesForClarity))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
@@ -66,7 +66,7 @@ end class", parameters:=New TestParameters(options:=RequireLogicalParenthesesFor
     sub M()
         dim x = 1 + 2 $$* 3
     end sub
-end class", parameters:=New TestParameters(options:=RequireLogicalParenthesesForClarity))
+end class", parameters:=New TestParameters(options:=RequireOtherBinaryParenthesesForClarity))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
@@ -111,7 +111,7 @@ end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClar
     sub M()
         dim x = a orelse b $$orelse c
     end sub
-end class", parameters:=New TestParameters(options:=RequireArithmeticParenthesesForClarity))
+end class", parameters:=New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
@@ -151,7 +151,7 @@ end class",
     sub M()
         dim x = (1 + 2) << 3
     end sub
-end class", parameters:=New TestParameters(options:=RequireShiftParenthesesForClarity))
+end class", parameters:=New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)>
@@ -159,9 +159,9 @@ end class", parameters:=New TestParameters(options:=RequireShiftParenthesesForCl
             Await TestMissingAsync(
 "class C
     sub M()
-        dim x = 1 $$+ 2 << 3
+        dim x = 1 $$<< 2 << 3
     end sub
-end class", parameters:=New TestParameters(options:=RequireArithmeticParenthesesForClarity))
+end class", parameters:=New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
     End Class
 End Namespace

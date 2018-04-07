@@ -203,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         protected void AddParenthesesOption(
             string language, OptionSet optionSet,
             PerLanguageOption<CodeStyleOption<ParenthesesPreference>> languageOption,
-            string title, string[] examples, bool isOther, bool recommended)
+            string title, string[] examples, bool isOther)
         {
             var preferences = new List<ParenthesesPreference>();
             var codeStylePreferences = new List<CodeStylePreference>();
@@ -220,9 +220,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             preferences.Add(ParenthesesPreference.NeverIfUnnecessary);
-            codeStylePreferences.Add(new CodeStylePreference(recommended
-                ? ServicesVSResources.Never_if_unnecessary
-                : ServicesVSResources.Never_if_unnecessary_not_recommended,
+            codeStylePreferences.Add(new CodeStylePreference(
+                ServicesVSResources.Never_if_unnecessary,
                 isChecked: false));
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ParenthesesPreference>(

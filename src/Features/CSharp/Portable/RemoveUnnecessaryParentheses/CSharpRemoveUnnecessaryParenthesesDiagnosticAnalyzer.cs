@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 using Roslyn.Utilities;
 
@@ -12,24 +13,29 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
     internal class CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer
         : AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<SyntaxKind, ParenthesizedExpressionSyntax>
     {
+        protected override ISyntaxFactsService GetSyntaxFactsService()
+            => CSharpSyntaxFactsService.Instance;
+
         protected override SyntaxKind GetSyntaxNodeKind()
             => SyntaxKind.ParenthesizedExpression;
 
         protected override bool CanRemoveParentheses(
             ParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
-            out PrecedenceKind precedenceKind, out bool clarifiesPrecedence)
+            out PrecedenceKind precedence, out bool clarifiesPrecedence)
         {
-            return CanRemoveParenthesesHelper(parenthesizedExpression, semanticModel, out precedenceKind, out clarifiesPrecedence);
+            return CanRemoveParenthesesHelper(
+                parenthesizedExpression, semanticModel, 
+                out precedence, out clarifiesPrecedence);
         }
 
         public static bool CanRemoveParenthesesHelper(
             ParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
-            out PrecedenceKind precedenceKind, out bool clarifiesPrecedence)
+            out PrecedenceKind parentPrecedenceKind, out bool clarifiesPrecedence)
         {
             var result = parenthesizedExpression.CanRemoveParentheses(semanticModel);
             if (!result)
             {
-                precedenceKind = default;
+                parentPrecedenceKind = default;
                 clarifiesPrecedence = false;
                 return false;
             }
@@ -41,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
                                 innerPrecedence == OperatorPrecedence.None;
 
             ExpressionSyntax parentExpression;
-
             switch (parenthesizedExpression.Parent)
             {
                 case ConditionalExpressionSyntax _:
@@ -54,17 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
                     //
                     //      ++a ? b + c : d << e
                     //
-                    precedenceKind = PrecedenceKind.Other;
+                    parentPrecedenceKind = PrecedenceKind.Other;
                     clarifiesPrecedence = false;
                     return innerIsSimple;
-
-                case CastExpressionSyntax _:
-                    // if our parent is a cast, then we may have something like: (int)(-x)
-                    // While the latter parens aren't necessary, they can help clarify precedence
-                    // as '(int)-x' looks somewhat like a binary expression.
-                    precedenceKind = PrecedenceKind.Cast;
-                    clarifiesPrecedence = IsAmbiguousInnerExpressionKindForCast(innerKind);
-                    return true;
 
                 case BinaryExpressionSyntax binaryExpression:
                     parentExpression = binaryExpression;
@@ -81,16 +78,16 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
                     break;
 
                 default:
-                    precedenceKind = PrecedenceKind.Other;
+                    parentPrecedenceKind = PrecedenceKind.Other;
                     clarifiesPrecedence = false;
                     return true;
             }
 
             // We're parented by something binary-like. 
-            precedenceKind = GetPrecedenceKind(parentExpression);
+            parentPrecedenceKind = GetPrecedenceKind(parentExpression);
 
             // Precedence is clarified any time we have expression with different precedence
-            // (and the inner expressoin is not a primary expression).  in other words, this
+            // (and the inner expression is not a primary expression).  in other words, this
             // is helps clarify precedence:
             //
             //      a + (b * c)
@@ -102,12 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
                                   parentExpression.GetOperatorPrecedence() != innerPrecedence;
             return true;
         }
-
-        public static bool IsAmbiguousInnerExpressionKindForCast(SyntaxKind kind)
-            => kind == SyntaxKind.UnaryMinusExpression ||
-               kind == SyntaxKind.UnaryPlusExpression ||
-               kind == SyntaxKind.AddressOfExpression ||
-               kind == SyntaxKind.PointerIndirectionExpression;
 
         public static PrecedenceKind GetPrecedenceKind(ExpressionSyntax parentExpression)
         {

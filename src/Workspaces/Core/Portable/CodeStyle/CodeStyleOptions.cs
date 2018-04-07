@@ -222,26 +222,21 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return s_requireAccessibilityModifiersDefault;
         }
 
-        private static readonly CodeStyleOption<ParenthesesPreference> s_defaultOperationParenthesesPreference =
+        private static readonly CodeStyleOption<ParenthesesPreference> s_defaultBinaryOperatorsParenthesesPreference =
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption.None);
 
-        private static readonly CodeStyleOption<ParenthesesPreference> s_defaultOtherOperationParenthesesPreference =
+        private static readonly CodeStyleOption<ParenthesesPreference> s_defaultOtherOperatorsParenthesesPreference =
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.None);
 
+        private const string s_isOtherName = "other_operations";
         private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
             string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, string styleName)
         {
-            const string suffix = "OperationParentheses";
+            const string suffix = "Parentheses";
 
             Debug.Assert(fieldName.EndsWith(suffix));
-            var shortName = fieldName.Substring(0, fieldName.Length - suffix.Length).ToLowerInvariant();
 
-            Debug.Assert(styleName.StartsWith(shortName));
-            Debug.Assert(styleName == shortName + "_expression" ||
-                         styleName == shortName + "_expressions");
-
-            var isOther = shortName == "cast";
-
+            var isOther = s_isOtherName == styleName;
             return new PerLanguageOption<CodeStyleOption<ParenthesesPreference>>(
                 nameof(CodeStyleOptions), fieldName, defaultValue,
                 storageLocations: new OptionStorageLocation[]{
@@ -251,59 +246,23 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{fieldName}Preference")});
         }
 
-        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CastOperationParentheses =
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> ArithmeticBinaryParentheses =
             CreateParenthesesOption(
-                nameof(CastOperationParentheses),
-                s_defaultOperationParenthesesPreference,
-                "cast_expressions");
+                nameof(ArithmeticBinaryParentheses),
+                s_defaultBinaryOperatorsParenthesesPreference,
+                "arithmetic_binary_operators");
 
-        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> ArithmeticOperationParentheses =
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> OtherBinaryParentheses =
             CreateParenthesesOption(
-                nameof(ArithmeticOperationParentheses),
-                s_defaultOperationParenthesesPreference,
-                "arithmetic_expressions");
+                nameof(OtherBinaryParentheses),
+                s_defaultBinaryOperatorsParenthesesPreference,
+                "other_binary_operators");
 
-        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> ShiftOperationParentheses =
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> OtherParentheses =
             CreateParenthesesOption(
-                nameof(ShiftOperationParentheses),
-                s_defaultOperationParenthesesPreference,
-                "shift_expressions");
-
-        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> RelationalOperationParentheses =
-            CreateParenthesesOption(
-                nameof(RelationalOperationParentheses),
-                s_defaultOperationParenthesesPreference,
-                "relational_expressions");
-
-        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> EqualityOperationParentheses =
-            CreateParenthesesOption(
-                nameof(EqualityOperationParentheses),
-                s_defaultOperationParenthesesPreference,
-                "equality_expressions");
-
-        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> BitwiseOperationParentheses =
-            CreateParenthesesOption(
-                nameof(BitwiseOperationParentheses),
-                s_defaultOperationParenthesesPreference,
-                "bitwise_expressions");
-
-        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> LogicalOperationParentheses =
-            CreateParenthesesOption(
-                nameof(LogicalOperationParentheses),
-                s_defaultOperationParenthesesPreference,
-                "logical_expressions");
-
-        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CoalesceOperationParentheses =
-            CreateParenthesesOption(
-                nameof(CoalesceOperationParentheses),
-                s_defaultOperationParenthesesPreference,
-                "coalesce_expression");
-
-        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> OtherOperationParentheses =
-            CreateParenthesesOption(
-                nameof(OtherOperationParentheses),
-                s_defaultOtherOperationParenthesesPreference,
-                "other_expressions");
+                nameof(OtherParentheses),
+                s_defaultOtherOperatorsParenthesesPreference,
+                "other_operators");
 
         private static Optional<CodeStyleOption<ParenthesesPreference>> ParseParenthesesPreference(
             string optionString, Optional<CodeStyleOption<ParenthesesPreference>> defaultValue, bool isOther)

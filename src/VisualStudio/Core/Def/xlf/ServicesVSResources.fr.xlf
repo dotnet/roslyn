@@ -1548,11 +1548,6 @@ Je suis d'accord avec tout ce qui précède :</target>
         <target state="new">Parentheses preferences:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Other_operators">
-        <source>Other operators</source>
-        <target state="new">Other operators</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="new">Never if unnecessary</target>
@@ -1563,9 +1558,9 @@ Je suis d'accord avec tout ce qui précède :</target>
         <target state="new">Always for clarity</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never_if_unnecessary_not_recommended">
-        <source>Never if unnecessary (not recommended)</source>
-        <target state="new">Never if unnecessary (not recommended)</target>
+      <trans-unit id="In_other_operators">
+        <source>In other operators</source>
+        <target state="new">In other operators</target>
         <note />
       </trans-unit>
     </body>

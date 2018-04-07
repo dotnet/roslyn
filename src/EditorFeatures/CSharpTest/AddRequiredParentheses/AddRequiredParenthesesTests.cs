@@ -13,10 +13,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
 {
-    public partial class AddRequiredParenthesesForBinaryLikeExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class AddRequiredParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());
+            => (new CSharpAddRequiredParenthesesDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());
         
         private Task TestMissingAsync(string initialMarkup, IDictionary<OptionKey, object> options)
             => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
     {
         int x = 1 + 2 $$+ 3;
     }
-}", RequireLogicalParenthesesForClarity);
+}", RequireOtherBinaryParenthesesForClarity);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
     {
         int x = 1 + 2 $$* 3;
     }
-}", RequireLogicalParenthesesForClarity);
+}", RequireOtherBinaryParenthesesForClarity);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
     {
         int x = a || b $$|| c;
     }
-}", RequireArithmeticParenthesesForClarity);
+}", RequireArithmeticBinaryParenthesesForClarity);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
     {
         int x = (1 + 2) << 3;
     }
-}", RequireShiftParenthesesForClarity);
+}", RequireArithmeticBinaryParenthesesForClarity);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
     {
         int x = 1 $$+ 2 << 3;
     }
-}", RequireArithmeticParenthesesForClarity);
+}", RequireOtherBinaryParenthesesForClarity);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
     {
         int x = (1 + 2) == 2 + 3;
     }
-}", RequireEqualityParenthesesForClarity);
+}", RequireOtherBinaryParenthesesForClarity);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
     {
         int x = 1 + 2 == (2 + 3);
     }
-}", RequireEqualityParenthesesForClarity);
+}", RequireOtherBinaryParenthesesForClarity);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -479,21 +479,144 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestForAssignmentAndEquality2()
+        public async Task TestMissingForAssignmentAndEquality2()
         {
-            await TestAsync(
+            await TestMissingAsync(
 @"class C
 {
     void M(bool x, bool y, bool z)
     {
         x = y $$== z;
     }
-}",
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestUnclearCast1()
+        {
+            await TestMissingAsync(
 @"class C
 {
-    void M(bool x, bool y, bool z)
+    void M()
     {
-        x = (y == z);
+        int x = (int)$$-y;
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestUnclearCast_NotOfferedWithIgnore()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (int)$$-y;
+    }
+}", IgnoreAllParentheses);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestUnclearCast_NotOfferedWithRemoveForClarity()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (int)$$-y;
+    }
+}", RemoveAllUnnecessaryParentheses);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestUnclearCast2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (int)$$+y;
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestUnclearCast3()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (int)$$&y;
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestUnclearCast4()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (int)$$*y;
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestNotForPrimary()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (int)$$y;
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestNotForMemberAccess()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (int)$$y.z;
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestNotForCastOfCast()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (int)$$(y);
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestNotForNonAmbiguousUnary()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (int)$$!y;
     }
 }", RequireAllParenthesesForClarity);
         }

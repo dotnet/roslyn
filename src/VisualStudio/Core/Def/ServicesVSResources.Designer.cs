@@ -1153,6 +1153,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to In other operators.
+        /// </summary>
+        internal static string In_other_operators {
+            get {
+                return ResourceManager.GetString("In_other_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Inherited By.
         /// </summary>
         internal static string Inherited_By {
@@ -1498,15 +1507,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Never if unnecessary (not recommended).
-        /// </summary>
-        internal static string Never_if_unnecessary_not_recommended {
-            get {
-                return ResourceManager.GetString("Never_if_unnecessary_not_recommended", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Never show this again.
         /// </summary>
         internal static string Never_show_this_again {
@@ -1602,15 +1602,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string or {
             get {
                 return ResourceManager.GetString("or", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Other operators.
-        /// </summary>
-        internal static string Other_operators {
-            get {
-                return ResourceManager.GetString("Other_operators", resourceCulture);
             }
         }
         

@@ -45,7 +45,7 @@ end class", New TestParameters(options:=IgnoreAllParentheses))
     sub M()
         dim x = 1 + $$(2 * 3)
     end sub
-end class", New TestParameters(options:=RequireArithmeticParenthesesForClarity))
+end class", New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -60,7 +60,7 @@ end class",
     sub M()
         dim x = a orelse b andalso c
     end sub
-end class", parameters:=New TestParameters(options:=RequireArithmeticParenthesesForClarity))
+end class", parameters:=New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -70,7 +70,7 @@ end class", parameters:=New TestParameters(options:=RequireArithmeticParentheses
     sub M()
         dim x = a orelse $$(b andalso c)
     end sub
-end class", New TestParameters(options:=RequireLogicalParenthesesForClarity))
+end class", New TestParameters(options:=RequireOtherBinaryParenthesesForClarity))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -85,7 +85,7 @@ end class",
     sub M()
         dim x = a + b * c
     end sub
-end class", parameters:=New TestParameters(options:=RequireLogicalParenthesesForClarity))
+end class", parameters:=New TestParameters(options:=RequireOtherBinaryParenthesesForClarity))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -475,9 +475,9 @@ end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClar
             Await TestMissingAsync(
 "class C
     sub M()
-        dim x =  $$(1 + 2) << 3
+        dim x = $$(1 + 2) << 3
     end sub
-end class", parameters:=New TestParameters(options:=RequireShiftParenthesesForClarity))
+end class", parameters:=New TestParameters(options:=RequireArithmeticBinaryParenthesesForClarity))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -491,16 +491,46 @@ end class", parameters:=New TestParameters(options:=RequireAllParenthesesForClar
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
-        Public Async Function TestRemoveShiftIfNotNecessary1() As Task
-            Await TestInRegularAndScript1Async(
+        Public Async Function TestDoNotRemoveShiftIfDifferentPrecedence1() As Task
+            Await TestMissingAsync(
 "class C
     sub M()
         dim x = $$(1 + 2) << 3
     end sub
+end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParentheses))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestDoNotRemoveShiftIfDifferentPrecedence2() As Task
+            Await TestMissingAsync(
+"class C
+    sub M()
+        dim x = 1 << $$(2 << 3)
+    end sub
+end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParentheses))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestDoNotRemoveShiftIfKindsDiffer() As Task
+            Await TestMissingAsync(
+"class C
+    sub M()
+        dim x = $$(1 >> 2) << 3
+    end sub
+end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParentheses))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestRemoveShiftWithSamePrecedence() As Task
+            Await TestInRegularAndScript1Async(
+"class C
+    sub M()
+        dim x = $$(1 << 2) << 3
+    end sub
 end class",
 "class C
     sub M()
-        dim x = 1 + 2 << 3
+        dim x = 1 << 2 << 3
     end sub
 end class", parameters:=New TestParameters(options:=RemoveAllUnnecessaryParentheses))
         End Function

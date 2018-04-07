@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var fixer = providerAndFixer.Item2;
             if (fixer == null)
             {
-                return diagnostics.Select(d => Tuple.Create(d, (CodeFixCollection) null));
+                return diagnostics.Select(d => Tuple.Create(d, (CodeFixCollection)null));
             }
-            
+
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
             var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
             return await GetDiagnosticAndFixesAsync(
@@ -145,39 +145,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private static IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()
         {
-            yield return CodeStyleOptions.ArithmeticOperationParentheses;
-            yield return CodeStyleOptions.ShiftOperationParentheses;
-            yield return CodeStyleOptions.RelationalOperationParentheses;
-            yield return CodeStyleOptions.EqualityOperationParentheses;
-            yield return CodeStyleOptions.BitwiseOperationParentheses;
-            yield return CodeStyleOptions.LogicalOperationParentheses;
-            yield return CodeStyleOptions.CoalesceOperationParentheses;
-            yield return CodeStyleOptions.CastOperationParentheses;
+            yield return CodeStyleOptions.ArithmeticBinaryParentheses;
+            yield return CodeStyleOptions.OtherBinaryParentheses;
         }
 
-        protected IDictionary<OptionKey, object> RequireArithmeticParenthesesForClarity
-            => GetSingleRequireOption(CodeStyleOptions.ArithmeticOperationParentheses);
+        protected IDictionary<OptionKey, object> RequireArithmeticBinaryParenthesesForClarity
+            => GetSingleRequireOption(CodeStyleOptions.ArithmeticBinaryParentheses);
 
-        protected IDictionary<OptionKey, object> RequireShiftParenthesesForClarity
-            => GetSingleRequireOption(CodeStyleOptions.ShiftOperationParentheses);
-
-        protected IDictionary<OptionKey, object> RequireRelationalParenthesesForClarity
-            => GetSingleRequireOption(CodeStyleOptions.RelationalOperationParentheses);
-
-        protected IDictionary<OptionKey, object> RequireEqualityParenthesesForClarity
-            => GetSingleRequireOption(CodeStyleOptions.EqualityOperationParentheses);
-
-        protected IDictionary<OptionKey, object> RequireBitwiseParenthesesForClarity
-            => GetSingleRequireOption(CodeStyleOptions.BitwiseOperationParentheses);
-
-        protected IDictionary<OptionKey, object> RequireLogicalParenthesesForClarity
-            => GetSingleRequireOption(CodeStyleOptions.LogicalOperationParentheses);
-
-        protected IDictionary<OptionKey, object> RequireCoalesceParenthesesForClarity
-            => GetSingleRequireOption(CodeStyleOptions.CoalesceOperationParentheses);
+        protected IDictionary<OptionKey, object> RequireOtherBinaryParenthesesForClarity
+            => GetSingleRequireOption(CodeStyleOptions.OtherBinaryParentheses);
 
         private IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllParenthesesOptions()
-            => GetAllExceptOtherParenthesesOptions().Concat(CodeStyleOptions.OtherOperationParentheses);
+            => GetAllExceptOtherParenthesesOptions().Concat(CodeStyleOptions.OtherParentheses);
 
         protected IDictionary<OptionKey, object> IgnoreAllParentheses
             => OptionsSet(GetAllParenthesesOptions().Select(
@@ -190,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         protected IDictionary<OptionKey, object> RequireAllParenthesesForClarity
             => OptionsSet(GetAllExceptOtherParenthesesOptions()
                     .Select(o => SingleOption(o, RequireForPrecedenceClarityPreference))
-                    .Concat(SingleOption(CodeStyleOptions.OtherOperationParentheses, RemoveIfUnnecessaryPreference)).ToArray());
+                    .Concat(SingleOption(CodeStyleOptions.OtherParentheses, RemoveIfUnnecessaryPreference)).ToArray());
 
         private IDictionary<OptionKey, object> GetSingleRequireOption(PerLanguageOption<CodeStyleOption<ParenthesesPreference>> option)
             => OptionsSet(GetAllParenthesesOptions()

@@ -18,15 +18,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         {
             switch (precedenceKind)
             {
-            case PrecedenceKind.Cast: return CodeStyleOptions.CastOperationParentheses;
-            case PrecedenceKind.Arithmetic: return CodeStyleOptions.ArithmeticOperationParentheses;
-            case PrecedenceKind.Shift: return CodeStyleOptions.ShiftOperationParentheses;
-            case PrecedenceKind.Relational: return CodeStyleOptions.RelationalOperationParentheses;
-            case PrecedenceKind.Equality: return CodeStyleOptions.EqualityOperationParentheses;
-            case PrecedenceKind.Bitwise: return CodeStyleOptions.BitwiseOperationParentheses;
-            case PrecedenceKind.Logical: return CodeStyleOptions.LogicalOperationParentheses;
-            case PrecedenceKind.Coalesce: return CodeStyleOptions.CoalesceOperationParentheses;
-            case PrecedenceKind.Other: return CodeStyleOptions.OtherOperationParentheses;
+                case PrecedenceKind.Arithmetic:
+                case PrecedenceKind.Shift:
+                case PrecedenceKind.Bitwise:
+                    return CodeStyleOptions.ArithmeticBinaryParentheses;
+                case PrecedenceKind.Relational:
+                case PrecedenceKind.Equality:
+                case PrecedenceKind.Logical:
+                case PrecedenceKind.Coalesce:
+                    return CodeStyleOptions.OtherBinaryParentheses;
+                case PrecedenceKind.Other: return CodeStyleOptions.OtherParentheses;
             }
 
             throw ExceptionUtilities.UnexpectedValue(precedenceKind);

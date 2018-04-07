@@ -977,8 +977,8 @@ Additional information: {1}</value>
   <data name="Ignore" xml:space="preserve">
     <value>Ignore</value>
   </data>
-  <data name="Other_operators" xml:space="preserve">
-    <value>Other operators</value>
+  <data name="In_other_operators" xml:space="preserve">
+    <value>In other operators</value>
   </data>
   <data name="Never_if_unnecessary" xml:space="preserve">
     <value>Never if unnecessary</value>
@@ -988,9 +988,6 @@ Additional information: {1}</value>
   </data>
   <data name="Parentheses_preferences_colon" xml:space="preserve">
     <value>Parentheses preferences:</value>
-  </data>
-  <data name="Never_if_unnecessary_not_recommended" xml:space="preserve">
-    <value>Never if unnecessary (not recommended)</value>
   </data>
   <data name="ModuleHasBeenUnloaded" xml:space="preserve">
     <value>Module has been unloaded.</value>

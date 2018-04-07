@@ -15,8 +15,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
-    internal class CSharpAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer :
-        AbstractAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer<
+    internal class CSharpAddRequiredParenthesesDiagnosticAnalyzer :
+        AbstractAddRequiredParenthesesDiagnosticAnalyzer<
             ExpressionSyntax, ExpressionSyntax, SyntaxKind>
     {
         private static readonly ImmutableArray<SyntaxKind> s_kinds = ImmutableArray.Create(
