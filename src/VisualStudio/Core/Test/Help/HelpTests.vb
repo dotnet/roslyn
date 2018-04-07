@@ -1,9 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
@@ -13,9 +15,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Help
     Public Class HelpTests
         Public Async Function TestAsync(markup As String, expected As String) As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(markup)
-                Dim caret = workspace.Documents.First().CursorPosition
+                Dim document As Document = Nothing
+                Dim span As TextSpan = Nothing
+                Assert.True(workspace.TryGetDocumentWithSelectedSpan(document, span))
                 Dim service = New VisualBasicHelpContextService()
-                Assert.Equal(expected, Await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None))
+                Assert.Equal(expected, Await service.GetHelpTermAsync(document, span, CancellationToken.None))
             End Using
         End Function
 
