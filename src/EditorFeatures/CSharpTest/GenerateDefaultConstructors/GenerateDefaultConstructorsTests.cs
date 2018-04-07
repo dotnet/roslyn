@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateDefaultConstruc
         public async Task TestProtectedBase()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -48,7 +48,7 @@ class B
         public async Task TestPublicBase()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -77,7 +77,7 @@ class B
         public async Task TestInternalBase()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -106,7 +106,7 @@ class B
         public async Task TestPrivateBase()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -122,7 +122,7 @@ class B
         public async Task TestRefOutParams()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -151,7 +151,7 @@ class B
         public async Task TestFix1()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -196,7 +196,7 @@ class B
         public async Task TestFix2()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -242,7 +242,7 @@ index: 1);
         public async Task TestRefactoring1()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -288,7 +288,7 @@ index: 2);
         public async Task TestFixAll1()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -342,7 +342,7 @@ index: 3);
         public async Task TestFixAll2()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
     public C(bool x)
     {
@@ -399,7 +399,7 @@ index: 2);
         public async Task TestFixAll_WithTuples()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
     public C((bool, bool) x)
     {
@@ -456,7 +456,7 @@ index: 2);
         public async Task TestMissing1()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
     public C(int x)
     {
@@ -476,7 +476,7 @@ class B
         public async Task TestDefaultConstructorGeneration_1()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
     public C(int y)
     {
@@ -513,7 +513,7 @@ class B
         public async Task TestDefaultConstructorGeneration_2()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
     private C(int y)
     {
@@ -549,7 +549,7 @@ class B
         public async Task TestFixCount1()
         {
             await TestActionCountAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -568,7 +568,7 @@ count: 1);
         {
             await TestInRegularAndScriptAsync(
 @"using System;
-class Program : Excep[||]tion
+class Program : Excep$$tion
 {
 }",
 @"using System;
@@ -603,7 +603,7 @@ index: 4);
 using System.Collections.Generic;
 using System.Linq;
 
-class Program : [||]Exception
+class Program : $$Exception
 {
     public Program()
     {
@@ -651,7 +651,7 @@ index: 3);
 using System.Collections.Generic;
 using System.Linq;
 
-class Program : [||]Exception
+class Program : $$Exception
 {
     public Program(string message) : base(message)
     {
@@ -705,7 +705,7 @@ class Program : Exception
 using System.Collections.Generic;
 using System.Linq;
 
-class Program : [||]Exception
+class Program : $$Exception
 {
     public Program(string message, Exception innerException) : base(message, innerException)
     {
@@ -752,7 +752,7 @@ index: 2);
         public async Task Tuple()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -781,7 +781,7 @@ class B
         public async Task TupleWithNames()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -818,7 +818,7 @@ class B
     }
 }
 
-class [||]Derived : Base
+class $$Derived : Base
 {
 }",
 @"class Base
@@ -848,7 +848,7 @@ class Derived : Base
     }
 }
 
-class [||]Derived : Base
+class $$Derived : Base
 {
 }",
 @"class Base
@@ -871,7 +871,7 @@ class Derived : Base
         public async Task TestNotOnEnum()
         {
             await TestMissingInRegularAndScriptAsync(
-@"enum [||]E
+@"enum $$E
 {
 }");
         }
@@ -881,7 +881,7 @@ class Derived : Base
         public async Task TestGenerateConstructorFromProtectedConstructor()
         {
             await TestInRegularAndScriptAsync(
-@"abstract class C : [||]B
+@"abstract class C : $$B
 {
 }
 
@@ -911,7 +911,7 @@ abstract class B
         public async Task TestGenerateConstructorFromProtectedConstructor2()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -941,7 +941,7 @@ abstract class B
         public async Task TestGenerateConstructorFromPublicConstructor()
         {
             await TestInRegularAndScriptAsync(
-@"abstract class C : [||]B
+@"abstract class C : $$B
 {
 }
 
@@ -971,7 +971,7 @@ abstract class B
         public async Task TestGenerateConstructorFromPublicConstructor2()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -1001,7 +1001,7 @@ abstract class B
         public async Task TestGenerateConstructorFromInternalConstructor()
         {
             await TestInRegularAndScriptAsync(
-@"abstract class C : [||]B
+@"abstract class C : $$B
 {
 }
 
@@ -1031,7 +1031,7 @@ abstract class B
         public async Task TestGenerateConstructorFromInternalConstructor2()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -1061,7 +1061,7 @@ abstract class B
         public async Task TestGenerateConstructorFromProtectedInternalConstructor()
         {
             await TestInRegularAndScriptAsync(
-@"abstract class C : [||]B
+@"abstract class C : $$B
 {
 }
 
@@ -1091,7 +1091,7 @@ abstract class B
         public async Task TestGenerateConstructorFromProtectedInternalConstructor2()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 
@@ -1121,7 +1121,7 @@ abstract class B
         public async Task TestGenerateConstructorFromPrivateProtectedConstructor()
         {
             await TestInRegularAndScriptAsync(
-@"abstract class C : [||]B
+@"abstract class C : $$B
 {
 }
 
@@ -1151,7 +1151,7 @@ abstract class B
         public async Task TestGenerateConstructorFromPrivateProtectedConstructor2()
         {
             await TestInRegularAndScriptAsync(
-@"class C : [||]B
+@"class C : $$B
 {
 }
 

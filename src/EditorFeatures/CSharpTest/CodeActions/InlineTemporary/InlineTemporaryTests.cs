@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -42,19 +42,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotWithNoInitializer1()
         {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x; System.Console.WriteLine(x); }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int $$x; System.Console.WriteLine(x); }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotWithNoInitializer2()
         {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = ; System.Console.WriteLine(x); }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int $$x = ; System.Console.WriteLine(x); }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task NotOnSecondWithNoInitializer()
         {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 42, [||]y; System.Console.WriteLine(y); }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 42, $$y; System.Console.WriteLine(y); }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    int [||]x = 42;
+    int $$x = 42;
 
     void M()
     {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
     ref int M()
     {
         int[] arr = new[] { 1, 2, 3 };
-        ref int [||]x = ref arr[2];
+        ref int $$x = ref arr[2];
         return ref x;
     }
 }");
@@ -90,32 +90,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task SingleStatement()
         {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 27; }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int $$x = 27; }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_First()
         {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int [||]x = 0, y = 1, z = 2; }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int $$x = 0, y = 1, z = 2; }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_Second()
         {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, [||]y = 1, z = 2; }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, $$y = 1, z = 2; }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task MultipleDeclarators_Last()
         {
-            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, y = 1, [||]z = 2; }"));
+            await TestMissingInRegularAndScriptAsync(GetTreeText(@"{ int x = 0, y = 1, $$z = 2; }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task Escaping1()
         {
             await TestFixOneAsync(
-@"{ int [||]x = 0;
+@"{ int $$x = 0;
 
 Console.WriteLine(x); }",
 @"{
@@ -126,7 +126,7 @@ Console.WriteLine(x); }",
         public async Task Escaping2()
         {
             await TestFixOneAsync(
-@"{ int [||]@x = 0;
+@"{ int $$@x = 0;
 
 Console.WriteLine(x); }",
 @"{
@@ -137,7 +137,7 @@ Console.WriteLine(x); }",
         public async Task Escaping3()
         {
             await TestFixOneAsync(
-@"{ int [||]@x = 0;
+@"{ int $$@x = 0;
 
 Console.WriteLine(@x); }",
 @"{
@@ -148,7 +148,7 @@ Console.WriteLine(@x); }",
         public async Task Escaping4()
         {
             await TestFixOneAsync(
-@"{ int [||]x = 0;
+@"{ int $$x = 0;
 
 Console.WriteLine(@x); }",
 @"{
@@ -164,7 +164,7 @@ class C
 {
     static void Main()
     {
-        var @where[||] = 0;
+        var @where$$ = 0;
         var q = from e in """" let a = new { @where } select a;
     }
 }";
@@ -191,7 +191,7 @@ class C
 {
     public void M()
     {
-        int [||]x = 1 + 1;
+        int $$x = 1 + 1;
         x.ToString();
     }
 }";
@@ -218,7 +218,7 @@ class C
 {
     public void M()
     {
-        double [||]x = 3;
+        double $$x = 3;
         x.ToString();
     }
 }";
@@ -240,7 +240,7 @@ class C
         public async Task Conversion_NoConversion()
         {
             await TestFixOneAsync(
-@"{ int [||]x = 3;
+@"{ int $$x = 3;
 
 x.ToString(); }",
                        @"{ 3.ToString(); }");
@@ -256,7 +256,7 @@ class C
 {
     void M()
     {
-        double [||]x = 3;
+        double $$x = 3;
         Console.WriteLine(x);
     }
 }",
@@ -289,7 +289,7 @@ class C
 {
     void F()
     {
-        Base [||]b = new Derived();
+        Base $$b = new Derived();
         b.M(""hi"");
     }
 }
@@ -331,7 +331,7 @@ class C
 {
     void F()
     {
-        Base [||]b = new Derived();
+        Base $$b = new Derived();
         b.M(3);
     }
 }
@@ -360,7 +360,7 @@ class C
         public async Task NoCastOnVar()
         {
             await TestFixOneAsync(
-@"{ var [||]x = 0;
+@"{ var $$x = 0;
 
 Console.WriteLine(x); }",
 @"{
@@ -375,7 +375,7 @@ class C
 {
     void M()
     {
-        int [||]x = x = 1;
+        int $$x = x = 1;
         int y = x;
     }
 }";
@@ -396,7 +396,7 @@ class C
         public async Task TestAnonymousType1()
         {
             await TestFixOneAsync(
-@"{ int [||]x = 42;
+@"{ int $$x = 42;
 var a = new { x }; }",
                        @"{ var a = new { x = 42 }; }");
         }
@@ -405,7 +405,7 @@ var a = new { x }; }",
         public async Task TestParenthesizedAtReference_Case3()
         {
             await TestFixOneAsync(
-@"{ int [||]x = 1 + 1;
+@"{ int $$x = 1 + 1;
 int y = x * 2; }",
                        @"{ int y = (1 + 1) * 2; }");
         }
@@ -421,7 +421,7 @@ class C
 
     void M()
     {
-        object [||]x = 1 + 1;
+        object $$x = 1 + 1;
         Goo(x);
     }
 }";
@@ -449,7 +449,7 @@ class C
 {
     void M()
     {
-        int [||]x = 1;
+        int $$x = 1;
         { Unrelated(); }
         Goo(x);
     }
@@ -476,7 +476,7 @@ class C
 {
     void M()
     {
-        System.Func<int> [||]x = () => 1;
+        System.Func<int> $$x = () => 1;
         int y = x();
     }
 }";
@@ -504,7 +504,7 @@ class C
     void F(object a, object b)
     {
         int x = 2;
-        bool [||]y = x > (f);
+        bool $$y = x > (f);
         F(x < x, y);
     }
     int f = 0;
@@ -532,7 +532,7 @@ class C
     void F(object a, object b)
     {
         int x = 2;
-        object [||]y = x > (f);
+        object $$y = x > (f);
         F(x < x, y);
     }
     int f = 0;
@@ -560,7 +560,7 @@ class C
     void F(object a, object b)
     {
         int x = 2;
-        bool [||]y = x > (int)1;
+        bool $$y = x > (int)1;
         F(x < x, y);
     }
     int f = 0;
@@ -588,7 +588,7 @@ class Program
     static void Main()
     {
         int x = 2;
-        int y[||] = (1+2);
+        int y$$ = (1+2);
         Bar(x < x, x > y);
     }
 
@@ -622,7 +622,7 @@ class Program
     static void Main()
     {
         int x = 2;
-        int y[||] = (1 + 2);
+        int y$$ = (1 + 2);
         var z = new[] { x < x, x > y };
     }
 }",
@@ -642,7 +642,7 @@ class Program
         public async Task TestArrayInitializer()
         {
             await TestFixOneAsync(
-@"{ int[] [||]x = {
+@"{ int[] $$x = {
     3,
     4,
     5
@@ -665,7 +665,7 @@ class Program
 { 
     static void Main()
     {
-        int[] [||]x = { 3, 4, 5 };
+        int[] $$x = { 3, 4, 5 };
         System.Array a = x;
     }
 }";
@@ -691,7 +691,7 @@ class Program
 { 
     static void Main()
     {
-        int[] [||]x = {
+        int[] $$x = {
                           3,
                           4,
                           5
@@ -725,7 +725,7 @@ class Program
 {
     void Main()
     {
-        int [||]x = 0;
+        int $$x = 0;
         Goo(ref x);
         Goo(x);
     }
@@ -771,7 +771,7 @@ class Program
 {
     void Main()
     {
-        int [||]x = 0;
+        int $$x = 0;
         Goo(x, ref x);
     }
 
@@ -807,7 +807,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         i = 2;
         Console.WriteLine(i);
     }
@@ -837,7 +837,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         i += 2;
         Console.WriteLine(i);
     }
@@ -869,7 +869,7 @@ class C
 
     static void M()
     {
-        int [||]x = (x = 0) + (x += 1);
+        int $$x = (x = 0) + (x += 1);
         int y = x;
     }
 }";
@@ -899,7 +899,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         i -= 2;
         Console.WriteLine(i);
     }
@@ -929,7 +929,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         i *= 2;
         Console.WriteLine(i);
     }
@@ -959,7 +959,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         i /= 2;
         Console.WriteLine(i);
     }
@@ -989,7 +989,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         i %= 2;
         Console.WriteLine(i);
     }
@@ -1019,7 +1019,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         i &= 2;
         Console.WriteLine(i);
     }
@@ -1049,7 +1049,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         i |= 2;
         Console.WriteLine(i);
     }
@@ -1079,7 +1079,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         i ^= 2;
         Console.WriteLine(i);
     }
@@ -1109,7 +1109,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         i <<= 2;
         Console.WriteLine(i);
     }
@@ -1139,7 +1139,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         i >>= 2;
         Console.WriteLine(i);
     }
@@ -1169,7 +1169,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         i++;
         Console.WriteLine(i);
     }
@@ -1199,7 +1199,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         ++i;
         Console.WriteLine(i);
     }
@@ -1229,7 +1229,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         i--;
         Console.WriteLine(i);
     }
@@ -1259,7 +1259,7 @@ class Program
 {
     void Main()
     {
-        int [||]i = 1;
+        int $$i = 1;
         --i;
         Console.WriteLine(i);
     }
@@ -1289,7 +1289,7 @@ class C
     unsafe void M()
     {
         int x = 0;
-        var y[||] = &x;
+        var y$$ = &x;
         var z = &y;
     }
 }";
@@ -1318,7 +1318,7 @@ class C
     static void Main(string[] args)
     {
         var x = y;
-        var y[||] = 45;
+        var y$$ = 45;
     }
 }";
 
@@ -1340,7 +1340,7 @@ class C
         {
             await TestFixOneAsync(@"
 {
-    int [||]x = 1,
+    int $$x = 1,
 #if true
         y,
 #endif
@@ -1367,7 +1367,7 @@ class C
 {
     int y,
 #if true
-        [||]x = 1,
+        $$x = 1,
 #endif
         z;
 
@@ -1394,7 +1394,7 @@ class C
 #if true
         z,
 #endif
-        [||]x = 1;
+        $$x = 1;
 
     int a = x;
 }",
@@ -1419,7 +1419,7 @@ class C
 {
     void M()
     {
-        int[] [||]a = /**/{ 1 };
+        int[] $$a = /**/{ 1 };
         Goo(a);
     }
 }";
@@ -1445,7 +1445,7 @@ class C
 {
     void M()
     {
-        int [||]i = 1, j = 2, k = 3;
+        int $$i = 1, j = 2, k = 3;
         System.Console.Write(i);
     }
 }";
@@ -1472,7 +1472,7 @@ class C
 {
     void M()
     {
-        int i = 1, [||]j = 2, k = 3;
+        int i = 1, $$j = 2, k = 3;
         System.Console.Write(j);
     }
 }";
@@ -1499,7 +1499,7 @@ class C
 {
     void M()
     {
-        int i = 1, j = 2, [||]k = 3;
+        int i = 1, j = 2, $$k = 3;
         System.Console.Write(k);
     }
 }";
@@ -1526,7 +1526,7 @@ class C
 {
     void M()
     {
-        var [||]x = 123;
+        var $$x = 123;
         var y = new { x };
     }
 }";
@@ -1552,7 +1552,7 @@ class C
 {
     void M()
     {
-        var [||]x = 123;
+        var $$x = 123;
         var y = new { x = x };
     }
 }";
@@ -1579,7 +1579,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Action<string[]> [||]del = Main;
+        Action<string[]> $$del = Main;
         del(null);
     }
 }";
@@ -1608,7 +1608,7 @@ class Program
 {
     static void Main()
     {
-        Action [||]x = delegate { };
+        Action $$x = delegate { };
         Action y = x ?? null;
     }
 }";
@@ -1638,7 +1638,7 @@ class Program
 {
     static void Main()
     {
-        Action [||]x = () => { };
+        Action $$x = () => { };
         Action y = x ?? null;
     }
 }";
@@ -1667,7 +1667,7 @@ class A
 {
     static void Main()
     {
-        long x[||] = 1;
+        long x$$ = 1;
         object z = x;
         Console.WriteLine((long)z);
     }
@@ -1698,7 +1698,7 @@ class A
     static void Main()
     {
         int y = 1;
-        long x[||] = y;
+        long x$$ = y;
         object z = x;
         Console.WriteLine((long)z);
     }
@@ -1729,7 +1729,7 @@ class A
 {
     static void Main()
     {
-        byte x[||] = 1;
+        byte x$$ = 1;
         object z = x;
         Console.WriteLine((byte)z);
     }
@@ -1759,7 +1759,7 @@ class A
 {
     static void Main()
     {
-        sbyte x[||] = 1;
+        sbyte x$$ = 1;
         object z = x;
         Console.WriteLine((sbyte)z);
     }
@@ -1789,7 +1789,7 @@ class A
 {
     static void Main()
     {
-        short x[||] = 1;
+        short x$$ = 1;
         object z = x;
         Console.WriteLine((short)z);
     }
@@ -1819,7 +1819,7 @@ class A
     static void Main(string[] args)
     {
         // Leading
-        int [||]i = 10;
+        int $$i = 10;
         //print
         Console.Write(i);
     }
@@ -1845,7 +1845,7 @@ class A
     static void Main(string[] args)
     {
         // Leading
-        int [||]i = 10; // Trailing
+        int $$i = 10; // Trailing
         //print
         Console.Write(i);
     }
@@ -1871,7 +1871,7 @@ class A
 {
     static void Main(string[] args)
     {
-        int [||]i = 10; // Trailing
+        int $$i = 10; // Trailing
         //print
         Console.Write(i);
     }
@@ -1897,7 +1897,7 @@ class A
     static void Main(string[] args)
     {
 #if true
-        int [||]i = 10; 
+        int $$i = 10; 
         //print
         Console.Write(i);
 #endif
@@ -1924,7 +1924,7 @@ class A
 {
     static void Main(string[] args)
     {
-        int [||]i = 5; int j = 110;
+        int $$i = 5; int j = 110;
         Console.Write(i + j);
     }
 }",
@@ -1951,7 +1951,7 @@ class C
         switch (10)
         {
             default:
-                int i[||] = 10;
+                int i$$ = 10;
                 Console.WriteLine(i);
                 break;
         }
@@ -1984,7 +1984,7 @@ class C
     static Action X;
     static void M()
     {
-        var [||]y = (X);
+        var $$y = (X);
         y();
     }
 }
@@ -2015,7 +2015,7 @@ class Program
     static void Main()
     {
         Action x = Console.WriteLine;
-        Action y[||] = x;
+        Action y$$ = x;
         y();
     }
 }
@@ -2047,7 +2047,7 @@ class A
 {
     static void Main()
     {
-        var [||]q = from x in """" select x;
+        var $$q = from x in """" select x;
         if (q is IEnumerable)
         {
         }
@@ -2079,7 +2079,7 @@ class C
 {
     static void Main()
     {
-        Action<string> f[||] = Goo<string>;
+        Action<string> f$$ = Goo<string>;
         Action<string> g = null;
         var h = f + g;
     }
@@ -2112,7 +2112,7 @@ unsafe class C
     static void M()
     {
         int x;
-        int* p[||] = &x;
+        int* p$$ = &x;
         var i = (Int32)p;
     }
 }",
@@ -2140,7 +2140,7 @@ unsafe class C
     static void M()
     {
         int x;
-        int* p[||] = &x;
+        int* p$$ = &x;
         var i = p->ToString();
     }
 }",
@@ -2168,7 +2168,7 @@ unsafe class C
     static void M()
     {
         int* x = null;
-        int p[||] = *x;
+        int p$$ = *x;
         var i = (Int64)p;
     }
 }",
@@ -2196,7 +2196,7 @@ unsafe class C
     static void M()
     {
         int** x = null;
-        int* p[||] = *x;
+        int* p$$ = *x;
         var i = p[1].ToString();
     }
 }",
@@ -2223,7 +2223,7 @@ unsafe class C
 {
     static void M()
     {
-        int* values[||] = stackalloc int[20];
+        int* values$$ = stackalloc int[20];
         int* copy = values;
         int* p = &values[1];
         int* q = &values[15];
@@ -2241,7 +2241,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<int?,int?> [||]lam = (int? s) => { return s; };
+        Func<int?,int?> $$lam = (int? s) => { return s; };
         Console.WriteLine(lam);
     }
 }",
@@ -2266,7 +2266,7 @@ class C
 {
     void M()
     {
-        string [||]x = null;
+        string $$x = null;
         Console.WriteLine(x);
     }
 }",
@@ -2291,7 +2291,7 @@ class C
 {
     void M()
     {
-        long x[||] = 1;
+        long x$$ = 1;
         System.IComparable<long> y = x;
     }
 }",
@@ -2317,7 +2317,7 @@ class C
 {
     static void Main()
     {
-        Goo(x => { int [||]y = x[0]; x[1] = y; });
+        Goo(x => { int $$y = x[0]; x[1] = y; });
     }
  
     static void Goo(Action<int[]> x) { }
@@ -2349,7 +2349,7 @@ class C
     void M()
     {
         var c = new C();
-        int x[||] = 1;
+        int x$$ = 1;
         c[x] = 2;
     }
 
@@ -2383,7 +2383,7 @@ class Program
 {
     static void Main()
     {
-        E x[||] = (global::E) -1;
+        E x$$ = (global::E) -1;
         object y = x;
     }
 }",
@@ -2414,7 +2414,7 @@ class Program
 {
     static void M()
     {
-        DayOfWeek x[||] = 0;
+        DayOfWeek x$$ = 0;
         object y = x;
         Console.WriteLine(y);
     }
@@ -2445,7 +2445,7 @@ class Program
 {
     static void M()
     {
-        Action a[||] = Console.WriteLine;
+        Action a$$ = Console.WriteLine;
         Action b = a + Console.WriteLine;
     }
 }",
@@ -2474,7 +2474,7 @@ class Program
 {
     static void Main()
     {
-        Action a[||] = Console.WriteLine;
+        Action a$$ = Console.WriteLine;
         object b = a;
     }
 }",
@@ -2504,7 +2504,7 @@ class A<T>
     {
         static void Goo()
         {
-            var y[||] = x;
+            var y$$ = x;
             var z = y;
         }
     }
@@ -2537,7 +2537,7 @@ class Program
 {
     static void Main()
     {
-        Predicate<object> x[||] = y => true;
+        Predicate<object> x$$ = y => true;
         var z = new Func<string, bool>(x);
     }
 }
@@ -2567,7 +2567,7 @@ class Program
 {
     static void Main()
     {
-        Exception e[||] = new ArgumentException();
+        Exception e$$ = new ArgumentException();
         Type b = e.GetType();
     }
 }
@@ -2597,7 +2597,7 @@ class Program
 {
     static void Main()
     {
-        IEnumerable<char> s[||] = ""abc"";
+        IEnumerable<char> s$$ = ""abc"";
         foreach (var x in s)
             Console.WriteLine(x);
     }
@@ -2631,7 +2631,7 @@ class Program
 {
     static void Main()
     {
-        IEnumerable s[||] = ""abc"";
+        IEnumerable s$$ = ""abc"";
         foreach (object x in s)
             Console.WriteLine(x);
     }
@@ -2665,7 +2665,7 @@ class Program
 {
     static void Main()
     {
-        IEnumerable s[||] = ""abc"";
+        IEnumerable s$$ = ""abc"";
         foreach (char x in s)
             Console.WriteLine(x);
     }
@@ -2700,7 +2700,7 @@ class C
 
     static void M()
     {
-        long [||]x = 1;
+        long $$x = 1;
         IComparable<long> c = Goo(x, x);
     }
 }
@@ -2730,7 +2730,7 @@ class C
 {
     static void M()
     {
-        object x[||] = null;
+        object x$$ = null;
         var a = new[] { x, x };
         Goo(a);
     }
@@ -2763,7 +2763,7 @@ class C
 {
     static void M()
     {
-        long x[||] = 42;
+        long x$$ = 42;
         Goo(x, x);
     }
 
@@ -2795,7 +2795,7 @@ class C
 {
     static void M()
     {
-        long x[||] = 42;
+        long x$$ = 42;
         Goo(() => { return x; }, () => { return x; });
     }
 
@@ -2830,7 +2830,7 @@ class C
 
     void M()
     {
-        C x[||] = 42;
+        C x$$ = 42;
         Console.WriteLine(x + x);
     }
 
@@ -2898,7 +2898,7 @@ class X
     const int Value = 1000;
     static void Main()
     {
-        var a[||] = Goo(X => (byte)X.Value, null);
+        var a$$ = Goo(X => (byte)X.Value, null);
         unchecked
         {
             Console.WriteLine(a);
@@ -2943,7 +2943,7 @@ static class C
 
     static void Main()
     {
-        var a[||] = Outer(x => Inner(x, null), null);
+        var a$$ = Outer(x => Inner(x, null), null);
         unsafe
         {
             Console.WriteLine(a);
@@ -2989,7 +2989,7 @@ class C
     {
         Goo(x =>
         {
-            string s[||] = x;
+            string s$$ = x;
             var y = s;
         });
     }
@@ -3022,7 +3022,7 @@ class C
 {
     static void M()
     {
-        int [||]a[10] = {
+        int $$a[10] = {
             0,
             0
         };
@@ -3105,7 +3105,7 @@ class Program
 {
     void Main()
     {
-        int [||]x = 0;
+        int $$x = 0;
 
         Goo(x);
 #line hidden
@@ -3137,7 +3137,7 @@ class Program
 {
     void Main()
     {
-        int [||]x = 0;
+        int $$x = 0;
         Goo(x);
 #line hidden
         Goo(x);
@@ -3160,7 +3160,7 @@ class Program
     static void Main()
     {
     label:
-        int [||]x = 1;
+        int $$x = 1;
         Console.WriteLine();
         int y = x;        
     }
@@ -3193,7 +3193,7 @@ class Program
     static void Main()
     {
         int x = 0;
-        int y[||] = x += 1;
+        int y$$ = x += 1;
         var z = new List<int> { y };
     }
 }",
@@ -3223,7 +3223,7 @@ class Program
 {
     static void Main()
     {
-        IList<dynamic> x[||] = new List<object>();
+        IList<dynamic> x$$ = new List<object>();
         IList<object> y = x;
     }
 }",
@@ -3252,7 +3252,7 @@ class Program
 {
     static void Main()
     {
-        IList<object> x[||] = new List<dynamic>();
+        IList<object> x$$ = new List<dynamic>();
         IList<dynamic> y = x;
     }
 }
@@ -3283,7 +3283,7 @@ class Program
 {
     static void Main()
     {
-        ValueType x[||] = 1;
+        ValueType x$$ = 1;
         object y = x;
     }
 }
@@ -3321,7 +3321,7 @@ static class C
 
     static void Main()
     {
-        Outer(y => Inner(x => { var z[||] = x; Action a = () => z.GetType(); }, y), null);
+        Outer(y => Inner(x => { var z$$ = x; Action a = () => z.GetType(); }, y), null);
     }
 }
 ",
@@ -3360,7 +3360,7 @@ class A<B>
         {
             void M()
             {
-                var x[||] = new C[0];
+                var x$$ = new C[0];
                 C[] y = x;
             }
         }
@@ -3397,7 +3397,7 @@ class A
 {
     static void Main()
     {
-        var a[||] = new A(); // Inline a
+        var a$$ = new A(); // Inline a
         Goo(a);
     }
  
@@ -3804,7 +3804,7 @@ class C
 
     static void N(int x, int y)
     {
-        FormattableString [||]s = $""{x}, {y}"";
+        FormattableString $$s = $""{x}, {y}"";
         M(s);
     }
 }";
@@ -3841,7 +3841,7 @@ class C
 
     static void N(int x, int y)
     {
-        FormattableString [||]s = $""{x}, {y}"";
+        FormattableString $$s = $""{x}, {y}"";
         M(s);
     }
 }";
@@ -3874,7 +3874,7 @@ class C
 
     static void N()
     {
-        var [||]x = 42;
+        var $$x = 42;
         M(() =>
         {
             Console.WriteLine(x);
@@ -3911,7 +3911,7 @@ class C
 {
     public void M()
     {
-        (int, string) [||]x = (1, ""hello"");
+        (int, string) $$x = (1, ""hello"");
         x.ToString();
     }
 }";
@@ -3928,7 +3928,7 @@ class C
 {
     public void M()
     {
-        (int, string) [||]x = (1, ""hello"");
+        (int, string) $$x = (1, ""hello"");
         x.ToString();
     }
 }";
@@ -3955,7 +3955,7 @@ class C
 {
     public void M()
     {
-        (int a, string b) [||]x = (a: 1, b: ""hello"");
+        (int a, string b) $$x = (a: 1, b: ""hello"");
         x.ToString();
     }
 }";
@@ -3982,7 +3982,7 @@ class C
 {
     public void M()
     {
-        (int a, string b) [||]x = (c: 1, d: ""hello"");
+        (int a, string b) $$x = (c: 1, d: ""hello"");
         x.a.ToString();
     }
 }";
@@ -4008,7 +4008,7 @@ class C
 {
     public void M()
     {
-        var [||]temp = new C();
+        var $$temp = new C();
         var (x1, x2) = temp;
         var x3 = temp;
     }
@@ -4037,7 +4037,7 @@ class Program
 {
     static void Main()
     {
-        var [||]kvp = KVP.Create(42, ""hello"");
+        var $$kvp = KVP.Create(42, ""hello"");
         var(x1, x2) = kvp;
     }
 }
@@ -4079,7 +4079,7 @@ class C
 {
     void M()
     {
-        int [||]i = 1 + 2;
+        int $$i = 1 + 2;
         string s = ""a"" + i;
     }
 }";
@@ -4104,7 +4104,7 @@ class C
 {
     void M()
     {
-        int [||]i = 1 + 2;
+        int $$i = 1 + 2;
         var t = (i, 3);
     }
 }";
@@ -4129,7 +4129,7 @@ class C
 {
     void M()
     {
-        int [||]i = 1 + 2;
+        int $$i = 1 + 2;
         var t = ( /*comment*/ i, 3);
     }
 }";
@@ -4154,7 +4154,7 @@ class C
 {
     void M()
     {
-        int [||]i = 1 + 2;
+        int $$i = 1 + 2;
         var t = (
             /*comment*/ i,
             /*comment*/ 3
@@ -4185,7 +4185,7 @@ class C
 {
     void M()
     {
-        int [||]i = 1 + 2;
+        int $$i = 1 + 2;
         var t = (i, i);
     }
 }";
@@ -4211,7 +4211,7 @@ class C
     static int y = 1;
     void M()
     {
-        int [||]i = C.y;
+        int $$i = C.y;
         var t = ((i, (i, _)) = (1, (i, 3)));
     }
 }";
@@ -4238,7 +4238,7 @@ class C
     static int y = 1;
     void M()
     {
-        int [||]i = C.y;
+        int $$i = C.y;
         var t = ((i, _) = (1, 2));
     }
 }";
@@ -4263,7 +4263,7 @@ class C
 {
     void M()
     {
-        int [||]Rest = 1 + 2;
+        int $$Rest = 1 + 2;
         var t = (Rest, 3);
     }
 }";
@@ -4287,7 +4287,7 @@ class C
 {
     void M()
     {
-        int [||]Item1 = 1 + 2;
+        int $$Item1 = 1 + 2;
         var t = (Item1, 3);
     }
 }";
@@ -4311,7 +4311,7 @@ class C
 {
     void M()
     {
-        int [||]@int = 1 + 2;
+        int $$@int = 1 + 2;
         var t = (@int, 3);
     }
 }";
@@ -4335,7 +4335,7 @@ class C
 {
     void M()
     {
-        int [||]@where = 1 + 2;
+        int $$@where = 1 + 2;
         var t = (@where, 3);
     }
 }";
@@ -4359,7 +4359,7 @@ class C
 {
     void M()
     {
-        int [||]i = 1 + 2;
+        int $$i = 1 + 2;
         var t = new { i, i }; // error already
     }
 }";
@@ -4384,7 +4384,7 @@ class C
     void M()
     {
         int j = 0;
-        int [||]i = j = 1;
+        int $$i = j = 1;
         var t = new { i, k = 3 };
     }
 }";
@@ -4409,7 +4409,7 @@ class C
 {
     void M()
     {
-        int [||]i = 1 + 2;
+        int $$i = 1 + 2;
         var t = new { /*comment*/ i, j = 3 };
     }
 }";
@@ -4433,7 +4433,7 @@ class C
 {
     void M()
     {
-        int [||]i = 1 + 2;
+        int $$i = 1 + 2;
         var t = new {
             /*comment*/ i,
             /*comment*/ j = 3
@@ -4502,7 +4502,7 @@ class C
 {
     bool M<T>(ref T x) 
     {
-        var [||]b = M(ref x);
+        var $$b = M(ref x);
         return b || b;
     }
 }",
@@ -4527,7 +4527,7 @@ class C
 {
     bool M<T>(out T x) 
     {
-        var [||]b = M(out x);
+        var $$b = M(out x);
         return b || b;
     }
 }",
@@ -4551,7 +4551,7 @@ class C
 {
     bool M()
     {
-        var [||]o = M();
+        var $$o = M();
         if (!o) throw null;
         throw null;
     }
@@ -4577,7 +4577,7 @@ class C
 {
     void M()
     {
-        var [||]o = (Exception)null;
+        var $$o = (Exception)null;
         Console.Write(o == new Exception());
     }
 }",

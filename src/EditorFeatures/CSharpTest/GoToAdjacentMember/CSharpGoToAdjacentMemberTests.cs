@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -40,7 +40,7 @@ $$
             var code = @"$$
 class C
 {
-    [||]void M() { }
+    $$void M() { }
 }";
 
             await AssertNavigatedAsync(code, next: true);
@@ -53,7 +53,7 @@ class C
             var code = @"
 class C
 {
-    [||]void M() { }
+    $$void M() { }
 }
 
 $$";
@@ -75,7 +75,7 @@ $$
 
 class C2
 {
-    [||]void M() { }
+    $$void M() { }
 } ";
 
             await AssertNavigatedAsync(code, next: true);
@@ -88,7 +88,7 @@ class C2
             var code = @"
 class C1
 {
-    [||]void M() { }
+    $$void M() { }
 }
 
 $$
@@ -109,7 +109,7 @@ class C2
 class C
 {
     $$void M1() { }
-    [||]void M2() { }
+    $$void M2() { }
 }";
 
             await AssertNavigatedAsync(code, next: true);
@@ -122,7 +122,7 @@ class C
             var code = @"
 class C
 {
-    [||]void M1() { }
+    $$void M1() { }
     $$void M2() { }
 }";
 
@@ -136,7 +136,7 @@ class C
             var code = @"
 class C
 {
-    [||]void M1() { }
+    $$void M1() { }
     $$void M2() { }
 }";
 
@@ -151,7 +151,7 @@ class C
 class C
 {
     $$void M1() { }
-    [||]void M2() { }
+    $$void M2() { }
 }";
 
             await AssertNavigatedAsync(code, next: false);
@@ -168,7 +168,7 @@ class C
 
     class N
     {
-        [||]void M2() { }
+        $$void M2() { }
     }
 }";
 
@@ -183,7 +183,7 @@ class C
 class C
 {
     $$void M1() { }
-    [||]public C() { }
+    $$public C() { }
 }";
             await AssertNavigatedAsync(code, next: true);
         }
@@ -196,7 +196,7 @@ class C
 class C
 {
     $$void M1() { }
-    [||]~C() { }
+    $$~C() { }
 }";
             await AssertNavigatedAsync(code, next: true);
         }
@@ -209,7 +209,7 @@ class C
 class C
 {
     $$void M1() { }
-    [||]static C operator+(C left, C right) { throw new System.NotImplementedException(); }
+    $$static C operator+(C left, C right) { throw new System.NotImplementedException(); }
 }";
             await AssertNavigatedAsync(code, next: true);
         }
@@ -221,7 +221,7 @@ class C
 class C
 {
     $$void M1() { }
-    [||]int F;
+    $$int F;
 }";
             await AssertNavigatedAsync(code, next: true);
         }
@@ -234,7 +234,7 @@ class C
 class C
 {
     $$void M1() { }
-    [||]event System.EventHandler E;
+    $$event System.EventHandler E;
 }";
             await AssertNavigatedAsync(code, next: true);
         }
@@ -247,7 +247,7 @@ class C
 class C
 {
     $$void M1() { }
-    [||]int P { get; set ; }
+    $$int P { get; set ; }
 }";
             await AssertNavigatedAsync(code, next: true);
         }
@@ -261,7 +261,7 @@ class C
 {
     $$void M1() { }
 
-    [||]int P
+    $$int P
     {
         get { return 42; }
         set { }
@@ -286,7 +286,7 @@ class C
         set { }
     }
 
-    [||]void M2() { }
+    $$void M2() { }
 }";
 
             await AssertNavigatedAsync(code, next: true);
@@ -307,7 +307,7 @@ class C
         set { }
     }
 
-    [||]void M2() { }
+    $$void M2() { }
 }";
 
             await AssertNavigatedAsync(code, next: true);
@@ -322,7 +322,7 @@ class C
 {
     $$void M1() { }
 
-    [||]int this[int i]
+    $$int this[int i]
     {
         get { return 42; }
         set { }
@@ -347,7 +347,7 @@ class C
         set { }
     }
 
-    [||]void M2() { }
+    $$void M2() { }
 }";
 
             await AssertNavigatedAsync(code, next: true);
@@ -362,7 +362,7 @@ class C
 {
     $$void M1() { }
 
-    [||]event EventHandler E
+    $$event EventHandler E
     {
         add { }
         remove { }
@@ -387,7 +387,7 @@ class C
         remove { }
     }
 
-    [||]void M2() { }
+    $$void M2() { }
 }";
 
             await AssertNavigatedAsync(code, next: true);
@@ -405,7 +405,7 @@ class C
         $$System.Console.WriteLine();
     }
 
-    [||]void M2() { }
+    $$void M2() { }
 }";
 
             await AssertNavigatedAsync(code, next: true);
@@ -422,7 +422,7 @@ class C
 
     $$
 
-    [||]void M2() { }
+    $$void M2() { }
 }";
 
             await AssertNavigatedAsync(code, next: true);
@@ -435,7 +435,7 @@ class C
             var code = @"
 class C
 {
-    [||]void M1() { }
+    $$void M1() { }
 
     $$
 
@@ -456,7 +456,7 @@ class C
     {
     } $$
 
-    [||]void M2() { }
+    $$void M2() { }
 }";
 
             await AssertNavigatedAsync(code, next: true);
@@ -469,7 +469,7 @@ class C
             var code = @"
 class C
 {
-    [||]void M1()
+    $$void M1()
     {
     } $$
 
@@ -488,7 +488,7 @@ class C
 {
     int M1() => $$42;
 
-    [||]int M2() => 42;
+    $$int M2() => 42;
 }";
 
             await AssertNavigatedAsync(code, next: true);
@@ -502,7 +502,7 @@ class C
             var code = @"
 class C
 {
-    [||]void M1()
+    $$void M1()
     {
         Console.WriteLine($$);
     }
@@ -522,7 +522,7 @@ class C
             var code = @"
 $$void M1() { }
 
-[||]void M2() { }";
+$$void M2() { }";
 
             await AssertNavigatedAsync(code, next: true, sourceCodeKind: SourceCodeKind.Script);
         }
@@ -532,7 +532,7 @@ $$void M1() { }
         public async Task PrevInScript()
         {
             var code = @"
-[||]void M1() { }
+$$void M1() { }
 
 $$void M2() { }";
 

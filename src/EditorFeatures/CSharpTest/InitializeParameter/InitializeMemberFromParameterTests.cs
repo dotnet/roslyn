@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -24,7 +24,7 @@ class C
 {
     private string s;
 
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -49,7 +49,7 @@ class C
 {
     private string s;
 
-    public C(string s[||])
+    public C(string s$$)
     {
     }
 }",
@@ -74,7 +74,7 @@ class C
 {
     private string s;
 
-    public C(string s[||], string t)
+    public C(string s$$, string t)
     {
     }
 }",
@@ -99,7 +99,7 @@ class C
 {
     private string _s;
 
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -124,7 +124,7 @@ class C
 {
     private string S { get; }
 
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -149,7 +149,7 @@ class C
 {
     private string t;
 
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -176,7 +176,7 @@ class C
 {
     private string S => null;
 
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -203,7 +203,7 @@ class C
 {
     private string T { get; }
 
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -229,7 +229,7 @@ class C
 {
     private int s;
 
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -256,7 +256,7 @@ class C
 {
     private int s;
 
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -282,7 +282,7 @@ class C
 {
     private object s;
 
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -308,7 +308,7 @@ class C
     private int s;
     private int x;
 
-    public C([||]string s)
+    public C($$string s)
     {
         x = s;
     }
@@ -325,7 +325,7 @@ class C
     private int s;
     private int x;
 
-    public C([||]string s)
+    public C($$string s)
     {
         x = s ?? throw new Exception();
     }
@@ -341,7 +341,7 @@ class C
 {
     private int s;
 
-    public C([||]string s)
+    public C($$string s)
     {
         s = 0;
     }
@@ -352,7 +352,7 @@ class C
 {
     private int s;
 
-    public C([||]string s)
+    public C($$string s)
     {
         s = 0;
         S = s;
@@ -372,7 +372,7 @@ class C
     private string s;
     private string t;
 
-    public C([||]string s, string t)
+    public C($$string s, string t)
     {
         this.t = t;   
     }
@@ -401,7 +401,7 @@ class C
     private string s;
     private string t;
 
-    public C(string s, [||]string t)
+    public C(string s, $$string t)
     {
         this.s = s;   
     }
@@ -429,7 +429,7 @@ class C
 {
     private string s;
 
-    public C([||]string s)
+    public C($$string s)
     {
         if (true) { } 
     }
@@ -457,7 +457,7 @@ class C
 {
     private string s;
 
-    public void M([||]string s)
+    public void M($$string s)
     {
     }
 }");
@@ -473,7 +473,7 @@ class C
     private string s;
     private string t;
 
-    public C(string s, [||]string t)
+    public C(string s, $$string t)
         => this.s = s;   
 }",
 @"
@@ -500,7 +500,7 @@ class C
     private string s;
     private string t;
 
-    public C([||]string s, string t)
+    public C($$string s, string t)
         => this.t = t;   
 }",
 @"
@@ -524,7 +524,7 @@ class C
 @"
 class C
 {
-    public C(string s, [||]string t)
+    public C(string s, $$string t)
     {
         S = s;   
     }
@@ -552,7 +552,7 @@ class C
 @"
 class C
 {
-    public C([||]string s, string t)
+    public C($$string s, string t)
     {
         T = t;   
     }
@@ -583,7 +583,7 @@ class C
 {
     private string s;
 
-    public C(string s[||])
+    public C(string s$$)
 }",
 @"
 class C

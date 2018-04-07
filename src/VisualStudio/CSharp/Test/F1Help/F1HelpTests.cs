@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
             await Test_KeywordAsync(
 @"class C
 {
-    vo[||]id goo()
+    vo$$id goo()
     {
     }
 }", "void");
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
 {
     void goo()
     {
-        ret[||]urn;
+        ret$$urn;
     }
 }", "return");
         }
@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         public async Task TestPartialType()
         {
             await Test_KeywordAsync(
-@"part[||]ial class C
+@"part$$ial class C
 {
     partial void goo();
 }", "partialtype");
@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
             await Test_KeywordAsync(
 @"partial class C
 {
-    par[||]tial void goo();
+    par$$tial void goo();
 }", "partialmethod");
         }
 
@@ -88,7 +88,7 @@ class Program<T> where T : class
     void goo(string[] args)
     {
         var x = from a in args
-                whe[||]re a.Length > 0
+                whe$$re a.Length > 0
                 select a;
     }
 }", "whereclause");
@@ -100,7 +100,7 @@ class Program<T> where T : class
             await Test_KeywordAsync(
 @"using System.Linq;
 
-class Program<T> wh[||]ere T : class
+class Program<T> wh$$ere T : class
 {
     void goo(string[] args)
     {
@@ -115,7 +115,7 @@ class Program<T> wh[||]ere T : class
         public async Task TestPreprocessor()
         {
             await TestAsync(
-@"#regi[||]on
+@"#regi$$on
 #endregion", "#region");
         }
 
@@ -196,7 +196,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var[||] x = 3;
+        var$$ x = 3;
     }
 }", "var_CSharpKeyword");
         }
@@ -214,7 +214,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var x =[||] 3;
+        var x =$$ 3;
     }
 }", "=_CSharpKeyword");
         }
@@ -232,7 +232,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var x = from n i[||]n {
+        var x = from n i$$n {
             1}
 
         select n
@@ -253,7 +253,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        new UriBuilder().Fragm[||]ent;
+        new UriBuilder().Fragm$$ent;
     }
 }", "System.UriBuilder.Fragment");
         }
@@ -271,7 +271,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        foreach (var x in[||] {
+        foreach (var x in$$ {
             1} )
         {
         }
@@ -287,7 +287,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        #region Begin MyR[||]egion for testing
+        #region Begin MyR$$egion for testing
         #endregion End
     }
 }", "#region");
@@ -301,7 +301,7 @@ class Program
 {
     static void generic<T>(T t)
     {
-        generic[||]<int>(0);
+        generic$$<int>(0);
     }
 }", "Program.generic``1");
         }
@@ -320,7 +320,7 @@ class Program
     static void Main(string[] args)
     {
         int x;
-        x[||];
+        x$$;
     }
 }", "System.Int32");
         }
@@ -334,7 +334,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var i = int.Ma[||]xValue;
+        var i = int.Ma$$xValue;
     }
 }", "System.Int32.MaxValue");
         }
@@ -346,7 +346,7 @@ class Program
             await TestAsync(
 @"class Class2
 {
-    void M1(int par[||]ameter)  // 1
+    void M1(int par$$ameter)  // 1
     {
     }
 
@@ -365,7 +365,7 @@ class Program
             await TestAsync(
 @"class Class2
 {
-    void M1(int pa[||]rameter)  // 1
+    void M1(int pa$$rameter)  // 1
     {
     }
 
@@ -387,7 +387,7 @@ class Program
     static void Main(string[] args)
     {
     }
-}[||]", "");
+}$$", "");
         }
 
         [WorkItem(862328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862328")]
@@ -399,7 +399,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Main(new string[] { ""fo[||]o"" });
+        Main(new string[] { ""fo$$o"" });
     }
 }", "System.String");
         }
@@ -418,7 +418,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        global:[||]:System.Console.Write("");
+        global:$$:System.Console.Write("");
     }
 }", "::_CSharpKeyword");
         }
@@ -437,7 +437,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        int?[||] a = int.MaxValue;
+        int?$$ a = int.MaxValue;
         a.Value.GetHashCode();
     }
 }", "System.Nullable`1");
@@ -486,7 +486,7 @@ class Program
     void M()
     {
         var a = 0;
-        int v[||]ar = 1;
+        int v$$ar = 1;
     }
 }", "System.Int32");
         }
@@ -500,7 +500,7 @@ class Program
 {
     void M()
     {
-        var a = new System.Action(() =[||]> {
+        var a = new System.Action(() =$$> {
         });
     }
 }", "=>_CSharpKeyword");
@@ -517,7 +517,7 @@ class Program
 
     void M()
     {
-        e +[||]= () => {
+        e +$$= () => {
         };
     }
 }", "CCC.e.add");
@@ -527,7 +527,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestComment()
         {
-            await TestAsync(@"// some comm[||]ents here", "comments");
+            await TestAsync(@"// some comm$$ents here", "comments");
         }
 
         [WorkItem(867529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867529")]
@@ -539,7 +539,7 @@ class Program
 {
     void M()
     {
-        dyna[||]mic d = 0;
+        dyna$$mic d = 0;
     }
 }", "dynamic_CSharpKeyword");
         }
@@ -558,7 +558,7 @@ class Program
     static void Main(string[] args)
     {
         var zzz = from y in args
-                  select [||]y;
+                  select $$y;
     }
 }", "System.String");
         }

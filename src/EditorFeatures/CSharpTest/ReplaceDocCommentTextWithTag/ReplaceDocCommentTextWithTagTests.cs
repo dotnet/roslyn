@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceDocCommentTextWi
         {
             await TestInRegularAndScriptAsync(
 @"
-/// Testing keyword [||]null.
+/// Testing keyword $$null.
 class C<TKey>
 {
 }",
@@ -37,7 +37,7 @@ class C<TKey>
         {
             await TestInRegularAndScriptAsync(
 @"
-/// Testing keyword abstract[||].
+/// Testing keyword abstract$$.
 class C<TKey>
 {
 }",
@@ -54,7 +54,7 @@ class C<TKey>
         {
             await TestInRegularAndScriptAsync(
 @"
-/// Testing keyword static[||]
+/// Testing keyword static$$
 class C<TKey>
 {
 }",
@@ -88,7 +88,7 @@ class C<TKey>
         {
             await TestInRegularAndScriptAsync(
 @"
-/// Testing keyword asy[||]nc.
+/// Testing keyword asy$$nc.
 class C<TKey>
 {
 }",
@@ -116,7 +116,7 @@ class C<TKey>
         {
             await TestInRegularAndScriptAsync(
 @"
-/// TKey must implement the [||]System.IDisposable interface.
+/// TKey must implement the $$System.IDisposable interface.
 class C<TKey>
 {
 }",
@@ -133,7 +133,7 @@ class C<TKey>
         {
             await TestInRegularAndScriptAsync(
 @"
-/// TKey must implement the System[||].IDisposable interface.
+/// TKey must implement the System$$.IDisposable interface.
 class C<TKey>
 {
 }",
@@ -150,7 +150,7 @@ class C<TKey>
         {
             await TestInRegularAndScriptAsync(
 @"
-/// TKey must implement the System.[||]IDisposable interface.
+/// TKey must implement the System.$$IDisposable interface.
 class C<TKey>
 {
 }",
@@ -167,7 +167,7 @@ class C<TKey>
         {
             await TestInRegularAndScriptAsync(
 @"
-/// TKey must implement the System.IDisposable[||] interface.
+/// TKey must implement the System.IDisposable$$ interface.
 class C<TKey>
 {
 }",
@@ -201,7 +201,7 @@ class C<TKey>
         {
             await TestInRegularAndScriptAsync(
 @"
-/// [||]TKey must implement the System.IDisposable interface.
+/// $$TKey must implement the System.IDisposable interface.
 class C<TKey>
 {
 }",
@@ -218,7 +218,7 @@ class C<TKey>
         {
             await TestInRegularAndScriptAsync(
 @"
-/// [||]TKey must implement the System.IDisposable interface.
+/// $$TKey must implement the System.IDisposable interface.
 class C<TKey>{}",
 
 @"
@@ -231,7 +231,7 @@ class C<TKey>{}");
         {
             await TestInRegularAndScriptAsync(
 @"
-/// Use WriteLine[||] as a Console.WriteLine replacement
+/// Use WriteLine$$ as a Console.WriteLine replacement
 class C
 {
     void WriteLine<TKey>(TKey value) { }
@@ -250,7 +250,7 @@ class C
         {
             await TestMissingAsync(
 @"
-/// Use WriteLine1[||] as a Console.WriteLine replacement
+/// Use WriteLine1$$ as a Console.WriteLine replacement
 class C
 {
     void WriteLine<TKey>(TKey value) { }
@@ -264,7 +264,7 @@ class C
 @"
 class C
 {
-    /// value has type TKey[||] so we don't box primitives.
+    /// value has type TKey$$ so we don't box primitives.
     void WriteLine<TKey>(TKey value) { }
 }",
 
@@ -283,7 +283,7 @@ class C
 @"
 class C
 {
-    /// value has type TKey[||] so we don't box primitives.
+    /// value has type TKey$$ so we don't box primitives.
     void WriteLine<TKey>(TKey value){}
 }",
 
@@ -302,7 +302,7 @@ class C
 @"
 class C
 {
-    /// value has type TKey[||] so we don't box primitives.
+    /// value has type TKey$$ so we don't box primitives.
     object WriteLine<TKey>(TKey value) => null;
 }",
 
@@ -321,7 +321,7 @@ class C
 @"
 class C
 {
-    /// value has type TKey[||] so we don't box primitives.
+    /// value has type TKey$$ so we don't box primitives.
     void WriteLine<TKey>(TKey value);
 }",
 
@@ -340,7 +340,7 @@ class C
 @"
 class C
 {
-    /// value[||] has type TKey so we don't box primitives.
+    /// value$$ has type TKey so we don't box primitives.
     void WriteLine<TKey>(TKey value) { }
 }",
 
@@ -359,7 +359,7 @@ class C
 @"
 class C
 {
-    /// value[||] has type TKey so we don't box primitives.
+    /// value$$ has type TKey so we don't box primitives.
     void WriteLine<TKey>(TKey value){}
 }",
 
@@ -378,7 +378,7 @@ class C
 @"
 class C
 {
-    /// value[||] has type TKey so we don't box primitives.
+    /// value$$ has type TKey so we don't box primitives.
     object WriteLine<TKey>(TKey value) => null;
 }",
 
@@ -397,7 +397,7 @@ class C
 @"
 class C
 {
-    /// value[||] has type TKey so we don't box primitives.
+    /// value$$ has type TKey so we don't box primitives.
     void WriteLine<TKey>(TKey value);
 }",
 
@@ -415,7 +415,7 @@ class C
         {
             await TestMissingAsync(
 @"
-/// Testing keyword interfa[||]ce.
+/// Testing keyword interfa$$ce.
 class C<TKey>
 {
 }");
@@ -427,7 +427,7 @@ class C<TKey>
         {
             await TestMissingAsync(
 @"
-/// Testing keyword inside <see langword =""nu[||]ll""/>
+/// Testing keyword inside <see langword =""nu$$ll""/>
 class C
 {
     void WriteLine<TKey>(TKey value) { }
@@ -440,7 +440,7 @@ class C
         {
             await TestMissingAsync(
 @"
-/// Testing keyword inside <see langword =""nu[||]ll""
+/// Testing keyword inside <see langword =""nu$$ll""
 class C
 {
     void WriteLine<TKey>(TKey value) { }

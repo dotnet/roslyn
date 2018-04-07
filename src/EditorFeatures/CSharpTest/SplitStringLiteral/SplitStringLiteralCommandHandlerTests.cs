@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = [||]"""";
+        var v = $$"""";
     }
 }");
         }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = """"[||];
+        var v = """"$$;
     }
 }");
         }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = """" [||];
+        var v = """" $$;
     }
 }");
         }
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = """"[||]
+        var v = """"$$
     }
 }");
         }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = """" [||]
+        var v = """" $$
     }
 }");
         }
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = $""""[||];
+        var v = $""""$$;
     }
 }");
         }
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = $"""" [||];
+        var v = $"""" $$;
     }
 }");
         }
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = $""""[||]
+        var v = $""""$$
     }
 }");
         }
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = $"""" [||]
+        var v = $"""" $$
     }
 }");
         }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = @""a[||]b"";
+        var v = @""a$$b"";
     }
 }");
         }
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = $@""a[||]b"";
+        var v = $@""a$$b"";
     }
 }");
         }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = ""[||]"";
+        var v = ""$$"";
     }
 }",
 @"class C
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     void M()
     {
         var v = """" +
-            ""[||]"";
+            ""$$"";
     }
 }");
         }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = $""[||]"";
+        var v = $""$$"";
     }
 }",
 @"class C
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     void M()
     {
         var v = $"""" +
-            $""[||]"";
+            $""$$"";
     }
 }");
         }
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = ""now is [||]the time"";
+        var v = ""now is $$the time"";
     }
 }",
 @"class C
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     void M()
     {
         var v = ""now is "" +
-            ""[||]the time"";
+            ""$$the time"";
     }
 }");
         }
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = $""now is [||]the { 1 + 2 } time for { 3 + 4 } all good men"";
+        var v = $""now is $$the { 1 + 2 } time for { 3 + 4 } all good men"";
     }
 }",
 @"class C
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     void M()
     {
         var v = $""now is "" +
-            $""[||]the { 1 + 2 } time for { 3 + 4 } all good men"";
+            $""$$the { 1 + 2 } time for { 3 + 4 } all good men"";
     }
 }");
         }
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = $""now is the [||]{ 1 + 2 } time for { 3 + 4 } all good men"";
+        var v = $""now is the $${ 1 + 2 } time for { 3 + 4 } all good men"";
     }
 }",
 @"class C
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     void M()
     {
         var v = $""now is the "" +
-            $""[||]{ 1 + 2 } time for { 3 + 4 } all good men"";
+            $""$${ 1 + 2 } time for { 3 + 4 } all good men"";
     }
 }");
         }
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = $""now is the { 1 + 2 }[||] time for { 3 + 4 } all good men"";
+        var v = $""now is the { 1 + 2 }$$ time for { 3 + 4 } all good men"";
     }
 }",
 @"class C
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     void M()
     {
         var v = $""now is the { 1 + 2 }"" +
-            $""[||] time for { 3 + 4 } all good men"";
+            $""$$ time for { 3 + 4 } all good men"";
     }
 }");
         }
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = $""now is the {[||] 1 + 2 } time for { 3 + 4 } all good men"";
+        var v = $""now is the {$$ 1 + 2 } time for { 3 + 4 } all good men"";
     }
 }");
         }
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     void M()
     {
-        var v = $""now is the { 1 + 2 [||]} time for { 3 + 4 } all good men"";
+        var v = $""now is the { 1 + 2 $$} time for { 3 + 4 } all good men"";
     }
 }");
         }
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 {
     static void Main(string[] args)
     {
-        var str = $""somestring { args[0]}[||]"" +
+        var str = $""somestring { args[0]}$$"" +
             $""{args[1]}"" +
             $""{args[2]}"";
 
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     static void Main(string[] args)
     {
         var str = $""somestring { args[0]}"" +
-            $""[||]"" +
+            $""$$"" +
             $""{args[1]}"" +
             $""{args[2]}"";
 
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     static void Main(string[] args)
     {
         var str = $""somestring { args[0]}"" +
-            $""{args[1]}[||]"" +
+            $""{args[1]}$$"" +
             $""{args[2]}"";
 
         var str2 = ""string1"" +
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     {
         var str = $""somestring { args[0]}"" +
             $""{args[1]}"" +
-            $""[||]"" +
+            $""$$"" +
             $""{args[2]}"";
 
         var str2 = ""string1"" +
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     {
         var str = $""somestring { args[0]}"" +
             $""{args[1]}"" +
-            $""{args[2]}[||]"";
+            $""{args[2]}$$"";
 
         var str2 = ""string1"" +
             ""string2"" +
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         var str = $""somestring { args[0]}"" +
             $""{args[1]}"" +
             $""{args[2]}"" +
-            $""[||]"";
+            $""$$"";
 
         var str2 = ""string1"" +
             ""string2"" +
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             $""{args[1]}"" +
             $""{args[2]}"";
 
-        var str2 = ""string1[||]"" +
+        var str2 = ""string1$$"" +
             ""string2"" +
             ""string3"";
     }
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             $""{args[2]}"";
 
         var str2 = ""string1"" +
-            ""[||]"" +
+            ""$$"" +
             ""string2"" +
             ""string3"";
     }
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             $""{args[2]}"";
 
         var str2 = ""string1"" +
-            ""string2[||]"" +
+            ""string2$$"" +
             ""string3"";
     }
 }",
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 
         var str2 = ""string1"" +
             ""string2"" +
-            ""[||]"" +
+            ""$$"" +
             ""string3"";
     }
 }");
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 
         var str2 = ""string1"" +
             ""string2"" +
-            ""string3[||]"";
+            ""string3$$"";
     }
 }",
 @"class Program
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         var str2 = ""string1"" +
             ""string2"" +
             ""string3"" +
-            ""[||]"";
+            ""$$"";
     }
 }");
         }

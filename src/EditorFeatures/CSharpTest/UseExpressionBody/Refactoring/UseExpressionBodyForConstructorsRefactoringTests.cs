@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
     public C()
     {
-        [||]Bar();
+        $$Bar();
     }
 }", parameters: new TestParameters(options: UseExpressionBody));
         }
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
     public C()
     {
-        [||]Bar();
+        $$Bar();
     }
 }",
 @"class C
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
     public C()
     {
-        return () => { [||] };
+        return () => { $$ };
     }
 }", parameters: new TestParameters(options: UseBlockBody));
         }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    public C() => [||]Bar();
+    public C() => $$Bar();
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    public C() => [||]Bar();
+    public C() => $$Bar();
 }",
 @"class C
 {

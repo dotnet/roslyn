@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -27,7 +27,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = v =>
+        Func<int, int> $$fibonacci = v =>
         {
             if (v <= 1)
             {
@@ -50,7 +50,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = v =>
+        Func<int, int> $$fibonacci = v =>
         {
             if (v <= 1)
             {
@@ -75,7 +75,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = v =>
+        Func<int, int> $$fibonacci = v =>
         {
             fibonacci = null;
             if (v <= 1)
@@ -98,7 +98,7 @@ class C
     void M()
     {
         // Func can't be bound.
-        Func<int, int> [||]fibonacci = v =>
+        Func<int, int> $$fibonacci = v =>
         {
             if (v <= 1)
             {
@@ -121,7 +121,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = v =>
+        Func<int, int> $$fibonacci = v =>
         {
             if (v <= 1)
             {
@@ -142,7 +142,7 @@ class C
 
 class C
 {
-    Func<int, int> [||]fibonacci = v =>
+    Func<int, int> $$fibonacci = v =>
         {
             if (v <= 1)
             {
@@ -164,7 +164,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = v =>
+        Func<int, int> $$fibonacci = v =>
         {
             if (v <= 1)
             {
@@ -204,7 +204,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = (v) =>
+        Func<int, int> $$fibonacci = (v) =>
         {
             if (v <= 1)
             {
@@ -244,7 +244,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = (int v) =>
+        Func<int, int> $$fibonacci = (int v) =>
         {
             if (v <= 1)
             {
@@ -284,7 +284,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = v =>
+        Func<int, int> $$fibonacci = v =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -314,7 +314,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = (v) =>
+        Func<int, int> $$fibonacci = (v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -344,7 +344,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = (int v) =>
+        Func<int, int> $$fibonacci = (int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2);
@@ -374,7 +374,7 @@ class C
 {
     void M()
     {
-        var [||]fibonacci = (Func<int, int>)(v =>
+        var $$fibonacci = (Func<int, int>)(v =>
         {
             if (v <= 1)
             {
@@ -414,7 +414,7 @@ class C
 {
     void M()
     {
-        var [||]fibonacci = ((Func<int, int>)(v =>
+        var $$fibonacci = ((Func<int, int>)(v =>
         {
             if (v <= 1)
             {
@@ -454,7 +454,7 @@ class C
 {
     void M()
     {
-        var [||]fibonacci = (Func<int, int>)((v) =>
+        var $$fibonacci = (Func<int, int>)((v) =>
         {
             if (v <= 1)
             {
@@ -494,7 +494,7 @@ class C
 {
     void M()
     {
-        var [||]fibonacci = (Func<int, int>)((int v) =>
+        var $$fibonacci = (Func<int, int>)((int v) =>
         {
             if (v <= 1)
             {
@@ -534,7 +534,7 @@ class C
 {
     void M()
     {
-        var [||]fibonacci = (Func<int, int>)(v =>
+        var $$fibonacci = (Func<int, int>)(v =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2));
@@ -564,7 +564,7 @@ class C
 {
     void M()
     {
-        var [||]fibonacci = (Func<int, int>)((v) =>
+        var $$fibonacci = (Func<int, int>)((v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2));
@@ -594,7 +594,7 @@ class C
 {
     void M()
     {
-        var [||]fibonacci = (Func<int, int>)((int v) =>
+        var $$fibonacci = (Func<int, int>)((int v) =>
             v <= 1
                 ? 1
                 : fibonacci(v - 1, v - 2));
@@ -624,7 +624,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fib = null;
+        Func<int, int> $$fib = null;
         fibonacci = v =>
         {
             if (v <= 1)
@@ -648,7 +648,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = GetCallback();
+        Func<int, int> $$fibonacci = GetCallback();
         fibonacci = v =>
         {
             if (v <= 1)
@@ -672,7 +672,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = null;
+        Func<int, int> $$fibonacci = null;
         fibonacci = v =>
         {
             if (v <= 1)
@@ -713,7 +713,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = default;
+        Func<int, int> $$fibonacci = default;
         fibonacci = v =>
         {
             if (v <= 1)
@@ -754,7 +754,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = default(Func<int, int>);
+        Func<int, int> $$fibonacci = default(Func<int, int>);
         fibonacci = v =>
         {
             if (v <= 1)
@@ -795,7 +795,7 @@ class C
 {
     void M()
     {
-        var [||]fibonacci = default(Func<int, int>);
+        var $$fibonacci = default(Func<int, int>);
         fibonacci = v =>
         {
             if (v <= 1)
@@ -836,7 +836,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = null;
+        Func<int, int> $$fibonacci = null;
         fibonacci = (v) =>
         {
             if (v <= 1)
@@ -877,7 +877,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = null;
+        Func<int, int> $$fibonacci = null;
         fibonacci = (int v) =>
         {
             if (v <= 1)
@@ -918,7 +918,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = null;
+        Func<int, int> $$fibonacci = null;
         fibonacci = v =>
             v <= 1
                 ? 1
@@ -949,7 +949,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = null;
+        Func<int, int> $$fibonacci = null;
         fibonacci = (v) =>
             v <= 1
                 ? 1
@@ -980,7 +980,7 @@ class C
 {
     void M()
     {
-        Func<int, int> [||]fibonacci = null;
+        Func<int, int> $$fibonacci = null;
         fibonacci = (int v) =>
             v <= 1
                 ? 1
@@ -1114,7 +1114,7 @@ class C
     void M()
     {
         // Leading trivia
-        Func<int, int> [||]fibonacci = v =>
+        Func<int, int> $$fibonacci = v =>
         {
             if (v <= 1)
             {
@@ -1155,7 +1155,7 @@ class C
 {
     void M()
     {
-        D [||]lambda = (in int p) => throw null;
+        D $$lambda = (in int p) => throw null;
     }
 }",
 @"
@@ -1179,7 +1179,7 @@ class C
 {
     void M()
     {
-        D [||]lambda = () => throw null;
+        D $$lambda = () => throw null;
     }
 }",
 @"
@@ -1205,7 +1205,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<string, Task> [||]f = x => { return Task.CompletedTask; };
+        Func<string, Task> $$f = x => { return Task.CompletedTask; };
         Func<string, Task> actual = null;
         AssertSame(f, actual);
     }
@@ -1226,7 +1226,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<string, Task> [||]f = x => { return Task.CompletedTask; };
+        Func<string, Task> $$f = x => { return Task.CompletedTask; };
         Func<string, Task> actual = null;
         AssertSame(f, actual);
     }
@@ -1260,7 +1260,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<object, string> [||]f = x => """";
+        Func<object, string> $$f = x => """";
         M(f);
     }
 
@@ -1279,7 +1279,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<object, string> [||]f = x => """";
+        Func<object, string> $$f = x => """";
         M(f);
     }
 
@@ -1298,7 +1298,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<object, string> [||]f = x => """";
+        Func<object, string> $$f = x => """";
         M(f);
     }
 
@@ -1329,7 +1329,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<object, string> [||]f = x => """";
+        Func<object, string> $$f = x => """";
         M(f);
     }
 
@@ -1360,7 +1360,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<string, string> [||]f = x => """";
+        Func<string, string> $$f = x => """";
         M(f);
     }
 
@@ -1391,7 +1391,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<object, object> [||]f = x => """";
+        Func<object, object> $$f = x => """";
         M(f);
     }
 
@@ -1427,7 +1427,7 @@ class Enclosing<T> where T : class
   {
     public void Caller()
     {
-      MyDelegate [||]local = x => x;
+      MyDelegate $$local = x => x;
 
       var doubleDelegate = local + local;
     }
@@ -1450,7 +1450,7 @@ class Enclosing<T> where T : class
     {
         public void Caller()
         {
-            MyDelegate [||]local = x => x;
+            MyDelegate $$local = x => x;
 
             var str = local.ToString();
         }
@@ -1473,7 +1473,7 @@ class Enclosing<T> where T : class
     {
         public void Caller(T t)
         {
-            MyDelegate[||]local = x => x;
+            MyDelegate$$local = x => x;
 
             Console.Write(local.Invoke(t));
 
@@ -1500,7 +1500,7 @@ class Enclosing<T> where T : class
   {
     public void Caller()
     {
-      MyDelegate [||]local = x => x;
+      MyDelegate $$local = x => x;
 
       Expression<Action> expression = () => local(null);
     }
@@ -1522,7 +1522,7 @@ public class C
 
     Expression<Action> Example()
     {
-        Action [||]action = () => Method(null);
+        Action $$action = () => Method(null);
         return () => Method(action);
     }
 }
@@ -1544,7 +1544,7 @@ class Enclosing<T> where T : class
     {
         public void Caller()
         {
-            MyDelegate [||]local = x => x;
+            MyDelegate $$local = x => x;
 
             local.Invoke();
         }
@@ -1583,7 +1583,7 @@ class Enclosing<T> where T : class
     {
         public void Caller(T t)
         {
-            MyDelegate [||]local = x => x;
+            MyDelegate $$local = x => x;
 
             Console.Write(local.Invoke(t));
         }
@@ -1622,7 +1622,7 @@ class Enclosing<T> where T : class
     {
         public void Caller(T t)
         {
-            MyDelegate [||]local = x => x;
+            MyDelegate $$local = x => x;
 
             Console.Write(local.Invoke(t));
 
@@ -1667,7 +1667,7 @@ class Enclosing<T> where T : class
     {
         public void Caller(T t)
         {
-            MyDelegate [||]local = x => x;
+            MyDelegate $$local = x => x;
 
             Console.Write(local.Invoke(t));
 
@@ -1709,7 +1709,7 @@ class C
     void Goo()
     {
         var buildCancelled = false;
-        Action [||]onUpdateSolutionCancel = () => { buildCancelled = true; };
+        Action $$onUpdateSolutionCancel = () => { buildCancelled = true; };
     }
 }",
 @"using System;
@@ -1736,7 +1736,7 @@ class C
     void Goo()
     {
         var buildCancelled = false;
-        Action<int> [||]onUpdateSolutionCancel = a => { buildCancelled = true; };
+        Action<int> $$onUpdateSolutionCancel = a => { buildCancelled = true; };
     }
 }",
 @"using System;
@@ -1763,7 +1763,7 @@ class C
     void Goo()
     {
         var buildCancelled = false;
-        Action<int> [||]onUpdateSolutionCancel = (int a) => { buildCancelled = true; };
+        Action<int> $$onUpdateSolutionCancel = (int a) => { buildCancelled = true; };
     }
 }",
 @"using System;
@@ -1789,7 +1789,7 @@ class C
 {
     void Goo()
     {
-        Func<int, int[]> [||]onUpdateSolutionCancel = x => { return null; };
+        Func<int, int[]> $$onUpdateSolutionCancel = x => { return null; };
     }
 }",
 @"using System;
@@ -1816,7 +1816,7 @@ class C
 {
     void Goo()
     {
-        Func<int, Task<int[]>> [||]onUpdateSolutionCancel = async x => { return null; };
+        Func<int, Task<int[]>> $$onUpdateSolutionCancel = async x => { return null; };
     }
 }",
 @"using System;
@@ -1843,7 +1843,7 @@ class C
     void Goo()
     {
         var buildCancelled = false;
-        var [||]onUpdateSolutionCancel = (Action)(() => { buildCancelled = true; });
+        var $$onUpdateSolutionCancel = (Action)(() => { buildCancelled = true; });
     }
 }",
 @"using System;
@@ -1870,7 +1870,7 @@ class C
     void Goo()
     {
         var buildCancelled = false;
-        var [||]onUpdateSolutionCancel = (Action<int>)(a => { buildCancelled = true; });
+        var $$onUpdateSolutionCancel = (Action<int>)(a => { buildCancelled = true; });
     }
 }",
 @"using System;
@@ -1897,7 +1897,7 @@ class C
     void Goo()
     {
         var buildCancelled = false;
-        var [||]onUpdateSolutionCancel = (Action<int>)((int a) => { buildCancelled = true; });
+        var $$onUpdateSolutionCancel = (Action<int>)((int a) => { buildCancelled = true; });
     }
 }",
 @"using System;
@@ -1924,7 +1924,7 @@ class C
     void Goo()
     {
         var buildCancelled = false;
-        Action [||]onUpdateSolutionCancel = null;
+        Action $$onUpdateSolutionCancel = null;
         onUpdateSolutionCancel = () => { buildCancelled = true; };
     }
 }",
@@ -1952,7 +1952,7 @@ class C
     void Goo()
     {
         var buildCancelled = false;
-        Action<int> [||]onUpdateSolutionCancel = null;
+        Action<int> $$onUpdateSolutionCancel = null;
         onUpdateSolutionCancel = a => { buildCancelled = true; };
     }
 }",
@@ -1980,7 +1980,7 @@ class C
     void Goo()
     {
         var buildCancelled = false;
-        Action<int> [||]onUpdateSolutionCancel = null;
+        Action<int> $$onUpdateSolutionCancel = null;
         onUpdateSolutionCancel = (int a) => { buildCancelled = true; };
     }
 }",

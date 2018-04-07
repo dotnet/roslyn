@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         get 
         {
-            [||]return Bar();
+            $$return Bar();
         }
     }
 }", parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         get 
         {
-            [||]return Bar();
+            $$return Bar();
         }
     }
 }",
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         get
         {
-            [||]return Bar();
+            $$return Bar();
         }
     }
 }",
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         get
         {
-            [||]return Bar();
+            $$return Bar();
         }
     }
 }",
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     {
         get 
         {
-            return () => { [||] };
+            return () => { $$ };
         }
     }
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Goo => [||]Bar();
+    int Goo => $$Bar();
 }", parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
         }
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Goo => [||]Bar();
+    int Goo => $$Bar();
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
         }
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Goo => [||]Bar();
+    int Goo => $$Bar();
 }",
 @"class C
 {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Goo => [||]Bar();
+    int Goo => $$Bar();
 }",
 @"class C
 {
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestAsync(
 @"class C
 {
-    int Goo => [||]Bar();
+    int Goo => $$Bar();
 }",
 @"class C
 {

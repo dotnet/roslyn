@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 }",
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]Goo()
+    int $$Goo()
     {
     }
 }",
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetGoo() => 0;
+    int $$GetGoo() => 0;
 }",
 @"class C
 {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetGoo();
+    int $$GetGoo();
 }",
 @"class C
 {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    public static int [||]GetGoo()
+    public static int $$GetGoo()
     {
     }
 }",
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C
 {
     [A]
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 }",
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C
 {
     // Goo
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 }",
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
         int count;
         foreach (var x in y)
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C
 {
 #if true
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 #endif
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C
 {
 #if true
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C
 {
 #if true
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
     {
     }
 
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 #endif
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
     {
     }
 
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 #endif
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 @"class C
 {
     // Goo
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
     // SetGoo
@@ -398,7 +398,7 @@ index: 1);
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]I.GetGoo()
+    int $$I.GetGoo()
     {
     }
 }",
@@ -424,7 +424,7 @@ index: 1);
 
 class C : I
 {
-    int [||]I.GetGoo()
+    int $$I.GetGoo()
     {
     }
 }",
@@ -450,7 +450,7 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"interface I
 {
-    int [||]GetGoo();
+    int $$GetGoo();
 }
 
 class C : I
@@ -481,7 +481,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    [At[||]tr]
+    [At$$tr]
     int GetGoo()
     {
     }
@@ -496,7 +496,7 @@ class C : I
 {
     int GetGoo()
     {
-[||]
+$$
     }
 }");
         }
@@ -507,7 +507,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    void [||]GetGoo()
+    void $$GetGoo()
     {
     }
 }");
@@ -519,7 +519,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    async Task [||]GetGoo()
+    async Task $$GetGoo()
     {
     }
 }");
@@ -531,7 +531,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo<T>()
+    int $$GetGoo<T>()
     {
     }
 }");
@@ -543,7 +543,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"static class C
 {
-    int [||]GetGoo(this int i)
+    int $$GetGoo(this int i)
     {
     }
 }");
@@ -555,7 +555,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo(int i)
+    int $$GetGoo(int i)
     {
     }
 }");
@@ -567,7 +567,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo(int i = 0)
+    int $$GetGoo(int i = 0)
     {
     }
 }");
@@ -579,7 +579,7 @@ class C : I
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-    [At[||]tr]
+    [At$$tr]
     int GetGoo()
     {
     }
@@ -594,7 +594,7 @@ class C : I
 {
     int GetGoo()
     {
-[||]
+$$
     }
 }");
         }
@@ -605,7 +605,7 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 
@@ -636,7 +636,7 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 
@@ -667,7 +667,7 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 
@@ -698,7 +698,7 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 
@@ -731,7 +731,7 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
         return GetGoo();
     }
@@ -754,7 +754,7 @@ class C : I
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    public virtual int [||]GetGoo()
+    public virtual int $$GetGoo()
     {
     }
 }
@@ -794,7 +794,7 @@ class D : C
 
 class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 
@@ -829,7 +829,7 @@ class C
 
 class C
 {
-    public IEnumerator [||]GetEnumerator()
+    public IEnumerator $$GetEnumerator()
     {
     }
 
@@ -868,7 +868,7 @@ class C
 
 class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 
@@ -902,7 +902,7 @@ index: 1);
 
 class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 
@@ -946,7 +946,7 @@ index: 1);
 
 class C
 {
-    public int [||]GetGoo()
+    public int $$GetGoo()
     {
     }
 
@@ -980,7 +980,7 @@ index: 1);
 
 class C
 {
-    int [||]GetGoo() => 0;
+    int $$GetGoo() => 0;
     void SetGoo(int i) => Bar();
 }",
 @"using System;
@@ -1011,7 +1011,7 @@ index: 1);
 
 class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 
@@ -1055,7 +1055,7 @@ index: 1);
 
 class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 
@@ -1091,7 +1091,7 @@ index: 1);
 
 class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 
@@ -1127,7 +1127,7 @@ index: 1);
 
 class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 
@@ -1161,7 +1161,7 @@ index: 1);
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    protected virtual int [||]GetGoo()
+    protected virtual int $$GetGoo()
     {
     }
 }
@@ -1200,7 +1200,7 @@ index: 0);
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    protected virtual int [||]GetGoo()
+    protected virtual int $$GetGoo()
     {
     }
 }
@@ -1241,7 +1241,7 @@ index: 0);
             await TestWithAllCodeStyleOff(
 @"interface I
 {
-    int [||]GetGoo();
+    int $$GetGoo();
 }
 
 class C : I
@@ -1273,7 +1273,7 @@ index: 0);
             await TestWithAllCodeStyleOff(
 @"partial class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
 }
@@ -1312,7 +1312,7 @@ index: 1);
 
 class C
 {
-    int [||]getGoo()
+    int $$getGoo()
     {
     }
 
@@ -1344,7 +1344,7 @@ index: 1);
             await TestWithAllCodeStyleOff(
 @"class C
 {
-    (int, string) [||]GetGoo()
+    (int, string) $$GetGoo()
     {
     }
 }",
@@ -1367,7 +1367,7 @@ index: 1);
 
 class C
 {
-    (int, string) [||]getGoo()
+    (int, string) $$getGoo()
     {
     }
 
@@ -1401,7 +1401,7 @@ index: 1);
 
 class C
 {
-    (int a, string b) [||]getGoo()
+    (int a, string b) $$getGoo()
     {
     }
 
@@ -1437,7 +1437,7 @@ index: 1);
 
 class C
 {
-    (int a, string b) [||]getGoo()
+    (int a, string b) $$getGoo()
     {
     }
 
@@ -1456,7 +1456,7 @@ index: 1));
 @"class C
 {
     // Goo
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
     // SetGoo
@@ -1499,7 +1499,7 @@ index: 0);
 @"class C
 {
     // Goo
-    int [||]GetGoo()
+    int $$GetGoo()
     {
     }
     // SetGoo
@@ -1547,7 +1547,7 @@ index: 1);
     }
 
     // SetGoo
-    void [||]SetGoo(out int i)
+    void $$SetGoo(out int i)
     {
     }
 
@@ -1565,7 +1565,7 @@ index: 1);
 @"class C
 {
     // Goo
-    int [||]GetGoo(out int i)
+    int $$GetGoo(out int i)
     {
     }
 
@@ -1593,7 +1593,7 @@ index: 1);
         Goo value = GetValue().GetValue();
     }
 
-    public Goo [||]GetValue()
+    public Goo $$GetValue()
     {
         return this;
     }
@@ -1622,7 +1622,7 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
         return 1;
     }
@@ -1640,7 +1640,7 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
         return 1;
     }
@@ -1658,7 +1658,7 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
         return 1;
     }
@@ -1676,7 +1676,7 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
         return 1;
     }
@@ -1701,7 +1701,7 @@ options: PreferExpressionBodiedAccessors);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
         return 1;
     }
@@ -1737,7 +1737,7 @@ options: PreferExpressionBodiedProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo()
+    int $$GetGoo()
     {
         return 1;
     }
@@ -1762,7 +1762,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo() => 0;
+    int $$GetGoo() => 0;
 }",
 @"class C
 {
@@ -1777,7 +1777,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo() => 0;
+    int $$GetGoo() => 0;
 }",
 @"class C
 {
@@ -1792,7 +1792,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo() => throw e;
+    int $$GetGoo() => throw e;
 }",
 @"class C
 {
@@ -1807,7 +1807,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo() { throw e; }
+    int $$GetGoo() { throw e; }
 }",
 @"class C
 {
@@ -1821,7 +1821,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo() { throw e; }
+    int $$GetGoo() { throw e; }
 }",
 @"class C
 {
@@ -1835,7 +1835,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]GetGoo() { throw e +
+    int $$GetGoo() { throw e +
         e; }
 }",
 @"class C
@@ -1859,7 +1859,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
             await TestWithAllCodeStyleOff(
 @"interface IGoo
 {
-    int [||]GetGoo();
+    int $$GetGoo();
 }
 
 class C : IGoo
@@ -1893,7 +1893,7 @@ class C : IGoo
             await TestMissingAsync(
 @"class C
 {
-    public override string [||]ToString()
+    public override string $$ToString()
     {
     }
 }");
@@ -1906,7 +1906,7 @@ class C : IGoo
             await TestWithAllCodeStyleOff(
 @"class C : System.Type
 {
-    public override int [||]GetArrayRank()
+    public override int $$GetArrayRank()
     {
     }
 }",

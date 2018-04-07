@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNamedArguments
         public async Task TestFirstArgument()
         {
             await TestWithCSharp7(
-@"class C { void M(int arg1, int arg2) => M([||]1, 2); }",
+@"class C { void M(int arg1, int arg2) => M($$1, 2); }",
 @"class C { void M(int arg1, int arg2) => M(arg1: 1, arg2: 2); }");
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNamedArguments
         {
             // First option only adds the named argument to the specific parameter you're on.
             await TestWithCSharp7_2(
-@"class C { void M(int arg1, int arg2) => M([||]1, 2); }",
+@"class C { void M(int arg1, int arg2) => M($$1, 2); }",
 @"class C { void M(int arg1, int arg2) => M(arg1: 1, 2); }");
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNamedArguments
         {
             // Second option only adds the named argument to parameter you're on and all trailing parameters.
             await TestWithCSharp7_2(
-@"class C { void M(int arg1, int arg2) => M([||]1, 2); }",
+@"class C { void M(int arg1, int arg2) => M($$1, 2); }",
 @"class C { void M(int arg1, int arg2) => M(arg1: 1, arg2: 2); }",
 index: 1);
         }
@@ -61,7 +61,7 @@ index: 1);
         public async Task TestNonFirstArgument()
         {
             await TestWithCSharp7(
-@"class C { void M(int arg1, int arg2) => M(1, [||]2); }",
+@"class C { void M(int arg1, int arg2) => M(1, $$2); }",
 @"class C { void M(int arg1, int arg2) => M(1, arg2: 2); }");
         }
 
@@ -69,7 +69,7 @@ index: 1);
         public async Task TestNonFirstArgument_CSharp_7_2()
         {
             // Because we're on the last argument, we should only offer one refactoring to the user.
-            var initialMarkup = @"class C { void M(int arg1, int arg2) => M(1, [||]2); }";
+            var initialMarkup = @"class C { void M(int arg1, int arg2) => M(1, $$2); }";
             await TestActionCountAsync(initialMarkup, count: 1, parameters: new TestParameters(parseOptions: CSharp72));
 
             await TestWithCSharp7_2(
@@ -81,7 +81,7 @@ initialMarkup,
         public async Task TestDelegate()
         {
             await TestWithCSharp7(
-@"class C { void M(System.Action<int> f) => f([||]1); }",
+@"class C { void M(System.Action<int> f) => f($$1); }",
 @"class C { void M(System.Action<int> f) => f(obj: 1); }");
         }
 
@@ -89,7 +89,7 @@ initialMarkup,
         public async Task TestConditionalMethod()
         {
             await TestWithCSharp7(
-@"class C { void M(int arg1, int arg2) => this?.M([||]1, 2); }",
+@"class C { void M(int arg1, int arg2) => this?.M($$1, 2); }",
 @"class C { void M(int arg1, int arg2) => this?.M(arg1: 1, arg2: 2); }");
         }
 
@@ -97,7 +97,7 @@ initialMarkup,
         public async Task TestConditionalIndexer()
         {
             await TestWithCSharp7(
-@"class C { int? this[int arg1, int arg2] => this?[[||]1, 2]; }",
+@"class C { int? this[int arg1, int arg2] => this?[$$1, 2]; }",
 @"class C { int? this[int arg1, int arg2] => this?[arg1: 1, arg2: 2]; }");
         }
 
@@ -105,7 +105,7 @@ initialMarkup,
         public async Task TestThisConstructorInitializer()
         {
             await TestWithCSharp7(
-@"class C { C(int arg1, int arg2) {} C() : this([||]1, 2) {} }",
+@"class C { C(int arg1, int arg2) {} C() : this($$1, 2) {} }",
 @"class C { C(int arg1, int arg2) {} C() : this(arg1: 1, arg2: 2) {} }");
         }
 
@@ -113,7 +113,7 @@ initialMarkup,
         public async Task TestBaseConstructorInitializer()
         {
             await TestWithCSharp7(
-@"class C { public C(int arg1, int arg2) {} } class D : C { D() : base([||]1, 2) {} }",
+@"class C { public C(int arg1, int arg2) {} } class D : C { D() : base($$1, 2) {} }",
 @"class C { public C(int arg1, int arg2) {} } class D : C { D() : base(arg1: 1, arg2: 2) {} }");
         }
 
@@ -121,7 +121,7 @@ initialMarkup,
         public async Task TestConstructor()
         {
             await TestWithCSharp7(
-@"class C { C(int arg1, int arg2) { new C([||]1, 2); } }",
+@"class C { C(int arg1, int arg2) { new C($$1, 2); } }",
 @"class C { C(int arg1, int arg2) { new C(arg1: 1, arg2: 2); } }");
         }
 
@@ -129,7 +129,7 @@ initialMarkup,
         public async Task TestIndexer()
         {
             await TestWithCSharp7(
-@"class C { char M(string arg1) => arg1[[||]0]; }",
+@"class C { char M(string arg1) => arg1[$$0]; }",
 @"class C { char M(string arg1) => arg1[index: 0]; }");
         }
 
@@ -137,35 +137,35 @@ initialMarkup,
         public async Task TestMissingOnArrayIndexer()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C { int M(int[] arg1) => arg1[[||]0]; }");
+@"class C { int M(int[] arg1) => arg1[$$0]; }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestMissingOnConditionalArrayIndexer()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C { int? M(int[] arg1) => arg1?[[||]0]; }");
+@"class C { int? M(int[] arg1) => arg1?[$$0]; }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestMissingOnEmptyArgumentList()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C { void M() => M([||]); }");
+@"class C { void M() => M($$); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestMissingOnExistingArgumentName()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C { void M(int arg) => M([||]arg: 1); }");
+@"class C { void M(int arg) => M($$arg: 1); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestEmptyParams()
         {
             await TestWithCSharp7(
-@"class C { void M(int arg1, params int[] arg2) => M([||]1); }",
+@"class C { void M(int arg1, params int[] arg2) => M($$1); }",
 @"class C { void M(int arg1, params int[] arg2) => M(arg1: 1); }");
         }
 
@@ -173,7 +173,7 @@ initialMarkup,
         public async Task TestSingleParams()
         {
             await TestWithCSharp7(
-@"class C { void M(int arg1, params int[] arg2) => M([||]1, 2); }",
+@"class C { void M(int arg1, params int[] arg2) => M($$1, 2); }",
 @"class C { void M(int arg1, params int[] arg2) => M(arg1: 1, arg2: 2); }");
         }
 
@@ -181,7 +181,7 @@ initialMarkup,
         public async Task TestNamedParams()
         {
             await TestWithCSharp7(
-@"class C { void M(int arg1, params int[] arg2) => M([||]1, arg2: new int[0]); }",
+@"class C { void M(int arg1, params int[] arg2) => M($$1, arg2: new int[0]); }",
 @"class C { void M(int arg1, params int[] arg2) => M(arg1: 1, arg2: new int[0]); }");
         }
 
@@ -189,7 +189,7 @@ initialMarkup,
         public async Task TestExistingArgumentNames()
         {
             await TestWithCSharp7(
-@"class C { void M(int arg1, int arg2) => M([||]1, arg2: 2); }",
+@"class C { void M(int arg1, int arg2) => M($$1, arg2: 2); }",
 @"class C { void M(int arg1, int arg2) => M(arg1: 1, arg2: 2); }");
         }
 
@@ -197,7 +197,7 @@ initialMarkup,
         public async Task TestExistingUnorderedArgumentNames()
         {
             await TestWithCSharp7(
-@"class C { void M(int arg1, int arg2, int arg3) => M([||]1, arg3: 3, arg2: 2); }",
+@"class C { void M(int arg1, int arg2, int arg3) => M($$1, arg3: 3, arg2: 2); }",
 @"class C { void M(int arg1, int arg2, int arg3) => M(arg1: 1, arg3: 3, arg2: 2); }");
         }
 
@@ -207,7 +207,7 @@ initialMarkup,
             await TestWithCSharp7(
 @"class C { void M(int arg1, ref int arg2) => M(
 
-    [||]1,
+    $$1,
 
     ref arg1
 
@@ -225,14 +225,14 @@ initialMarkup,
         public async Task TestMissingOnNameOf()
         {
             await TestMissingInRegularAndScriptAsync(
-@"class C { string M() => nameof([||]M); }");
+@"class C { string M() => nameof($$M); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
         public async Task TestAttribute()
         {
             await TestWithCSharp7(
-@"[C([||]1, 2)]
+@"[C($$1, 2)]
 class C : System.Attribute { public C(int arg1, int arg2) {} }",
 @"[C(arg1: 1, arg2: 2)]
 class C : System.Attribute { public C(int arg1, int arg2) {} }");
@@ -242,7 +242,7 @@ class C : System.Attribute { public C(int arg1, int arg2) {} }");
         public async Task TestAttributeWithNamedProperties()
         {
             await TestWithCSharp7(
-@"[C([||]1, P = 2)]
+@"[C($$1, P = 2)]
 class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }",
 @"[C(arg1: 1, P = 2)]
 class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }");
@@ -256,7 +256,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 @"class C
 {
     void M(int arg1, int arg2) 
-        => M([||]1 + 2, 2);
+        => M($$1 + 2, 2);
 }",
 @"class C
 {
@@ -273,7 +273,7 @@ class C : System.Attribute { public C(int arg1) {} public int P { get; set; } }"
 @"class C
 {
     void M(int arg1, int arg2) 
-        => M(1[||] + 2, 2);
+        => M(1$$ + 2, 2);
 }",
 @"class C
 {
@@ -293,7 +293,7 @@ using System;
 class C
 {
     void M(Action arg1, int arg2) 
-        => M([||]() => { }, 2);
+        => M($$() => { }, 2);
 }",
 @"
 using System;
@@ -313,7 +313,7 @@ class C
 @"class C
 {
     void M(int arg1, int arg2) 
-        => M(1 [||]+ 2, 2);
+        => M(1 $$+ 2, 2);
 }",
 @"class C
 {
@@ -333,7 +333,7 @@ using System;
 class C
 {
     void M(Action arg1, int arg2) 
-        => M(() => { [||] }, 2);
+        => M(() => { $$ }, 2);
 }",
 @"
 using System;
@@ -357,7 +357,7 @@ class C
 {
     void M(Action arg1, int arg2) 
         => M(() => {
-             [||]
+             $$
            }, 2);
 }");
         }
@@ -384,7 +384,7 @@ class C
             await TestWithCSharp7(
 @"class C
 {
-    void M(int arg1) => M(arg1[||]);
+    void M(int arg1) => M(arg1$$);
 }",
 @"class C
 {
@@ -399,7 +399,7 @@ class C
             await TestWithCSharp7(
 @"class C
 {
-    void M(int arg1, int arg2) => M(arg1[||], arg2);
+    void M(int arg1, int arg2) => M(arg1$$, arg2);
 }",
 @"class C
 {
@@ -415,7 +415,7 @@ class C
 @"using System.Linq;
 class C
 {
-    void M(int[] arr) => arr.Zip(arr, (p1, p2) =>  ([||]p1, p2));
+    void M(int[] arr) => arr.Zip(arr, (p1, p2) =>  ($$p1, p2));
 }
 ");
         }
@@ -427,7 +427,7 @@ class C
             await TestWithCSharp7(
 @"class C
 {
-    void M(int @default, int @params) => M([||]1, 2);
+    void M(int @default, int @params) => M($$1, 2);
 }",
 @"class C
 {
@@ -440,7 +440,7 @@ class C
         public async Task TestCharacterEscape2()
         {
             await TestWithCSharp7(
-@"[C([||]1, 2)]
+@"[C($$1, 2)]
 class C : System.Attribute
 {
     public C(int @default, int @params) {}

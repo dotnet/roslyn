@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 {
     void M()
     {
-        var v = [||]""string"";
+        var v = $$""string"";
     }
 }");
         }
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 {
     void M()
     {
-        var v = [||]""string"" + ""string"";
+        var v = $$""string"" + ""string"";
     }
 }");
         }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 {
     void M()
     {
-        var v = ""string"" + [||]""string"";
+        var v = ""string"" + $$""string"";
     }
 }");
         }
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 {
     void M()
     {
-        var v = [||]""string"" + 1;
+        var v = $$""string"" + 1;
     }
 }",
 @"public class C
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 {
     void M()
     {
-        var v = ""string""[||] + 1;
+        var v = ""string""$$ + 1;
     }
 }",
 @"public class C
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 {
     void M()
     {
-        var v = 1 + [||]""string"";
+        var v = 1 + $$""string"";
     }
 }",
 @"public class C
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 {
     void M()
     {
-        var v = 1 + 2 + [||]""string"";
+        var v = 1 + 2 + $$""string"";
     }
 }",
 @"public class C
@@ -145,7 +145,7 @@ public class C
     {
         var v =
             // Leading trivia
-            1 + 2 + [||]""string"" /* trailing trivia */;
+            1 + 2 + $$""string"" /* trailing trivia */;
     }
 }",
 @"
@@ -168,7 +168,7 @@ public class C
 {
     void M()
     {
-        var v = 1 + 2 + [||]""string"" + 3 + 4;
+        var v = 1 + 2 + $$""string"" + 3 + 4;
     }
 }",
 @"public class C
@@ -189,7 +189,7 @@ public class C
 {
     void M()
     {
-        var v = ""\r"" + 2 + [||]""string"" + 3 + ""\n"";
+        var v = ""\r"" + 2 + $$""string"" + 3 + ""\n"";
     }
 }",
 @"
@@ -211,7 +211,7 @@ public class C
 {
     void M()
     {
-        var v = ""\\r"" + 2 + [||]""string"" + 3 + ""\\n"";
+        var v = ""\\r"" + 2 + $$""string"" + 3 + ""\\n"";
     }
 }",
 @"
@@ -232,7 +232,7 @@ public class C
 {
     void M()
     {
-        var v = 1 + [||]@""string"";
+        var v = 1 + $$@""string"";
     }
 }",
 @"public class C
@@ -252,7 +252,7 @@ public class C
 {
     void M()
     {
-        var v = 1 + [||]@""string"" + 2 + ""string"";
+        var v = 1 + $$@""string"" + 2 + ""string"";
     }
 }");
         }
@@ -265,7 +265,7 @@ public class C
 {
     void M()
     {
-        var v = 1 + @""string"" + 2 + [||]""string"";
+        var v = 1 + @""string"" + 2 + $$""string"";
     }
 }");
         }
@@ -285,7 +285,7 @@ public class C
     void M()
     {
         D d = null;
-        var v = 1 + [||]""string"" + d;
+        var v = 1 + $$""string"" + d;
     }
 }",
 @"public class D
@@ -319,7 +319,7 @@ public class C
     void M()
     {
         D d = null;
-        var v = d + [||]""string"" + 1;
+        var v = d + $$""string"" + 1;
     }
 }");
         }
@@ -333,7 +333,7 @@ public class C
 {
     void M()
     {
-        var v = ""A"" + 1 + [||]""B"" + ""C"";
+        var v = ""A"" + 1 + $$""B"" + ""C"";
     }
 }",
 @"public class C
@@ -354,7 +354,7 @@ public class C
 {
     void M()
     {
-        var v = ""A"" + [||]""B"" + ""C"" + 1;
+        var v = ""A"" + $$""B"" + ""C"" + 1;
     }
 }",
 @"public class C
@@ -375,7 +375,7 @@ public class C
 {
     void M()
     {
-        var v = ""A"" + 1 + [||]""B"" + ""C"" + 2 +""D""+ ""E""+ ""F"" + 3;
+        var v = ""A"" + 1 + $$""B"" + ""C"" + 2 +""D""+ ""E""+ ""F"" + 3;
     }
 }",
 @"public class C
@@ -396,7 +396,7 @@ public class C
 {
     void M()
     {
-        var v = ""A"" + 1 + [||]""B"" + @""C"";
+        var v = ""A"" + 1 + $$""B"" + @""C"";
     }
 }");
         }

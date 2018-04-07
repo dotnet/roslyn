@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (i == 1 || i == 2 || i == 3)
+        $$if (i == 1 || i == 2 || i == 3)
             return;
     }
 }",
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (i == 1 || i == 2 || i == 3)
+        $$if (i == 1 || i == 2 || i == 3)
             M(i);
     }
 }",
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (i == 1 || 2 == i || i == 3) M(0);
+        $$if (i == 1 || 2 == i || i == 3) M(0);
         else if (i == 4 || 5 == i || i == 6) M(1);
         else M(2);
     }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(object o)
     {
-        [||]if (o is string s && s.Length > 0) M(0);
+        $$if (o is string s && s.Length > 0) M(0);
         else if (o is int i && i > 0) M(1);
         else return;
     }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (1 == i || i == 2 || 3 == i)
+        $$if (1 == i || i == 2 || 3 == i)
             return;
     }
 }",
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     void M(int i)
     {
         const int A = 1, B = 2, C = 3;
-        [||]if (A == i || B == i || C == i)
+        $$if (A == i || B == i || C == i)
             return;
     }
 }",
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     void M(int i)
     {
         int A = 1, B = 2, C = 3;
-        [||]if (A == i || B == i || C == i)
+        $$if (A == i || B == i || C == i)
             return;
     }
 }");
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i, int j)
     {
-        [||]if (i == 5 || 6 == j) {}
+        $$if (i == 5 || 6 == j) {}
     }
 }");
         }
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (i == 5) {}
+        $$if (i == 5) {}
     }
 }");
         }
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(object o)
     {
-        [||]if (o is int || o is string || o is C)
+        $$if (o is int || o is string || o is C)
             return;
     }
 }",
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(object o)
     {
-        [||]if (o is int i)
+        $$if (o is int i)
                 return;
             else if (o is string s)
                 return;
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(object o)
     {
-        [||]if (o is string s && s.Length == 5)
+        $$if (o is string s && s.Length == 5)
                 return;
             else if (o is int i)
                 return;
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(object o)
     {
-        [||]if (o is string s && (s.Length > 5 && s.Length < 10))
+        $$if (o is string s && (s.Length > 5 && s.Length < 10))
                 return;
             else if (o is int i)
                 return;
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(object o)
     {
-        [||]if (o is string s && s.Length > 5 && s.Length < 10)
+        $$if (o is string s && s.Length > 5 && s.Length < 10)
                 return;
             else if (o is int i)
                 return;
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(object o)
     {
-        [||]if (o is string s && s.Length > 5 &&
+        $$if (o is string s && s.Length > 5 &&
                                  s.Length < 10)
             {
                 M(o:   0);
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        if [||](i == 3) {}
+        if $$(i == 3) {}
     }
 }");
         }
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (i == 3)
+        $$if (i == 3)
         {
             var x = i;
         }
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         while (true)
         {
-            [||]if (i == 5) break;
+            $$if (i == 5) break;
         }
     }
 }");
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         while (true)
         {
-            [||]if (i == 5) M(b, i);
+            $$if (i == 5) M(b, i);
             else break;
         }
     }
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (i == 1)
+        $$if (i == 1)
         {
             while (true)
             {
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     int M(int? i)
     {
-        [||]if (i == null) return 5;
+        $$if (i == null) return 5;
         if (i == 0) return 6;
         return 7;
     }
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     int M(int? i)
     {
-        [||]if (i == null) return 5;
+        $$if (i == null) return 5;
         if (i == 0) {}
         if (i == 1) return 6;
         return 7;
@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     {
         while (true)
         {
-            [||]if (i == null) return 5; else if (i == 1) return 1;
+            $$if (i == null) return 5; else if (i == 1) return 1;
             if (i == 0) break;
             if (i == 1) return 6;
             return 7;
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     string M(object i)
     {
-        [||]if (i == null || i as string == """") return null;
+        $$if (i == null || i as string == """") return null;
         if ((string)i == ""0"") return i as string;
         else return i.ToString();
     }
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     int M(int i)
     {
-        [||]if (i == 10) return 5;
+        $$if (i == 10) return 5;
         if (i == 20) return 6;
         if (i == i) return 0;
         reuturn 7;
@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     int M(int i)
     {
-        [||]if (i == 10)
+        $$if (i == 10)
         {
             return 5;
         }
@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     int M(int i)
     {
-        [||]if (i == 5)
+        $$if (i == 5)
         {
             return 4;
         }
@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         Console.WriteLine();
 #endif
 
-        [||]if (x == 1)
+        $$if (x == 1)
         {
             Console.WriteLine(x + z);
         }
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     int M(int i)
     {
-        [||]if (/* t0 */args.Length /* t1*/ == /* t2 */ 2)
+        $$if (/* t0 */args.Length /* t1*/ == /* t2 */ 2)
             return /* t3 */ 0 /* t4 */; /* t5 */
         else /* t6 */
             return /* t7 */ 3 /* t8 */;
@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (i == 1 && i == 2)
+        $$if (i == 1 && i == 2)
             return;
         else if (i == 10)
             return;
@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (i == 1 && i == 2 && i == 3)
+        $$if (i == 1 && i == 2 && i == 3)
             return;
         else if (i == 10)
             return;
@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (i == 1 && i == 2 && (i == 3))
+        $$if (i == 1 && i == 2 && (i == 3))
             return;
         else if (i == 10)
             return;
@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (i == 1 && (i == 2) && i == 3)
+        $$if (i == 1 && (i == 2) && i == 3)
             return;
         else if (i == 10)
             return;
@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (i == 1 && (i == 2) && (i == 3))
+        $$if (i == 1 && (i == 2) && (i == 3))
             return;
         else if (i == 10)
             return;
@@ -1036,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if ((i == 1) && i == 2 && i == 3)
+        $$if ((i == 1) && i == 2 && i == 3)
             return;
         else if (i == 10)
             return;
@@ -1066,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if ((i == 1) && i == 2 && (i == 3))
+        $$if ((i == 1) && i == 2 && (i == 3))
             return;
         else if (i == 10)
             return;
@@ -1096,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if ((i == 1) && (i == 2) && i == 3)
+        $$if ((i == 1) && (i == 2) && i == 3)
             return;
         else if (i == 10)
             return;
@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if ((i == 1) && (i == 2) && (i == 3))
+        $$if ((i == 1) && (i == 2) && (i == 3))
             return;
         else if (i == 10)
             return;
@@ -1156,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (i == 1 && (i == 2 && i == 3))
+        $$if (i == 1 && (i == 2 && i == 3))
             return;
         else if (i == 10)
             return;
@@ -1186,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if ((i == 1 && i == 2) && i == 3)
+        $$if ((i == 1 && i == 2) && i == 3)
             return;
         else if (i == 10)
             return;
@@ -1216,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if (((i == 1) && i == 2) && i == 3)
+        $$if (((i == 1) && i == 2) && i == 3)
             return;
         else if (i == 10)
             return;
@@ -1246,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if ((i == 1 && (i == 2)) && i == 3)
+        $$if ((i == 1 && (i == 2)) && i == 3)
             return;
         else if (i == 10)
             return;
@@ -1276,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if ((i == 1 && (i == 2)) && (i == 3))
+        $$if ((i == 1 && (i == 2)) && (i == 3))
             return;
         else if (i == 10)
             return;
@@ -1306,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if ((i == 1) && ((i == 2) && i == 3))
+        $$if ((i == 1) && ((i == 2) && i == 3))
             return;
         else if (i == 10)
             return;
@@ -1336,7 +1336,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
 {
     void M(int i)
     {
-        [||]if ((i == 1) && (i == 2 && (i == 3)))
+        $$if ((i == 1) && (i == 2 && (i == 3)))
             return;
         else if (i == 10)
             return;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
 @"
 class C
 {
-    [||]
+    $$
 }",
 @"
 class C
@@ -64,7 +64,7 @@ class Base
 
 class Derived : Base
 {
-     [||]
+     $$
 }",
 @"
 using System;
@@ -99,7 +99,7 @@ class Derived : Base
 @"
 static class C
 {
-    [||]
+    $$
 }");
         }
 
@@ -109,7 +109,7 @@ static class C
         {
             await TestMissingAsync(
 @"
-static class [||]C
+static class $$C
 {
     
 }");

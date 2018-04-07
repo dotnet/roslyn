@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -27,7 +27,7 @@ class C
 {
     void M(string s)
     {
-        if ([||]ReferenceEquals(s, null))
+        if ($$ReferenceEquals(s, null))
             return;
     }
 }",
@@ -53,7 +53,7 @@ class C
 {
     void M(string s)
     {
-        if (object.[||]ReferenceEquals(s, null))
+        if (object.$$ReferenceEquals(s, null))
             return;
     }
 }",
@@ -79,7 +79,7 @@ class C
 {
     void M(string s)
     {
-        if (Object.[||]ReferenceEquals(s, null))
+        if (Object.$$ReferenceEquals(s, null))
             return;
     }
 }",
@@ -105,7 +105,7 @@ class C
 {
     void M(string s)
     {
-        if ([||]ReferenceEquals(null, s))
+        if ($$ReferenceEquals(null, s))
             return;
     }
 }",
@@ -131,7 +131,7 @@ class C
 {
     void M(string s)
     {
-        if (![||]ReferenceEquals(null, s))
+        if (!$$ReferenceEquals(null, s))
             return;
     }
 }",
@@ -157,7 +157,7 @@ class C
 {
     void M(string s)
     {
-        if ([||]ReferenceEquals(null, s))
+        if ($$ReferenceEquals(null, s))
             return;
     }
 }", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
@@ -229,7 +229,7 @@ class C
 {
     public static void NotNull<T>(T value)
     {
-        if ([||]ReferenceEquals(value, null))
+        if ($$ReferenceEquals(value, null))
         {
             return;
         }
@@ -259,7 +259,7 @@ class C
 {
     public static void NotNull<T>(T value) where T:class
     {
-        if ([||]ReferenceEquals(value, null))
+        if ($$ReferenceEquals(value, null))
         {
             return;
         }
@@ -290,7 +290,7 @@ class C
 {
     public static void NotNull<T>(T value) where T:struct
     {
-        if ([||]ReferenceEquals(value, null))
+        if ($$ReferenceEquals(value, null))
         {
             return;
         }

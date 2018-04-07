@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -36,7 +36,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach[||](var a in array)
+        foreach$$(var a in array)
         {
         }
     }
@@ -66,7 +66,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach[||](var a in array) ;
+        foreach$$(var a in array) ;
     }
 }
 ";
@@ -92,7 +92,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach[||](var a in array) Console.WriteLine(a);
+        foreach$$(var a in array) Console.WriteLine(a);
     }
 }
 ";
@@ -122,7 +122,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach[||](var a in array)
+        foreach$$(var a in array)
         {
             Console.WriteLine(a);
         }
@@ -156,7 +156,7 @@ class Test
     {
         var array = new int[] { 1, 3, 4 };
         /* comment */
-        foreach[||](var a in array) /* comment */
+        foreach$$(var a in array) /* comment */
         {
         }
     }
@@ -187,7 +187,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach[||](var a in array)
+        foreach$$(var a in array)
         /* comment */
         {
         }/* comment */
@@ -219,7 +219,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach[||](var a in array) /* comment */;
+        foreach$$(var a in array) /* comment */;
     }
 }
 ";
@@ -245,7 +245,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach[||](var a in array) Console.WriteLine(a); // test
+        foreach$$(var a in array) Console.WriteLine(a); // test
     }
 }
 ";
@@ -275,7 +275,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach [||] (var a in array) /* test */ Console.WriteLine(a); 
+        foreach $$ (var a in array) /* test */ Console.WriteLine(a); 
     }
 }
 ";
@@ -305,7 +305,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach [||] (var a in array) 
+        foreach $$ (var a in array) 
             /* test */ Console.WriteLine(a); 
     }
 }
@@ -337,7 +337,7 @@ class Test
     void Method()
     {
         // test
-        foreach[||](var a in new int[] { 1, 3, 4 })
+        foreach$$(var a in new int[] { 1, 3, 4 })
         {
         }
     }
@@ -368,7 +368,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach [||] (var a /* test */ in array) ;
+        foreach $$ (var a /* test */ in array) ;
     }
 }
 ";
@@ -384,7 +384,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach [||] (/* test */ var a in array) ;
+        foreach $$ (/* test */ var a in array) ;
     }
 }
 ";
@@ -400,7 +400,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach [||] (var a in array /* test */) ;
+        foreach $$ (var a in array /* test */) ;
     }
 }
 ";
@@ -415,7 +415,7 @@ class Test
 {
     void Method()
     {
-        foreach[||](var a in new int[] { 1, 3, 4 })
+        foreach$$(var a in new int[] { 1, 3, 4 })
         {
             Console.WriteLine(a);
         }
@@ -449,7 +449,7 @@ class Test
     {
         var array = 1;
 
-        foreach[||](var a in new int[] { 1, 3, 4 })
+        foreach$$(var a in new int[] { 1, 3, 4 })
         {
             Console.WriteLine(a);
         }
@@ -484,7 +484,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach [||] (var a in array)
+        foreach $$ (var a in array)
         {
             int i = 0;
         }
@@ -517,7 +517,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach [||] (var a in array)
+        foreach $$ (var a in array)
         {
             a = 1;
         }
@@ -538,7 +538,7 @@ class Test
         var array = new int[] { 1, 3, 4 };
         foreach (var a in array)
         {
-            [||] 
+            $$ 
         }
     }
 }
@@ -555,7 +555,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        [||] foreach (var a in array)
+        $$ foreach (var a in array)
         {
         }
     }
@@ -573,7 +573,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach (var a in array) [||] 
+        foreach (var a in array) $$ 
         {
         }
     }
@@ -592,7 +592,7 @@ class Test
 
     void Method()
     {
-        foreach [||] (var a in array)
+        foreach $$ (var a in array)
         {
         }
     }
@@ -623,7 +623,7 @@ class Test
     void Method()
     {
         var array = new int[][] { new int[] { 1, 3, 4 } };
-        foreach [||] (var a in array[0])
+        foreach $$ (var a in array[0])
         {
             Console.WriteLine(a);
         }
@@ -655,7 +655,7 @@ class Test
 {
     void Method(int[] array)
     {
-        foreach [||] (var a in array)
+        foreach $$ (var a in array)
         {
         }
     }
@@ -685,7 +685,7 @@ class Test
 
     void Method()
     {
-        foreach [||] (var a in Prop)
+        foreach $$ (var a in Prop)
         {
         }
     }
@@ -718,7 +718,7 @@ class Test
     void Method()
     {
         var array = (IList<int>)(new int[] { 1, 3, 4 });
-        foreach[||] (var a in array)
+        foreach$$ (var a in array)
         {
             Console.WriteLine(a);
         }
@@ -755,7 +755,7 @@ class Test
     void Method()
     {
         var list = new List<int>();
-        foreach [||](var a in list)
+        foreach $$(var a in list)
         {
             Console.WriteLine(a);
         }
@@ -793,7 +793,7 @@ class Test
     void Method()
     {
         var list = new ReadOnly<int>();
-        foreach [||](var a in list)
+        foreach $$(var a in list)
         {
             Console.WriteLine(a);
         }
@@ -850,7 +850,7 @@ class Test
     void Method()
     {
         var list = new List();
-        foreach [||](var a in list)
+        foreach $$(var a in list)
         {
             Console.WriteLine(a);
         }
@@ -933,7 +933,7 @@ class Test
     void Method()
     {
         var list = ImmutableArray.Create(1);
-        foreach [||](var a in list)
+        foreach $$(var a in list)
         {
             Console.WriteLine(a);
         }
@@ -974,7 +974,7 @@ class Test
     void Method()
     {
         var list = new Explicit();
-        foreach [||] (var a in list)
+        foreach $$ (var a in list)
         {
             Console.WriteLine(a);
         }
@@ -1033,7 +1033,7 @@ class Test
     void Method()
     {
         var list = new Explicit();
-        foreach [||] (var a in list)
+        foreach $$ (var a in list)
         {
             Console.WriteLine(a);
         }
@@ -1068,7 +1068,7 @@ class Test
     void Method()
     {
         var list = new Explicit();
-        foreach [||] (int a in list)
+        foreach $$ (int a in list)
         {
             Console.WriteLine(a);
         }
@@ -1135,7 +1135,7 @@ class Test
     void Method()
     {
         var list = new Mixed();
-        foreach [||] (var a in list)
+        foreach $$ (var a in list)
         {
             Console.WriteLine(a);
         }
@@ -1201,7 +1201,7 @@ class Test
     void Method()
     {
         var list = new Mixed();
-        foreach [||] (string a in list)
+        foreach $$ (string a in list)
         {
             Console.WriteLine(a);
         }
@@ -1269,7 +1269,7 @@ namespace NS
     {
         void Method()
         {
-            foreach [||] (string a in new NS.Mixed())
+            foreach $$ (string a in new NS.Mixed())
             {
                 Console.WriteLine(a);
             }
@@ -1335,7 +1335,7 @@ class Test
     void Method()
     {
         if (true)
-            foreach [||] (var a in new int[] {});
+            foreach $$ (var a in new int[] {});
     }
 }
 ";
@@ -1352,7 +1352,7 @@ class Test
     {
         var array = new int[] { 1, 3, 4 };
         if (true)
-            foreach [||] (var a in array) Console.WriteLine(a);
+            foreach $$ (var a in array) Console.WriteLine(a);
     }
 }
 ";
@@ -1383,7 +1383,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach [||] (var i in array)
+        foreach $$ (var i in array)
         {
             Console.WriteLine(i);
         }
@@ -1416,7 +1416,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 3, 4 };
-        foreach [||] (int a in array)
+        foreach $$ (int a in array)
         {
             Console.WriteLine(i);
         }
@@ -1448,7 +1448,7 @@ class Test
 {
     void Method()
     {
-        foreach [||] (var a in ""test"")
+        foreach $$ (var a in ""test"")
         {
             Console.WriteLine(a);
         }
@@ -1482,7 +1482,7 @@ class Test
     void Method()
     {
         const string test = ""test"";
-        foreach [||] (var a in test)
+        foreach $$ (var a in test)
         {
             Console.WriteLine(a);
         }
@@ -1516,7 +1516,7 @@ class Test
 
     void Method()
     {
-        foreach [||] (var a in test)
+        foreach $$ (var a in test)
         {
             Console.WriteLine(a);
         }
@@ -1550,7 +1550,7 @@ class Test
     void Method()
     {
         var array = new object[] { 1, 2, 3 };
-        foreach [||] (string a in array)
+        foreach $$ (string a in array)
         {
             Console.WriteLine(a);
         }
@@ -1583,7 +1583,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 2, 3 };
-        foreach [||] (string a in array)
+        foreach $$ (string a in array)
         {
             Console.WriteLine(a);
         }
@@ -1602,7 +1602,7 @@ class Test
     void Method()
     {
         var array = new int[] { 1, 2, 3 };
-        foreach [||] (in array)
+        foreach $$ (in array)
         {
             Console.WriteLine(a);
         }
@@ -1620,7 +1620,7 @@ class Test
 {
     void Method()
     {
-        foreach [||] (string a in )
+        foreach $$ (string a in )
         {
             Console.WriteLine(a);
         }
@@ -1638,7 +1638,7 @@ class Test
 {
     void Method()
     {
-        foreach [||] (int a in ""test"")
+        foreach $$ (int a in ""test"")
         {
             Console.WriteLine(a);
         }
@@ -1676,7 +1676,7 @@ class Test
     void Method()
     {
         var list = new Explicit();
-        foreach [||] (var a in list)
+        foreach $$ (var a in list)
         {
             Console.WriteLine(a);
         }

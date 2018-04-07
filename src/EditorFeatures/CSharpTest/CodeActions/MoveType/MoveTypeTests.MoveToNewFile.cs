@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         public async Task TestMissing_OnMatchingFileName()
         {
             var code =
-@"[||]class test1 { }";
+@"$$class test1 { }";
 
             await TestMissingInRegularAndScriptAsync(code);
         }
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             var code =
 @"class outer
 { 
-    [||]class test1 { }
+    $$class test1 { }
 }";
 
             await TestMissingInRegularAndScriptAsync(code);
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         public async Task TestMatchingFileName_CaseSensitive()
         {
             var code =
-@"[||]class Test1 { }";
+@"$$class Test1 { }";
 
             await TestActionCountAsync(code, count: 2);
         }
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         public async Task TestForSpans2()
         {
             var code =
-@"[||]class Class1 { }
+@"$$class Class1 { }
  class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document Folders=""A\B""> 
-[||]class Class1 { }
+$$class Class1 { }
 class Class2 { }
         </Document>
     </Project>
@@ -106,7 +106,7 @@ class Class2 { }";
         public async Task TestForSpans4()
         {
             var code =
-@"class Class1[||] { }
+@"class Class1$$ { }
 class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
@@ -121,7 +121,7 @@ class Class2 { }";
         public async Task MoveTypeWithNoContainerNamespace()
         {
             var code =
-@"[||]class Class1 { }
+@"$$class Class1 { }
 class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
@@ -139,7 +139,7 @@ class Class2 { }";
 @"// Banner Text
 using System;
 
-[||]class Class1 { }
+$$class Class1 { }
 class Class2 { }";
 
             var codeAfterMove =
@@ -163,7 +163,7 @@ class Class1 { }
 @"// Banner Text
 using System;
 
-[||]class Class1 
+$$class Class1 
 { 
     void Print(int x)
     {
@@ -200,7 +200,7 @@ class Class1
 @"// Banner Text
 using System;
 
-[||]class Class1 
+$$class Class1 
 { 
     void Print(int x)
     {
@@ -249,7 +249,7 @@ class Class1
         public async Task MoveAnInterface()
         {
             var code =
-@"[||]interface IMoveType { }
+@"$$interface IMoveType { }
 class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
@@ -264,7 +264,7 @@ class Class2 { }";
         public async Task MoveAStruct()
         {
             var code =
-@"[||]struct MyStruct { }
+@"$$struct MyStruct { }
 class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
@@ -279,7 +279,7 @@ class Class2 { }";
         public async Task MoveAnEnum()
         {
             var code =
-@"[||]enum MyEnum { }
+@"$$enum MyEnum { }
 class Class2 { }";
             var codeAfterMove = @"class Class2 { }";
 
@@ -296,7 +296,7 @@ class Class2 { }";
             var code =
 @"namespace N1
 {
-    [||]class Class1 { }
+    $$class Class1 { }
         class Class2 { }
 }";
 
@@ -324,7 +324,7 @@ class Class2 { }";
 {
     class Class1 
     {
-        [||]class Class2 { }
+        $$class Class2 { }
     }
     
 }";
@@ -360,7 +360,7 @@ class Class2 { }";
 {
     abstract class Class1 
     {
-        [||]class Class2 { }
+        $$class Class2 { }
     }
     
 }";
@@ -399,7 +399,7 @@ class Class2 { }";
     class Class1 
     {
         [Inner]
-        [||]class Class2 { }
+        $$class Class2 { }
     }
     
 }";
@@ -440,7 +440,7 @@ class Class2 { }";
     class Class1
     {
         /// Inner doc comment
-        [||]class Class2
+        $$class Class2
         {
         }
     }
@@ -480,7 +480,7 @@ class Class2 { }";
 {
     class Class1 
     {
-        [||]class Class2 { }
+        $$class Class2 { }
     }
     
 }";
@@ -518,7 +518,7 @@ class Class2 { }";
     {
         private int _field1;
 
-        [||]class Class2 { }
+        $$class Class2 { }
 
         public void Method1() { }
     }
@@ -561,7 +561,7 @@ class Class2 { }";
     {
         private int _field1;
 
-        [||]class Class2 { }
+        $$class Class2 { }
 
         public void Method1() { }
     }
@@ -611,7 +611,7 @@ class Class2 { }";
     {
         private int _field1;
 
-        [||]class Class2 
+        $$class Class2 
         {
             private string _field1;
             public void InnerMethod() { }
@@ -670,7 +670,7 @@ class Class2 { }";
     {
         class OuterClass2
         {
-            [||]class InnerClass2 
+            $$class InnerClass2 
             {
                 class InnerClass3
                 {
@@ -776,7 +776,7 @@ using System;
 using System.Collections;
 
 class Outer { 
-    [||]class Inner {
+    $$class Inner {
         DateTime d;
     }
 }";
@@ -818,7 +818,7 @@ class Outer
     {
     }
 
-    [||]class Inner2
+    $$class Inner2
     {
     }
 }";
@@ -855,7 +855,7 @@ class Outer
     {
     }
 
-    [||]class Inner2
+    $$class Inner2
     {
     }
 }";
@@ -897,7 +897,7 @@ class Outer
     {
     }
 
-    [||]class Inner2
+    $$class Inner2
     {
     }
 }";
@@ -933,7 +933,7 @@ partial class Outer
             var code =
 @"
 class Outer : IComparable { 
-    [||]class Inner : IWhatever {
+    $$class Inner : IWhatever {
         DateTime d;
     }
 }";
@@ -974,7 +974,7 @@ namespace N
 }
 
 #if true
-public class [||]Inner
+public class $$Inner
 {
 
 }
@@ -1025,7 +1025,7 @@ namespace N
         }
 
 #if true
-        public class [||]Inner
+        public class $$Inner
         {
 
         }
@@ -1075,7 +1075,7 @@ namespace N
 @"// Banner Text
 using System;
 
-[||]class Class1
+$$class Class1
 {
     void Foo()
     {
@@ -1136,7 +1136,7 @@ class Class1
     }
 }
 
-[||]class Class2
+$$class Class2
 {
     void Foo()
     {

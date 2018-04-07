@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var c = [||]new C();
+        var c = $$new C();
         c.i = 1;
     }
 }",
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var c = [||]new C();
+        var c = $$new C();
         c.i = 1;
         c.i = c.i + 1;
     }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var c = [||]new C();
+        var c = $$new C();
         c.i = c.i + 1;
     }
 }");
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M()
     {
         C c;
-        c = [||]new C();
+        c = $$new C();
         c.i = 1;
         c.i = c.i + 1;
     }
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M()
     {
         C c;
-        c = [||]new C();
+        c = $$new C();
         c.i = c.i + 1;
     }
 }");
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M()
     {
         C c = null;
-        c = [||]new C();
+        c = $$new C();
         c.i = 1;
     }
 }",
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var c = [||]new C();
+        var c = $$new C();
         c.i = 1;
         c.i = 2;
     }
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     void M()
     {
         C[] array;
-        array[0] = [||]new C();
+        array[0] = $$new C();
         array[0].i = 1;
         array[0].j = 2;
     }
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var c = [||]new C();
+        var c = $$new C();
         c.i = 1;
         c.j += 1;
     }
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var c = [||]new C() { i = 1 };
+        var c = $$new C() { i = 1 };
         c.j = 1;
     }
 }");
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
 
     void M()
     {
-        var c = [||]new C();
+        var c = $$new C();
         c.j = 1;
     }
 }", new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)));
@@ -431,7 +431,7 @@ class C
     int j;
     void M()
     {
-        var c = [||]new C();
+        var c = $$new C();
         c.i = 1; // Goo
         c.j = 2; // Bar
     }
@@ -460,7 +460,7 @@ class C
 @"class C {
 	int a;
 	C Add(int x) {
-		var c = Add([||]new int());
+		var c = Add($$new int());
 		c.a = 1;
 		return c;
 	}
@@ -478,7 +478,7 @@ class C
 {
     void Goo()
     {
-        dynamic body = [||]new ExpandoObject();
+        dynamic body = $$new ExpandoObject();
         body.content = new ExpandoObject();
     }
 }");
@@ -494,7 +494,7 @@ public class Goo
 {
     public void M()
     {
-        var goo = [||]new Goo();
+        var goo = $$new Goo();
 #if true
         goo.Value = "";
 #endif
@@ -515,7 +515,7 @@ public class Goo
     public void M()
     {
 #if true
-        var goo = [||]new Goo();
+        var goo = $$new Goo();
         goo.Value = "";
 #endif
     }
@@ -554,7 +554,7 @@ class MyClass
 {
     public void Main()
     {
-        var goo = [||]new Goo();
+        var goo = $$new Goo();
         goo.Bar = 1;
 
         int horse = 1;

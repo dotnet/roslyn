@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         get
         {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]Prop
+    public int $$Prop
     {
         get
         {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]Prop
+    public int $$Prop
     {
         get
         {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]Prop
+    public int $$Prop
     {
         get
         {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]Prop
+    public int $$Prop
     {
         get
         {
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]Prop
+    public int $$Prop
     {
         get
         {
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
 
 class CAttribute : Attribute
 {
-    public int [||]Prop
+    public int $$Prop
     {
         get
         {
@@ -249,7 +249,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         set
         {
@@ -272,7 +272,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         set
         {
@@ -305,7 +305,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         get
         {
@@ -337,7 +337,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]Prop
+    public int $$Prop
     {
         get
         {
@@ -369,7 +369,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         get
         {
@@ -411,7 +411,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         get
         {
@@ -453,7 +453,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         get
         {
@@ -476,7 +476,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         set
         {
@@ -499,7 +499,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         get
         {
@@ -541,7 +541,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         get
         {
@@ -583,7 +583,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop { }
+    int $$Prop { }
 
     void M()
     {
@@ -605,7 +605,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop => 1;
+    int $$Prop => 1;
 }",
 @"class C
 {
@@ -622,7 +622,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop => 1; // Comment
+    int $$Prop => 1; // Comment
 }",
 @"class C
 {
@@ -639,7 +639,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Goo
+    int $$Goo
     {
         get
         {
@@ -672,7 +672,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]Prop => /* return 42 */ 42;
+    public int $$Prop => /* return 42 */ 42;
 }",
 @"class C
 {
@@ -690,7 +690,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public abstract int [||]Prop { get; }
+    public abstract int $$Prop { get; }
 
     public void M()
     {
@@ -712,7 +712,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public virtual int [||]Prop
+    public virtual int $$Prop
     {
         get
         {
@@ -743,7 +743,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"interface I
 {
-    int [||]Prop { get; }
+    int $$Prop { get; }
 }",
 @"interface I
 {
@@ -757,7 +757,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]Prop { get; }
+    public int $$Prop { get; }
 }",
 @"class C
 {
@@ -776,7 +776,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]Prop { get; }
+    public int $$Prop { get; }
 
     public C()
     {
@@ -805,7 +805,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]Prop { get; }
+    public int $$Prop { get; }
 
     public C()
     {
@@ -834,7 +834,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]Prop { get; } = 1;
+    public int $$Prop { get; } = 1;
 }",
 @"class C
 {
@@ -855,7 +855,7 @@ class D
 {
     private int prop;
 
-    public int [||]Prop { get; } = 1;
+    public int $$Prop { get; } = 1;
 }",
 @"class C
 {
@@ -875,7 +875,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]PascalCase { get; }
+    public int $$PascalCase { get; }
 }",
 @"class C
 {
@@ -894,7 +894,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]Prop
+    public int $$Prop
     {
         get
         {
@@ -921,7 +921,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public int [||]Prop
+    public int $$Prop
     {
         set
         {
@@ -946,7 +946,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    public object [||]Prop
+    public object $$Prop
     {
         set
         {
@@ -971,7 +971,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop { get; set; }
+    int $$Prop { get; set; }
 
     void M()
     {
@@ -1007,7 +1007,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop { get; set; }
+    int $$Prop { get; set; }
 
     void M()
     {
@@ -1043,7 +1043,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop { get; set; }
+    int $$Prop { get; set; }
 
     void M()
     {
@@ -1079,7 +1079,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop { get; set; }
+    int $$Prop { get; set; }
 
     void M()
     {
@@ -1113,7 +1113,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop { get; set; }
+    int $$Prop { get; set; }
 
     void M()
     {
@@ -1148,7 +1148,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"public class Goo
 {
-    public bool [||]Any { get; } // Replace 'Any' with method
+    public bool $$Any { get; } // Replace 'Any' with method
 
     public static void Bar()
     {
@@ -1180,7 +1180,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         get
         {
@@ -1201,7 +1201,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         get
         {
@@ -1228,7 +1228,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         get => 0;
 
@@ -1249,7 +1249,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop => 0;
+    int $$Prop => 0;
 }",
 @"class C
 {
@@ -1264,7 +1264,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop { get; }
+    int $$Prop { get; }
 }",
 @"class C
 {
@@ -1281,7 +1281,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop { get; set; }
+    int $$Prop { get; set; }
 }",
 @"class C
 {
@@ -1299,7 +1299,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         get
         {
@@ -1331,7 +1331,7 @@ class D
     /// <value>
     ///     An value that provides access to the language service for the active configured project.
     /// </value>
-    object [||]ActiveProjectContext
+    object $$ActiveProjectContext
     {
         get;
     }
@@ -1361,7 +1361,7 @@ class D
     /// <value>
     ///     An value that provides access to the language service for the active configured project.
     /// </value>
-    object [||]ActiveProjectContext
+    object $$ActiveProjectContext
     {
         set;
     }
@@ -1391,7 +1391,7 @@ class D
     /// <value>
     ///     An value that provides access to the language service for the active configured project.
     /// </value>
-    object [||]ActiveProjectContext
+    object $$ActiveProjectContext
     {
         get; set;
     }
@@ -1427,7 +1427,7 @@ class D
     ///     Sets <see cref=""ActiveProjectContext""/>.
     /// </summary>
     /// <seealso cref=""ActiveProjectContext""/>
-    object [||]ActiveProjectContext
+    object $$ActiveProjectContext
     {
         set;
     }
@@ -1463,7 +1463,7 @@ internal struct AStruct
     ///     Gets or sets <see cref=""ActiveProjectContext""/>.
     /// </summary>
     /// <seealso cref=""ActiveProjectContext""/>
-    object [||]ActiveProjectContext
+    object $$ActiveProjectContext
     {
         get; set;
     }
@@ -1502,7 +1502,7 @@ internal struct AStruct
 @"internal interface ISomeInterface<T>
 {
     /// <seealso cref=""Context""/>
-    ISomeInterface<T> [||]Context
+    ISomeInterface<T> $$Context
     {
         set;
     }
@@ -1531,7 +1531,7 @@ internal struct AStruct
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         get
         {
@@ -1563,7 +1563,7 @@ internal struct AStruct
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop
+    int $$Prop
     {
         get
         {
@@ -1594,7 +1594,7 @@ internal struct AStruct
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop =>
+    int $$Prop =>
 #if true
         0;
 #else
@@ -1619,7 +1619,7 @@ internal struct AStruct
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Prop =>
+    int $$Prop =>
 #if true
         0;
 #else
@@ -1645,7 +1645,7 @@ internal struct AStruct
             await TestInRegularAndScriptAsync(
 @"interface IGoo
 {
-    int [||]Goo { get; set; }
+    int $$Goo { get; set; }
 }
 
 class C : IGoo

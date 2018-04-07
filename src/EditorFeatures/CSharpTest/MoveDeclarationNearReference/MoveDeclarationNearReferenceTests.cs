@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
 {
     void M()
     {
-        int [||]x;
+        int $$x;
         {
             Console.WriteLine(x);
         }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
 {
     void M()
     {
-        int [||]x;
+        int $$x;
         Console.WriteLine();
         Console.WriteLine(x);
     }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
 {
     void M()
     {
-        int [||]x;
+        int $$x;
         Console.WriteLine();
         {
             Console.WriteLine(x);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
 {
     void M()
     {
-        int [||]x;
+        int $$x;
         Console.WriteLine();
         {
             Console.WriteLine(x);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
 {
     void M()
     {
-        int [||]x;
+        int $$x;
         {
             x = 5;
             Console.WriteLine(x);
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
 {
     void M()
     {
-        int [||]x = 0;
+        int $$x = 0;
         {
             x = 5;
             Console.WriteLine(x);
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
 {
     void M()
     {
-        var [||]x = (short)0;
+        var $$x = (short)0;
         {
             x = 5;
             Console.WriteLine(x);
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
 {
     void M()
     {
-        int [||]x;
+        int $$x;
         Console.WriteLine(x);
     }
 }");
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
 {
     static void Main()
     {
-        object[] [||]x = {
+        object[] $$x = {
             x = null
         };
         x.ToString();
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
 {
     static void Main()
     {
-        int [||]i = 5;
+        int $$i = 5;
         int j = 10;
         Console.WriteLine(i);
     }
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveDeclarationNearRefe
 {
     static void Main(string[] args)
     {
-        int [||]i = 5; Console.WriteLine();
+        int $$i = 5; Console.WriteLine();
         Console.Write(i);
     }
 }",
@@ -335,7 +335,7 @@ class Program
 {
     void Main()
     {
-        int [||]x = 0;
+        int $$x = 0;
         Goo();
         Bar(x);
 #line hidden
@@ -364,7 +364,7 @@ class Program
 {
     void Main()
     {
-        int [||]x = 0;
+        int $$x = 0;
         Goo();
 #line hidden
         Goo();
@@ -399,7 +399,7 @@ class Program
 {
     void Main()
     {
-        var [||]@lock = new object();
+        var $$@lock = new object();
         new[] { 1 }.AsParallel().ForAll((i) => {
             lock (@lock)
             {
@@ -436,7 +436,7 @@ class Program
 {
     void Main()
     {
-        var [||]i = 0;
+        var $$i = 0;
         foreach (var v in new[] { 1 })
         {
             Console.Write(i);
@@ -478,7 +478,7 @@ static class C
 
     static void Main()
     {
-        var [||]a = Outer(x => Inner(x, null), null);
+        var $$a = Outer(x => Inner(x, null), null);
         unsafe
         {
             Console.WriteLine(a);
@@ -522,7 +522,7 @@ class X
     const int Value = 1000;
     static void Main()
     {
-        var [||]a = Goo(X => (byte)X.Value, null);
+        var $$a = Goo(X => (byte)X.Value, null);
         unchecked
         {
             Console.WriteLine(a);
@@ -562,7 +562,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        // Comment [||]about goo!
+        // Comment $$about goo!
         // Comment about goo!
         // Comment about goo!
         // Comment about goo!
@@ -584,7 +584,7 @@ class Program
 {
     void M()
     {
-        (int, string) [||]x;
+        (int, string) $$x;
         {
             Console.WriteLine(x);
         }
@@ -610,7 +610,7 @@ class Program
 {
     void M()
     {
-        (int a, string b) [||]x;
+        (int a, string b) $$x;
         {
             Console.WriteLine(x);
         }
@@ -637,7 +637,7 @@ class Program
     static void Main(string[] args)
     {
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         Console.Write(i);
@@ -665,7 +665,7 @@ class Program
     static void Main(string[] args)
     {
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         {
@@ -697,7 +697,7 @@ class Program
     static void Main(string[] args)
     {
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         // Existing trivia
@@ -727,7 +727,7 @@ class Program
     static void Main(string[] args)
     {
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         {
@@ -765,7 +765,7 @@ class Program
         }
 
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         i = 0;
@@ -802,7 +802,7 @@ class Program
         }
 
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         {
@@ -843,7 +843,7 @@ class Program
         }
 
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         // Existing trivia
@@ -882,7 +882,7 @@ class Program
         }
 
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         {
@@ -921,7 +921,7 @@ class Program
     static void Main(string[] args)
     {
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         i = 0;
@@ -950,7 +950,7 @@ class Program
     static void Main(string[] args)
     {
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         {
@@ -983,7 +983,7 @@ class Program
     static void Main(string[] args)
     {
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         // Existing trivia
@@ -1014,7 +1014,7 @@ class Program
     static void Main(string[] args)
     {
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         {
@@ -1053,7 +1053,7 @@ class Program
         }
 
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         i = 0;
@@ -1090,7 +1090,7 @@ class Program
         }
 
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         {
@@ -1131,7 +1131,7 @@ class Program
         }
 
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         // Existing trivia
@@ -1170,7 +1170,7 @@ class Program
         }
 
         // leading trivia
-        int [||]i = 5;
+        int $$i = 5;
         Console.WriteLine();
 
         {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -1858,7 +1858,7 @@ class C
 {
     void M(IEnumerable<string> args)
     {
-        args = args.Select(a =>[||])
+        args = args.Select(a =>$$)
     }
 }";
             await TestAsync(text, "global::System.Object", testPosition: false);
@@ -1949,7 +1949,7 @@ public class C
 {
     static void Main(string[] args)
     {
-        System.ConsoleModifiers c = default([||])
+        System.ConsoleModifiers c = default($$)
     }
 }";
             await TestAsync(text, "global::System.ConsoleModifiers", testNode: false);
@@ -1964,7 +1964,7 @@ public class C
 {
     static void Goo(System.ConsoleModifiers arg)
     {
-        Goo(default([||])
+        Goo(default($$)
     }
 }";
             await TestAsync(text, "global::System.ConsoleModifiers", testNode: false);
@@ -2013,7 +2013,7 @@ class C
   void M()
   {
         int[] array;
-        C p = new [||]
+        C p = new $$
         array[4] = 4;
   }
 }";
@@ -2036,7 +2036,7 @@ class C
         public async Task TestDeconstruction2()
         {
             await TestInMethodAsync(
-@"(int i, _) =  [||]", "(global::System.Int32 i, global::System.Object _)", testNode: false);
+@"(int i, _) =  $$", "(global::System.Int32 i, global::System.Object _)", testNode: false);
         }
 
         [WorkItem(13402, "https://github.com/dotnet/roslyn/issues/13402")]
@@ -2048,7 +2048,7 @@ class C
 {
     static void Main(string[] args)
     {
-        Program p = new [||] 
+        Program p = new $$ 
         { }
     }
 }";

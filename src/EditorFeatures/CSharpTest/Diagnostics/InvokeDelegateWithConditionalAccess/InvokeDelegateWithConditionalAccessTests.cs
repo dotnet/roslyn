@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
     void Goo()
     {
-        [||]var v = a;
+        $$var v = a;
         if (v != null)
         {
             v();
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
     void Goo()
     {
         var v = a;
-        [||]if (v != null)
+        $$if (v != null)
         {
             v();
         }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
         var v = a;
         if (v != null)
         {
-            [||]v();
+            $$v();
         }
     }
 }",
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
     void Goo()
     {
-        [||]var v = a;
+        $$var v = a;
         if (v != null)
         {
             v();
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
     void Goo()
     {
-        [||]var v = a;
+        $$var v = a;
         if (null != v)
         {
             v();
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
     void Goo()
     {
-        [||]var v = a;
+        $$var v = a;
         if (null != v)
             v();
     }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
     void Goo()
     {
         bool b = true;
-        [||]var v = b ? a : null;
+        $$var v = b ? a : null;
         if (v != null)
         {
             v();
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
     void Goo()
     {
-        [||]var v = a;
+        $$var v = a;
         if (v != null)
         {
             v();
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
     void Goo()
     {
-        [||]var v = a, x = a;
+        $$var v = a, x = a;
         if (v != null)
         {
             v();
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
     void Goo()
     {
         var v = a, x = a;
-        [||]if (v != null)
+        $$if (v != null)
         {
             v();
         }
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
 
     void Goo()
     {
-        [||]var v = a;
+        $$var v = a;
         if (v != null)
         {
             v();
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
     void Goo()
     {
         var v = a;
-        [||]if (v != null)
+        $$if (v != null)
         {
             v();
         }
@@ -353,7 +353,7 @@ class C
 
     void M()
     {
-        [||]if (this.E != null)
+        $$if (this.E != null)
         {
             this.E(this, EventArgs.Empty);
         }
@@ -386,7 +386,7 @@ class C
     {
         if (this.E != null)
         {
-            [||]this.E(this, EventArgs.Empty);
+            $$this.E(this, EventArgs.Empty);
         }
     }
 }",
@@ -418,7 +418,7 @@ class C
         if (true != true)
         {
         }
-        else [||]if (this.E != null)
+        else $$if (this.E != null)
         {
             this.E(this, EventArgs.Empty);
         }
@@ -458,7 +458,7 @@ class C
         if (true != true)
         {
         }
-        else [||]if (this.E != null)
+        else $$if (this.E != null)
             this.E(this, EventArgs.Empty);
     }
 }",
@@ -488,7 +488,7 @@ class C
     void Goo()
     {
         // Comment
-        [||]var v = a;
+        $$var v = a;
         if (v != null)
         {
             v();
@@ -516,7 +516,7 @@ class C
     void Goo()
     {
         // Comment
-        [||]if (a != null)
+        $$if (a != null)
         {
             a();
         }
@@ -547,7 +547,7 @@ class C
     void Goo()
     {
         var v = a;
-        [||]if (v != null)
+        $$if (v != null)
         {
             v();
         }
@@ -580,7 +580,7 @@ class C
         var v = a;
         if (v != null)
         {
-            [||]v();
+            $$v();
         }
     }
 }",
@@ -605,7 +605,7 @@ class C
 
     void Goo()
     {
-        [||]var v = a;
+        $$var v = a;
         v?.Invoke();
     }
 }");
@@ -622,7 +622,7 @@ class C
     void Goo()
     {
         var v = a;
-        [||]v?.Invoke();
+        $$v?.Invoke();
     }
 }");
         }
@@ -637,7 +637,7 @@ class C
 
     void Goo()
     {
-        [||]a?.Invoke();
+        $$a?.Invoke();
     }
 }");
         }
@@ -655,7 +655,7 @@ class C
         var v = a;
         if (v == a)
         {
-            [||]v();
+            $$v();
         }
     }
 }");
@@ -674,7 +674,7 @@ class C
         var v = a;
         if (v == null)
         {
-            [||]v();
+            $$v();
         }
     }
 }");
@@ -694,7 +694,7 @@ class C
 
     void Goo()
     {
-        [||]var v = a;
+        $$var v = a;
         int x;
         if (v != null)
         {
@@ -720,7 +720,7 @@ class C
     {
         var v = a;
         int x;
-        [||]if (v != null)
+        $$if (v != null)
         {
             v();
         }
@@ -750,7 +750,7 @@ class C
     int Goo()
     {
         var v = a;
-        [||]if (v != null)
+        $$if (v != null)
         {
             return v();
         }

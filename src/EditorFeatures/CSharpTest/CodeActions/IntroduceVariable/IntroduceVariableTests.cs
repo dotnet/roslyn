@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -45,7 +45,7 @@ class C
 {
     void M(Action action)
     {
-        M(() [||]=> { });
+        M(() $$=> { });
     }
 }",
 @"using System;
@@ -68,7 +68,7 @@ class C
 {
     void M(int a, int b)
     {
-        var x = a [||]+ b + 3;
+        var x = a $$+ b + 3;
     }
 }",
 @"using System;
@@ -91,7 +91,7 @@ class C
 {
     void M(int a)
     {
-        var x = [||]a;
+        var x = $$a;
     }
 }");
         }
@@ -105,7 +105,7 @@ class C
 {
     void M(Action action)
     {
-        M(() => { var x [||]= y; });
+        M(() => { var x $$= y; });
     }
 }");
         }
@@ -4649,7 +4649,7 @@ class C
 {
     void M(int a)
     {
-        System.Console.Write([||]a);
+        System.Console.Write($$a);
     }
 }");
         }
@@ -4778,7 +4778,7 @@ class C
     static int a;
     void M()
     {
-        System.Console.Write(C.[||]a);
+        System.Console.Write(C.$$a);
     }
 }");
         }

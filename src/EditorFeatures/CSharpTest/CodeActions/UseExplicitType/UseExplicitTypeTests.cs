@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -47,7 +47,7 @@ class C
 {
     static void Main()
     {
-        var[||] i = 0;
+        var$$ i = 0;
     }
 }";
 
@@ -73,7 +73,7 @@ class C
 {
     static void Main()
     {
-        System.Action notThisLocal = () => { foreach (var[||] i in new int[0]) { } };
+        System.Action notThisLocal = () => { foreach (var$$ i in new int[0]) { } };
     }
 }";
 
@@ -82,7 +82,7 @@ class C
 {
     static void Main()
     {
-        System.Action notThisLocal = () => { foreach (int[||] i in new int[0]) { } };
+        System.Action notThisLocal = () => { foreach (int$$ i in new int[0]) { } };
     }
 }";
 
@@ -97,7 +97,7 @@ class C
 {
     static void Main()
     {
-        _ = 0 is var[||] i;
+        _ = 0 is var$$ i;
     }
 }";
 
@@ -114,7 +114,7 @@ class C
 {
     static void Main()
     {
-        var[||] i = 0, j = j;
+        var$$ i = 0, j = j;
     }
 }";
 
@@ -132,7 +132,7 @@ class C
 {
     static void Main()
     {
-        var[||] i;
+        var$$ i;
     }
 }";
 
@@ -147,7 +147,7 @@ class C
 {
     static void Main()
     {
-        for (var[||] i = 0;;) { }
+        for (var$$ i = 0;;) { }
     }
 }";
 
@@ -171,7 +171,7 @@ class C : System.IDisposable
 {
     static void Main()
     {
-        using (var[||] c = new C()) { }
+        using (var$$ c = new C()) { }
     }
 }";
 
@@ -195,7 +195,7 @@ class var
 {
     static void Main()
     {
-        var[||] i = null;
+        var$$ i = null;
     }
 }";
             await TestMissingInRegularAndScriptAsync(code, options: PreferImplicitTypeWithNone());
@@ -209,7 +209,7 @@ class C
 {
     static void Main()
     {
-        foreach (var[||] i in new[] { 0 }) { }
+        foreach (var$$ i in new[] { 0 }) { }
     }
 }";
 
@@ -233,7 +233,7 @@ class C
 {
     static void Main()
     {
-        var[||] (i, j) = (0, 1);
+        var$$ (i, j) = (0, 1);
     }
 }";
 
@@ -257,7 +257,7 @@ class C
 {
     static void Main()
     {
-        (var[||] i, var j) = (0, 1);
+        (var$$ i, var j) = (0, 1);
     }
 }";
 

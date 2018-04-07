@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
 
         private async Task TestMissingOneAsync(string initial)
         {
-            await TestMissingInRegularAndScriptAsync(CreateTreeText("[||]" + initial));
+            await TestMissingInRegularAndScriptAsync(CreateTreeText("$$" + initial));
         }
 
         private async Task TestFixOneAsync(string initial, string expected, Refactoring refactoring)
         {
-            await TestInRegularAndScriptAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index: (int)refactoring);
+            await TestInRegularAndScriptAsync(CreateTreeText("$$" + initial), CreateTreeText(expected), index: (int)refactoring);
         }
 
         private static string CreateTreeText(string initial)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
     void M()
     {
         var numbers = new int[] {
-            [||]0x1, 0x2
+            $$0x1, 0x2
         };
     }
 }",
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int a = 42[||];
+    int a = 42$$;
 }",
 @"class C
 {
