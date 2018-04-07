@@ -31,8 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
                     parseOptions: DefaultParseOptions.WithKind(kind),
                     content: code))
                 {
+                    Assert.True(workspace.TryGetDocumentWithSelectedSpan(out var document, out var span));
+
                     var hostDocument = workspace.DocumentWithCursor;
-                    var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                     Assert.Empty((await document.GetSyntaxTreeAsync()).GetDiagnostics());
                     var targetPosition = await GoToAdjacentMemberCommandHandler.GetTargetPositionAsync(
                         document,
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
                         CancellationToken.None);
 
                     Assert.NotNull(targetPosition);
-                    Assert.Equal(hostDocument.SelectedSpans.Single().Start, targetPosition.Value);
+                    Assert.Equal(span.Start, targetPosition.Value);
                 }
             }
         }
