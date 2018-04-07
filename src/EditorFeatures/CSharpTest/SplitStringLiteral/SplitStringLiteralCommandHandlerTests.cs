@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         {
             using (var workspace = TestWorkspace.CreateCSharp(inputMarkup))
             {
-                var document = workspace.Documents.Single();
+                Assert.True(workspace.TryGetDocumentWithSelectedSpan(out var doc, out var originalSelection));
+                var document = workspace.Documents.Single(d => d.Id == doc.Id);
                 var view = document.GetTextView();
 
                 var originalSnapshot = view.TextBuffer.CurrentSnapshot;
-                var originalSelection = document.SelectedSpans.Single();
                 view.SetSelection(originalSelection.ToSnapshotSpan(originalSnapshot));
 
                 var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
