@@ -644,13 +644,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         public bool TryGetDocumentWithSelectedSpan(out Document document, out TextSpan span)
+            => TryGetDocumentWithSelectedSpan(allowLinkedFile: true, out document, out span);
+
+        public bool TryGetDocumentWithSelectedSpan(
+            bool allowLinkedFile, out Document document, out TextSpan span)
         {
-            var hostDocument = this.Documents.FirstOrDefault(d => d.SelectedSpans.Any());
+            var documents = this.Documents.Where(d => allowLinkedFile || !d.IsLinkFile);
+            var hostDocument = documents.FirstOrDefault(d => d.SelectedSpans.Any());
             if (hostDocument == null)
             {
                 // If there wasn't a span, see if there was a $$ caret.  we'll create an empty span
                 // there if so.
-                hostDocument = this.Documents.FirstOrDefault(d => d.CursorPosition != null);
+                hostDocument = documents.FirstOrDefault(d => d.CursorPosition != null);
                 if (hostDocument == null)
                 {
                     document = null;

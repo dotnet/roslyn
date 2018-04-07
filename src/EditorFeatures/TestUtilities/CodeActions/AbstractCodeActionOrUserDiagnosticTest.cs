@@ -119,7 +119,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected abstract Task<ImmutableArray<CodeAction>> GetCodeActionsWorkerAsync(
             TestWorkspace workspace, TestParameters parameters);
 
-
         protected abstract Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(
             TestWorkspace workspace, TestParameters parameters);
 
