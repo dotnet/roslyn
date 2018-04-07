@@ -192,9 +192,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
 
                 var startToken = root.FindToken(textSpan.Start);
-                if (startToken.Span.End < textSpan.Start)
+                var syntaxFacts = this.Document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                if (startToken.Span.End < textSpan.Start && startToken.TrailingTrivia.All(isWhitespaceOrEndOfLineTrivia))
                 {
-                    // If we were pointing in the trailing trivia of a token, we shouldn't include that token
+                    // We are pointing in the trailing whitespace trivia of a token, we shouldn't include that token
                     startToken = startToken.GetNextToken();
                     var newStart = startToken.Span.Start;
                     textSpan = new TextSpan(newStart, textSpan.End - newStart);
@@ -234,6 +235,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
 
                 return commonExpression;
+
+                bool isWhitespaceOrEndOfLineTrivia(SyntaxTrivia trivia)
+                {
+                    return syntaxFacts.IsWhitespaceTrivia(trivia) || syntaxFacts.IsEndOfLineTrivia(trivia);
+                }
             }
 
             private bool CanIntroduceVariable(
