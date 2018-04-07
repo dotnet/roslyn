@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -135,7 +136,7 @@ namespace Roslyn.Test.Utilities
             void queueCheckForBad()
             {
                 var task = new Task((Action)checkForBad);
-                task.Start(StaTaskScheduler.DefaultSta);
+                task.Start(new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(dispatcher, DispatcherPriority.Send)));
             }
 
             queueCheckForBad();
