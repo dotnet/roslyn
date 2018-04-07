@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -43,9 +43,9 @@ class B
     {
         A a = new A();
         dynamic d = 1;
-        var a1 = a$$[1];
+        var a1 = a[||][1];
         var a2 = a["hello"];
-        var a3 = a$$[d];
+        var a3 = a[||][d];
     }
 }
         </Document>
@@ -72,8 +72,8 @@ class B
         A a = new A();
         dynamic d = 1;
         var a1 = a[1];
-        var a2 = a$$["hello"];
-        var a3 = a$$[d];
+        var a2 = a[||]["hello"];
+        var a3 = a[||][d];
     }
 }        </Document>
     </Project>
