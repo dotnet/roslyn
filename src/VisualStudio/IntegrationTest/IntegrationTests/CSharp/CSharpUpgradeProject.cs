@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
@@ -47,44 +49,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.Other
   <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
 </Project>";
 
-        private readonly string ExpectedProjectFile = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-<Project ToolsVersion=""15.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
-  <PropertyGroup>
-    <Configuration Condition=""'$(Configuration)' == ''"">Debug</Configuration>
-    <Platform Condition=""'$(Platform)' == ''"">x64</Platform>
-    <ProjectGuid>{{F4233BA4-A4CB-498B-BBC1-65A42206B1BA}}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>{ProjectName}</RootNamespace>
-    <AssemblyName>{ProjectName}</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Debug|x86'"">
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <PlatformTarget>x86</PlatformTarget>
-    <LangVersion>7.1</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Release|x86'"">
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <PlatformTarget>x86</PlatformTarget>
-    <LangVersion>7.1</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Debug|x64'"">
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>7.1</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=""'$(Configuration)|$(Platform)' == 'Release|x64'"">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>7.1</LangVersion>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include=""C.cs"" />
-  </ItemGroup>
-  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
-</Project>";
-
         public CSharpUpgradeProject(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
         {
         }
@@ -110,7 +74,12 @@ class C
             // Save the project file.
             VisualStudio.SolutionExplorer.SaveAll();
 
-            Assert.Equal(ExpectedProjectFile, VisualStudio.SolutionExplorer.GetFileContents(project, project.Name + ".csproj"));
+            var updatedProjectFile = VisualStudio.SolutionExplorer.GetFileContents(project, project.Name + ".csproj");
+            var updatedProjectElement = XElement.Parse(updatedProjectFile);
+
+            Assert.True(updatedProjectElement.Elements()
+                .Where(e => e.Name.LocalName == "PropertyGroup" && e.Attributes().Any(a => a.Name.LocalName == "Condition"))
+                .All(g => g.Elements().Single(e => e.Name.LocalName == "LangVersion").Value == "7.1"));
         }
     }
 }
