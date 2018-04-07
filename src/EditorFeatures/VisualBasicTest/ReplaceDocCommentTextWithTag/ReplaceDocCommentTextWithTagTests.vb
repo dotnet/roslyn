@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ReplaceDocCommentT
         Public Async Function TestStartOfKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' Testing keyword [||]Nothing.
+''' Testing keyword $$Nothing.
 class C(Of TKey)
 end class",
 "
@@ -29,7 +29,7 @@ end class")
         Public Async Function TestStartOfKeywordCapitalized() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' Testing keyword Shared[||].
+''' Testing keyword Shared$$.
 class C(Of TKey)
 end class",
 "
@@ -42,7 +42,7 @@ end class")
         Public Async Function TestEndOfKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' Testing keyword True[||].
+''' Testing keyword True$$.
 class C(Of TKey)
 end class",
 "
@@ -55,7 +55,7 @@ end class")
         Public Async Function TestEndOfKeyword_NewLineFollowing() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' Testing keyword MustInherit[||]
+''' Testing keyword MustInherit$$
 class C(Of TKey)
 end class",
 "
@@ -81,7 +81,7 @@ end class")
         Public Async Function TestInsideKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' Testing keyword Aw[||]ait.
+''' Testing keyword Aw$$ait.
 class C(Of TKey)
 end class",
 "
@@ -103,7 +103,7 @@ end class")
         Public Async Function TestStartOfFullyQualifiedTypeName_Start() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' TKey must implement the [||]System.IDisposable interface.
+''' TKey must implement the $$System.IDisposable interface.
 class C(Of TKey)
 end class",
 "
@@ -116,7 +116,7 @@ end class")
         Public Async Function TestStartOfFullyQualifiedTypeName_Mid1() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' TKey must implement the System[||].IDisposable interface.
+''' TKey must implement the System$$.IDisposable interface.
 class C(Of TKey)
 end class",
 "
@@ -129,7 +129,7 @@ end class")
         Public Async Function TestStartOfFullyQualifiedTypeName_Mid2() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' TKey must implement the System.[||]IDisposable interface.
+''' TKey must implement the System.$$IDisposable interface.
 class C(Of TKey)
 end class",
 "
@@ -142,7 +142,7 @@ end class")
         Public Async Function TestStartOfFullyQualifiedTypeName_End() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' TKey must implement the System.IDisposable[||] interface.
+''' TKey must implement the System.IDisposable$$ interface.
 class C(Of TKey)
 end class",
 "
@@ -155,7 +155,7 @@ end class")
         Public Async Function TestStartOfFullyQualifiedTypeName_CaseInsensitive() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' TKey must implement the [||]system.idisposable interface.
+''' TKey must implement the $$system.idisposable interface.
 class C(Of TKey)
 end class",
 "
@@ -181,7 +181,7 @@ end class")
         Public Async Function TestTypeParameterReference() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' [||]TKey must implement the System.IDisposable interface.
+''' $$TKey must implement the System.IDisposable interface.
 class C(Of TKey)
 end class",
 "
@@ -194,7 +194,7 @@ end class")
         Public Async Function TestCanSeeInnerMethod() As Task
             Await TestInRegularAndScriptAsync(
 "
-''' Use WriteLine[||] as a Console.WriteLine replacement
+''' Use WriteLine$$ as a Console.WriteLine replacement
 class C
     sub WriteLine(Of TKey)(value as TKey)
     end sub
@@ -211,7 +211,7 @@ end class")
         Public Async Function TestNotOnMispelledName() As Task
             Await TestMissingAsync(
 "
-''' Use WriteLine1[||] as a Console.WriteLine replacement
+''' Use WriteLine1$$ as a Console.WriteLine replacement
 class C
     sub WriteLine(Of TKey)(value as TKey)
     end sub
@@ -223,7 +223,7 @@ end class")
             Await TestInRegularAndScriptAsync(
 "
 class C
-    ''' value has type TKey[||] so we don't box primitives.
+    ''' value has type TKey$$ so we don't box primitives.
     sub WriteLine(Of TKey)(value as TKey)
     end sub
 end class",
@@ -240,7 +240,7 @@ end class")
             Await TestInRegularAndScriptAsync(
 "
 class C
-    ''' value has type TKey[||] so we don't box primitives.
+    ''' value has type TKey$$ so we don't box primitives.
     sub WriteLine(Of tkey)(value as TKey)
     end sub
 end class",
@@ -257,7 +257,7 @@ end class")
             Await TestInRegularAndScriptAsync(
 "
 interface I
-    ''' value has type TKey[||] so we don't box primitives.
+    ''' value has type TKey$$ so we don't box primitives.
     sub WriteLine(Of TKey)(value as TKey)
 end interface",
 "
@@ -272,7 +272,7 @@ end interface")
             Await TestInRegularAndScriptAsync(
 "
 class C
-    ''' value[||] has type TKey so we don't box primitives.
+    ''' value$$ has type TKey so we don't box primitives.
     sub WriteLine(Of TKey)(value as TKey)
     end sub
 end class",
@@ -289,7 +289,7 @@ end class")
             Await TestInRegularAndScriptAsync(
 "
 class C
-    ''' value[||] has type TKey so we don't box primitives.
+    ''' value$$ has type TKey so we don't box primitives.
     sub WriteLine(Of TKey)(Value as TKey)
     end sub
 end class",
@@ -306,7 +306,7 @@ end class")
             Await TestInRegularAndScriptAsync(
 "
 interface I
-    ''' value[||] has type TKey so we don't box primitives.
+    ''' value$$ has type TKey so we don't box primitives.
     sub WriteLine(Of TKey)(value as TKey)
 end interface",
 "
@@ -321,7 +321,7 @@ end interface")
         Public Async Function TestNotApplicableKeyword() As Task
             Await TestMissingAsync(
 "
-''' Testing keyword interf[||]ace
+''' Testing keyword interf$$ace
 class C(Of TKey)
 end class")
         End Function
@@ -331,7 +331,7 @@ end class")
         Public Async Function TestInXMLAttribute() As Task
             Await TestMissingAsync(
 "
-''' Testing keyword inside <see langword=""Noth[||]ing"">
+''' Testing keyword inside <see langword=""Noth$$ing"">
 class C
     sub WriteLine(Of TKey)(value as TKey)
     end sub
@@ -343,7 +343,7 @@ end class")
         Public Async Function TestInXMLAttribute2() As Task
             Await TestMissingAsync(
 "
-''' Testing keyword inside <see langword=""Not[||]hing""
+''' Testing keyword inside <see langword=""Not$$hing""
 class C
     sub WriteLine(Of TKey)(value as TKey)
     end sub

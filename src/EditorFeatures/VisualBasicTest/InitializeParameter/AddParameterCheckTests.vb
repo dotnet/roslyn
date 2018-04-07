@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InitializeParamete
 Imports System
 
 class C
-    public sub new([||]s as string)
+    public sub new($$s as string)
     end sub
 end class",
 "
@@ -41,7 +41,7 @@ end class")
 Imports System
 
 class C
-    public sub new([||]i as integer?)
+    public sub new($$i as integer?)
     end sub
 end class",
 "
@@ -63,7 +63,7 @@ end class")
 Imports System
 
 class C
-    public sub new([||]i as integer)
+    public sub new($$i as integer)
     end sub
 end class")
         End Function
@@ -75,7 +75,7 @@ end class")
 Imports System
 
 interface I
-    sub M([||]s as string)
+    sub M($$s as string)
 end class")
         End Function
 
@@ -86,7 +86,7 @@ end class")
 Imports System
 
 class C
-    mustoverride sub M([||]s as string)
+    mustoverride sub M($$s as string)
 end class")
         End Function
 
@@ -99,7 +99,7 @@ Imports System
 class C
     private _s as string 
 
-    public sub new([||]s as string)
+    public sub new($$s as string)
         _s = s
     end sub
 end class",
@@ -128,7 +128,7 @@ Imports System
 class C
     private property S as string
 
-    public sub new([||]s as string)
+    public sub new($$s as string)
         Me.S = s
     end sub
 end class",
@@ -155,7 +155,7 @@ end class")
 Imports System
 
 class C
-    public sub new(a as string, [||]s as string)
+    public sub new(a as string, $$s as string)
         If a is nothing
         End If
     end sub
@@ -182,7 +182,7 @@ end class")
 Imports System
 
 class C
-    public sub new([||]a as string, s as string)
+    public sub new($$a as string, s as string)
         If s Is Nothing Then
         End If
     end sub
@@ -209,7 +209,7 @@ end class")
 Imports System
 
 class C
-    public sub new([||]s as string)
+    public sub new($$s as string)
         If s Is Nothing Then
             Throw New ArgumentNullException()
         End If
@@ -224,7 +224,7 @@ end class")
 Imports System
 
 class C
-    public sub new([||]s as string)
+    public sub new($$s as string)
         If String.IsNullOrEmpty(s)
         End If
     end sub
@@ -238,7 +238,7 @@ end class")
 Imports System
 
 class C
-    public sub new([||]s as string)
+    public sub new($$s as string)
         If String.IsNullOrWhiteSpace(s)
         End If
     end sub
@@ -252,7 +252,7 @@ end class")
 Imports System
 
 class C
-    sub F([||]s as string)
+    sub F($$s as string)
     end sub
 end class",
 "
@@ -275,7 +275,7 @@ Imports System
 
 class C
     public sub new()
-        dim f = function ([||]s as string)
+        dim f = function ($$s as string)
                 end function
     end sub
 end class")
@@ -288,7 +288,7 @@ end class")
 Imports System
 
 class C
-    public sub new([||]s as string)
+    public sub new($$s as string)
     end sub
 end class",
 "
@@ -310,7 +310,7 @@ end class", index:=1)
 Imports System
 
 class C
-    public sub new([||]s as string)
+    public sub new($$s as string)
     end sub
 end class",
 "

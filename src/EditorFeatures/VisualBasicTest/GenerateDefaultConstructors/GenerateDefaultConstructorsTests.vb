@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateDefaultCon
 Imports System.Collections.Generic
 Imports System.Linq
 Class Program
-    Inherits [||]Exception
+    Inherits $$Exception
     Sub Main(args As String())
     End Sub
 End Class",
@@ -44,7 +44,7 @@ End Class")
 Imports System.Collections.Generic
 Imports System.Linq
 Class Program
-    Inherits [||]Exception
+    Inherits $$Exception
     Sub Main(args As String())
     End Sub
 End Class",
@@ -71,7 +71,7 @@ index:=1)
 Imports System.Collections.Generic
 Imports System.Linq
 Class Program
-    Inherits [||]Exception
+    Inherits $$Exception
     Sub Main(args As String())
     End Sub
 End Class",
@@ -98,7 +98,7 @@ index:=2)
 Imports System.Collections.Generic
 Imports System.Linq
 Class Program
-    Inherits [||]Exception
+    Inherits $$Exception
     Sub Main(args As String())
     End Sub
 End Class",
@@ -127,7 +127,7 @@ index:=3)
 Imports System.Collections.Generic
 Imports System.Linq
 Class Program
-    Inherits [||]Exception
+    Inherits $$Exception
     Sub Main(args As String())
     End Sub
 End Class",
@@ -167,7 +167,7 @@ index:=4)
 "Class Base
 End Class
 Class Derived
-    Inherits B[||]ase
+    Inherits B$$ase
 End Class",
 "Class Base
 End Class
@@ -183,7 +183,7 @@ End Class")
         Public Async Function TestNotOfferedOnUnresolvedBaseClassName() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class Derived
-    Inherits [||]Base
+    Inherits $$Base
 End Class")
         End Function
 
@@ -191,14 +191,14 @@ End Class")
         Public Async Function TestNotOfferedOnInheritsStatementForStructures() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Structure Derived
-    Inherits [||]Base
+    Inherits $$Base
 End Structure")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestNotOfferedForIncorrectlyParentedInheritsStatement() As Task
             Await TestMissingInRegularAndScriptAsync(
-"Inherits [||]Goo")
+"Inherits $$Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
@@ -208,7 +208,7 @@ End Structure")
 Imports System.Collections.Generic
 Imports System.Linq
 Class Program
-    Inherits [||]Exception
+    Inherits $$Exception
     Public Sub New()
     End Sub
     Sub Main(args As String())
@@ -249,7 +249,7 @@ index:=3)
 Imports System.Collections.Generic
 Imports System.Linq
 Class Program
-    Inherits [||]Exception
+    Inherits $$Exception
     Public Sub New(message As String)
         MyBase.New(message)
     End Sub
@@ -292,7 +292,7 @@ End Class")
 Imports System.Collections.Generic
 Imports System.Linq
 Class Program
-    Inherits [||]Exception
+    Inherits $$Exception
     Public Sub New(message As String, innerException As Exception)
         MyBase.New(message, innerException)
     End Sub
@@ -335,7 +335,7 @@ index:=2)
 Imports System.Collections.Generic
 Imports System.Linq
 Class Program
-    Inherits Exception[||]
+    Inherits Exception$$
     Sub Main(args As String())
     End Sub
 End Class",
@@ -360,7 +360,7 @@ End Class")
 Imports System.Collections.Generic
 Imports System.Linq
 Class Program
-    Inherits Exce[||]ption
+    Inherits Exce$$ption
     Public Sub New()
     End Sub
     Sub Main(args As String())
@@ -388,7 +388,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         Public Async Function TestDefaultConstructorGeneration() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Class C
-    Inherits B[||]
+    Inherits B$$
     Public Sub New(y As Integer)
     End Sub
 End Class
@@ -418,7 +418,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
             Await TestInRegularAndScriptAsync(
 <Text>
 Class C
-    Inherits [||]B
+    Inherits $$B
 
     Public Sub New(y As Boolean)
     End Sub
@@ -481,7 +481,7 @@ index:=2)
             Await TestInRegularAndScriptAsync(
 <Text>
 Class C
-    Inherits [||]B
+    Inherits $$B
 
     Public Sub New(y As (Boolean, Boolean))
     End Sub
@@ -548,7 +548,7 @@ Public Class Base
     End Sub
 End Class
 
-Public [||]Class ;;Derived
+Public $$Class ;;Derived
     Inherits Base
 
 End Class",
@@ -579,7 +579,7 @@ Public Class Base
     End Sub
 End Class
 
-Public Class [||]Derived
+Public Class $$Derived
     Inherits Base
 
 End Class",
@@ -610,7 +610,7 @@ Public Class Base
     End Sub
 End Class
 
-Public Class [||]Derived
+Public Class $$Derived
     Inherits Base
 
 End Class",
@@ -635,7 +635,7 @@ End Class")
         Public Async Function TestNotOnEnum() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
-Public Enum [||]E
+Public Enum $$E
 End Enum")
         End Function
 
@@ -644,7 +644,7 @@ End Enum")
         Public Async Function TestGenerateConstructorFromFriendConstructor() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Class C
-    Inherits B[||]
+    Inherits B$$
 End Class
 
 MustInherit Class B
@@ -670,7 +670,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         Public Async Function TestGenerateConstructorFromFriendConstructor2() As Task
             Await TestInRegularAndScriptAsync(
 <Text>MustInherit Class C
-    Inherits B[||]
+    Inherits B$$
 End Class
 
 MustInherit Class B
@@ -696,7 +696,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         Public Async Function TestGenerateConstructorFromProtectedConstructor() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Class C
-    Inherits B[||]
+    Inherits B$$
 End Class
 
 MustInherit Class B
@@ -722,7 +722,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         Public Async Function TestGenerateConstructorFromProtectedConstructor2() As Task
             Await TestInRegularAndScriptAsync(
 <Text>MustInherit Class C
-    Inherits B[||]
+    Inherits B$$
 End Class
 
 MustInherit Class B
@@ -748,7 +748,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         Public Async Function TestGenerateConstructorFromProtectedFriendConstructor() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Class C
-    Inherits B[||]
+    Inherits B$$
 End Class
 
 MustInherit Class B
@@ -774,7 +774,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         Public Async Function TestGenerateConstructorFromProtectedFriendConstructor2() As Task
             Await TestInRegularAndScriptAsync(
 <Text>MustInherit Class C
-    Inherits B[||]
+    Inherits B$$
 End Class
 
 MustInherit Class B
@@ -800,7 +800,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         Public Async Function TestGenerateConstructorFromPublicConstructor() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Class C
-    Inherits B[||]
+    Inherits B$$
 End Class
 
 MustInherit Class B
@@ -826,7 +826,7 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         Public Async Function TestGenerateConstructorFromPublicConstructor2() As Task
             Await TestInRegularAndScriptAsync(
 <Text>MustInherit Class C
-    Inherits B[||]
+    Inherits B$$
 End Class
 
 MustInherit Class B

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.MoveType
     Partial Public Class MoveTypeTests
@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
         Public Async Function SingleClassInFileWithNoContainerNamespace_RenameType() As Task
             Dim code =
 <File>
-[||]Class Class1
+$$Class Class1
 End Class
 </File>
 
@@ -26,7 +26,7 @@ End Class
             ' so type name matches filename here And rename file action should Not be offered.
             Dim code =
 <File>
-[||]Class test1
+$$Class test1
 End Class
 </File>
 
@@ -37,7 +37,7 @@ End Class
         Public Async Function TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameType() As Task
             Dim code =
 <File>
-[||]Class Class1
+$$Class Class1
 End Class
 
 Class test1
@@ -51,7 +51,7 @@ End Class
         Public Async Function MultipleTopLevelTypesInFileAndNoneMatchFileName1_RenameType() As Task
             Dim code =
 <File>
-[||]Class Class1
+$$Class Class1
 End Class
 
 Class Class2

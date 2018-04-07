@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
             Await TestDiagnosticMissingAsync("
 Class C
      Sub Main 
-        string.Format(""This {0} {1} {[||]2} works"", New Object  { ""test"", ""test2"", ""test3"" })
+        string.Format(""This {0} {1} {$$2} works"", New Object  { ""test"", ""test2"", ""test3"" })
     End Sub
 End Class")
         End Function
@@ -51,7 +51,7 @@ End Class")
             Await TestDiagnosticMissingAsync("
 Class C
      Sub Main 
-        string.Format(""This {0} {1[||]} works"", ""test"", ""also"")
+        string.Format(""This {0} {1$$} works"", ""test"", ""also"")
     End Sub
 End Class")
         End Function
@@ -63,7 +63,7 @@ Imports System.Globalization
 Class C
      Sub Main 
         Dim culture as CultureInfo = ""da - da""
-        string.Format(culture, ""The current price is {0[||]:C2} per ounce"", 2.45)
+        string.Format(culture, ""The current price is {0$$:C2} per ounce"", 2.45)
     End Sub
 End Class")
         End Function
@@ -117,7 +117,7 @@ End Class",
             Await TestDiagnosticMissingAsync("
 Class C
      Sub Main 
-        string.Format(arg0:= ""test"", arg1:= ""also"", format:= ""This {0[||]} {1} works"")
+        string.Format(arg0:= ""test"", arg1:= ""also"", format:= ""This {0$$} {1} works"")
     End Sub
 End Class")
         End Function
@@ -143,7 +143,7 @@ Imports System.Globalization
 Class C
      Sub Main 
         Dim culture As CultureInfo = ""da - da""
-        string.Format(arg0:= 2.45, provider:=culture, format :=""The current price is {0[||]:C2} per ounce -no squiggles"")
+        string.Format(arg0:= 2.45, provider:=culture, format :=""The current price is {0$$:C2} per ounce -no squiggles"")
     End Sub
 End Class")
         End Function
@@ -155,7 +155,7 @@ Imports System.Globalization
 Class C
      Sub Main 
         Dim culture As CultureInfo = ""da - da""
-        string.Format(format:= ""This {0} {1[||]} {2} works"", args:=New Object  { ""test"", ""it"", ""really"" }, provider:=culture)
+        string.Format(format:= ""This {0} {1$$} {2} works"", args:=New Object  { ""test"", ""it"", ""really"" }, provider:=culture)
     End Sub
 End Class")
         End Function
@@ -167,7 +167,7 @@ Imports System.Globalization
 Class C
      Sub Main 
         Dim culture As CultureInfo = ""da - da""
-        string.Format(format:= ""This {0} {1[||]} {2} works"", format:=New Object  { ""test"", ""it"", ""really"" }, provider:=culture)
+        string.Format(format:= ""This {0} {1$$} {2} works"", format:=New Object  { ""test"", ""it"", ""really"" }, provider:=culture)
     End Sub
 End Class")
         End Function
@@ -182,7 +182,7 @@ Imports System.Globalization
 Class C
      Sub Main 
         Dim culture As CultureInfo = ""da - da""
-        string.Format(format:= ""This {0} {1[||]} {2} works"", format:=New Object  { ""test"", ""it"", ""really"" }, provider:=culture)
+        string.Format(format:= ""This {0} {1$$} {2} works"", format:=New Object  { ""test"", ""it"", ""really"" }, provider:=culture)
     End Sub
 End Class
         </Document>
@@ -196,7 +196,7 @@ End Class
 Imports stringalias = System.String
 Class C
      Sub Main 
-        stringAlias.Format(""This {[||]0} works"", ""test"")
+        stringAlias.Format(""This {$$0} works"", ""test"")
     End Sub
 End Class")
         End Function
@@ -206,7 +206,7 @@ End Class")
             Await TestDiagnosticMissingAsync("
 Class C
      Sub Main 
-        string.Format(@""This {[||]0} 
+        string.Format(@""This {$$0} 
 {1} {2} works"", ""multiple"", ""line"", ""test""))
     End Sub
 End Class")
@@ -218,7 +218,7 @@ End Class")
 Class C
      Sub Main 
         string.Format($""This {0} 
-{1[||]} {2} works"", ""multiple"", ""line"", ""test""))
+{1$$} {2} works"", ""multiple"", ""line"", ""test""))
     End Sub
 End Class")
         End Function
@@ -228,7 +228,7 @@ End Class")
             Await TestDiagnosticMissingAsync("
 Class C
      Sub Main 
-        string.Format(""[||]"")
+        string.Format(""$$"")
     End Sub
 End Class")
         End Function
@@ -238,7 +238,7 @@ End Class")
             Await TestDiagnosticMissingAsync("
 Class C
      Sub Main 
-        string.Format([||]
+        string.Format($$
     End Sub
 End Class")
         End Function
@@ -248,7 +248,7 @@ End Class")
             Await TestDiagnosticMissingAsync("
 Class C
      Sub Main 
-        string.Format [||]
+        string.Format $$
     End Sub
 End Class")
         End Function
@@ -258,7 +258,7 @@ End Class")
             Await TestDiagnosticMissingAsync("
 Class C
      Sub Main 
-        string.Compare [||]
+        string.Compare $$
     End Sub
 End Class")
         End Function
@@ -275,7 +275,7 @@ End Class
 Class C
     Sub Goo()
         Dim q As G(Of Integer)
-        q.Format(Of Integer)(""TestStr[||]ing"")
+        q.Format(Of Integer)(""TestStr$$ing"")
     End Sub
 End Class")
         End Function
@@ -284,7 +284,7 @@ End Class")
         Public Async Function OmittedArgument() As Task
             Await TestDiagnosticMissingAsync("Module M
     Sub Main()
-         String.Format([||],)
+         String.Format($$,)
     End Sub
 End Module")
         End Function
@@ -294,7 +294,7 @@ End Module")
             Await TestDiagnosticMissingAsync("
 Class C
      Sub Main 
-        string.Format(""This {0} {1} {[||]2} works"", New Object  { ""test"", ""test2"", ""test3"" })
+        string.Format(""This {0} {1} {$$2} works"", New Object  { ""test"", ""test2"", ""test3"" })
     End Sub
 End Class", New TestParameters(options:=VBOptionOffCSharpOptionOn))
         End Function

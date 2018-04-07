@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.E
         Public Async Function TestEncapsulatePrivateFieldAndUpdateReferences() As Task
             Dim text = <File>
 Class C
-    Private ReadOnly x[||] As Integer
+    Private ReadOnly x$$ As Integer
 
     Public Sub New()
         x = 3
@@ -54,7 +54,7 @@ End Class</File>.ConvertTestSourceTag()
         Public Async Function TestEncapsulateDimField() As Task
             Dim text = <File>
 Class C
-    Dim x[||] As Integer
+    Dim x$$ As Integer
 
     Sub goo()
         Dim z = x
@@ -87,7 +87,7 @@ End Class</File>.ConvertTestSourceTag()
         Public Async Function TestEncapsulateGenericField() As Task
             Dim text = <File>
 Class C(Of T)
-    Dim x[||] As T
+    Dim x$$ As T
 
     Sub goo()
         Dim z = x
@@ -466,7 +466,7 @@ End Class
         Public Async Function TestAvailableNotJustOnVariableName() As Task
             Dim text = <File>
 Class C
-    Private [||] ReadOnly x As Integer
+    Private $$ ReadOnly x As Integer
 End Class</File>.ConvertTestSourceTag()
 
             Await TestActionCountAsync(text, 2)

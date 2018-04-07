@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseObj
 Class C
     Dim i As Integer
     Sub M()
-        Dim c = [||]New C()
+        Dim c = $$New C()
         c.i = 1
     End Sub
 End Class",
@@ -42,7 +42,7 @@ End Class")
 Class C
     Dim i As Integer
     Sub M()
-        Dim c As [||]New C()
+        Dim c As $$New C()
         c.i = 1
     End Sub
 End Class",
@@ -65,7 +65,7 @@ Class C
     Dim i As Integer
     Sub M()
         Dim c as C = Nothing
-        c = [||]New C()
+        c = $$New C()
         c.i = 1
     End Sub
 End Class",
@@ -88,7 +88,7 @@ End Class")
 Class C
     Dim i As Integer
     Sub M()
-        Dim c = [||]New C()
+        Dim c = $$New C()
         c.i = 1
         c.i = 2
     End Sub
@@ -115,7 +115,7 @@ Class C
     Sub M()
         Dim array As C()
 
-        array(0) = [||]New C()
+        array(0) = $$New C()
         array(0).i = 1
         array(0).j = 2
     End Sub
@@ -143,7 +143,7 @@ Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = [||]New C()
+        Dim c = $$New C()
         c.i = 1
         c.j += 1
     End Sub
@@ -169,7 +169,7 @@ Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = [||]New C() With {
+        Dim c = $$New C() With {
             .i = 1
         }
         c.j = 1
@@ -185,7 +185,7 @@ End Class")
 Class C
     Sub M()
         With New String()
-            Dim x As ProcessStartInfo = [||]New ProcessStartInfo()
+            Dim x As ProcessStartInfo = $$New ProcessStartInfo()
             x.Arguments = .Length.ToString()
         End With
     End Sub
@@ -199,7 +199,7 @@ End Class")
 "                            
 Class C
     Sub M()
-        Dim x As ProcessStartInfo = [||]New ProcessStartInfo()
+        Dim x As ProcessStartInfo = $$New ProcessStartInfo()
         x.Arguments = Sub()
                          With New String()
                             Dim a = .Length.ToString()
@@ -268,7 +268,7 @@ Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = [||]New C()
+        Dim c = $$New C()
         c.i = 1 ' Goo
         c.j = 2 ' Bar
     End Sub
@@ -293,7 +293,7 @@ End Class")
 "
 Class C
     Sub M()
-        Dim XmlAppConfigReader As [||]New XmlTextReader(Reader)
+        Dim XmlAppConfigReader As $$New XmlTextReader(Reader)
 
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
         XmlAppConfigReader.DtdProcessing = DtdProcessing.Prohibit
@@ -319,7 +319,7 @@ End Class")
 "
 Class C
     Sub M()
-        Dim XmlAppConfigReader As [||]New XmlTextReader(Reader)
+        Dim XmlAppConfigReader As $$New XmlTextReader(Reader)
 
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
         XmlAppConfigReader.DtdProcessing = DtdProcessing.Prohibit
@@ -351,7 +351,7 @@ Class C
     Shared y As Integer
 
     Sub M()
-        Dim z = [||]New C()
+        Dim z = $$New C()
         z.x = 1
         z.y = 2
     End Sub

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseCol
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = [||]New List(Of Integer)()
+        Dim c = $$New List(Of Integer)()
         c.Add(1)
     End Sub
 End Class",
@@ -42,7 +42,7 @@ End Class")
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = [||]New List(Of Integer)(Nothing)
+        Dim c = $$New List(Of Integer)(Nothing)
         c.Add(1)
     End Sub
 End Class",
@@ -64,7 +64,7 @@ End Class")
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c As [||]New List(Of Integer)()
+        Dim c As $$New List(Of Integer)()
         c.Add(1)
     End Sub
 End Class",
@@ -87,7 +87,7 @@ Imports System.Collections.Generic
 Class C
     Sub M()
         Dim c as List(Of Integer) = Nothing
-        c = [||]New List(Of Integer)()
+        c = $$New List(Of Integer)()
         c.Add(1)
     End Sub
 End Class",
@@ -110,7 +110,7 @@ End Class")
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = [||]New List(Of Integer)()
+        Dim c = $$New List(Of Integer)()
         c.Add(value:=1)
     End Sub
 End Class")
@@ -123,7 +123,7 @@ End Class")
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = [||]New List(Of Integer)()
+        Dim c = $$New List(Of Integer)()
         c.Add()
     End Sub
 End Class")
@@ -136,7 +136,7 @@ End Class")
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = [||]New List(Of Integer)()
+        Dim c = $$New List(Of Integer)()
         c.Add
     End Sub
 End Class")
@@ -149,7 +149,7 @@ End Class")
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = [||]New List(Of Integer)()
+        Dim c = $$New List(Of Integer)()
         c.Add(1,,2)
     End Sub
 End Class")
@@ -164,7 +164,7 @@ Class C
     Sub M()
         Dim array As List(Of Integer)()
 
-        array(0) = [||]New List(Of Integer)()
+        array(0) = $$New List(Of Integer)()
         array(0).Add(1)
         array(0).Add(2)
     End Sub
@@ -190,7 +190,7 @@ End Class")
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = [||]New List(Of Integer)()
+        Dim c = $$New List(Of Integer)()
         c.Add(1, 2)
     End Sub
 End Class",
@@ -212,7 +212,7 @@ End Class")
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = [||]New List(Of Integer) From {
+        Dim c = $$New List(Of Integer) From {
             1
         }
         c.Add(1)
@@ -264,7 +264,7 @@ End Class")
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = [||]New List(Of Integer)()
+        Dim c = $$New List(Of Integer)()
         c.Add(1) ' Goo
         c.Add(2) ' Bar
     End Sub
@@ -289,7 +289,7 @@ End Class")
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim c = [||]New List(Of Integer)()
+        Dim c = $$New List(Of Integer)()
         ' Goo
         c.Add(1)
         ' Bar

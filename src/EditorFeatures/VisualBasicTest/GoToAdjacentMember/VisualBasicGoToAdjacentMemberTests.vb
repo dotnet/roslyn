@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
 
@@ -29,7 +29,7 @@ End Class"
         Public Async Function BeforeClassWithMember() As Task
             Dim code = "$$
 Class C
-    [||]Sub M()
+    $$Sub M()
     End Sub
 End Class"
 
@@ -41,7 +41,7 @@ End Class"
         Public Async Function AfterClassWithMember() As Task
             Dim code = "
 Class C
-    [||]Sub M()
+    $$Sub M()
     End Sub
 End Class
 
@@ -62,7 +62,7 @@ End Class
 $$
 
 Class C2
-    [||]Sub M()
+    $$Sub M()
     End Sub
 End Class"
 
@@ -74,7 +74,7 @@ End Class"
         Public Async Function BetweenClassesPrevious() As Task
             Dim code = "
 Class C1
-    [||]Sub M()
+    $$Sub M()
     End Sub
 End Class
 
@@ -95,7 +95,7 @@ End Class"
 Class C
     $$Sub M1()
     End Sub
-    [||]Sub M2()
+    $$Sub M2()
     End Sub
 End Class"
 
@@ -107,7 +107,7 @@ End Class"
         Public Async Function FromSecondToFirst() As Task
             Dim code = "
 Class C
-    [||]Sub M1()
+    $$Sub M1()
     End Sub
     $$Sub M2()
     End Sub
@@ -121,7 +121,7 @@ End Class"
         Public Async Function NextWraps() As Task
             Dim code = "
 Class C
-    [||]Sub M1()
+    $$Sub M1()
     End Sub
     $$Sub M2()
     End Sub
@@ -137,7 +137,7 @@ End Class"
 Class C
     $$Sub M1()
     End Sub
-    [||]Sub M2()
+    $$Sub M2()
     End Sub
 End Class"
 
@@ -153,7 +153,7 @@ Class C
     End Sub
 
     Class N
-        [||]Sub M2()
+        $$Sub M2()
         End Sub
     End Class
 End Class"
@@ -169,7 +169,7 @@ Class C
     $$Sub M1()
     End Sub
 
-    [||]Public Sub New()
+    $$Public Sub New()
     End Sub
 End Class"
             Await AssertNavigatedAsync(code, next:=True)
@@ -182,7 +182,7 @@ End Class"
 Class C
     $$Sub M1()
     End Sub
-    [||]Shared Operator +(left As C, right As C) As C
+    $$Shared Operator +(left As C, right As C) As C
         Throw New System.NotImplementedException()
     End Operator
 End Class"
@@ -202,7 +202,7 @@ Class C
     $$Sub M1()
     End Sub
 
-    [||]Dim f as Integer
+    $$Dim f as Integer
 End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
@@ -215,7 +215,7 @@ Class C
     $$Sub M1()
     End Sub
 
-    [||]Event E As System.EventHandler
+    $$Event E As System.EventHandler
 End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
@@ -227,7 +227,7 @@ End Class"
 Class C
     $$Sub M1()
     End Sub
-    [||]Property P As Integer
+    $$Property P As Integer
 End Class"
             Await AssertNavigatedAsync(code, next:=True)
         End Function
@@ -240,7 +240,7 @@ Class C
     $$Sub M1()
     End Sub
 
-    [||]Property P As Integer
+    $$Property P As Integer
         Get
             Return 42
         End Get
@@ -268,7 +268,7 @@ Class C
         End Set
     End Property
 
-    [||]Sub M2()
+    $$Sub M2()
     End Sub
 End Class"
 
@@ -291,7 +291,7 @@ Class C
         End Set
     End Property
 
-    [||]Sub M2()
+    $$Sub M2()
     End Sub
 End Class"
 
@@ -306,7 +306,7 @@ Class C
     $$Sub M1()
     End Sub
 
-    [||]Custom Event E As EventHandler
+    $$Custom Event E As EventHandler
         AddHandler(value As EventHandler)
 
         End AddHandler
@@ -342,7 +342,7 @@ Class C
         End RaiseEvent
     End Event
 
-    [||]Sub M2()
+    $$Sub M2()
     End Sub
 End Class"
 
@@ -358,7 +358,7 @@ Class C
         $$System.Console.WriteLine()
     End Sub
 
-    [||]Sub M2()
+    $$Sub M2()
     End Sub
 End Class"
 
@@ -375,7 +375,7 @@ Class C
 
     $$
 
-    [||]Sub M2()
+    $$Sub M2()
     End Sub
 End Class"
 
@@ -387,7 +387,7 @@ End Class"
         Public Async Function PreviousFromBetweenMethods() As Task
             Dim code = "
 Class C
-    [||]Sub M1()
+    $$Sub M1()
     End Sub
 
     $$
@@ -407,7 +407,7 @@ Class C
     Sub M1()
     End Sub $$
 
-    [||]Sub M2()
+    $$Sub M2()
     End Sub
 End Class"
 
@@ -420,7 +420,7 @@ End Class"
         Public Async Function PreviousFromInsideCurrent() As Task
             Dim code = "
 class C
-    [||]Sub M1()
+    $$Sub M1()
         Console.WriteLine($$)
     End Sub
 
@@ -436,7 +436,7 @@ End Class"
         Public Async Function PreviousFromBetweenMethodsInTrailingTrivia() As Task
             Dim code = "
 Class C
-    [||]Sub M1()
+    $$Sub M1()
     End Sub $$
 
     Sub M2()
@@ -453,7 +453,7 @@ End Class"
 $$Sub M1()
 End Sub
 
-[||]Sub M2()
+$$Sub M2()
 End Sub"
 
             Await AssertNavigatedAsync(code, next:=True, sourceCodeKind:=SourceCodeKind.Script)
@@ -463,7 +463,7 @@ End Sub"
         <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function PrevInScript() As Task
             Dim code = "
-[||]Sub M1()
+$$Sub M1()
 End Sub
 
 $$Sub M2()

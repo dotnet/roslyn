@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -229,7 +229,7 @@ End Module")
 "Option Strict On
 Module Program
     Sub Main(args As String())
-        Dim x As Double = 10[||]
+        Dim x As Double = 10$$
     End Sub
 End Module")
         End Function
@@ -242,7 +242,7 @@ Class A
 End Class
 Class B
 End Class
-Module Program[||]
+Module Program$$
     Sub Main(args As String())
         Dim x As A = New B()
     End Sub

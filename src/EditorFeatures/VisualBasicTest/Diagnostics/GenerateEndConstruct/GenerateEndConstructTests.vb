@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestIf() As Task
             Dim text = <MethodBody>
-If True Then[||]
+If True Then$$
 </MethodBody>
 
             Dim expected = <MethodBody>
@@ -29,7 +29,7 @@ End If</MethodBody>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestUsing() As Task
             Dim text = <MethodBody>
-Using (goo)[||]
+Using (goo)$$
 </MethodBody>
 
             Dim expected = <MethodBody>
@@ -43,7 +43,7 @@ End Using</MethodBody>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestStructure() As Task
             Dim text = <File>
-Structure Goo[||]</File>
+Structure Goo$$</File>
 
             Dim expected = StringFromLines("", "Structure Goo", "End Structure", "")
 
@@ -53,7 +53,7 @@ Structure Goo[||]</File>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestModule() As Task
             Dim text = <File>
-Module Goo[||]
+Module Goo$$
 </File>
 
             Dim expected = StringFromLines("", "Module Goo", "", "End Module", "")
@@ -64,7 +64,7 @@ Module Goo[||]
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestNamespace() As Task
             Dim text = <File>
-Namespace Goo[||]
+Namespace Goo$$
 </File>
 
             Dim expected = StringFromLines("", "Namespace Goo", "", "End Namespace", "")
@@ -75,7 +75,7 @@ Namespace Goo[||]
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestClass() As Task
             Dim text = <File>
-Class Goo[||]
+Class Goo$$
 </File>
 
             Dim expected = StringFromLines("", "Class Goo", "", "End Class", "")
@@ -86,7 +86,7 @@ Class Goo[||]
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestInterface() As Task
             Dim text = <File>
-Interface Goo[||]
+Interface Goo$$
 </File>
 
             Dim expected = StringFromLines("", "Interface Goo", "", "End Interface", "")
@@ -97,7 +97,7 @@ Interface Goo[||]
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestEnum() As Task
             Dim text = <File>
-Enum Goo[||]
+Enum Goo$$
 </File>
 
             Dim expected = StringFromLines("", "Enum Goo", "", "End Enum", "")
@@ -108,7 +108,7 @@ Enum Goo[||]
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestWhile() As Task
             Dim text = <MethodBody>
-While True[||]</MethodBody>
+While True$$</MethodBody>
 
             Dim expected = <MethodBody>
 While True
@@ -121,7 +121,7 @@ End While</MethodBody>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestWith() As Task
             Dim text = <MethodBody>
-With True[||]</MethodBody>
+With True$$</MethodBody>
 
             Dim expected = <MethodBody>
 With True
@@ -134,7 +134,7 @@ End With</MethodBody>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestSyncLock() As Task
             Dim text = <MethodBody>
-SyncLock Me[||]</MethodBody>
+SyncLock Me$$</MethodBody>
 
             Dim expected = <MethodBody>
 SyncLock Me
@@ -147,7 +147,7 @@ End SyncLock</MethodBody>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestDoLoop() As Task
             Dim text = <MethodBody>
-Do While True[||]</MethodBody>
+Do While True$$</MethodBody>
 
             Dim expected = <MethodBody>
 Do While True
@@ -160,7 +160,7 @@ Loop</MethodBody>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestForNext() As Task
             Dim text = <MethodBody>
-For x = 1 to 3[||]</MethodBody>
+For x = 1 to 3$$</MethodBody>
 
             Dim expected = <MethodBody>
 For x = 1 to 3
@@ -173,7 +173,7 @@ Next</MethodBody>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestForEachNext() As Task
             Dim text = <MethodBody>
-For Each x in {}[||]</MethodBody>
+For Each x in {}$$</MethodBody>
 
             Dim expected = <MethodBody>
 For Each x in {}
@@ -186,7 +186,7 @@ Next</MethodBody>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestEndTry() As Task
             Dim text = <MethodBody>
-Try[||]</MethodBody>
+Try$$</MethodBody>
 
             Dim expected = <MethodBody>
 Try
@@ -199,7 +199,7 @@ End Try</MethodBody>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestEndTryCatch() As Task
             Dim text = <MethodBody>
-Try[||]
+Try$$
 Catch</MethodBody>
 
             Dim expected = <MethodBody>
@@ -214,7 +214,7 @@ End Try</MethodBody>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestEndTryCatchFinally() As Task
             Dim text = <MethodBody>
-Try[||]
+Try$$
 Catch
 Finally</MethodBody>
 
@@ -232,7 +232,7 @@ End Try</MethodBody>
         Public Async Function TestProperty() As Task
             Dim text = <File>
 Class C
-    Property P As Integer[||]
+    Property P As Integer$$
         Get
 End Class</File>
 
@@ -253,7 +253,7 @@ End Class</File>
         Public Async Function TestReadOnlyProperty() As Task
             Dim text = <File>
 Class C
-    ReadOnly Property P As Integer[||]
+    ReadOnly Property P As Integer$$
         Get
 End Class</File>
 
@@ -272,7 +272,7 @@ End Class</File>
         Public Async Function TestWriteOnlyProperty() As Task
             Dim text = <File>
 Class C
-    WriteOnly Property P As Integer[||]
+    WriteOnly Property P As Integer$$
         Set
 End Class</File>
 
@@ -292,7 +292,7 @@ End Class</File>
             Dim text = <File>
 Class C
     WriteOnly Property P As Integer
-        Set[||]
+        Set$$
 End Class</File>
 
             Dim expected = <File>
@@ -309,7 +309,7 @@ End Class</File>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestInvInsideEndsEnum() As Task
             Dim text = <File>
-Public Enum e[||]
+Public Enum e$$
     e1
 Class Goo
 End Class</File>
@@ -329,7 +329,7 @@ End Class</File>
         Public Async Function TestMissingEndSub() As Task
             Dim text = <File>
 Class C
-    Sub Bar()[||]
+    Sub Bar()$$
 End Class</File>
 
             Dim expected = <File>
@@ -346,7 +346,7 @@ End Class</File>
         Public Async Function TestMissingEndFunction() As Task
             Dim text = <File>
 Class C
-    Function Bar() as Integer[||]
+    Function Bar() as Integer$$
 End Class</File>
 
             Dim expected = <File>
@@ -365,7 +365,7 @@ End Class</File>
             Dim text = <File>
 Class C
     Sub Main(args As String())
-        While True[||]
+        While True$$
 
         Dim x = 1
         Dim y = 2
@@ -395,7 +395,7 @@ End Class</File>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestDoNotWrapCLass() As Task
             Dim text = <File>
-Class C[||]
+Class C$$
         Function f1() As Integer
             Return 1
         End Function
@@ -434,7 +434,7 @@ Module Program
     Sub Main(args As String())
     End Sub
     Function goo()
-        Dim op = Sub[||](c)
+        Dim op = Sub$$(c)
                      Dim kl = Sub(g)
                               End Sub 
  End Function
@@ -445,7 +445,7 @@ End Module")
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Async Function TestNamespaceThatEndsAtFile() As Task
             Dim text = <File>
-Namespace N[||]
+Namespace N$$
     Interface I
         Module Program
         Sub Main(args As String())

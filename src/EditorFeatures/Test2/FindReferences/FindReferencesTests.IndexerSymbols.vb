@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -21,7 +21,7 @@ class D
     void Goo()
     {
         var q = new C();
-        var b = q[||][4];
+        var b = q$$[4];
     }
 }
         </Document>
@@ -48,7 +48,7 @@ end class
 class D
     sub Goo()
         dim q = new C()
-        dim b = q[||](4)
+        dim b = q$$(4)
     end sub
 end class
         </Document>
@@ -71,7 +71,7 @@ Class A
     End Property
     Shared Sub Main()
         Dim x As New A
-        Dim y = x[||](1)
+        Dim y = x$$(1)
     End Sub
 End Class
         </Document>
@@ -99,9 +99,9 @@ Public Class C
 
     Public Sub Goo(c As C)
         c = c.[|Item|](2)
-        c[||](1) = c
+        c$$(1) = c
         c.[|Item|](1) = c
-        c[||](1).[|Item|](1) = c
+        c$$(1).[|Item|](1) = c
     End Sub
 End Class
         </Document>
@@ -130,9 +130,9 @@ End Class
 Module Program
     Sub Main(args As String())
         Dim x As New C
-        Dim y = x![||]HELLO
-        Dim z = x![||]HI
-        x[||]("HELLO") = ""
+        Dim y = x!$$HELLO
+        Dim z = x!$$HI
+        x$$("HELLO") = ""
     End Sub
 End Module
 

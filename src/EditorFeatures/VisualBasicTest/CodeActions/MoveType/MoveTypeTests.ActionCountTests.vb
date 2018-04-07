@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.MoveType
     Partial Public Class MoveTypeTests
@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
         Public Async Function MoveType_ActionCounts_RenameOnly() As Task
             Dim code =
 <File>
-[||]Class Class1
+$$Class Class1
 End Class
 </File>.ConvertTestSourceTag()
 
@@ -20,7 +20,7 @@ End Class
         Public Async Function MoveType_ActionCounts_MoveOnly() As Task
             Dim code =
 <File>
-[||]Class Class1
+$$Class Class1
 End Class
 
 Class test1 'this matches file name assigned by TestWorkspace
@@ -35,7 +35,7 @@ End Class
         Public Async Function MoveType_ActionCounts_RenameAndMove() As Task
             Dim code =
 <File>
-[||]Class Class1
+$$Class Class1
 End Class
 
 Class Class2
@@ -51,7 +51,7 @@ End Class
             Dim code =
 <File>
 Class Class1
-    Class Class2[||]
+    Class Class2$$
     End Class
 End Class
 Class Class3

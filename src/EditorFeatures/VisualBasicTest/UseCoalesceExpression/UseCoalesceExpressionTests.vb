@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -23,7 +23,7 @@ Imports System
 
 Class C
     Sub M(x as string, y as string)
-        Dim z = [||]If (x Is Nothing, y, x)
+        Dim z = $$If (x Is Nothing, y, x)
     End Sub
 End Class",
 "
@@ -44,7 +44,7 @@ Imports System
 
 Class C
     Sub M(x as string, y as string)
-        Dim z = [||]If(x IsNot Nothing, x, y)
+        Dim z = $$If(x IsNot Nothing, x, y)
     End Sub
 End Class",
 "
@@ -65,7 +65,7 @@ Imports System
 
 Class C
     Sub M(x as string, y as string)
-        Dim z = [||]If(Nothing Is x, y, x)
+        Dim z = $$If(Nothing Is x, y, x)
     End Sub
 End Class",
 "
@@ -86,7 +86,7 @@ Imports System
 
 Class C
     Sub M(x as string, y as string)
-        Dim z = [||]If(Nothing IsNot x, x, y)
+        Dim z = $$If(Nothing IsNot x, x, y)
     End Sub
 End Class",
 "
@@ -107,7 +107,7 @@ Imports System
 
 Class C
     Sub M(x as string, y as string)
-        Dim z = [||]If (x.ToString() is Nothing, y, x.ToString())
+        Dim z = $$If (x.ToString() is Nothing, y, x.ToString())
     End Sub
 End Class",
 "
@@ -128,7 +128,7 @@ Imports System
 
 Class C
     Sub M(x as string, y as string)
-        Dim z = [||]If ((x Is Nothing), y, x)
+        Dim z = $$If ((x Is Nothing), y, x)
     End Sub
 End Class",
 "
@@ -149,7 +149,7 @@ Imports System
 
 Class C
     Sub M(x as string, y as string)
-        Dim z = [||]If ((x) Is Nothing, y, x)
+        Dim z = $$If ((x) Is Nothing, y, x)
     End Sub
 End Class",
 "
@@ -170,7 +170,7 @@ Imports System
 
 Class C
     Sub M(x as string, y as string)
-        Dim z = [||]If (x Is Nothing, y, (x))
+        Dim z = $$If (x Is Nothing, y, (x))
     End Sub
 End Class",
 "
@@ -191,7 +191,7 @@ Imports System
 
 Class C
     Sub M(x as string, y as string)
-        Dim z = [||]If (x Is Nothing, (y), x)
+        Dim z = $$If (x Is Nothing, (y), x)
     End Sub
 End Class",
 "
@@ -258,7 +258,7 @@ Imports System.Linq.Expressions
 
 Class C
     Sub M(x as string, y as string)
-        dim e as Expression(of Func(of string)) = function() [||]If (x isnot Nothing, x, y)
+        dim e as Expression(of Func(of string)) = function() $$If (x isnot Nothing, x, y)
     End Sub
 End Class",
 "

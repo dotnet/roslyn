@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeRefactorings
@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
         Public Async Function TestNotWithNoInitializer1() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer
+Dim $$i As Integer
 Console.WriteLine(i)
 </MethodBody>
 
@@ -27,7 +27,7 @@ Console.WriteLine(i)
         Public Async Function TestNotWithNoInitializer2() As Task
             Dim code =
 <MethodBody>
-Dim i As Integer = 0, [||]j As Integer
+Dim i As Integer = 0, $$j As Integer
 Console.WriteLine(j)
 </MethodBody>
 
@@ -38,7 +38,7 @@ Console.WriteLine(j)
         Public Async Function TestNotWithNoInitializer3() As Task
             Dim code =
 <MethodBody>
-Dim i As Integer = 0, j As Integer = 1, [||]k As Integer
+Dim i As Integer = 0, j As Integer = 1, $$k As Integer
 Console.WriteLine(k)
 </MethodBody>
 
@@ -49,7 +49,7 @@ Console.WriteLine(k)
         Public Async Function TestNotWithNoReference1() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 0
+Dim $$i As Integer = 0
 Console.WriteLine(0)
 </MethodBody>
 
@@ -60,7 +60,7 @@ Console.WriteLine(0)
         Public Async Function TestNotWithNoReference2() As Task
             Dim code =
 <MethodBody>
-Dim i As Integer = 0, [||]j As Integer = 1
+Dim i As Integer = 0, $$j As Integer = 1
 Console.WriteLine(i)
 </MethodBody>
 
@@ -71,7 +71,7 @@ Console.WriteLine(i)
         Public Async Function TestNotWithNoReference3() As Task
             Dim code =
 <MethodBody>
-Dim i As Integer = 0, j As Integer = 1, [||]k As Integer = 2
+Dim i As Integer = 0, j As Integer = 1, $$k As Integer = 2
 Console.WriteLine(i + j)
 </MethodBody>
 
@@ -82,7 +82,7 @@ Console.WriteLine(i + j)
         Public Async Function TestNotOnField() As Task
             Dim code =
 <ClassDeclaration>
-Dim [||]i As Integer = 0
+Dim $$i As Integer = 0
 
 Sub M()
     Console.WriteLine(i)
@@ -96,7 +96,7 @@ End Sub
         Public Async Function TestSingleDeclarator() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 0
+Dim $$i As Integer = 0
 Console.WriteLine(i)
 </MethodBody>
 
@@ -119,7 +119,7 @@ Class C1
         Stop
 #End If
 
-        Dim [||]i As Integer = 0
+        Dim $$i As Integer = 0
         Console.WriteLine(i)
     End Sub
 End Class
@@ -150,7 +150,7 @@ End Class
 Imports System
 Class C1
     Sub M()
-        Dim [||]i As Integer = 0
+        Dim $$i As Integer = 0
 #If True Then
         Console.WriteLine(i)
 #End If
@@ -180,7 +180,7 @@ End Class
 <File>
 Module Program
     Sub Main()
-        Dim x As Integer = 10 : Dim [||]y As Integer = 5
+        Dim x As Integer = 10 : Dim $$y As Integer = 5
         Console.Write(x + y)
     End Sub
 End Module
@@ -203,7 +203,7 @@ End Module
         Public Async Function TestSingleDeclaratorInPropertyGetter() As Task
             Dim code =
 <PropertyGetter>
-Dim [||]i As Integer = 0
+Dim $$i As Integer = 0
 Console.WriteLine(i)
 </PropertyGetter>
 
@@ -219,7 +219,7 @@ Console.WriteLine(0)
         Public Async Function TestTwoDeclarators1() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 0, j As Integer = 1
+Dim $$i As Integer = 0, j As Integer = 1
 Console.WriteLine(i)
 </MethodBody>
 
@@ -236,7 +236,7 @@ Console.WriteLine(0)
         Public Async Function TestTwoDeclarators2() As Task
             Dim code =
 <MethodBody>
-Dim i As Integer = 0, [||]j As Integer = 1
+Dim i As Integer = 0, $$j As Integer = 1
 Console.WriteLine(j)
 </MethodBody>
 
@@ -253,7 +253,7 @@ Console.WriteLine(1)
         Public Async Function TestThreeDeclarators1() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 0, j As Integer = 1, k As Integer = 2
+Dim $$i As Integer = 0, j As Integer = 1, k As Integer = 2
 Console.WriteLine(i)
 </MethodBody>
 
@@ -270,7 +270,7 @@ Console.WriteLine(0)
         Public Async Function TestThreeDeclarators2() As Task
             Dim code =
 <MethodBody>
-Dim i As Integer = 0, [||]j As Integer = 1, k As Integer = 2
+Dim i As Integer = 0, $$j As Integer = 1, k As Integer = 2
 Console.WriteLine(j)
 </MethodBody>
 
@@ -287,7 +287,7 @@ Console.WriteLine(1)
         Public Async Function TestThreeDeclarators3() As Task
             Dim code =
 <MethodBody>
-Dim i As Integer = 0, j As Integer = 1, [||]k As Integer = 2
+Dim i As Integer = 0, j As Integer = 1, $$k As Integer = 2
 Console.WriteLine(k)
 </MethodBody>
 
@@ -305,7 +305,7 @@ Console.WriteLine(2)
         Public Async Function TestThreeDeclarators4() As Task
             Dim code =
 <MethodBody>
-Dim x, z[||] As New Integer, y As Integer
+Dim x, z$$ As New Integer, y As Integer
 x.ToString()
 z.ToString()
 </MethodBody>
@@ -325,7 +325,7 @@ Call New Integer.ToString()
         Public Async Function TestInlineIntoNextDeclarator() As Task
             Dim code =
 <MethodBody>
-Dim [||]x As Action = Sub() Console.WriteLine(), y = x
+Dim $$x As Action = Sub() Console.WriteLine(), y = x
 </MethodBody>
 
             Dim expected =
@@ -340,7 +340,7 @@ Dim y = CType(Sub() Console.WriteLine(), Action)
         Public Async Function TestTwoNames1() As Task
             Dim code =
 <MethodBody>
-Dim [||]i, j As New String(" "c, 10)
+Dim $$i, j As New String(" "c, 10)
 Console.WriteLine(i)
 </MethodBody>
 
@@ -357,7 +357,7 @@ Console.WriteLine(New String(" "c, 10))
         Public Async Function TestTwoNames2() As Task
             Dim code =
 <MethodBody>
-Dim i, [||]j As New String(" "c, 10)
+Dim i, $$j As New String(" "c, 10)
 Console.WriteLine(j)
 </MethodBody>
 
@@ -374,7 +374,7 @@ Console.WriteLine(New String(" "c, 10))
         Public Async Function TestThreeNames1() As Task
             Dim code =
 <MethodBody>
-Dim [||]i, j, k As New String(" "c, 10)
+Dim $$i, j, k As New String(" "c, 10)
 Console.WriteLine(i)
 </MethodBody>
 
@@ -391,7 +391,7 @@ Console.WriteLine(New String(" "c, 10))
         Public Async Function TestThreeNames2() As Task
             Dim code =
 <MethodBody>
-Dim i, [||]j, k As New String(" "c, 10)
+Dim i, $$j, k As New String(" "c, 10)
 Console.WriteLine(j)
 </MethodBody>
 
@@ -408,7 +408,7 @@ Console.WriteLine(New String(" "c, 10))
         Public Async Function TestThreeNames3() As Task
             Dim code =
 <MethodBody>
-Dim i, j, [||]k As New String(" "c, 10)
+Dim i, j, $$k As New String(" "c, 10)
 Console.WriteLine(k)
 </MethodBody>
 
@@ -425,7 +425,7 @@ Console.WriteLine(New String(" "c, 10))
         Public Async Function TestInlineIntoExpression1() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 0
+Dim $$i As Integer = 0
 Dim j As Integer = 1
 Dim k As Integer = 2 + 3
 Console.WriteLine(i + j * k)
@@ -446,7 +446,7 @@ Console.WriteLine(0 + j * k)
             Dim code =
 <MethodBody>
 Dim i As Integer = 0
-Dim [||]j As Integer = 1
+Dim $$j As Integer = 1
 Dim k As Integer = 2 + 3
 Console.WriteLine(i + j * k)
 </MethodBody>
@@ -466,7 +466,7 @@ Console.WriteLine(i + 1 * k)
         Public Async Function TestInlineIntoExpression3() As Task
             Dim code =
 <MethodBody>
-Dim x[||] As Int32 = New Int32
+Dim x$$ As Int32 = New Int32
 Console.Write(x + 10)
 </MethodBody>
 
@@ -484,7 +484,7 @@ Console.Write(New Int32 + 10)
 <MethodBody>
 Dim i As Integer = 0
 Dim j As Integer = 1
-Dim [||]k As Integer = 2 + 3
+Dim $$k As Integer = 2 + 3
 Console.WriteLine(i + j * k)
 </MethodBody>
 
@@ -502,7 +502,7 @@ Console.WriteLine(i + j * (2 + 3))
         Public Async Function TestInlineIntoMemberAccess1() As Task
             Dim code =
 <MethodBody>
-Dim [||]s As New String(" "c, 10)
+Dim $$s As New String(" "c, 10)
 Console.WriteLine(s.Length)
 </MethodBody>
 
@@ -518,7 +518,7 @@ Console.WriteLine(New String(" "c, 10).Length)
         Public Async Function TestInlineIntoMemberAccess2() As Task
             Dim code =
 <MethodBody>
-Dim [||]s As String = "a" &amp; "b"
+Dim $$s As String = "a" &amp; "b"
 Console.WriteLine(s.Length)
 </MethodBody>
 
@@ -535,7 +535,7 @@ Console.WriteLine(("a" &amp; "b").Length)
         Public Async Function TestInlineIntoMemberAccess3() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = New String(" "c, 10).Length
+Dim $$i As Integer = New String(" "c, 10).Length
 Console.Write(i)
 </MethodBody>
 
@@ -553,7 +553,7 @@ Console.Write(New String(" "c, 10).Length)
         Public Async Function TestInlineIntoMemberAccess4() As Task
             Dim code =
 <MethodBody>
-Dim x[||] As Int32 = New Int32
+Dim x$$ As Int32 = New Int32
 Call x.ToString
 </MethodBody>
 
@@ -574,7 +574,7 @@ Function GetString() As String
 End Function
 
 Sub Test()
-    Dim [||]s As String = GetString
+    Dim $$s As String = GetString
     Call s.ToString
 End Sub
 </ClassDeclaration>
@@ -602,7 +602,7 @@ Function GetString() As String
 End Function
 
 Sub Test()
-    Dim [||]s As String = GetString()
+    Dim $$s As String = GetString()
     Call s.ToString
 End Sub
 </ClassDeclaration>
@@ -626,7 +626,7 @@ End Sub
         Public Async Function TestInlineIntoMemberAccess7() As Task
             Dim code =
 <MethodBody>
-Dim z[||] As IEnumerable(Of Char) = From x In "ABC" Select x
+Dim z$$ As IEnumerable(Of Char) = From x In "ABC" Select x
 Console.WriteLine(z.First())
 </MethodBody>
 
@@ -643,7 +643,7 @@ Console.WriteLine((From x In "ABC" Select x).First())
         Public Async Function TestInlineIntoMemberAccess8() As Task
             Dim code =
 <MethodBody>
-Dim x[||] As New List(Of Integer)
+Dim x$$ As New List(Of Integer)
 x.ToString()
 </MethodBody>
 
@@ -665,7 +665,7 @@ Sub Goo(i As Integer)
 End Sub
 
 Sub Test()
-    Dim [||]i As Object = 1
+    Dim $$i As Object = 1
     Goo(i)
 End Sub
 </ClassDeclaration>
@@ -695,7 +695,7 @@ Sub Goo(i As Integer)
 End Sub
 
 Sub Test()
-    Dim [||]i As Long = 1
+    Dim $$i As Long = 1
     Goo(i)
 End Sub
 </ClassDeclaration>
@@ -725,7 +725,7 @@ Sub Goo(i As Integer)
 End Sub
 
 Sub Test()
-    Dim [||]i As Long = CByte(1)
+    Dim $$i As Long = CByte(1)
     Goo(i)
 End Sub
 </ClassDeclaration>
@@ -755,7 +755,7 @@ Sub Goo(s As String)
 End Sub
 
 Sub Test()
-    Dim [||]s As String = Nothing
+    Dim $$s As String = Nothing
     Goo(s)
 End Sub
 </ClassDeclaration>
@@ -785,7 +785,7 @@ Sub Goo(s As String)
 End Sub
 
 Sub Test()
-    Dim [||]o As Object = Nothing
+    Dim $$o As Object = Nothing
     Goo(o)
 End Sub
 </ClassDeclaration>
@@ -815,7 +815,7 @@ Option Strict On
  
 Class M
     Sub Main()
-        Dim x[||] As Long = 1
+        Dim x$$ As Long = 1
         Dim y As System.IComparable(Of Long) = x
     End Sub
 End Class
@@ -844,7 +844,7 @@ Option Strict On
 Imports System
 Module M
     Sub Goo()
-        Dim x[||] As Long() = {1, 2, 3}
+        Dim x$$ As Long() = {1, 2, 3}
         Dim y = x
         Dim z As IComparable(Of Long) = y(0)
     End Sub
@@ -875,7 +875,7 @@ End Module
 Option Strict On
 Class M
     Sub Main()
-        Dim x[||] As Long? = 1
+        Dim x$$ As Long? = 1
         Dim y As System.IComparable(Of Long) = x
     End Sub
 End Class
@@ -902,7 +902,7 @@ End Class
 Module Program
     Sub Main()
         Dim x As Integer() = {1}
-        Dim [||]y = If(True, x, x)
+        Dim $$y = If(True, x, x)
         y(0) = 1
     End Sub
 End Module
@@ -929,7 +929,7 @@ End Module
 Imports System
 Module Program
     Sub Main()
-        Dim [||]x As Action = AddressOf Console.WriteLine
+        Dim $$x As Action = AddressOf Console.WriteLine
         x()
     End Sub
 End Module
@@ -960,7 +960,7 @@ Imports System
 
 Public Class X
     Shared Sub Main()
-        Dim a[||] = Sub() Return
+        Dim a$$ = Sub() Return
         Dim x As X = a
     End Sub
 
@@ -997,7 +997,7 @@ Module M
     Function Goo(Of T)(x As T, y As T) As T
     End Function
     Sub Main()
-        Dim [||]x As Long = 1
+        Dim $$x As Long = 1
         Dim y As IComparable(Of Long) = Goo(x, x)
     End Sub
 End Module
@@ -1025,7 +1025,7 @@ End Module
 Option Strict On
 Module M
     Sub Main(args As String())
-        Dim [||]x() As Long? = {1}
+        Dim $$x() As Long? = {1}
         For Each y As System.IComparable(Of Long) In x
             Console.WriteLine(y)
         Next
@@ -1055,7 +1055,7 @@ End Module
         Public Async Function TestInlineIntoExpressionHole1() As Task
             Dim code =
 <MethodBody>
-Dim s[||] = Sub() If True Then Else
+Dim s$$ = Sub() If True Then Else
 Dim x = &lt;x &lt;%= s %&gt;/&gt;
 </MethodBody>
 
@@ -1071,7 +1071,7 @@ Dim x = &lt;x &lt;%= Sub() If True Then Else %&gt;/&gt;
         Public Async Function TestInlineIntoExpressionHole2() As Task
             Dim code =
 <MethodBody>
-Dim s[||] As Action = Sub() If True Then Else
+Dim s$$ As Action = Sub() If True Then Else
 Dim x = &lt;x &lt;%= s %&gt;/&gt;
 </MethodBody>
 
@@ -1087,7 +1087,7 @@ Dim x = &lt;x &lt;%= Sub() If True Then Else %&gt;/&gt;
         Public Async Function TestInlineLambda1() As Task
             Dim code =
 <MethodBody>
-Dim [||]f As Func(Of Integer) = Function() 1
+Dim $$f As Func(Of Integer) = Function() 1
 Dim i = f.Invoke()
 </MethodBody>
 
@@ -1103,7 +1103,7 @@ Dim i = (Function() 1).Invoke()
         Public Async Function TestInlineLambda2() As Task
             Dim code =
 <MethodBody>
-Dim [||]f As Func(Of Integer) = Function()
+Dim $$f As Func(Of Integer) = Function()
                                     Return 1
                                 End Function
 Dim i = f.Invoke()
@@ -1124,7 +1124,7 @@ Dim i = Function()
             Dim code =
 <MethodBody>
 Dim f As Func(Of Integer) = Function()
-                                Dim [||]x As Integer = 0
+                                Dim $$x As Integer = 0
                                 Console.WriteLine(x)
                             End Function
 </MethodBody>
@@ -1143,7 +1143,7 @@ Dim f As Func(Of Integer) = Function()
         Public Async Function TestInlineIntoLambda() As Task
             Dim code =
 <MethodBody>
-Dim [||]x As Integer = 0
+Dim $$x As Integer = 0
 Dim f As Func(Of Integer) = Function()
                                 Console.WriteLine(x)
                             End Function
@@ -1163,7 +1163,7 @@ Dim f As Func(Of Integer) = Function()
         Public Async Function TestDontInlineTrailingComment() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 1 + 1 ' First
+Dim $$i As Integer = 1 + 1 ' First
 Console.WriteLine(i * 2)
 </MethodBody>
 
@@ -1181,7 +1181,7 @@ Console.WriteLine((1 + 1) * 2)
         Public Async Function TestDontRemoveLineBreakAfterComment() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = 1 ' comment
+Dim $$x = 1 ' comment
 Dim y = x
 </MethodBody>
 
@@ -1198,7 +1198,7 @@ Dim y = 1
         Public Async Function TestRemoveTrailingColon() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 1 + 1 : Dim j As Integer = 2 ' First
+Dim $$i As Integer = 1 + 1 : Dim j As Integer = 2 ' First
 Console.WriteLine(i * j)
 </MethodBody>
 
@@ -1215,7 +1215,7 @@ Console.WriteLine((1 + 1) * j)
         Public Async Function TestDontInsertUnnecessaryCast1() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Object = 1 + 1
+Dim $$i As Object = 1 + 1
 Dim j As Integer = i
 </MethodBody>
 
@@ -1231,7 +1231,7 @@ Dim j As Integer = 1 + 1
         Public Async Function TestDontInsertUnnecessaryCast2() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 1 + 1
+Dim $$i As Integer = 1 + 1
 Dim j As Integer = i * 2
 Console.WriteLine(j)
 </MethodBody>
@@ -1249,7 +1249,7 @@ Console.WriteLine(j)
         Public Async Function TestDontInsertUnnecessaryCast3() As Task
             Dim code =
 <MethodBody>
-Dim [||]x As Action = Sub()
+Dim $$x As Action = Sub()
                       End Sub
 Dim y As Action = x
 </MethodBody>
@@ -1269,7 +1269,7 @@ Dim y As Action = Sub()
             Dim code =
 <ClassDeclaration>
 Sub S
-    Dim [||]t = New With {.Name = ""}
+    Dim $$t = New With {.Name = ""}
     M(t)
 End Sub
 
@@ -1300,7 +1300,7 @@ Imports System
  
 Module Program
     Sub Main
-        Dim [||]x = Sub() Return
+        Dim $$x = Sub() Return
         x.Invoke()
     End Sub
 End Module
@@ -1331,7 +1331,7 @@ Option Strict On
  
 Module M
     Sub Main()
-        Dim x[||] = Function() 1
+        Dim x$$ = Function() 1
         Dim y = x
         Dim z = y()
     End Sub
@@ -1362,7 +1362,7 @@ End Module
 Imports System
 Module M
     Sub Main()
-        Dim e1[||] As Exception = New ArgumentException()
+        Dim e1$$ As Exception = New ArgumentException()
         Dim t1 = e1.GetType()
     End Sub
 End Module
@@ -1390,7 +1390,7 @@ Option Strict On
 Imports System.Collections.Generic
 Module M
     Sub Main()
-        Dim x[||] = {1}
+        Dim x$$ = {1}
         Dim y = New List(Of Integer()) From {{x}}
     End Sub
 End Module
@@ -1420,7 +1420,7 @@ Imports System.Linq
 
 Module Program
     Sub Main()
-        Dim p[||] = {1, 2, 3}
+        Dim p$$ = {1, 2, 3}
         Dim z = p.ToList
     End Sub
 End Module
@@ -1449,7 +1449,7 @@ End Module
 Imports System
 Class X
     Shared Sub Main()
-        Dim [||]x As Object = New X()
+        Dim $$x As Object = New X()
         Dim s = x.ToString()
     End Sub
     Public Overrides Function ToString() As String
@@ -1478,7 +1478,7 @@ End Class
         Public Async Function TestInsertCallIfNecessary1() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = New Exception()
+Dim $$x = New Exception()
 x.ToString
 </MethodBody>
 
@@ -1494,7 +1494,7 @@ Call New Exception().ToString
         Public Async Function TestInsertCallIfNecessary2() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = New Exception
+Dim $$x = New Exception
 x.ToString
 </MethodBody>
 
@@ -1510,7 +1510,7 @@ Call New Exception().ToString
         Public Async Function TestInsertCallIfNecessary3() As Task
             Dim code =
 <MethodBody>
-Dim [||]s As Action = Sub() Exit Sub
+Dim $$s As Action = Sub() Exit Sub
 s
 </MethodBody>
 
@@ -1526,7 +1526,7 @@ Call (Sub() Exit Sub)
         Public Async Function TestInsertCallIfNecessary4() As Task
             Dim code =
 <MethodBody>
-Dim [||]q = From x in "abc"
+Dim $$q = From x in "abc"
 q.Distinct()
 </MethodBody>
 
@@ -1542,7 +1542,7 @@ Call (From x in "abc").Distinct()
         Public Async Function TestInsertCallIfNecessary5() As Task
             Dim code =
 <MethodBody>
-Dim [||]s = "abc"
+Dim $$s = "abc"
 s.ToLower()
 </MethodBody>
 
@@ -1558,7 +1558,7 @@ Call "abc".ToLower()
         Public Async Function TestInsertCallIfNecessary6() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = 1
+Dim $$x = 1
 x.ToString()
 </MethodBody>
 
@@ -1574,7 +1574,7 @@ Call 1.ToString()
         Public Async Function TestInsertCallIfNecessary7() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = 1 + 1
+Dim $$x = 1 + 1
 x.ToString()
 </MethodBody>
 
@@ -1590,7 +1590,7 @@ Call (1 + 1).ToString()
         Public Async Function TestInsertCallIfNecessary8() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = New Exception().Message
+Dim $$x = New Exception().Message
 x.ToString
 </MethodBody>
 
@@ -1607,7 +1607,7 @@ Call New Exception().Message.ToString
         Public Async Function TestInsertCallIfNecessary9() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = If(True, 1, 2)
+Dim $$x = If(True, 1, 2)
 x.ToString
 </MethodBody>
 
@@ -1624,7 +1624,7 @@ Call If(True, 1, 2).ToString
         Public Async Function TestInsertCallIfNecessary10() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = If(Nothing, "")
+Dim $$x = If(Nothing, "")
 x.ToString
 </MethodBody>
 
@@ -1641,7 +1641,7 @@ Call If(Nothing, "").ToString
         Public Async Function TestParenthesizeIfNecessary1() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = From y In "" Select y
+Dim $$x = From y In "" Select y
 Dim a = x, b
 </MethodBody>
 
@@ -1658,7 +1658,7 @@ Dim a = (From y In "" Select y), b
         Public Async Function TestParenthesizeIfNecessary2() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = From y In "" Select y
+Dim $$x = From y In "" Select y
 Dim a = Nothing, b = x
 </MethodBody>
 
@@ -1675,7 +1675,7 @@ Dim a = Nothing, b = From y In "" Select y
         Public Async Function TestParenthesizeIfNecessary3() As Task
             Dim code =
 <MethodBody>
-Dim [||]x As Func(Of IEnumerable(Of Char)) = Function() From y In "" Select y
+Dim $$x As Func(Of IEnumerable(Of Char)) = Function() From y In "" Select y
 Dim a = x, b
 </MethodBody>
 
@@ -1691,7 +1691,7 @@ Dim a = CType((Function() From y In "" Select y), Func(Of IEnumerable(Of Char)))
         Public Async Function TestParenthesizeIfNecessary4() As Task
             Dim code =
 <MethodBody>
-Dim [||]z As IEnumerable(Of Char) = From x In "ABC" Select x
+Dim $$z As IEnumerable(Of Char) = From x In "ABC" Select x
 Dim y = New IEnumerable(Of Char)() {z, z}
 </MethodBody>
 
@@ -1708,7 +1708,7 @@ Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), From x In "ABC" 
         Public Async Function TestParenthesizeIfNecessary5() As Task
             Dim code =
 <MethodBody>
-Dim [||]z As IEnumerable(Of Char) = From x In "ABC" Select x
+Dim $$z As IEnumerable(Of Char) = From x In "ABC" Select x
 Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), z}
 </MethodBody>
 
@@ -1726,7 +1726,7 @@ Dim y = New IEnumerable(Of Char)() {(From x In "ABC" Select x), From x In "ABC" 
             Dim code =
 <ModuleDeclaration>
 Sub Goo()
-    Dim [||]z As IEnumerable(Of Char) = From x In "ABC" Select x ' Inline z
+    Dim $$z As IEnumerable(Of Char) = From x In "ABC" Select x ' Inline z
     Bar(z, z)
 End Sub
 
@@ -1754,7 +1754,7 @@ End Sub
             Dim code =
 <ModuleDeclaration>
 Sub Goo()
-    Dim [||]z As Func(Of IEnumerable(Of Char)) = Function() From x In "ABC" Select x
+    Dim $$z As Func(Of IEnumerable(Of Char)) = Function() From x In "ABC" Select x
     Bar(z, z)
 End Sub
 
@@ -1780,7 +1780,7 @@ End Sub
         Public Async Function TestParenthesizeIfNecessary8() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = From y In "" Select y Order By y
+Dim $$x = From y In "" Select y Order By y
 Dim a = x, b
 </MethodBody>
 
@@ -1798,7 +1798,7 @@ Dim a = (From y In "" Select y Order By y), b
             Dim code =
 <ModuleDeclaration>
 Sub Goo()
-    Dim [||]z As Func(Of IEnumerable(Of IEnumerable(Of Char))) = Function() From x In "ABC" Select From y In "ABC" Select y
+    Dim $$z As Func(Of IEnumerable(Of IEnumerable(Of Char))) = Function() From x In "ABC" Select From y In "ABC" Select y
     Bar(z, z)
 End Sub
 
@@ -1824,7 +1824,7 @@ End Sub
         Public Async Function TestParenthesizeIfNecessary10() As Task
             Dim code =
 <MethodBody>
-Dim [||]x As Collections.ArrayList = New Collections.ArrayList()
+Dim $$x As Collections.ArrayList = New Collections.ArrayList()
 Dim y = x(0)
 </MethodBody>
 
@@ -1841,7 +1841,7 @@ Dim y = (New Collections.ArrayList())(0)
         Public Async Function TestParenthesizeIfNecessary11() As Task
             Dim code =
 <MethodBody>
-Dim [||]y As Action = Sub() If True Then Dim x
+Dim $$y As Action = Sub() If True Then Dim x
 Dim a As Action = y, b = a
 </MethodBody>
 
@@ -1858,7 +1858,7 @@ Dim a As Action = (Sub() If True Then Dim x), b = a
         Public Async Function TestParenthesizeIfNecessary12() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = From y In "" Select y Order By y Ascending
+Dim $$x = From y In "" Select y Order By y Ascending
 Dim a = x, b
 </MethodBody>
 
@@ -1875,7 +1875,7 @@ Dim a = (From y In "" Select y Order By y Ascending), b
         Public Async Function TestParenthesizeIfNecessary13() As Task
             Dim code =
 <MethodBody>
-Dim [||]x As Collections.ArrayList = New Collections.ArrayList
+Dim $$x As Collections.ArrayList = New Collections.ArrayList
 Dim y = x(0)
 </MethodBody>
 
@@ -1892,7 +1892,7 @@ Dim y = (New Collections.ArrayList)(0)
         Public Async Function TestParenthesizeIfNecessary14() As Task
             Dim code =
 <MethodBody>
-Dim [||]q = From x In ""
+Dim $$q = From x In ""
 Dim p = From y In "", z In q Distinct
 </MethodBody>
 
@@ -1909,7 +1909,7 @@ Dim p = From y In "", z In (From x In "") Distinct
         Public Async Function TestParenthesizeIfNecessary15() As Task
             Dim code =
 <MethodBody>
-Dim [||]z = From x In "" Group By x Into Count
+Dim $$z = From x In "" Group By x Into Count
 Dim y = z(0)
 </MethodBody>
 
@@ -1926,7 +1926,7 @@ Dim y = (From x In "" Group By x Into Count)(0)
         Public Async Function TestParenthesizeIfNecessary16() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = Function() Console.ReadLine
+Dim $$x = Function() Console.ReadLine
 Dim y As String = x()
 </MethodBody>
 
@@ -1943,7 +1943,7 @@ Dim y As String = (Function() Console.ReadLine)()
         Public Async Function TestParenthesizeIfNecessary17() As Task
             Dim code =
 <MethodBody>
-Dim [||]s = Sub() Return
+Dim $$s = Sub() Return
 Dim q = From x In "" Select z = s Distinct
 </MethodBody>
 
@@ -1960,7 +1960,7 @@ Dim q = From x In "" Select z = (Sub() Return) Distinct
         Public Async Function TestParenthesizeIfNecessary18() As Task
             Dim code =
 <MethodBody>
-Dim [||]s = Sub() Return
+Dim $$s = Sub() Return
 Dim q = From x In "" Select z = s _
         Distinct
 </MethodBody>
@@ -1979,7 +1979,7 @@ Dim q = From x In "" Select z = (Sub() Return) _
         Public Async Function TestParenthesizeIfNecessary19() As Task
             Dim code =
 <MethodBody>
-Dim [||]s = Sub() Return
+Dim $$s = Sub() Return
 Dim q = From x In "" Select z = s
 </MethodBody>
 
@@ -1998,7 +1998,7 @@ Dim q = From x In "" Select z = Sub() Return
 <MethodBody>
 With ""
     Dim x = From c In "" Distinct
-    Dim y[||] = 1
+    Dim y$$ = 1
     .ToLower()
     Console.WriteLine(y)
 End With
@@ -2021,7 +2021,7 @@ End With
         Public Async Function TestParenthesizeIfNecessary21() As Task
             Dim code =
 <MethodBody>
-Dim y[||] = Sub() Exit Sub
+Dim y$$ = Sub() Exit Sub
 y.Invoke()
 </MethodBody>
 
@@ -2038,7 +2038,7 @@ Call (Sub() Exit Sub).Invoke()
         Public Async Function TestParenthesizeIfNecessary22() As Task
             Dim code =
 <MethodBody>
-Dim x[||] = {Sub() Return}
+Dim x$$ = {Sub() Return}
 Dim y = {x}
 Console.WriteLine(y.Rank)
 </MethodBody>
@@ -2064,7 +2064,7 @@ Module Program
     Sub Main()
         With New StringBuilder
             Dim x = From c In "" Distinct
-            Dim [||]y = 1
+            Dim $$y = 1
             .Length = 0
             Console.WriteLine(y)
         End With
@@ -2096,7 +2096,7 @@ End Module
         Public Async Function TestParenthesizeIfNecessary24() As Task
             Dim code =
 <MethodBody>
-Dim [||]x = From z In ""
+Dim $$x = From z In ""
 Dim y = x
 Select 1
 End Select
@@ -2121,7 +2121,7 @@ End Select
 <File>
 Module A
     Sub Main()
-        Dim y[||] = Preserve.X
+        Dim y$$ = Preserve.X
         ReDim y(0)
     End Sub
 End Module
@@ -2153,7 +2153,7 @@ End Module
             Dim code =
 <ModuleDeclaration>
 Sub Main()
-    Dim [||]x = Goo
+    Dim $$x = Goo
     Dim y As Integer = x(0)
 End Sub
 
@@ -2186,7 +2186,7 @@ End Function
             Dim code =
 <ModuleDeclaration>
 Sub Main()
-    Dim [||]x = Goo(Of Integer)
+    Dim $$x = Goo(Of Integer)
     Dim y As Integer = x(0)
 End Sub
 
@@ -2219,7 +2219,7 @@ End Function
             Dim code =
 <ModuleDeclaration>
 Sub Main()
-    Dim [||]x = Goo
+    Dim $$x = Goo
     Dim y As Integer = x(0)
 End Sub
 
@@ -2256,7 +2256,7 @@ End Property
 Module Program
     Sub Main()
         Dim x As Action = Sub() Console.WriteLine("Hello")
-        Dim [||]y = x : y : Console.WriteLine()
+        Dim $$y = x : y : Console.WriteLine()
     End Sub
 End Module
 </ModuleDeclaration>
@@ -2281,7 +2281,7 @@ End Module
 <ModuleDeclaration>
 Module Program
     Sub Main()
-        Dim [||]y = x
+        Dim $$y = x
         y
     End Sub
 
@@ -2307,7 +2307,7 @@ End Module
         Public Async Function TestConflict_Assignment() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 1
+Dim $$i As Integer = 1
 i = 2
 Console.WriteLine(i)
 </MethodBody>
@@ -2326,7 +2326,7 @@ Console.WriteLine(1)
         Public Async Function TestConflict_AddAssignment() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 1
+Dim $$i As Integer = 1
 i += 2
 Console.WriteLine(i)
 </MethodBody>
@@ -2345,7 +2345,7 @@ Console.WriteLine(1)
         Public Async Function TestConflict_SubtractAssignment() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 1
+Dim $$i As Integer = 1
 i -= 2
 Console.WriteLine(i)
 </MethodBody>
@@ -2364,7 +2364,7 @@ Console.WriteLine(1)
         Public Async Function TestConflict_MultiplyAssignment() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 1
+Dim $$i As Integer = 1
 i *= 2
 Console.WriteLine(i)
 </MethodBody>
@@ -2383,7 +2383,7 @@ Console.WriteLine(1)
         Public Async Function TestConflict_DivideAssignment1() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 1
+Dim $$i As Integer = 1
 i /= 2
 Console.WriteLine(i)
 </MethodBody>
@@ -2402,7 +2402,7 @@ Console.WriteLine(1)
         Public Async Function TestConflict_IntegerDivideAssignment() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 1
+Dim $$i As Integer = 1
 i \= 2
 Console.WriteLine(i)
 </MethodBody>
@@ -2421,7 +2421,7 @@ Console.WriteLine(1)
         Public Async Function TestConflict_ConcatenateAssignment() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 1
+Dim $$i As Integer = 1
 i &amp;= 2
 Console.WriteLine(i)
 </MethodBody>
@@ -2440,7 +2440,7 @@ Console.WriteLine(1)
         Public Async Function TestConflict_LeftShiftAssignment() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 1
+Dim $$i As Integer = 1
 i &lt;&lt;= 2
 Console.WriteLine(i)
 </MethodBody>
@@ -2459,7 +2459,7 @@ Console.WriteLine(1)
         Public Async Function TestConflict_RightShiftAssignment() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 1
+Dim $$i As Integer = 1
 i &gt;&gt;= 2
 Console.WriteLine(i)
 </MethodBody>
@@ -2478,7 +2478,7 @@ Console.WriteLine(1)
         Public Async Function TestConflict_PowerAssignment() As Task
             Dim code =
 <MethodBody>
-Dim [||]i As Integer = 1
+Dim $$i As Integer = 1
 i ^= 2
 Console.WriteLine(i)
 </MethodBody>
@@ -2500,7 +2500,7 @@ Console.WriteLine(1)
 <File>
 Module Program
     Sub Main(args As String())
-        Dim bar[||] As String = "TEST"
+        Dim bar$$ As String = "TEST"
         goo(bar)
         Console.WriteLine(bar)
     End Sub
@@ -2538,7 +2538,7 @@ End Module
 Module Program
     Sub Main(args As String())
         Dim x = y
-        Dim y[||] = 45
+        Dim y$$ = 45
     End Sub
 End Module
 </File>
@@ -2566,7 +2566,7 @@ Option Explicit Off
 
 Module Program
     Sub Main(args As String())
-        Dim y[||] As Integer = q
+        Dim y$$ As Integer = q
         z = y
     End Sub
 End Module
@@ -2596,7 +2596,7 @@ Option Explicit Off
 
 Module Program
     Sub Main(args As String())
-        Dim y2[||] As Integer = q2
+        Dim y2$$ As Integer = q2
         Dim z2 As Object = y2
     End Sub
 End Module
@@ -2625,7 +2625,7 @@ Option Infer Off
 
 Module Program
     Sub Main(args As String())
-        Dim y[||] As Integer = 42
+        Dim y$$ As Integer = 42
         Dim z = y
     End Sub
 End Module
@@ -2654,7 +2654,7 @@ Imports System.Xml.Linq
 Module M
     Sub Main()
         ' Inline a
-        Dim [||]a = &lt;x/&gt;.@a
+        Dim $$a = &lt;x/&gt;.@a
         Dim b = a : Return
     End Sub
 End Module
@@ -2681,7 +2681,7 @@ End Module
 <File>
 Module M
     Sub Main()
-        Dim [||]a(10 = {0,0}
+        Dim $$a(10 = {0,0}
         System.Console.WriteLine(a)
     End Sub
 End Module
@@ -2710,7 +2710,7 @@ Module M
  
     Sub M()
         Using nonexistent
-            Dim [||]localGoo = goo
+            Dim $$localGoo = goo
         Dim baz As IBaz
         Dim result = localGoo.Goo(baz)
     End Sub
@@ -2728,7 +2728,7 @@ End Module
 Imports System.Linq
 Module Program
     Sub Main(args As String())
-        Dim y = From x In "" Distinct, [||]z = 1
+        Dim y = From x In "" Distinct, $$z = 1
         Take()
         Console.WriteLine(z)
     End Sub
@@ -2762,7 +2762,7 @@ End Module
 Imports System.Linq
 Module Program
     Sub Main()
-        Dim [||]x = From z In ""
+        Dim $$x = From z In ""
         Dim y = x
         Take()
     End Sub
@@ -2798,7 +2798,7 @@ Imports System.Linq
 Module Program
     Sub Main()
         Dim y = From x In ""
-        Dim [||]z = 1
+        Dim $$z = 1
         Take()
         Console.WriteLine(z)
     End Sub
@@ -2832,7 +2832,7 @@ End Module
 Imports System.Linq
 Module Program
     Sub Main()
-        Dim [||]x = Take(Of Integer)()
+        Dim $$x = Take(Of Integer)()
         Dim y = From z In ""
         x.ToString()
     End Sub
@@ -2869,7 +2869,7 @@ Module Program
     Sub Main()
         Dim y = From x In ""
  _
-        Dim z[||] = 1
+        Dim z$$ = 1
         Take()
         Dim t = z
     End Sub
@@ -2903,7 +2903,7 @@ End Module
 <File>
 Module M
     Sub F()
-        Dim a[||] = Await()
+        Dim a$$ = Await()
         Dim b = Await()
         Dim singleW = Async Function() a
         Dim singleWo = Function() a
@@ -2954,7 +2954,7 @@ End Module
 <File>
 Module Program
     Sub Main()
-        Dim x[||] = Sub() If True Then Dim y = Sub(z As Integer)
+        Dim x$$ = Sub() If True Then Dim y = Sub(z As Integer)
                                            End Sub
         x.Invoke()
     End Sub
@@ -2981,7 +2981,7 @@ End Module
 <File>
 Module Program
     Sub Main()
-        Dim x[||] = Sub() If True Then Dim y = Sub(z As Integer)
+        Dim x$$ = Sub() If True Then Dim y = Sub(z As Integer)
                                            End Sub
         x()
     End Sub
@@ -3008,7 +3008,7 @@ End Module
 <File>
 Module Program
     Sub Main()
-        Dim increment1[||] = Function(x) x + 1
+        Dim increment1$$ = Function(x) x + 1
         Console.WriteLine(increment1(1))
     End Sub
 End Module
@@ -3033,7 +3033,7 @@ End Module
 <File>
 Module Program
     Sub Main()
-        Dim x[||] = Sub() If True Then Dim y = Sub()
+        Dim x$$ = Sub() If True Then Dim y = Sub()
                                            End Sub
         Dim z As Boolean = x Is Nothing
     End Sub
@@ -3060,7 +3060,7 @@ End Module
 Module Program
     Sub Main()
         Dim a(0)
-        Dim b[||] = Sub() ReDim a(1)
+        Dim b$$ = Sub() ReDim a(1)
         Dim c = b, d
     End Sub
 End Module
@@ -3085,7 +3085,7 @@ End Module
 <File>
 Module Program
     Sub Main()
-        Dim x[||] = Sub() If True Then Dim y = Sub()
+        Dim x$$ = Sub() If True Then Dim y = Sub()
                                            End Sub
         Dim z As Boolean = TypeOf x Is Object
     End Sub
@@ -3111,7 +3111,7 @@ End Module
 <File>
 Module Program
     Sub Main()
-        Dim x[||] = Sub() If True Then Dim y = Sub()
+        Dim x$$ = Sub() If True Then Dim y = Sub()
                                            End Sub
         Dim z As Boolean = TypeOf x IsNot Object
     End Sub
@@ -3137,7 +3137,7 @@ End Module
 <File>
 Module M
     Sub Main()
-        Dim x = Sub() If True Then, [||]y = 1
+        Dim x = Sub() If True Then, $$y = 1
         Dim z = y
     End Sub
 End Module
@@ -3164,7 +3164,7 @@ End Module
 <File>
 Module M
     Sub Goo()
-        Dim x[||] = &lt;x/&gt;.GetHashCode
+        Dim x$$ = &lt;x/&gt;.GetHashCode
         Dim y = 1 &lt; x
         Dim z = x
     End Sub
@@ -3191,7 +3191,7 @@ End Module
 <File>
 Module Program
     Sub Main()
-        Dim y[||] = Function() From x In ""
+        Dim y$$ = Function() From x In ""
         Dim z = y
         Select 1
         End Select
@@ -3223,7 +3223,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Module Program
     Sub Main()
-        Dim y[||] = Nothing Is From x In ""
+        Dim y$$ = Nothing Is From x In ""
         Dim z = y
         Select 1
         End Select
@@ -3257,7 +3257,7 @@ Imports System.Runtime.CompilerServices
 Module Program
     Sub Main()
         Dim a As Action
-        Dim y[||] = Sub() Call From x In a
+        Dim y$$ = Sub() Call From x In a
         Dim z = y
         Select 1
         End Select
@@ -3298,7 +3298,7 @@ Imports System.Linq
 Module Program
     Sub Main()
         With New Hashtable
-            Dim x[||] = From c In "" Distinct
+            Dim x$$ = From c In "" Distinct
             Dim y = x
             !A = !B
         End With
@@ -3335,7 +3335,7 @@ Imports System.Linq
 Module Program
     Sub Main()
         Dim x As Action = Sub() Console.WriteLine("Hello")
-        Dim y[||] = 1 : x() : Console.WriteLine(y)
+        Dim y$$ = 1 : x() : Console.WriteLine(y)
     End Sub
 End Module
 </File>
@@ -3368,7 +3368,7 @@ Imports System.Runtime.CompilerServices
 Module Program
     Sub Main()
         Dim s = ""
-        Dim y[||] = 1
+        Dim y$$ = 1
         s.Goo(y)
     End Sub
 End Module
@@ -3429,7 +3429,7 @@ Imports System.Linq
 
 Module M
     Sub Main()
-        Dim x[||] = From y In ""
+        Dim x$$ = From y In ""
                 Select &lt;?xml version="1.0"?>
                        &lt;root/>
         Dim z = x
@@ -3449,7 +3449,7 @@ Imports System.Linq
 
 Module M
     Sub Main()
-        Dim z[||] = From y In ""
+        Dim z$$ = From y In ""
                 Select &lt;?xml version="1.0"?>
                        &lt;root/>
 
@@ -3472,7 +3472,7 @@ End Module
 Module Program
     Sub Main()
         Dim a(0)
-        Dim b[||] = Sub() ReDim a(1) ' Inline b
+        Dim b$$ = Sub() ReDim a(1) ' Inline b
         Dim c = b, d = 1
     End Sub
 End Module
@@ -3500,7 +3500,7 @@ End Module
 Module Program
     Sub Main()
         If True Then
-            Dim x[||] = Sub() If True Then Return ' Inline x
+            Dim x$$ = Sub() If True Then Return ' Inline x
             Dim y = x : ElseIf True Then
             Return
         End If
@@ -3531,7 +3531,7 @@ End Module
 <File>
 Module Program
     Sub Main()
-        Dim x[||] = Long.MinValue
+        Dim x$$ = Long.MinValue
         x.ToString()
     End Sub
 End Module
@@ -3559,7 +3559,7 @@ Option Strict On
 Module M
     Sub Main()
         With ""
-            Dim x[||] = .Equals("", "", StringComparison.InvariantCulture) ' Inline x
+            Dim x$$ = .Equals("", "", StringComparison.InvariantCulture) ' Inline x
             Dim y = New List(Of String) With {.Capacity = x.GetHashCode}
         End With
     End Sub
@@ -3593,7 +3593,7 @@ Imports System
 
 Public Class X
     Shared Sub Main()
-        Dim a[||] As X = 42
+        Dim a$$ As X = 42
         Console.WriteLine(a)
     End Sub
 
@@ -3644,7 +3644,7 @@ Imports System
 
 Public Class X
     Shared Sub Main()
-        Dim a[||] As X = 42
+        Dim a$$ As X = 42
         Console.WriteLine(a + a)
     End Sub
 
@@ -3692,7 +3692,7 @@ End Class
 <File>
 Public Class A
     Public Shared Sub Main()
-        Dim a[||] = New A() ' Inline a
+        Dim a$$ = New A() ' Inline a
         Goo(a)
     End Sub
 
@@ -3746,7 +3746,7 @@ Imports System.Linq
 Imports System.Threading.Tasks
 Class X
     Public Async Sub Test(i As Integer)
-        Dim s[||] = Await Task.Run(Function() i)
+        Dim s$$ = Await Task.Run(Function() i)
         i = s.ToString()
         Console.WriteLine(i)
     End Sub
@@ -3781,7 +3781,7 @@ Imports System.Linq
 Imports System.Threading.Tasks
 Class X
     Public Async Sub Test(i As Integer)
-        Dim s[||] = Await Task.Run(Function() i)
+        Dim s$$ = Await Task.Run(Function() i)
         Goo(s, 5)
         Console.WriteLine(i)
     End Sub
@@ -3815,7 +3815,7 @@ End Class
 <File>
 Class C
     Sub M(i As Integer)
-        Dim s[||] = NameOf(i)
+        Dim s$$ = NameOf(i)
         s.ToString()
     End Sub
 End Class
@@ -4057,7 +4057,7 @@ End Class
         Public Async Function TestReplaceReferencesInWithBlocks() As Task
             Dim code =
 <MethodBody>
-Dim [||]s As String = "test"
+Dim $$s As String = "test"
 With s
     .ToLower()
 End With
@@ -4078,7 +4078,7 @@ End With
         Public Async Function TestDontParenthesizeInterpolatedStringWithNoInterpolation() As Task
             Dim code =
 <MethodBody>
-Dim [||]s1 = $"hello"
+Dim $$s1 = $"hello"
 Dim s2 = AscW(s1)
 </MethodBody>
 
@@ -4096,7 +4096,7 @@ Dim s2 = AscW($"hello")
             Dim code =
 <MethodBody>
 Dim x = 42
-Dim [||]s1 = $"hello {x}"
+Dim $$s1 = $"hello {x}"
 Dim s2 = AscW(s1)
 </MethodBody>
 
@@ -4120,7 +4120,7 @@ Class C
     End Sub
 
     Sub N(x As Integer, y As Integer)
-        Dim [||]s As FormattableString = $""{x}, {y}""
+        Dim $$s As FormattableString = $""{x}, {y}""
         M(s)
     End Sub
 End Class
@@ -4156,7 +4156,7 @@ Class C
     End Sub
 
     Sub N(x As Integer, y As Integer)
-        Dim [||]s As FormattableString = $""{x}, {y}""
+        Dim $$s As FormattableString = $""{x}, {y}""
         M(s)
     End Sub
 End Class
@@ -4188,7 +4188,7 @@ End Class
 Imports System.Collections.Generic
 Class C
     Sub M()
-        Dim [||]List As New List(Of String)
+        Dim $$List As New List(Of String)
         List.Add(""Apple"")
         list.Add(""Banana"")
     End Sub
@@ -4213,7 +4213,7 @@ End Class
             Dim code = "
 Class C
     Sub M()
-        Dim [||]i = 1 + 2
+        Dim $$i = 1 + 2
         Dim t = (i, 3)
     End Sub
 End Class
@@ -4233,7 +4233,7 @@ End Class
             Dim code = "
 Class C
     Sub M()
-        Dim [||]i = 1 + 2
+        Dim $$i = 1 + 2
         Dim t = (
             i, 'comment
             3 'comment
@@ -4259,7 +4259,7 @@ End Class
             Dim code = "
 Class C
     Sub M()
-        Dim [||]i = 1 + 2
+        Dim $$i = 1 + 2
         Dim t = (i, i)
     End Sub
 End Class
@@ -4279,7 +4279,7 @@ End Class
             Dim code = "
 Class C
     Sub M()
-        Dim [||]rest = 1 + 2
+        Dim $$rest = 1 + 2
         Dim t = (rest, 3)
     End Sub
 End Class
@@ -4299,7 +4299,7 @@ End Class
             Dim code = "
 Class C
     Sub M()
-        Dim [||]item1 = 1 + 2
+        Dim $$item1 = 1 + 2
         Dim t = (item1, 3)
     End Sub
 End Class
@@ -4319,7 +4319,7 @@ End Class
             Dim code = "
 Class C
     Sub M()
-        Dim [||][Integer] = 1 + 2
+        Dim $$[Integer] = 1 + 2
         Dim t = ([Integer], 3)
     End Sub
 End Class
@@ -4339,7 +4339,7 @@ End Class
             Dim code = "
 Class C
     Sub M()
-        Dim [||]i = 1 + 2
+        Dim $$i = 1 + 2
         Dim t = New With {i, i} ' Error already
     End Sub
 End Class
@@ -4360,7 +4360,7 @@ End Class
 Class C
     Sub M()
         Dim j = 0
-        Dim [||]i = j = 1
+        Dim $$i = j = 1
         Dim t = New With {i, .k = 3}
     End Sub
 End Class
@@ -4381,7 +4381,7 @@ End Class
             Dim code = "
 Class C
     Sub M()
-        Dim [||]i = 1 + 2
+        Dim $$i = 1 + 2
         Dim t = New With {
             i, 'comment
             .k = 3 'comment
@@ -4409,7 +4409,7 @@ End Class
             Dim code = "
 Class C
     Sub M()
-        Dim [||]i = 1 + 2
+        Dim $$i = 1 + 2
         Dim t = (i, i:=3)
     End Sub
 End Class

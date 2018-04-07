@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.MoveType
     Partial Public Class MoveTypeTests
@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.M
         Public Async Function TestMissing_OnMatchingFileName() As Task
             Dim code =
 "
-[||]Class test1
+$$Class test1
 End Class
 "
 
@@ -20,7 +20,7 @@ End Class
             Dim code =
 "
 Class Outer
-    [||]Class test1
+    $$Class test1
     End Class
 End Class
 "
@@ -32,7 +32,7 @@ End Class
         Public Async Function MultipleTypesInFileWithNoContainerNamespace() As Task
             Dim code =
 "
-[||]Class Class1
+$$Class Class1
 End Class
 
 Class Class2
@@ -57,7 +57,7 @@ End Class
             Dim code =
 "
 Public Class Class1
-    Class Class2[||]
+    Class Class2$$
     End Class
 End Class
 "
@@ -83,7 +83,7 @@ End Class
             Dim code =
 "
 Public Class Class1
-    Class Class2[||]
+    Class Class2$$
     End Class
 End Class
 "
@@ -112,7 +112,7 @@ End Class
 ''' Outer comment
 Public Class Class1
     ''' Inner comment
-    Class Class2[||]
+    Class Class2$$
     End Class
 End Class
 "
@@ -148,7 +148,7 @@ Imports System
 Imports System.Collections
 
 Class Outer
-    [||]Class Inner
+    $$Class Inner
         Sub M(d as DateTime)
         End Sub
     End Class
@@ -192,7 +192,7 @@ Class Outer
     Inherits Something
     Implements ISomething
 
-    [||]Class Inner
+    $$Class Inner
         Inherits Other
         Implements IOther
 
@@ -232,7 +232,7 @@ End Class
 "' Banner Text
 imports System
 
-[||]class Class1
+$$class Class1
     sub Foo()
         Console.WriteLine()
     end sub
@@ -282,7 +282,7 @@ class Class1
     end sub
 end class
 
-[||]class Class2
+$$class Class2
     sub Foo()
         Console.WriteLine()
     end sub

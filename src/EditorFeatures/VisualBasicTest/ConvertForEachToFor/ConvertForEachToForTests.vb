@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertForEachToFo
 Class Test
     Sub Method()
         Dim array = New Integer() {1, 2, 3}
-        For Each [||] a In array
+        For Each $$ a In array
         Next
     End Sub
 End Class
@@ -44,7 +44,7 @@ End Class
 Class Test
     Sub Method()
         Dim array = New Integer() {1, 2, 3}
-        For Each [||] a In array : Next
+        For Each $$ a In array : Next
     End Sub
 End Class
 "
@@ -57,7 +57,7 @@ End Class
 Class Test
     Sub Method()
         Dim array = New Integer() {1, 2, 3}
-        For Each [||] a In array : Console.WriteLine(a) : Next
+        For Each $$ a In array : Console.WriteLine(a) : Next
     End Sub
 End Class
 "
@@ -70,7 +70,7 @@ End Class
 Class Test
     Sub Method()
         Dim array = New Integer() {1, 2, 3}
-        For Each [||] a In array
+        For Each $$ a In array
             Console.WriteLine(a)
         Next
     End Sub
@@ -98,7 +98,7 @@ Class Test
     Sub Method()
         Dim array = New Integer() {1, 2, 3}
         ' comment
-        For Each [||] a In array ' comment
+        For Each $$ a In array ' comment
             Console.WriteLine(a)
         Next
     End Sub
@@ -126,7 +126,7 @@ End Class
 Class Test
     Sub Method()
         Dim array = New Integer() {1, 2, 3}
-        For Each [||] a In array
+        For Each $$ a In array
             ' comment
             Console.WriteLine(a)
         Next ' comment
@@ -155,7 +155,7 @@ End Class
 Class Test
     Sub Method()
         Dim array = New Integer() {1, 2, 3}
-        For Each [||] a In array
+        For Each $$ a In array
             Console.WriteLine(a)
         Next a ' comment
     End Sub
@@ -181,7 +181,7 @@ End Class
             Dim initial = "
 Class Test
     Sub Method()
-        For Each [||] a In New Integer() {1, 2, 3} ' test 
+        For Each $$ a In New Integer() {1, 2, 3} ' test 
             Console.WriteLine(a)
         Next
     End Sub
@@ -208,7 +208,7 @@ End Class
 Class Test
     Sub Method()
         ' test
-        For Each [||] a In New Integer() {1, 2, 3}
+        For Each $$ a In New Integer() {1, 2, 3}
         Next
     End Sub
 End Class
@@ -232,7 +232,7 @@ End Class
             Dim initial = "
 Class Test
     Sub Method()
-        For Each [||] a ' test
+        For Each $$ a ' test
             In ' test
             New Integer() {1, 2, 3}
         Next
@@ -248,7 +248,7 @@ End Class
             Dim initial = "
 Class Test
     Sub Method()
-        For Each [||] a _
+        For Each $$ a _
             In
             New Integer() {1, 2, 3}
         Next
@@ -273,7 +273,7 @@ End Class
             Dim initial = "
 Class Test
     Sub Method()
-        For Each [||] a In New Integer() {1, 2, 3}
+        For Each $$ a In New Integer() {1, 2, 3}
         Next
     End Sub
 End Class
@@ -298,7 +298,7 @@ Class Test
     Sub Method()
         Dim array = 1
 
-        For Each [||] a In New Integer() {1, 2, 3}
+        For Each $$ a In New Integer() {1, 2, 3}
             Console.WriteLine(a)
         Next
     End Sub
@@ -326,7 +326,7 @@ End Class
             Dim initial = "
 Class Test
     Sub Method()
-        For Each [||] a In New Integer() {1, 2, 3}
+        For Each $$ a In New Integer() {1, 2, 3}
             Dim i = 1
             Console.WriteLine(a)
         Next
@@ -354,7 +354,7 @@ End Class
             Dim initial = "
 Class Test
     Sub Method()
-        For Each [||] a In New Integer() {1, 2, 3}
+        For Each $$ a In New Integer() {1, 2, 3}
             a = 1
         Next
     End Sub
@@ -369,7 +369,7 @@ End Class
 Class Test
     Sub Method()
         For Each a In New Integer() {1, 2, 3}
-            [||]
+            $$
         Next
     End Sub
 End Class
@@ -382,7 +382,7 @@ End Class
             Dim initial = "
 Class Test
     Sub Method()
-        [||] For Each a In New Integer() {1, 2, 3}
+        $$ For Each a In New Integer() {1, 2, 3}
         Next
     End Sub
 End Class
@@ -395,7 +395,7 @@ End Class
             Dim initial = "
 Class Test
     Sub Method()
-        For Each a In New Integer() {1, 2, 3} [||] 
+        For Each a In New Integer() {1, 2, 3} $$ 
         Next
     End Sub
 End Class
@@ -410,7 +410,7 @@ Class Test
     Dim list As Integer() = New Integer() {1, 2, 3}
 
     Sub Method()
-        For Each [||] a In list
+        For Each $$ a In list
         Next
     End Sub
 End Class
@@ -437,7 +437,7 @@ Imports System.Collections.Generic
 Class Test
     Sub Method()
         Dim list = DirectCast(New Integer() {1, 2, 3}, IList(Of Integer))
-        For [||] Each a In list
+        For $$ Each a In list
         Next
     End Sub
 End Class
@@ -467,7 +467,7 @@ Imports System.Collections.Generic
 Class Test
     Sub Method()
         Dim list = New Explicit()
-        For [||] Each a In list
+        For $$ Each a In list
             Console.WriteLine(a)
         Next
     End Sub
@@ -547,7 +547,7 @@ End Class
             Dim initial = "
 Class Test
     Sub Method()
-        For Each a [||] In New Integer() {}
+        For Each a $$ In New Integer() {}
             For Each b In New Integer() {}
                 Console.WriteLine(a)
         Next b, a
@@ -563,7 +563,7 @@ End Class"
 Class Test
     Sub Method()
         For Each a In New Integer() {}
-            For Each [||] b In New Integer() {}
+            For Each $$ b In New Integer() {}
                 Console.WriteLine(a)
         Next b, a
     End Sub
@@ -577,7 +577,7 @@ End Class"
             Dim initial = "
 Class Test
     Sub Method()
-        For Each [||] a In New Integer() {}
+        For Each $$ a In New Integer() {}
             Console.WriteLine(a)
         Next b
     End Sub
@@ -591,7 +591,7 @@ End Class"
             Dim initial = "
 Class Test
     Sub Method()
-        For Each [||] a In New Integer() {1, 2, 3}
+        For Each $$ a In New Integer() {1, 2, 3}
         Next a
     End Sub
 End Class
@@ -614,7 +614,7 @@ End Class
             Dim initial = "
 Class Test
     Sub Method()
-        For Each [||] i In New Integer() {1, 2, 3}
+        For Each $$ i In New Integer() {1, 2, 3}
             Console.WriteLine(a)
         Next
     End Sub
@@ -640,7 +640,7 @@ End Class
             Dim initial = "
 Class Test
     Sub Method()
-        For Each [||] a As Integer In New Integer() {1, 2, 3}
+        For Each $$ a As Integer In New Integer() {1, 2, 3}
             Console.WriteLine(a)
         Next
     End Sub
@@ -669,7 +669,7 @@ Imports System.Collections.Generic
 
 Class Test
     Sub Method()
-        For Each [||] a In New List(Of Integer)()
+        For Each $$ a In New List(Of Integer)()
             Console.WriteLine(a)
         Next
     End Sub

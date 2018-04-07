@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertToInterpola
 "
 Public Class C
     Sub M()
-        dim v = [||]""string""
+        dim v = $$""string""
     End Sub
 End Class")
         End Function
@@ -29,7 +29,7 @@ End Class")
 "
 Public Class C
     Sub M()
-        dim v = [||]""string"" & 1
+        dim v = $$""string"" & 1
     End Sub
 End Class",
 "
@@ -46,7 +46,7 @@ End Class")
 "
 Public Class C
     Sub M()
-        dim v = ""string""[||] & 1
+        dim v = ""string""$$ & 1
     End Sub
 End Class",
 "
@@ -63,7 +63,7 @@ End Class")
 "
 Public Class C
     Sub M()
-        dim v = 1 & [||]""string""
+        dim v = 1 & $$""string""
     End Sub
 End Class",
 "
@@ -80,7 +80,7 @@ End Class")
 "
 Public Class C
     Sub M()
-        dim v = 1 + 2 & [||]""string""
+        dim v = 1 + 2 & $$""string""
     End Sub
 End Class",
 "
@@ -97,7 +97,7 @@ End Class")
 "
 Public Class C
     Sub M()
-        dim v = 1 + 2 & [||]""string"" ' trailing trivia
+        dim v = 1 + 2 & $$""string"" ' trailing trivia
     End Sub
 End Class",
 "
@@ -114,7 +114,7 @@ End Class")
 "
 Public Class C
     Sub M()
-        dim v = 1 + 2 & [||]""string"" & 3 & 4
+        dim v = 1 + 2 & $$""string"" & 3 & 4
     End Sub
 End Class",
 "
@@ -131,7 +131,7 @@ End Class")
 "
 Public Class C
     Sub M()
-        dim v = ""\r"" & 2 & [||]""string"" & 3 & ""\n""
+        dim v = ""\r"" & 2 & $$""string"" & 3 & ""\n""
     End Sub
 End Class",
 "
@@ -148,7 +148,7 @@ End Class")
 "
 Public Class C
     Sub M()
-        dim v = ""\\r"" & 2 & [||]""string"" & 3 & ""\\n""
+        dim v = ""\\r"" & 2 & $$""string"" & 3 & ""\\n""
     End Sub
 End Class",
 "
@@ -173,7 +173,7 @@ end class
 Public Class C
     Sub M()
         dim d as D = nothing
-        dim v = 1 & [||]""string"" & d
+        dim v = 1 & $$""string"" & d
     End Sub
 End Class",
 "
@@ -206,7 +206,7 @@ end class
 Public Class C
     Sub M()
         dim d as D = nothing
-        dim v = d & [||]""string"" & 1
+        dim v = d & $$""string"" & 1
     End Sub
 End Class")
         End Function
@@ -218,7 +218,7 @@ End Class")
 "
 Public Class C
     Sub M()
-        dim v = ""A"" & 1 & [||]""B"" & ""C""
+        dim v = ""A"" & 1 & $$""B"" & ""C""
     End Sub
 End Class",
 "
@@ -237,7 +237,7 @@ End Class")
 "
 Public Class C
     Sub M()
-        dim v = ""A"" & [||]""B"" & ""C"" & 1
+        dim v = ""A"" & $$""B"" & ""C"" & 1
     End Sub
 End Class",
 "
@@ -256,7 +256,7 @@ End Class")
 "
 Public Class C
     Sub M()
-        dim v = ""A"" & 1 & [||]""B"" & ""C"" & 2 & ""D"" & ""E"" & ""F"" & 3  
+        dim v = ""A"" & 1 & $$""B"" & ""C"" & 2 & ""D"" & ""E"" & ""F"" & 3  
     End Sub
 End Class",
 "

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -1434,7 +1434,7 @@ End Class]]>
                 class Test
                 {
                     /// <summary>
-                    /// <see cref="[||]this[int]"/>
+                    /// <see cref="$$this[int]"/>
                     /// </summary>
                     /// <param name="i"></param>
                     /// <returns></returns>
@@ -1552,7 +1552,7 @@ End Class]]>
             using System;
             class Program
             {
-                /// <see cref="GetDNSaliases.[||]this[int]"/>
+                /// <see cref="GetDNSaliases.$$this[int]"/>
                 static void Main(string[] args) { }
                 {
                 }

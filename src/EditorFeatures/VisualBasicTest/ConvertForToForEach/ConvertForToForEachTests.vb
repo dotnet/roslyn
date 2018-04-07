@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertForToForEac
 
 class C
     sub Test(array as string())
-        [||]For i = 0 to array.Length - 1
+        $$For i = 0 to array.Length - 1
             Console.WriteLine(array(i))
         next
     end sub
@@ -65,7 +65,7 @@ end class")
 
 class C
     sub Test(array as string())
-        For i = 0 to array.Length - 1[||]
+        For i = 0 to array.Length - 1$$
             Console.WriteLine(array(i))
         next
     end sub
@@ -88,7 +88,7 @@ end class")
 
 class C
     sub Test(array as string())
-       [||] For i = 0 to array.Length - 1
+       $$ For i = 0 to array.Length - 1
             Console.WriteLine(array(i))
         next
     end sub
@@ -102,7 +102,7 @@ end class")
 
 class C
     sub Test(array as string())
-        For [||]i = 0 to array.Length - 1
+        For $$i = 0 to array.Length - 1
             Console.WriteLine(array(i))
         next
     end sub
@@ -116,7 +116,7 @@ end class")
 
 class C
     sub Test(array as string())
-        [||]For i = 0 to array.Length - 1 step 1
+        $$For i = 0 to array.Length - 1 step 1
             Console.WriteLine(array(i))
         next
     end sub
@@ -139,7 +139,7 @@ end class")
 
 class C
     sub Test(array as string())
-        [||]For i = 0 to array.Length - 1 step 2
+        $$For i = 0 to array.Length - 1 step 2
             Console.WriteLine(array(i))
         next
     end sub
@@ -154,7 +154,7 @@ end class")
 class C
     sub Test(array as string())
         dim i as integer
-        [||]For i = 0 to array.Length - 1 step 2
+        $$For i = 0 to array.Length - 1 step 2
             Console.WriteLine(array(i))
         next
     end sub
@@ -168,7 +168,7 @@ end class")
 
 class C
     sub Test(array as string())
-        [||]For i = 0 to array.Length
+        $$For i = 0 to array.Length
         {
             Console.WriteLine(array(i))
         next
@@ -183,7 +183,7 @@ end class")
 
 class C
     sub Test(array as string())
-        [||]For i = 0 to GetLength(array) - 1 
+        $$For i = 0 to GetLength(array) - 1 
         {
             Console.WriteLine(array(i))
         next
@@ -198,7 +198,7 @@ end class")
 
 class C
     sub Test(array as string())
-        [||]For i = 0 to array.Length - 2
+        $$For i = 0 to array.Length - 2
         {
             Console.WriteLine(array(i))
         next
@@ -213,7 +213,7 @@ end class")
 
 class C
     sub Test(array as string())
-        [||]For i = 1 to array.Length - 1
+        $$For i = 1 to array.Length - 1
         {
             Console.WriteLine(array(i))
         next
@@ -229,7 +229,7 @@ imports System.Collections.Generic
 
 class C
     sub Test(list as IList(of string))
-        [||]For i = 0 to list.Count - 1
+        $$For i = 0 to list.Count - 1
             Console.WriteLine(list(i))
         next
     end sub
@@ -254,7 +254,7 @@ imports System.Collections.Generic
 
 class C
     sub Test(list as IList(of string))
-        [||]For i = 0 to list.Count - 1
+        $$For i = 0 to list.Count - 1
             dim val = list(i)
             Console.WriteLine(list(i))
         next
@@ -280,7 +280,7 @@ imports System.Collections.Generic
 
 class C
     sub Test(list as IList(of string))
-        [||]For i = 0 to list.Count - 1
+        $$For i = 0 to list.Count - 1
             dim val As Object = list(i)
             Console.WriteLine(list(i))
         next
@@ -306,7 +306,7 @@ imports System.Collections.Generic
 
 class C
     sub Test(list as IList(of string))
-        [||]For i = 0 to list.Count - 1
+        $$For i = 0 to list.Count - 1
             ' loop comment
 
             dim val = list(i)
@@ -336,7 +336,7 @@ imports System.Collections.Generic
 
 class C
     sub Test(list as IList(of string))
-        [||]For i = 0 to list.Count - 1
+        $$For i = 0 to list.Count - 1
 #if true
 
             dim val = list(i)
@@ -369,7 +369,7 @@ end class")
 
 class C
     sub Test(array as string())
-        [||]For i = 0 to array.Length - 1
+        $$For i = 0 to array.Length - 1
             Console.WriteLine(i)
         next
     end sub
@@ -383,7 +383,7 @@ end class")
 
 class C
     sub Test(array as string())
-        [||]For i = 0 to array.Length - 1
+        $$For i = 0 to array.Length - 1
             Console.WriteLine(other(i))
         next
     end sub
@@ -397,7 +397,7 @@ end class")
 
 class C
     sub Test(array as string())
-        [||]For i = 0 to array.Length - 1
+        $$For i = 0 to array.Length - 1
             array(i) = 1
         next
     end sub
@@ -432,7 +432,7 @@ end class
 class C
     sub Test(list as MyList)
         ' need to use 'string' here to preserve original index semantics.
-        [||]For i = 0 to list.Length - 1
+        $$For i = 0 to list.Length - 1
             Console.WriteLine(list(i))
         next
     end sub
@@ -479,7 +479,7 @@ end class
 class C
     sub Test(list as MyList)
         ' can omit type here since the type stayed the same.
-        [||]For i = 0 to list.Count - 1
+        $$For i = 0 to list.Count - 1
             Console.WriteLine(list(i))
         next
     end sub
@@ -515,7 +515,7 @@ end class")
 class C
     sub Test(array as string())
         ' trivia 1
-        [||]For i = 0 to array.Length - 1 ' trivia 2
+        $$For i = 0 to array.Length - 1 ' trivia 2
             Console.WriteLine(array(i))
         next ' trivia 3
     end sub

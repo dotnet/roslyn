@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -24,7 +24,7 @@ End Enum
 Class Goo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        Select Case [||]e
+        Select Case $$e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -53,7 +53,7 @@ End Enum
 Class Goo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        [||]Select Case e
+        $$Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -82,7 +82,7 @@ End Enum
 Class Goo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        [||]Select Case e
+        $$Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -133,7 +133,7 @@ End Enum
 Class Goo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        [||]Select Case e
+        $$Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -182,7 +182,7 @@ End Enum
 Class Goo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        [||]Select Case e
+        $$Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -233,7 +233,7 @@ End Enum
 Class Goo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        [||]Select Case e
+        $$Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -282,7 +282,7 @@ End Enum
 Class Goo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        [||]Select Case e
+        $$Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz ' not legal.  VB does not allow fallthrough.
@@ -331,7 +331,7 @@ End Enum
 Class Goo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        [||]Select Case e
+        $$Select Case e
         End Select
     End Sub
 End Class
@@ -377,7 +377,7 @@ End Enum
 Class Goo
     Sub Bar()
         Dim e = CreateNew
-        [||]Select Case e
+        $$Select Case e
             Case CreateNew
                 Exit Select
             Case Create
@@ -413,7 +413,7 @@ End Enum
 Class Goo
     Sub Bar()
         Dim e = CreateNew
-        [||]Select Case e
+        $$Select Case e
             Case Truncate
                 Exit Select
             Case Append
@@ -449,7 +449,7 @@ End Enum
 Class Goo
     Sub Bar()
         Dim e = CreateNew
-        [||]Select Case e
+        $$Select Case e
             Case CreateNew
                 Exit Select
             Case Create
@@ -510,7 +510,7 @@ End Enum
 Class Goo
     Sub Bar()
         Dim e = CreateNew
-        [||]Select Case e
+        $$Select Case e
             
         End Select
     End Sub
@@ -564,7 +564,7 @@ End Enum
 Class Goo
     Sub Bar()
         Dim e = MyEnum.Fizz
-        [||]Select Case e
+        $$Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -614,7 +614,7 @@ Class Goo
     End Enum
     Sub Bar()
         Dim e = MyEnum.Fizz
-        [||]Select Case e
+        $$Select Case e
             Case MyEnum.Fizz
                 Exit Select
             Case MyEnum.Buzz
@@ -658,7 +658,7 @@ End Class
 Class Goo
     Sub Bar()
         Dim e = "Test"
-        [||]Select Case e
+        $$Select Case e
             Case "Fizz"
                 Exit Select
             Case "Test"

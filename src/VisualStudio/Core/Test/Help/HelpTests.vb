@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -26,7 +26,7 @@ Class G
     Public Event MyEvent()
 
     Public Sub G()
-        AddH[||]andler MyEvent, AddressOf G
+        AddH$$andler MyEvent, AddressOf G
     End Sub
 End Class</a>
 
@@ -40,7 +40,7 @@ Class G
     Public Event MyEvent()
 
     Public Sub G()
-        AddHandler MyEvent,[||] AddressOf G
+        AddHandler MyEvent,$$ AddressOf G
     End Sub
 End Class</a>
 
@@ -52,7 +52,7 @@ End Class</a>
             Dim text = <a>
 Class G
     Public Sub G()
-        Dim x as integer() = new Integer() {1,[||] 2, 3}
+        Dim x as integer() = new Integer() {1,$$ 2, 3}
     End Sub
 End Class</a>
 
@@ -64,7 +64,7 @@ End Class</a>
             Dim text = <a>
 Class G
     Public Sub G()
-        Dim x as integer() = new[||] Integer() {1, 2, 3}
+        Dim x as integer() = new$$ Integer() {1, 2, 3}
     End Sub
 End Class</a>
 
@@ -76,7 +76,7 @@ End Class</a>
             Dim text = <a>
 Class G
     Public Sub G()
-        Dim x as integer() =[||] new {1, 2, 3}
+        Dim x as integer() =$$ new {1, 2, 3}
     End Sub
 End Class</a>
 
@@ -89,9 +89,9 @@ End Class</a>
 Class GAttribute
             Inherits System.Attribute
 
-    <G>[||]
+    <G>$$
     Public Sub G()
-                Dim x As Integer() =[||] New {1, 2, 3}
+                Dim x As Integer() =$$ New {1, 2, 3}
     End Sub
 End Class]]></a>
 
@@ -102,7 +102,7 @@ End Class]]></a>
         Public Async Function TestModuleAttribute() As Task
             Dim text = <a><![CDATA[
 Imports System.Reflection
-<Assembly: AssemblyTitleAttribute("Production assembly 4"), Mod[||]ule: CLSCompliant(True)>
+<Assembly: AssemblyTitleAttribute("Production assembly 4"), Mod$$ule: CLSCompliant(True)>
 Module M
 
 End Module]]></a>
@@ -114,7 +114,7 @@ End Module]]></a>
         Public Async Function TestAssemblyAttribute() As Task
             Dim text = <a><![CDATA[
 Imports System.Reflection
-<Ass[||]embly: AssemblyTitleAttribute("Production assembly 4"), Module: CLSCompliant(True)>
+<Ass$$embly: AssemblyTitleAttribute("Production assembly 4"), Module: CLSCompliant(True)>
 Module M
 
 End Module]]></a>
@@ -127,7 +127,7 @@ End Module]]></a>
             Dim text = <a><![CDATA[
 Class G
     Sub G()
-        DIm x = 2 +[||] 3
+        DIm x = 2 +$$ 3
     End Sub
 ENd Class]]></a>
 
@@ -139,7 +139,7 @@ ENd Class]]></a>
             Dim text = <a><![CDATA[
 Class G
     Sub G()
-        C[||]all G()
+        C$$all G()
     End Sub
 ENd Class]]></a>
 
@@ -153,7 +153,7 @@ Class G
     Sub G()
         Dim x = 2 + 3
         Select Case x
-            Ca[||]se 1
+            Ca$$se 1
                 G()
             Case Else
                 x = 3
@@ -173,7 +173,7 @@ Class G
         Select Case x
             Case 1
                 G()
-            Case E[||]lse
+            Case E$$lse
                 x = 3
         End Select
     End Sub
@@ -189,7 +189,7 @@ Class G
     Sub G()
         Try G()
 
-        Catch ex As[||] Exception When 2 = 2
+        Catch ex As$$ Exception When 2 = 2
 
         End Try
     End Sub
@@ -205,7 +205,7 @@ Class G
     Sub G()
         Try G()
 
-        Catch ex As Exception W[||]hen 2 = 2
+        Catch ex As Exception W$$hen 2 = 2
 
         End Try
     End Sub
@@ -238,7 +238,7 @@ End Class]]></a>
 Class G
     Sub G()
         Dim x As List(Of Integer)
-        x = New List(Of Integer) Fr[||]om {1, 2, 3}
+        x = New List(Of Integer) Fr$$om {1, 2, 3}
     End Sub
 End Class]]></a>
 
@@ -251,7 +251,7 @@ End Class]]></a>
 Class G
     Sub G()
         Dim x As List(Of Integer)
-        x = New List(Of Integer) From {1,[||] 2, 3}
+        x = New List(Of Integer) From {1,$$ 2, 3}
     End Sub
 End Class]]></a>
 
@@ -263,7 +263,7 @@ End Class]]></a>
         Public Async Function TestConstructor() As Task
             Dim text = <a><![CDATA[
 Class G
-    Sub Ne[||]w()
+    Sub Ne$$w()
     End Sub
 End Class]]></a>
 
@@ -279,7 +279,7 @@ Class G
         Dim customerOrders = From cust In {1, 2, 3}, ord In {1, 2, 3}
                      Where cust= ord
                      Select cust.CompanyName
-                     Dist[||]inct
+                     Dist$$inct
     End Sub
 End Class]]></a>
 
@@ -293,7 +293,7 @@ Class G
     Sub G()
         Do
 
-        Loop Un[||]til False
+        Loop Un$$til False
     End Sub
 End Class]]></a>
 
@@ -307,7 +307,7 @@ Class G
     Sub G()
         Do
 
-        Loop Un[||]til False
+        Loop Un$$til False
     End Sub
 End Class]]></a>
 
@@ -319,7 +319,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class G
     Sub G()
-        Do[||]
+        Do$$
 
         Loop Until False
     End Sub
@@ -335,7 +335,7 @@ Class G
     Sub G()
         If True Then
 
-        ElseIf False The[||]n
+        ElseIf False The$$n
 
         End If
     End Sub
@@ -351,7 +351,7 @@ Class G
     Sub G()
         If True Then
 
-        ElseI[||]f False Then
+        ElseI$$f False Then
 
         Else
 
@@ -371,7 +371,7 @@ Class G
 
         ElseIf False Then
 
-        Els[||]e
+        Els$$e
 
         End If
     End Sub
@@ -385,7 +385,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class G
     Sub G()
-        I[||]f True Then
+        I$$f True Then
 
         ElseIf False Then
 
@@ -403,7 +403,7 @@ Class G
     Sub G()
         Dim x as Function(Of Integer) = Function()
                                             return 2
-                                        End Functi[||]on
+                                        End Functi$$on
     End Sub
 End Class]]></a>
 
@@ -414,7 +414,7 @@ End Class]]></a>
         Public Async Function TestEndBlockKind() As Task
             Dim text = <a><![CDATA[
 Class G
-En[||]d Class]]></a>
+En$$d Class]]></a>
 
             Await TestAsync(text.Value, "vb.Class")
         End Function
@@ -426,7 +426,7 @@ Class G
         Public Custom Event e As EventHandler
             AddHandler(value As EventHandler)
 
-            End AddH[||]andler
+            End AddH$$andler
             RemoveHandler(value As EventHandler)
 
             End RemoveHandler
@@ -444,7 +444,7 @@ Class G
             Dim text = <a><![CDATA[
 Class G
     Sub goo()
-        End[||]
+        End$$
     ENd Sub
 End Class]]></a>
 
@@ -455,7 +455,7 @@ End Class]]></a>
         Public Async Function TestEnumMember() As Task
             Dim text = <a><![CDATA[
 Enum G
-    A[||]
+    A$$
 End Enum]]></a>
 
             Await TestAsync(text.Value, "vb.Enum")
@@ -467,7 +467,7 @@ End Enum]]></a>
 Class G
     Sub G()
         DIm x(9, 9), y(9, 9) as Integer
-        Erase[||] x, y
+        Erase$$ x, y
     End Sub
 End Class]]></a>
 
@@ -494,7 +494,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class G
     Sub G()
-        Er[||]ror 1
+        Er$$ror 1
     End Sub
 End Class]]></a>
 
@@ -505,7 +505,7 @@ End Class]]></a>
         Public Async Function TestEvent() As Task
             Dim text = <a><![CDATA[
 Class G
-    Ev[||]ent e As EventHandler
+    Ev$$ent e As EventHandler
 End Class]]></a>
 
             Await TestAsync(text.Value, "vb.Event")
@@ -544,7 +544,7 @@ End Class]]></a>
         Public Async Function TestField1() As Task
             Dim text = <a><![CDATA[
 Class G
-    Protec[||]ted goo as Integer
+    Protec$$ted goo as Integer
 End Class]]></a>
 
             Await TestAsync(text.Value, "vb.Protected")
@@ -554,7 +554,7 @@ End Class]]></a>
         Public Async Function TestField2() As Task
             Dim text = <a><![CDATA[
 Class G
-    Protected ReadOn[||]ly goo as Integer
+    Protected ReadOn$$ly goo as Integer
 End Class]]></a>
 
             Await TestAsync(text.Value, "vb.ReadOnly")
@@ -640,7 +640,7 @@ End Class]]></a>
         Public Async Function TestFrom() As Task
             Dim text = <a><![CDATA[
 Class G
-    Dim z = F[||]rom x in {1 2 3} select x
+    Dim z = F$$rom x in {1 2 3} select x
 End Class]]></a>
 
             Await TestAsync(text.Value, HelpKeywords.QueryFrom)
@@ -840,7 +840,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class G
     Sub G()
-        Dim f1 As Func(Of Task(Of Integer)) = Async F[||]unction()
+        Dim f1 As Func(Of Task(Of Integer)) = Async F$$unction()
                                                   Return Await Task.FromResult(2)
                                               End Function
 
@@ -880,7 +880,7 @@ End Class]]></a>
         Public Async Function TestMainMethod() As Task
             Dim text = <a><![CDATA[
 Module Goo
-    Sub m[||]ain()
+    Sub m$$ain()
     End Sub
 End Module]]></a>
 
@@ -1175,7 +1175,7 @@ End Class]]></a>
 Class Program
     Public Event e as EventHandler
     Sub gooo()
-        RaiseEve[||]nt e(nothing, nothing)
+        RaiseEve$$nt e(nothing, nothing)
     End Sub
 End Class]]></a>
 
@@ -1217,7 +1217,7 @@ Class Program
 
     End Sub
     Sub gooo()
-        Re[||]moveHandler e, AddressOf EHandler
+        Re$$moveHandler e, AddressOf EHandler
     End Sub
 End Class]]></a>
 
@@ -1253,7 +1253,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class Program
     Function gooo() as Integer
-        St[||]op
+        St$$op
     End Sub
 End Class]]></a>
 
@@ -1266,7 +1266,7 @@ End Class]]></a>
 Class Program
     Function gooo() as Integer
         DIm lock = new Object()
-        Syn[||]cLock lock
+        Syn$$cLock lock
         End SyncLock
     End Sub
 End Class]]></a>
@@ -1305,7 +1305,7 @@ End Class]]></a>
 Class Program
     Function gooo() as Integer
         Dim x as IDisposable = nothing
-        Us[||]ing x
+        Us$$ing x
         End Using
     End Sub
 End Class]]></a>
@@ -1352,7 +1352,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class Program
     Private Iterator Function Goo() as IEnumerable(of Integer)
-        System.Console.Wri[||]teLine(2)
+        System.Console.Wri$$teLine(2)
     End Function
 End Class]]></a>
 
@@ -1364,7 +1364,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class Program
     Private Iterator Function Goo() as IEnumerable(of Integer)
-        Dim x = #5/30/19[||]90#
+        Dim x = #5/30/19$$90#
     End Function
 End Class]]></a>
 
@@ -1379,7 +1379,7 @@ Imports System.Linq
 
 Module Program
     ''' <summary>
-    ''' [||]
+    ''' $$
     ''' </summary>
     ''' <param name="args"></param>
     Sub Main(args As String())
@@ -1393,7 +1393,7 @@ End Module]]></a>.Value, HelpKeywords.XmlDocComment)
         Public Async Function TestAnonymousType() As Task
             Await TestAsync(<a><![CDATA[Public Class Test
     Sub Subroutine()
-        Dim mm = Sub(ByRef x As String, y As Integer) System.Console.WriteLine(), k[||]k = Sub(y, x) mm(y, x)
+        Dim mm = Sub(ByRef x As String, y As Integer) System.Console.WriteLine(), k$$k = Sub(y, x) mm(y, x)
     End Sub
 End Class]]></a>.Value, "vb.AnonymousType")
         End Function
@@ -1408,7 +1408,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         Dim query = From iii In {1, 2, 3}
-                    Select New With {.P[||]1 = iii}
+                    Select New With {.P$$1 = iii}
         Dim i = query.First().P1
 
     End Sub
@@ -1423,7 +1423,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Module Program
-    Sub Main(ByV[||]al args As String())
+    Sub Main(ByV$$al args As String())
 
     End Sub
 End Module]]></a>.Value, "vb.ByVal")
@@ -1437,7 +1437,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Module Program
-    Sub Main([||]Of T)(args As String())
+    Sub Main($$Of T)(args As String())
 
     End Sub
 End Module]]></a>.Value, "vb.Of")
@@ -1449,7 +1449,7 @@ End Module]]></a>.Value, "vb.Of")
             Await TestAsync(<a><![CDATA[Public Class Test
     Sub Subroutine()
         Dim i = 0
-        i [||]+= 1
+        i $$+= 1
         i -= 2
         i *= 3
         i /= 4
@@ -1467,7 +1467,7 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        Dim x As System.Collections.Generic[||].IEnumerable(Of Integer)
+        Dim x As System.Collections.Generic$$.IEnumerable(Of Integer)
 
     End Sub
 End Module]]></a>.Value, "System.Collections.Generic.IEnumerable`1")
@@ -1483,7 +1483,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
         
-    End S[||]ub
+    End S$$ub
 End Module]]></a>.Value, "vb.Sub")
         End Function
 
@@ -1493,7 +1493,7 @@ End Module]]></a>.Value, "vb.Sub")
             Await TestAsync(<a><![CDATA[Imports System.Text
 Public Class Test
     Sub Subroutine()
-        Dim sb A[||]s New StringBuilder
+        Dim sb A$$s New StringBuilder
     End Sub
 End Class
 ]]></a>.Value, "vb.As")
@@ -1507,7 +1507,7 @@ End Class
             Await TestAsync(<a><![CDATA[Public Class Test
     Async Sub AsyncSub()
         Dim x2 = Async Function() As Task(Of Integer)
-                     Return A[||]wait AsyncFuncNG(10)
+                     Return A$$wait AsyncFuncNG(10)
                  End Function
     End Sub
 End Class
@@ -1518,7 +1518,7 @@ End Class
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestProperty() As Task
             Await TestAsync(<a><![CDATA[Class Program
-    Prope[||]rty prop As Integer
+    Prope$$rty prop As Integer
 End Class]]></a>.Value, "vb.AutoImplementedProperty")
         End Function
 
@@ -1527,7 +1527,7 @@ End Class]]></a>.Value, "vb.AutoImplementedProperty")
         Public Async Function TestPredefinedTypeMember() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
-        Dim x = Integer.MaxVa[||]lue
+        Dim x = Integer.MaxVa$$lue
     End Sub
 End Module]]></a>.Value, "System.Int32.MaxValue")
         End Function
@@ -1535,7 +1535,7 @@ End Module]]></a>.Value, "System.Int32.MaxValue")
         <WorkItem(864237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864237")>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestModuleModifier() As Task
-            Await TestAsync(<a><![CDATA[Publi[||]c Module M
+            Await TestAsync(<a><![CDATA[Publi$$c Module M
     Public Class C
         Protected Sub S1()
         End Sub
@@ -1566,7 +1566,7 @@ Public Delegate Sub Dele()
         End Get
     End Property
 End Module
-Publi[||]c Delegate Sub Dele()
+Publi$$c Delegate Sub Dele()
 ]]></a>.Value, "vb.Public")
         End Function
 
@@ -1575,7 +1575,7 @@ Publi[||]c Delegate Sub Dele()
         Public Async Function TestAssignment() As Task
             Await TestAsync(<a><![CDATA[Public Class Test
     Sub Subroutine()
-        Dim x =[||] Int32.Parse("1")
+        Dim x =$$ Int32.Parse("1")
     End Sub
 End Class
 ]]></a>.Value, "vb.=")
@@ -1586,7 +1586,7 @@ End Class
         Public Async Function TestRem() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
-        ' COmm[||]ent!
+        ' COmm$$ent!
     End Sub
 End Module]]></a>.Value, "vb.Rem")
         End Function
@@ -1596,7 +1596,7 @@ End Module]]></a>.Value, "vb.Rem")
         Public Async Function TestTodo() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
-        ' TODO: COmm[||]ent!
+        ' TODO: COmm$$ent!
     End Sub
 End Module]]></a>.Value, HelpKeywords.TaskListUserComments)
         End Function
@@ -1608,7 +1608,7 @@ End Module]]></a>.Value, HelpKeywords.TaskListUserComments)
     Sub Subroutine()
     End Sub
     Sub AnotherSub()
-        Subroutine()[||]
+        Subroutine()$$
     End Sub
 End Class
 ]]></a>.Value, "vb.Call")
@@ -1617,7 +1617,7 @@ End Class
         <WorkItem(864202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864202")>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestImportsXmlns() As Task
-            Await TestAsync(<a><![CDATA[Imports <xmln[||]s:ns="goo">]]></a>.Value, "vb.ImportsXmlns")
+            Await TestAsync(<a><![CDATA[Imports <xmln$$s:ns="goo">]]></a>.Value, "vb.ImportsXmlns")
         End Function
 
         <WorkItem(862420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862420")>
@@ -1628,7 +1628,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Module Program
-    Sub Main(a[||]rgs As String())
+    Sub Main(a$$rgs As String())
         
     End Sub
 End Module]]></a>.Value, "System.String()")
@@ -1639,7 +1639,7 @@ End Module]]></a>.Value, "System.String()")
         Public Async Function TestNoToken() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
-[||]
+$$
     End Sub
 End Module]]></a>.Value, "")
         End Function
@@ -1653,7 +1653,7 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        Int32.[||]Parse("1")
+        Int32.$$Parse("1")
     End Sub
 End Module]]></a>.Value, "System.Int32.Parse")
         End Function
@@ -1668,7 +1668,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
 
-        Dim local5 = If(CTy[||]pe(3, Object), Nothing)
+        Dim local5 = If(CTy$$pe(3, Object), Nothing)
     End Sub
 End Module]]></a>.Value, "vb.CType")
         End Function
@@ -1683,7 +1683,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
 
-        Dim local5 = If(CType(3, Object), Noth[||]ing)
+        Dim local5 = If(CType(3, Object), Noth$$ing)
     End Sub
 End Module]]></a>.Value, "vb.Nothing")
         End Function
@@ -1697,7 +1697,7 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        Dim Value1a As Integer?[||] = 10
+        Dim Value1a As Integer?$$ = 10
     End Sub
 End Module]]></a>.Value, "vb.Nullable")
         End Function
@@ -1712,7 +1712,7 @@ Imports System.Linq
 Module Program
     Sub Main(args As String())
 
-#Region "mor[||]e"
+#Region "mor$$e"
 #End Region
 
     End Sub
@@ -1724,7 +1724,7 @@ End Module]]></a>.Value, "vb.String")
         Public Async Function TestTypeCharacter() As Task
             Await TestAsync(<a><![CDATA[Public Module M
     Sub M1()
-        Dim u = 1[||]UI
+        Dim u = 1$$UI
         Dim ul = &HBADC0DE
         Dim l = -1L
     End Sub
@@ -1734,7 +1734,7 @@ End Module]]></a>.Value, "vb.UInteger")
         <WorkItem(865061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/865061")>
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestStructure() As Task
-            Await TestAsync(<a><![CDATA[Structure S[||]1
+            Await TestAsync(<a><![CDATA[Structure S$$1
 End Structure
 ]]></a>.Value, "vb.Structure")
         End Function
@@ -1744,7 +1744,7 @@ End Structure
         Public Async Function TestXmlLiteralDocument() As Task
             Await TestAsync(<a><![CDATA[Public Module M
     Sub M1()
-        Dim MyXMLLiteral = <?xml versio[||]n="1.0" encoding="utf-8"?>
+        Dim MyXMLLiteral = <?xml versio$$n="1.0" encoding="utf-8"?>
                            <Details>
 
                            </Details>
@@ -1768,7 +1768,7 @@ End Module
                            </Details>
 
         Dim y = <!-- -->
-        Dim z = <e[||]/>
+        Dim z = <e$$/>
 
     End Sub
 End Module
@@ -1785,7 +1785,7 @@ End Module
 
                            </Details>
 
-        Dim y = <!--[||] -->
+        Dim y = <!--$$ -->
         Dim z = <e/>
 
     End Sub
@@ -1799,7 +1799,7 @@ End Module
             Await TestAsync(<a><![CDATA[Class C
     Sub M()
         Dim icount = 0
-        Wh[||]ile icount <= 100
+        Wh$$ile icount <= 100
             icount += 1
         End While
 
@@ -1815,7 +1815,7 @@ Sub M()
 End Interface
 Class C
 Implements I1
-Public Sub M() Imple[||]ments I1.M
+Public Sub M() Imple$$ments I1.M
 End Sub
 End Class
 ]]></a>.Value, "vb.ImplementsClause")
@@ -1829,7 +1829,7 @@ Class C
 Sub M1()
 End Sub
 Sub M()
-Dim d1 As New mydele(Addre[||]ssOf M1)
+Dim d1 As New mydele(Addre$$ssOf M1)
 Dim addr As mydele = AddressOf M1
 End Sub
 End Class
@@ -1901,7 +1901,7 @@ End Class
         Public Async Function TestImplementsIDisposable() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Class C
-    Implements IDis[||]posable
+    Implements IDis$$posable
     Public Sub Dispose() Implements IDisposable.Dispose
         Throw New NotImplementedException()
     End Sub
@@ -1913,7 +1913,7 @@ End Class
         Public Async Function TestInherits() As Task
             Await TestAsync(<a><![CDATA[Imports System
 Class C
-    Inherits Exc[||]eption
+    Inherits Exc$$eption
 
 End Class
 ]]></a>.Value, "System.Exception")
@@ -1924,7 +1924,7 @@ End Class
             Await TestAsync(<a><![CDATA[Class C
     Sub M()
         Dim b = False
-        b = N[||]ot b
+        b = N$$ot b
     End Sub
 End Class]]></a>.Value, "vb.Not")
         End Function
@@ -1934,7 +1934,7 @@ End Class]]></a>.Value, "vb.Not")
             Await TestAsync(<a><![CDATA[Class C
     Sub M()
         Dim a(4) As Integer
-        a[||](0) = 1
+        a$$(0) = 1
     End Sub
 End Class]]></a>.Value, "vb.Integer")
         End Function
@@ -1951,7 +1951,7 @@ End Class]]></a>.Value, "vb.Integer")
         Dim query1 = From c In customers
                      Let d = c
                      Where d IsNot Nothing
-                     Group Jo[||]in c1 In customers On d.Address.GetHashCode() Equals c1.Address.GetHashCode() Into e = Group
+                     Group Jo$$in c1 In customers On d.Address.GetHashCode() Equals c1.Address.GetHashCode() Into e = Group
                      Group c By c.Address Into g = Group
                      Order By g.Count() Ascending
                      Order By Address Descending
@@ -1975,7 +1975,7 @@ End Module]]></a>.Value, "vb.QueryGroupJoin")
         Dim query1 = From c In customers
                      Let d = c
                      Where d IsNot Nothing
-                     Group Join c1 I[||]n customers On d.Address.GetHashCode() Equals c1.Address.GetHashCode() Into e = Group
+                     Group Join c1 I$$n customers On d.Address.GetHashCode() Equals c1.Address.GetHashCode() Into e = Group
                      Group c By c.Address Into g = Group
                      Order By g.Count() Ascending
                      Order By Address Descending
@@ -1999,7 +1999,7 @@ End Module]]></a>.Value, "vb.QueryGroupJoinIn")
         Dim query1 = From c In customers
                      Let d = c
                      Where d IsNot Nothing
-                     Group Join c1 In customers On d.Address.GetHashCode() Equ[||]als c1.Address.GetHashCode() Into e = Group
+                     Group Join c1 In customers On d.Address.GetHashCode() Equ$$als c1.Address.GetHashCode() Into e = Group
                      Group c By c.Address Into g = Group
                      Order By g.Count() Ascending
                      Order By Address Descending
@@ -2027,7 +2027,7 @@ End Module]]></a>.Value, "vb.Equals")
                      Group c By c.Address Into g = Group
                      Order By g.Count() Ascending
                      Order By Address Descending
-                     Sele[||]ct New With {Key .Address = Address, Key .CustCount = g.Count()}
+                     Sele$$ct New With {Key .Address = Address, Key .CustCount = g.Count()}
     End Sub
     Class Customer
         Public Property ID() As Integer
@@ -2051,7 +2051,7 @@ End Module]]></a>.Value, "vb.QuerySelect")
                      Group c By c.Address Into g = Group
                      Order By g.Count() Ascending
                      Order By Address Descending
-                     Select New With {Key .Address = Address, Key .CustCount = g.Coun[||]t()}
+                     Select New With {Key .Address = Address, Key .CustCount = g.Coun$$t()}
     End Sub
     Class Customer
         Public Property ID() As Integer
@@ -2064,7 +2064,7 @@ End Module]]></a>.Value, "System.Linq.Enumerable.Count")
         <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Async Function TestOperatorOverload() As Task
             Await TestAsync(<a><![CDATA[Class C
-    Public Shared Operator IsTr[||]ue(ByVal a As C) As Boolean
+    Public Shared Operator IsTr$$ue(ByVal a As C) As Boolean
         Return False
     End Operator
 End Class]]></a>.Value, "vb.IsTrue")
@@ -2079,7 +2079,7 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        Dim produc[||]tList = {New With {.category = "Condiments", .name = "Ketchup"}, New With {.category = "Seafood", .name = "Code"}}
+        Dim produc$$tList = {New With {.category = "Condiments", .name = "Ketchup"}, New With {.category = "Seafood", .name = "Code"}}
     End Sub
 End Module]]></a>.Value, "vb.AnonymousType")
         End Function
@@ -2091,7 +2091,7 @@ End Module]]></a>.Value, "vb.AnonymousType")
 Class C
     Sub M()
         Dim x = "hello"
-        Dim t = x.Get[||]Type
+        Dim t = x.Get$$Type
     End Sub
 End Class]]></a>.Value, "System.Object.GetType")
         End Function
@@ -2105,7 +2105,7 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        args.Le[||]ngth
+        args.Le$$ngth
     End Sub
 End Module]]></a>.Value, "System.Array.Length")
         End Function
@@ -2114,7 +2114,7 @@ End Module]]></a>.Value, "System.Array.Length")
         Public Async Function TestParameterFromReference() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
-        a[||]rgs
+        a$$rgs
     End Sub
 End Module]]></a>.Value, "System.String()")
         End Function
@@ -2124,7 +2124,7 @@ End Module]]></a>.Value, "System.String()")
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
         Dim x As Integer
-        x[||]
+        x$$
     End Sub
 End Module]]></a>.Value, "System.Int32")
         End Function
@@ -2135,7 +2135,7 @@ End Module]]></a>.Value, "System.Int32")
 
 Module Program
     Sub Main(args As String())
-        Dim x As s[||]
+        Dim x As s$$
     End Sub
 End Module]]></a>.Value, "System.Linq.Enumerable")
         End Function
@@ -2144,7 +2144,7 @@ End Module]]></a>.Value, "System.Linq.Enumerable")
         Public Async Function TestRangeVariable() As Task
             Await TestAsync(<a><![CDATA[Module Program
     Sub Main(args As String())
-        Dim z = From x In args Select x[||]
+        Dim z = From x In args Select x$$
     End Sub
 End Module]]></a>.Value, "vb.String")
         End Function
@@ -2157,7 +2157,7 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        Dim x = (2).[||]ToString()
+        Dim x = (2).$$ToString()
     End Sub
 End Module]]></a>.Value, "System.Int32.ToString")
         End Function
@@ -2170,7 +2170,7 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        Dim x = (2)[||].ToString()
+        Dim x = (2)$$.ToString()
     End Sub
 End Module]]></a>.Value, "System.Int32.ToString")
         End Function

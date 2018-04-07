@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
-        [||]If i = 1 OrElse 2 = i OrElse i = 3 Then
+        $$If i = 1 OrElse 2 = i OrElse i = 3 Then
             M(0)
         ElseIf i = 4 OrElse 5 = i OrElse i = 6 Then
             M(1)
@@ -46,7 +46,7 @@ End Class")
 "Class C
     Sub M(i As Integer)
         Const A = 1, B = 2, C = 3
-        [||]If i = A OrElse B = i OrElse i = C Then
+        $$If i = A OrElse B = i OrElse i = C Then
             M(0)
         End If
     End Sub
@@ -68,7 +68,7 @@ End Class")
 "Class C
     Sub M(i As Integer)
         Dim A = 1, B = 2, C = 3
-        [||]If A = 1 OrElse 2 = B OrElse C = 3 Then
+        $$If A = 1 OrElse 2 = B OrElse C = 3 Then
             M(0)
         End If
     End Sub
@@ -80,7 +80,7 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer, j As Integer)
-        [||]If i = 5 OrElse 6 = j Then
+        $$If i = 5 OrElse 6 = j Then
             M(0)
         End If
     End Sub
@@ -92,7 +92,7 @@ End Class")
             Await TestMissingAsync(
 "Class C
     Sub M(i As Integer)
-        [||]If i = 5 Then
+        $$If i = 5 Then
         End If
     End Sub
 End Class")
@@ -103,7 +103,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
-        [||]If 5 >= i AndAlso 1 <= i Then
+        $$If 5 >= i AndAlso 1 <= i Then
         Else If 7 >= i AndAlso 6 <= i
         End If
     End Sub
@@ -123,7 +123,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
-        [||]If i <= 5 OrElse i >= 1 Then
+        $$If i <= 5 OrElse i >= 1 Then
         End If
     End Sub
 End Class",
@@ -141,7 +141,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
-        [||]If i < 10 OrElse 20 < i OrElse (i >= 30 AndAlso 40 >= i) OrElse i = 50 Then
+        $$If i < 10 OrElse 20 < i OrElse (i >= 30 AndAlso 40 >= i) OrElse i = 50 Then
         End If
     End Sub
 End Class",
@@ -159,7 +159,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(i As Integer)
-        [||]If i = 10 Then M(5) Else M(6)
+        $$If i = 10 Then M(5) Else M(6)
     End Sub
 End Class",
 "Class C
@@ -179,7 +179,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Function M(i As Integer) As Integer
-        [||]If i = 10 Then Return 5
+        $$If i = 10 Then Return 5
         If i = 20 Then Return 6
         Return 7
     End Function
@@ -202,7 +202,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Function M(i As Integer) As Integer
-        [||]If i = 10 Then Return 5
+        $$If i = 10 Then Return 5
         If i = 20 Then Return 6 Else Return 7
     End Function
 End Class",
@@ -225,7 +225,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Function M(i As Integer) As Integer
-        [||]If i = 10 Then Return 5
+        $$If i = 10 Then Return 5
         If i = 20 Then M(6)
         If i = 30 Then Return 6
         Return 7
@@ -250,7 +250,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Function M(i As Integer) As Integer
-        [||]If i = 10 Then Return 5
+        $$If i = 10 Then Return 5
         If i = 20 Then Return 6
         If i = i Then Return 0
         Return 7
@@ -275,7 +275,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Function M(i As Integer) As Integer
-        [||]If i = 10 Then Return 5
+        $$If i = 10 Then Return 5
         If i = 20 Then
             Return 6
         ElseIf i = 30 Then
@@ -306,7 +306,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Function M(i As Integer) As Integer
-        [||]If i = 10 Then Return 5 Else Return 4
+        $$If i = 10 Then Return 5 Else Return 4
         If i = 20 Then
             Return 6
         ElseIf i = i Then
@@ -341,7 +341,7 @@ End Class")
 "Class C
     Sub M(i As Integer)
         While i = i
-            [||]If i = 10 Then
+            $$If i = 10 Then
                 Exit While
             Else If i = 1 Then
             End If
@@ -371,7 +371,7 @@ End Class")
         Console.WriteLine()
 #end if
 
-        [||]If i = 1 OrElse 2 = i OrElse i = 3 Then
+        $$If i = 1 OrElse 2 = i OrElse i = 3 Then
             M(0)
         ElseIf i = 4 OrElse 5 = i OrElse i = 6 Then
             M(1)

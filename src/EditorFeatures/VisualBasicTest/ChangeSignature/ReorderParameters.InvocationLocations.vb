@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
@@ -586,7 +586,7 @@ End Class]]></Text>.NormalizedValue()
         Public Async Function ReorderIndexerParameters_CodeRefactoring_InMethodDeclaration() As Threading.Tasks.Task
             Dim markup = <Text><![CDATA[
 Class C
-    Sub Goo(x As Integer[||], y As Integer)
+    Sub Goo(x As Integer$$, y As Integer)
     End Sub
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {1, 0}
@@ -604,7 +604,7 @@ End Class]]></Text>.NormalizedValue()
             Dim markup = <Text><![CDATA[
 Class C
     Sub Goo(x As Integer, y As Integer)
-        [||]
+        $$
     End Sub
 End Class]]></Text>.NormalizedValue()
 
@@ -637,7 +637,7 @@ End Class]]></Text>.NormalizedValue()
             Dim markup = <Text><![CDATA[
 Class C
     Sub Goo(x As Integer, y As Integer)
-        Goo([||]1, 2)
+        Goo($$1, 2)
     End Sub
 End Class]]></Text>.NormalizedValue()
 
