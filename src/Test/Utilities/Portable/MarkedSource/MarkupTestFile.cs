@@ -56,8 +56,8 @@ namespace Roslyn.Test.Utilities
             var currentIndexInInput = 0;
             var inputOutputOffset = 0;
 
-            // A stack of span starts along with their associated annotation name.  [||] spans simply
-            // have empty string for their annotation name.
+            // A stack of span starts along with their associated annotation name.  [|...|]
+            // spans simply have empty string for their annotation name.
             var spanStartStack = new Stack<Tuple<int, string>>();
 
             while (true)
