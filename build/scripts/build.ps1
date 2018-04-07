@@ -498,7 +498,13 @@ function Test-XUnit() {
         }
     }
     elseif ($testVsi) {
-        $dlls = Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir
+        # Since they require Visual Studio to be installed, ensure that the MSBuildWorkspace tests run along with our VS
+        # integration tests in CI.
+        if ($cibuild) {
+            $dlls += @(Get-Item (Join-Path $unitDir "Workspaces.MSBuild.Test\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
+        }
+
+        $dlls += @(Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir)
     }
     else {
         $dlls = Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir
@@ -550,7 +556,6 @@ function Deploy-VsixViaTool() {
     $all = @(
         "Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix",
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
-        "Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix",
         "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
         "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
         "Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
@@ -634,9 +639,9 @@ function Ensure-ProcDump() {
 function Redirect-Temp() {
     $temp = Join-Path $binariesDir "Temp"
     Create-Directory $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\.editorconfig") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.props") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.targets") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\.editorconfig") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.props") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.targets") $temp
     ${env:TEMP} = $temp
     ${env:TMP} = $temp
 }
