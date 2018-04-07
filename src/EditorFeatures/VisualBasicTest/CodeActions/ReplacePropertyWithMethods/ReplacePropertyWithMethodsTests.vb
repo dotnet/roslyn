@@ -1,4 +1,4 @@
-﻿Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Replac
         Public Async Function TestGetWithBody() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    readonly property [||]Prop as integer
+    readonly property $$Prop as integer
         get 
             return 0
         end get
@@ -31,7 +31,7 @@ end class")
         Public Async Function TestIndentation() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    readonly property [||]Prop As Integer
+    readonly property $$Prop As Integer
         get 
             dim count = 0
             for each x in y
@@ -56,7 +56,7 @@ end class")
         Public Async Function TestPrivateProperty() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    private readonly property [||]Prop as integer
+    private readonly property $$Prop as integer
         get
             return 0
         end get
@@ -73,7 +73,7 @@ end class")
         Public Async Function TestAnonyousType1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public readonly property [||]Prop as integer 
+    public readonly property $$Prop as integer 
         get
             return 0
         end get
@@ -97,7 +97,7 @@ end class")
         Public Async Function TestAnonyousType2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public readonly property [||]Prop as integer
+    public readonly property $$Prop as integer
         get
             return 0
         end get
@@ -122,7 +122,7 @@ end class")
         Public Async Function TestPassedToRef1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public readonly property [||]Prop as integer
+    public readonly property $$Prop as integer
         get
             return 0
         end get
@@ -155,7 +155,7 @@ imports System
 class CAttribute 
     inherits Attribute
 
-    public readonly property [||]Prop as integer
+    public readonly property $$Prop as integer
         get
             return 0
         end get
@@ -187,7 +187,7 @@ end class
         Public Async Function TestSetWithBody1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    writeonly property [||]Prop as integer 
+    writeonly property $$Prop as integer 
         set
             dim v = value
         end set
@@ -204,7 +204,7 @@ end class")
         Public Async Function TestSetWithBody2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    writeonly property [||]Prop as integer 
+    writeonly property $$Prop as integer 
         set(val as integer)
             dim v = val
         end set
@@ -221,7 +221,7 @@ end class")
         Public Async Function TestSetReference1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    writeonly property [||]Prop as integer 
+    writeonly property $$Prop as integer 
         set(val as integer)
             dim v = val
         end set
@@ -245,7 +245,7 @@ end class")
         Public Async Function TestGetterAndSetter() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    property [||]Prop as integer
+    property $$Prop as integer
         get
             return 0
         end get
@@ -269,7 +269,7 @@ end class")
         Public Async Function TestRecursiveGet() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    readonly property [||]Prop as integer
+    readonly property $$Prop as integer
         get
             return me.Prop + 1
         end get
@@ -286,7 +286,7 @@ end class")
         Public Async Function TestRecursiveSet() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    writeonly property [||]Prop as integer
+    writeonly property $$Prop as integer
         set
             me.Prop = value + 1
         end set
@@ -304,7 +304,7 @@ end class")
         Public Async Function TestAbstractProperty() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public readonly mustoverride property [||]Prop as integer
+    public readonly mustoverride property $$Prop as integer
     public sub M()
         dim v = me.Prop
     end sub
@@ -322,7 +322,7 @@ end class")
         Public Async Function TestVirtualProperty() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public readonly overridable property [||]Prop as integer
+    public readonly overridable property $$Prop as integer
         get
             return 0
         end get
@@ -347,7 +347,7 @@ end class")
         Public Async Function TestInterfaceProperty1() As Task
             Await TestInRegularAndScriptAsync(
 "interface I
-    readonly property [||]Prop as integer
+    readonly property $$Prop as integer
 end interface",
 "interface I
     Function GetProp() As Integer
@@ -358,7 +358,7 @@ end interface")
         Public Async Function TestInterfaceProperty2() As Task
             Await TestInRegularAndScriptAsync(
 "interface I
-    writeonly property [||]Prop as integer
+    writeonly property $$Prop as integer
 end interface",
 "interface I
     Sub SetProp(Value As Integer)
@@ -369,7 +369,7 @@ end interface")
         Public Async Function TestInterfaceProperty3() As Task
             Await TestInRegularAndScriptAsync(
 "interface I
-    property [||]Prop as integer
+    property $$Prop as integer
 end interface",
 "interface I
     Function GetProp() As Integer
@@ -381,7 +381,7 @@ end interface")
         Public Async Function TestAutoProperty1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public readonly property [||]Prop as integer
+    public readonly property $$Prop as integer
 end class",
 "class C
     Private _Prop As Integer
@@ -396,7 +396,7 @@ end class")
         Public Async Function TestAutoProperty2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public readonly property [||]Prop as integer
+    public readonly property $$Prop as integer
     public sub new()
         me.Prop = 1
     end sub
@@ -418,7 +418,7 @@ end class")
         Public Async Function TestAutoProperty4() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public readonly property [||]Prop as integer = 1
+    public readonly property $$Prop as integer = 1
 end class",
 "class C
     Private _Prop As Integer = 1
@@ -439,7 +439,7 @@ end class")
     ''' <value>
     '''     An that provides access to the language service for the active configured project.
     ''' </value>
-    ReadOnly Property [||]ActiveProjectContext As Object
+    ReadOnly Property $$ActiveProjectContext As Object
 End Interface",
 "Interface ILanguageServiceHost
     ''' <summary>
@@ -463,7 +463,7 @@ End Interface")
     ''' <value>
     '''     An that provides access to the language service for the active configured project.
     ''' </value>
-    WriteOnly Property [||]ActiveProjectContext As Object
+    WriteOnly Property $$ActiveProjectContext As Object
 End Interface",
 "Interface ILanguageServiceHost
     ''' <summary>
@@ -487,7 +487,7 @@ End Interface")
     ''' <value>
     '''     An that provides access to the language service for the active configured project.
     ''' </value>
-    Property [||]ActiveProjectContext As Object
+    Property $$ActiveProjectContext As Object
 End Interface",
 "Interface ILanguageServiceHost
     ''' <summary>
@@ -516,7 +516,7 @@ End Interface")
     '''     Sets <see cref=""ActiveProjectContext""/>.
     ''' </summary>
     ''' <seealso cref=""ActiveProjectContext""/>
-    WriteOnly Property [||]ActiveProjectContext As Object
+    WriteOnly Property $$ActiveProjectContext As Object
 End Interface
 Structure AStruct
     ''' <seealso cref=""ILanguageServiceHost.ActiveProjectContext""/>
@@ -544,7 +544,7 @@ End Structure")
     '''     Gets or sets <see cref=""ActiveProjectContext""/>.
     ''' </summary>
     ''' <seealso cref=""ActiveProjectContext""/>
-    Property [||]ActiveProjectContext As Object
+    Property $$ActiveProjectContext As Object
 End Interface
 Structure AStruct
     ''' <seealso cref=""ILanguageServiceHost.ActiveProjectContext""/>
@@ -574,7 +574,7 @@ End Structure")
             Await TestInRegularAndScriptAsync(
 "Interface ISomeInterface(Of T)
     ''' <seealso cref=""Context""/>
-    WriteOnly Property [||]Context As ISomeInterface(Of T)
+    WriteOnly Property $$Context As ISomeInterface(Of T)
 End Interface
 Structure AStruct
     ''' <seealso cref=""ISomeInterface(Of T).Context""/>
@@ -595,7 +595,7 @@ End Structure")
         Public Async Function TestInterfaceReplacement1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface IGoo
-    Property [||]Goo As Integer
+    Property $$Goo As Integer
 End Interface
 
 Class C

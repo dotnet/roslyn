@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseIsNullCheck
 
 class C
     sub M(s as string)
-        if ([||]ReferenceEquals(s, Nothing))
+        if ($$ReferenceEquals(s, Nothing))
             return
         end if
     end sub
@@ -47,7 +47,7 @@ end class")
 
 class C
     sub M(s as string)
-        if (object.[||]ReferenceEquals(s, Nothing))
+        if (object.$$ReferenceEquals(s, Nothing))
             return
         end if
     end sub
@@ -70,7 +70,7 @@ end class")
 
 class C
     sub M(s as string)
-        if (Object.[||]ReferenceEquals(s, Nothing))
+        if (Object.$$ReferenceEquals(s, Nothing))
             return
         end if
     end sub
@@ -93,7 +93,7 @@ end class")
 
 class C
     sub M(s as string)
-        if ([||]ReferenceEquals(Nothing, s))
+        if ($$ReferenceEquals(Nothing, s))
             return
         end if
     end sub
@@ -116,7 +116,7 @@ end class")
 
 class C
     sub M(s as string)
-        if (not [||]ReferenceEquals(Nothing, s))
+        if (not $$ReferenceEquals(Nothing, s))
             return
         end if
     end sub
@@ -190,7 +190,7 @@ end class")
 
 class C
     sub M(Of T As Structure)(v as T)
-        if ([||]ReferenceEquals(Nothing, v))
+        if ($$ReferenceEquals(Nothing, v))
             return
         end if
     end sub

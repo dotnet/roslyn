@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading.Tasks;
@@ -502,7 +502,7 @@ class Base {
 class Program : Base
 {
     int j;
-    [||]
+    $$
 }",
 @"using System.Collections.Generic;
 
@@ -867,7 +867,7 @@ class Program
 {
     int a;
     string b;
-    [||]
+    $$
 }",
 @"using System.Collections.Generic;
 
@@ -898,7 +898,7 @@ class Program
     int a;
     string b;
     bool c;
-    [||]
+    $$
 }",
 @"using System.Collections.Generic;
 
@@ -930,7 +930,7 @@ class Program
     int a;
     string b;
     bool c;
-    [||]
+    $$
 }",
 @"using System.Collections.Generic;
 
@@ -958,7 +958,7 @@ chosenSymbols: new string[] { });
 class Program
 {
     public int F { get; set; }
-    [||]
+    $$
 }",
 @"
 class Program
@@ -985,7 +985,7 @@ using System.Collections.Generic;
 class Program
 {
     public string s;
-    [||]
+    $$
 }",
 @"
 using System.Collections.Generic;
@@ -1025,7 +1025,7 @@ using System.Collections.Generic;
 class Program
 {
     public string s;
-    [||]
+    $$
 }",
 @"
 using System.Collections.Generic;
@@ -1060,7 +1060,7 @@ using System.Collections.Generic;
 class Program
 {
     public string s;
-    [||]
+    $$
 
     public static bool operator ==(Program program1, Program program2) => true;
 }",
@@ -1094,7 +1094,7 @@ using System.Collections.Generic;
 struct Program
 {
     public string s;
-    [||]
+    $$
 }",
 @"
 using System.Collections.Generic;
@@ -1138,7 +1138,7 @@ using System.Collections.Generic;
 struct Program
 {
     public string s;
-    [||]
+    $$
 }",
 @"
 using System;
@@ -1172,7 +1172,7 @@ using System.Collections.Generic;
 class Program
 {
     public string s;
-    [||]
+    $$
 }",
 @"
 using System;
@@ -1207,7 +1207,7 @@ using System.Collections.Generic;
 class Program : System.IEquatable<Program>
 {
     public string s;
-    [||]
+    $$
 }",
 @"
 using System.Collections.Generic;
@@ -1238,7 +1238,7 @@ optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == Impl
 public class Class1
 {
     int i;
-    [||]
+    $$
 
     public void F()
     {

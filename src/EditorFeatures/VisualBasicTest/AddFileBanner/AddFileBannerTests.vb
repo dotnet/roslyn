@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeRefactorings
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddFileBanner
 "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>[||]Imports System
+        <Document>$$Imports System
 
 class Program1
     sub Main()
@@ -62,7 +62,7 @@ end class
 "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>[||]Imports System
+        <Document>$$Imports System
 
 class Program1
     sub Main()
@@ -106,7 +106,7 @@ end class
 "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>[||]' I already have a banner
+        <Document>$$' I already have a banner
 
 Imports System
 
@@ -130,7 +130,7 @@ end class
 "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>[||]
+        <Document>$$
 
 Imports System
 
@@ -154,7 +154,7 @@ end class
 "
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>[||]
+        <Document>$$
 
 Imports System
 

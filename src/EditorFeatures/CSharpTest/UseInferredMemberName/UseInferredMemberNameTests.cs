@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -31,7 +31,7 @@ class C
     void M()
     {
         int a = 1;
-        var t = ([||]a: a, 2);
+        var t = ($$a: a, 2);
     }
 }",
 @"
@@ -56,7 +56,7 @@ class C
     void M()
     {
         int alice = 1;
-        (int, int, string) t = ([||]alice: alice, alice, null);
+        (int, int, string) t = ($$alice: alice, alice, null);
     }
 }", parameters: new TestParameters(parseOptions: s_parseOptions));
         }
@@ -71,7 +71,7 @@ class C
     void M()
     {
         int a = 2;
-        var t = (1, [||]a: a);
+        var t = (1, $$a: a);
     }
 }", count: 0, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
@@ -86,7 +86,7 @@ class C
     void M()
     {
         int a = 2;
-        var t = (1, [||]a: a);
+        var t = (1, $$a: a);
     }
 }", count: 0, parameters: new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)));
         }
@@ -127,7 +127,7 @@ class C
     void M()
     {
         int a = 1;
-        var t = new { [||]a= a, 2 };
+        var t = new { $$a= a, 2 };
     }
 }",
 @"
@@ -152,7 +152,7 @@ class C
     void M()
     {
         int alice = 1;
-        var t = new { [||]alice=alice, alice };
+        var t = new { $$alice=alice, alice };
     }
 }", parameters: new TestParameters(parseOptions: s_parseOptions));
         }

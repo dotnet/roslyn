@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Replac
         Public Async Function TestMethodWithGetName() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
 End class",
 "class C
@@ -32,7 +32,7 @@ End class")
         Public Async Function TestMissingParameterList() As Task
             Await TestInRegularAndScript1Async(
 "class C
-    function [||]GetGoo as integer
+    function $$GetGoo as integer
     End function
 End class",
 "class C
@@ -47,7 +47,7 @@ End class")
         Public Async Function TestMethodWithoutGetName() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]Goo() as integer
+    function $$Goo() as integer
     End function
 End class",
 "class C
@@ -62,7 +62,7 @@ End class")
         Public Async Function TestMethodWithoutBody() As Task
             Await TestInRegularAndScriptAsync(
 "mustinherit class C
-    MustOverride function [||]GetGoo() as integer
+    MustOverride function $$GetGoo() as integer
 End class",
 "mustinherit class C
     MustOverride ReadOnly Property Goo as integer
@@ -73,7 +73,7 @@ End class")
         Public Async Function TestMethodWithModifiers() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public shared function [||]GetGoo() as integer
+    public shared function $$GetGoo() as integer
     End function
 End class",
 "class C
@@ -88,7 +88,7 @@ End class")
         Public Async Function TestMethodWithAttributes() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    <A> function [||]GetGoo() as integer
+    <A> function $$GetGoo() as integer
     End function
 End class",
 "class C
@@ -105,7 +105,7 @@ End class")
             Await TestInRegularAndScriptAsync(
 "class C
     ' Goo
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
 End class",
 "class C
@@ -122,7 +122,7 @@ End class")
             Await TestInRegularAndScriptAsync(
 "class C
 #if true
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
 #End if
 End class",
@@ -141,7 +141,7 @@ End class")
             Await TestInRegularAndScriptAsync(
 "class C
 #if true
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
 
     sub SetGoo(i as integer)
@@ -166,7 +166,7 @@ End class")
             Await TestInRegularAndScriptAsync(
 "class C
 #if true
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
 
     sub SetGoo(i as integer)
@@ -193,7 +193,7 @@ End class", index:=1)
     sub SetGoo(i as integer)
     end sub
 
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
 #End if
 End class",
@@ -218,7 +218,7 @@ End class")
     sub SetGoo(i as integer)
     end sub
 
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
 #End if
 End class",
@@ -241,7 +241,7 @@ End class", index:=1)
             Await TestInRegularAndScriptAsync(
 "class C
     ' Goo
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
     ' SetGoo
     sub SetGoo(i as integer)
@@ -268,7 +268,7 @@ index:=1)
 End interface
 class C
     implements I
-    function [||]GetGoo() as integer implements I.GetGoo
+    function $$GetGoo() as integer implements I.GetGoo
     End function
 End class",
 "interface I
@@ -287,7 +287,7 @@ End class")
         Public Async Function TestExplicitInterfaceMethod_3() As Task
             Await TestInRegularAndScriptAsync(
 "interface I
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
 End interface
 class C
     implements I
@@ -310,7 +310,7 @@ End class")
         Public Async Function TestInAttribute() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
-    <At[||]tr> function GetGoo() as integer
+    <At$$tr> function GetGoo() as integer
     End function
 End class")
         End Function
@@ -321,7 +321,7 @@ End class")
 "class C
     function GetGoo() as integer
 
-[||]    End function
+$$    End function
 End class")
         End Function
 
@@ -329,7 +329,7 @@ End class")
         Public Async Function TestSubMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
-    sub [||]GetGoo()
+    sub $$GetGoo()
     End sub
 End class")
         End Function
@@ -338,7 +338,7 @@ End class")
         Public Async Function TestAsyncMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
-    async function [||]GetGoo() as Task
+    async function $$GetGoo() as Task
     End function
 End class")
         End Function
@@ -347,7 +347,7 @@ End class")
         Public Async Function TestGenericMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
-    function [||]GetGoo(of T)() as integer
+    function $$GetGoo(of T)() as integer
     End function
 End class")
         End Function
@@ -356,7 +356,7 @@ End class")
         Public Async Function TestExtensionMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "module C
-    <System.Runtime.CompilerServices.Extension> function [||]GetGoo(i as integer) as integer
+    <System.Runtime.CompilerServices.Extension> function $$GetGoo(i as integer) as integer
     End function
 End module")
         End Function
@@ -365,7 +365,7 @@ End module")
         Public Async Function TestMethodWithParameters_1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class C
-    function [||]GetGoo(i as integer) as integer
+    function $$GetGoo(i as integer) as integer
     End function
 End class")
         End Function
@@ -374,7 +374,7 @@ End class")
         Public Async Function TestUpdateGetReferenceNotInMethod() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
     sub Bar()
         dim x = GetGoo()
@@ -396,7 +396,7 @@ End class")
         Public Async Function TestUpdateGetReferenceMemberAccessInvocation() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
     sub Bar()
         dim x = me.GetGoo()
@@ -418,7 +418,7 @@ End class")
         Public Async Function TestUpdateGetReferenceBindingMemberInvocation() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
     sub Bar()
         dim x as C
@@ -442,7 +442,7 @@ End class")
         Public Async Function TestUpdateGetReferenceInMethod() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
         return GetGoo()
     End function
 End class",
@@ -459,7 +459,7 @@ End class")
         Public Async Function TestOverride() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public overridable function [||]GetGoo() as integer
+    public overridable function $$GetGoo() as integer
     End function
 End class
 class D
@@ -486,7 +486,7 @@ End class")
         Public Async Function TestUpdateGetReference_NonInvoked() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
     sub Bar()
         dim i = GetGoo
@@ -508,7 +508,7 @@ End class")
         Public Async Function TestUpdateGetSet() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
     sub SetGoo(i as integer)
     End sub
@@ -529,7 +529,7 @@ index:=1)
             Await TestInRegularAndScriptAsync(
 "Imports System
 class C
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
     sub SetGoo(i as integer)
     End sub
@@ -557,7 +557,7 @@ index:=1)
         Public Async Function TestUpdateGetSet_SetterAccessibility() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    public function [||]GetGoo() as integer
+    public function $$GetGoo() as integer
     End function
     private sub SetGoo(i as integer)
     End sub
@@ -577,7 +577,7 @@ index:=1)
         Public Async Function TestUpdateGetSet_GetInSetReference() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
     sub SetGoo(i as integer)
     End sub
@@ -603,7 +603,7 @@ index:=1)
         Public Async Function TestUpdateGetSet_SetReferenceInSetter() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
     sub SetGoo(i as integer)
         SetGoo(i - 1)
@@ -625,7 +625,7 @@ index:=1)
         Public Async Function TestVirtualGetWithOverride_1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    protected overridable function [||]GetGoo() as integer
+    protected overridable function $$GetGoo() as integer
     End function
 End class
 class D
@@ -652,7 +652,7 @@ End class")
         Public Async Function TestVirtualGetWithOverride_2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    protected overridable function [||]GetGoo() as integer
+    protected overridable function $$GetGoo() as integer
     End function
 End class
 class D
@@ -681,7 +681,7 @@ End class")
         Public Async Function TestWithPartialClasses() As Task
             Await TestInRegularAndScriptAsync(
 "partial class C
-    function [||]GetGoo() as integer
+    function $$GetGoo() as integer
     End function
 End class
 partial class C
@@ -711,7 +711,7 @@ public class Goo
         dim v = GetValue().GetValue()
     end sub
 
-    Public Function [||]GetValue() As Goo 
+    Public Function $$GetValue() As Goo 
     End Function
 end class",
 "
@@ -731,7 +731,7 @@ end class")
         Public Async Function TestIndentation() As Task
             Await TestInRegularAndScriptAsync(
 "class C
-    Public Function [||]GetProp() As Integer
+    Public Function $$GetProp() As Integer
         dim count = 0
         for each x in y
             count = count + z
@@ -756,7 +756,7 @@ end class")
         Public Async Function TestInterfaceImplementation() As Task
             Await TestInRegularAndScriptAsync(
 "Interface IGoo
-    Function [||]GetGoo() As Integer
+    Function $$GetGoo() As Integer
 End Interface
 
 Class C
@@ -790,7 +790,7 @@ End Class")
         Public Async Function TestSystemObjectMetadataOverride() As Task
             Await TestMissingAsync(
 "class C
-    public overrides function [||]ToString() as string
+    public overrides function $$ToString() as string
     End function
 End class")
         End Function
@@ -802,7 +802,7 @@ End class")
 "class C
     inherits system.type
 
-    public overrides function [||]GetArrayRank() as integer
+    public overrides function $$GetArrayRank() as integer
     End function
 End class",
 "class C

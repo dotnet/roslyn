@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -35,7 +35,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -65,7 +65,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             Action a = () =>
             {
@@ -102,7 +102,7 @@ class C
 {
     void Test(IList<string> list)
     {
-        [||]for (int i = 0; i < list.Count; i++)
+        $$for (int i = 0; i < list.Count; i++)
         {
             Console.WriteLine(list[i]);
             list.Add(null);
@@ -136,7 +136,7 @@ class C
 {
     void Test(IList<string> list)
     {
-        [||]for (int i = 0; i < list.Count; i++)
+        $$for (int i = 0; i < list.Count; i++)
         {
             Console.WriteLine(list[i]);
             list = null;
@@ -170,7 +170,7 @@ class C
 {
     void Test(IList<string> list)
     {
-        [||]for (int i = 0; i < list.Count; i++)
+        $$for (int i = 0; i < list.Count; i++)
         {
             Console.WriteLine(list[i]);
             Console.WriteLine(list.Count);
@@ -205,7 +205,7 @@ class C
     {
         Action a = () =>
         {
-            [||]for (int i = 0; i < array.Length; i++)
+            $$for (int i = 0; i < array.Length; i++)
             {
                 Console.WriteLine(array[i]);
             }
@@ -239,7 +239,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
             Console.WriteLine(array[i]);
@@ -271,7 +271,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
             Console.WriteLine(array[i]);
     }
 }",
@@ -297,7 +297,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < array.Length; ++i)
+        $$for (int i = 0; i < array.Length; ++i)
         {
             Console.WriteLine(array[i]);
         }
@@ -327,7 +327,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < array.Length; i += 1)
+        $$for (int i = 0; i < array.Length; i += 1)
         {
             Console.WriteLine(array[i]);
         }
@@ -357,7 +357,7 @@ class C
 {
     void Test(string[] array)
     {
-       [||] for (int i = 0; i < array.Length; i++)
+       $$ for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -375,7 +375,7 @@ class C
 {
     void Test(string[] array)
     {
-        for ([||] int i = 0; i < array.Length; i++)
+        for ($$ int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -393,7 +393,7 @@ class C
 {
     void Test(string[] array)
     {
-        for (int i = 0; i < array.Length; i++ [||])
+        for (int i = 0; i < array.Length; i++ $$)
         {
             Console.WriteLine(array[i]);
         }
@@ -411,7 +411,7 @@ class C
 {
     void Test(string[] array)
     {
-        for[||] (int i = 0; i < array.Length; i++)
+        for$$ (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -471,7 +471,7 @@ class C
 {
     void Test(string[] array)
     {
-        for [||](int i = 0; i < array.Length; i++)
+        for $$(int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -501,7 +501,7 @@ class C
 {
     void Test(string[] array)
     {
-        for (int i = 0; i < array.Length; i++)[||]
+        for (int i = 0; i < array.Length; i++)$$
         {
             Console.WriteLine(array[i]);
         }
@@ -531,7 +531,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < array.Length; )
+        $$for (int i = 0; i < array.Length; )
         {
             Console.WriteLine(array[i]);
         }
@@ -549,7 +549,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < array.Length; i += 2)
+        $$for (int i = 0; i < array.Length; i += 2)
         {
             Console.WriteLine(array[i]);
         }
@@ -567,7 +567,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < array.Length; j += 2)
+        $$for (int i = 0; i < array.Length; j += 2)
         {
             Console.WriteLine(array[i]);
         }
@@ -585,7 +585,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; ; i++)
+        $$for (int i = 0; ; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -603,7 +603,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; j < array.Length; i++)
+        $$for (int i = 0; j < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -621,7 +621,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < GetLength(array); i++)
+        $$for (int i = 0; i < GetLength(array); i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -639,7 +639,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (; i < array.Length; i++)
+        $$for (; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -658,7 +658,7 @@ class C
     void Test(string[] array)
     {
         int i;
-        [||]for (i = 0; i < array.Length; i++)
+        $$for (i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -676,7 +676,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i; i < array.Length; i++)
+        $$for (int i; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -694,7 +694,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 1; i < array.Length; i++)
+        $$for (int i = 1; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -712,7 +712,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0, j = 0; i < array.Length; i++)
+        $$for (int i = 0, j = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -731,7 +731,7 @@ class C
 {
     void Test(IList<string> list)
     {
-        [||]for (int i = 0; i < list.Count; i++)
+        $$for (int i = 0; i < list.Count; i++)
         {
             Console.WriteLine(list[i]);
         }
@@ -763,7 +763,7 @@ class C
 {
     void Test(IList<string> list)
     {
-        [||]for (int i = 0; i < list.Count; i++)
+        $$for (int i = 0; i < list.Count; i++)
         {
             var val = list[i];
             Console.WriteLine(list[i]);
@@ -796,7 +796,7 @@ class C
 {
     void Test(IList<string> list)
     {
-        [||]for (int i = 0; i < list.Count; i++)
+        $$for (int i = 0; i < list.Count; i++)
         {
             var val = list [ i ];
             Console.WriteLine(list [ /*find me*/ i ]);
@@ -829,7 +829,7 @@ class C
 {
     void Test(IList<string> list)
     {
-        [||]for (int i = 0; i < list.Count; i++)
+        $$for (int i = 0; i < list.Count; i++)
         {
             // loop comment
 
@@ -866,7 +866,7 @@ class C
 {
     void Test(IList<string> list)
     {
-        [||]for (int i = 0; i < list.Count; i++)
+        $$for (int i = 0; i < list.Count; i++)
         {
 #if true
 
@@ -906,7 +906,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(i);
         }
@@ -924,7 +924,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(other[i]);
         }
@@ -942,7 +942,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             array[i] = 1;
         }
@@ -972,7 +972,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -1012,7 +1012,7 @@ class C
     void Test(MyList list)
     {
         // need to use 'string' here to preserve original index semantics.
-        [||]for (int i = 0; i < list.Length; i++)
+        $$for (int i = 0; i < list.Length; i++)
         {
             Console.WriteLine(list[i]);
         }
@@ -1062,7 +1062,7 @@ class C
     void Test(MyList list)
     {
         // can use 'var' here since hte type stayed the same.
-        [||]for (int i = 0; i < list.Length; i++)
+        $$for (int i = 0; i < list.Length; i++)
         {
             Console.WriteLine(list[i]);
         }
@@ -1103,7 +1103,7 @@ class C
     void Test(string[] array)
     {
         // trivia 1
-        [||]for /*trivia 2*/ ( /*trivia 3*/ int i = 0; i < array.Length; i++) /*trivia 4*/
+        $$for /*trivia 2*/ ( /*trivia 3*/ int i = 0; i < array.Length; i++) /*trivia 4*/
         // trivia 5
         {
             Console.WriteLine(array[i]);
@@ -1136,7 +1136,7 @@ class C
 {
     void Test(string[] array)
     {
-        [||]for (var (i, j) = (0, 0); i < array.Length; i++)
+        $$for (var (i, j) = (0, 0); i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -1154,7 +1154,7 @@ class C
 {
     void Test(string[,] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i, 0]);
         }
@@ -1172,7 +1172,7 @@ class C
 {
     void Test(string[,] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i, i]);
         }
@@ -1190,7 +1190,7 @@ class C
 {
     void Test(string[][] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i]);
         }
@@ -1220,7 +1220,7 @@ class C
 {
     void Test(string[][] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i][0]);
         }
@@ -1250,7 +1250,7 @@ class C
 {
     void Test(string[][] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             var subArray = array[i];
             for (int j = 0; j < subArray.Length; j++)
@@ -1287,7 +1287,7 @@ class C
 {
     void Test(string[][] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             for (int j = 0; j < array[i].Length; j++)
             {
@@ -1325,7 +1325,7 @@ class C
     {
         for (int i = 0; i < array.Length; i++)
         {
-            [||]for (int j = 0; j < array[i].Length; j++)
+            $$for (int j = 0; j < array[i].Length; j++)
             {
                 Console.WriteLine(array[i][j]);
             }
@@ -1359,7 +1359,7 @@ class C
 {
     void Test(string[][] array)
     {
-        [||]for (int i = 0; i < array.Length; i++)
+        $$for (int i = 0; i < array.Length; i++)
         {
             Console.WriteLine(array[i][i]);
         }

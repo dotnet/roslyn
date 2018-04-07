@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
@@ -2023,7 +2023,7 @@ End Module")
         Public Async Function TestNotOnMissingMethodName() As Task
             Await TestMissingInRegularAndScriptAsync("Class C
     Sub M()
-        Me.[||] 
+        Me.$$ 
  End Sub
 End Class")
         End Function

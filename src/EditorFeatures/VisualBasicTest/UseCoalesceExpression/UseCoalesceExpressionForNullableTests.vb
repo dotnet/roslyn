@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -23,7 +23,7 @@ Imports System
 
 Class C
     Sub M(x as Integer?, y as Integer?)
-        Dim z = [||]If (Not x.HasValue, y, x.Value)
+        Dim z = $$If (Not x.HasValue, y, x.Value)
     End Sub
 End Class",
 "
@@ -44,7 +44,7 @@ Imports System
 
 Class C
     Sub M(x as Integer?, y as Integer?)
-        Dim z = [||]If(x.HasValue, x.Value, y)
+        Dim z = $$If(x.HasValue, x.Value, y)
     End Sub
 End Class",
 "
@@ -65,7 +65,7 @@ Imports System
 
 Class C
     Sub M(x as Integer?, y as Integer?)
-        Dim z = [||]If (Not (x + y).HasValue, y, (x + y).Value)
+        Dim z = $$If (Not (x + y).HasValue, y, (x + y).Value)
     End Sub
 End Class",
 "
@@ -86,7 +86,7 @@ Imports System
 
 Class C
     Sub M(x as Integer?, y as Integer?)
-        Dim z = [||]If ((Not x.HasValue), y, x.Value)
+        Dim z = $$If ((Not x.HasValue), y, x.Value)
     End Sub
 End Class",
 "
@@ -153,7 +153,7 @@ Imports System.Linq.Expressions
 
 Class C
     Sub M(x as integer?, y as integer)
-        dim e as Expression(of Func(of integer)) = function() [||]If (x.HasValue, x.Value, y)
+        dim e as Expression(of Func(of integer)) = function() $$If (x.HasValue, x.Value, y)
     End Sub
 End Class",
 "

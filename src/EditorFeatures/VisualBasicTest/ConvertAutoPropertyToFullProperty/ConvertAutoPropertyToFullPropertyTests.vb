@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
         Public Async Function SimpleTest() As Task
             Dim initial = "
 Class C
-    Public Property T[||]est1 As Integer
+    Public Property T$$est1 As Integer
 End Class"
             Dim expected = "
 Class C
@@ -38,7 +38,7 @@ End Class"
         Public Async Function WithInitializer() As Task
             Dim initial = "
 Class C
-    Public Property T[||]est2 As Integer = 4
+    Public Property T$$est2 As Integer = 4
 End Class"
             Dim expected = "
 Class C
@@ -60,7 +60,7 @@ End Class"
         Public Async Function WithReadonly() As Task
             Dim initial = "
 Class C
-    Public ReadOnly Property T[||]est5 As String
+    Public ReadOnly Property T$$est5 As String
 End Class"
             Dim expected = "
 Class C
@@ -79,7 +79,7 @@ End Class"
         Public Async Function WithReadonlyAndInitializer() As Task
             Dim initial = "
 Class C
-    Public ReadOnly Property Tes[||]t4 As String = ""Initial Value""
+    Public ReadOnly Property Tes$$t4 As String = ""Initial Value""
 End Class"
             Dim expected = "
 Class C
@@ -99,7 +99,7 @@ End Class"
         Public Async Function PrivateProperty() As Task
             Dim initial = "
 Class C
-    Private Property Tes[||]t4 As String
+    Private Property Tes$$t4 As String
 End Class"
             Dim expected = "
 Class C
@@ -122,7 +122,7 @@ End Class"
             Dim initial = "
 Class C
     '' Comment before
-    Public Property Test1 As In[||]teger ''Comment during
+    Public Property Test1 As In$$teger ''Comment during
     '' Comment after
 
 End Class"
@@ -148,7 +148,7 @@ End Class"
         Public Async Function SharedProperty() As Task
             Dim initial = "
 Class C
-    Public Sha[||]red Property Test1 As Double
+    Public Sha$$red Property Test1 As Double
 End Class"
 
             Dim expected = "
@@ -171,7 +171,7 @@ End Class"
         Public Async Function WithOverridable() As Task
             Dim initial = "
 Class C
-    Public Overridable Proper[||]ty Test4 As Decimal
+    Public Overridable Proper$$ty Test4 As Decimal
 End Class"
 
             Dim expected = "
@@ -194,7 +194,7 @@ End Class"
         Public Async Function WithMustOverride() As Task
             Await TestMissingAsync("
 Class C
-    Public MustOverride Property Tes[||]t4 As String
+    Public MustOverride Property Tes$$t4 As String
 End Class")
         End Function
 
@@ -202,7 +202,7 @@ End Class")
         Public Async Function CursorOnInitializer() As Task
             Await TestMissingAsync("
 Class C
-    Public Property Test2 As Integer [||]= 4
+    Public Property Test2 As Integer $$= 4
 End Class")
         End Function
 
@@ -210,7 +210,7 @@ End Class")
         Public Async Function InInterface() As Task
             Await TestMissingAsync("
 Interface I
-    Public Property Tes[||]t2 As Integer
+    Public Property Tes$$t2 As Integer
 End Interface")
         End Function
 
@@ -218,10 +218,10 @@ End Interface")
         Public Async Function InvalidLocation() As Task
             Await TestMissingAsync("
 Namespace NS
-    Public Property Tes[||]t2 As Integer
+    Public Property Tes$$t2 As Integer
 End Namespace")
 
-            Await TestMissingAsync("Public Property Tes[||]t2 As Integer")
+            Await TestMissingAsync("Public Property Tes$$t2 As Integer")
         End Function
     End Class
 End Namespace

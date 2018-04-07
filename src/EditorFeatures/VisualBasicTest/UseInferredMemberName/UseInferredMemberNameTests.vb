@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseInferredMemberN
 Class C
     Sub M()
         Dim a As Integer = 1
-        Dim t = ( [||]a:= a, 2)
+        Dim t = ( $$a:= a, 2)
     End Sub
 End Class
 ",
@@ -48,7 +48,7 @@ Class C
     Sub M()
         Dim alice As Integer = 1
         Dim Alice As Integer = 2
-        Dim t = ( [||]alice:= alice, Alice)
+        Dim t = ( $$alice:= alice, Alice)
     End Sub
 End Class
 ", parameters:=New TestParameters(s_parseOptions))
@@ -76,7 +76,7 @@ End Class
 Class C
     Sub M()
         Dim a As Integer = 2
-        Dim t = (1,  [||]a:= a )
+        Dim t = (1,  $$a:= a )
     End Sub
 End Class
 ",

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -619,15 +619,15 @@ namespace Root
             var content =
 @"class A
 {
-    [|[||]|] i;
+    [|$$|] i;
 }
 ";
 
             foreach (var pair in builtInTypeMap)
             {
-                int position = content.IndexOf(@"[||]", StringComparison.Ordinal);
-                var newContent = content.Replace(@"[||]", pair.Key);
-                var expected = content.Replace(@"[||]", pair.Value);
+                int position = content.IndexOf(@"$$", StringComparison.Ordinal);
+                var newContent = content.Replace(@"$$", pair.Key);
+                var expected = content.Replace(@"$$", pair.Value);
                 await TestWithPredefinedTypeOptionsAsync(newContent, expected);
             }
         }
@@ -2727,7 +2727,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.[||]
+        Console.$$
     }
 }";
 

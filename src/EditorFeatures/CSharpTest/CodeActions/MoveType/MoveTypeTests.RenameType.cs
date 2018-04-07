@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         public async Task SingleClassInFile_RenameType()
         {
             var code =
-@"[||]class Class1 { }";
+@"$$class Class1 { }";
 
             var codeWithTypeRenamedToMatchFileName =
 @"class [|test1|] { }";
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         public async Task MoreThanOneTypeInFile_RenameType()
         {
             var code =
-@"[||]class Class1
+@"$$class Class1
 { 
     class Inner { }
 }";
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             // testworkspace creates files like test1.cs, test2.cs and so on.. 
             // so type name matches filename here and rename file action should not be offered.
             var code =
-@"[||]class test1 { }";
+@"$$class test1 { }";
 
             await TestRenameTypeToMatchFileAsync(code, expectedCodeAction: false);
         }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         public async Task TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameType()
         {
             var code =
-@"[||]class Class1 { }
+@"$$class Class1 { }
 class test1 { }";
 
             await TestRenameTypeToMatchFileAsync(code, expectedCodeAction: false);
@@ -64,7 +64,7 @@ class test1 { }";
         public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName1_RenameType()
         {
             var code =
-@"[||]class Class1 { }
+@"$$class Class1 { }
 class Class2 { }";
 
             var codeWithTypeRenamedToMatchFileName =
@@ -79,7 +79,7 @@ class Class2 { }";
         {
             var code =
 @"class Class1 { }
-[||]class Class2 { }";
+$$class Class2 { }";
 
             var codeWithTypeRenamedToMatchFileName =
 @"class Class1 { }

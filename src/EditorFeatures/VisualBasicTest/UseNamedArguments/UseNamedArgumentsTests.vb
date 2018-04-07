@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseNamedArguments
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 As Integer, arg2 As Integer)
-        M([||]1, 2)
+        M($$1, 2)
     End Sub
 End Class",
 "Class C
@@ -32,7 +32,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 As Integer, arg2 As Integer)
-        M(1, [||]2)
+        M(1, $$2)
     End Sub
 End Class",
 "Class C
@@ -49,7 +49,7 @@ End Class")
     Sub M()
         Dim f = Sub (arg)
                 End Sub
-        f([||]1)
+        f($$1)
     End Sub
 End Class",
 "Class C
@@ -68,7 +68,7 @@ End Class")
     Sub M()
         Dim f = Sub (arg)
                 End Sub
-        f?([||]1)
+        f?($$1)
     End Sub
 End Class",
 "Class C
@@ -85,7 +85,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 as Integer, arg2 as Integer)
-        Me?.M([||]1, 2)
+        Me?.M($$1, 2)
     End Sub
 End Class",
 "Class C
@@ -100,7 +100,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 as String)
-        Dim r = arg1?([||]0)
+        Dim r = arg1?($$0)
     End Sub
 End Class",
 "Class C
@@ -115,7 +115,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub New(arg1 As Integer, arg2 As Integer)
-        Dim c = New C([||]1, 2)
+        Dim c = New C($$1, 2)
     End Sub
 End Class",
 "Class C
@@ -130,7 +130,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Function M(arg1 as String) As Char
-        Return arg1([||]0)
+        Return arg1($$0)
     End Function
 End Class",
 "Class C
@@ -145,7 +145,7 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Function M(arg1 as Integer() As Integer
-        Return arg1([||]0)
+        Return arg1($$0)
     End Function
 End Class")
         End Function
@@ -155,7 +155,7 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Function M(arg1 as Integer() As Integer
-        Return arg1?([||]0)
+        Return arg1?($$0)
     End Function
 End Class")
         End Function
@@ -165,7 +165,7 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M()
-        M([||])
+        M($$)
     End Sub
 End Class")
         End Function
@@ -175,7 +175,7 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M(arg as Integer)
-        M([||]arg:=1)
+        M($$arg:=1)
     End Sub
 End Class")
         End Function
@@ -185,7 +185,7 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M(ParamArray arg1 As Integer())
-        M([||]1)
+        M($$1)
     End Sub
 End Class")
         End Function
@@ -195,7 +195,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 As Integer, ParamArray arg2 As Integer())
-        M([||]1)
+        M($$1)
     End Sub
 End Class",
 "Class C
@@ -210,7 +210,7 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
-        M([||]1,,3)
+        M($$1,,3)
     End Sub
 End Class")
         End Function
@@ -220,7 +220,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
-        M(1,,[||]3)
+        M(1,,$$3)
     End Sub
 End Class",
 "Class C
@@ -235,7 +235,7 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M(optional arg1 As Integer=1, optional arg2 As Integer=1)
-        M([||], arg2:=2)
+        M($$, arg2:=2)
     End Sub
 End Class")
         End Function
@@ -245,7 +245,7 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Function M() As String
-        Return NameOf([||]M)
+        Return NameOf($$M)
     End Function
 End Class")
         End Function
@@ -253,7 +253,7 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestMissingOnAttribute() As Task
             Await TestMissingInRegularAndScriptAsync(
-"<C([||]1)>
+"<C($$1)>
 Class C
     Inherits System.Attribute
     Public Sub New(arg As Integer)
@@ -267,7 +267,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 As Integer)
-        M(arg1[||])
+        M(arg1$$)
     End Sub
 End Class",
 "Class C
@@ -283,7 +283,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 As Integer, arg2 As Integer)
-        M(arg1[||], arg2)
+        M(arg1$$, arg2)
     End Sub
 End Class",
 "Class C
@@ -299,7 +299,7 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
-        M(1,[||],3)
+        M(1,$$,3)
     End Sub
 End Class")
         End Function
@@ -310,7 +310,7 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
-        M(1[||],,3)
+        M(1$$,,3)
     End Sub
 End Class")
         End Function
@@ -321,7 +321,7 @@ End Class")
             Await TestMissingInRegularAndScriptAsync(
 "Class C
     Function M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1) As Integer
-        M(1, M(1,[||], 3))
+        M(1, M(1,$$, 3))
     End Function
 End Class")
         End Function
@@ -333,7 +333,7 @@ End Class")
 "Imports System.Linq
 Class C
     Sub M(arr as Integer())
-        arr.Zip(arr, Function(p1, p2) ([||]p1, p2))
+        arr.Zip(arr, Function(p1, p2) ($$p1, p2))
     End Sub
 End Class")
         End Function
@@ -344,7 +344,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class C
     Sub M([If] As Integer, [For] As Integer)
-        M([If][||], [For])
+        M([If]$$, [For])
     End Sub
 End Class",
 "Class C

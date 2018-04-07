@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
         public async Task TestEmptyFile()
         {
             await TestMissingInRegularAndScriptAsync(
-@"[||]");
+@"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -34,7 +34,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -62,7 +62,7 @@ using System;
 
 class C
 {
-    public C([||]int? i)
+    public C($$int? i)
     {
     }
 }",
@@ -90,7 +90,7 @@ using System;
 
 class C
 {
-    public C([||]int i)
+    public C($$int i)
     {
     }
 }");
@@ -105,7 +105,7 @@ using System;
 
 interface I
 {
-    void M([||]string s);
+    void M($$string s);
 }");
         }
 
@@ -118,7 +118,7 @@ using System;
 
 class C
 {
-    abstract void M([||]string s);
+    abstract void M($$string s);
 }");
         }
 
@@ -131,7 +131,7 @@ using System;
 
 class C
 {
-    extern void M([||]string s);
+    extern void M($$string s);
 }");
         }
 
@@ -144,7 +144,7 @@ using System;
 
 class C
 {
-    partial void M([||]string s);
+    partial void M($$string s);
 
     partial void M(string s)
     {
@@ -165,7 +165,7 @@ class C
     {
     }
 
-    partial void M([||]string s);
+    partial void M($$string s);
 }");
         }
 
@@ -180,7 +180,7 @@ class C
 {
     partial void M(string s);
 
-    partial void M([||]string s)
+    partial void M($$string s)
     {
     }
 }",
@@ -210,7 +210,7 @@ using System;
 
 class C
 {
-    partial void M([||]string s)
+    partial void M($$string s)
     {
     }
 
@@ -242,7 +242,7 @@ using System;
 
 class C
 {
-    extern void M([||]string s);
+    extern void M($$string s);
 }");
         }
 
@@ -257,7 +257,7 @@ class C
 {
     private string _s;
 
-    public C([||]string s)
+    public C($$string s)
     {
         _s = s;
     }
@@ -287,7 +287,7 @@ class C
 {
     private string S;
 
-    public C([||]string s)
+    public C($$string s)
     {
         S = s;
     }
@@ -317,7 +317,7 @@ class C
 {
     private string S;
 
-    public C([||]string s)
+    public C($$string s)
     {
         S = s;
     }
@@ -352,7 +352,7 @@ class C
 {
     private string S;
 
-    public C([||]string s)
+    public C($$string s)
     {
         S = s;
     }
@@ -388,7 +388,7 @@ class C
 {
     private string S;
 
-    public C([||]string s)
+    public C($$string s)
         => S = s;
 }",
 @"
@@ -412,7 +412,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
         => Init();
 }",
 @"
@@ -441,7 +441,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
         => Init();
 }",
 @"
@@ -471,7 +471,7 @@ using System;
 
 class C
 {
-    public C(string a, [||]string s)
+    public C(string a, $$string s)
     {
         if (a == null)
         {
@@ -506,7 +506,7 @@ using System;
 
 class C
 {
-    public C(string [||]a, string s)
+    public C(string $$a, string s)
     {
         if (s == null)
         {
@@ -541,7 +541,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
         if (s == null)
         {
@@ -560,7 +560,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
         _s = s ?? throw new ArgumentNullException();
     }
@@ -576,7 +576,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
         if (string.IsNullOrEmpty(s))
         {
@@ -594,7 +594,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
         if (string.IsNullOrWhiteSpace(s))
         {
@@ -612,7 +612,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
         if (null == s)
         {
@@ -631,7 +631,7 @@ using System;
 
 class C
 {
-    public C([||]string)
+    public C($$string)
     {
     }
 }");
@@ -646,7 +646,7 @@ using System;
 
 class C
 {
-    void F([||]string s)
+    void F($$string s)
     {
     }
 }",
@@ -674,7 +674,7 @@ using System;
 
 class C
 {
-    public static C operator +(C c1, [||]string s)
+    public static C operator +(C c1, $$string s)
     {
     }
 }",
@@ -683,7 +683,7 @@ using System;
 
 class C
 {
-    public static C operator +(C c1, [||]string s)
+    public static C operator +(C c1, $$string s)
     {
         if (s == null)
         {
@@ -704,7 +704,7 @@ class C
 {
     public C()
     {
-        Func<string, int> f = ([||]string s) => { return 0; }
+        Func<string, int> f = ($$string s) => { return 0; }
     }
 }");
         }
@@ -720,7 +720,7 @@ class C
 {
     public C()
     {
-        void Goo([||]string s)
+        void Goo($$string s)
         {
         }
     }
@@ -736,7 +736,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -764,7 +764,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -791,7 +791,7 @@ class C
 @"
 class C
 {
-    public C(String [||]s)
+    public C(String $$s)
     {
         if (s == null)
         {
@@ -811,7 +811,7 @@ using System;
 
 class Program
 {
-    static void Main([||]String bar)
+    static void Main($$String bar)
     {
     }
 }",
@@ -844,7 +844,7 @@ using System;
 
 class C
 {
-    public C([||]string s)
+    public C($$string s)
     {
     }
 }",
@@ -873,7 +873,7 @@ using System;
 
 class C
 {
-    public C(string s[||])
+    public C(string s$$)
 }",
 @"
 using System;
@@ -901,7 +901,7 @@ using System.Linq;
 
 class C
 {
-    public int Foo(int[] array[||]) =>
+    public int Foo(int[] array$$) =>
         array.Where(x => x > 3)
             .OrderBy(x => x)
             .Count();
@@ -937,7 +937,7 @@ using System.Linq;
 
 class C
 {
-    public int Foo(int[] array[||]) /* Bar */ => /* Bar */
+    public int Foo(int[] array$$) /* Bar */ => /* Bar */
         array.Where(x => x > 3)
             .OrderBy(x => x)
             .Count(); /* Bar */
@@ -973,7 +973,7 @@ using System.Linq;
 
 class C
 {
-    public void Foo(string bar[||]) =>
+    public void Foo(string bar$$) =>
 #if DEBUG
         Console.WriteLine(""debug"" + bar);
 #else
@@ -993,7 +993,7 @@ using System.Linq;
 
 class C
 {
-    public int Foo(int[] array[||]) =>
+    public int Foo(int[] array$$) =>
 #if DEBUG
         array.Where(x => x > 3)
             .OrderBy(x => x)
@@ -1017,7 +1017,7 @@ using System.Linq;
 
 class C
 {
-    public void Foo(int[] array[||]) =>
+    public void Foo(int[] array$$) =>
         array.Where(x => x > 3)
             .OrderBy(x => x)
             .Count();

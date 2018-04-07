@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     int i;
     bool M(object obj)
     {
-        return [||]obj is TestFile && ((TestFile)obj).i > 0;
+        return $$obj is TestFile && ((TestFile)obj).i > 0;
     }
 }",
 @"class TestFile
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     int i;
     bool M(object obj)
     {
-        return [||]obj is TestFile && ((TestFile)obj).i > 0;
+        return $$obj is TestFile && ((TestFile)obj).i > 0;
     }
 }", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
     int i;
     bool M(object obj)
-        => [||]obj is TestFile && ((TestFile)obj).i > 0;
+        => $$obj is TestFile && ((TestFile)obj).i > 0;
 }",
 
 @"class TestFile
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     int i;
     static object obj;
 
-    bool M = [||]obj is TestFile && ((TestFile)obj).i > 0;
+    bool M = $$obj is TestFile && ((TestFile)obj).i > 0;
 }",
 
 @"class TestFile
@@ -106,7 +106,7 @@ class TestFile
     void Goo(Func<bool> f) { }
 
     bool M(object obj)
-        => Goo(() => [||]obj is TestFile && ((TestFile)obj).i > 0, () => obj is TestFile && ((TestFile)obj).i > 0);
+        => Goo(() => $$obj is TestFile && ((TestFile)obj).i > 0, () => obj is TestFile && ((TestFile)obj).i > 0);
 }",
 @"
 using System;
@@ -131,7 +131,7 @@ class TestFile
     int i;
     bool M(object obj)
     {
-        if ([||]obj is TestFile)
+        if ($$obj is TestFile)
         {
             M(((TestFile)obj).i);
             M(((TestFile)obj).i);
@@ -171,7 +171,7 @@ class TestFile
     int i;
     bool M(object obj)
     {
-        if (!([||]obj is TestFile))
+        if (!($$obj is TestFile))
         {
             M(((TestFile)obj).i);
             M(((TestFile)obj).i);
@@ -210,7 +210,7 @@ class TestFile
 {
     bool M(object obj)
     {
-        if ([||]obj is TestFile)
+        if ($$obj is TestFile)
         {
             var file = (TestFile)obj;
         }
@@ -226,7 +226,7 @@ class TestFile
 {
     bool M(object obj)
     {
-        if ([||]obj is TestFile?)
+        if ($$obj is TestFile?)
         {
             var i = ((TestFile?)obj).Value;
         }
@@ -243,7 +243,7 @@ class TestFile
     int i;
     bool M(object obj)
     {
-        return [||]M(null) is TestFile && ((TestFile)M(null)).i > 0;
+        return $$M(null) is TestFile && ((TestFile)M(null)).i > 0;
     }
 }",
 
@@ -266,7 +266,7 @@ class TestFile
     int i;
     bool M(object obj)
     {
-        return [||]obj is TestFile && /*before*/ ((TestFile)obj) /*after*/.i > 0;
+        return $$obj is TestFile && /*before*/ ((TestFile)obj) /*after*/.i > 0;
     }
 }",
 
@@ -289,7 +289,7 @@ class TestFile
     int i;
     bool M(object obj)
     {
-        return ((TestFile)obj).i > 0 && [||]obj is TestFile && ((TestFile)obj).i > 0;
+        return ((TestFile)obj).i > 0 && $$obj is TestFile && ((TestFile)obj).i > 0;
     }
 }",
 
@@ -312,7 +312,7 @@ class TestFile
     int i;
     bool M(object obj)
     {
-        return [||]obj is int[] && ((int[])obj) > 0;
+        return $$obj is int[] && ((int[])obj) > 0;
     }
 }",
 
@@ -336,7 +336,7 @@ class TestFile
     bool M(object obj)
     {
         TestFile file = null;
-        return [||]obj is TestFile && ((TestFile)obj).i > 0;
+        return $$obj is TestFile && ((TestFile)obj).i > 0;
     }
 }",
 
@@ -360,7 +360,7 @@ class TestFile
     int i;
     bool M(object obj)
     {
-        if ([||]obj is TestFile)
+        if ($$obj is TestFile)
         {
             TestFile file = null;
             M(((TestFile)obj).i);
@@ -390,7 +390,7 @@ class TestFile
     int i;
     bool M(object obj)
     {
-        if ([||]obj is TestFile)
+        if ($$obj is TestFile)
         {
             var v = new { file = 0 };
             M(((TestFile)obj).i);
@@ -420,7 +420,7 @@ class TestFile
     int i;
     bool M(object obj)
     {
-        if ([||]obj is TestFile)
+        if ($$obj is TestFile)
         {
             var v = (file: 0, x: 1);
             M(((TestFile)obj).i);
@@ -453,7 +453,7 @@ class TestFile
     int i;
     bool M(object obj, X x)
     {
-        if ([||]obj is TestFile)
+        if ($$obj is TestFile)
         {
             var v = new { x.file };
             M(((TestFile)obj).i);
@@ -489,7 +489,7 @@ class TestFile
     int i;
     bool M(object obj, X x)
     {
-        if ([||]obj is TestFile)
+        if ($$obj is TestFile)
         {
             var v = (x.file, 0);
             M(((TestFile)obj).i);

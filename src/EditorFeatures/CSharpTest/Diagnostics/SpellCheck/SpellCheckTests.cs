@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -448,7 +448,7 @@ class C
         public async Task TestTestMissingName()
         {
             await TestMissingInRegularAndScriptAsync(
-@"[assembly: Microsoft.CodeAnalysis.[||]]");
+@"[assembly: Microsoft.CodeAnalysis.$$]");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]

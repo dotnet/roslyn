@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -19,11 +19,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
         End Enum
 
         Private Async Function TestMissingOneAsync(initial As String) As Task
-            Await TestMissingInRegularAndScriptAsync(CreateTreeText("[||]" + initial))
+            Await TestMissingInRegularAndScriptAsync(CreateTreeText("$$" + initial))
         End Function
 
         Private Async Function TestFixOneAsync(initial As String, expected As String, refactoring As Refactoring) As Task
-            Await TestInRegularAndScriptAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index:=DirectCast(refactoring, Integer))
+            Await TestInRegularAndScriptAsync(CreateTreeText("$$" + initial), CreateTreeText(expected), index:=DirectCast(refactoring, Integer))
         End Function
 
         Private Shared Function CreateTreeText(initial As String) As String
@@ -98,7 +98,7 @@ End Class"
     Sub M()
         Dim x As Integer() =
         {
-            [||]&H1, &H2
+            $$&H1, &H2
         }
     End Sub
 End Class",
@@ -117,7 +117,7 @@ End Class", index:=Refactoring.ChangeBase2)
         Public Async Function TestCaretPositionAtTheEnd() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
-    Dim a As Integer = 42[||]
+    Dim a As Integer = 42$$
 End Class",
 "Class C
     Dim a As Integer = &B101010

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         public async Task SingleClassInFile_RenameFile()
         {
             var code =
-@"[||]class Class1 { }";
+@"$$class Class1 { }";
 
             var expectedDocumentName = "Class1.cs";
 
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         public async Task MoreThanOneTypeInFile_RenameFile()
         {
             var code =
-@"[||]class Class1
+@"$$class Class1
 { 
     class Inner { }
 }";
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             var code =
 @"class Class1
 { 
-    [||]class Inner { }
+    $$class Inner { }
 }";
 
             var expectedDocumentName = "Class1.Inner.cs";
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document Folders=""A\B""> 
-[||]class Class1
+$$class Class1
 { 
     class Inner { }
 }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             // testworkspace creates files like test1.cs, test2.cs and so on.. 
             // so type name matches filename here and rename file action should not be offered.
             var code =
-@"[||]class test1 { }";
+@"$$class test1 { }";
 
             await TestRenameFileToMatchTypeAsync(code, expectedCodeAction: false);
         }
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         public async Task TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameFile()
         {
             var code =
-@"[||]class Class1 { }
+@"$$class Class1 { }
 class test1 { }";
 
             await TestRenameFileToMatchTypeAsync(code, expectedCodeAction: false);
@@ -96,7 +96,7 @@ class test1 { }";
         public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName_RenameFile()
         {
             var code =
-@"[||]class Class1 { }
+@"$$class Class1 { }
 class Class2 { }";
 
             var expectedDocumentName = "Class1.cs";
@@ -109,7 +109,7 @@ class Class2 { }";
         {
             var code =
 @"class Class1 { }
-[||]class Class2 { }";
+$$class Class2 { }";
 
             var expectedDocumentName = "Class2.cs";
 
@@ -122,7 +122,7 @@ class Class2 { }";
             var code =
 @"class OuterType
 {
-    [||]class InnerType { }
+    $$class InnerType { }
 }";
 
             var expectedDocumentName = "InnerType.cs";
@@ -136,7 +136,7 @@ class Class2 { }";
             var code =
 @"class OuterType
 {
-    [||]class InnerType { }
+    $$class InnerType { }
 }";
 
             var expectedDocumentName = "OuterType.InnerType.cs";

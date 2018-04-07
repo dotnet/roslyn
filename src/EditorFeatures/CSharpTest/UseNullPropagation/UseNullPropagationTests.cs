@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -27,7 +27,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? null : o.ToString();
+        var v = $$o == null ? null : o.ToString();
     }
 }",
 @"using System;
@@ -51,7 +51,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? null : o.ToString();
+        var v = $$o == null ? null : o.ToString();
     }
 }", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
         }
@@ -66,7 +66,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]null == o ? null : o.ToString();
+        var v = $$null == o ? null : o.ToString();
     }
 }",
 @"using System;
@@ -90,7 +90,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o != null ? o.ToString() : null;
+        var v = $$o != null ? o.ToString() : null;
     }
 }",
 @"using System;
@@ -114,7 +114,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]c != null ? c.f : null;
+        int? x = $$c != null ? c.f : null;
     }
 }",
 @"
@@ -138,7 +138,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = (object)[||]c != null ? c.f : null;
+        int? x = (object)$$c != null ? c.f : null;
     }
 }",
 @"
@@ -162,7 +162,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]null != o ? o.ToString() : null;
+        var v = $$null != o ? o.ToString() : null;
     }
 }",
 @"using System;
@@ -186,7 +186,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? null : o[0];
+        var v = $$o == null ? null : o[0];
     }
 }",
 @"using System;
@@ -210,7 +210,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? null : o.B?.C;
+        var v = $$o == null ? null : o.B?.C;
     }
 }",
 @"using System;
@@ -234,7 +234,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? null : o.B;
+        var v = $$o == null ? null : o.B;
     }
 }",
 @"using System;
@@ -258,7 +258,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? null : o;
+        var v = $$o == null ? null : o;
     }
 }");
         }
@@ -273,7 +273,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||](o == null) ? null : o.ToString();
+        var v = $$(o == null) ? null : o.ToString();
     }
 }",
 @"using System;
@@ -348,7 +348,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o == null ? 0 : o.ToString();
+        var v = $$o == null ? 0 : o.ToString();
     }
 }");
         }
@@ -364,7 +364,7 @@ class C
 {
     void M(object o)
     {
-        var v = [||]o != null ? o.ToString() : 0;
+        var v = $$o != null ? o.ToString() : 0;
     }
 }");
         }
@@ -382,7 +382,7 @@ class D
     void Goo()
     {
         var c = new C();
-        Action<string> a = [||]c != null ? c.M : (Action<string>)null;
+        Action<string> a = $$c != null ? c.M : (Action<string>)null;
     }
 }
 class C { public void M(string s) { } }");
@@ -401,7 +401,7 @@ class Program
 {
     void Main(string s)
     {
-        Method<string>(t => [||]s != null ? s.ToString() : null); // works
+        Method<string>(t => $$s != null ? s.ToString() : null); // works
     }
 
     public void Method<T>(Expression<Func<T, string>> functor)
@@ -422,7 +422,7 @@ class C
 {
     void Main(DateTime? toDate)
     {
-        var v = [||]toDate == null ? null : toDate.Value.ToString(""yyyy/MM/ dd"");
+        var v = $$toDate == null ? null : toDate.Value.ToString(""yyyy/MM/ dd"");
     }
 }
 ",
@@ -457,7 +457,7 @@ class C
 {
     void Main(S? s)
     {
-        var x = [||]s == null ? null : s.Value[0];
+        var x = $$s == null ? null : s.Value[0];
     }
 }
 ",
@@ -491,7 +491,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]c is null ? null : c.f;
+        int? x = $$c is null ? null : c.f;
     }
 }",
 @"
@@ -516,7 +516,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]c is C ? null : c.f;
+        int? x = $$c is C ? null : c.f;
     }
 }");
         }
@@ -531,7 +531,7 @@ class C
 {
     void M(string s)
     {
-        int? x = [||]s is """" ? null : (int?)s.Length;
+        int? x = $$s is """" ? null : (int?)s.Length;
     }
 }");
         }
@@ -547,7 +547,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]ReferenceEquals(c, null) ? null : c.f;
+        int? x = $$ReferenceEquals(c, null) ? null : c.f;
     }
 }",
 @"
@@ -572,7 +572,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]ReferenceEquals(null, c) ? null : c.f;
+        int? x = $$ReferenceEquals(null, c) ? null : c.f;
     }
 }",
 @"
@@ -597,7 +597,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]ReferenceEquals(c, other) ? null : c.f;
+        int? x = $$ReferenceEquals(c, other) ? null : c.f;
     }
 }");
         }
@@ -613,7 +613,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]ReferenceEquals(other, c) ? null : c.f;
+        int? x = $$ReferenceEquals(other, c) ? null : c.f;
     }
 }");
         }
@@ -629,7 +629,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]object.ReferenceEquals(c, null) ? null : c.f;
+        int? x = $$object.ReferenceEquals(c, null) ? null : c.f;
     }
 }",
 @"
@@ -654,7 +654,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]object.ReferenceEquals(null, c) ? null : c.f;
+        int? x = $$object.ReferenceEquals(null, c) ? null : c.f;
     }
 }",
 @"
@@ -679,7 +679,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]object.ReferenceEquals(c, other) ? null : c.f;
+        int? x = $$object.ReferenceEquals(c, other) ? null : c.f;
     }
 }");
         }
@@ -695,7 +695,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]object.ReferenceEquals(other, c) ? null : c.f;
+        int? x = $$object.ReferenceEquals(other, c) ? null : c.f;
     }
 }");
         }
@@ -711,7 +711,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!(c is null) ? c.f : null;
+        int? x = $$!(c is null) ? c.f : null;
     }
 }",
 @"
@@ -736,7 +736,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!(c is C) ? c.f : null;
+        int? x = $$!(c is C) ? c.f : null;
     }
 }");
         }
@@ -751,7 +751,7 @@ class C
 {
     void M(string s)
     {
-        int? x = [||]!(s is """") ? (int?)s.Length : null;
+        int? x = $$!(s is """") ? (int?)s.Length : null;
     }
 }");
         }
@@ -767,7 +767,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!ReferenceEquals(c, null) ? c.f : null;
+        int? x = $$!ReferenceEquals(c, null) ? c.f : null;
     }
 }",
 @"
@@ -792,7 +792,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!ReferenceEquals(null, c) ? c.f : null;
+        int? x = $$!ReferenceEquals(null, c) ? c.f : null;
     }
 }",
 @"
@@ -817,7 +817,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]!ReferenceEquals(c, other) ? c.f : null;
+        int? x = $$!ReferenceEquals(c, other) ? c.f : null;
     }
 }");
         }
@@ -833,7 +833,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]!ReferenceEquals(other, c) ? c.f : null;
+        int? x = $$!ReferenceEquals(other, c) ? c.f : null;
     }
 }");
         }
@@ -849,7 +849,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!object.ReferenceEquals(c, null) ? c.f : null;
+        int? x = $$!object.ReferenceEquals(c, null) ? c.f : null;
     }
 }",
 @"
@@ -874,7 +874,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!object.ReferenceEquals(null, c) ? c.f : null;
+        int? x = $$!object.ReferenceEquals(null, c) ? c.f : null;
     }
 }",
 @"
@@ -899,7 +899,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]!object.ReferenceEquals(c, other) ? c.f : null;
+        int? x = $$!object.ReferenceEquals(c, other) ? c.f : null;
     }
 }");
         }
@@ -915,7 +915,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]!object.ReferenceEquals(other, c) ? c.f : null;
+        int? x = $$!object.ReferenceEquals(other, c) ? c.f : null;
     }
 }");
         }
@@ -931,7 +931,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!(c == null) ? c.f : null;
+        int? x = $$!(c == null) ? c.f : null;
     }
 }",
 @"
@@ -956,7 +956,7 @@ class C
     public int? f;
     void M(C c)
     {
-        int? x = [||]!(c != null) ? null : c.f;
+        int? x = $$!(c != null) ? null : c.f;
     }
 }",
 @"
@@ -981,7 +981,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]!(c == other) ? c.f : null;
+        int? x = $$!(c == other) ? c.f : null;
     }
 }");
         }
@@ -997,7 +997,7 @@ class C
     public int? f;
     void M(C c, C other)
     {
-        int? x = [||]!(c != other) ? null : c.f;
+        int? x = $$!(c != other) ? null : c.f;
     }
 }");
         }

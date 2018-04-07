@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -28,7 +28,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>();
+        var c = $$new List<int>();
         c.Add(1);
     }
 }",
@@ -56,7 +56,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>();
+        var c = $$new List<int>();
         c[1] = 2;
     }
 }",
@@ -84,7 +84,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>();
+        var c = $$new List<int>();
         c[1] = 2;
     }
 }", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
@@ -100,7 +100,7 @@ class C
 {
     void M()
     {
-        a.b.c = [||]new List<int>();
+        a.b.c = $$new List<int>();
         a.b.c[1] = 2;
     }
 }",
@@ -128,7 +128,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>();
+        var c = $$new List<int>();
         c[1] = 2;
         c[2] = """";
     }
@@ -158,7 +158,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>();
+        var c = $$new List<int>();
         c[1] = 2;
         c[2] = """";
         c[3, 4] = 5;
@@ -190,7 +190,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>();
+        var c = $$new List<int>();
         c[1] = 2;
         c.Add(0);
     }
@@ -220,7 +220,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>();
+        var c = $$new List<int>();
         c.Add(0);
         c[1] = 2;
     }
@@ -250,7 +250,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>();
+        var c = $$new List<int>();
         c.Add(1);
         c.Add(2);
         throw new Exception();
@@ -287,7 +287,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>();
+        var c = $$new List<int>();
         c.Add(1);
     }
 }", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2)));
@@ -303,7 +303,7 @@ class C
 {
     void M()
     {
-        var c = [||]new C();
+        var c = $$new C();
         c.Add(1);
     }
 }");
@@ -319,7 +319,7 @@ class C
 {
     void M()
     {
-        var c = [||]new C();
+        var c = $$new C();
         c.Add(1);
     }
 
@@ -339,7 +339,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>(1);
+        var c = $$new List<int>(1);
         c.Add(1);
     }
 }",
@@ -368,7 +368,7 @@ class C
     void M()
     {
         List<int> c = null;
-        c = [||]new List<int>();
+        c = $$new List<int>();
         c.Add(1);
     }
 }",
@@ -397,7 +397,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>();
+        var c = $$new List<int>();
         c.Add(ref i);
     }
 }");
@@ -414,7 +414,7 @@ class C
     void M()
     {
         List<int>[] array;
-        array[0] = [||]new List<int>();
+        array[0] = $$new List<int>();
         array[0].Add(1);
         array[0].Add(2);
     }
@@ -445,7 +445,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>();
+        var c = $$new List<int>();
         c.Add(arg: 1);
     }
 }");
@@ -461,7 +461,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>() { 1 };
+        var c = $$new List<int>() { 1 };
         c.Add(1);
     }
 }");
@@ -591,7 +591,7 @@ class C
 {
     void M()
     {
-        var c = [||]new List<int>();
+        var c = $$new List<int>();
         c.Add(1); // Goo
         c.Add(2); // Bar
     }
@@ -621,7 +621,7 @@ class C
 {
     void M()
     {
-        var c = new [||]Dictionary<int, string>();
+        var c = new $$Dictionary<int, string>();
         c.Add(1, ""x"");
         c.Add(2, ""y"");
     }
@@ -655,7 +655,7 @@ public class Goo
         string item = null;
         var items = new List<string>();
 
-        var values = new [||]List<string>(); // Collection initialization can be simplified
+        var values = new $$List<string>(); // Collection initialization can be simplified
         values.Add(item);
         values.AddRange(items);
     }
@@ -692,7 +692,7 @@ class Program
     static void Main(string[] args)
     {
         var myStringArray = new string[] { ""Test"", ""123"", ""ABC"" };
-        var myStringList = myStringArray?.ToList() ?? new [||]List<string>();
+        var myStringList = myStringArray?.ToList() ?? new $$List<string>();
         myStringList.Add(""Done"");
     }
 }");
@@ -710,7 +710,7 @@ class C
 {
     static void M()
     {
-        var items = new [||]List<object>();
+        var items = new $$List<object>();
         items[0] = items[0];
     }
 }");
@@ -728,7 +728,7 @@ class C
 {
     static void M()
     {
-        var items = new [||]List<object>();
+        var items = new $$List<object>();
         items[0] = 1;
         items[1] = items[0];
     }
@@ -740,7 +740,7 @@ class C
 {
     static void M()
     {
-        var items = new [||]List<object>
+        var items = new $$List<object>
         {
             [0] = 1
         };
@@ -762,7 +762,7 @@ class C
 {
     void M()
     {
-        var t = [||]new List<int>(new int[] { 1, 2, 3 });
+        var t = $$new List<int>(new int[] { 1, 2, 3 });
         t.Add(t.Min() - 1);
     }
 }");
@@ -781,7 +781,7 @@ class C
     static void M()
     {
         List<object> items = null;
-        items = new [||]List<object>();
+        items = new $$List<object>();
         items[0] = 1;
         items[1] = items[0];
     }
@@ -794,7 +794,7 @@ class C
     static void M()
     {
         List<object> items = null;
-        items = new [||]List<object>
+        items = new $$List<object>
         {
             [0] = 1
         };
@@ -816,7 +816,7 @@ class C
     void M()
     {
         List<int> t = null;
-        t = [||]new List<int>(new int[] { 1, 2, 3 });
+        t = $$new List<int>(new int[] { 1, 2, 3 });
         t.Add(t.Min() - 1);
     }
 }");
@@ -834,7 +834,7 @@ class C
     private List<int> myField;
     void M()
     {
-        myField = [||]new List<int>();
+        myField = $$new List<int>();
         myField.Add(this.myField.Count);
     }
 }");
@@ -851,7 +851,7 @@ class C
 {
     void Goo()
     {
-        dynamic body = [||]new ExpandoObject();
+        dynamic body = $$new ExpandoObject();
         body[0] = new ExpandoObject();
     }
 }");
@@ -869,7 +869,7 @@ public class Goo
 {
     public void M()
     {
-        var items = new [||]List<object>();
+        var items = new $$List<object>();
 #if true
         items.Add(1);
 #endif
@@ -890,7 +890,7 @@ public class Goo
     public void M()
     {
 #if true
-        var items = new [||]List<object>();
+        var items = new $$List<object>();
         items.Add(1);
 #endif
     }
@@ -925,7 +925,7 @@ public class Goo
     public void M()
     {
         int lastItem;
-        var list = [||]new List<int>();
+        var list = $$new List<int>();
         list.Add(lastItem = 5);
     }
 }",
@@ -958,7 +958,7 @@ public class Goo
     public void M()
     {
         int lastItem = 0;
-        var list = [||]new List<int>();
+        var list = $$new List<int>();
         list.Add(lastItem += 5);
     }
 }",
@@ -990,7 +990,7 @@ class MyClass
 {
     public void Main()
     {
-        var list = [||]new List<int>();
+        var list = $$new List<int>();
         list.Add(1);
 
         int horse = 1;

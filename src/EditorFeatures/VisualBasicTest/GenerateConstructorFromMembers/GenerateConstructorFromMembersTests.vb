@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -218,7 +218,7 @@ End Class")
             Await TestWithPickMembersDialogAsync(
 "Class Program
     Private i As Integer
-    [||]
+    $$
 End Class",
 "Class Program
     Private i As Integer
@@ -234,7 +234,7 @@ End Class", chosenSymbols:={"i"})
             Await TestWithPickMembersDialogAsync(
 "Class Program
     Private i As Integer
-    [||]
+    $$
 End Class",
 "Class Program
     Private i As Integer
@@ -250,7 +250,7 @@ End Class", chosenSymbols:={})
 "Class Program
     Private i As Integer
     Private j As String
-    [||]
+    $$
 End Class",
 "Class Program
     Private i As Integer
@@ -266,7 +266,7 @@ End Class", chosenSymbols:={"j", "i"})
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestWithDialog4() As Task
             Await TestWithPickMembersDialogAsync(
-"Class [||]Program
+"Class $$Program
     Private i As Integer
 End Class",
 "Class Program
@@ -283,7 +283,7 @@ End Class", chosenSymbols:={"i"})
             Await TestMissingInRegularAndScriptAsync(
 "Class Program
     Private i As Integer
-    [||]Sub M()
+    $$Sub M()
     End Sub
 End Class")
         End Function
@@ -294,14 +294,14 @@ End Class")
 "Class Program
     Private i As Integer
     Sub M()
-    End Sub[||]
+    End Sub$$
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMissingOnAttributes() As Task
             Await TestMissingInRegularAndScriptAsync(
-"<X>[||]
+"<X>$$
 Class Program
     Private i As Integer
     Sub M()

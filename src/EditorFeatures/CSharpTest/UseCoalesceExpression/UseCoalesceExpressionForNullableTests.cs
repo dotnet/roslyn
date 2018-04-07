@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -28,7 +28,7 @@ class C
 {
     void M(int? x, int? y)
     {
-        var z = [||]!x.HasValue ? y : x.Value;
+        var z = $$!x.HasValue ? y : x.Value;
     }
 }",
 @"using System;
@@ -52,7 +52,7 @@ class C
 {
     void M(int? x, int? y)
     {
-        var z = [||]x.HasValue ? x.Value : y;
+        var z = $$x.HasValue ? x.Value : y;
     }
 }",
 @"using System;
@@ -76,7 +76,7 @@ class C
 {
     void M(int? x, int? y)
     {
-        var z = [||]!(x + y).HasValue ? y : (x + y).Value;
+        var z = $$!(x + y).HasValue ? y : (x + y).Value;
     }
 }",
 @"using System;
@@ -100,7 +100,7 @@ class C
 {
     void M(int? x, int? y)
     {
-        var z = [||](x.HasValue) ? x.Value : y;
+        var z = $$(x.HasValue) ? x.Value : y;
     }
 }",
 @"using System;
@@ -200,7 +200,7 @@ class C
 {
     void M(int? x, int? y)
     {
-        Expression<Func<int>> e = () => [||]!x.HasValue ? y : x.Value;
+        Expression<Func<int>> e = () => $$!x.HasValue ? y : x.Value;
     }
 }",
 @"using System;

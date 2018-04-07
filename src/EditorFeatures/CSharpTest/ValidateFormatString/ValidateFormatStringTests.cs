@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
 {
     static void Main(string[] args)
     {
-        string.Format(""This {0[||]} works"", ""test""); 
+        string.Format(""This {0$$} works"", ""test""); 
     }     
 }");
         }
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
 {
     static void Main(string[] args)
     {
-        string.Format(""This {0[||]} {1} works"", ""test"", ""also""); 
+        string.Format(""This {0$$} {1} works"", ""test"", ""also""); 
     }     
 }");
         }
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
 {
     static void Main(string[] args)
     {
-        string.Format(""This {0} {1[||]} works {2} "", ""test"", ""also"", ""well""); 
+        string.Format(""This {0} {1$$} works {2} "", ""test"", ""also"", ""well""); 
     }     
 }");
         }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
 {
     static void Main(string[] args)
     {
-        string.Format(""This {1} is {2} my {6[||]} test "", ""teststring1"", ""teststring2"",
+        string.Format(""This {1} is {2} my {6$$} test "", ""teststring1"", ""teststring2"",
             ""teststring3"", ""teststring4"", ""teststring5"", ""teststring6"", ""teststring7"");
     }     
 }");
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
     static void Main(string[] args)
     {
         object[] objectArray = { 1.25, ""2"", ""teststring""};
-        string.Format(""This {0} {1} {2[||]} works"", objectArray); 
+        string.Format(""This {0} {1} {2$$} works"", objectArray); 
     }     
 }");
         }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
     static void Main(string[] args)
     {
         object[] objectArray = { 1.25, ""2"", ""teststring""};
-        string.Format(""This {0} {1} {2[||]} works"", objectArray, objectArray, objectArray, objectArray); 
+        string.Format(""This {0} {1} {2$$} works"", objectArray, objectArray, objectArray, objectArray); 
     }     
 }");
         }
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
     static void Main(string[] args)
     {
         int[] intArray = {1, 2, 3};
-        string.Format(""This {0[||]} works"", intArray); 
+        string.Format(""This {0$$} works"", intArray); 
     }     
 }");
         }
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
     static void Main(string[] args)
     {
         string[] stringArray = {""test1"", ""test2"", ""test3""};
-        string.Format(""This {0} {1} {2[||]} works"", stringArray); 
+        string.Format(""This {0} {1} {2$$} works"", stringArray); 
     }     
 }");
         }
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
     static void Main(string[] args)
     {
         string[] stringArray = {""test1"", ""test2""};
-        string.Format(""This {0} {1} {2[||]} works"", stringArray); 
+        string.Format(""This {0} {1} {2$$} works"", stringArray); 
     }     
 }");
         }
@@ -156,7 +156,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        testStr = string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""The current price is {0[||]:C2} per ounce"", 2.45);
+        testStr = string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""The current price is {0$$:C2} per ounce"", 2.45);
     }     
 }");
         }
@@ -169,7 +169,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        testStr = string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""The current price is {0[||]:C2} per {1} "", 2.45, ""ounce"");
+        testStr = string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""The current price is {0$$:C2} per {1} "", 2.45, ""ounce"");
     }     
 }");
         }
@@ -182,7 +182,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        testStr = string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""The current price is {0} {[||]1} {2} "", 
+        testStr = string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""The current price is {0} {$$1} {2} "", 
             2.45, ""per"", ""ounce"");
     }     
 }");
@@ -196,7 +196,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        testStr = string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""The current price is {0} {1[||]} {2} {3} "", 
+        testStr = string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""The current price is {0} {1$$} {2} {3} "", 
             2.45, ""per"", ""ounce"", ""today only"");
     }     
 }");
@@ -211,7 +211,7 @@ class Program
     static void Main(string[] args)
     {
         object[] objectArray = { 1.25, ""2"", ""teststring""};
-        string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""This {0} {1} {[||]2} works"", objectArray); 
+        string.Format(new CultureInfo(""pt-BR"", useUserOverride: false), ""This {0} {1} {$$2} works"", objectArray); 
     }     
 }");
         }
@@ -223,7 +223,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(""{0[||],6}"", 34);
+        string.Format(""{0$$,6}"", 34);
     }     
 }");
         }
@@ -235,7 +235,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(""{[||]0:N0}"", 34);
+        string.Format(""{$$0:N0}"", 34);
     }     
 }");
         }
@@ -247,7 +247,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(""Test {0,[||]15:N0} output"", 34);
+        string.Format(""Test {0,$$15:N0} output"", 34);
     }     
 }");
         }
@@ -259,7 +259,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(""{0[||]} is my test case"", ""This"");
+        string.Format(""{0$$} is my test case"", ""This"");
     }     
 }");
         }
@@ -271,7 +271,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(""This is my {0[||]}"", ""test"");
+        string.Format(""This is my {0$$}"", ""test"");
     }     
 }");
         }
@@ -283,7 +283,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format("" {{ 2}} This {1[||]} is {2} {{ my {0} test }} "", ""teststring1"", ""teststring2"", ""teststring3"");
+        string.Format("" {{ 2}} This {1$$} is {2} {{ my {0} test }} "", ""teststring1"", ""teststring2"", ""teststring3"");
     }     
 }");
         }
@@ -295,7 +295,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(""{{ 2}} This {1[||]} is {2} {{ my {0} test }} "", ""teststring1"", ""teststring2"", ""teststring3"");
+        string.Format(""{{ 2}} This {1$$} is {2} {{ my {0} test }} "", ""teststring1"", ""teststring2"", ""teststring3"");
     }     
 }");
         }
@@ -307,7 +307,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format("" {{ 2}} This {1[||]} is {2} {{ my {0} test }}"", ""teststring1"", ""teststring2"", ""teststring3"");
+        string.Format("" {{ 2}} This {1$$} is {2} {{ my {0} test }}"", ""teststring1"", ""teststring2"", ""teststring3"");
     }     
 }");
         }
@@ -319,7 +319,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format("" {{{2}} This {1[||]} is {2} {{ my {0} test }}"", ""teststring1"", ""teststring2"", ""teststring3"");
+        string.Format("" {{{2}} This {1$$} is {2} {{ my {0} test }}"", ""teststring1"", ""teststring2"", ""teststring3"");
     }     
 }");
         }
@@ -331,7 +331,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(arg0: ""test"", arg1: ""also"", format: ""This {0} {[||]1} works""); 
+        string.Format(arg0: ""test"", arg1: ""also"", format: ""This {0} {$$1} works""); 
     }     
 }");
         }
@@ -344,7 +344,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(arg0: ""test"", provider: new CultureInfo(""pt-BR"", useUserOverride: false), format: ""This {0[||]} works""); 
+        string.Format(arg0: ""test"", provider: new CultureInfo(""pt-BR"", useUserOverride: false), format: ""This {0$$} works""); 
     }     
 }");
         }
@@ -357,7 +357,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        stringAlias.Format(""This {0[||]} works"", ""test""); 
+        stringAlias.Format(""This {0$$} works"", ""test""); 
     }     
 }");
         }
@@ -370,7 +370,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(string.Format(format: ""This {0[||]} works"", arg0:""test"")); 
+        Console.WriteLine(string.Format(format: ""This {0$$} works"", arg0:""test"")); 
     }
 }");
         }
@@ -383,7 +383,7 @@ class Program
     static void Main(string[] args)
     {
         string.Format(@""This {0} 
-{1} {2[||]} works"", ""multiple"", ""line"", ""test"")); 
+{1} {2$$} works"", ""multiple"", ""line"", ""test"")); 
     }
 }");
         }
@@ -398,7 +398,7 @@ class Program
         var Name = ""Peter"";
         var Age = 30;
        
-        string.Format($""{Name,[||] 20} is {Age:D3} ""); 
+        string.Format($""{Name,$$ 20} is {Age:D3} ""); 
     }
 }");
         }
@@ -410,7 +410,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(""[||]""); 
+        string.Format(""$$""); 
     }
 }");
         }
@@ -422,7 +422,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format([||]; 
+        string.Format($$; 
     }
 }");
         }
@@ -434,7 +434,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format([||]); 
+        string.Format($$); 
     }
 }");
         }
@@ -446,7 +446,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(""[||]""); 
+        string.Format(""$$""); 
     }
 }");
         }
@@ -459,7 +459,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Format(""[||]""); 
+        Format(""$$""); 
     }
 }");
         }
@@ -471,7 +471,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format( : ""value""[||])); 
+        string.Format( : ""value""$$)); 
     }     
 }");
         }
@@ -483,7 +483,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        string.Format(format:""This [||] "", format:"" test ""); 
+        string.Format(format:""This $$ "", format:"" test ""); 
     }     
 }");
         }
@@ -511,7 +511,7 @@ namespace Generics_CSharp
         static void Main(string[] args)
         {
             String<int> testList = new String<int>();
-            testList.Format<int>(""Test[||]String"");
+            testList.Format<int>(""Test$$String"");
         }
     }
 }
@@ -535,7 +535,7 @@ class C
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(String.Format(""test {[||]5} "", 1));
+        Console.WriteLine(String.Format(""test {$$5} "", 1));
     }
 }
 ");
@@ -548,7 +548,7 @@ class C
 {
     static void Main(string[] args)
     {
-        string.Format(""This {1[||]} works"", ""test""); 
+        string.Format(""This {1$$} works"", ""test""); 
     }   
 }
 ", new TestParameters(options: CSharpOptionOffVBOptionOn()));

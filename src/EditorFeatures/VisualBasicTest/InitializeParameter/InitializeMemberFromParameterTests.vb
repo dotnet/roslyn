@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InitializeParamete
 class C
     private s As String
 
-    public sub new([||]s As String)
+    public sub new($$s As String)
 
     end sub
 end class",
@@ -42,7 +42,7 @@ end class")
 class C
     private s As String
 
-    public sub new(s As String[||])
+    public sub new(s As String$$)
 
     end sub
 end class",
@@ -64,7 +64,7 @@ end class")
 class C
     private s As String
 
-    public sub new(s As String[||], t As String)
+    public sub new(s As String$$, t As String)
     end sub
 end class",
 "
@@ -85,7 +85,7 @@ end class")
 class C
     private _s As String
 
-    public sub new([||]s As String)
+    public sub new($$s As String)
 
     end sub
 end class",
@@ -106,7 +106,7 @@ end class")
 class C
     Private ReadOnly property S As String
 
-    public sub new([||]s As String)
+    public sub new($$s As String)
 
     end sub
 end class",
@@ -127,7 +127,7 @@ end class")
 class C
     private t As String
 
-    public sub new([||]s As String)
+    public sub new($$s As String)
     end sub
 end class",
 "
@@ -150,7 +150,7 @@ end class")
 class C
     Private ReadOnly Property T As String
 
-    public sub new([||]s As String)
+    public sub new($$s As String)
 
     end sub
 end class",
@@ -172,7 +172,7 @@ end class")
 class C
     private s As Integer
 
-    public sub new([||]s As String)
+    public sub new($$s As String)
 
     end sub
 end class",
@@ -195,7 +195,7 @@ end class")
 class C
     private s As Integer
 
-    public sub new([||]s As String)
+    public sub new($$s As String)
 
     end sub
 end class",
@@ -217,7 +217,7 @@ end class", index:=1)
 class C
     private s As Object
 
-    public sub new([||]s As String)
+    public sub new($$s As String)
 
     end sub
 end class",
@@ -240,7 +240,7 @@ class C
     private s As Integer
     private x As Integer
 
-    public sub new([||]s As String)
+    public sub new($$s As String)
         x = s
     end sub
 end class")
@@ -254,7 +254,7 @@ class C
 
     private s As Integer
 
-    public sub new([||]s As String)
+    public sub new($$s As String)
         Me.s = 0
     end sub
 end class",
@@ -263,7 +263,7 @@ class C
 
     private s As Integer
 
-    public sub new([||]s As String)
+    public sub new($$s As String)
         Me.s = 0
         S1 = s
     end sub
@@ -281,7 +281,7 @@ class C
     private s As String
     private t As String
 
-    public sub new([||]s As String, t As String)
+    public sub new($$s As String, t As String)
         Me.t = t   
     end sub
 end class",
@@ -306,7 +306,7 @@ class C
     private s As String
     private t As String
 
-    public sub new(s As String, [||]t As String)
+    public sub new(s As String, $$t As String)
         Me.s = s   
     end sub
 end class",
@@ -330,7 +330,7 @@ class C
 
     private s As String
 
-    public sub new([||]s As String)
+    public sub new($$s As String)
         if true then
         end if
     end sub
@@ -357,7 +357,7 @@ class C
 
     private s As String
 
-    public function M([||]s As String)
+    public function M($$s As String)
 
     end sub
 end class")
@@ -370,7 +370,7 @@ end class")
             Await TestInRegularAndScript1Async(
 "
 class C
-    public sub new(s As String, [||]t As String)
+    public sub new(s As String, $$t As String)
         Me.S = s   
     end sub
 
@@ -394,7 +394,7 @@ end class")
             Await TestInRegularAndScript1Async(
 "
 class C
-    public sub new([||]s As String, t As String)
+    public sub new($$s As String, t As String)
         Me.T = t   
     end sub
 

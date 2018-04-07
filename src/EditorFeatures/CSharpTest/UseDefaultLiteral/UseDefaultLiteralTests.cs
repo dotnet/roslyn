@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
 @"
 class C
 {
-    void Goo(string s = [||]default(string))
+    void Goo(string s = $$default(string))
     {
     }
 }", parameters: new TestParameters(
@@ -44,7 +44,7 @@ class C
 @"
 class C
 {
-    void Goo(string s = [||]default(string))
+    void Goo(string s = $$default(string))
     {
     }
 }",
@@ -66,7 +66,7 @@ class C
 {
     void Goo(string s)
     {
-        if (s == [||]default(string)) { }
+        if (s == $$default(string)) { }
     }
 }",
 @"
@@ -88,7 +88,7 @@ class C
 {
     string Goo()
     {
-        return [||]default(string);
+        return $$default(string);
     }
 }",
 @"
@@ -110,7 +110,7 @@ class C
 {
     string Goo()
     {
-        return [||]default(int);
+        return $$default(int);
     }
 }", parameters: s_testParameters);
         }
@@ -126,7 +126,7 @@ class C
 {
     void Goo()
     {
-        Func<string> f = () => [||]default(string);
+        Func<string> f = () => $$default(string);
     }
 }",
 @"
@@ -136,7 +136,7 @@ class C
 {
     void Goo()
     {
-        Func<string> f = () => [||]default;
+        Func<string> f = () => $$default;
     }
 }", parseOptions: s_parseOptions);
         }
@@ -152,7 +152,7 @@ class C
 {
     void Goo()
     {
-        Func<string> f = () => [||]default(int);
+        Func<string> f = () => $$default(int);
     }
 }", parameters: s_testParameters);
         }
@@ -166,7 +166,7 @@ class C
 {
     void Goo()
     {
-        string s = [||]default(string);
+        string s = $$default(string);
     }
 }",
 @"
@@ -188,7 +188,7 @@ class C
 {
     void Goo()
     {
-        string s = [||]default(int);
+        string s = $$default(int);
     }
 }", parameters: s_testParameters);
         }
@@ -202,7 +202,7 @@ class C
 {
     void Goo()
     {
-        var s = [||]default(string);
+        var s = $$default(string);
     }
 }",  parameters: s_testParameters);
         }
@@ -216,7 +216,7 @@ class C
 {
     void Goo()
     {
-        Bar([||]default(string));
+        Bar($$default(string));
     }
 
     void Bar(string s) { }
@@ -242,7 +242,7 @@ class C
 {
     void Goo()
     {
-        Bar([||]default(string));
+        Bar($$default(string));
     }
 
     void Bar(string s) { }
@@ -259,7 +259,7 @@ class C
 {
     void Goo(bool b)
     {
-        var v = b ? [||]default(string) : default(string);
+        var v = b ? $$default(string) : default(string);
     }
 }",
 @"
@@ -281,7 +281,7 @@ class C
 {
     void Goo(bool b)
     {
-        var v = b ? default(string) : [||]default(string);
+        var v = b ? default(string) : $$default(string);
     }
 }",
 @"
@@ -374,7 +374,7 @@ struct S
     void M()
     {
         var s = new S();
-        s.Equals([||]default(S));
+        s.Equals($$default(S));
     }
 
     public override bool Equals(object obj)
@@ -394,7 +394,7 @@ struct S<T>
     void M()
     {
         var s = new S<int>();
-        s.Equals([||]default(S<int>));
+        s.Equals($$default(S<int>));
     }
 
     public override bool Equals(object obj)
@@ -414,7 +414,7 @@ struct S
     void M()
     {
         var s = new S();
-        s.Equals([||]default(S));
+        s.Equals($$default(S));
     }
 
     public new bool Equals(S s) => true;
@@ -445,7 +445,7 @@ class C
     {
         switch (true)
         {
-            case [||]default(bool):
+            case $$default(bool):
         }
     }
 }", s_testParameters);
@@ -462,7 +462,7 @@ class C
     {
         switch (true)
         {
-            case ([||]default(bool)):
+            case ($$default(bool)):
         }
     }
 }", s_testParameters);
@@ -479,7 +479,7 @@ class C
     {
         switch (true)
         {
-            case (bool)[||]default(bool):
+            case (bool)$$default(bool):
         }
     }
 }",
@@ -490,7 +490,7 @@ class C
     {
         switch (true)
         {
-            case (bool)[||]default:
+            case (bool)$$default:
         }
     }
 }", parameters: s_testParameters);
@@ -507,7 +507,7 @@ class C
     {
         switch (true)
         {
-            case [||]default(bool) when true:
+            case $$default(bool) when true:
         }
     }
 }", s_testParameters);
@@ -524,7 +524,7 @@ class C
     {
         switch (true)
         {
-            case ([||]default(bool)) when true:
+            case ($$default(bool)) when true:
         }
     }
 }", s_testParameters);
@@ -541,7 +541,7 @@ class C
     {
         switch (true)
         {
-            case (bool)[||]default(bool) when true:
+            case (bool)$$default(bool) when true:
         }
     }
 }",
@@ -552,7 +552,7 @@ class C
     {
         switch (true)
         {
-            case (bool)[||]default when true:
+            case (bool)$$default when true:
         }
     }
 }", parameters: s_testParameters);
@@ -569,7 +569,7 @@ class C
     {
         switch (true)
         {
-            case default(bool) when [||]default(bool):
+            case default(bool) when $$default(bool):
         }
     }
 }",
@@ -595,7 +595,7 @@ class C
 {
     void M()
     {
-        if (true is [||]default(bool));
+        if (true is $$default(bool));
     }
 }", s_testParameters);
         }
@@ -609,7 +609,7 @@ class C
 {
     void M()
     {
-        if (true is ([||]default(bool)));
+        if (true is ($$default(bool)));
     }
 }", s_testParameters);
         }
@@ -623,7 +623,7 @@ class C
 {
     void M()
     {
-        if (true is (bool)[||]default(bool));
+        if (true is (bool)$$default(bool));
     }
 }",
 @"

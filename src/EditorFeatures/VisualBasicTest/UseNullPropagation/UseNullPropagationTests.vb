@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -22,7 +22,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (o Is Nothing, Nothing, o.ToString())
+        Dim v = $$If (o Is Nothing, Nothing, o.ToString())
     End Sub
 End Class",
 "
@@ -43,7 +43,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (o Is Nothing, Nothing, o.ToString())
+        Dim v = $$If (o Is Nothing, Nothing, o.ToString())
     End Sub
 End Class", New TestParameters(VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic12)))
         End Function
@@ -56,7 +56,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (Nothing Is o, Nothing, o.ToString()
+        Dim v = $$If (Nothing Is o, Nothing, o.ToString()
     End Sub
 End Class",
 "
@@ -77,7 +77,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (o IsNot Nothing, o.ToString(), Nothing)
+        Dim v = $$If (o IsNot Nothing, o.ToString(), Nothing)
     End Sub
 End Class",
 "
@@ -99,7 +99,7 @@ Imports System
 Class C
     Dim f As Integer?
     Sub M(C c)
-        Dim v = [||]If (c IsNot Nothing, c.f, Nothing)
+        Dim v = $$If (c IsNot Nothing, c.f, Nothing)
     End Sub
 End Class",
 "
@@ -122,7 +122,7 @@ Imports System
 Class C
     Dim f As Integer?
     Sub M(C c)
-        Dim v = [||]If (DirectCast(c, Object) IsNot Nothing, c.f, Nothing)
+        Dim v = $$If (DirectCast(c, Object) IsNot Nothing, c.f, Nothing)
     End Sub
 End Class",
 "
@@ -144,7 +144,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (Nothing IsNot o, o.ToString(), Nothing)
+        Dim v = $$If (Nothing IsNot o, o.ToString(), Nothing)
     End Sub
 End Class",
 "
@@ -165,7 +165,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (o Is Nothing, Nothing, o(0))
+        Dim v = $$If (o Is Nothing, Nothing, o(0))
     End Sub
 End Class",
 "
@@ -186,7 +186,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (o Is Nothing, Nothing, o.B?.C)
+        Dim v = $$If (o Is Nothing, Nothing, o.B?.C)
     End Sub
 End Class",
 "
@@ -207,7 +207,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (o Is Nothing, Nothing, o.B)
+        Dim v = $$If (o Is Nothing, Nothing, o.B)
     End Sub
 End Class",
 "
@@ -228,7 +228,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (o Is Nothing, Nothing, o)
+        Dim v = $$If (o Is Nothing, Nothing, o)
     End Sub
 End Class")
         End Function
@@ -241,7 +241,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If ((o Is Nothing), Nothing, o.ToString())
+        Dim v = $$If ((o Is Nothing), Nothing, o.ToString())
     End Sub
 End Class",
 "
@@ -306,7 +306,7 @@ Imports System
 
 Class C
     Function M(o As String) As Integer?
-        return [||]If (o Is Nothing, Nothing, o.Length)
+        return $$If (o Is Nothing, Nothing, o.Length)
     End Function
 End Class")
         End Function
@@ -319,7 +319,7 @@ Imports System
 
 Class C
     Sub M(o As String)
-        Dim x = [||]If (o Is Nothing, Nothing, o.Length)
+        Dim x = $$If (o Is Nothing, Nothing, o.Length)
     End Sub
 End Class")
         End Function
@@ -333,7 +333,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (ReferenceEquals(o, Nothing), Nothing, o.ToString())
+        Dim v = $$If (ReferenceEquals(o, Nothing), Nothing, o.ToString())
     End Sub
 End Class",
 "
@@ -355,7 +355,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (ReferenceEquals(Nothing, o), Nothing, o.ToString())
+        Dim v = $$If (ReferenceEquals(Nothing, o), Nothing, o.ToString())
     End Sub
 End Class",
 "
@@ -377,7 +377,7 @@ Imports System
 
 Class C
     Sub M(o As Object, other as Object)
-        Dim v = [||]If (ReferenceEquals(o, other), Nothing, o.ToString())
+        Dim v = $$If (ReferenceEquals(o, other), Nothing, o.ToString())
     End Sub
 End Class")
         End Function
@@ -391,7 +391,7 @@ Imports System
 
 Class C
     Sub M(o As Object, other as Object)
-        Dim v = [||]If (ReferenceEquals(other, o), Nothing, o.ToString())
+        Dim v = $$If (ReferenceEquals(other, o), Nothing, o.ToString())
     End Sub
 End Class")
         End Function
@@ -405,7 +405,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (Object.ReferenceEquals(o, Nothing), Nothing, o.ToString())
+        Dim v = $$If (Object.ReferenceEquals(o, Nothing), Nothing, o.ToString())
     End Sub
 End Class",
 "
@@ -427,7 +427,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (Object.ReferenceEquals(Nothing, o), Nothing, o.ToString())
+        Dim v = $$If (Object.ReferenceEquals(Nothing, o), Nothing, o.ToString())
     End Sub
 End Class",
 "
@@ -449,7 +449,7 @@ Imports System
 
 Class C
     Sub M(o As Object, other as Object)
-        Dim v = [||]If (Object.ReferenceEquals(o, other), Nothing, o.ToString())
+        Dim v = $$If (Object.ReferenceEquals(o, other), Nothing, o.ToString())
     End Sub
 End Class")
         End Function
@@ -463,7 +463,7 @@ Imports System
 
 Class C
     Sub M(o As Object, other as Object)
-        Dim v = [||]If (Object.ReferenceEquals(other, o), Nothing, o.ToString())
+        Dim v = $$If (Object.ReferenceEquals(other, o), Nothing, o.ToString())
     End Sub
 End Class")
         End Function
@@ -477,7 +477,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (Object.ReferenceEquals(o, ), Nothing, o.ToString())
+        Dim v = $$If (Object.ReferenceEquals(o, ), Nothing, o.ToString())
     End Sub
 End Class")
         End Function
@@ -491,7 +491,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (Object.ReferenceEquals(, Nothing), Nothing, o.ToString())
+        Dim v = $$If (Object.ReferenceEquals(, Nothing), Nothing, o.ToString())
     End Sub
 End Class")
         End Function
@@ -505,7 +505,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (Not ReferenceEquals(o, Nothing), o.ToString(), Nothing)
+        Dim v = $$If (Not ReferenceEquals(o, Nothing), o.ToString(), Nothing)
     End Sub
 End Class",
 "
@@ -527,7 +527,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (Not ReferenceEquals(Nothing, o), o.ToString(), Nothing)
+        Dim v = $$If (Not ReferenceEquals(Nothing, o), o.ToString(), Nothing)
     End Sub
 End Class",
 "
@@ -549,7 +549,7 @@ Imports System
 
 Class C
     Sub M(o As Object, other as Object)
-        Dim v = [||]If (Not ReferenceEquals(o, other), o.ToString(), Nothing)
+        Dim v = $$If (Not ReferenceEquals(o, other), o.ToString(), Nothing)
     End Sub
 End Class")
         End Function
@@ -563,7 +563,7 @@ Imports System
 
 Class C
     Sub M(o As Object, other as Object)
-        Dim v = [||]If (Not ReferenceEquals(other, o), o.ToString(), Nothing)
+        Dim v = $$If (Not ReferenceEquals(other, o), o.ToString(), Nothing)
     End Sub
 End Class")
         End Function
@@ -577,7 +577,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (Not Object.ReferenceEquals(o, Nothing), o.ToString(), Nothing)
+        Dim v = $$If (Not Object.ReferenceEquals(o, Nothing), o.ToString(), Nothing)
     End Sub
 End Class",
 "
@@ -599,7 +599,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (Not Object.ReferenceEquals(Nothing, o), o.ToString(), Nothing)
+        Dim v = $$If (Not Object.ReferenceEquals(Nothing, o), o.ToString(), Nothing)
     End Sub
 End Class",
 "
@@ -621,7 +621,7 @@ Imports System
 
 Class C
     Sub M(o As Object, other as Object)
-        Dim v = [||]If (Not Object.ReferenceEquals(o, other), o.ToString(), Nothing)
+        Dim v = $$If (Not Object.ReferenceEquals(o, other), o.ToString(), Nothing)
     End Sub
 End Class")
         End Function
@@ -635,7 +635,7 @@ Imports System
 
 Class C
     Sub M(o As Object, other as Object)
-        Dim v = [||]If (Not Object.ReferenceEquals(other, o), o.ToString(), Nothing)
+        Dim v = $$If (Not Object.ReferenceEquals(other, o), o.ToString(), Nothing)
     End Sub
 End Class")
         End Function
@@ -649,7 +649,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (Not (o Is Nothing), o.ToString(), Nothing)
+        Dim v = $$If (Not (o Is Nothing), o.ToString(), Nothing)
     End Sub
 End Class",
 "
@@ -671,7 +671,7 @@ Imports System
 
 Class C
     Sub M(o As Object)
-        Dim v = [||]If (Not (o IsNot Nothing), Nothing, o.ToString())
+        Dim v = $$If (Not (o IsNot Nothing), Nothing, o.ToString())
     End Sub
 End Class",
 "
@@ -694,7 +694,7 @@ Imports System
 
 Class C
     Sub M(o As Object, other as Object)
-        Dim v = [||]If (Not (o Is other), o.ToString(), Nothing)
+        Dim v = $$If (Not (o Is other), o.ToString(), Nothing)
     End Sub
 End Class")
         End Function
@@ -708,7 +708,7 @@ Imports System
 
 Class C
     Sub M(o As Object, other as Object)
-        Dim v = [||]If (Not (o IsNot other), Nothing, o.ToString())
+        Dim v = $$If (Not (o IsNot other), Nothing, o.ToString())
     End Sub
 End Class")
         End Function

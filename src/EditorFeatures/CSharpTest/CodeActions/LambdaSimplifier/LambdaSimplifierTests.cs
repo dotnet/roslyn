@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -24,7 +24,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar(s $$=> Quux(s));
     }
 
     void Bar(Func<int, string> f);
@@ -55,7 +55,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar(s $$=> Quux(s));
     }
 
     void Bar(Func<object, string> f);
@@ -86,7 +86,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar(s $$=> Quux(s));
     }
 
     void Bar(Func<string, object> f);
@@ -117,7 +117,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar(s $$=> Quux(s));
     }
 
     void Bar(Func<string, string> f);
@@ -135,7 +135,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar(s $$=> Quux(s));
     }
 
     void Bar(Func<object, object> f);
@@ -153,7 +153,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar(s $$=> Quux(s));
     }
 
     void Bar(Func<object, string> f);
@@ -171,7 +171,7 @@ class C
 {
     void Goo()
     {
-        Bar((s1, s2) [||]=> Quux(s1, s2));
+        Bar((s1, s2) $$=> Quux(s1, s2));
     }
 
     void Bar(Func<int, bool, string> f);
@@ -202,7 +202,7 @@ class C
 {
     void Goo()
     {
-        Bar((s1, s2) [||]=> {
+        Bar((s1, s2) $$=> {
             return Quux(s1, s2);
         });
     }
@@ -235,7 +235,7 @@ class C
 {
     void Goo()
     {
-        Bar((s1, s2) [||]=> {
+        Bar((s1, s2) $$=> {
             return this.Quux(s1, s2);
         });
     }
@@ -268,7 +268,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar(s $$=> Quux(s));
         Bar(s => Quux(s));
     }
 
@@ -297,7 +297,7 @@ class C
 {
     void Goo()
     {
-        Bar(s [||]=> Quux(s));
+        Bar(s $$=> Quux(s));
         Bar(s => Quux(s));
     }
 
@@ -343,7 +343,7 @@ class A
 
     static void Main()
     {
-        Bar(x => [||]Goo(x));
+        Bar(x => $$Goo(x));
     }
 }");
         }
@@ -367,7 +367,7 @@ class C<T>
 {
     public static void InvokeGoo()
     {
-        Action<dynamic, string> goo = (x, y) => [||]C<T>.Goo(x, y); // Simplify lambda expression
+        Action<dynamic, string> goo = (x, y) => $$C<T>.Goo(x, y); // Simplify lambda expression
         goo(1, "");
     }
 
@@ -402,7 +402,7 @@ class Casd<T>
 {
     public static void InvokeGoo()
     {
-        Action<dynamic> goo = x => [||]Casd<T>.Goo(x); // Simplify lambda expression
+        Action<dynamic> goo = x => $$Casd<T>.Goo(x); // Simplify lambda expression
         goo(1, "");
     }
 
@@ -435,7 +435,7 @@ class C
     {
         C x = new C();
         int y = 1;
-        Bar(() [||]=> { return Console.ReadLine(); } < x, y > (1 + 2));
+        Bar(() $$=> { return Console.ReadLine(); } < x, y > (1 + 2));
     }
 
     static void Bar(object a, object b) { }
@@ -473,7 +473,7 @@ class C
 {
     void Main()
     {
-        Func<string> a = () [||]=> new C().ToString();
+        Func<string> a = () $$=> new C().ToString();
     }
 }",
 @"using System;
@@ -498,7 +498,7 @@ class Program
 {
     static void Main()
     {
-        Action a = [||]() => {
+        Action a = $$() => {
             Console.WriteLine();
         };
     }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
             var text = @"
 class goo
 {
-    public int G[||]oo { get; set; }
+    public int G$$oo { get; set; }
 }
 ";
             var expected = @"
@@ -54,7 +54,7 @@ class goo
             var text = @"
 class goo
 {
-    public int G[||]oo { get; set; }
+    public int G$$oo { get; set; }
 
 }
 ";
@@ -86,7 +86,7 @@ class goo
             var text = @"
 class goo
 {
-    public int G[||]oo { get; set; } = 2
+    public int G$$oo { get; set; } = 2
 }
 ";
             var expected = @"
@@ -117,7 +117,7 @@ class goo
 class goo
 {
     const int num = 345;
-    public int G[||]oo { get; set; } = 2*num
+    public int G$$oo { get; set; } = 2*num
 }
 ";
             var expected = @"
@@ -148,7 +148,7 @@ class goo
             var text = @"
 class goo
 {
-    public int G[||]oo { get; private set; }
+    public int G$$oo { get; private set; }
 }
 ";
             var expected = @"
@@ -180,7 +180,7 @@ class goo
 {
     private int _goo;
 
-    public int G[||]oo { get; private set; }
+    public int G$$oo { get; private set; }
 }
 ";
             var expected = @"
@@ -212,7 +212,7 @@ class goo
 class goo
 {
     // Comments before
-    public int G[||]oo { get; private set; } //Comments during
+    public int G$$oo { get; private set; } //Comments during
     //Comments after
 }
 ";
@@ -245,7 +245,7 @@ class goo
             var text = @"
 class goo
 {
-    public int G[||]oo { get; set; }
+    public int G$$oo { get; set; }
 }
 ";
             var expected = @"
@@ -265,7 +265,7 @@ class goo
             var text = @"
 class goo
 {
-    public int G[||]oo { get; set; }
+    public int G$$oo { get; set; }
 }
 ";
             var expected = @"
@@ -285,7 +285,7 @@ class goo
             var text = @"
 class goo
 {
-    public int G[||]oo
+    public int G$$oo
     {
         get;
         set;
@@ -313,7 +313,7 @@ class goo
             var text = @"
 class goo
 {
-    public int G[||]oo { get /* test */ ; set /* test2 */ ; }
+    public int G$$oo { get /* test */ ; set /* test2 */ ; }
 }
 ";
             var expected = @"
@@ -333,7 +333,7 @@ class goo
             var text = @"
 class goo
 {
-    public int G[||]oo { get; set; }
+    public int G$$oo { get; set; }
 }
 ";
             var expected = @"
@@ -362,7 +362,7 @@ class goo
             var text = @"
 class goo
 {
-    public int G[||]oo { get; set; }
+    public int G$$oo { get; set; }
 }
 ";
             var expected = @"
@@ -390,7 +390,7 @@ class goo
             var text = @"
 class goo
 {
-    public static int G[||]oo { get; set; }
+    public static int G$$oo { get; set; }
 }
 ";
             var expected = @"
@@ -420,7 +420,7 @@ class goo
             var text = @"
 class goo
 {
-    protected int G[||]oo { get; set; }
+    protected int G$$oo { get; set; }
 }
 ";
             var expected = @"
@@ -450,7 +450,7 @@ class goo
             var text = @"
 class goo
 {
-    internal int G[||]oo { get; set; }
+    internal int G$$oo { get; set; }
 }
 ";
             var expected = @"
@@ -481,7 +481,7 @@ class goo
 class goo
 {
     [A]
-    public int G[||]oo { get; set; }
+    public int G$$oo { get; set; }
 }
 ";
             var expected = @"
@@ -515,7 +515,7 @@ class goo
     /// <summary>
     /// test stuff here
     /// </summary>
-    public int testg[||]oo { /* test1 */ get /* test2 */; /* test3 */ set /* test4 */; /* test5 */ } /* test6 */
+    public int testg$$oo { /* test1 */ get /* test2 */; /* test3 */ set /* test4 */; /* test5 */ } /* test6 */
 }
 ";
             var expected = @"
@@ -553,7 +553,7 @@ class MyBaseClass
 
 class MyDerivedClass : MyBaseClass
 {
-    public override string N[||]ame {get; set;}
+    public override string N$$ame {get; set;}
 }
 ";
             var expected = @"
@@ -588,7 +588,7 @@ class MyDerivedClass : MyBaseClass
             var text = @"
 class MyClass
 {
-    public sealed string N[||]ame {get; set;}
+    public sealed string N$$ame {get; set;}
 }
 ";
             var expected = @"
@@ -618,7 +618,7 @@ class MyClass
             var text = @"
 class MyBaseClass
 {
-    public virtual string N[||]ame { get; set; }
+    public virtual string N$$ame { get; set; }
 }
 
 class MyDerivedClass : MyBaseClass
@@ -658,7 +658,7 @@ class MyDerivedClass : MyBaseClass
             var text = @"
 class MyClass
 {
-    private string N[||]ame { get; set; }
+    private string N$$ame { get; set; }
 }
 ";
             var expected = @"
@@ -688,7 +688,7 @@ class MyClass
             var text = @"
 class MyBaseClass
 {
-    public abstract string N[||]ame { get; set; }
+    public abstract string N$$ame { get; set; }
 }
 
 class MyDerivedClass : MyBaseClass
@@ -705,7 +705,7 @@ class MyDerivedClass : MyBaseClass
             var text = @"
 class MyBaseClass
 {
-    extern string N[||]ame { get; set; }
+    extern string N$$ame { get; set; }
 }
 ";
             await TestMissingAsync(text);
@@ -717,7 +717,7 @@ class MyBaseClass
             var text = @"
 class goo
 {
-    public int G[||]oo { get;}
+    public int G$$oo { get;}
 }
 ";
             var expected = @"
@@ -743,7 +743,7 @@ class goo
             var text = @"
 class goo
 {
-    public int G[||]oo { get;}
+    public int G$$oo { get;}
 }
 ";
             var expected = @"
@@ -763,7 +763,7 @@ class goo
             var text = @"
 class goo
 {
-    public int G[||]oo
+    public int G$$oo
     {
         set {}
     }
@@ -780,7 +780,7 @@ class goo
 {
    private int _testgoo;
 
-   public int testg[||]oo {get => _testgoo; set => _testgoo = value; }
+   public int testg$$oo {get => _testgoo; set => _testgoo = value; }
 }
 ";
             await TestMissingAsync(text);
@@ -792,7 +792,7 @@ class goo
             var text = @"
 class goo
 {
-    [||]public int Goo { get; set; }
+    $$public int Goo { get; set; }
 }
 ";
             var expected = @"
@@ -822,7 +822,7 @@ class goo
             var text = @"
 class goo
 {
-    public int Goo[||] { get; set; }
+    public int Goo$$ { get; set; }
 }
 ";
             var expected = @"
@@ -852,7 +852,7 @@ class goo
             var text = @"
 class goo
 {
-    public int Goo { g[||]et; set; }
+    public int Goo { g$$et; set; }
 }
 ";
             await TestMissingAsync(text);
@@ -864,7 +864,7 @@ class goo
             var text = @"
 class goo
 {
-    public int Goo { g[||]et; get; }
+    public int Goo { g$$et; get; }
 }
 ";
             await TestMissingAsync(text);
@@ -876,7 +876,7 @@ class goo
             var text = @"
 class goo
 {
-    public int Goo { get; s[||]et; set; }
+    public int Goo { get; s$$et; set; }
 }
 ";
             await TestMissingAsync(text);
@@ -888,7 +888,7 @@ class goo
             var text = @"
 class goo
 {
-    public int G[||]oo { get; set; }
+    public int G$$oo { get; set; }
 }
 ";
             var expected = @"
@@ -918,7 +918,7 @@ class goo
             var text = @"
 class goo
 {
-    public int G[||]oo { get; set; }
+    public int G$$oo { get; set; }
 }
 ";
             var expected = @"
@@ -948,7 +948,7 @@ class goo
             var text = @"
 class goo
 {
-    public static int G[||]oo { get; set; }
+    public static int G$$oo { get; set; }
 }
 ";
             var expected = @"
@@ -978,7 +978,7 @@ class goo
             var text = @"
 interface IGoo
 {
-    public int Goo { get; s[||]et; }
+    public int Goo { get; s$$et; }
 }
 ";
             await TestMissingAsync(text);
@@ -990,7 +990,7 @@ interface IGoo
             var text = @"
 struct goo
 {
-    public int G[||]oo { get; set; }
+    public int G$$oo { get; set; }
 }
 ";
             var expected = @"
@@ -1026,7 +1026,7 @@ partial class Program
 
 partial class Program
 {
-    int [||]Q { get; set; }
+    int $$Q { get; set; }
 }
 ";
             var expected = @"
@@ -1052,7 +1052,7 @@ partial class Program
             var file1 = @"
 partial class Program
 {
-    int [||]P { get; set; }
+    int $$P { get; set; }
 }";
             var file2 = @"
 partial class Program
@@ -1103,7 +1103,7 @@ partial class Program
             var file2 = @"
 partial class Program
 {
-    int Q[||] { get; set; }
+    int Q$$ { get; set; }
 }";
             var file2AfterRefactor = @"
 partial class Program
@@ -1142,10 +1142,10 @@ partial class Program
         {
             await TestMissingAsync(@"namespace NS
 {
-    public int G[||]oo { get; set; }
+    public int G$$oo { get; set; }
 }");
 
-            await TestMissingAsync("public int G[||]oo { get; set; }");
+            await TestMissingAsync("public int G$$oo { get; set; }");
         }
     }
 }

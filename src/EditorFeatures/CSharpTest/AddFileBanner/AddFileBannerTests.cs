@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddFileBanner
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>[||]using System;
+        <Document>$$using System;
 
 class Program1
 {
@@ -69,7 +69,7 @@ class Program2
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>[||]using System;
+        <Document>$$using System;
 
 class Program1
 {
@@ -121,7 +121,7 @@ class Program2
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>[||]// I already have a banner
+        <Document>$$// I already have a banner
 
 using System;
 
@@ -149,7 +149,7 @@ class Program2
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>[||]
+        <Document>$$
 
 using System;
 
@@ -177,7 +177,7 @@ class Program2
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>[||]
+        <Document>$$
 
 using System;
 

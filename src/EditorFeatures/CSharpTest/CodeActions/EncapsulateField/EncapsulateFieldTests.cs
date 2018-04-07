@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Globalization;
@@ -728,7 +728,7 @@ class Program
             var text = @"
 class Program
 {
-    pri[||]vate int x;
+    pri$$vate int x;
 }
 ";
 
@@ -1050,7 +1050,7 @@ namespace ConsoleApplication1
     class Program
     {
         // Some random comment
-        public int myI[||]nt;
+        public int myI$$nt;
     }
 }
 ";

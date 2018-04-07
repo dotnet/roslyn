@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
@@ -2975,7 +2975,7 @@ End Module"
         Public Async Function TestSimpleParameterName_EmptySelection() As Task
             Dim source = "Module Program
     Sub Main(x As Integer)
-        Goo([||]x)
+        Goo($$x)
     End Sub
 End Module"
             Await TestMissingAsync(source)

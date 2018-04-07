@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -672,7 +672,7 @@ new TestParameters(options: Option(CodeStyleOptions.QualifyFieldAccess, CodeStyl
 class Z
 {
     int a;
-    [||]
+    $$
 }",
 @"using System.Collections.Generic;
 
@@ -694,7 +694,7 @@ chosenSymbols: new[] { "a" });
             await TestWithPickMembersDialogAsync(
 @"using System.Collections.Generic;
 
-class [||]Z
+class $$Z
 {
     int a;
 }",
@@ -718,7 +718,7 @@ chosenSymbols: new[] { "a" });
             await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
-[X][||]
+[X]$$
 class Z
 {
     int a;
@@ -734,7 +734,7 @@ class Z
 class Z
 {
     int a;
-    [||]
+    $$
 }",
 @"using System.Collections.Generic;
 
@@ -759,7 +759,7 @@ class Z
 {
     int a;
     string b;
-    [||]
+    $$
 }",
 @"using System.Collections.Generic;
 
@@ -789,7 +789,7 @@ class Z
 {
     int a;
     string b;
-    [||]
+    $$
 }",
 @"
 using System;
@@ -822,7 +822,7 @@ class Z
 {
     int a;
     string b;
-    [||]
+    $$
 }",
 @"
 using System;
@@ -860,7 +860,7 @@ class Z
 {
     int a;
     string b;
-    [||]public void M() { }
+    $$public void M() { }
 }");
         }
 
@@ -876,7 +876,7 @@ class Z
     string b;
     public void M()
     {
-    }[||]
+    }$$
 
     public void N() { }
 }");
@@ -894,7 +894,7 @@ class Z
     string b;
     public void M()
     {
- [||] 
+ $$ 
     }
 
     public void N() { }

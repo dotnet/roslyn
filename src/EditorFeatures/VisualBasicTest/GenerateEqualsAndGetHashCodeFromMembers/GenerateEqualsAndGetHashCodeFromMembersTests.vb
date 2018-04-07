@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -114,7 +114,7 @@ Imports System.Collections.Generic
 
 Class Program
     Public s As String
-    [||]
+    $$
 End Class",
 "
 Imports System.Collections.Generic
@@ -148,7 +148,7 @@ Imports System.Collections.Generic
 
 Class Program
     Public s As String
-    [||]
+    $$
 
     Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
         Return True
@@ -182,7 +182,7 @@ Imports System.Collections.Generic
 
 Structure Program
     Public s As String
-    [||]
+    $$
 End Structure",
 "
 Imports System.Collections.Generic
@@ -219,7 +219,7 @@ Imports System.Collections.Generic
 
 structure Program
     Public s As String
-    [||]
+    $$
 End structure",
 "
 Imports System
@@ -250,7 +250,7 @@ Imports System.Collections.Generic
 
 Class Program
     Public s As String
-    [||]
+    $$
 End Class",
 "
 Imports System

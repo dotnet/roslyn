@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MoveDeclarationNea
             Await TestInRegularAndScriptAsync(
 "class C
     sub M()
-        dim [||]x as integer
+        dim $$x as integer
         if true
             Console.WriteLine(x)
         end if
@@ -38,7 +38,7 @@ end class")
             Await TestInRegularAndScriptAsync(
 "class C
     sub M()
-        dim [||]x as integer
+        dim $$x as integer
         Console.WriteLine()
         Console.WriteLine(x)
     end sub
@@ -58,7 +58,7 @@ end class")
 "class C
     sub M()
 
-        dim [||]x as integer
+        dim $$x as integer
         Console.WriteLine()
         if true
             Console.WriteLine(x)
@@ -90,7 +90,7 @@ end class")
             Await TestInRegularAndScriptAsync(
 "class C
     sub M()
-        dim [||]x as integer
+        dim $$x as integer
         Console.WriteLine()
         if true
             Console.WriteLine(x)
@@ -113,7 +113,7 @@ end class")
             Await TestInRegularAndScriptAsync(
 "class C
     sub M()
-        dim [||]x as integer
+        dim $$x as integer
         if true
             x = 5
             Console.WriteLine(x)
@@ -136,7 +136,7 @@ end class")
             Await TestInRegularAndScriptAsync(
 "class C
     sub M()
-        dim [||]x as integer = 0
+        dim $$x as integer = 0
         if true
             x = 5
             Console.WriteLine(x)
@@ -158,7 +158,7 @@ end class")
             Await TestInRegularAndScriptAsync(
 "class C
     sub M()
-        dim [||]x = ctype(0, integer)
+        dim $$x = ctype(0, integer)
         if true
             x = 5
             Console.WriteLine(x)
@@ -181,7 +181,7 @@ end class")
             Await TestMissingInRegularAndScriptAsync(
 "class C
     sub M()
-        dim [||]x as integer
+        dim $$x as integer
         Console.WriteLine(x)
     end sub
 end class")
@@ -192,7 +192,7 @@ end class")
             Await TestMissingInRegularAndScriptAsync(
 "class Program
     sub M()
-        dim [||]x as object() = { x }
+        dim $$x as object() = { x }
         x.ToString()
     end sub
 end class")
@@ -203,7 +203,7 @@ end class")
             Await TestMissingInRegularAndScriptAsync(
 "class Program
     sub M()
-        dim [||]i as integer = 5
+        dim $$i as integer = 5
         dim j as integer = 10
         Console.WriteLine(i)
     end sub
@@ -217,7 +217,7 @@ end class")
 
 class Program
     sub M()
-        dim [||]gate = new object()
+        dim $$gate = new object()
         dim x = sub()
                     Console.WriteLine(gate)
                 end sub()
@@ -243,7 +243,7 @@ using System.Linq
 
 class Program
     sub M()
-        dim [||]i = 0
+        dim $$i = 0
         for each (v in x)
             Console.Write(i)
             i = i + 1
@@ -273,7 +273,7 @@ using System.Linq
 
 class Program
     sub M()
-        ' Comment [||]about goo!
+        ' Comment $$about goo!
         ' Comment about goo!
         ' Comment about goo!
         ' Comment about goo!

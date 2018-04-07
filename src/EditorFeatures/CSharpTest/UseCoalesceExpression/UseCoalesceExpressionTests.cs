@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -27,7 +27,7 @@ class C
 {
     void M(string x, string y)
     {
-        var z = [||]x == null ? y : x;
+        var z = $$x == null ? y : x;
     }
 }",
 @"using System;
@@ -51,7 +51,7 @@ class C
 {
     void M(string x, string y)
     {
-        var z = [||]x != null ? x : y;
+        var z = $$x != null ? x : y;
     }
 }",
 @"using System;
@@ -75,7 +75,7 @@ class C
 {
     void M(string x, string y)
     {
-        var z = [||]null == x ? y : x;
+        var z = $$null == x ? y : x;
     }
 }",
 @"using System;
@@ -99,7 +99,7 @@ class C
 {
     void M(string x, string y)
     {
-        var z = [||]null != x ? x : y;
+        var z = $$null != x ? x : y;
     }
 }",
 @"using System;
@@ -123,7 +123,7 @@ class C
 {
     void M(string x, string y)
     {
-        var z = [||]x.ToString() == null ? y : x.ToString();
+        var z = $$x.ToString() == null ? y : x.ToString();
     }
 }",
 @"using System;
@@ -147,7 +147,7 @@ class C
 {
     void M(string x, string y)
     {
-        var z = [||](x == null) ? y : x;
+        var z = $$(x == null) ? y : x;
     }
 }",
 @"using System;
@@ -171,7 +171,7 @@ class C
 {
     void M(string x, string y)
     {
-        var z = [||](x) == null ? y : x;
+        var z = $$(x) == null ? y : x;
     }
 }",
 @"using System;
@@ -195,7 +195,7 @@ class C
 {
     void M(string x, string y)
     {
-        var z = [||]x == null ? y : (x);
+        var z = $$x == null ? y : (x);
     }
 }",
 @"using System;
@@ -219,7 +219,7 @@ class C
 {
     void M(string x, string y)
     {
-        var z = [||]x == null ? (y) : x;
+        var z = $$x == null ? (y) : x;
     }
 }",
 @"using System;
@@ -348,7 +348,7 @@ class C
 {
     void Main(string s, string y)
     {
-        Expression<Func<string>> e = () => [||]s != null ? s : y;
+        Expression<Func<string>> e = () => $$s != null ? s : y;
     }
 }",
 @"using System;
@@ -372,7 +372,7 @@ class C<T>
 {
     void Main(T t)
     {
-        var v = [||]t == null ? throw new Exception() : t;
+        var v = $$t == null ? throw new Exception() : t;
     }
 }");
         }
@@ -386,7 +386,7 @@ class C<T> where T : struct
 {
     void Main(T t)
     {
-        var v = [||]t == null ? throw new Exception() : t;
+        var v = $$t == null ? throw new Exception() : t;
     }
 }");
         }
@@ -400,7 +400,7 @@ class C<T> where T : class
 {
     void Main(T t)
     {
-        var v = [||]t == null ? throw new Exception() : t;
+        var v = $$t == null ? throw new Exception() : t;
     }
 }",
 @"
@@ -422,7 +422,7 @@ class C
 {
     void Main(int? t)
     {
-        var v = [||]t == null ? throw new Exception() : t;
+        var v = $$t == null ? throw new Exception() : t;
     }
 }");
         }
@@ -436,7 +436,7 @@ class C
 {
     void Main(int[] t)
     {
-        var v = [||]t == null ? throw new Exception() : t;
+        var v = $$t == null ? throw new Exception() : t;
     }
 }",
 @"
@@ -458,7 +458,7 @@ class C
 {
     void Main(System.ICloneable t)
     {
-        var v = [||]t == null ? throw new Exception() : t;
+        var v = $$t == null ? throw new Exception() : t;
     }
 }",
 @"
@@ -480,7 +480,7 @@ class C
 {
     void Main(dynamic t)
     {
-        var v = [||]t == null ? throw new Exception() : t;
+        var v = $$t == null ? throw new Exception() : t;
     }
 }",
 @"

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
             var markup = @"
 class Ext
 {
-    void Goo(int a, int b) => [||]0;
+    void Goo(int a, int b) => $$0;
 }";
 
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
@@ -69,7 +69,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        M1(1, 2);[||]
+        M1(1, 2);$$
         M2(1, 2, 3);
     }
 
@@ -88,7 +88,7 @@ class Program
             var markup = @"
 class Ext
 {
-    [||]
+    $$
     void Goo(int a, int b)
     {
     };
@@ -104,7 +104,7 @@ class Ext
             var markup = @"
 class Ext
 {
-    // [||]
+    // $$
     void Goo(int a, int b)
     {
     };
@@ -120,7 +120,7 @@ class Ext
             var markup = @"
 class Ext
 {
-    [||]//
+    $$//
     void Goo(int a, int b)
     {
     };
@@ -136,7 +136,7 @@ class Ext
             var markup = @"
 class Ext
 {
-    /// [||]
+    /// $$
     void Goo(int a, int b)
     {
     };
@@ -152,7 +152,7 @@ class Ext
             var markup = @"
 class Ext
 {
-    [||]///
+    $$///
     void Goo(int a, int b)
     {
     };
@@ -168,7 +168,7 @@ class Ext
             var markup = @"
 class Ext
 {
-    [||][X]
+    $$[X]
     void Goo(int a, int b)
     {
     };
@@ -184,7 +184,7 @@ class Ext
             var markup = @"
 class Ext
 {
-    [[||]X]
+    [$$X]
     void Goo(int a, int b)
     {
     };
@@ -200,7 +200,7 @@ class Ext
             var markup = @"
 class Ext
 {
-    [X][||]
+    [X]$$
     void Goo(int a, int b)
     {
     };
@@ -216,7 +216,7 @@ class Ext
             var markup = @"
 class Ext
 {
-    void Goo<T>(int a, int b) where [||]T : class
+    void Goo<T>(int a, int b) where $$T : class
     {
     };
 }";
