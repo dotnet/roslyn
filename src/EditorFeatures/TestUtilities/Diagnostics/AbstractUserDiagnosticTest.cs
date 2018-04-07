@@ -65,29 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         protected bool TryGetDocumentAndSelectSpan(TestWorkspace workspace, out Document document, out TextSpan span)
-        {
-            var hostDocument = workspace.Documents.FirstOrDefault(d => d.SelectedSpans.Any());
-            if (hostDocument == null)
-            {
-                // If there wasn't a span, see if there was a $$ caret.  we'll create an empty span
-                // there if so.
-                hostDocument = workspace.Documents.FirstOrDefault(d => d.CursorPosition != null);
-                if (hostDocument == null)
-                {
-                    document = null;
-                    span = default;
-                    return false;
-                }
-
-                span = new TextSpan(hostDocument.CursorPosition.Value, 0);
-                document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                return true;
-            }
-
-            span = hostDocument.SelectedSpans.Single();
-            document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-            return true;
-        }
+            => workspace.TryGetDocumentWithSelectedSpan(out document, out span);
 
         protected Document GetDocumentAndAnnotatedSpan(TestWorkspace workspace, out string annotation, out TextSpan span)
         {

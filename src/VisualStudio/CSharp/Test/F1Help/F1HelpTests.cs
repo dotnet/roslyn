@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -19,10 +19,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         {
             using (var workspace = TestWorkspace.CreateCSharp(markup))
             {
-                var caret = workspace.Documents.First().CursorPosition;
+                Assert.True(workspace.TryGetDocumentWithSelectedSpan(out var document, out var span));
 
                 var service = new CSharpHelpContextService();
-                var actualText = await service.GetHelpTermAsync(workspace.CurrentSolution.Projects.First().Documents.First(), workspace.Documents.First().SelectedSpans.First(), CancellationToken.None);
+                var actualText = await service.GetHelpTermAsync(document, span, CancellationToken.None);
                 Assert.Equal(expectedText, actualText);
             }
         }

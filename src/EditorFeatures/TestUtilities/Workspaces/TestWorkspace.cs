@@ -642,5 +642,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
+
+        public bool TryGetDocumentWithSelectedSpan(out Document document, out TextSpan span)
+        {
+            var hostDocument = this.Documents.FirstOrDefault(d => d.SelectedSpans.Any());
+            if (hostDocument == null)
+            {
+                // If there wasn't a span, see if there was a $$ caret.  we'll create an empty span
+                // there if so.
+                hostDocument = this.Documents.FirstOrDefault(d => d.CursorPosition != null);
+                if (hostDocument == null)
+                {
+                    document = null;
+                    span = default;
+                    return false;
+                }
+
+                span = new TextSpan(hostDocument.CursorPosition.Value, 0);
+                document = this.CurrentSolution.GetDocument(hostDocument.Id);
+                return true;
+            }
+
+            span = hostDocument.SelectedSpans.Single();
+            document = this.CurrentSolution.GetDocument(hostDocument.Id);
+            return true;
+        }
     }
 }
