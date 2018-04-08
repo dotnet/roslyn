@@ -766,6 +766,76 @@ class C
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WorkItem(16529, "https://github.com/dotnet/roslyn/issues/16529")>
+        Public Sub TestCSharpGoToOverriddenDefinition_FromDeconstructionDeclaration()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class Two { public void Deconstruct(out int x1, out int x2) => throw null; }
+class Four { public void [|Deconstruct|](out int x1, out int x2, out Two x3) => throw null; }
+class C
+{
+    void M(Four four)
+    {
+        var (a, b, (c, d)) $$= four;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WorkItem(16529, "https://github.com/dotnet/roslyn/issues/16529")>
+        Public Sub TestCSharpGoToOverriddenDefinition_FromDeconstructionAssignment()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class Two { public void Deconstruct(out int x1, out int x2) => throw null; }
+class Four { public void [|Deconstruct|](out int x1, out int x2, out Two x3) => throw null; }
+class C
+{
+    void M(Four four)
+    {
+        int i;
+        (i, i, (i, i)) $$= four;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WorkItem(16529, "https://github.com/dotnet/roslyn/issues/16529")>
+        Public Sub TestCSharpGoToOverriddenDefinition_FromDeconstructionForeach()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class Two { public void Deconstruct(out int x1, out int x2) => throw null; }
+class Four { public void [|Deconstruct|](out int x1, out int x2, out Two x3) => throw null; }
+class C
+{
+    void M(Four four)
+    {
+        foreach (var (a, b, (c, d)) $$in new[] { four }) { }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub TestCSharpGoToOverriddenDefinition_FromOverride()
             Dim workspace =
 <Workspace>

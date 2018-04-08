@@ -20,7 +20,6 @@
     <MergeManifest Include="$(OutputPath)\..\ExpressionEvaluatorPackage\Microsoft.CodeAnalysis.ExpressionEvaluator.json" />
     <MergeManifest Include="$(OutputPath)\..\VisualStudioInteractiveComponents\Microsoft.CodeAnalysis.VisualStudio.InteractiveComponents.json" />
     <MergeManifest Include="$(OutputPath)\..\VisualStudioSetup\Microsoft.CodeAnalysis.VisualStudio.Setup.json" />
-    <MergeManifest Include="$(OutputPath)\..\VisualStudioSetup.Next\Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json" />
   </ItemGroup>
 
   <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.targets" />
