@@ -40,7 +40,7 @@ unsafe class C
             VerifyPropertyOutsideConfiguration(GetProjectFileElement(project), "AllowUnsafeBlocks", "true");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
         public void LegacyProject_AllConfigurationsUpdated()
         {
             var project = new ProjectUtils.Project(ProjectName);
