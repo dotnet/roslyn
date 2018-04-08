@@ -136,7 +136,7 @@ namespace Roslyn.Test.Utilities
             void queueCheckForBad()
             {
                 var task = new Task((Action)checkForBad);
-                task.Start(new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(dispatcher, DispatcherPriority.Send)));
+                task.Start(new SynchronizationContextTaskScheduler(StaTaskScheduler.DefaultSta.DispatcherSynchronizationContext));
             }
 
             queueCheckForBad();
