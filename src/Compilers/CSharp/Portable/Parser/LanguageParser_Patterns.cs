@@ -6,6 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal partial class LanguageParser : SyntaxParser
@@ -348,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                       (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken))
                 {
                     type = this.ParseType(ParseTypeMode.DefinitePattern);
-                    if (type.IsMissing)
+                    if (type.IsMissing || !IsTokenFollowingTypeInPattern())
                     {
                         // either it is not shaped like a type, or it is a constant expression.
                         this.Reset(ref resetPoint);
@@ -368,6 +369,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             finally
             {
                 this.Release(ref resetPoint);
+            }
+        }
+
+        /// <summary>
+        /// Is the current token something that could follow a type in a pattern?
+        /// </summary>
+        /// <returns></returns>
+        private bool IsTokenFollowingTypeInPattern()
+        {
+            switch (this.CurrentToken.Kind)
+            {
+                case SyntaxKind.OpenParenToken:
+                case SyntaxKind.OpenBraceToken:
+                case SyntaxKind.IdentifierToken:
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -410,7 +428,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var typeIdentifier = (IdentifierNameSyntax)type;
                 var typeIdentifierToken = typeIdentifier.Identifier;
-                if (typeIdentifierToken.ContextualKind == SyntaxKind.VarKeyword)
+                if (typeIdentifierToken.ContextualKind == SyntaxKind.VarKeyword &&
+                    IsTokenFollowingTypeInPattern() && (!forCase || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
                 {
                     // we have a "var" pattern; "var" is not permitted to be a stand-in for a type (or a constant) in a pattern.
                     var varToken = ConvertToKeyword(typeIdentifierToken);
