@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
@@ -13,8 +14,48 @@ namespace Roslyn.VisualStudio.IntegrationTests.Other
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpUpgradeProject : AbstractIntegrationTest
     {
-        // Be explicit about 7.0 in Debug|x64 so that this doesn't break when a new major version is released.
-        private readonly string OriginalProjectFile = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+        public CSharpUpgradeProject(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
+        {
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public void CPSProject_GeneralPropertyGroupUpdated()
+        {
+            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
+            var project = new ProjectUtils.Project(ProjectName);
+
+            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
+
+            VisualStudio.SolutionExplorer.AddFile(project, "C.cs", @"
+class C
+{
+    int i = default;
+}", open: true);
+
+            VisualStudio.Editor.PlaceCaret("default");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Upgrade this project to C# language version '7.1'", applyFix: true);
+
+            // Save the project file.
+            VisualStudio.SolutionExplorer.SaveAll();
+
+            var updatedProjectFile = VisualStudio.SolutionExplorer.GetFileContents(project, project.Name + ".csproj");
+            var updatedProjectElement = XElement.Parse(updatedProjectFile);
+
+            Assert.True(updatedProjectElement.Elements()
+                .Where(e => e.Name.LocalName == "PropertyGroup" && !e.Attributes().Any(a => a.Name.LocalName == "Condition"))
+                .Any(g => g.Elements().SingleOrDefault(e => e.Name.LocalName == "LangVersion")?.Value == "7.1"));
+        }
+
+        [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public void LegacyProject_AllConfigurationsUpdated()
+        {
+            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
+            var project = new ProjectUtils.Project(ProjectName);
+
+            // Be explicit about 7.0 in Debug|x64 so that this doesn't break when a new major version is released.
+            VisualStudio.SolutionExplorer.AddCustomProject(project, ".csproj", $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""15.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
   <PropertyGroup>
@@ -47,20 +88,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Other
   <ItemGroup>
   </ItemGroup>
   <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
-</Project>";
+</Project>");
 
-        public CSharpUpgradeProject(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
-        {
-        }
-
-        [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
-        public void AllConfigurationsUpdated()
-        {
-            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
-            var project = new ProjectUtils.Project(ProjectName);
-
-            VisualStudio.SolutionExplorer.AddCustomProject(project, ".csproj", OriginalProjectFile);
             VisualStudio.SolutionExplorer.AddFile(project, "C.cs", @"
 class C
 {

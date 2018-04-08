@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
@@ -13,7 +14,46 @@ namespace Roslyn.VisualStudio.IntegrationTests.Other
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpUpdateProjectToAllowUnsafe : AbstractIntegrationTest
     {
-        private readonly string OriginalProjectFile = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+        public CSharpUpdateProjectToAllowUnsafe(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
+        {
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
+        public void CPSProject_GeneralPropertyGroupUpdated()
+        {
+            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
+            var project = new ProjectUtils.Project(ProjectName);
+
+            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
+
+            VisualStudio.SolutionExplorer.AddFile(project, "C.cs", @"
+unsafe class C
+{
+}", open: true);
+
+            VisualStudio.Editor.PlaceCaret("C");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Allow unsafe code in this project", applyFix: true);
+
+            // Save the project file.
+            VisualStudio.SolutionExplorer.SaveAll();
+
+            var updatedProjectFile = VisualStudio.SolutionExplorer.GetFileContents(project, project.Name + ".csproj");
+            var updatedProjectElement = XElement.Parse(updatedProjectFile);
+
+            Assert.True(updatedProjectElement.Elements()
+                .Where(e => e.Name.LocalName == "PropertyGroup" && !e.Attributes().Any(a => a.Name.LocalName == "Condition"))
+                .Any(g => g.Elements().SingleOrDefault(e => e.Name.LocalName == "AllowUnsafeBlocks")?.Value == "true"));
+        }
+
+        [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
+        public void LegacyProject_AllConfigurationsUpdated()
+        {
+            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
+            var project = new ProjectUtils.Project(ProjectName);
+
+            VisualStudio.SolutionExplorer.AddCustomProject(project, ".csproj", $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""15.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
   <PropertyGroup>
@@ -46,20 +86,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Other
   <ItemGroup>
   </ItemGroup>
   <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
-</Project>";
+</Project>");
 
-        public CSharpUpdateProjectToAllowUnsafe(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
-        {
-        }
-
-        [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
-        public void AllConfigurationsUpdated()
-        {
-            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
-            var project = new ProjectUtils.Project(ProjectName);
-
-            VisualStudio.SolutionExplorer.AddCustomProject(project, ".csproj", OriginalProjectFile);
             VisualStudio.SolutionExplorer.AddFile(project, "C.cs", @"
 unsafe class C
 {
