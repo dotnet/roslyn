@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
                 {
                     foreach (var diagnosticId in codeFixProvider.FixableDiagnosticIds)
                     {
-                        _diagnosticIdToCodeFixProvider[diagnosticId] = codeFixProvider;
+                        // 'Add' is intentional.  We want to throw if multiple fix providers
+                        // register for the say diagnostic ID.
+                        _diagnosticIdToCodeFixProvider.Add(diagnosticId, codeFixProvider);
                     }
                 }
             }
