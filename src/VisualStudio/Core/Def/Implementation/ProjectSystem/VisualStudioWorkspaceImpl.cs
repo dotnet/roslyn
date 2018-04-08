@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
@@ -27,6 +28,7 @@ using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using VSLangProj;
 using VSLangProj140;
+using VSLangProj80;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -327,20 +329,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
-            foreach (Configuration configuration in project.ConfigurationManager)
+            var storage = ProjectPropertyStorage.Get(TryGetDTEProject(projectId), DeferredState.ServiceProvider);
+
+            switch (options)
             {
-                switch (hostProject.Language)
-                {
-                    case LanguageNames.CSharp:
-                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)configuration.Object;
-
-                        csharpProperties.AllowUnsafeBlocks = ((CSharpCompilationOptions)options).AllowUnsafe;
-                        break;
-
-                    case LanguageNames.VisualBasic:
-                        throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_compilation_options);
-                }
+                case CSharpCompilationOptions csharpOptions:
+                    storage.SetProperty("AllowUnsafeBlocks", nameof(ProjectConfigurationProperties3.AllowUnsafeBlocks),
+                        csharpOptions.AllowUnsafe.ToString().ToLowerInvariant());
+                    break;
+                case VisualBasicCompilationOptions _:
+                    throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_compilation_options);
             }
         }
 
@@ -356,28 +354,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var parseOptionsService = CurrentSolution.GetProject(projectId).LanguageServices.GetService<IParseOptionsService>();
-            Contract.ThrowIfNull(parseOptionsService, nameof(parseOptionsService));
+            var storage = ProjectPropertyStorage.Get(TryGetDTEProject(projectId), DeferredState.ServiceProvider);
 
-            string newVersion = parseOptionsService.GetLanguageVersion(options);
-
-            GetProjectData(projectId, out var hostProject, out var hierarchy, out var project);
-            foreach (Configuration configuration in project.ConfigurationManager)
+            switch (options)
             {
-                switch (hostProject.Language)
-                {
-                    case LanguageNames.CSharp:
-                        var csharpProperties = (VSLangProj80.CSharpProjectConfigurationProperties3)configuration.Object;
-
-                        if (newVersion != csharpProperties.LanguageVersion)
-                        {
-                            csharpProperties.LanguageVersion = newVersion;
-                        }
-                        break;
-
-                    case LanguageNames.VisualBasic:
-                        throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_parse_options);
-                }
+                case CSharpParseOptions csharpOptions:
+                    storage.SetProperty("LangVersion", nameof(CSharpProjectConfigurationProperties3.LanguageVersion),
+                        csharpOptions.SpecifiedLanguageVersion.ToDisplayString());
+                    break;
+                case VisualBasicParseOptions _:
+                    throw new InvalidOperationException(ServicesVSResources.This_workspace_does_not_support_updating_Visual_Basic_parse_options);
             }
         }
 
