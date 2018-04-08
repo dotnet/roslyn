@@ -163,6 +163,24 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void ForEachVariableDeclaration()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        foreach (int $$
+    }
+}
+";
+            await VerifySymbolKinds(markup, SymbolKind.Local);
+            await VerifyModifiers(markup, new DeclarationModifiers());
+            await VerifyTypeName(markup, "int");
+            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void Parameter1()
         {
             var markup = @"

@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (IsParameterDeclaration(token, semanticModel, position, cancellationToken, out var result)
                     || IsTypeParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
+                    || IsForEachVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsIncompleteMemberDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsFieldDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsMethodDeclaration(token, semanticModel, position, cancellationToken, out result)
@@ -255,6 +256,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                      v => v.Parent is LocalDeclarationStatementSyntax l ? l.Modifiers : default(SyntaxTokenList?),
                      d => ImmutableArray.Create(SymbolKind.Local),
                      cancellationToken);
+                return result.Type != null;
+            }
+
+            private static bool IsForEachVariableDeclaration(SyntaxToken token, SemanticModel semanticModel,
+                int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
+            {
+                // This is parsed as ForEachVariableStatementSyntax:
+                // foreach (int $$
+                result = IsLastTokenOfType<CommonForEachStatementSyntax>(token, semanticModel,
+                    f => f is ForEachStatementSyntax forEachStatement ? forEachStatement.Type :
+                         ((ForEachVariableStatementSyntax)f).Variable,
+                    f => default,
+                    d => ImmutableArray.Create(SymbolKind.Local),
+                    cancellationToken);
                 return result.Type != null;
             }
 

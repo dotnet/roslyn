@@ -829,6 +829,41 @@ public class C
             await VerifyItemExistsAsync(markup, "token");
         }
 
+        [WorkItem(26021, "https://github.com/dotnet/roslyn/issues/26021")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InForEachStatement()
+        {
+            var markup = @"
+using System.Threading;
+
+class C
+{
+    void M()
+    {
+        foreach (CancellationToken $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InForEachStatement_Var()
+        {
+            var markup = @"
+using System.Threading;
+
+class C
+{
+    void M()
+    {
+        foreach (var c$$ in new CancellationToken[] { })
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void DisabledByOption()
         {
