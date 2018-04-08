@@ -18,14 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Other
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
-        public void CPSProject_GeneralPropertyGroupUpdated()
+        private XElement InvokeFixAndGetProjectFileElement(ProjectUtils.Project project)
         {
-            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
-            var project = new ProjectUtils.Project(ProjectName);
-
-            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
-
             VisualStudio.SolutionExplorer.AddFile(project, "C.cs", @"
 class C
 {
@@ -40,9 +34,18 @@ class C
             VisualStudio.SolutionExplorer.SaveAll();
 
             var updatedProjectFile = VisualStudio.SolutionExplorer.GetFileContents(project, project.Name + ".csproj");
-            var updatedProjectElement = XElement.Parse(updatedProjectFile);
+            return XElement.Parse(updatedProjectFile);
+        }
 
-            Assert.True(updatedProjectElement.Elements()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public void CPSProject_GeneralPropertyGroupUpdated()
+        {
+            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
+            var project = new ProjectUtils.Project(ProjectName);
+
+            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
+
+            Assert.True(InvokeFixAndGetProjectFileElement(project).Elements()
                 .Where(e => e.Name.LocalName == "PropertyGroup" && !e.Attributes().Any(a => a.Name.LocalName == "Condition"))
                 .Any(g => g.Elements().SingleOrDefault(e => e.Name.LocalName == "LangVersion")?.Value == "7.1"));
         }
@@ -90,25 +93,9 @@ class C
   <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
 </Project>");
 
-            VisualStudio.SolutionExplorer.AddFile(project, "C.cs", @"
-class C
-{
-    int i = default;
-}", open: true);
-
-            VisualStudio.Editor.PlaceCaret("default");
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Upgrade this project to C# language version '7.1'", applyFix: true);
-
-            // Save the project file.
-            VisualStudio.SolutionExplorer.SaveAll();
-
-            var updatedProjectFile = VisualStudio.SolutionExplorer.GetFileContents(project, project.Name + ".csproj");
-            var updatedProjectElement = XElement.Parse(updatedProjectFile);
-
-            Assert.True(updatedProjectElement.Elements()
+            Assert.True(InvokeFixAndGetProjectFileElement(project).Elements()
                 .Where(e => e.Name.LocalName == "PropertyGroup" && e.Attributes().Any(a => a.Name.LocalName == "Condition"))
-                .All(g => g.Elements().Single(e => e.Name.LocalName == "LangVersion").Value == "7.1"));
+                .All(g => g.Elements().SingleOrDefault(e => e.Name.LocalName == "LangVersion")?.Value == "7.1"));
         }
     }
 }
