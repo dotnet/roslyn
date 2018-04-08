@@ -1533,11 +1533,6 @@ I agree to all of the foregoing:</source>
         <target state="new">Keep all parentheses in:</target>
         <note />
       </trans-unit>
-      <trans-unit id="When_clarifying_precedence">
-        <source>When clarifying precedence</source>
-        <target state="new">When clarifying precedence</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Ignore">
         <source>Ignore</source>
         <target state="new">Ignore</target>

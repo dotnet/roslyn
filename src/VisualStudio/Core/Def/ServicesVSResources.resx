@@ -971,9 +971,6 @@ Additional information: {1}</value>
   <data name="Keep_all_parentheses_in_colon" xml:space="preserve">
     <value>Keep all parentheses in:</value>
   </data>
-  <data name="When_clarifying_precedence" xml:space="preserve">
-    <value>When clarifying precedence</value>
-  </data>
   <data name="Ignore" xml:space="preserve">
     <value>Ignore</value>
   </data>

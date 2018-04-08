@@ -2743,15 +2743,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to When clarifying precedence.
-        /// </summary>
-        internal static string When_clarifying_precedence {
-            get {
-                return ResourceManager.GetString("When_clarifying_precedence", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to When generating properties:.
         /// </summary>
         internal static string When_generating_properties {
