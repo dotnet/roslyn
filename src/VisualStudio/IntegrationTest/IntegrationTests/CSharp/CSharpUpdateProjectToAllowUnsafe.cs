@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -17,7 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Other
         {
         }
 
-        private XElement InvokeFixAndGetProjectFileElement(ProjectUtils.Project project)
+        private void InvokeFixFromNewFile(ProjectUtils.Project project)
         {
             VisualStudio.SolutionExplorer.AddFile(project, "C.cs", @"
 unsafe class C
@@ -27,12 +26,6 @@ unsafe class C
             VisualStudio.Editor.PlaceCaret("C");
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction("Allow unsafe code in this project", applyFix: true);
-
-            // Save the project file.
-            VisualStudio.SolutionExplorer.SaveAll();
-
-            var updatedProjectFile = VisualStudio.SolutionExplorer.GetFileContents(project, project.Name + ".csproj");
-            return XElement.Parse(updatedProjectFile);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
@@ -43,7 +36,8 @@ unsafe class C
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
 
-            VerifyPropertyOutsideConfiguration(InvokeFixAndGetProjectFileElement(project), "AllowUnsafeBlocks", "true");
+            InvokeFixFromNewFile(project);
+            VerifyPropertyOutsideConfiguration(GetProjectFileElement(project), "AllowUnsafeBlocks", "true");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
@@ -54,7 +48,8 @@ unsafe class C
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
 
-            VerifyPropertyInEachConfiguration(InvokeFixAndGetProjectFileElement(project), "AllowUnsafeBlocks", "true");
+            InvokeFixFromNewFile(project);
+            VerifyPropertyInEachConfiguration(GetProjectFileElement(project), "AllowUnsafeBlocks", "true");
         }
 
         [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
@@ -99,7 +94,8 @@ unsafe class C
   <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
 </Project>");
 
-            VerifyPropertyInEachConfiguration(InvokeFixAndGetProjectFileElement(project), "AllowUnsafeBlocks", "true");
+            InvokeFixFromNewFile(project);
+            VerifyPropertyInEachConfiguration(GetProjectFileElement(project), "AllowUnsafeBlocks", "true");
         }
     }
 }

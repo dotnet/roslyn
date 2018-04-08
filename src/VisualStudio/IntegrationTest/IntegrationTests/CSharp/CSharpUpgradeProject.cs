@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -17,7 +16,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Other
         {
         }
 
-        private XElement InvokeFixAndGetProjectFileElement(ProjectUtils.Project project)
+        private void InvokeFixFromNewFile(ProjectUtils.Project project)
         {
             VisualStudio.SolutionExplorer.AddFile(project, "C.cs", @"
 class C
@@ -28,12 +27,6 @@ class C
             VisualStudio.Editor.PlaceCaret("default");
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction("Upgrade this project to C# language version '7.1'", applyFix: true);
-
-            // Save the project file.
-            VisualStudio.SolutionExplorer.SaveAll();
-
-            var updatedProjectFile = VisualStudio.SolutionExplorer.GetFileContents(project, project.Name + ".csproj");
-            return XElement.Parse(updatedProjectFile);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
@@ -44,7 +37,8 @@ class C
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
 
-            VerifyPropertyOutsideConfiguration(InvokeFixAndGetProjectFileElement(project), "LangVersion", "7.1");
+            InvokeFixFromNewFile(project);
+            VerifyPropertyOutsideConfiguration(GetProjectFileElement(project), "LangVersion", "7.1");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
@@ -55,7 +49,8 @@ class C
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
 
-            VerifyPropertyInEachConfiguration(InvokeFixAndGetProjectFileElement(project), "LangVersion", "7.1");
+            InvokeFixFromNewFile(project);
+            VerifyPropertyInEachConfiguration(GetProjectFileElement(project), "LangVersion", "7.1");
         }
 
         [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
@@ -101,7 +96,8 @@ class C
   <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
 </Project>");
 
-            VerifyPropertyInEachConfiguration(InvokeFixAndGetProjectFileElement(project), "LangVersion", "7.1");
+            InvokeFixFromNewFile(project);
+            VerifyPropertyInEachConfiguration(GetProjectFileElement(project), "LangVersion", "7.1");
         }
     }
 }
