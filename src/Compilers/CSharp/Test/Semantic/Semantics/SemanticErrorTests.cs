@@ -16233,22 +16233,19 @@ public class C
 public class C
 {
     public static int Main()
-        {
-            Test(Name: ""5"", Name: """");
+    {
+        Test(age: 5, Name: ""5"", Name: """");
         return 0;
-        }
-    public static void Test(int age , string Name)
-    { }
+    }
+    public static void Test(int age, string Name)
+    {
+    }
 }";
             var compilation = CSharpTestBase.CreateCompilation(text);
             compilation.VerifyDiagnostics(
-                // (6,29): error CS1740: Named argument 'Name' cannot be specified multiple times
-                //             Test(Name: "5", Name: "");
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "Name").WithArguments("Name").WithLocation(6, 29),
-                // (6,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'age' of 'C.Test(int, string)'
-                //             Test(Name: "5", Name: "");
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("age", "C.Test(int, string)").WithLocation(6, 13)
-                );
+                // (6,33): error CS1740: Named argument 'Name' cannot be specified multiple times
+                //         Test(age: 5, Name: "5", Name: "");
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "Name").WithArguments("Name").WithLocation(6, 33));
         }
 
         [Fact]

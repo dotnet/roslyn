@@ -9818,20 +9818,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{2}&apos; cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;.
+        ///   Looks up a localized string similar to The type &apos;{2}&apos; must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_UnmanagedConstraintNotSatisfied {
             get {
                 return ResourceManager.GetString("ERR_UnmanagedConstraintNotSatisfied", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using &apos;unmanaged&apos; constraint on local functions type parameters is not supported..
-        /// </summary>
-        internal static string ERR_UnmanagedConstraintWithLocalFunctions {
-            get {
-                return ResourceManager.GetString("ERR_UnmanagedConstraintWithLocalFunctions", resourceCulture);
             }
         }
         
@@ -10350,16 +10341,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
         
         /// <summary>
         ///   Looks up a localized string similar to 
-        ///                              Visual C# Compiler Options
+        ///                             Visual C# Compiler Options
         ///
-        ///                        - OUTPUT FILES -
-        /// /out:&lt;file&gt;                   Specify output file name (default: base name of
-        ///                               file with main class or first file)
-        /// /target:exe                   Build a console executable (default) (Short
-        ///                               form: /t:exe)
-        /// /target:winexe                Build a Windows executable (Short form:
-        ///                               /t:winexe)
-        /// /target:library        [rest of string was truncated]&quot;;.
+        ///                       - OUTPUT FILES -
+        ///-out:&lt;file&gt;                   Specify output file name (default: base name of
+        ///                              file with main class or first file)
+        ///-target:exe                   Build a console executable (default) (Short
+        ///                              form: -t:exe)
+        ///-target:winexe                Build a Windows executable (Short form:
+        ///                              -t:winexe)
+        ///-target:library               B [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string IDS_CSCHelp {
             get {

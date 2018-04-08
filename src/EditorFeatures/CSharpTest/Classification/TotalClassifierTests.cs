@@ -1193,5 +1193,128 @@ delegate void D<T>() where T : unmanaged;",
                 Keyword("unmanaged"),
                 Punctuation.Semicolon);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_LocalFunction_Keyword()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        void M<T>() where T : unmanaged { }
+    }
+}",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("N"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Identifier("M"), Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+class X
+{
+    void N()
+    {
+        void M<T>() where T : unmanaged { }
+    }
+}",
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("N"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Identifier("M"), Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+class X
+{
+    void N()
+    {
+        void M<T>() where T : unmanaged { }
+    }
+}",
+                Keyword("namespace"),
+                Identifier("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("N"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Identifier("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
     }
 }

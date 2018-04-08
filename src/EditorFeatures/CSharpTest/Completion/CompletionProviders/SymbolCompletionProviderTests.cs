@@ -1899,74 +1899,147 @@ class C<T, R>
 
         [WorkItem(540212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540212")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterRefInLambda()
+        public async Task AfterRefInLambda_TypeOnly()
         {
             var markup = @"
 using System;
 class C
 {
-    void M()
+    void M(String parameter)
     {
         Func<int, int> f = (ref $$
     }
 }
 ";
             await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
         [WorkItem(540212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540212")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterOutInLambda()
+        public async Task AfterOutInLambda_TypeOnly()
         {
             var markup = @"
 using System;
 class C
 {
-    void M()
+    void M(String parameter)
     {
         Func<int, int> f = (out $$
     }
 }
 ";
             await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
-        public async Task AfterInInLambda()
+        public async Task AfterInInLambda_TypeOnly()
         {
             var markup = @"
 using System;
 class C
 {
-    void M()
+    void M(String parameter)
     {
         Func<int, int> f = (in $$
     }
 }
 ";
             await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
-        public async Task AfterInInMethodDeclaration()
+        public async Task AfterRefInMethodDeclaration_TypeOnly()
         {
             var markup = @"
 using System;
 class C
 {
+    String field;
+    void M(ref $$)
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "field");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterOutInMethodDeclaration_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    String field;
+    void M(out $$)
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "field");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
+        public async Task AfterInInMethodDeclaration_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    String field;
     void M(in $$)
     {
     }
 }
 ";
             await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "field");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterRefInInvocation_TypeAndVariable()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(ref String parameter)
+    {
+        M(ref $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemExistsAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterOutInInvocation_TypeAndVariable()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(out String parameter)
+    {
+        M(out $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemExistsAsync(markup, "parameter");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
-        public async Task VariableAfterInInInvocation()
+        public async Task AfterInInInvocation_TypeAndVariable()
         {
             var markup = @"
 using System;
@@ -1978,7 +2051,162 @@ class C
     }
 }
 ";
+            await VerifyItemExistsAsync(markup, "String");
             await VerifyItemExistsAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
+        public async Task AfterRefExpression_TypeAndVariable()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref var x = ref $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemExistsAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
+        public async Task AfterRefInStatementContext_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
+        public async Task AfterRefReadonlyInStatementContext_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref readonly $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterRefLocalDeclaration_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref $$ int local;
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterRefReadonlyLocalDeclaration_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref readonly $$ int local;
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterRefLocalFunction_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref $$ int Function();
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterRefReadonlyLocalFunction_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref readonly $$ int Function();
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
+        public async Task AfterRefInMemberContext_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    String field;
+    ref $$
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "field");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
+        public async Task AfterRefReadonlyInMemberContext_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    String field;
+    ref readonly $$
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "field");
         }
 
         [WorkItem(539217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
