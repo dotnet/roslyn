@@ -49,9 +49,22 @@ unsafe class C
                 .Any(g => g.Elements().SingleOrDefault(e => e.Name.LocalName == "AllowUnsafeBlocks")?.Value == "true"));
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public void LegacyProject_AllConfigurationsUpdated()
+        {
+            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
+            var project = new ProjectUtils.Project(ProjectName);
+
+            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
+
+            Assert.True(InvokeFixAndGetProjectFileElement(project).Elements()
+                .Where(e => e.Name.LocalName == "PropertyGroup" && e.Attributes().Any(a => a.Name.LocalName == "Condition"))
+                .All(g => g.Elements().SingleOrDefault(e => e.Name.LocalName == "AllowUnsafeBlocks")?.Value == "true"));
+        }
+
         [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
-        public void LegacyProject_AllConfigurationsUpdated()
+        public void LegacyProject_MultiplePlatforms_AllConfigurationsUpdated()
         {
             VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             var project = new ProjectUtils.Project(ProjectName);
