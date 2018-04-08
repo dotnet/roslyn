@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -12,7 +11,7 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 namespace Roslyn.VisualStudio.IntegrationTests.Other
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpUpdateProjectToAllowUnsafe : AbstractIntegrationTest
+    public class CSharpUpdateProjectToAllowUnsafe : AbstractUpdateProjectTest
     {
         public CSharpUpdateProjectToAllowUnsafe(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
         {
@@ -39,36 +38,32 @@ unsafe class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
         public void CPSProject_GeneralPropertyGroupUpdated()
         {
-            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             var project = new ProjectUtils.Project(ProjectName);
 
+            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
 
-            Assert.True(InvokeFixAndGetProjectFileElement(project).Elements()
-                .Where(e => e.Name.LocalName == "PropertyGroup" && !e.Attributes().Any(a => a.Name.LocalName == "Condition"))
-                .Any(g => g.Elements().SingleOrDefault(e => e.Name.LocalName == "AllowUnsafeBlocks")?.Value == "true"));
+            VerifyPropertyOutsideConfiguration(InvokeFixAndGetProjectFileElement(project), "AllowUnsafeBlocks", "true");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
         public void LegacyProject_AllConfigurationsUpdated()
         {
-            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             var project = new ProjectUtils.Project(ProjectName);
 
+            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp);
 
-            Assert.True(InvokeFixAndGetProjectFileElement(project).Elements()
-                .Where(e => e.Name.LocalName == "PropertyGroup" && e.Attributes().Any(a => a.Name.LocalName == "Condition"))
-                .All(g => g.Elements().SingleOrDefault(e => e.Name.LocalName == "AllowUnsafeBlocks")?.Value == "true"));
+            VerifyPropertyInEachConfiguration(InvokeFixAndGetProjectFileElement(project), "AllowUnsafeBlocks", "true");
         }
 
         [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
         public void LegacyProject_MultiplePlatforms_AllConfigurationsUpdated()
         {
-            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             var project = new ProjectUtils.Project(ProjectName);
 
+            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
             VisualStudio.SolutionExplorer.AddCustomProject(project, ".csproj", $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""15.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
@@ -104,9 +99,7 @@ unsafe class C
   <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
 </Project>");
 
-            Assert.True(InvokeFixAndGetProjectFileElement(project).Elements()
-                .Where(e => e.Name.LocalName == "PropertyGroup" && e.Attributes().Any(a => a.Name.LocalName == "Condition"))
-                .All(g => g.Elements().SingleOrDefault(e => e.Name.LocalName == "AllowUnsafeBlocks")?.Value == "true"));
+            VerifyPropertyInEachConfiguration(InvokeFixAndGetProjectFileElement(project), "AllowUnsafeBlocks", "true");
         }
     }
 }
