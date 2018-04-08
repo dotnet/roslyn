@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     // We are pointing in the trailing whitespace trivia of a token, we shouldn't include that token
                     startToken = startToken.GetNextToken();
                     var newStart = startToken.Span.Start;
-                    textSpan = new TextSpan(newStart, textSpan.End - newStart);
+                    textSpan = TextSpan.FromBounds(newStart, textSpan.End);
                 }
 
                 var stopToken = root.FindToken(textSpan.End);
