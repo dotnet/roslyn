@@ -829,6 +829,57 @@ public class C
             await VerifyItemExistsAsync(markup, "token");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InForStatement1()
+        {
+            var markup = @"
+using System.Threading;
+
+class C
+{
+    void M()
+    {
+        for (CancellationToken c$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InForStatement2()
+        {
+            var markup = @"
+using System.Threading;
+
+class C
+{
+    void M()
+    {
+        for (CancellationToken c1, $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InForStatement_Var()
+        {
+            var markup = @"
+using System.Threading;
+
+class C
+{
+    void M()
+    {
+        for (var c$$ = new CancellationToken();
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken");
+        }
+
         [WorkItem(26021, "https://github.com/dotnet/roslyn/issues/26021")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void InForEachStatement()
