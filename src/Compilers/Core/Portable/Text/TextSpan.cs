@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// </summary>
     public struct TextSpan : IEquatable<TextSpan>, IComparable<TextSpan>
     {
+        public static readonly TextSpan NullSpan = new TextSpan(0, 0);
         /// <summary>
         /// Creates a TextSpan instance beginning with the position Start and having the Length
         /// specified with <paramref name="length" />.

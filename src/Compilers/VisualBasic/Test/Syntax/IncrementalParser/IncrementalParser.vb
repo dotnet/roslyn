@@ -252,7 +252,7 @@ Class WillHaveAnError
 End class
 Class willBeReused
 End class]]>).Value
-        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="(", changeSpan:=New TextSpan(0, 0), changeType:=ChangeType.InsertBefore))
+        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="(", changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <Fact>
@@ -266,7 +266,7 @@ Class WillHaveAnError
 End class
 Class willBeReused
 End class]]>).Value
-        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="(", changeSpan:=New TextSpan(0, 0), changeType:=ChangeType.InsertBefore))
+        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="(", changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(901645, "DevDiv/Personal")>
@@ -275,14 +275,14 @@ End class]]>).Value
         Dim code As String = (<![CDATA[Function
 If strSwitches <> "" Then strCLine = strCLine & " " & strSwitches
 End Sub]]>).Value
-        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="Exit ", changeSpan:=New TextSpan(0, 0), changeType:=ChangeType.InsertBefore))
+        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="Exit ", changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(901655, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseDateLiteral()
 
-        IncParseAndVerify(New IncParseNode(oldText:="", changeText:="#10/18/1969# hello 123", changeSpan:=New TextSpan(0, 0), changeType:=ChangeType.InsertBefore))
+        IncParseAndVerify(New IncParseNode(oldText:="", changeText:="#10/18/1969# hello 123", changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <Fact>
@@ -324,7 +324,7 @@ End Function
     <Fact>
     Public Sub ParseXmlTagWithExprHole()
         Dim code As String = (<![CDATA[e a=<%= b %>>]]>).Value
-        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="<", changeSpan:=New TextSpan(0, 0), changeType:=ChangeType.InsertBefore))
+        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="<", changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(901671, "DevDiv/Personal")>
@@ -333,7 +333,7 @@ End Function
         Dim code As String = (<![CDATA[Sub
         End Class
     X]]>).Value
-        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="End ", changeSpan:=New TextSpan(0, 0), changeType:=ChangeType.InsertBefore))
+        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="End ", changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(901676, "DevDiv/Personal")>
@@ -349,7 +349,7 @@ End Function
             Exit Sub
         End Sub
     X]]>).Value
-        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="Interface", changeSpan:=New TextSpan(0, 0), changeType:=ChangeType.InsertBefore))
+        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="Interface", changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(901680, "DevDiv/Personal")>
@@ -360,7 +360,7 @@ End Function
                 total += y(i)
             Next
 End Function]]>).Value
-        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="> _" & vbCrLf, changeSpan:=New TextSpan(0, 0), changeType:=ChangeType.InsertBefore))
+        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="> _" & vbCrLf, changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(902710, "DevDiv/Personal")>
@@ -369,7 +369,7 @@ End Function]]>).Value
         Dim code As String = (<![CDATA[End Class
 MustInherit Class C10
 End Class]]>).Value
-        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="Function" & vbCrLf, changeSpan:=New TextSpan(0, 0), changeType:=ChangeType.InsertBefore))
+        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="Function" & vbCrLf, changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(903134, "DevDiv/Personal")>
@@ -379,7 +379,7 @@ End Class]]>).Value
                 AddHandler(ByVal value As del)
                 End AddHandler
             End Event]]>).Value
-        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="Sub" & vbCrLf, changeSpan:=New TextSpan(0, 0), changeType:=ChangeType.InsertBefore))
+        IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="Sub" & vbCrLf, changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(903555, "DevDiv/Personal")>
@@ -556,7 +556,7 @@ End Class]]>).Value
         IncParseAndVerify(New IncParseNode(
         oldText:=code,
         changeText:="Sub" & vbCrLf,
-        changeSpan:=New TextSpan(0, 0),
+        changeSpan:=TextSpan.NullSpan,
         changeType:=ChangeType.InsertBefore))
     End Sub
 
@@ -604,7 +604,7 @@ End Class]]>).Value
         IncParseAndVerify(New IncParseNode(
                           oldText:=code,
                           changeText:="os:    ",
-                          changeSpan:=New TextSpan(0, 0),
+                          changeSpan:=TextSpan.NullSpan,
                           changeType:=ChangeType.InsertBefore))
     End Sub
 
