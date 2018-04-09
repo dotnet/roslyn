@@ -303,7 +303,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
             => ((ArgumentSyntax)argumentNode).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
 
-        public SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        {
+            switch (node)
+            {
+                case AssignmentExpressionSyntax assignment when token.Kind() == SyntaxKind.EqualsToken:
+                    return GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>();
+
+                case ForEachVariableStatementSyntax deconstructionForeach when token.Kind() == SyntaxKind.InKeyword:
+                    return GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>();
+            }
+
+            return GetSymbolInfo(semanticModel, node, token, cancellationToken).GetBestOrAllSymbols();
+        }
+
+        private SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
             switch (node)
             {
