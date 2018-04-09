@@ -18,31 +18,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
             switch (node)
             {
                 case MethodDeclarationSyntax methodDeclaration:
+                {
                     var asyncModifier = methodDeclaration.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
                     if (asyncModifier.Kind() != SyntaxKind.None)
                     {
                         spans.Add(asyncModifier.Span);
                     }
                     break;
-
-                case SimpleLambdaExpressionSyntax simpleLambda:
-                    if (simpleLambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
+                }
+                case LocalFunctionStatementSyntax localFunction:
+                {
+                    var asyncModifier = localFunction.Modifiers.FirstOrDefault(m => m.Kind() == SyntaxKind.AsyncKeyword);
+                    if (asyncModifier.Kind() != SyntaxKind.None)
                     {
-                        spans.Add(simpleLambda.AsyncKeyword.Span);
+                        spans.Add(asyncModifier.Span);
                     }
                     break;
-
-                case ParenthesizedLambdaExpressionSyntax parenthesizedLambda:
-                    if (parenthesizedLambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
+                }
+                case AnonymousFunctionExpressionSyntax anonymousFunction:
+                    if (anonymousFunction.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
                     {
-                        spans.Add(parenthesizedLambda.AsyncKeyword.Span);
-                    }
-                    break;
-
-                case AnonymousMethodExpressionSyntax anonymousMethod:
-                    if (anonymousMethod.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
-                    {
-                        spans.Add(anonymousMethod.AsyncKeyword.Span);
+                        spans.Add(anonymousFunction.AsyncKeyword.Span);
                     }
                     break;
 

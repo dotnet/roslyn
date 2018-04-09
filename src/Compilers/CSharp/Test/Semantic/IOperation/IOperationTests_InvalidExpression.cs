@@ -570,5 +570,293 @@ IParameterInitializerOperation (Parameter: [System.Int32 p = default(System.Int3
 
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        public void BuildsArgumentsOperationsForDuplicateExplicitArguments_Repro()
+        {
+            string source = @"
+public class C
+{
+    void M()
+    {
+        /*<bind>*/string.Format(format: """", format: """")/*</bind>*/;
+    }
+}";
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: System.String, IsInvalid) (Syntax: 'string.Form ... format: """")')
+  Children(3):
+      IOperation:  (OperationKind.None, Type: null) (Syntax: 'string')
+      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
+      ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
+            {
+                // file.cs(6,45): error CS1740: Named argument 'format' cannot be specified multiple times
+                //         /*<bind>*/string.Format(format: "", format: "")/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "format").WithArguments("format").WithLocation(6, 45)
+            });
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        public void BuildsArgumentsOperationsForDuplicateExplicitArguments_CorrectArgumentsOrder_Methods()
+        {
+            string source = @"
+public class C
+{
+    void N(int a, int b, int c = 4)
+    {
+    }
+
+    void M()
+    {
+        /*<bind>*/N(a: 1, a: 2, b: 3)/*</bind>*/;
+    }
+}";
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'N(a: 1, a: 2, b: 3)')
+  Children(3):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
+            {
+                // file.cs(10,27): error CS1740: Named argument 'a' cannot be specified multiple times
+                //         /*<bind>*/N(a: 1, a: 2)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(10, 27)
+            });
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        public void BuildsArgumentsOperationsForDuplicateExplicitArguments_CorrectArgumentsOrder_Delegates()
+        {
+            string source = @"
+public delegate void D(int a, int b, int c = 4);
+public class C
+{
+    void N(D lambda)
+    {
+        /*<bind>*/lambda(a: 1, a: 2, b: 3)/*</bind>*/;
+    }
+}";
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'lambda(a: 1, a: 2, b: 3)')
+  Children(4):
+      IParameterReferenceOperation: lambda (OperationKind.ParameterReference, Type: D) (Syntax: 'lambda')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
+            {
+                // file.cs(7,32): error CS1740: Named argument 'a' cannot be specified multiple times
+                //         /*<bind>*/lambda(a: 1, a: 2, b: 3)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(7, 32)
+            });
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        public void BuildsArgumentsOperationsForDuplicateExplicitArguments_CorrectArgumentsOrder_Indexers_Getter()
+        {
+            string source = @"
+public class C
+{
+    int this[int a, int b, int c = 4]
+    {
+        get => 0;
+    }
+
+    void M()
+    {
+        var result = /*<bind>*/this[a: 1, a: 2, b: 3]/*</bind>*/;
+    }
+}";
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: 'this[a: 1, a: 2, b: 3]')
+  Children(4):
+      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
+            {
+                // file.cs(11,43): error CS1740: Named argument 'a' cannot be specified multiple times
+                //         var result = /*<bind>*/this[a: 1, a: 2, b: 3]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(11, 43)
+            });
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        public void BuildsArgumentsOperationsForDuplicateExplicitArguments_CorrectArgumentsOrder_Indexers_Setter()
+        {
+            string source = @"
+public class C
+{
+    int this[int a, int b, int c = 4]
+    {
+        set {}
+    }
+
+    void M()
+    {
+        /*<bind>*/this[a: 1, a: 2, b: 3]/*</bind>*/ = 0;
+    }
+}";
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: 'this[a: 1, a: 2, b: 3]')
+  Children(4):
+      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
+            {
+                // file.cs(11,30): error CS1740: Named argument 'a' cannot be specified multiple times
+                //         /*<bind>*/this[a: 1, a: 2, b: 3]/*</bind>*/ = 0;
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(11, 30)
+            });
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        public void BuildsArgumentsOperationsForDuplicateExplicitArguments_IncorrectArgumentsOrder_Methods()
+        {
+            string source = @"
+public class C
+{
+    void N(int a, int b, int c = 4)
+    {
+    }
+
+    void M()
+    {
+        /*<bind>*/N(b: 1, a: 2, a: 3)/*</bind>*/;
+    }
+}";
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'N(b: 1, a: 2, a: 3)')
+  Children(3):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
+            {
+                // file.cs(10,33): error CS1740: Named argument 'a' cannot be specified multiple times
+                //         /*<bind>*/N(b: 1, a: 2, a: 3)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(10, 33)
+            });
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        public void BuildsArgumentsOperationsForDuplicateExplicitArguments_IncorrectArgumentsOrder_Delegates()
+        {
+            string source = @"
+public delegate void D(int a, int b, int c = 4);
+public class C
+{
+    void N(D lambda)
+    {
+        /*<bind>*/lambda(b: 1, a: 2, a: 3)/*</bind>*/;
+    }
+}";
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'lambda(b: 1, a: 2, a: 3)')
+  Children(4):
+      IParameterReferenceOperation: lambda (OperationKind.ParameterReference, Type: D) (Syntax: 'lambda')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
+            {
+                // file.cs(7,38): error CS1740: Named argument 'a' cannot be specified multiple times
+                //         /*<bind>*/lambda(b: 1, a: 2, a: 3)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(7, 38)
+            });
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        public void BuildsArgumentsOperationsForDuplicateExplicitArguments_IncorrectArgumentsOrder_Indexers_Getter()
+        {
+            string source = @"
+public class C
+{
+    int this[int a, int b, int c = 4]
+    {
+        get => 0;
+    }
+
+    void M()
+    {
+        var result = /*<bind>*/this[b: 1, a: 2, a: 3]/*</bind>*/;
+    }
+}";
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: 'this[b: 1, a: 2, a: 3]')
+  Children(4):
+      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
+            {
+                // file.cs(11,49): error CS1740: Named argument 'a' cannot be specified multiple times
+                //         var result = /*<bind>*/this[b: 1, a: 2, a: 3]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(11, 49)
+            });
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(20050, "https://github.com/dotnet/roslyn/issues/20050")]
+        public void BuildsArgumentsOperationsForDuplicateExplicitArguments_IncorrectArgumentsOrder_Indexers_Setter()
+        {
+            string source = @"
+public class C
+{
+    int this[int a, int b, int c = 4]
+    {
+        set {}
+    }
+
+    void M()
+    {
+        /*<bind>*/this[b: 1, a: 2, a: 3]/*</bind>*/ = 0;
+    }
+}";
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid) (Syntax: 'this[b: 1, a: 2, a: 3]')
+  Children(4):
+      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[]
+            {
+                // file.cs(11,36): error CS1740: Named argument 'a' cannot be specified multiple times
+                //         /*<bind>*/this[b: 1, a: 2, a: 3]/*</bind>*/ = 0;
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "a").WithArguments("a").WithLocation(11, 36)
+            });
+        }
     }
 }
