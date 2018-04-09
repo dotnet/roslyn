@@ -516,7 +516,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     result = new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
                 }
-                result.Add(browsableAttribute.TargetMember, browsableAttribute.State);
+
+                // There can be multiple same atributes for nested classes.
+                // Debugger provides attributes starting from nested classes and then up to base ones.
+                // We should use nested attributes if there is more than one instance.
+                if (!result.ContainsKey(browsableAttribute.TargetMember))
+                {
+                    result.Add(browsableAttribute.TargetMember, browsableAttribute.State);
+                }
             }
             return result;
         }
