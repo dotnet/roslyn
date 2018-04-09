@@ -523,6 +523,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IForEachLoopOperation));
             LogLoopStatementHeader(operation);
 
+            Assert.NotNull(operation.LoopControlVariable);
             Visit(operation.LoopControlVariable, "LoopControlVariable");
             Visit(operation.Collection, "Collection");
             Visit(operation.Body, "Body");
@@ -1590,6 +1591,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
             Visit(operation.BlockBody, "BlockBody");
             Visit(operation.ExpressionBody, "ExpressionBody");
+        }
+
+        public override void VisitDiscardOperation(IDiscardOperation operation)
+        {
+            LogString(nameof(IDiscardOperation));
+            LogString(" (");
+            LogSymbol(operation.DiscardSymbol, "Symbol");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
         }
 
         #endregion

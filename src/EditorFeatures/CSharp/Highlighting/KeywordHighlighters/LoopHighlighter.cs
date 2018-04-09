@@ -35,26 +35,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         {
             var spans = new List<TextSpan>();
 
-            switch (loopNode.Kind())
+            switch (loopNode)
             {
-                case SyntaxKind.DoStatement:
-                    HighlightDoStatement((DoStatementSyntax)loopNode, spans);
+                case DoStatementSyntax doStatement:
+                    HighlightDoStatement(doStatement, spans);
                     break;
-                case SyntaxKind.ForStatement:
-                    HighlightForStatement((ForStatementSyntax)loopNode, spans);
+                case ForStatementSyntax forStatement:
+                    HighlightForStatement(forStatement, spans);
                     break;
-
-                case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachVariableStatement:
-                    HighlightForEachStatement((CommonForEachStatementSyntax)loopNode, spans);
+                case CommonForEachStatementSyntax forEachStatement:
+                    HighlightForEachStatement(forEachStatement, spans);
                     break;
-
-                case SyntaxKind.WhileStatement:
-                    HighlightWhileStatement((WhileStatementSyntax)loopNode, spans);
+                case WhileStatementSyntax whileStatement:
+                    HighlightWhileStatement(whileStatement, spans);
                     break;
             }
 
-            HighlightRelatedKeywords(loopNode, spans, true, true);
+            HighlightRelatedKeywords(loopNode, spans, highlightBreaks: true, highlightContinues: true);
 
             return spans;
         }
@@ -84,21 +81,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         /// <summary>
         /// Finds all breaks and continues that are a child of this node, and adds the appropriate spans to the spans list.
         /// </summary>
-        private void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans, bool highlightBreaks, bool highlightContinues)
+        private void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans,
+            bool highlightBreaks, bool highlightContinues)
         {
             Debug.Assert(highlightBreaks || highlightContinues);
 
-            if (highlightBreaks && node is BreakStatementSyntax)
+            if (highlightBreaks && node is BreakStatementSyntax breakStatement)
             {
-                var statement = (BreakStatementSyntax)node;
-                spans.Add(statement.BreakKeyword.Span);
-                spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
+                spans.Add(breakStatement.BreakKeyword.Span);
+                spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
             }
-            else if (highlightContinues && node is ContinueStatementSyntax)
+            else if (highlightContinues && node is ContinueStatementSyntax continueStatement)
             {
-                var statement = (ContinueStatementSyntax)node;
-                spans.Add(statement.ContinueKeyword.Span);
-                spans.Add(EmptySpan(statement.SemicolonToken.Span.End));
+                spans.Add(continueStatement.ContinueKeyword.Span);
+                spans.Add(EmptySpan(continueStatement.SemicolonToken.Span.End));
             }
             else
             {

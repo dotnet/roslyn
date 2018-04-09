@@ -1103,11 +1103,6 @@ Additional information: {1}</source>
         <target state="translated">仕様の管理</target>
         <note />
       </trans-unit>
-      <trans-unit id="Manage_styles">
-        <source>Manage styles</source>
-        <target state="translated">スタイルの管理</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reorder">
         <source>Reorder</source>
         <target state="translated">並べ替え</target>
@@ -1531,6 +1526,11 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Sync_Class_View_Command_Handler">
         <source>Sync Class View Command Handler</source>
         <target state="new">Sync Class View Command Handler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="new">Manage naming styles</target>
         <note />
       </trans-unit>
       <trans-unit id="Field_preferences_colon">
