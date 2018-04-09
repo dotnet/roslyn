@@ -691,9 +691,6 @@
   <data name="JSON_issue_0" xml:space="preserve">
     <value>JSON issue: {0}</value>
   </data>
-  <data name="Style" xml:space="preserve">
-    <value>Style</value>
-  </data>
   <data name="Probable_JSON_string_detected" xml:space="preserve">
     <value>Probable JSON string detected</value>
   </data>

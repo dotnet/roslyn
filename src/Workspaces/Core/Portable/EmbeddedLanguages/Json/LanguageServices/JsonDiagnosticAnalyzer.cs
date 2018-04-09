@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
             _descriptor = new DiagnosticDescriptor(DiagnosticId,
                 new LocalizableResourceString(nameof(WorkspacesResources.JSON_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
                 new LocalizableResourceString(nameof(WorkspacesResources.JSON_issue_0), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
-                WorkspacesResources.Style,
+                "JSON",
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
 

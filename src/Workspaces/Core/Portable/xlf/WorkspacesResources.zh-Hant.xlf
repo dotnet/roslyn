@@ -927,11 +927,6 @@
         <target state="new">JSON issue: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="new">Style</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Probable_JSON_string_detected">
         <source>Probable JSON string detected</source>
         <target state="new">Probable JSON string detected</target>
