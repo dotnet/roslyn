@@ -15,6 +15,7 @@
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Features" version="$version$" />
       <dependency id="Microsoft.CodeAnalysis.CSharp.Workspaces" version="$version$" />
+      <dependency id="Humanizer.Core" version="$HumanizerCoreVersion$" />
     </dependencies>
 
     <language>en-US</language>

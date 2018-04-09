@@ -17,6 +17,10 @@
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />
+      <dependency id="Microsoft.VisualStudio.CoreUtility" version="$MicrosoftVisualStudioCoreUtilityVersion$" />
+      <dependency id="Microsoft.VisualStudio.Text.Data" version="$MicrosoftVisualStudioTextDataVersion$" />
+      <dependency id="Microsoft.VisualStudio.Text.Logic" version="$MicrosoftVisualStudioTextLogicVersion$" />
+      <dependency id="Microsoft.VisualStudio.Utilities" version="$MicrosoftVisualStudioUtilitiesVersion$" />
     </dependencies>
 
     <language>en-US</language>
