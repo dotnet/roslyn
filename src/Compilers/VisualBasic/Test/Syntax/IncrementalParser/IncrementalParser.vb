@@ -144,19 +144,18 @@ End Module]]>.Value
     <WorkItem(899264, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseWithEventsFollowingProperty()
-        'Unable to verify this using CDATA, since CDATA value only has Cr appended at end of each line, 
-        'where as this bug is reproducible only with CrLf at the end of each line
-        Dim code As String = "Public Class HasPublicMembersToConflictWith" & vbCrLf &
-    "Public ConflictWithProp" & vbCrLf &
-    "" & vbCrLf &
-    "Public Property _ConflictWithBF() As String" & vbCrLf &
-    "    Get" & vbCrLf &
-    "    End Get" & vbCrLf &
-    "    Set(value As String)" & vbCrLf &
-    "    End Set" & vbCrLf &
-    "End Property" & vbCrLf &
-    "" & vbCrLf &
-    "Public WithEvents ConflictWithBoth As Ob"
+        Dim code As String =
+"Public Class HasPublicMembersToConflictWith
+Public ConflictWithProp
+
+Public Property _ConflictWithBF() As String
+    Get
+    End Get
+    Set(value As String)
+    End Set
+End Property
+
+Public WithEvents ConflictWithBoth As Ob"
 
         ParseAndVerify(code,
         <errors>
