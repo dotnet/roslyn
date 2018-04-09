@@ -2015,11 +2015,6 @@ Questa versione è usata {2}</target>
         <target state="new">Make field readonly</target>
         <note />
       </trans-unit>
-      <trans-unit id="newval">
-        <source>newval</source>
-        <target state="new">newval</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>
