@@ -1073,14 +1073,6 @@ public class Cls
             // unlike GetSymbolInfo or GetTypeInfo, GetOperation doesn't use SemanticModel's recovery mode.
             // what that means is that GetOperation might return null for ones GetSymbol/GetTypeInfo do return info from
             // error recovery mode
-            var foreachLoop = decl.Ancestors().OfType<ForEachVariableStatementSyntax>().FirstOrDefault();
-            if (foreachLoop?.Variable?.FullSpan.Contains(decl.Span) == true &&
-                foreachLoop?.Variable.IsKind(SyntaxKind.InvocationExpression) == true)
-            {
-                // invalid syntax case where operation is not supported
-                return;
-            }
-
             var typeofExpression = decl.Ancestors().OfType<TypeOfExpressionSyntax>().FirstOrDefault();
             if (typeofExpression?.Type?.FullSpan.Contains(decl.Span) == true)
             {

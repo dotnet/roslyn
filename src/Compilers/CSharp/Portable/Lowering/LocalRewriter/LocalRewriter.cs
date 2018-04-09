@@ -247,6 +247,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sawLocalFunctions = true;
             CheckRefReadOnlySymbols(node.Symbol);
 
+            if (node.Symbol.TypeParameters.Any(typeParameter => typeParameter.HasUnmanagedTypeConstraint))
+            {
+                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsUnmanagedAttributeExists();
+            }
+
             var oldContainingSymbol = _factory.CurrentFunction;
             try
             {
@@ -358,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
-        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, out MethodSymbol)"/> instead! 
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, out MethodSymbol)"/> instead!
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
         private MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember)
@@ -368,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
-        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, DiagnosticBag, out MethodSymbol)"/> instead! 
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, DiagnosticBag, out MethodSymbol)"/> instead!
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
         private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics)
@@ -442,9 +447,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (initializer.Kind == BoundKind.Block)
                     {
-                        var block = (BoundBlock)initializer; 
-                        statements.Add(block.Update(block.Locals, block.LocalFunctions, 
-                                                    ImmutableArray.Create(RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(), 
+                        var block = (BoundBlock)initializer;
+                        statements.Add(block.Update(block.Locals, block.LocalFunctions,
+                                                    ImmutableArray.Create(RewriteExpressionStatement((BoundExpressionStatement)block.Statements.Single(),
                                                                                                      suppressInstrumentation: true))));
                     }
                     else
@@ -484,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // instrument remaining statements 
+                // instrument remaining statements
                 int remaining = 0;
                 for (int i = 0; i < statements.Count; i++)
                 {
@@ -579,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rhs.IsDefaultValue();
         }
 
-        // There are two situations in which the language permits passing rvalues by reference. 
+        // There are two situations in which the language permits passing rvalues by reference.
         // (technically there are 4, but we can ignore COM and dynamic here, since that results in byval semantics regardless of the parameter ref kind)
         //
         // #1: Receiver of a struct/generic method call.
@@ -589,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // However the underlying implementation passes receivers of struct methods by reference.
         // In such situations it may be possible for the call to cause or observe writes to the receiver variable.
         // As a result it is not valid to replace receiver variable with a reference to it or the other way around.
-        // 
+        //
         // Example1:
         //        static int x = 123;
         //        async static Task<string> Test1()
@@ -621,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //        }
         //
         // #2: Ordinary byval argument passed to an "in" parameter.
-        // 
+        //
         // The language only requires that ordinary byval arguments must be readable (RValues are ok).
         // However if the target parameter is an "in" parameter, the underlying implementation passes by reference.
         //
@@ -641,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //            Console.WriteLine(y);
         //        }
         //
-        // NB: The readonliness is not considered here. 
+        // NB: The readonliness is not considered here.
         //     We only care about possible introduction of aliasing. I.E. RValue->LValue change.
         //     Even if we start with a readonly variable, it cannot be lowered into a writeable one,
         //     with one exception - spilling of the value into a local, which is ok.
@@ -668,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.DeconstructValuePlaceholder:
                     // we will consider that placeholder always represents a temp local
-                    // the assumption should be confirmed or changed when https://github.com/dotnet/roslyn/issues/24160 is fixed 
+                    // the assumption should be confirmed or changed when https://github.com/dotnet/roslyn/issues/24160 is fixed
                     return true;
 
                 case BoundKind.EventAccess:

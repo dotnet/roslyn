@@ -1001,6 +1001,9 @@
     <!-- If there is a deconstruction, there will be no iteration variable (but we'll still have a type for it). -->
     <Field Name="IterationVariableType" Type="BoundTypeExpression"/>
     <Field Name="IterationVariables" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <!-- In error scenarios where the iteration variable is some arbitrary expression, we
+         stick the error recovery in this node. This will always be null in valid code. -->
+    <Field Name="IterationErrorExpressionOpt" Type="BoundExpression" Null="allow"/>
     <!-- If this node does not have errors, then this is the foreach expression wrapped
          in a conversion to the collection type used by the foreach loop.  The conversion
          is here so that the binding API can return the correct ConvertedType in semantic 
@@ -1720,7 +1723,7 @@
   </Node>
 
   <AbstractNode Name="BoundPattern" Base="BoundNode">
-    <!-- CONSIDER: we might benefit from recording the input (matched value) type in the bound pattern. -->
+    <Field Name="InputType" Type="TypeSymbol" Null="disallow"/>
   </AbstractNode>
 
   <Node Name="BoundConstantPattern" Base="BoundPattern">
@@ -1749,7 +1752,6 @@
 
   <Node Name="BoundRecursivePattern" Base="BoundPattern">
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="allow"/>
-    <Field Name="InputType" Type="TypeSymbol"/>
     <Field Name="DeconstructMethodOpt" Type="MethodSymbol" Null="allow"/>
     <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPattern&gt;" Null="allow"/>
     <Field Name="PropertiesOpt" Type="ImmutableArray&lt;(Symbol symbol, BoundPattern pattern)&gt;" Null="allow"/>

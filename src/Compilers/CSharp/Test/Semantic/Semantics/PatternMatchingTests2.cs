@@ -1220,6 +1220,40 @@ class Program1
                 );
         }
 
+        [Fact, WorkItem(25591, "https://github.com/dotnet/roslyn/issues/25591")]
+        public void TupleSubsumptionError()
+        {
+            var source =
+@"class Program2
+{
+    public static void Main()
+    {
+        M(new Fox());
+        M(new Cat());
+        M(new Program2());
+    }
+    static void M(object o)
+    {
+        switch ((o, 0))
+        {
+            case (Fox fox, _):
+                System.Console.Write(""Fox "");
+                break;
+            case (Cat cat, _):
+                System.Console.Write(""Cat"");
+                break;
+        }
+    }
+}
+class Fox {}
+class Cat {}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"Fox Cat");
+        }
+
         [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
         public void NamesInPositionalPatterns01()
         {

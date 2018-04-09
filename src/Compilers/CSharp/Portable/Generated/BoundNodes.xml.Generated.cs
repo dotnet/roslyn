@@ -3814,8 +3814,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundForEachStatement : BoundLoopStatement
     {
-        public BoundForEachStatement(SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
-            : base(BoundKind.ForEachStatement, syntax, breakLabel, continueLabel, hasErrors || iterationVariableType.HasErrors() || expression.HasErrors() || deconstructionOpt.HasErrors() || body.HasErrors())
+        public BoundForEachStatement(SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel, bool hasErrors = false)
+            : base(BoundKind.ForEachStatement, syntax, breakLabel, continueLabel, hasErrors || iterationVariableType.HasErrors() || iterationErrorExpressionOpt.HasErrors() || expression.HasErrors() || deconstructionOpt.HasErrors() || body.HasErrors())
         {
 
             Debug.Assert(iterationVariableType != null, "Field 'iterationVariableType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -3829,6 +3829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ElementConversion = elementConversion;
             this.IterationVariableType = iterationVariableType;
             this.IterationVariables = iterationVariables;
+            this.IterationErrorExpressionOpt = iterationErrorExpressionOpt;
             this.Expression = expression;
             this.DeconstructionOpt = deconstructionOpt;
             this.Body = body;
@@ -3844,6 +3845,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<LocalSymbol> IterationVariables { get; }
 
+        public BoundExpression IterationErrorExpressionOpt { get; }
+
         public BoundExpression Expression { get; }
 
         public BoundForEachDeconstructStep DeconstructionOpt { get; }
@@ -3857,11 +3860,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitForEachStatement(this);
         }
 
-        public BoundForEachStatement Update(ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
+        public BoundForEachStatement Update(ForEachEnumeratorInfo enumeratorInfoOpt, Conversion elementConversion, BoundTypeExpression iterationVariableType, ImmutableArray<LocalSymbol> iterationVariables, BoundExpression iterationErrorExpressionOpt, BoundExpression expression, BoundForEachDeconstructStep deconstructionOpt, BoundStatement body, bool @checked, GeneratedLabelSymbol breakLabel, GeneratedLabelSymbol continueLabel)
         {
-            if (enumeratorInfoOpt != this.EnumeratorInfoOpt || elementConversion != this.ElementConversion || iterationVariableType != this.IterationVariableType || iterationVariables != this.IterationVariables || expression != this.Expression || deconstructionOpt != this.DeconstructionOpt || body != this.Body || @checked != this.Checked || breakLabel != this.BreakLabel || continueLabel != this.ContinueLabel)
+            if (enumeratorInfoOpt != this.EnumeratorInfoOpt || elementConversion != this.ElementConversion || iterationVariableType != this.IterationVariableType || iterationVariables != this.IterationVariables || iterationErrorExpressionOpt != this.IterationErrorExpressionOpt || expression != this.Expression || deconstructionOpt != this.DeconstructionOpt || body != this.Body || @checked != this.Checked || breakLabel != this.BreakLabel || continueLabel != this.ContinueLabel)
             {
-                var result = new BoundForEachStatement(this.Syntax, enumeratorInfoOpt, elementConversion, iterationVariableType, iterationVariables, expression, deconstructionOpt, body, @checked, breakLabel, continueLabel, this.HasErrors);
+                var result = new BoundForEachStatement(this.Syntax, enumeratorInfoOpt, elementConversion, iterationVariableType, iterationVariables, iterationErrorExpressionOpt, expression, deconstructionOpt, body, @checked, breakLabel, continueLabel, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6556,26 +6559,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundPattern : BoundNode
     {
-        protected BoundPattern(BoundKind kind, SyntaxNode syntax, bool hasErrors)
+        protected BoundPattern(BoundKind kind, SyntaxNode syntax, TypeSymbol inputType, bool hasErrors)
             : base(kind, syntax, hasErrors)
         {
+
+            Debug.Assert(inputType != null, "Field 'inputType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.InputType = inputType;
         }
 
-        protected BoundPattern(BoundKind kind, SyntaxNode syntax)
+        protected BoundPattern(BoundKind kind, SyntaxNode syntax, TypeSymbol inputType)
             : base(kind, syntax)
         {
+
+            Debug.Assert(inputType != null, "Field 'inputType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.InputType = inputType;
         }
 
+
+        public TypeSymbol InputType { get; }
     }
 
     internal sealed partial class BoundConstantPattern : BoundPattern
     {
-        public BoundConstantPattern(SyntaxNode syntax, BoundExpression value, ConstantValue constantValue, bool hasErrors = false)
-            : base(BoundKind.ConstantPattern, syntax, hasErrors || value.HasErrors())
+        public BoundConstantPattern(SyntaxNode syntax, BoundExpression value, ConstantValue constantValue, TypeSymbol inputType, bool hasErrors = false)
+            : base(BoundKind.ConstantPattern, syntax, inputType, hasErrors || value.HasErrors())
         {
 
             Debug.Assert(value != null, "Field 'value' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(constantValue != null, "Field 'constantValue' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(inputType != null, "Field 'inputType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Value = value;
             this.ConstantValue = constantValue;
@@ -6591,11 +6605,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitConstantPattern(this);
         }
 
-        public BoundConstantPattern Update(BoundExpression value, ConstantValue constantValue)
+        public BoundConstantPattern Update(BoundExpression value, ConstantValue constantValue, TypeSymbol inputType)
         {
-            if (value != this.Value || constantValue != this.ConstantValue)
+            if (value != this.Value || constantValue != this.ConstantValue || inputType != this.InputType)
             {
-                var result = new BoundConstantPattern(this.Syntax, value, constantValue, this.HasErrors);
+                var result = new BoundConstantPattern(this.Syntax, value, constantValue, inputType, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6605,14 +6619,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDiscardPattern : BoundPattern
     {
-        public BoundDiscardPattern(SyntaxNode syntax, bool hasErrors)
-            : base(BoundKind.DiscardPattern, syntax, hasErrors)
+        public BoundDiscardPattern(SyntaxNode syntax, TypeSymbol inputType, bool hasErrors)
+            : base(BoundKind.DiscardPattern, syntax, inputType, hasErrors)
         {
+
+            Debug.Assert(inputType != null, "Field 'inputType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
         }
 
-        public BoundDiscardPattern(SyntaxNode syntax)
-            : base(BoundKind.DiscardPattern, syntax)
+        public BoundDiscardPattern(SyntaxNode syntax, TypeSymbol inputType)
+            : base(BoundKind.DiscardPattern, syntax, inputType)
         {
+
+            Debug.Assert(inputType != null, "Field 'inputType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
         }
 
 
@@ -6620,13 +6640,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return visitor.VisitDiscardPattern(this);
         }
+
+        public BoundDiscardPattern Update(TypeSymbol inputType)
+        {
+            if (inputType != this.InputType)
+            {
+                var result = new BoundDiscardPattern(this.Syntax, inputType, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
     }
 
     internal sealed partial class BoundDeclarationPattern : BoundPattern
     {
-        public BoundDeclarationPattern(SyntaxNode syntax, Symbol variable, BoundExpression variableAccess, BoundTypeExpression declaredType, bool isVar, bool hasErrors = false)
-            : base(BoundKind.DeclarationPattern, syntax, hasErrors || variableAccess.HasErrors() || declaredType.HasErrors())
+        public BoundDeclarationPattern(SyntaxNode syntax, Symbol variable, BoundExpression variableAccess, BoundTypeExpression declaredType, bool isVar, TypeSymbol inputType, bool hasErrors = false)
+            : base(BoundKind.DeclarationPattern, syntax, inputType, hasErrors || variableAccess.HasErrors() || declaredType.HasErrors())
         {
+
+            Debug.Assert(inputType != null, "Field 'inputType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
             this.Variable = variable;
             this.VariableAccess = variableAccess;
             this.DeclaredType = declaredType;
@@ -6647,11 +6681,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitDeclarationPattern(this);
         }
 
-        public BoundDeclarationPattern Update(Symbol variable, BoundExpression variableAccess, BoundTypeExpression declaredType, bool isVar)
+        public BoundDeclarationPattern Update(Symbol variable, BoundExpression variableAccess, BoundTypeExpression declaredType, bool isVar, TypeSymbol inputType)
         {
-            if (variable != this.Variable || variableAccess != this.VariableAccess || declaredType != this.DeclaredType || isVar != this.IsVar)
+            if (variable != this.Variable || variableAccess != this.VariableAccess || declaredType != this.DeclaredType || isVar != this.IsVar || inputType != this.InputType)
             {
-                var result = new BoundDeclarationPattern(this.Syntax, variable, variableAccess, declaredType, isVar, this.HasErrors);
+                var result = new BoundDeclarationPattern(this.Syntax, variable, variableAccess, declaredType, isVar, inputType, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6661,14 +6695,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRecursivePattern : BoundPattern
     {
-        public BoundRecursivePattern(SyntaxNode syntax, BoundTypeExpression declaredType, TypeSymbol inputType, MethodSymbol deconstructMethodOpt, ImmutableArray<BoundPattern> deconstruction, ImmutableArray<(Symbol symbol, BoundPattern pattern)> propertiesOpt, Symbol variable, BoundExpression variableAccess, bool hasErrors = false)
-            : base(BoundKind.RecursivePattern, syntax, hasErrors || declaredType.HasErrors() || deconstruction.HasErrors() || variableAccess.HasErrors())
+        public BoundRecursivePattern(SyntaxNode syntax, BoundTypeExpression declaredType, MethodSymbol deconstructMethodOpt, ImmutableArray<BoundPattern> deconstruction, ImmutableArray<(Symbol symbol, BoundPattern pattern)> propertiesOpt, Symbol variable, BoundExpression variableAccess, TypeSymbol inputType, bool hasErrors = false)
+            : base(BoundKind.RecursivePattern, syntax, inputType, hasErrors || declaredType.HasErrors() || deconstruction.HasErrors() || variableAccess.HasErrors())
         {
 
             Debug.Assert(inputType != null, "Field 'inputType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.DeclaredType = declaredType;
-            this.InputType = inputType;
             this.DeconstructMethodOpt = deconstructMethodOpt;
             this.Deconstruction = deconstruction;
             this.PropertiesOpt = propertiesOpt;
@@ -6678,8 +6711,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
         public BoundTypeExpression DeclaredType { get; }
-
-        public TypeSymbol InputType { get; }
 
         public MethodSymbol DeconstructMethodOpt { get; }
 
@@ -6696,11 +6727,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitRecursivePattern(this);
         }
 
-        public BoundRecursivePattern Update(BoundTypeExpression declaredType, TypeSymbol inputType, MethodSymbol deconstructMethodOpt, ImmutableArray<BoundPattern> deconstruction, ImmutableArray<(Symbol symbol, BoundPattern pattern)> propertiesOpt, Symbol variable, BoundExpression variableAccess)
+        public BoundRecursivePattern Update(BoundTypeExpression declaredType, MethodSymbol deconstructMethodOpt, ImmutableArray<BoundPattern> deconstruction, ImmutableArray<(Symbol symbol, BoundPattern pattern)> propertiesOpt, Symbol variable, BoundExpression variableAccess, TypeSymbol inputType)
         {
-            if (declaredType != this.DeclaredType || inputType != this.InputType || deconstructMethodOpt != this.DeconstructMethodOpt || deconstruction != this.Deconstruction || propertiesOpt != this.PropertiesOpt || variable != this.Variable || variableAccess != this.VariableAccess)
+            if (declaredType != this.DeclaredType || deconstructMethodOpt != this.DeconstructMethodOpt || deconstruction != this.Deconstruction || propertiesOpt != this.PropertiesOpt || variable != this.Variable || variableAccess != this.VariableAccess || inputType != this.InputType)
             {
-                var result = new BoundRecursivePattern(this.Syntax, declaredType, inputType, deconstructMethodOpt, deconstruction, propertiesOpt, variable, variableAccess, this.HasErrors);
+                var result = new BoundRecursivePattern(this.Syntax, declaredType, deconstructMethodOpt, deconstruction, propertiesOpt, variable, variableAccess, inputType, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9144,6 +9175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
         {
             this.Visit(node.IterationVariableType);
+            this.Visit(node.IterationErrorExpressionOpt);
             this.Visit(node.Expression);
             this.Visit(node.DeconstructionOpt);
             this.Visit(node.Body);
@@ -10087,10 +10119,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
         {
             BoundTypeExpression iterationVariableType = (BoundTypeExpression)this.Visit(node.IterationVariableType);
+            BoundExpression iterationErrorExpressionOpt = (BoundExpression)this.Visit(node.IterationErrorExpressionOpt);
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
             BoundForEachDeconstructStep deconstructionOpt = (BoundForEachDeconstructStep)this.Visit(node.DeconstructionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(node.EnumeratorInfoOpt, node.ElementConversion, iterationVariableType, node.IterationVariables, expression, deconstructionOpt, body, node.Checked, node.BreakLabel, node.ContinueLabel);
+            return node.Update(node.EnumeratorInfoOpt, node.ElementConversion, iterationVariableType, node.IterationVariables, iterationErrorExpressionOpt, expression, deconstructionOpt, body, node.Checked, node.BreakLabel, node.ContinueLabel);
         }
         public override BoundNode VisitForEachDeconstructStep(BoundForEachDeconstructStep node)
         {
@@ -10497,17 +10530,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitConstantPattern(BoundConstantPattern node)
         {
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            return node.Update(value, node.ConstantValue);
+            TypeSymbol inputType = this.VisitType(node.InputType);
+            return node.Update(value, node.ConstantValue, inputType);
         }
         public override BoundNode VisitDiscardPattern(BoundDiscardPattern node)
         {
-            return node;
+            TypeSymbol inputType = this.VisitType(node.InputType);
+            return node.Update(inputType);
         }
         public override BoundNode VisitDeclarationPattern(BoundDeclarationPattern node)
         {
             BoundExpression variableAccess = (BoundExpression)this.Visit(node.VariableAccess);
             BoundTypeExpression declaredType = (BoundTypeExpression)this.Visit(node.DeclaredType);
-            return node.Update(node.Variable, variableAccess, declaredType, node.IsVar);
+            TypeSymbol inputType = this.VisitType(node.InputType);
+            return node.Update(node.Variable, variableAccess, declaredType, node.IsVar, inputType);
         }
         public override BoundNode VisitRecursivePattern(BoundRecursivePattern node)
         {
@@ -10515,7 +10551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundPattern> deconstruction = (ImmutableArray<BoundPattern>)this.VisitList(node.Deconstruction);
             BoundExpression variableAccess = (BoundExpression)this.Visit(node.VariableAccess);
             TypeSymbol inputType = this.VisitType(node.InputType);
-            return node.Update(declaredType, inputType, node.DeconstructMethodOpt, deconstruction, node.PropertiesOpt, node.Variable, variableAccess);
+            return node.Update(declaredType, node.DeconstructMethodOpt, deconstruction, node.PropertiesOpt, node.Variable, variableAccess, inputType);
         }
         public override BoundNode VisitDiscardExpression(BoundDiscardExpression node)
         {
@@ -11493,6 +11529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("elementConversion", node.ElementConversion, null),
                 new TreeDumperNode("iterationVariableType", null, new TreeDumperNode[] { Visit(node.IterationVariableType, null) }),
                 new TreeDumperNode("iterationVariables", node.IterationVariables, null),
+                new TreeDumperNode("iterationErrorExpressionOpt", null, new TreeDumperNode[] { Visit(node.IterationErrorExpressionOpt, null) }),
                 new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
                 new TreeDumperNode("deconstructionOpt", null, new TreeDumperNode[] { Visit(node.DeconstructionOpt, null) }),
                 new TreeDumperNode("body", null, new TreeDumperNode[] { Visit(node.Body, null) }),
@@ -12222,13 +12259,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("constantPattern", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
-                new TreeDumperNode("constantValue", node.ConstantValue, null)
+                new TreeDumperNode("constantValue", node.ConstantValue, null),
+                new TreeDumperNode("inputType", node.InputType, null)
             }
             );
         }
         public override TreeDumperNode VisitDiscardPattern(BoundDiscardPattern node, object arg)
         {
-            return new TreeDumperNode("discardPattern", null, Array.Empty<TreeDumperNode>()
+            return new TreeDumperNode("discardPattern", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("inputType", node.InputType, null)
+            }
             );
         }
         public override TreeDumperNode VisitDeclarationPattern(BoundDeclarationPattern node, object arg)
@@ -12238,7 +12279,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("variable", node.Variable, null),
                 new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) }),
                 new TreeDumperNode("declaredType", null, new TreeDumperNode[] { Visit(node.DeclaredType, null) }),
-                new TreeDumperNode("isVar", node.IsVar, null)
+                new TreeDumperNode("isVar", node.IsVar, null),
+                new TreeDumperNode("inputType", node.InputType, null)
             }
             );
         }
@@ -12247,12 +12289,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("recursivePattern", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("declaredType", null, new TreeDumperNode[] { Visit(node.DeclaredType, null) }),
-                new TreeDumperNode("inputType", node.InputType, null),
                 new TreeDumperNode("deconstructMethodOpt", node.DeconstructMethodOpt, null),
                 new TreeDumperNode("deconstruction", null, node.Deconstruction.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.Deconstruction select Visit(x, null)),
                 new TreeDumperNode("propertiesOpt", node.PropertiesOpt, null),
                 new TreeDumperNode("variable", node.Variable, null),
-                new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) })
+                new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) }),
+                new TreeDumperNode("inputType", node.InputType, null)
             }
             );
         }

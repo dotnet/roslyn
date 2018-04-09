@@ -5304,10 +5304,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The 'unmanaged' constraint must come before any other constraints</value>
   </data>
   <data name="ERR_UnmanagedConstraintNotSatisfied" xml:space="preserve">
-    <value>The type '{2}' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</value>
-  </data>
-  <data name="ERR_UnmanagedConstraintWithLocalFunctions" xml:space="preserve">
-    <value>Using 'unmanaged' constraint on local functions type parameters is not supported.</value>
+    <value>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</value>
   </data>
   <data name="ERR_ConWithUnmanagedCon" xml:space="preserve">
     <value>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</value>

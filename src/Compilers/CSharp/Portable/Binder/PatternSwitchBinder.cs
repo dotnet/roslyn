@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DefaultSwitchLabel:
                     {
                         var defaultLabelSyntax = (DefaultSwitchLabelSyntax)node;
-                        var pattern = new BoundDiscardPattern(node);
+                        var pattern = new BoundDiscardPattern(node, SwitchGoverningType);
                         bool hasErrors = pattern.HasErrors;
                         if (defaultLabel != null)
                         {
