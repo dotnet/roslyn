@@ -523,6 +523,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IForEachLoopOperation));
             LogLoopStatementHeader(operation);
 
+            Assert.NotNull(operation.LoopControlVariable);
             Visit(operation.LoopControlVariable, "LoopControlVariable");
             Visit(operation.Collection, "Collection");
             Visit(operation.Body, "Body");
@@ -1423,7 +1424,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            Visit(operation.Body);
+            if (operation.Body != null)
+            {
+                if (operation.IgnoredBody != null)
+                {
+                    Visit(operation.Body, "Body");
+                    Visit(operation.IgnoredBody, "IgnoredBody");
+
+                }
+                else
+                {
+                    Visit(operation.Body);
+                }
+            }
+            else
+            {
+                Assert.Null(operation.IgnoredBody);
+            }
         }
 
         private void LogCaseClauseCommon(ICaseClauseOperation operation)
@@ -1574,6 +1591,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
             Visit(operation.BlockBody, "BlockBody");
             Visit(operation.ExpressionBody, "ExpressionBody");
+        }
+
+        public override void VisitDiscardOperation(IDiscardOperation operation)
+        {
+            LogString(nameof(IDiscardOperation));
+            LogString(" (");
+            LogSymbol(operation.DiscardSymbol, "Symbol");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
         }
 
         #endregion

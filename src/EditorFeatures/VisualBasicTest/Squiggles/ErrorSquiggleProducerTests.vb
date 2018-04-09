@@ -15,6 +15,7 @@ Imports Microsoft.VisualStudio.Text.Adornments
 Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
+    <[UseExportProvider]>
     Public Class ErrorSquiggleProducerTests
 
         Private _producer As New DiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider)

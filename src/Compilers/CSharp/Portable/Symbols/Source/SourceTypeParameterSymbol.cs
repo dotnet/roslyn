@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -226,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset), TypeParameterBounds.Unset))
                 {
                     this.CheckConstraintTypeConstraints(diagnostics);
+                    this.CheckUnmanagedConstraint(diagnostics);
                     this.AddDeclarationDiagnostics(diagnostics);
                     _state.NotePartComplete(CompletionPart.TypeParameterConstraints);
                 }
@@ -264,6 +264,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     constraintType.CheckAllConstraints(conversions, location, diagnostics);
                 }
+            }
+        }
+
+        private void CheckUnmanagedConstraint(DiagnosticBag diagnostics)
+        {
+            if (this.HasUnmanagedTypeConstraint)
+            {
+                bool modifyCompilation;
+
+                switch (this.ContainingSymbol)
+                {
+                    case SourceOrdinaryMethodSymbol _:
+                    case SourceMemberContainerTypeSymbol _:
+                        modifyCompilation = true;
+                        break;
+                    case LocalFunctionSymbol _:
+                        modifyCompilation = false;
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(this.ContainingSymbol);
+                }
+
+                DeclaringCompilation.EnsureIsUnmanagedAttributeExists(diagnostics, this.GetNonNullSyntaxNode().Location, modifyCompilation);
             }
         }
 

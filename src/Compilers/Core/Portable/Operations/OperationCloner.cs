@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, object argument)
         {
-            return new LocalFunctionStatement(operation.Symbol, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new LocalFunctionStatement(operation.Symbol, Visit(operation.Body), Visit(operation.IgnoredBody), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, object argument)
@@ -499,6 +499,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, object argument)
         {
             return new MethodBodyOperation(((Operation)operation).SemanticModel, operation.Syntax, Visit(operation.BlockBody), Visit(operation.ExpressionBody));
+        }
+
+        public override IOperation VisitDiscardOperation(IDiscardOperation operation, object argument)
+        {
+            return new DiscardOperation(operation.DiscardSymbol, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
     }
 }

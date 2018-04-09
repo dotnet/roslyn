@@ -1021,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional `in` parameters or `ref dynamic` behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
-        private static uint GetInvocationEscapeScope(
+        internal static uint GetInvocationEscapeScope(
             Symbol symbol,
             BoundExpression receiverOpt,
             ImmutableArray<ParameterSymbol> parameters,
@@ -2328,8 +2328,20 @@ moreArguments:
                     // Unsafe code will always be allowed to escape.
                     return Binder.ExternalScope;
 
+                case BoundKind.AsOperator:
+                case BoundKind.AwaitExpression:
+                case BoundKind.ConditionalAccess:
+                case BoundKind.NullCoalescingOperator:
+                case BoundKind.ArrayAccess:
+                    // only possible in error cases (if possible at all)
+                    return scopeOfTheContainingExpression;
+
                 default:
-                    throw ExceptionUtilities.UnexpectedValue($"{expr.Kind} expression of {expr.Type} type");
+                    // in error situations some unexpected nodes could make here
+                    // returning "scopeOfTheContainingExpression" seems safer than throwing.
+                    // we will still assert to make sure that all nodes are accounted for. 
+                    Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
+                    return scopeOfTheContainingExpression;
             }
         }
 
@@ -2643,8 +2655,20 @@ moreArguments:
                     var operandExpression = ((BoundPointerIndirectionOperator)expr).Operand;
                     return CheckValEscape(operandExpression.Syntax, operandExpression, escapeFrom, escapeTo, checkingReceiver, diagnostics);
 
+                case BoundKind.AsOperator:
+                case BoundKind.AwaitExpression:
+                case BoundKind.ConditionalAccess:
+                case BoundKind.NullCoalescingOperator:
+                case BoundKind.ArrayAccess:
+                    // only possible in error cases (if possible at all)
+                    return false;
+
                 default:
-                    throw ExceptionUtilities.UnexpectedValue($"{expr.Kind} expression of {expr.Type} type");
+                    // in error situations some unexpected nodes could make here
+                    // returning "false" seems safer than throwing.
+                    // we will still assert to make sure that all nodes are accounted for. 
+                    Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
+                    return false;
 
                 #region "cannot produce ref-like values"
 //                case BoundKind.ThrowExpression:
@@ -2652,11 +2676,7 @@ moreArguments:
 //                case BoundKind.ArgList:
 //                case BoundKind.RefTypeOperator:
 //                case BoundKind.AddressOfOperator:
-//                case BoundKind.AsOperator:
 //                case BoundKind.TypeOfOperator:
-//                case BoundKind.ArrayAccess:
-//                case BoundKind.NullCoalescingOperator:
-//                case BoundKind.AwaitExpression:
 //                case BoundKind.IsOperator:
 //                case BoundKind.SizeOfOperator:
 //                case BoundKind.DynamicMemberAccess:
@@ -2674,7 +2694,6 @@ moreArguments:
 //                case BoundKind.NoPiaObjectCreationExpression:
 //                case BoundKind.BaseReference:
 //                case BoundKind.Literal:
-//                case BoundKind.ConditionalAccess:
 //                case BoundKind.IsPatternExpression:
 //                case BoundKind.DeconstructionAssignmentOperator:
 //                case BoundKind.EventAccess:

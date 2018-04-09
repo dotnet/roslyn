@@ -1098,11 +1098,6 @@ Zusätzliche Informationen: {1}</target>
         <target state="translated">Spezifikationen verwalten</target>
         <note />
       </trans-unit>
-      <trans-unit id="Manage_styles">
-        <source>Manage styles</source>
-        <target state="translated">Stile verwalten</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reorder">
         <source>Reorder</source>
         <target state="translated">Neu anordnen</target>
@@ -1511,6 +1506,11 @@ Ich stimme allen vorstehenden Bedingungen zu:</target>
       <trans-unit id="Analyzing_0">
         <source>Analyzing '{0}'</source>
         <target state="translated">"{0}" wird analysiert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="new">Manage naming styles</target>
         <note />
       </trans-unit>
       <trans-unit id="Field_preferences_colon">
