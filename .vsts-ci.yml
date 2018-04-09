@@ -63,16 +63,6 @@ steps:
     testRunTitle: 'Unit Tests'
   condition: succeededOrFailed()
 
-- task: PowerShell@1
-  inputs:
-    scriptType: inlineScript
-    arguments: 'SymStoreDirectoryExists ''$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\SymStore''
-    inlineScript: |
-     Param([string] $variableName, [string] $filePath)
-     
-     Write-Host "##vso[task.setvariable variable=$variableName]$(Test-Path $filePath)" 
-  condition: and(succeeded(), contains(variables['PB_PublishType'], 'vsts'))
-
 - task: PublishSymbols@1
   inputs:
     SymbolsPath: '$(DropRoot)\$(Build.DefinitionName)\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\Symbols'
