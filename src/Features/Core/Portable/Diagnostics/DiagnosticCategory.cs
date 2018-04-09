@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticCategory
     {
-        public static readonly string Style = WorkspacesResources.Style;
+        public static readonly string Style = FeaturesResources.Style;
         public static readonly string EditAndContinue = FeaturesResources.Edit_and_Continue2;
         public static readonly string Compiler = FeaturesResources.Compiler1;
     }
