@@ -204,10 +204,16 @@ Friend Module ParserTestUtilities
     ''' <field cref="IncParseNode.changeSpan">OF type TextSpan. The start and length of the change</field>
     ''' <field cref="IncParseNode.changeType">Whether text was added, removed or replaced</field>
     Public Structure IncParseNode
-        Public oldText As String
-        Public changeText As String
-        Public changeSpan As TextSpan
-        Public changeType As ChangeType
+        Public Sub New(oldText As String, changeText As String, changeSpan As TextSpan, changeType As ChangeType)
+            Me.oldText = oldText
+            Me.changeText = changeText
+            Me.changeSpan = changeSpan
+            Me.changeType = changeType
+        End Sub
+        Public ReadOnly oldText As String
+        Public ReadOnly changeText As String
+        Public ReadOnly changeSpan As TextSpan
+        Public ReadOnly changeType As ChangeType
     End Structure
 
     Public Sub IncParseAndVerify(oldIText As SourceText, newIText As SourceText)
