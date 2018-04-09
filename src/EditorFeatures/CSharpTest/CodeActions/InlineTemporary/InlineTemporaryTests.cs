@@ -3939,7 +3939,7 @@ class C
 {
     public void M()
     {
-        ((1, ""hello"")).ToString();
+        (1, ""hello"").ToString();
     }
 }";
 
@@ -3966,7 +3966,7 @@ class C
 {
     public void M()
     {
-        ((a: 1, b: ""hello"")).ToString();
+        (a: 1, b: ""hello"").ToString();
     }
 }";
 
@@ -3992,7 +3992,7 @@ class C
 {
     public void M()
     {
-        (((int a, string b))((c: 1, d: ""hello""))).a.ToString();
+        (((int a, string b))(c: 1, d: ""hello"")).a.ToString();
     }
 }";
 

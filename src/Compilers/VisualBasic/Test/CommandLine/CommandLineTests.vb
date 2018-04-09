@@ -986,6 +986,12 @@ End Module").Path
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
+
+            Dim longI = New String("i"c, 260)
+
+            desc = VisualBasicCommandLineParser.ParseResourceDescription("", String.Format("{0},e,private", longI), _baseDirectory, diags, embedded:=False)
+            ' // error BC2032: File name 'iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+            diags.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii").WithLocation(1, 1))
         End Sub
 
         <Fact>
@@ -8626,7 +8632,7 @@ End Class")
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Dim csc = New MockVisualBasicCompiler(Nothing, dir.Path,
-                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "a.vb"})
+                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "/preferreduilang:en", "a.vb"})
 
             Dim exitCode = csc.Run(outWriter)
             Assert.Equal(1, exitCode)
@@ -8936,6 +8942,25 @@ Class Program
     End Sub
 End Class").Path
         End Function
+
+        <Fact>
+        <WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")>
+        Public Sub InvalidPathCharacterInPathMap()
+            Dim filePath = Temp.CreateFile().WriteAllText("").Path
+            Dim compiler = New MockVisualBasicCompiler(Nothing, _baseDirectory,
+            {
+                filePath,
+                "/debug:embedded",
+                "/pathmap:test\\=""",
+                "/target:library",
+                "/preferreduilang:en"
+            })
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = compiler.Run(outWriter)
+            Assert.Equal(1, exitCode)
+            Assert.Contains("vbc : error BC37253: The pathmap option was incorrectly formatted.", outWriter.ToString(), StringComparison.Ordinal)
+        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

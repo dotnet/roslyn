@@ -3,39 +3,54 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class FileSet : IEnumerable<KeyValuePair<string, object>>
+    public class FileSet : IEnumerable<(string fileName, object content)>
     {
-        private readonly Dictionary<string, object> _nameToContentMap;
+        private readonly IImmutableDictionary<string, object> _fileMap;
 
-        public FileSet(IEnumerable<KeyValuePair<string, object>> nameToContentMap)
+        private FileSet(IImmutableDictionary<string, object> fileMap)
         {
-            _nameToContentMap = nameToContentMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            _fileMap = fileMap ?? ImmutableDictionary<string, object>.Empty;
         }
 
-        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
+        public FileSet(params (string fileName, object content)[] files)
         {
-            return _nameToContentMap.GetEnumerator();
+            var builder = ImmutableDictionary.CreateBuilder<string, object>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var (fileName, fileContent) in files)
+            {
+                builder.Add(fileName, fileContent);
+            }
+
+            _fileMap = builder.ToImmutable();
+        }
+
+        public IEnumerator<(string fileName, object content)> GetEnumerator()
+        {
+            foreach (var kvp in _fileMap)
+            {
+                yield return (kvp.Key, kvp.Value);
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.GetEnumerator();
+            return GetEnumerator();
         }
 
         public FileSet WithFile(string fileName, object content)
         {
-            return new FileSet(_nameToContentMap.Where(kvp => kvp.Key != fileName).Concat(new KeyValuePair<string, object>(fileName, content)));
+            var newFileMap = _fileMap.SetItem(fileName, content);
+
+            return new FileSet(newFileMap);
         }
 
         public FileSet ReplaceFileElement(string fileName, string elementName, string elementValue)
         {
-            if (_nameToContentMap.TryGetValue(fileName, out var content))
+            if (_fileMap.TryGetValue(fileName, out var content))
             {
                 if (content is string textContent)
                 {
