@@ -8395,7 +8395,7 @@
 /vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic 
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Visual Basic-Compileroptionen
+        <target state="translated">                  Visual Basic-Compileroptionen
 
                                   - AUSGABEDATEI -
 /out:&lt;Datei&gt;                       Gibt den Ausgabedateinamen an.
@@ -8539,7 +8539,7 @@
                                   Gibt eine Zuordnung für die Ausgabe der Quellpfadnamen durch
                                   den Compiler an.
 /platform:&lt;Zeichenfolge&gt;                Schränkt die Plattformen ein, auf denen dieser Code ausgeführt werden kann; 
-                                  gültige Werte sind x86, x64, Itanium, arm,
+                                  gültige Werte sind x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred oder anycpu (Standard).
 /preferreduilang                  Gibt den Namen der bevorzugten Ausgabesprache an.
 /sdkpath:&lt;Pfad&gt;                   Der Speicherort des .NET Framework SDK-Verzeichnisses
@@ -9078,12 +9078,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
-        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <target state="translated">Ungültiger Name für Hashalgorithmus: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_InterpolatedStrings">
         <source>interpolated strings</source>
-        <target state="new">interpolated strings</target>
+        <target state="translated">Interpolierte Zeichenfolgen</target>
         <note />
       </trans-unit>
     </body>
