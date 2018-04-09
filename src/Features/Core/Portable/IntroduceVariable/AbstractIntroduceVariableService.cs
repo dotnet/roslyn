@@ -18,12 +18,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax> : IIntroduceVariableService
-        where TService : AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax>
+    internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax> : IIntroduceVariableService
+        where TService : AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
         where TExpressionSyntax : SyntaxNode
         where TTypeSyntax : TExpressionSyntax
         where TTypeDeclarationSyntax : SyntaxNode
         where TQueryExpressionSyntax : TExpressionSyntax
+        where TNameSyntax : TTypeSyntax
     {
         protected abstract bool IsInNonFirstQueryClause(TExpressionSyntax expression);
         protected abstract bool IsInFieldInitializer(TExpressionSyntax expression);

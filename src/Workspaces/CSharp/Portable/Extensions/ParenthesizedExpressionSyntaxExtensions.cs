@@ -29,6 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // ((x, y)) -> (x, y)
+            if (expression.IsKind(SyntaxKind.TupleExpression))
+            {
+                return true;
+            }
+
             // int Prop => (x); -> int Prop => x;
             if (node.Parent is ArrowExpressionClauseSyntax arrowExpressionClause && arrowExpressionClause.Expression == node)
             {
