@@ -7,14 +7,12 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.DiaSymReader.Tools;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -8919,6 +8917,22 @@ class Program
   IL_006c:  ret
 }
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
+        }
+
+        [Fact]
+        [WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")]
+        public void InvalidCharacterInPdbPath()
+        {
+            using (var outStream = Temp.CreateFile().Open())
+            {
+                var compilation = CreateCompilation("");
+                var result = compilation.Emit(outStream, options: new EmitOptions(pdbFilePath: "test\\?.pdb", debugInformationFormat: DebugInformationFormat.Embedded));
+
+                Assert.False(result.Success);
+                result.Diagnostics.Verify(
+                    // error CS2021: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                    Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("test\\?.pdb").WithLocation(1, 1));
+            }
         }
     }
 }
