@@ -8810,6 +8810,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="new">Do not use '_' to refer to the type in an is-type expression.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
+        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

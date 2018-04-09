@@ -5372,4 +5372,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureIndexingMovableFixedBuffers" xml:space="preserve">
     <value>indexing movable fixed buffers</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion8_0" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</value>
+  </data>
 </root>

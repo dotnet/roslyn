@@ -14872,9 +14872,6 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int) t").WithArguments("recursive patterns", "patterns2").WithLocation(6, 18),
                 // (6,19): error CS1525: Invalid expression term 'int'
                 //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 19),
@@ -14930,9 +14927,9 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // (6,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int a, int b)").WithArguments("recursive patterns", "patterns2").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int a, int b)").WithArguments("object", "Deconstruct").WithLocation(6, 18),
                 // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (int a, int b)) { }
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int a, int b)").WithArguments("object", "2").WithLocation(6, 18)
@@ -14954,9 +14951,9 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // (6,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         if (o is (1, 2)) { }
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(1, 2)").WithArguments("recursive patterns", "patterns2").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 2)").WithArguments("object", "Deconstruct").WithLocation(6, 18),
                 // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (1, 2)) { }
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 2)").WithArguments("object", "2").WithLocation(6, 18)
@@ -14980,9 +14977,6 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int) tuple").WithArguments("recursive patterns", "patterns2").WithLocation(7, 18),
                 // (7,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 19),
@@ -15018,9 +15012,9 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (1, 1): return;
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(1, 1)").WithArguments("recursive patterns", "patterns2").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 1)").WithArguments("object", "Deconstruct").WithLocation(7, 18),
                 // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (1, 1): return;
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 1)").WithArguments("object", "2").WithLocation(7, 18)
@@ -15044,9 +15038,9 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(1, 1) t").WithArguments("recursive patterns", "patterns2").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 1) t").WithArguments("object", "Deconstruct").WithLocation(7, 18),
                 // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (1, 1) t: return;
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 1) t").WithArguments("object", "2").WithLocation(7, 18)
@@ -23429,9 +23423,6 @@ class P
 }";
             var comp = CreateCompilationWithMscorlib40( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,28): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int a)").WithArguments("recursive patterns", "patterns2").WithLocation(6, 28),
                 // (6,29): error CS1525: Invalid expression term 'int'
                 //         var x1 = (1, 1) is (int, int a)?;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 29),

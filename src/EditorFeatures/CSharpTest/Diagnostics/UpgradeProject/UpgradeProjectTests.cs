@@ -194,6 +194,21 @@ public class Program
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
 
+        #region C# 8.0
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_3ToLatest()
+        {
+            await TestLanguageVersionUpgradedAsync(
+$@"
+class Program
+{{
+#error version:[|{LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString()}|]
+}}",
+                LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(),
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+        #endregion C# 8.0
+
         #region C# 7.3
         [Fact]
         public async Task UpgradeProjectFromCSharp7_2ToLatest()

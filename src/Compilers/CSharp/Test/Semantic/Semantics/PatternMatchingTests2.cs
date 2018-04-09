@@ -342,10 +342,10 @@ public class Point
         var r = 1 switch { _ => 0 };
     }
 }";
-            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
-                // (5,17): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //         var r = 1 switch ( _ => 0 );
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch { _ => 0 }").WithArguments("recursive patterns", "patterns2").WithLocation(5, 17)
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
+                // (5,17): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         var r = 1 switch { _ => 0 };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _ => 0 }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
                 );
         }
 

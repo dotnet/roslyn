@@ -3552,12 +3552,6 @@ unsafe struct S
     }
 }";
             var compilation = CreateCompilation(source).VerifyDiagnostics(
-                // (7,29): error CS1525: Invalid expression term ')'
-                //             if (o.Equals is()) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(7, 28),
-                // (8,33): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if (object.Equals is()) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 33),
                 // (7,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             if (o.Equals is()) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "o.Equals is()").WithLocation(7, 17),
@@ -3601,12 +3595,6 @@ unsafe struct S
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,24): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if (null is()) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(7, 24),
-                // (8,38): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if ((1, object.Equals) is()) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 38),
                 // (7,17): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //             if (null is()) {}
                 Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(7, 17),
@@ -4323,9 +4311,6 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (11,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case _:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(11, 18),
                 // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
                 //         Write($"is _: {i is _}, ");
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29)
@@ -4356,9 +4341,6 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (12,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case _:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(12, 18),
                 // (9,29): error CS8412: A constant named '_' cannot be used as a pattern.
                 //         Write($"is _: {i is _}, ");
                 Diagnostic(ErrorCode.ERR_ConstantPatternNamedUnderscore, "_").WithLocation(9, 29),
