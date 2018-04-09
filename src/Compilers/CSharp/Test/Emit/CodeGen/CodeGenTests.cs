@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -5167,7 +5166,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
   IL_0025:  ret
 }
 ");
-            compilation = CompileAndVerify(source, expectedOutput: @"hi",  verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            compilation = CompileAndVerify(source, expectedOutput: @"hi", verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             compilation.VerifyIL("Program.Main(string[])",
 @"
@@ -12256,7 +12255,7 @@ struct MyManagedStruct
 }
 ");
 
-            comp = CompileAndVerify(source, expectedOutput: @"42", verify: Verification.Passes, parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CompileAndVerify(source, expectedOutput: @"42", verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             comp.VerifyIL("Program.Main",
 @"
@@ -13437,7 +13436,7 @@ public static class P
 }
 ";
 
-            var comp = CreateCompilation(code, references: new[] { reference});
+            var comp = CreateCompilation(code, references: new[] { reference });
             comp.VerifyDiagnostics(
                 // (15,16): error CS0630: 'MyVarArgs2.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs2' because it has an __arglist parameter
                 //     public int Invoke(__arglist) => throw null;
@@ -16459,6 +16458,178 @@ class Test2
   IL_0001:  call       ""void Test1.M<E1>(E1)""
   IL_0006:  ret
 }");
+        }
+
+        [Fact]
+        public void PartialMethodsWithInParameter_WithBody()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        M(5);
+    }
+    partial void M(in int i);
+}
+partial class C
+{
+    partial void M(in int i)
+    {
+        System.Console.WriteLine(i);
+    }
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}",
+                expectedOutput: "5")
+                .VerifyIL("C.Call", @"
+
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.5
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""void C.M(in int)""
+  IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void PartialMethodsWithInParameter_NoBody()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        M(5);
+    }
+    partial void M(in int i);
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}")
+                .VerifyIL("C.Call", @"
+
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [Fact]
+        public void OverloadingPartialMethods_RefKindInWithNone_ImplementIn()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        int x = 0;
+        M(x);
+        M(in x);
+    }
+    partial void M(in int i);
+    partial void M(int i);
+}
+partial class C
+{
+    partial void M(in int i)
+    {
+        System.Console.WriteLine(""in called"");
+    }
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}",
+                expectedOutput: "in called");
+        }
+
+        [Fact]
+        public void OverloadingPartialMethods_RefKindInWithNone_ImplementNone()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        int x = 0;
+        M(x);
+        M(in x);
+    }
+    partial void M(in int i);
+    partial void M(int i);
+}
+partial class C
+{
+    partial void M(int i)
+    {
+        System.Console.WriteLine(""none called"");
+    }
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}",
+                expectedOutput: "none called");
+        }
+
+        [Fact]
+        public void OverloadingPartialMethods_RefKindInWithNone_ImplementBoth()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        int x = 0;
+        M(x);
+        M(in x);
+    }
+    partial void M(in int i);
+    partial void M(int i);
+}
+partial class C
+{
+    partial void M(int i)
+    {
+        System.Console.WriteLine(""none called"");
+    }
+    partial void M(in int i)
+    {
+        System.Console.WriteLine(""in called"");
+    }
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}",
+                expectedOutput: @"
+none called
+in called");
         }
     }
 }

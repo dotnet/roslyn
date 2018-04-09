@@ -148,6 +148,75 @@ public class Test
         }
 
         [Fact]
+        public void LoadingUnmanagedTypeModifier_MoreThanOneModifier()
+        {
+            var ilSource = IsUnmanagedAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void
+          M1<valuetype .ctor (class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
+  {
+    .param type T
+    .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method TestRef::M1
+
+  .method public hidebysig instance void
+          M2<valuetype .ctor (class [mscorlib]System.ValueType modopt([mscorlib]System.DateTime) modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
+  {
+    .param type T
+    .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method TestRef::M2
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method TestRef::.ctor
+
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+
+        obj.M1<int>();      // valid
+        obj.M2<int>();      // invalid
+    }
+}";
+
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (9,13): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M2<T>()'. There is no boxing conversion from 'int' to '?'.
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M2<int>").WithArguments("TestRef.M2<T>()", "?", "T", "int").WithLocation(9, 13),
+                // (9,13): error CS0570: 'T' is not supported by the language
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13),
+                // (9,13): error CS0648: '' is a type not supported by the language
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_BogusType, "M2<int>").WithArguments("").WithLocation(9, 13)
+                );
+        }
+
+        [Fact]
         public void LoadingUnmanagedTypeModifier_ModreqWithoutAttribute()
         {
             var ilSource = IsUnmanagedAttributeIL + @"
@@ -333,6 +402,38 @@ public delegate void D<T>() where T : unmanaged;";
         }
 
         [Fact]
+        public void ProperErrorsArePropagatedIfModreqTypeIsNotAvailable_LocalFunction()
+        {
+            var code = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+    public class ValueType {}
+    public class IntPtr {}
+    public class MulticastDelegate {}
+}
+public class Test
+{
+    public struct S {}
+
+    public void M()
+    {
+        void N<T>() where T : unmanaged
+        {
+        }
+
+        N<S>();
+    }
+}";
+
+            CreateEmptyCompilation(code).VerifyDiagnostics(
+                // (16,31): error CS0518: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is not defined or imported
+                //         void N<T>() where T : unmanaged
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(16, 31));
+        }
+
+        [Fact]
         public void ProperErrorsArePropagatedIfValueTypeIsNotAvailable_Class()
         {
             var code = @"
@@ -412,6 +513,45 @@ public delegate void M<T>() where T : unmanaged;";
                 // (17,39): error CS0518: Predefined type 'System.ValueType' is not defined or imported
                 // public delegate void M<T>() where T : unmanaged;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.ValueType").WithLocation(17, 39));
+        }
+
+        [Fact]
+        public void ProperErrorsArePropagatedIfValueTypeIsNotAvailable_LocalFunctions()
+        {
+            var code = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+    public struct Int32 {}
+
+    namespace Runtime
+    {
+        namespace InteropServices
+        {
+            public class UnmanagedType {}
+        }
+    }
+}
+class Test
+{
+    public void M()
+    {
+        void N<T>() where T : unmanaged
+        {
+        }
+
+        N<int>();
+    }
+}";
+
+            CreateEmptyCompilation(code).VerifyDiagnostics(
+                // (6,19): error CS0518: Predefined type 'System.ValueType' is not defined or imported
+                //     public struct Int32 {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Int32").WithArguments("System.ValueType").WithLocation(6, 19),
+                // (20,31): error CS0518: Predefined type 'System.ValueType' is not defined or imported
+                //         void N<T>() where T : unmanaged
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.ValueType").WithLocation(20, 31));
         }
 
         [Fact]
@@ -1011,14 +1151,78 @@ public class Test
     public static void Main()
     {
         new TestRef().M<int>();
+        new TestRef().M<string>();
     }
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
                 // (6,23): error CS0570: 'T' is not supported by the language
                 //         new TestRef().M<int>();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M<int>").WithArguments("T").WithLocation(6, 23)
-                );
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M<int>").WithArguments("T").WithLocation(6, 23),
+                // (7,23): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M<T>()'. There is no implicit reference conversion from 'string' to 'System.ValueType'.
+                //         new TestRef().M<string>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<string>").WithArguments("TestRef.M<T>()", "System.ValueType", "T", "string").WithLocation(7, 23),
+                // (7,23): error CS0310: 'string' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'TestRef.M<T>()'
+                //         new TestRef().M<string>();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<string>").WithArguments("TestRef.M<T>()", "T", "string").WithLocation(7, 23),
+                // (7,23): error CS0570: 'T' is not supported by the language
+                //         new TestRef().M<string>();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M<string>").WithArguments("T").WithLocation(7, 23));
+        }
+
+        [Fact]
+        public void UnmanagedConstraintWithoutValueTypeConstraint_IL()
+        {
+            var ilSource = IsUnmanagedAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void
+          M<(class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
+  {
+    .param type T
+    .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method TestRef::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method TestRef::.ctor
+
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        new TestRef().M<int>();
+        new TestRef().M<string>();
+    }
+}";
+
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (6,23): error CS0570: 'T' is not supported by the language
+                //         new TestRef().M<int>();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M<int>").WithArguments("T").WithLocation(6, 23),
+                // (7,23): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M<T>()'. There is no implicit reference conversion from 'string' to 'System.ValueType'.
+                //         new TestRef().M<string>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<string>").WithArguments("TestRef.M<T>()", "System.ValueType", "T", "string").WithLocation(7, 23),
+                // (7,23): error CS0570: 'T' is not supported by the language
+                //         new TestRef().M<string>();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M<string>").WithArguments("T").WithLocation(7, 23));
         }
 
         [Fact]

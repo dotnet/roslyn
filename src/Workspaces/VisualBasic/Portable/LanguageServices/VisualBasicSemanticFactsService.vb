@@ -298,8 +298,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(argumentNode, ArgumentSyntax).DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
         End Function
 
-        Public Function GetSymbolInfo(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As SymbolInfo Implements ISemanticFactsService.GetSymbolInfo
-            Return semanticModel.GetSymbolInfo(node, cancellationToken)
+        Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFactsService.GetBestOrAllSymbols
+            Return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols()
         End Function
 
         Private Function ISemanticFactsService_GenerateUniqueName(
