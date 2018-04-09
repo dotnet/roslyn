@@ -23,17 +23,19 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities.Features;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal partial class InlineRenameSession : ForegroundThreadAffinitizedObject, IInlineRenameSession
+    internal partial class InlineRenameSession : ForegroundThreadAffinitizedObject, IInlineRenameSession, IFeatureController
     {
         private readonly Workspace _workspace;
         private readonly InlineRenameService _renameService;
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
+        private readonly IFeatureService _featureService;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
         private readonly IDebuggingWorkspaceService _debuggingWorkspaceService;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -98,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IWaitIndicator waitIndicator,
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
+            IFeatureService featureService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListener asyncListener) : base(assertIsForeground: true)
         {
@@ -118,6 +121,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textBufferFactoryService = textBufferFactoryService;
             _textBufferAssociatedViewService = textBufferAssociatedViewService;
             _textBufferAssociatedViewService.SubjectBuffersConnected += OnSubjectBuffersConnected;
+
+            _featureService = featureService;
+            _featureService.Disable(PredefinedEditorFeatureNames.InteractivePopup, this);
 
             _renameService = renameService;
             _waitIndicator = waitIndicator;
@@ -316,6 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _dismissed = true;
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
             _textBufferAssociatedViewService.SubjectBuffersConnected -= OnSubjectBuffersConnected;
+            _featureService.Enable(PredefinedEditorFeatureNames.InteractivePopup, this);
 
             foreach (var textBuffer in _openTextBuffers.Keys)
             {
