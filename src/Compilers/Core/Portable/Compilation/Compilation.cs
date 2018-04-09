@@ -2439,7 +2439,7 @@ namespace Microsoft.CodeAnalysis
 
             if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded && !string.IsNullOrEmpty(pePdbFilePath))
             {
-                pePdbFilePath = Path.GetFileName(pePdbFilePath);
+                pePdbFilePath = PathUtilities.GetFileName(pePdbFilePath);
             }
 
             try

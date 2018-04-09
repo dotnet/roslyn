@@ -44,7 +44,10 @@ End Class
         Dim expectedErrors1 = <errors>
 BC31007: Unable to load module file 'Goo.dll': PE image doesn't contain managed metadata.
                  </errors>
-        CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+
+        Using New EnsureEnglishUICulture
+            CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+        End Using
     End Sub
 
     <WorkItem(538349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538349")>
