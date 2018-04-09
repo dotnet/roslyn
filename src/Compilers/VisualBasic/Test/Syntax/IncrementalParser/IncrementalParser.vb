@@ -168,12 +168,12 @@ Public WithEvents ConflictWithBoth As Ob"
     <WorkItem(899596, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseClassFollowingDocComments()
-        Dim code As String = <![CDATA[Class VBQATestcase
+        Dim code As String = "Class VBQATestcase
     '''-----------------------------------------------------------------------------
     ''' <summary>
     '''Text
     ''' </summary>
-    '''-----------------------------------------------------------------------------]]>.Value
+    '''-----------------------------------------------------------------------------"
 
         ParseAndVerify(code,
                        <errors>
@@ -186,11 +186,13 @@ Public WithEvents ConflictWithBoth As Ob"
     <WorkItem(899918, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseDirInElse()
-        Dim code As String = "Sub Sub1()" & vbCr &
-"If true Then" & vbCr &
-"goo("""")" & vbCr &
-"Else" & vbCr & vbCr &
-"#If Not ULTRAVIOLET Then" & vbCr
+        Dim code =
+"Sub Sub1()
+If true Then
+goo("""")
+Else
+
+#If Not ULTRAVIOLET Then"
 
         ParseAndVerify(code,
                        <errors>
@@ -205,11 +207,12 @@ Public WithEvents ConflictWithBoth As Ob"
     <WorkItem(899938, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseNamespaceFollowingEvent()
-        Dim code As String = "Class cls1" & vbCrLf &
-"Custom Event myevent As del" & vbCrLf &
-"End Event" & vbCrLf &
-"End Class" & vbCrLf &
-"Namespace r"
+        Dim code =
+"Class cls1
+Custom Event myevent As del
+End Event
+End Class
+Namespace r"
 
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="e", changeSpan:=New TextSpan(code.Length, 0), changeType:=ChangeType.Insert))
     End Sub
@@ -217,14 +220,15 @@ Public WithEvents ConflictWithBoth As Ob"
     <WorkItem(900209, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseCaseElse()
-        Dim code As String = (<![CDATA[
+        Dim code =
+"
       Sub main()
          Select Case 5
             Case Else
                vvv = 6
             Case Else
                vvv = 7
-]]>).Value
+"
 
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:=vbCrLf, changeSpan:=New TextSpan(code.Length, 0), changeType:=ChangeType.Insert))
     End Sub
@@ -232,10 +236,11 @@ Public WithEvents ConflictWithBoth As Ob"
     <WorkItem(901386, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseExplicitOnGroupBy()
-        Dim code As String = (<![CDATA[
+        Dim code =
+"
 Option Explicit On
 Sub goo()
-Dim q2 = From x In col let y = x Group x, y By]]>).Value
+Dim q2 = From x In col let y = x Group x, y By"
 
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="a", changeSpan:=New TextSpan(code.Length, 0), changeType:=ChangeType.Insert))
     End Sub
@@ -243,20 +248,22 @@ Dim q2 = From x In col let y = x Group x, y By]]>).Value
     <WorkItem(901639, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseExprLambdaInSubContext()
-        Dim code As String = (<![CDATA[Function() NewTextPI.UnwrapObject().FileCodeModel)
+        Dim code =
+"Function() NewTextPI.UnwrapObject().FileCodeModel)
 If True Then
 End If
 End Sub
 Class WillHaveAnError
 End class
 Class willBeReused
-End class]]>).Value
+End class"
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="(", changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <Fact>
     Public Sub IncParseExprLambdaInSubContext2()
-        Dim code As String = (<![CDATA[Function() NewTextPI.UnwrapObject().FileCodeModel)
+        Dim code =
+"Function() NewTextPI.UnwrapObject().FileCodeModel)
 If True Then
 Else
 End If
@@ -264,16 +271,17 @@ End Sub
 Class WillHaveAnError
 End class
 Class willBeReused
-End class]]>).Value
+End class"
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="(", changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(901645, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseExitFunction()
-        Dim code As String = (<![CDATA[Function
-If strSwitches <> "" Then strCLine = strCLine & " " & strSwitches
-End Sub]]>).Value
+        Dim code =
+"Function
+If strSwitches <> """" Then strCLine = strCLine & "" "" & strSwitches
+End Sub"
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="Exit ", changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
@@ -286,7 +294,8 @@ End Sub]]>).Value
 
     <Fact>
     Public Sub IncParsePPElse()
-        Dim code As String = (<![CDATA[
+        Dim code =
+"
 Function goo() As Boolean
 
 #Else
@@ -297,13 +306,14 @@ Function goo() As Boolean
 
 
 End Function
-]]>).Value
+"
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="#End If", changeSpan:=New TextSpan(code.IndexOf("Next roleName", StringComparison.Ordinal) + 15, 2), changeType:=ChangeType.Replace))
     End Sub
 
     <Fact>
     Public Sub IncParsePPElse1()
-        Dim code As String = (<![CDATA[
+        Dim code =
+"
 Function goo() As Boolean
 
 #Else
@@ -315,30 +325,31 @@ Function goo() As Boolean
 #End IF
 
 End Function
-]]>).Value
+"
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="#If true " & vbCrLf, changeSpan:=New TextSpan(code.IndexOf("#Else", StringComparison.Ordinal), 0), changeType:=ChangeType.Replace))
     End Sub
 
     <WorkItem(901669, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseXmlTagWithExprHole()
-        Dim code As String = (<![CDATA[e a=<%= b %>>]]>).Value
+        Dim code = "e a=<%= b %>>"
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="<", changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(901671, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseEndBeforeSubWithX()
-        Dim code As String = (<![CDATA[Sub
+        Dim code = "Sub
         End Class
-    X]]>).Value
+    X"
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="End ", changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(901676, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseInterfaceFollByConstructs()
-        Dim code As String = (<![CDATA[
+        Dim code =
+"
         Public Interface I2
         End Interface
         Sub SEHIllegal501()
@@ -347,64 +358,69 @@ End Function
             End Try
             Exit Sub
         End Sub
-    X]]>).Value
+    X"
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="Interface", changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(901680, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseLCFunctionCompoundAsn()
-        Dim code As String = (<![CDATA[Public Function goo() As String
+        Dim code =
+"Public Function goo() As String
             For i As Integer = 0 To  1
                 total += y(i)
             Next
-End Function]]>).Value
+End Function"
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="> _" & vbCrLf, changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(902710, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseInsertFunctionBeforeEndClass()
-        Dim code As String = (<![CDATA[End Class
+        Dim code =
+"End Class
 MustInherit Class C10
-End Class]]>).Value
+End Class"
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="Function" & vbCrLf, changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(903134, "DevDiv/Personal")>
     <Fact>
     Public Sub InsertSubBeforeCustomEvent()
-        Dim code As String = (<![CDATA[            Custom Event e As del
-                AddHandler(ByVal value As del)
-                End AddHandler
-            End Event]]>).Value
+        Dim code =
+" Custom Event e As del
+     AddHandler(ByVal value As del)
+     End AddHandler
+ End Event"
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:="Sub" & vbCrLf, changeSpan:=TextSpan.NullSpan, changeType:=ChangeType.InsertBefore))
     End Sub
 
     <WorkItem(903555, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseMergedForEachAndDecl()
-        Dim code As String = (<![CDATA[#Region "abc"
+        Dim code =
+"#Region ""abc""
 Function goo() As Boolean
 Dim roleName As Object
 For Each roleName In wbirFields
 Next roleName
 End Function
-#End Region]]>).Value
+#End Region"
         IncParseAndVerify(New IncParseNode(oldText:=code, changeText:=vbCrLf, changeSpan:=New TextSpan(code.IndexOf("Dim roleName As Object", StringComparison.Ordinal) + 22, 2), changeType:=ChangeType.Remove))
     End Sub
 
     <WorkItem(903805, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseEnumWithoutEnd()
-        Dim code As String = (<![CDATA[Public Class Class2
+        Dim code =
+"Public Class Class2
     Protected Enum e
         e1
         e2
 	End Enum
     Public Function Goo(ByVal arg1 As e) As e
     End Function
-End Class]]>).Value
+End Class"
         IncParseAndVerify(New IncParseNode(
         oldText:=code,
         changeText:=vbCrLf,
@@ -415,14 +431,15 @@ End Class]]>).Value
     <WorkItem(903826, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseWrongSelectFollByIf()
-        Dim code As String = (<![CDATA[        Sub goo()
-                Select Case lng
-                    Case 44
-                        int1 = 4
-                End Select
-                If true Then
-                End If
-        End Sub]]>).Value
+        Dim code =
+"Sub goo()
+         Select Case lng
+             Case 44
+                 int1 = 4
+         End Select
+         If true Then
+         End If
+ End Sub"
         IncParseAndVerify(New IncParseNode(
         oldText:=code,
         changeText:="End ",
@@ -433,12 +450,13 @@ End Class]]>).Value
     <WorkItem(904768, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseDoLoop()
-        Dim code As String = (<![CDATA[        Sub AnonTConStmnt()
-                Do
-                    i += 1
-                Loop Until true
-        End Sub
-]]>).Value
+        Dim code =
+"Sub AnonTConStmnt()
+         Do
+             i += 1
+         Loop Until true
+ End Sub
+]"
         IncParseAndVerify(New IncParseNode(
         oldText:=code,
         changeText:=vbCrLf,
@@ -449,14 +467,14 @@ End Class]]>).Value
     <WorkItem(904771, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseClassWithOpDecl()
-        Dim code As String = (<![CDATA[
+        Dim code = "
 Friend Module m1
 Class Class1
 Shared Operator -(ByVal x As Class1) As Boolean
 End Operator
 End Class
 End Module
-]]>).Value
+"
         IncParseAndVerify(New IncParseNode(
         oldText:=code,
         changeText:="Class ",
@@ -467,7 +485,7 @@ End Module
     <WorkItem(904782, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParsePropFollIncompleteLambda()
-        Dim code As String = (<![CDATA[        Class c1
+        Dim code = "        Class c1
 
             Public Function goo() As Object
                 Dim res = Function(x As Integer) c1.Goo(x)
@@ -479,7 +497,7 @@ End Module
                 Set(ByVal value As Integer)
                 End Set
             End Property
-        End Class]]>).Value
+        End Class"
         IncParseAndVerify(New IncParseNode(
         oldText:=code,
         changeText:=")",
@@ -490,10 +508,10 @@ End Module
     <WorkItem(904792, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseErroneousGroupByQuery()
-        Dim code As String = (<![CDATA[        Sub goo() 
+        Dim code = "        Sub goo() 
                 Dim q2 = From i In str Group i By key1 = x
                 Dim q3 =From j In str Group By key = i 
-        End Sub]]>).Value
+        End Sub"
         IncParseAndVerify(New IncParseNode(
         oldText:=code,
         changeText:=" By",
@@ -504,12 +522,12 @@ End Module
     <WorkItem(904804, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseSetAfterIncompleteSub()
-        Dim code As String = (<![CDATA[Sub goo()
+        Dim code = "Sub goo()
 End Sub
 Public WriteOnly Property bar() as short
 Set
 End Set
-End Property]]>).Value
+End Property"
         IncParseAndVerify(New IncParseNode(
         oldText:=code,
         changeText:=vbCrLf,
@@ -520,10 +538,12 @@ End Property]]>).Value
     <WorkItem(911100, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseEmbeddedIfsInsideCondCompile()
-        Dim code As String = "Sub bar() " & vbCrLf &
-"#If true Then" & vbCrLf &
-    "if true Then goo()" & vbCrLf &
- "If Command() <" & vbCrLf
+        Dim code As String =
+"Sub bar()
+#If true Then
+If true Then goo()
+If Command() <
+"
         IncParseAndVerify(New IncParseNode(
         oldText:=code,
         changeText:=">",
@@ -534,9 +554,10 @@ End Property]]>).Value
     <WorkItem(911103, "DevDiv/Personal")>
     <Fact>
     Public Sub IncParseErrorIfStatement()
-        Dim code As String = "Public Sub Run() " & vbCrLf &
-"If NewTextPI.DTE Is Nothing Then End" & vbCrLf &
- "End Sub"
+        Dim code =
+"Public Sub Run() 
+If NewTextPI.DTE Is Nothing Then End
+End Sub"
 
         IncParseAndVerify(New IncParseNode(
         oldText:=code,
@@ -548,9 +569,9 @@ End Property]]>).Value
     <WorkItem(537168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537168")>
     <Fact>
     Public Sub IncParseSubBeforePartialClass()
-        Dim code As String = (<![CDATA[End Class
+        Dim code = "End Class
 Partial Class class3
-End Class]]>).Value
+End Class"
 
         IncParseAndVerify(New IncParseNode(
         oldText:=code,
@@ -562,7 +583,7 @@ End Class]]>).Value
     <WorkItem(537172, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537172")>
     <Fact>
     Public Sub IncParseInterfaceDeleteWithColon()
-        Dim code As String = (<![CDATA[Interface I : Sub Goo() : End Interface]]>).Value
+        Dim code = "Interface I : Sub Goo() : End Interface"
 
         IncParseAndVerify(New IncParseNode(
                           oldText:=code,
@@ -574,18 +595,19 @@ End Class]]>).Value
     <WorkItem(537174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537174")>
     <Fact>
     Public Sub IncParseMissingEndAddHandler()
-        Dim code As String = (<![CDATA[
-                Class C
-                    Custom Event e As del
-                        AddHandler(ByVal value As del)
-                        End AddHandler
-                        RemoveHandler(ByVal value As del)
-                        End RemoveHandler
-                        RaiseEvent()
-                        End RaiseEvent
-                    End Event
-                End Class
-]]>).Value
+        Dim code =
+"
+Class C
+    Custom Event e As del
+        AddHandler(ByVal value As del)
+        End AddHandler
+        RemoveHandler(ByVal value As del)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+"
         Dim change = "End AddHandler"
         IncParseAndVerify(New IncParseNode(
                           oldText:=code,
@@ -597,8 +619,9 @@ End Class]]>).Value
     <WorkItem(539038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539038")>
     <Fact>
     Public Sub IncParseInvalidText()
-        Dim code As String = (<![CDATA[1. Verify that INT accepts an constant of each type as the
-        '                  argument.]]>).Value
+        Dim code =
+"1. Verify that INT accepts an constant of each type as the
+'                  argument."
 
         IncParseAndVerify(New IncParseNode(
                           oldText:=code,
@@ -610,11 +633,12 @@ End Class]]>).Value
     <WorkItem(539053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539053")>
     <Fact>
     Public Sub IncParseAddSubValid()
-        Dim code As String = (<![CDATA[Class CGoo
+        Dim code =
+"Class CGoo
     Public S()
         Dim x As Integer = 0
     End Sub
-End Class]]>).Value
+End Class"
 
         Dim oldText = SourceText.From(code)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -645,7 +669,8 @@ End Class]]>).Value
     <WorkItem(538577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538577")>
     <Fact>
     Public Sub IncParseAddSpaceAfterForNext()
-        Dim code As String = (<![CDATA[Module M
+        Dim code =
+"Module M
   Sub Main()
    Dim i(1) As Integer
    For i(0) = 1 To 10
@@ -653,7 +678,7 @@ End Class]]>).Value
    Next j, i(0) 
   End Sub
 End Module 
-]]>).Value
+"
 
         Dim oldText = SourceText.From(code)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -672,13 +697,13 @@ End Module
     <WorkItem(540667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540667")>
     Public Sub IncrementalParseAddSpaceInSingleLineIf()
         ' The code below intentionally is missing a space between the "Then" and "Console"
-        Dim code As String = (<![CDATA[
+        Dim code = "
 Module M
   Sub Main()
-    If False ThenConsole.WriteLine("FIRST") : Console.WriteLine("TEST") Else Console.WriteLine("TRUE!") : 'comment
+    If False ThenConsole.WriteLine(""FIRST"") : Console.WriteLine(""TEST"") Else Console.WriteLine(""TRUE!"") : 'comment
   End Sub
 End Module 
-]]>).Value
+"
 
         Dim oldText = SourceText.From(code)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -696,13 +721,14 @@ End Module
     <Fact>
     <WorkItem(405887, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=405887")>
     Public Sub IncrementalParseInterpolationInSingleLineIf()
-        Dim code As String = (<![CDATA[
+        Dim code =
+"
 Module Module1
     Sub Test1(val1 As Integer)
-        If val1 = 1 Then System.Console.WriteLine($"abc '" & sServiceName & "'")
+        If val1 = 1 Then System.Console.WriteLine($""abc '"" & sServiceName & ""'"")
     End Sub
 End Module
-]]>).Value
+"
 
         Dim oldText = SourceText.From(code)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
@@ -723,7 +749,8 @@ End Module
     <Fact>
     Public Sub Bug11296()
 
-        Dim source As String = <![CDATA[    
+        Dim source =
+"    
 Module M
     Sub Main()
         GoTo 100
@@ -734,13 +761,13 @@ Module M
         End If
     End Sub
 End Module
-]]>.Value
+"
 
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Assert.Equal(1, oldTree.GetDiagnostics().Count)
         Assert.Equal("Syntax error.", oldTree.GetDiagnostics()(0).GetMessage(EnsureEnglishUICulture.PreferredOrNull))
-        Assert.Equal("[131..134)", oldTree.GetDiagnostics()(0).Location.SourceSpan.ToString)
+        Assert.Equal("[138..141)", oldTree.GetDiagnostics()(0).Location.SourceSpan.ToString)
 
         ' commenting out the goto
         Dim pos = source.IndexOf("GoTo 100", StringComparison.Ordinal)
@@ -751,17 +778,18 @@ End Module
         Dim tmpTree = VisualBasicSyntaxTree.ParseText(newText)
         Assert.Equal(1, tmpTree.GetDiagnostics().Count)
         Assert.Equal("Syntax error.", tmpTree.GetDiagnostics()(0).GetMessage(EnsureEnglishUICulture.PreferredOrNull))
-        Assert.Equal("[132..135)", tmpTree.GetDiagnostics()(0).Location.SourceSpan.ToString)
+        Assert.Equal("[139..142)", tmpTree.GetDiagnostics()(0).Location.SourceSpan.ToString)
     End Sub
 
     <Fact>
     Public Sub IncParseTypeNewLine()
-        Dim code As String = (<![CDATA[
+        Dim code =
+"
 Module m
 Sub s
 End Sub
 End Module     
-]]>).Value
+"
 
         IncParseAndVerify(New IncParseNode(
                           oldText:=code,
@@ -773,11 +801,10 @@ End Module
     <WorkItem(545667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545667")>
     <Fact>
     Public Sub Bug14266()
-        Dim source = <![CDATA[
-Enum E
+        Dim source =
+"Enum E
     A
-End Enum
-]]>.Value.Trim()
+End Enum"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -790,13 +817,14 @@ End Enum
     <WorkItem(546680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546680")>
     <Fact>
     Public Sub Bug16533()
-        Dim source = <![CDATA[
+        Dim source =
+"
 Module M
     Sub M()
         If True Then M() Else : 
     End Sub
 End Module
-]]>.Value
+"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Replace "True" with "True".
@@ -810,14 +838,13 @@ End Module
     <WorkItem(546685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546685")>
     <Fact>
     Public Sub MultiLineIf()
-        Dim source = <![CDATA[
-Module M
+        Dim source =
+"Module M
     Sub M(b As Boolean)
         If b Then
         End If
     End Sub
-End Module
-]]>.Value.Trim()
+End Module"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -837,16 +864,15 @@ End Module
     ''' </summary>
     <Fact>
     Public Sub MultiLineIf_2()
-        Dim source = <![CDATA[
-Module M
+        Dim source =
+"Module M
     Sub M()
         Dim b = False
         b = True
         If b Then
         End If
     End Sub
-End Module
-]]>.Value.Trim()
+End Module"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -866,16 +892,15 @@ End Module
     ''' </summary>
     <Fact>
     Public Sub MultiLineIf_3()
-        Dim source = <![CDATA[
-Module M
+        Dim source =
+"Module M
     Sub M(b As Boolean)
         If b Then
         End If
         While b
         End While
     End Sub
-End Module
-]]>.Value.Trim()
+End Module"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -892,14 +917,13 @@ End Module
     <WorkItem(546692, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546692")>
     <Fact>
     Public Sub Bug16575()
-        Dim source = <![CDATA[
-Module M
+        Dim source =
+"Module M
     Sub M()
         If True Then Else Dim x = 1 : Dim y = x
         If True Then Else Dim x = 1 : Dim y = x
     End Sub
-End Module
-]]>.Value
+End Module"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         ' Add newline after first single line If
@@ -954,8 +978,8 @@ End Module
     <WorkItem(546774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546774")>
     <Fact>
     Public Sub Bug16786()
-        Dim source = "
-Namespace N
+        Dim source =
+"Namespace N
     ''' <summary/>
     Class A
     End Class
@@ -963,8 +987,7 @@ End Namespace
 Class B
 End Class
 Class C
-End Class
-".Trim()
+End Class"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
 
@@ -2396,16 +2419,15 @@ End Module
     <WorkItem(719787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719787")>
     <Fact()>
     Public Sub Bug719787_EOF()
-        Dim source = "
-Namespace N
+        Dim source =
+"Namespace N
     Class C
         Property P As Integer
     End Class
     Structure S
         Private F As Object
     End Structure
-End Namespace
-".Trim()
+End Namespace"
         ' Add two line breaks at end.
         source += vbCrLf
         Dim position = source.Length
@@ -2424,8 +2446,8 @@ End Namespace
     <WorkItem(719787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/719787")>
     <Fact>
     Public Sub Bug719787_MultiLineIf()
-        Dim source = "
-Class C
+        Dim source =
+"Class C
     Sub M()
         If e1 Then
             If e2 Then
@@ -2460,8 +2482,7 @@ Class C
         End If
     End Sub
     ' Comment
-End Class
-".Trim()
+End Class"
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim toReplace = "' Comment"
