@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="nodes">Any subset of the nodes that includes all nodes with no predecessors</param>
         /// <param name="successors">A function mapping a node to its set of successors</param>
         /// <returns>A list of all reachable nodes, in which each node always precedes its successors</returns>
-        public static ImmutableArray<TNode> IterativeSort<TNode>(IEnumerable<TNode> nodes, Func<TNode, IEnumerable<TNode>> successors)
+        public static ImmutableArray<TNode> IterativeSort<TNode>(IEnumerable<TNode> nodes, Func<TNode, ImmutableArray<TNode>> successors)
         {
             // First, count the predecessors of each node
             PooledDictionary<TNode, int> predecessorCounts = PredecessorCounts(nodes, successors, out ImmutableArray<TNode> allNodes);
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
 
         private static PooledDictionary<TNode, int> PredecessorCounts<TNode>(
             IEnumerable<TNode> nodes,
-            Func<TNode, IEnumerable<TNode>> successors,
+            Func<TNode, ImmutableArray<TNode>> successors,
             out ImmutableArray<TNode> allNodes)
         {
             var predecessorCounts = PooledDictionary<TNode, int>.GetInstance();
