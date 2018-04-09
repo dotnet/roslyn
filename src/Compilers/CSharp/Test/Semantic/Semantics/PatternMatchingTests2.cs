@@ -1324,10 +1324,10 @@ class T
             compilation.VerifyDiagnostics(
                 // (7,19): error CS8417: The name 'c' does not match the corresponding 'Deconstruct' parameter 'a'.
                 //             case (c: 2, d: 3):
-                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMistmatch, "c").WithArguments("c", "a").WithLocation(7, 19),
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "c").WithArguments("c", "a").WithLocation(7, 19),
                 // (7,25): error CS8417: The name 'd' does not match the corresponding 'Deconstruct' parameter 'b'.
                 //             case (c: 2, d: 3):
-                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMistmatch, "d").WithArguments("d", "b").WithLocation(7, 25)
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "d").WithArguments("d", "b").WithLocation(7, 25)
                 );
         }
 
@@ -1361,10 +1361,10 @@ static class Extensions
             compilation.VerifyDiagnostics(
                 // (7,19): error CS8417: The name 'c' does not match the corresponding 'Deconstruct' parameter 'a'.
                 //             case (c: 2, d: 3):
-                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMistmatch, "c").WithArguments("c", "a").WithLocation(7, 19),
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "c").WithArguments("c", "a").WithLocation(7, 19),
                 // (7,25): error CS8417: The name 'd' does not match the corresponding 'Deconstruct' parameter 'b'.
                 //             case (c: 2, d: 3):
-                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMistmatch, "d").WithArguments("d", "b").WithLocation(7, 25)
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "d").WithArguments("d", "b").WithLocation(7, 25)
                 );
         }
 
@@ -1395,7 +1395,7 @@ class T
             compilation.VerifyDiagnostics(
                 // (7,25): error CS8417: The name 'a' does not match the corresponding 'Deconstruct' parameter 'b'.
                 //             case (a: 2, a: 3):
-                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMistmatch, "a").WithArguments("a", "b").WithLocation(7, 25)
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "a").WithArguments("a", "b").WithLocation(7, 25)
                 );
         }
 
@@ -1429,7 +1429,7 @@ static class Extensions
             compilation.VerifyDiagnostics(
                 // (7,25): error CS8417: The name 'a' does not match the corresponding 'Deconstruct' parameter 'b'.
                 //             case (a: 2, a: 3):
-                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMistmatch, "a").WithArguments("a", "b").WithLocation(7, 25)
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "a").WithArguments("a", "b").WithLocation(7, 25)
                 );
         }
 

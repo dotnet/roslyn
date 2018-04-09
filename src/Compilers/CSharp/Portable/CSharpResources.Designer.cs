@@ -3277,9 +3277,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to The name &apos;{0}&apos; does not match the corresponding &apos;Deconstruct&apos; parameter &apos;{1}&apos;..
         /// </summary>
-        internal static string ERR_DeconstructParameterNameMistmatch {
+        internal static string ERR_DeconstructParameterNameMismatch {
             get {
-                return ResourceManager.GetString("ERR_DeconstructParameterNameMistmatch", resourceCulture);
+                return ResourceManager.GetString("ERR_DeconstructParameterNameMismatch", resourceCulture);
             }
         }
         

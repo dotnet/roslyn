@@ -492,8 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // It is not a tuple type. Seek an appropriate Deconstruct method.
                 var inputPlaceholder = new BoundImplicitReceiver(node, declType); // A fake receiver expression to permit us to reuse binding logic
-                // PROTOTYPE(patterns2): include element names node.SubPatterns[i].NameColon?.Name in the AnalyzedArguments
-                // used in MakeDeconstructInvocationExpression so they are used to disambiguate.
+                // PROTOTYPE(patterns2): Can we include element names node.SubPatterns[i].NameColon?.Name in the AnalyzedArguments
+                // used in MakeDeconstructInvocationExpression so they are used to disambiguate? LDM needs to reconcile with deconstruction.
                 BoundExpression deconstruct = MakeDeconstructInvocationExpression(
                     node.SubPatterns.Count, inputPlaceholder, node, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
                 deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         string parameterName = deconstructMethod.Parameters[parameterIndex].Name;
                         if (name != parameterName)
                         {
-                            diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMistmatch, subPattern.NameColon.Name.Location, name, parameterName);
+                            diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMismatch, subPattern.NameColon.Name.Location, name, parameterName);
                         }
                         // PROTOTYPE(patterns2): Should the parameter binding for the name be stored somewhere in the node?
                     }
