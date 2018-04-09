@@ -252,9 +252,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
                 result = IsFollowingTypeOrComma<VariableDeclarationSyntax>(token, semanticModel,
-                     v => v.Type,
-                     v => v.Parent is LocalDeclarationStatementSyntax l ? l.Modifiers :
-                          v.Parent is ForStatementSyntax ? default(SyntaxTokenList) : null as SyntaxTokenList?,
+                     typeSyntaxGetter: v => v.Type,
+                     modifierGetter: v =>
+                        v.Parent is LocalDeclarationStatementSyntax l ? l.Modifiers :
+                        v.Parent is ForStatementSyntax ? default(SyntaxTokenList) : null as SyntaxTokenList?,
                      d => ImmutableArray.Create(SymbolKind.Local),
                      cancellationToken);
                 return result.Type != null;
@@ -266,9 +267,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // This is parsed as ForEachVariableStatementSyntax:
                 // foreach (int $$
                 result = IsLastTokenOfType<CommonForEachStatementSyntax>(token, semanticModel,
-                    f => f is ForEachStatementSyntax forEachStatement ? forEachStatement.Type :
-                         ((ForEachVariableStatementSyntax)f).Variable,
-                    f => default,
+                    typeSyntaxGetter: f =>
+                        f is ForEachStatementSyntax forEachStatement ? forEachStatement.Type :
+                        f is ForEachVariableStatementSyntax forEachVariableStatement ? forEachVariableStatement.Variable : null,
+                    modifierGetter: f => default,
                     d => ImmutableArray.Create(SymbolKind.Local),
                     cancellationToken);
                 return result.Type != null;
