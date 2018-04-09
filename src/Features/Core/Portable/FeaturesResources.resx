@@ -733,6 +733,9 @@ Do you want to continue?</value>
   <data name="Edit_and_Continue2" xml:space="preserve">
     <value>Edit and Continue</value>
   </data>
+  <data name="Style" xml:space="preserve">
+    <value>Style</value>
+  </data>
   <data name="Suppress_0" xml:space="preserve">
     <value>Suppress {0}</value>
   </data>

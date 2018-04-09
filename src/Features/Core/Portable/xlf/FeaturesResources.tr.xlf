@@ -1028,6 +1028,11 @@ Devam etmek istiyor musunuz?</target>
         <target state="translated">Düzenle ve Devam Et</target>
         <note />
       </trans-unit>
+      <trans-unit id="Style">
+        <source>Style</source>
+        <target state="translated">Stil</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0} eylemini bastır</target>
@@ -2008,6 +2013,11 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Make_field_readonly">
         <source>Make field readonly</source>
         <target state="new">Make field readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="newval">
+        <source>newval</source>
+        <target state="new">newval</target>
         <note />
       </trans-unit>
     </body>
