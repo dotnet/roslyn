@@ -6101,6 +6101,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An expression of type &apos;{0}&apos; can never match the provided pattern..
+        /// </summary>
+        internal static string ERR_IsPatternImpossible {
+            get {
+                return ResourceManager.GetString("ERR_IsPatternImpossible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Yield statements may not appear at the top level in interactive code..
         /// </summary>
         internal static string ERR_IteratorInInteractive {
@@ -13543,6 +13552,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_FinalizeMethod_Title {
             get {
                 return ResourceManager.GetString("WRN_FinalizeMethod_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given expression always matches the provided constant..
+        /// </summary>
+        internal static string WRN_GivenExpressionAlwaysMatchesConstant {
+            get {
+                return ResourceManager.GetString("WRN_GivenExpressionAlwaysMatchesConstant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given expression always matches the provided constant..
+        /// </summary>
+        internal static string WRN_GivenExpressionAlwaysMatchesConstant_Title {
+            get {
+                return ResourceManager.GetString("WRN_GivenExpressionAlwaysMatchesConstant_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given expression never matches the provided pattern..
+        /// </summary>
+        internal static string WRN_GivenExpressionNeverMatchesPattern {
+            get {
+                return ResourceManager.GetString("WRN_GivenExpressionNeverMatchesPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given expression never matches the provided pattern..
+        /// </summary>
+        internal static string WRN_GivenExpressionNeverMatchesPattern_Title {
+            get {
+                return ResourceManager.GetString("WRN_GivenExpressionNeverMatchesPattern_Title", resourceCulture);
             }
         }
         

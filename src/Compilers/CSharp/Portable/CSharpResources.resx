@@ -5372,4 +5372,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureIndexingMovableFixedBuffers" xml:space="preserve">
     <value>indexing movable fixed buffers</value>
   </data>
+  <data name="ERR_IsPatternImpossible" xml:space="preserve">
+    <value>An expression of type '{0}' can never match the provided pattern.</value>
+  </data>
+  <data name="WRN_GivenExpressionNeverMatchesPattern" xml:space="preserve">
+    <value>The given expression never matches the provided pattern.</value>
+  </data>
+  <data name="WRN_GivenExpressionNeverMatchesPattern_Title" xml:space="preserve">
+    <value>The given expression never matches the provided pattern.</value>
+  </data>
+  <data name="WRN_GivenExpressionAlwaysMatchesConstant" xml:space="preserve">
+    <value>The given expression always matches the provided constant.</value>
+  </data>
+  <data name="WRN_GivenExpressionAlwaysMatchesConstant_Title" xml:space="preserve">
+    <value>The given expression always matches the provided constant.</value>
+  </data>
 </root>

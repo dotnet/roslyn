@@ -201,7 +201,7 @@ public class X
         var s = nameof(Main);
         byte b = 1;
         if (s is string t) { } else Console.WriteLine(t); 
-        if (null is dynamic t) { } // null not allowed
+        if (null is dynamic t2) { } // null not allowed
         if (s is NullableInt x) { } // error: cannot use nullable type
         if (s is long l) { } // error: cannot convert string to long
         if (b is 1000) { } // error: cannot convert 1000 to byte
@@ -212,9 +212,6 @@ public class X
                 // (10,13): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         if (null is dynamic t) { } // null not allowed
                 Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(10, 13),
-                // (10,29): error CS0128: A local variable named 't' is already defined in this scope
-                //         if (null is dynamic t) { } // null not allowed
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "t").WithArguments("t").WithLocation(10, 29),
                 // (11,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
                 //         if (s is NullableInt x) { } // error: cannot use nullable type
                 Diagnostic(ErrorCode.ERR_PatternNullableType, "NullableInt").WithArguments("int?", "int").WithLocation(11, 18),
@@ -3118,10 +3115,10 @@ public class X
                 // (8,27): warning CS0184: The given expression is never of the provided ('int[]') type
                 //         Console.WriteLine(1 is int[]); // warning: expression is never of the provided type
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "1 is int[]").WithArguments("int[]").WithLocation(8, 27),
-                // (10,33): error CS8121: An expression of type long cannot be handled by a pattern of type string.
+                // (10,33): error CS8121: An expression of type 'long' cannot be handled by a pattern of type 'string'.
                 //         Console.WriteLine(1L is string s); // error: type mismatch
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("long", "string").WithLocation(10, 33),
-                // (11,32): error CS8121: An expression of type int cannot be handled by a pattern of type int[].
+                // (11,32): error CS8121: An expression of type 'int' cannot be handled by a pattern of type 'int[]'.
                 //         Console.WriteLine(1 is int[] a); // error: expression is never of the provided type
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int[]").WithArguments("int", "int[]").WithLocation(11, 32)
                 );
@@ -3162,9 +3159,24 @@ public class X
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
+                // (7,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(1 is 1); // true
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "1 is 1").WithLocation(7, 27),
+                // (8,27): warning CS8416: The given expression never matches the provided pattern.
+                //         Console.WriteLine(1L is int.MaxValue); // OK, but false
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1L is int.MaxValue").WithLocation(8, 27),
+                // (9,27): warning CS8416: The given expression never matches the provided pattern.
+                //         Console.WriteLine(1 is int.MaxValue); // false
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "1 is int.MaxValue").WithLocation(9, 27),
+                // (10,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(int.MaxValue is int.MaxValue); // true
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "int.MaxValue is int.MaxValue").WithLocation(10, 27),
                 // (11,27): warning CS0183: The given expression is always of the provided ('string') type
                 //         Console.WriteLine("goo" is System.String); // true
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, @"""goo"" is System.String").WithArguments("string").WithLocation(11, 27)
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, @"""goo"" is System.String").WithArguments("string").WithLocation(11, 27),
+                // (12,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(Int32.MaxValue is Int32.MaxValue); // true
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "Int32.MaxValue is Int32.MaxValue").WithLocation(12, 27)
                 );
             CompileAndVerify(compilation, expectedOutput:
 @"True
@@ -4062,7 +4074,13 @@ class B
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is One + 2").WithArguments("pattern matching", "7.0").WithLocation(15, 27),
                 // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(One + 2 is 3); // should print True
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7.0").WithLocation(16, 27)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7.0").WithLocation(16, 27),
+                // (15,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(3 is One + 2); // should print True
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "3 is One + 2").WithLocation(15, 27),
+                // (16,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(One + 2 is 3); // should print True
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "One + 2 is 3").WithLocation(16, 27)
                 );
             var expectedOutput =
 @"5
@@ -4071,7 +4089,14 @@ class B
 True
 True";
             compilation = CreateCompilation(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (15,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(3 is One + 2); // should print True
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "3 is One + 2").WithLocation(15, 27),
+                // (16,27): warning CS8417: The given expression always matches the provided constant.
+                //         Console.WriteLine(One + 2 is 3); // should print True
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "One + 2 is 3").WithLocation(16, 27)
+                );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -5192,7 +5217,7 @@ public class Program
             compilation.VerifyDiagnostics(
                 // (7,32): error CS0266: Cannot implicitly convert type 'long' to 'byte'. An explicit conversion exists (are you missing a cast?)
                 //         Console.WriteLine(b is 12L);
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "12L").WithArguments("long", "byte"),
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "12L").WithArguments("long", "byte").WithLocation(7, 32),
                 // (8,32): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         Console.WriteLine(1 is null);
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 32)
@@ -5892,9 +5917,9 @@ public class Program
                 // (8,13): warning CS0184: The given expression is never of the provided ('string') type
                 //         if (s is string) { }
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string").WithArguments("string").WithLocation(8, 13),
-                // (9,13): warning CS0184: The given expression is never of the provided ('string') type
+                // (9,13): warning CS8416: The given expression never matches the provided pattern.
                 //         if (s is string s2) { }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string s2").WithArguments("string").WithLocation(9, 13),
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string s2").WithLocation(9, 13),
                 // (14,13): warning CS0184: The given expression is never of the provided ('long') type
                 //         if (i is long) { }
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "i is long").WithArguments("long").WithLocation(14, 13),
@@ -6299,9 +6324,9 @@ class Program
                 // (7,13): warning CS0184: The given expression is never of the provided ('string') type
                 //         if (s is string) {} else { Console.Write("Hello "); }
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string").WithArguments("string").WithLocation(7, 13),
-                // (8,13): warning CS0184: The given expression is never of the provided ('string') type
+                // (8,13): warning CS8416: The given expression never matches the provided pattern.
                 //         if (s is string t) {} else { Console.WriteLine("World"); }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is string t").WithArguments("string").WithLocation(8, 13)
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string t").WithLocation(8, 13)
                 );
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }

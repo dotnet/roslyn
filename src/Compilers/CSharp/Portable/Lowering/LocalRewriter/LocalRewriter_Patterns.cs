@@ -370,14 +370,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public BoundExpression LowerIsPattern(BoundPattern pattern, CSharpCompilation compilation, DiagnosticBag diagnostics)
+            public BoundExpression LowerIsPattern(
+                BoundIsPatternExpression isPatternExpression, BoundPattern pattern, CSharpCompilation compilation, DiagnosticBag diagnostics)
             {
-                LabelSymbol failureLabel = new GeneratedLabelSymbol("failure");
-                BoundDecisionDag dag = DecisionDagBuilder.CreateDecisionDagForIsPattern(compilation, pattern.Syntax, this._loweredInput, pattern, failureLabel, diagnostics, out LabelSymbol successLabel);
-                if (_loweredInput.ConstantValue != null)
-                {
-                    dag = dag.SimplifyDecisionDagForConstantInput(_loweredInput, _localRewriter._compilation.Conversions, diagnostics);
-                }
+                BoundDecisionDag dag = isPatternExpression.DecisionDag;
+                LabelSymbol whenTrueLabel = isPatternExpression.WhenTrueLabel;
+                LabelSymbol whenFalseLabel = isPatternExpression.WhenFalseLabel;
 
                 // The optimization of sharing pattern-matching temps with user variables can always apply to
                 // an is-pattern expression because there is no when clause.
@@ -404,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundTestDecisionDagNode testNode:
                             {
-                                Debug.Assert(testNode.WhenFalse is BoundLeafDecisionDagNode x && x.Label == failureLabel);
+                                Debug.Assert(testNode.WhenFalse is BoundLeafDecisionDagNode x && x.Label == whenFalseLabel);
                                 if (testNode.WhenTrue is BoundEvaluationDecisionDagNode e &&
                                     TryLowerTypeTestAndCast(testNode.Test, e.Evaluation, out BoundExpression sideEffect, out BoundExpression testExpression))
                                 {
@@ -427,14 +425,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundLeafDecisionDagNode leafNode:
                         {
-                            if (leafNode.Label == failureLabel)
+                            if (leafNode.Label == whenFalseLabel)
                             {
                                 // It is not clear that this can occur given the dag "optimizations" we performed earlier.
                                 AddConjunct(_factory.Literal(false));
                             }
                             else
                             {
-                                Debug.Assert(leafNode.Label == successLabel);
+                                Debug.Assert(leafNode.Label == whenTrueLabel);
                             }
                         }
 
@@ -443,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundWhenDecisionDagNode whenNode:
                         {
                             Debug.Assert(whenNode.WhenExpression == null);
-                            Debug.Assert(whenNode.WhenTrue is BoundLeafDecisionDagNode d && d.Label == successLabel);
+                            Debug.Assert(whenNode.WhenTrue is BoundLeafDecisionDagNode d && d.Label == whenTrueLabel);
                             foreach ((BoundExpression left, BoundDagTemp dagTemp) in whenNode.Bindings)
                             {
                                 BoundExpression right = _tempAllocator.GetTemp(dagTemp);
@@ -552,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression loweredExpression = VisitExpression(node.Expression);
             BoundPattern loweredPattern = LowerPattern(node.Pattern);
             var isPatternRewriter = new IsPatternExpressionLocalRewriter(this, loweredExpression);
-            BoundExpression result = isPatternRewriter.LowerIsPattern(loweredPattern, this._compilation, this._diagnostics);
+            BoundExpression result = isPatternRewriter.LowerIsPattern(node, loweredPattern, this._compilation, this._diagnostics);
             isPatternRewriter.Free();
             return result;
         }
