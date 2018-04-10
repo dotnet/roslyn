@@ -138,7 +138,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs">
       <Link>InternalUtilities\SpecializedCollections.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Set.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.ReadOnlySet.cs">
       <Link>InternalUtilities\SpecializedCollections.Empty.Set.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Collection.cs">
