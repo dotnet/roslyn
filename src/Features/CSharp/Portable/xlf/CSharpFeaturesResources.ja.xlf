@@ -12,11 +12,6 @@
         <target state="translated">競合が検出されました。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_if_statement">
-        <source>Invert if statement</source>
-        <target state="translated">If ステートメントの反転</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
         <target state="translated">ラムダ式の簡略化</target>
@@ -640,6 +635,11 @@
       <trans-unit id="Convert_to_for">
         <source>Convert to 'for'</source>
         <target state="new">Convert to 'for'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_if">
+        <source>Invert if</source>
+        <target state="new">Invert if</target>
         <note />
       </trans-unit>
     </body>

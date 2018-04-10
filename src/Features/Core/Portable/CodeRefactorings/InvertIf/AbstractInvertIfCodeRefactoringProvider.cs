@@ -44,11 +44,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    FeaturesResources.Invert_if_statement,
+                    GetInvertIfText(),
                     c => InvertIfAsync(document, ifStatement, c)));
         }
 
-        private async Task<Document> InvertIfAsync(Document document, SyntaxNode ifStatement, CancellationToken cancellationToken)
+        internal abstract string GetInvertIfText();
+
+        private async Task<Document> InvertIfAsync(
+            Document document, 
+            SyntaxNode ifStatement, 
+            CancellationToken cancellationToken)
         {
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -63,7 +68,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         /// such as length or unsigned numeric types, being compared to zero with greater than, 
         /// less than, or equals relational operator.
         /// </summary>
-        protected bool IsSpecialCaseBinaryExpression(IBinaryOperation binaryOperation, CancellationToken cancellationToken)
+        protected bool IsSpecialCaseBinaryExpression(
+            IBinaryOperation binaryOperation, 
+            CancellationToken cancellationToken)
         {
             if (binaryOperation == null)
             {
@@ -76,13 +83,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             switch (binaryOperation.OperatorKind)
             {
                 case BinaryOperatorKind.GreaterThan when IsNumericLiteral(rightOperand):
-                case BinaryOperatorKind.Equals when IsNumericLiteral(rightOperand):
                     return CanSimplifyToLengthEqualsZeroExpression(
                         leftOperand,
                         (ILiteralOperation)rightOperand,
                         cancellationToken);
                 case BinaryOperatorKind.LessThan when IsNumericLiteral(leftOperand):
-                case BinaryOperatorKind.Equals when IsNumericLiteral(leftOperand):
                     return CanSimplifyToLengthEqualsZeroExpression(
                         rightOperand,
                         (ILiteralOperation)leftOperand,

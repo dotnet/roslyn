@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
     internal partial class InvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider
     {
-        private static readonly Dictionary<SyntaxKind, (SyntaxKind, SyntaxKind)> s_binaryMap =
+        private static readonly Dictionary<SyntaxKind, (SyntaxKind negatedBinaryExpression, SyntaxKind negatedToken)> s_negatedBinaryMap =
             new Dictionary<SyntaxKind, (SyntaxKind, SyntaxKind)>(SyntaxFacts.EqualityComparer)
                 {
                     { SyntaxKind.EqualsExpression, (SyntaxKind.NotEqualsExpression, SyntaxKind.ExclamationEqualsToken) },
@@ -50,7 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             return ifStatement;
         }
 
-        protected override SyntaxNode GetRootWithInvertIfStatement(Workspace workspace, SemanticModel model, SyntaxNode ifStatement, CancellationToken cancellationToken)
+        protected override SyntaxNode GetRootWithInvertIfStatement(
+            Workspace workspace, 
+            SemanticModel model, 
+            SyntaxNode ifStatement, 
+            CancellationToken cancellationToken)
         {
             var ifNode = (IfStatementSyntax)ifStatement;
 
@@ -61,23 +65,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             var isMultiLine = ifNode.Statement.GetTrailingTrivia().Any(trivia => trivia.Kind() == SyntaxKind.EndOfLineTrivia);
             if (isMultiLine)
             {
-                // multiline if
                 newIfNodeStatement = ifNode.Else.Statement.Kind() != SyntaxKind.Block
-                ? SyntaxFactory.Block(ifNode.Else.Statement)
-                : ifNode.Else.Statement;
+                    ? SyntaxFactory.Block(ifNode.Else.Statement)
+                    : ifNode.Else.Statement;
                 newElseStatement = ifNode.Else.WithStatement(ifNode.Statement);
             }
             else
             {
-                // singleline if
                 var elseTrailingTrivia = ifNode.Else.GetTrailingTrivia();
                 var ifTrailingTrivia = ifNode.Statement.GetTrailingTrivia();
                 newIfNodeStatement = ifNode.Else.Statement.WithTrailingTrivia(ifTrailingTrivia);
                 newElseStatement = ifNode.Else.WithStatement(ifNode.Statement).WithTrailingTrivia(elseTrailingTrivia);
             }
 
+            var newIfStatment = ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement && newIfNodeStatement.Kind() != SyntaxKind.Block
+                        ? SyntaxFactory.Block(newIfNodeStatement)
+                        : newIfNodeStatement;
+
             ifNode = ifNode.WithCondition(Negate(ifNode.Condition, model, cancellationToken))
-                .WithStatement(ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement && newIfNodeStatement.Kind() != SyntaxKind.Block ? SyntaxFactory.Block(newIfNodeStatement) : newIfNodeStatement)
+                .WithStatement(newIfStatment)
                 .WithElse(newElseStatement);
 
             if (isMultiLine)
@@ -95,10 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             CancellationToken cancellationToken,
             out ExpressionSyntax result)
         {
-            if (s_binaryMap.TryGetValue(expression.Kind(), out var negatedExpressionInfo))
+            if (s_negatedBinaryMap.TryGetValue(expression.Kind(), out var negatedExpressionInfo))
             {
                 var binaryExpression = (BinaryExpressionSyntax)expression;
-                var (negatedExpressionType, negatedOperatorType) = negatedExpressionInfo;
+                var (negatedBinaryExpression, negatedToken) = negatedExpressionInfo;
 
                 // Certain expressions can never be negative, such as length or unsigned numeric types.
                 // If these expressions are compared with zero using <, >, or =, we construct the negated
@@ -108,20 +114,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
                 if (IsSpecialCaseBinaryExpression(operation as IBinaryOperation, cancellationToken))
                 {
-                    negatedOperatorType = binaryExpression.OperatorToken.Kind() == SyntaxKind.EqualsEqualsToken
+                    negatedToken = binaryExpression.OperatorToken.Kind() == SyntaxKind.EqualsEqualsToken
                         ? binaryExpression.Right is LiteralExpressionSyntax ? SyntaxKind.GreaterThanToken : SyntaxKind.LessThanToken
                         : SyntaxKind.EqualsEqualsToken;
-                    negatedExpressionType = binaryExpression.Kind() == SyntaxKind.EqualsExpression
-                        ? binaryExpression.Right is LiteralExpressionSyntax ? SyntaxKind.GreaterThanExpression : SyntaxKind.LessThanExpression
+                    negatedBinaryExpression = binaryExpression.Kind() == SyntaxKind.EqualsExpression
+                        ? binaryExpression.Right is LiteralExpressionSyntax ? SyntaxKind.GreaterThanExpression 
+                            : SyntaxKind.LessThanExpression
                         : SyntaxKind.EqualsExpression;
                 }
 
                 result = SyntaxFactory.BinaryExpression(
-                    negatedExpressionType,
+                    negatedBinaryExpression,
                     binaryExpression.Left,
                     SyntaxFactory.Token(
                         binaryExpression.OperatorToken.LeadingTrivia,
-                        negatedOperatorType,
+                        negatedToken,
                         binaryExpression.OperatorToken.TrailingTrivia),
                     binaryExpression.Right);
 
@@ -142,90 +149,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             switch (expression.Kind())
             {
                 case SyntaxKind.ParenthesizedExpression:
-                {
-                    var parenthesizedExpression = (ParenthesizedExpressionSyntax)expression;
-                    return parenthesizedExpression
-                        .WithExpression(Negate(parenthesizedExpression.Expression, semanticModel, cancellationToken))
-                        .WithAdditionalAnnotations(Simplifier.Annotation);
-                }
+                    {
+                        return GetNegatedParenthesizedExpression(expression, semanticModel, cancellationToken);
+                    }
 
                 case SyntaxKind.LogicalNotExpression:
-                {
-                    var logicalNotExpression = (PrefixUnaryExpressionSyntax)expression;
-
-                    var notToken = logicalNotExpression.OperatorToken;
-                    var nextToken = logicalNotExpression.Operand.GetFirstToken(
-                        includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
-
-                    var existingTrivia = SyntaxFactory.TriviaList(
-                        notToken.LeadingTrivia.Concat(
-                            notToken.TrailingTrivia.Concat(
-                                nextToken.LeadingTrivia)));
-
-                    var updatedNextToken = nextToken.WithLeadingTrivia(existingTrivia);
-
-                    return logicalNotExpression.Operand.ReplaceToken(
-                        nextToken,
-                        updatedNextToken);
-                }
+                    {
+                        return GetNegatedLogicalNotExpression(expression);
+                    }
 
                 case SyntaxKind.LogicalOrExpression:
-                {
-                    var binaryExpression = (BinaryExpressionSyntax)expression;
-                    result = SyntaxFactory.BinaryExpression(
-                        SyntaxKind.LogicalAndExpression,
-                        Negate(binaryExpression.Left, semanticModel, cancellationToken),
-                        SyntaxFactory.Token(
-                            binaryExpression.OperatorToken.LeadingTrivia,
-                            SyntaxKind.AmpersandAmpersandToken,
-                            binaryExpression.OperatorToken.TrailingTrivia),
-                        Negate(binaryExpression.Right, semanticModel, cancellationToken));
-
-                    return result
-                        .Parenthesize()
-                        .WithLeadingTrivia(binaryExpression.GetLeadingTrivia())
-                        .WithTrailingTrivia(binaryExpression.GetTrailingTrivia());
-                }
+                    {
+                        return GetNegatedLogicalOrExpression(expression, semanticModel, out result, cancellationToken);
+                    }
 
                 case SyntaxKind.LogicalAndExpression:
-                {
-                    var binaryExpression = (BinaryExpressionSyntax)expression;
-                    result = SyntaxFactory.BinaryExpression(
-                        SyntaxKind.LogicalOrExpression,
-                        Negate(binaryExpression.Left, semanticModel, cancellationToken),
-                        SyntaxFactory.Token(
-                            binaryExpression.OperatorToken.LeadingTrivia,
-                            SyntaxKind.BarBarToken,
-                            binaryExpression.OperatorToken.TrailingTrivia),
-                        Negate(binaryExpression.Right, semanticModel, cancellationToken));
-
-                    return result
-                        .Parenthesize()
-                        .WithLeadingTrivia(binaryExpression.GetLeadingTrivia())
-                        .WithTrailingTrivia(binaryExpression.GetTrailingTrivia());
-                }
+                    {
+                        return GetNegatedLogicalAndExpression(expression, semanticModel, out result, cancellationToken);
+                    }
 
                 case SyntaxKind.TrueLiteralExpression:
-                {
-                    var literalExpression = (LiteralExpressionSyntax)expression;
-                    return SyntaxFactory.LiteralExpression(
-                        SyntaxKind.FalseLiteralExpression,
-                        SyntaxFactory.Token(
-                            literalExpression.Token.LeadingTrivia,
-                            SyntaxKind.FalseKeyword,
-                            literalExpression.Token.TrailingTrivia));
-                }
+                    {
+                        return GetNegatedTrueLiteralExpression(expression);
+                    }
 
                 case SyntaxKind.FalseLiteralExpression:
-                {
-                    var literalExpression = (LiteralExpressionSyntax)expression;
-                    return SyntaxFactory.LiteralExpression(
-                        SyntaxKind.TrueLiteralExpression,
-                        SyntaxFactory.Token(
-                            literalExpression.Token.LeadingTrivia,
-                            SyntaxKind.TrueKeyword,
-                            literalExpression.Token.TrailingTrivia));
-                }
+                    {
+                        return GetNegatedFalseLiteralExpression(expression);
+                    }
             }
 
             // Anything else we can just negate by adding a ! in front of the parenthesized expression.
@@ -233,6 +184,99 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             return SyntaxFactory.PrefixUnaryExpression(
                 SyntaxKind.LogicalNotExpression,
                 expression.Parenthesize());
+        }
+
+        private static ExpressionSyntax GetNegatedFalseLiteralExpression(ExpressionSyntax expression)
+        {
+            var literalExpression = (LiteralExpressionSyntax)expression;
+            return SyntaxFactory.LiteralExpression(
+                SyntaxKind.TrueLiteralExpression,
+                SyntaxFactory.Token(
+                    literalExpression.Token.LeadingTrivia,
+                    SyntaxKind.TrueKeyword,
+                    literalExpression.Token.TrailingTrivia));
+        }
+
+        private static ExpressionSyntax GetNegatedTrueLiteralExpression(ExpressionSyntax expression)
+        {
+            var literalExpression = (LiteralExpressionSyntax)expression;
+            return SyntaxFactory.LiteralExpression(
+                SyntaxKind.FalseLiteralExpression,
+                SyntaxFactory.Token(
+                    literalExpression.Token.LeadingTrivia,
+                    SyntaxKind.FalseKeyword,
+                    literalExpression.Token.TrailingTrivia));
+        }
+
+        private ExpressionSyntax GetNegatedLogicalAndExpression(ExpressionSyntax expression, SemanticModel semanticModel, out ExpressionSyntax result, CancellationToken cancellationToken)
+        {
+            var binaryExpression = (BinaryExpressionSyntax)expression;
+            result = SyntaxFactory.BinaryExpression(
+                SyntaxKind.LogicalOrExpression,
+                Negate(binaryExpression.Left, semanticModel, cancellationToken),
+                SyntaxFactory.Token(
+                    binaryExpression.OperatorToken.LeadingTrivia,
+                    SyntaxKind.BarBarToken,
+                    binaryExpression.OperatorToken.TrailingTrivia),
+                Negate(binaryExpression.Right, semanticModel, cancellationToken));
+
+            return result
+                .Parenthesize()
+                .WithLeadingTrivia(binaryExpression.GetLeadingTrivia())
+                .WithTrailingTrivia(binaryExpression.GetTrailingTrivia());
+        }
+
+        private ExpressionSyntax GetNegatedLogicalOrExpression(ExpressionSyntax expression, SemanticModel semanticModel, out ExpressionSyntax result, CancellationToken cancellationToken)
+        {
+            var binaryExpression = (BinaryExpressionSyntax)expression;
+            result = SyntaxFactory.BinaryExpression(
+                SyntaxKind.LogicalAndExpression,
+                Negate(binaryExpression.Left, semanticModel, cancellationToken),
+                SyntaxFactory.Token(
+                    binaryExpression.OperatorToken.LeadingTrivia,
+                    SyntaxKind.AmpersandAmpersandToken,
+                    binaryExpression.OperatorToken.TrailingTrivia),
+                Negate(binaryExpression.Right, semanticModel, cancellationToken));
+
+            return result
+                .Parenthesize()
+                .WithLeadingTrivia(binaryExpression.GetLeadingTrivia())
+                .WithTrailingTrivia(binaryExpression.GetTrailingTrivia());
+        }
+
+        private static ExpressionSyntax GetNegatedLogicalNotExpression(ExpressionSyntax expression)
+        {
+            var logicalNotExpression = (PrefixUnaryExpressionSyntax)expression;
+
+            var notToken = logicalNotExpression.OperatorToken;
+            var nextToken = logicalNotExpression.Operand.GetFirstToken(
+                includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
+
+            // any trivia attached to the ! operator should be moved to the identifier's leading trivia
+            var existingTrivia = SyntaxFactory.TriviaList(
+                notToken.LeadingTrivia.Concat(
+                    notToken.TrailingTrivia.Concat(
+                        nextToken.LeadingTrivia)));
+
+            var updatedNextToken = nextToken.WithLeadingTrivia(existingTrivia);
+
+            // Since we're negating a !expr, just remove the existing !
+            return logicalNotExpression.Operand.ReplaceToken(
+                nextToken,
+                updatedNextToken);
+        }
+
+        private ExpressionSyntax GetNegatedParenthesizedExpression(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var parenthesizedExpression = (ParenthesizedExpressionSyntax)expression;
+            return parenthesizedExpression
+                .WithExpression(Negate(parenthesizedExpression.Expression, semanticModel, cancellationToken))
+                .WithAdditionalAnnotations(Simplifier.Annotation);
+        }
+
+        internal override string GetInvertIfText()
+        {
+            return CSharpFeaturesResources.Invert_if;
         }
     }
 }

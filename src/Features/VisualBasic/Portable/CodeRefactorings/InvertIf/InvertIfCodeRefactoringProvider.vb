@@ -123,7 +123,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                        .AsNode()
         End Function
 
-        Private Function InvertSingleLineIfStatement(workspace As Workspace, originalIfNode As SingleLineIfStatementSyntax, model As SemanticModel, cancellationToken As CancellationToken) As SemanticModel
+        Private Function InvertSingleLineIfStatement(
+                workspace As Workspace,
+                originalIfNode As SingleLineIfStatementSyntax,
+                model As SemanticModel,
+                cancellationToken As CancellationToken) As SemanticModel
             Dim root = model.SyntaxTree.GetRoot()
             Dim invertedIfNode = GetInvertedIfNode(originalIfNode, model, cancellationToken)
             Dim result = UpdateSemanticModel(model, root.ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
@@ -162,8 +166,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Dim newIfStatements = elseClause.Statements
 
             If newIfStatements.Count > 0 Then
-                newIfStatements = newIfStatements.Replace(newIfStatements.Last,
-                                                          newIfStatements.Last.WithTrailingTrivia(elseClause.ElseKeyword.GetPreviousToken().TrailingTrivia))
+                newIfStatements = newIfStatements.Replace(
+                    newIfStatements.Last,
+                    newIfStatements.Last.WithTrailingTrivia(elseClause.ElseKeyword.GetPreviousToken().TrailingTrivia))
             End If
 
             If elseClause.Statements.Count > 0 AndAlso
@@ -343,7 +348,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                     Dim notExpression = DirectCast(expression, UnaryExpressionSyntax)
 
                     Dim notToken = notExpression.OperatorToken
-                    Dim nextToken = notExpression.Operand.GetFirstToken(includeZeroWidth:=True, includeSkipped:=True, includeDirectives:=True, includeDocumentationComments:=True)
+                    Dim nextToken = notExpression.Operand.GetFirstToken(
+                        includeZeroWidth:=True,
+                        includeSkipped:=True,
+                        includeDirectives:=True,
+                        includeDocumentationComments:=True)
                     Dim updatedNextToken = nextToken.WithLeadingTrivia(notToken.LeadingTrivia)
 
                     Return notExpression.Operand.ReplaceToken(nextToken, updatedNextToken).WithAdditionalAnnotations(Simplifier.Annotation)
@@ -368,6 +377,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 expression.Parenthesize())
 
             Return result
+        End Function
+
+        Friend Overrides Function GetInvertIfText() As String
+            Return VBFeaturesResources.Invert_If
         End Function
     End Class
 End Namespace

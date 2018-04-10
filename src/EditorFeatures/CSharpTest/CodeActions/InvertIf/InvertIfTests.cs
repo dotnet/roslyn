@@ -50,6 +50,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestNotIdentifierWithTrivia()
+        {
+            await TestFixOneAsync(
+@"[||]if /*0*/(/*1*/!/*1b*/a/*2*/)/*3*/ { a(); } else { b(); }",
+@"if /*0*/(/*1*//*1b*/a/*2*/)/*3*/ { b(); } else { a(); }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestEqualsEquals()
         {
             await TestFixOneAsync(
@@ -98,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestParens()
+        public async Task TestDoubleParentheses()
         {
             await TestFixOneAsync(
 @"[||]if ((a)) { a(); } else { b(); }",
@@ -114,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestCall()
+        public async Task TestMethodCall()
         {
             await TestFixOneAsync(
 @"[||]if (a.Goo()) { a(); } else { b(); }",
@@ -138,6 +146,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestOr3()
+        {
+            await TestFixOneAsync(
+@"[||]if (!a || b) { a(); } else { b(); }",
+@"if (a && !b) { b(); } else { a(); }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestAnd()
         {
             await TestFixOneAsync(
@@ -151,6 +167,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
             await TestFixOneAsync(
 @"[||]if (!a && !b) { a(); } else { b(); }",
 @"if (a || b) { b(); } else { a(); }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestAnd3()
+        {
+            await TestFixOneAsync(
+@"[||]if (!a && b) { a(); } else { b(); }",
+@"if (a || !b) { b(); } else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -226,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestIfElseIf2()
+        public async Task TestIfElseIfElse()
         {
             await TestFixOneAsync(
 @"[||]if (a) { a(); } else if (b) { b(); } else { c(); }",
@@ -234,11 +258,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestNested()
+        public async Task TestCompoundConditional()
         {
             await TestFixOneAsync(
 @"[||]if (((a == b) && (c != d)) || ((e < f) && (!g))) { a(); } else { b(); }",
 @"if ((a != b || c == d) && (e >= f || g)) { b(); } else { a(); }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestSingleLineTrivia()
+        {
+            await TestFixOneAsync(
+@"[||]if /*1*/ (a) /*2*/ { /*3*/ a() /*4*/; /*5*/ } /*6*/ else if /*7*/ (b) /*8*/ { /*9*/ b(); /*10*/ } /*11*/ else /*12*/ { /*13*/ c(); /*14*/} /*15*/",
+@"if /*1*/ (!a) /*2*/ { if /*7*/ (b) /*8*/ { /*9*/ b(); /*10*/ } /*11*/ else /*12*/ { /*13*/ c(); /*14*/} /*6*/ } else { /*3*/ a() /*4*/; /*5*/ } /*15*/");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -282,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestMultiLineElseIf()
+        public async Task TestMultiLineIfElseIfElse()
         {
             await TestInRegularAndScriptAsync(
 @"class A
@@ -635,7 +667,7 @@ class C
 
         [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToLengthEqualsZero5()
+        public async Task TestSimplifyToEqualsZero1()
         {
             await TestFixOneAsync(
 @"byte x = 1; [||]if (0 < x) { a(); } else { b(); } } } ",
@@ -644,7 +676,7 @@ class C
 
         [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToLengthEqualsZero6()
+        public async Task TestSimplifyToEqualsZero2()
         {
             await TestFixOneAsync(
 @"ushort x = 1; [||]if (0 < x) { a(); } else { b(); } } } ",
@@ -653,7 +685,7 @@ class C
 
         [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToLengthEqualsZero7()
+        public async Task TestSimplifyToEqualsZero3()
         {
             await TestFixOneAsync(
 @"uint x = 1; [||]if (0 < x) { a(); } else { b(); } } } ",
@@ -662,7 +694,7 @@ class C
 
         [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToLengthEqualsZero8()
+        public async Task TestSimplifyToEqualsZero4()
         {
             await TestFixOneAsync(
 @"ulong x = 1; [||]if (0 < x) { a(); } else { b(); } } } ",
@@ -671,25 +703,25 @@ class C
 
         [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToLengthEqualsZero9()
+        public async Task TestSimplifyToNotEqualsZero1()
         {
             await TestFixOneAsync(
 @"ulong x = 1; [||]if (0 == x) { a(); } else { b(); } } } ",
-@"ulong x = 1; if (0 < x) { b(); } else { a(); } } } ");
+@"ulong x = 1; if (0 != x) { b(); } else { a(); } } } ");
         }
 
         [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToLengthEqualsZero10()
+        public async Task TestSimplifyToNotEqualsZero2()
         {
             await TestFixOneAsync(
 @"ulong x = 1; [||]if (x == 0) { a(); } else { b(); } } } ",
-@"ulong x = 1; if (x > 0) { b(); } else { a(); } } } ");
+@"ulong x = 1; if (x != 0) { b(); } else { a(); } } } ");
         }
 
         [WorkItem(530505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530505")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToLengthEqualsZero11()
+        public async Task TestSimplifyLongLengthEqualsZero()
         {
             await TestFixOneAsync(
 @"string[] x; [||]if (x.LongLength > 0) { GreaterThanZero(); } else { EqualsZero(); } } } ",
