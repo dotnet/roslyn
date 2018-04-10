@@ -797,11 +797,6 @@
         <target state="translated">La modifica delle proprietà del documento non è supportata</target>
         <note />
       </trans-unit>
-      <trans-unit id="Variables_captured_colon">
-        <source>Variables captured:</source>
-        <target state="new">Variables captured:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Alternation_conditions_cannot_be_comments">
         <source>Alternation conditions cannot be comments</source>
         <target state="new">Alternation conditions cannot be comments</target>
@@ -955,6 +950,11 @@
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="new">[x-y] range in reverse order</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variables_captured_colon">
+        <source>Variables captured:</source>
+        <target state="new">Variables captured:</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_issue_0">

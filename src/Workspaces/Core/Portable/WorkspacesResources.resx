@@ -453,9 +453,6 @@
   <data name="Exceptions_colon" xml:space="preserve">
     <value>Exceptions:</value>
   </data>
-  <data name="Variables_captured_colon" xml:space="preserve">
-    <value>Variables captured:</value>
-  </data>
   <data name="_0_returned_an_uninitialized_ImmutableArray" xml:space="preserve">
     <value>'{0}' returned an uninitialized ImmutableArray</value>
   </data>
@@ -615,6 +612,9 @@
   </data>
   <data name="Changing_document_property_is_not_supported" xml:space="preserve">
     <value>Changing document properties is not supported</value>
+  </data>
+  <data name="Variables_captured_colon" xml:space="preserve">
+    <value>Variables captured:</value>
   </data>
   <data name="Alternation_conditions_cannot_be_comments" xml:space="preserve">
     <value>Alternation conditions cannot be comments</value>

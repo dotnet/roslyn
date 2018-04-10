@@ -1349,7 +1349,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             => visitor.Visit(this);
     }
 
-
     /// <summary>
     /// One of \b \B \A \G \z \Z
     /// </summary>
