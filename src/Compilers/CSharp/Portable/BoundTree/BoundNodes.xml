@@ -648,11 +648,6 @@
     <Field Name="StatementOpt" Type="BoundStatement" Null="allow"/>
   </Node>
 
-  <!-- Use this in the event that the sequence point must be applied to expression.-->
-  <Node Name="BoundSequencePointExpression" Base="BoundExpression">
-    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
-  </Node>
-
   <!--EDMAURER Use this in the event that the span you must represent
     is not that of a SyntaxNode. If a SyntaxNode captures the correct span,
     use a BoundSequencePoint.-->
@@ -745,41 +740,6 @@
     <Field Name="BlockBody" Type="BoundBlock" Null="allow"/>
     <Field Name="ExpressionBody" Type="BoundBlock" Null="allow"/>
   </Node>
- 
-  <!-- 
-  A node specially to represent the idea of 
-  "compute this side effects while discarding results, and then compute this value"
-  
-  The node may also declare locals (temporaries). 
-  
-  The sequence node is both SCOPE and EXTENT of these locals. 
-  As a result non-intersecting sequences can reuse variable slots.
-  -->
-  <Node Name="BoundSequence" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="SideEffects" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="Value" Type="BoundExpression"/>
-  </Node>
-
-  <!-- 
-  Like BoundSequence, but the side-effects are statements. This node is
-  produced during initial lowering for the `await` expression and for the
-  switch expression. A separate pass removes these nodes by moving
-  the statements to the top level (i.e. to a statement list that is not in
-  a BoundSpillSequence). It is called a
-  spill sequence because the process of moving it to the top level
-  causes values that would be on the stack during its evaluation to be
-  spilled to temporary variables.
-  -->
-  <Node Name="BoundSpillSequence" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="SideEffects" Type="ImmutableArray&lt;BoundStatement&gt;"/>
-    <Field Name="Value" Type="BoundExpression"/>
-  </Node>
 
   <Node Name="BoundNoOpStatement" Base="BoundStatement">
     <!-- No operation. Empty statement. -->
@@ -857,102 +817,6 @@
     <Field Name="DefaultLabel" Type="LabelSymbol" Null="disallow" />
     <!-- Equality method to be used when dispatching on a non-integral type such as string. -->
     <Field Name="EqualityMethod" Type="MethodSymbol" Null="allow" />
-  </Node>
-
-  <Node Name="BoundSwitchExpression" Base="BoundExpression">
-    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
-    <Field Name="SwitchArms" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;"/>
-    <Field Name="DefaultLabel" Type="LabelSymbol" Null="allow"/>
-  </Node>
-  <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
-    <Field Name="WhenClause" Type="BoundExpression" Null="allow"/>
-    <Field Name="Value" Type="BoundExpression" Null="disallow"/>
-    <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundDecisionDag" Base="BoundNode">
-    <Field Name="RootNode" Type="BoundDecisionDagNode" Null="disallow"/>
-  </Node>
-
-  <AbstractNode Name="BoundDecisionDagNode " Base="BoundNode">
-  </AbstractNode>
-  <!-- This node is used to indicate a point in the decision dag where an evaluation is performed, such as invoking Deconstruct. -->
-  <Node Name="BoundEvaluationDecisionDagNode" Base="BoundDecisionDagNode ">
-    <Field Name="Evaluation" Type="BoundDagEvaluation" Null="disallow"/>
-    <Field Name="Next" Type="BoundDecisionDagNode " Null="disallow"/>
-  </Node>
-  <!-- This node is used to indicate a point in the decision dag where a test may change the path of the decision dag. -->
-  <Node Name="BoundTestDecisionDagNode" Base="BoundDecisionDagNode ">
-    <Field Name="Test" Type="BoundDagTest" Null="disallow"/>
-    <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
-    <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="disallow"/>
-  </Node>
-  <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode ">
-    <Field Name="Bindings" Type="ImmutableArray&lt;(BoundExpression left,BoundDagTemp dagTemp)&gt;" Null="disallow"/>
-    <!--
-    WhenExpression is null when there was no when clause in source but there are bindings.
-    In that case WhenFalse is null.
-    -->
-    <Field Name="WhenExpression" Type="BoundExpression" Null="allow"/>
-    <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
-    <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="allow"/>
-  </Node>
-  <!-- This node is used to indicate a point in the decision dag where the decision has been completed. -->
-  <Node Name="BoundLeafDecisionDagNode" Base="BoundDecisionDagNode ">
-    <Field Name="Label" Type="LabelSymbol"/>
-  </Node>
-
-  <AbstractNode Name="BoundDagTest" Base="BoundNode">
-     Input is the input to the decision point. 
-    <Field Name="Input" Type="BoundDagTemp"/>
-  </AbstractNode>
-  <Node Name="BoundDagTemp" Base="BoundNode">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="Source" Type="BoundDagEvaluation" Null="allow"/>
-    <Field Name="Index" Type="int"/>
-  </Node>
-  <Node Name="BoundDagTypeTest" Base="BoundDagTest">
-    <!--Check that the input is of the given type. Null check is separate.-->
-    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
-  </Node>
-  <Node Name="BoundDagNonNullTest" Base="BoundDagTest">
-     <!--Check that the input is not null.--> 
-  </Node>
-  <Node Name="BoundDagNullTest" Base="BoundDagTest">
-    <!--Check that the input is null.-->
-  </Node>
-  <Node Name="BoundDagValueTest" Base="BoundDagTest">
-     <!--Check that the input is the same as the given constant value (other than null).--> 
-    <Field Name="Value" Type="ConstantValue" Null="disallow"/>
-  </Node>
-  <!-- As a decision, an evaluation is considered to always succeed. -->
-  <AbstractNode Name="BoundDagEvaluation" Base="BoundDagTest">
-  </AbstractNode>
-  <Node Name="BoundDagDeconstructEvaluation" Base="BoundDagEvaluation">
-    <Field Name="DeconstructMethod" Type="MethodSymbol" Null="disallow"/>
-  </Node>
-  <Node Name="BoundDagTypeEvaluation" Base="BoundDagEvaluation">
-   <!--Cast to the given type, assumed to be used after a successful type check.--> 
-    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
-  </Node>
-  <Node Name="BoundDagFieldEvaluation" Base="BoundDagEvaluation">
-    <Field Name="Field" Type="FieldSymbol" Null="disallow"/>
-  </Node>
-  <Node Name="BoundDagPropertyEvaluation" Base="BoundDagEvaluation">
-    <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundPatternSwitchSection" Base="BoundStatementList">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundPatternSwitchLabel&gt;"/>
-  </Node>
-
-  <Node Name="BoundPatternSwitchLabel" Base="BoundNode">
-    <Field Name="Label" Type="LabelSymbol"/>
-    <Field Name="Pattern" Type="BoundPattern"/>
-    <Field Name="WhenClause" Type="BoundExpression" Null="allow"/>
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">
@@ -1227,6 +1091,102 @@
     <Field Name="Label" Type="LabelSymbol"/>
   </Node>
 
+  <Node Name="BoundSwitchExpression" Base="BoundExpression">
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+    <Field Name="SwitchArms" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;"/>
+    <Field Name="DefaultLabel" Type="LabelSymbol" Null="allow"/>
+  </Node>
+  <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+    <Field Name="WhenClause" Type="BoundExpression" Null="allow"/>
+    <Field Name="Value" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Label" Type="LabelSymbol" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundDecisionDag" Base="BoundNode">
+    <Field Name="RootNode" Type="BoundDecisionDagNode" Null="disallow"/>
+  </Node>
+
+  <AbstractNode Name="BoundDecisionDagNode " Base="BoundNode">
+  </AbstractNode>
+  <!-- This node is used to indicate a point in the decision dag where an evaluation is performed, such as invoking Deconstruct. -->
+  <Node Name="BoundEvaluationDecisionDagNode" Base="BoundDecisionDagNode ">
+    <Field Name="Evaluation" Type="BoundDagEvaluation" Null="disallow"/>
+    <Field Name="Next" Type="BoundDecisionDagNode " Null="disallow"/>
+  </Node>
+  <!-- This node is used to indicate a point in the decision dag where a test may change the path of the decision dag. -->
+  <Node Name="BoundTestDecisionDagNode" Base="BoundDecisionDagNode ">
+    <Field Name="Test" Type="BoundDagTest" Null="disallow"/>
+    <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="disallow"/>
+  </Node>
+  <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode ">
+    <Field Name="Bindings" Type="ImmutableArray&lt;(BoundExpression left,BoundDagTemp dagTemp)&gt;" Null="disallow"/>
+    <!--
+    WhenExpression is null when there was no when clause in source but there are bindings.
+    In that case WhenFalse is null.
+    -->
+    <Field Name="WhenExpression" Type="BoundExpression" Null="allow"/>
+    <Field Name="WhenTrue" Type="BoundDecisionDagNode " Null="disallow"/>
+    <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="allow"/>
+  </Node>
+  <!-- This node is used to indicate a point in the decision dag where the decision has been completed. -->
+  <Node Name="BoundLeafDecisionDagNode" Base="BoundDecisionDagNode ">
+    <Field Name="Label" Type="LabelSymbol"/>
+  </Node>
+
+  <AbstractNode Name="BoundDagTest" Base="BoundNode">
+    Input is the input to the decision point.
+    <Field Name="Input" Type="BoundDagTemp"/>
+  </AbstractNode>
+  <Node Name="BoundDagTemp" Base="BoundNode">
+    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
+    <Field Name="Source" Type="BoundDagEvaluation" Null="allow"/>
+    <Field Name="Index" Type="int"/>
+  </Node>
+  <Node Name="BoundDagTypeTest" Base="BoundDagTest">
+    <!--Check that the input is of the given type. Null check is separate.-->
+    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
+  </Node>
+  <Node Name="BoundDagNonNullTest" Base="BoundDagTest">
+    <!--Check that the input is not null.-->
+  </Node>
+  <Node Name="BoundDagNullTest" Base="BoundDagTest">
+    <!--Check that the input is null.-->
+  </Node>
+  <Node Name="BoundDagValueTest" Base="BoundDagTest">
+    <!--Check that the input is the same as the given constant value (other than null).-->
+    <Field Name="Value" Type="ConstantValue" Null="disallow"/>
+  </Node>
+  <!-- As a decision, an evaluation is considered to always succeed. -->
+  <AbstractNode Name="BoundDagEvaluation" Base="BoundDagTest">
+  </AbstractNode>
+  <Node Name="BoundDagDeconstructEvaluation" Base="BoundDagEvaluation">
+    <Field Name="DeconstructMethod" Type="MethodSymbol" Null="disallow"/>
+  </Node>
+  <Node Name="BoundDagTypeEvaluation" Base="BoundDagEvaluation">
+    <!--Cast to the given type, assumed to be used after a successful type check.-->
+    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
+  </Node>
+  <Node Name="BoundDagFieldEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Field" Type="FieldSymbol" Null="disallow"/>
+  </Node>
+  <Node Name="BoundDagPropertyEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundPatternSwitchSection" Base="BoundStatementList">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundPatternSwitchLabel&gt;"/>
+  </Node>
+
+  <Node Name="BoundPatternSwitchLabel" Base="BoundNode">
+    <Field Name="Label" Type="LabelSymbol"/>
+    <Field Name="Pattern" Type="BoundPattern"/>
+    <Field Name="WhenClause" Type="BoundExpression" Null="allow"/>
+  </Node>
+
   <AbstractNode Name="BoundMethodOrPropertyGroup" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
@@ -1239,6 +1199,46 @@
     <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </AbstractNode>
+
+  <!-- Use this in the event that the sequence point must be applied to expression.-->
+  <Node Name="BoundSequencePointExpression" Base="BoundExpression">
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+  </Node>
+
+  <!-- 
+  A node specially to represent the idea of 
+  "compute this side effects while discarding results, and then compute this value"
+  
+  The node may also declare locals (temporaries). 
+  
+  The sequence node is both SCOPE and EXTENT of these locals. 
+  As a result non-intersecting sequences can reuse variable slots.
+  -->
+  <Node Name="BoundSequence" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="SideEffects" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="Value" Type="BoundExpression"/>
+  </Node>
+
+  <!-- 
+  Like BoundSequence, but the side-effects are statements. This node is
+  produced during initial lowering for the `await` expression and for the
+  switch expression. A separate pass removes these nodes by moving
+  the statements to the top level (i.e. to a statement list that is not in
+  a BoundSpillSequence). It is called a
+  spill sequence because the process of moving it to the top level
+  causes values that would be on the stack during its evaluation to be
+  spilled to temporary variables.
+  -->
+  <Node Name="BoundSpillSequence" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="SideEffects" Type="ImmutableArray&lt;BoundStatement&gt;"/>
+    <Field Name="Value" Type="BoundExpression"/>
+  </Node>
 
   <Node Name="BoundDynamicMemberAccess" Base="BoundExpression">
     <!--Non-null type is required, and will always be "dynamic". -->
