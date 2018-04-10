@@ -5,22 +5,25 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.DocumentHighlighting
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    using static EmbeddedSyntaxHelpers;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
-    internal abstract partial class AbstractDocumentHighlightsService : IDocumentHighlightsService
+    internal class RegexEmbeddedHighlighter : IEmbeddedHighlighter
     {
-        private async Task<ImmutableArray<DocumentHighlights>> TryGetRegexPatternHighlightsAsync(
-            Document document, int position, CancellationToken cancellationToken)
+        private readonly RegexEmbeddedLanguage _language;
+
+        public RegexEmbeddedHighlighter(RegexEmbeddedLanguage language)
+        {
+            _language = language;
+        }
+
+        public async Task<ImmutableArray<TextSpan>> GetHighlightsAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var option = document.Project.Solution.Workspace.Options.GetOption(RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, document.Project.Language);
             if (!option)
@@ -31,15 +34,14 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (RegexPatternDetector.IsDefinitelyNotPattern(token, syntaxFacts))
+            if (RegexPatternDetector.IsDefinitelyNotPattern(token, _language.SyntaxFacts))
             {
                 return default;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, syntaxFacts, document.GetLanguageService<ISemanticFactsService>());
-            var tree = detector?.TryParseRegexPattern(token, document.GetLanguageService<IVirtualCharService>(), cancellationToken);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _language);
+            var tree = detector?.TryParseRegexPattern(token, cancellationToken);
 
             if (tree == null)
             {
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return GetHighlights(document, tree, position);
         }
 
-        private ImmutableArray<DocumentHighlights> GetHighlights(
+        private ImmutableArray<TextSpan> GetHighlights(
             Document document, RegexTree tree, int position)
         {
             var referencesOnTheRight = GetReferences(document, tree, position, caretOnLeft: true);
@@ -64,26 +66,25 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             return referencesOnTheLeft;
         }
 
-        private ImmutableArray<DocumentHighlights> GetReferences(
+        private ImmutableArray<TextSpan> GetReferences(
             Document document, RegexTree tree, int position, bool caretOnLeft)
         {
             var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position));
             if (virtualChar == null)
             {
-                return ImmutableArray<DocumentHighlights>.Empty;
+                return ImmutableArray<TextSpan>.Empty;
             }
 
             var ch = virtualChar.Value;
-            return FindReferenceHighlights(document, tree, ch);
+            return FindReferenceHighlights(tree, ch);
         }
 
-        private ImmutableArray<DocumentHighlights> FindReferenceHighlights(
-            Document document, RegexTree tree, VirtualChar ch)
+        private ImmutableArray<TextSpan> FindReferenceHighlights(RegexTree tree, VirtualChar ch)
         {
             var node = FindReferenceNode(tree.Root, ch);
             if (node == null)
             {
-                return ImmutableArray<DocumentHighlights>.Empty;
+                return ImmutableArray<TextSpan>.Empty;
             }
 
             var captureToken = GetCaptureToken(node);
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 var val = (int)captureToken.Value;
                 if (tree.CaptureNumbersToSpan.TryGetValue(val, out var captureSpan))
                 {
-                    return CreateHighlights(document, node, captureSpan);
+                    return CreateHighlights(node, captureSpan);
                 }
             }
             else
@@ -100,20 +101,17 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 var val = (string)captureToken.Value;
                 if (tree.CaptureNamesToSpan.TryGetValue(val, out var captureSpan))
                 {
-                    return CreateHighlights(document, node, captureSpan);
+                    return CreateHighlights(node, captureSpan);
                 }
             }
 
-            return ImmutableArray<DocumentHighlights>.Empty;
+            return ImmutableArray<TextSpan>.Empty;
         }
 
-        private ImmutableArray<DocumentHighlights> CreateHighlights(
-            Document document, RegexEscapeNode node, TextSpan captureSpan)
+        private ImmutableArray<TextSpan> CreateHighlights(
+            RegexEscapeNode node, TextSpan captureSpan)
         {
-            return ImmutableArray.Create(new DocumentHighlights(document,
-                ImmutableArray.Create(
-                    new HighlightSpan(node.GetSpan(), HighlightSpanKind.None),
-                    new HighlightSpan(captureSpan, HighlightSpanKind.None))));
+            return ImmutableArray.Create(node.GetSpan(), captureSpan);
         }
 
         private RegexToken GetCaptureToken(RegexEscapeNode node)

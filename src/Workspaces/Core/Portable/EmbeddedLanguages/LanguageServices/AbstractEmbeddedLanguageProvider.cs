@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 
@@ -20,7 +21,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             ISemanticFactsService semanticFacts,
             IVirtualCharService virtualCharService)
         {
-            _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguage>();
+            _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguage>(
+                new RegexEmbeddedLanguage(this, stringLiteralKind, syntaxFacts, semanticFacts, virtualCharService));
         }
 
         public ImmutableArray<IEmbeddedLanguage> GetEmbeddedLanguages()

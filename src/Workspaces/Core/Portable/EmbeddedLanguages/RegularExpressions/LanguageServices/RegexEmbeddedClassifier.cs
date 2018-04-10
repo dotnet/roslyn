@@ -2,27 +2,37 @@
 
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Classification
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
+    using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+    using Microsoft.CodeAnalysis.LanguageServices;
     using static EmbeddedSyntaxHelpers;
 
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
     using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
 
-    internal static class CommonRegexPatternTokenClassifier
+    /// <summary>
+    /// Classifier impl for embedded regex strings.
+    /// </summary>
+    internal class RegexEmbeddedClassifier : IEmbeddedClassifier
     {
         private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
 
-        public static void AddClassifications(
-            Workspace workspace, SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result,  
-            ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, IVirtualCharService virtualCharService,
-            CancellationToken cancellationToken)
+        private readonly RegexEmbeddedLanguage _language;
+
+        public RegexEmbeddedClassifier(RegexEmbeddedLanguage language)
+        {
+            _language = language;
+        }
+
+        public void AddClassifications(
+            Workspace workspace, SyntaxToken token, SemanticModel semanticModel, 
+            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (!workspace.Options.GetOption(RegularExpressionsOptions.ColorizeRegexPatterns, LanguageNames.CSharp))
             {
@@ -30,13 +40,13 @@ namespace Microsoft.CodeAnalysis.Classification
             }
 
             // Do some quick syntactic checks before doing any complex work.
-            if (RegexPatternDetector.IsDefinitelyNotPattern(token, syntaxFacts))
+            if (RegexPatternDetector.IsDefinitelyNotPattern(token, _language.SyntaxFacts))
             {
                 return;
             }
 
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, syntaxFacts, semanticFacts);
-            var tree = detector?.TryParseRegexPattern(token, virtualCharService, cancellationToken);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _language);
+            var tree = detector?.TryParseRegexPattern(token, cancellationToken);
             if (tree == null)
             {
                 return;
