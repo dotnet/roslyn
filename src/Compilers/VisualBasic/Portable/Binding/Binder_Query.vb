@@ -1611,7 +1611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function CreateSetOfDeclaredNames(rangeVariables As ImmutableArray(Of RangeVariableSymbol)) As HashSet(Of String)
-            Dim declaredNames As New HashSet(Of String)(StringComparers.IdentifierComparer.Comparer)
+            Dim declaredNames As New HashSet(Of String)(StringComparers.IdentifierComparer)
 
             For Each rangeVar As RangeVariableSymbol In rangeVariables
                 declaredNames.Add(rangeVar.Name)

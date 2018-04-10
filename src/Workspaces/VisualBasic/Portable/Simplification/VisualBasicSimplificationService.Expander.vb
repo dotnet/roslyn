@@ -351,14 +351,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim found = False
 
                 For Each argument In tuple.Arguments
-                    Dim elementName = Nothing
+                    Dim elementName As String = Nothing
                     If argument.NameColonEquals IsNot Nothing Then
                         elementName = argument.NameColonEquals.Name.Identifier.ValueText
                     Else
                         elementName = argument.Expression?.TryGetInferredMemberName()
                     End If
 
-                    If StringComparers.IdentifierComparer.Equals(elementName, name) Then
+                    If StringComparers.IdentifierComparer.Compare(elementName, name) = 0 Then
                         If found Then
                             ' No duplicate names allowed
                             Return False

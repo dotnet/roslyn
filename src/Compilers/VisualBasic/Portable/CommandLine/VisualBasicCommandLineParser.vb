@@ -1184,7 +1184,7 @@ lVbRuntimePlus:
                 AddDiagnostic(diagnostics, ERRID.WRN_BadSwitch, arg)
             Next
 
-            Dim specificDiagnosticOptions = New Dictionary(Of String, ReportDiagnostic)(specificDiagnosticOptionsFromRuleSet, StringComparers.IdentifierComparer.Comparer)
+            Dim specificDiagnosticOptions = New Dictionary(Of String, ReportDiagnostic)(specificDiagnosticOptionsFromRuleSet, StringComparers.IdentifierComparer)
 
             For Each item In specificDiagnosticOptionsFromGeneralArguments
                 specificDiagnosticOptions(item.Key) = item.Value

@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         )
             If m_lazyMembers Is Nothing Then
 
-                Dim members As New Dictionary(Of String, ImmutableArray(Of Symbol))(StringComparers.IdentifierComparer.Comparer)
+                Dim members As New Dictionary(Of String, ImmutableArray(Of Symbol))(StringComparers.IdentifierComparer)
 
                 ' Add namespaces
                 For Each child In childNamespaces
