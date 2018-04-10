@@ -738,6 +738,7 @@ IL_0005:  ret
 
         private static void VerifyResolutionRequests(EvaluationContext context, params (AssemblyIdentity, AssemblyIdentity, int)[] expectedRequests)
         {
+#if DEBUG
             var resolver = (EEMetadataReferenceResolver)context.Compilation.Options.MetadataReferenceResolver;
             var expected = ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)>.GetInstance();
             var actual = ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)>.GetInstance();
@@ -753,6 +754,7 @@ IL_0005:  ret
             {
                 builder.Sort((x, y) => AssemblyIdentityComparer.SimpleNameComparer.Compare(x.Item1, y.Item1));
             }
+#endif
         }
 
         [Fact]

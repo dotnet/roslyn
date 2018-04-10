@@ -315,13 +315,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (report)
             {
                 var process = appDomain.Process;
-                DkmUserMessage.Create(
+                var message = DkmUserMessage.Create(
                     process.Connection,
                     process,
                     DkmUserMessageOutputKind.UnfilteredOutputWindowMessage,
-                    $"EE: AppDomain {appDomain.Id}, blocks {context.MetadataBlocks}, contexts {context.AssemblyContexts}",
+                    $"EE: AppDomain {appDomain.Id}, blocks {context.MetadataBlocks.Length}, contexts {context.AssemblyContexts.Count}" + Environment.NewLine,
                     MessageBoxFlags.MB_OK,
                     0);
+                message.Post();
             }
             appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new MetadataContextItem<MetadataContext<TAssemblyContext>>(context));
         }
