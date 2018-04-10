@@ -471,11 +471,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new DeclarationPattern(operation.DeclaredSymbol, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitDiscardPattern(IDiscardPatternOperation operation, object argument)
-        {
-            return new DiscardPattern(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
         public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, object argument)
         {
             return new RecursivePattern(operation.DeclaredSymbol, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -509,6 +504,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, object argument)
         {
             return new MethodBodyOperation(((Operation)operation).SemanticModel, operation.Syntax, Visit(operation.BlockBody), Visit(operation.ExpressionBody));
+        }
+
+        public override IOperation VisitDiscardOperation(IDiscardOperation operation, object argument)
+        {
+            return new DiscardOperation(operation.DiscardSymbol, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
     }
 }

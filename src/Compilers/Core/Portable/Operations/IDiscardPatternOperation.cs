@@ -3,14 +3,22 @@
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents a C# discard pattern.
+    /// Represents a discard operation.
+    /// <para>
+    /// Current Usage:
+    ///  (1) C# discard expressions
+    ///  (2) C# discard patterns
+    /// </para>
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IDiscardPatternOperation : IPatternOperation
+    public interface IDiscardOperation : IOperation
     {
+        /// <summary>
+        /// The symbol of the discard operation.
+        /// </summary>
+        IDiscardSymbol DiscardSymbol { get; }
     }
 }
-
