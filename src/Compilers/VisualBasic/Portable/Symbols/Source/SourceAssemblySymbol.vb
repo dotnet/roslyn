@@ -950,7 +950,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If _lazyInternalsVisibleToMap Is Nothing Then
                 Interlocked.CompareExchange(_lazyInternalsVisibleToMap,
-                                            New ConcurrentDictionary(Of String, ConcurrentDictionary(Of ImmutableArray(Of Byte), Tuple(Of Location, String)))StringComparers.IdentifierComparer), Nothing)
+                                            New ConcurrentDictionary(Of String, ConcurrentDictionary(Of ImmutableArray(Of Byte), Tuple(Of Location, String)))(StringComparers.IdentifierComparer), Nothing)
+
             End If
 
             'later, once the identity is established we confirm that if the assembly being 

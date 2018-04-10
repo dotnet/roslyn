@@ -127,8 +127,7 @@ namespace Microsoft.CodeAnalysis.Utilities
                  i < thisEnd && j < otherEnd;
                  i++, j++)
             {
-                var diff =
-                    CaseInsensitiveComparison.ToLower(this._underlyingString[i]) -
+                var diff = CaseInsensitiveComparison.ToLower(this._underlyingString[i]) -
                     CaseInsensitiveComparison.ToLower(other._underlyingString[j]);
                 if (diff != 0)
                 {
