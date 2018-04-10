@@ -6,6 +6,19 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
+    ''' <summary>
+    ''' Special formatting rule that will convert a conditional expression into the following form
+    ''' if it has the <see cref="UseConditionalExpressionHelpers.SpecializedFormattingAnnotation"/>
+    ''' on it:
+    '''
+    ''' <code>
+    '''     Dim v = If(expr,
+    '''         whenTrue,
+    '''         whenFalse)
+    ''' </code>
+    '''
+    ''' i.e. both branches will be on a newline, indented once from the parent indentation.
+    ''' </summary>
     Friend Class MultiLineConditionalExpressionFormattingRule
         Inherits AbstractFormattingRule
 
