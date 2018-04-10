@@ -1,55 +1,32 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Roslyn.Utilities
 {
     internal static partial class SpecializedCollections
     {
-        public static IEnumerator<T> EmptyEnumerator<T>()
-        {
-            return Empty.Enumerator<T>.Instance;
-        }
+        public static IEnumerator<T> EmptyEnumerator<T>() => EmptyEnumerable<T>().GetEnumerator();
 
-        public static IEnumerable<T> EmptyEnumerable<T>()
-        {
-            return Empty.List<T>.Instance;
-        }
+        public static IEnumerable<T> EmptyEnumerable<T>() => Array.Empty<T>();
 
-        public static ICollection<T> EmptyCollection<T>()
-        {
-            return Empty.List<T>.Instance;
-        }
+        public static ICollection<T> EmptyCollection<T>() => Array.Empty<T>();
 
-        public static IList<T> EmptyList<T>()
-        {
-            return Empty.List<T>.Instance;
-        }
+        public static IList<T> EmptyList<T>() => Array.Empty<T>();
 
-        public static IReadOnlyList<T> EmptyReadOnlyList<T>()
-        {
-            return Empty.List<T>.Instance;
-        }
+        public static IReadOnlyList<T> EmptyReadOnlyList<T>() => Array.Empty<T>();
 
-        public static ISet<T> EmptySet<T>()
-        {
-            return Empty.Set<T>.Instance;
-        }
+        public static ISet<T> EmptySet<T>() => ImmutableHashSet<T>.Empty;
 
-        public static IReadOnlySet<T> EmptyReadOnlySet<T>()
-        {
-            return Empty.Set<T>.Instance;
-        }
+        public static IReadOnlySet<T> EmptyReadOnlySet<T>() => Empty.ReadOnlySet<T>.Instance;
 
         public static IDictionary<TKey, TValue> EmptyDictionary<TKey, TValue>()
-        {
-            return Empty.Dictionary<TKey, TValue>.Instance;
-        }
+            => ImmutableDictionary<TKey, TValue>.Empty;
 
         public static IReadOnlyDictionary<TKey, TValue> EmptyReadOnlyDictionary<TKey, TValue>()
-        {
-            return Empty.Dictionary<TKey, TValue>.Instance;
-        }
+            => ImmutableDictionary<TKey, TValue>.Empty;
 
         public static IEnumerable<T> SingletonEnumerable<T>(T value)
         {

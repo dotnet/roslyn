@@ -138,25 +138,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs">
       <Link>InternalUtilities\SpecializedCollections.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Collection.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Dictionary.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Dictionary.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Enumerable.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Enumerable.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Enumerator.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Enumerator.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Enumerator`1.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Enumerator`1.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.List.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.List.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Set.cs">
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.ReadOnlySet.cs">
       <Link>InternalUtilities\SpecializedCollections.Empty.Set.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Collection.cs">
