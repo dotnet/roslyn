@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -315,7 +314,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     var tree = location.SourceTree;
 
                     var document = solution.GetDocument(tree);
-                    var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
                     if (syntaxFacts != null)
                     {
