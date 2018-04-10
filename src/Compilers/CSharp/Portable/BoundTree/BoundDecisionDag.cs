@@ -16,30 +16,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private HashSet<LabelSymbol> _reachableLabels;
         private ImmutableArray<BoundDecisionDagNode> _topologicallySortedNodes;
 
-        private static IEnumerable<BoundDecisionDagNode> Successors(BoundDecisionDagNode node)
+        private static ImmutableArray<BoundDecisionDagNode> Successors(BoundDecisionDagNode node)
         {
             switch (node)
             {
                 case BoundEvaluationDecisionDagNode p:
-                    yield return p.Next;
-                    yield break;
+                    return ImmutableArray.Create(p.Next);
                 case BoundTestDecisionDagNode p:
-                    Debug.Assert(p.WhenFalse != null);
-                    yield return p.WhenFalse;
-                    Debug.Assert(p.WhenTrue != null);
-                    yield return p.WhenTrue;
-                    yield break;
+                    return ImmutableArray.Create(p.WhenFalse, p.WhenTrue);
                 case BoundLeafDecisionDagNode d:
-                    yield break;
+                    return ImmutableArray<BoundDecisionDagNode>.Empty;
                 case BoundWhenDecisionDagNode w:
-                    Debug.Assert(w.WhenTrue != null);
-                    yield return w.WhenTrue;
-                    if (w.WhenFalse != null)
-                    {
-                        yield return w.WhenFalse;
-                    }
-
-                    yield break;
+                    return (w.WhenFalse != null) ? ImmutableArray.Create(w.WhenTrue, w.WhenFalse) : ImmutableArray.Create(w.WhenTrue);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
             }

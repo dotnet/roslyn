@@ -975,16 +975,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// A successor function used to topologically sort the DagState set.
             /// </summary>
-            private static IEnumerable<DagState> Successor(DagState state)
+            private static ImmutableArray<DagState> Successor(DagState state)
             {
-                if (state.TrueBranch != null)
-                {
-                    yield return state.TrueBranch;
-                }
 
-                if (state.FalseBranch != null)
+                if (state.TrueBranch != null && state.FalseBranch != null)
                 {
-                    yield return state.FalseBranch;
+                    return ImmutableArray.Create(state.TrueBranch, state.FalseBranch);
+                }
+                else if (state.TrueBranch != null)
+                {
+                    return ImmutableArray.Create(state.TrueBranch);
+                }
+                else if (state.FalseBranch != null)
+                {
+                    return ImmutableArray.Create(state.FalseBranch);
+                }
+                else
+                {
+                    return ImmutableArray<DagState>.Empty;
                 }
             }
 
