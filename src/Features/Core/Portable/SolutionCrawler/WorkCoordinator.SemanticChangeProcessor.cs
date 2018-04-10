@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal sealed partial class SolutionCrawlerRegistrationService
     {
+        public const string EnqueueItem = nameof(EnqueueItem);
+
         private sealed partial class WorkCoordinator
         {
             private sealed class SemanticChangeProcessor : IdleProcessor
@@ -407,7 +409,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         _processor.Enqueue(
                             new WorkItem(document.Id, document.Project.Language, InvocationReasons.SemanticChanged,
-                                isLowPriority, Listener.BeginAsyncOperation(nameof(EnqueueWorkItemAsync))));
+                                isLowPriority, Listener.BeginAsyncOperation(nameof(EnqueueWorkItemAsync), tag: EnqueueItem)));
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
