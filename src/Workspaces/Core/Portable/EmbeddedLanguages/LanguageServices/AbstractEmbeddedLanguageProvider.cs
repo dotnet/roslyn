@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             ISemanticFactsService semanticFacts,
             IVirtualCharService virtualCharService)
         {
+            // This is where we'll add the Regex and Json providers when their respective
+            // branches get merged in.
             _embeddedLanguages = ImmutableArray.Create<IEmbeddedLanguage>();
         }
 
