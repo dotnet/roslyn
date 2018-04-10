@@ -5067,8 +5067,8 @@ class C
                 {
                     {methodToken, debugInfo}
                 }.ToImmutableDictionary());
-            var context = EvaluationContext.CreateMethodContext(
-                default(CSharpMetadataContext),
+            var context = CreateMethodContext(
+                new AppDomain(),
                 blocks,
                 symReader,
                 moduleVersionId,

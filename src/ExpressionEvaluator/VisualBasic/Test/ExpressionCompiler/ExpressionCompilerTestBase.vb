@@ -127,6 +127,81 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             methodOrTypeToken = reader.GetToken(methodOrTypeHandle)
         End Sub
 
+        Friend NotInheritable Class AppDomain
+            Private _metadataContext As MetadataContext(Of VisualBasicMetadataContext)
+
+            Friend Function GetMetadataContext() As MetadataContext(Of VisualBasicMetadataContext)
+                Return _metadataContext
+            End Function
+
+            Friend Sub SetMetadataContext(metadataContext As MetadataContext(Of VisualBasicMetadataContext))
+                _metadataContext = metadataContext
+            End Sub
+
+            Friend Sub RemoveMetadataContext()
+                _metadataContext = Nothing
+            End Sub
+        End Class
+
+        Friend Shared Function CreateTypeContext(
+            appDomain As AppDomain,
+            metadataBlocks As ImmutableArray(Of MetadataBlock),
+            moduleVersionId As Guid,
+            typeToken As Integer,
+            kind As MakeAssemblyReferencesKind) As EvaluationContext
+
+            Return VisualBasicExpressionCompiler.CreateTypeContextHelper(
+                appDomain,
+                Function(ad) ad.GetMetadataContext(),
+                metadataBlocks,
+                moduleVersionId,
+                typeToken,
+                kind)
+        End Function
+
+        Friend Shared Function CreateMethodContext(
+            appDomain As AppDomain,
+            metadataBlocks As ImmutableArray(Of MetadataBlock),
+            lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
+            symReader As Object,
+            moduleVersionId As Guid,
+            methodToken As Integer,
+            methodVersion As Integer,
+            ilOffset As UInteger,
+            localSignatureToken As Integer,
+            kind As MakeAssemblyReferencesKind) As EvaluationContext
+
+            Return VisualBasicExpressionCompiler.CreateMethodContextHelper(
+                appDomain,
+                Function(ad) ad.GetMetadataContext(),
+                Sub(ad, mc, report) ad.SetMetadataContext(mc),
+                metadataBlocks,
+                lazyAssemblyReaders,
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken,
+                kind)
+        End Function
+
+        Friend Shared Function GetMetadataContext(appDomainContext As MetadataContext(Of VisualBasicMetadataContext)) As VisualBasicMetadataContext
+            Dim assemblyContexts = appDomainContext.AssemblyContexts
+            If assemblyContexts Is Nothing Then
+                Return Nothing
+            End If
+            Dim context As VisualBasicMetadataContext = Nothing
+            assemblyContexts.TryGetValue(Nothing, context)
+            Return context
+        End Function
+
+        Friend Shared Function SetMetadataContext(appDomainContext As MetadataContext(Of VisualBasicMetadataContext), context As VisualBasicMetadataContext) As MetadataContext(Of VisualBasicMetadataContext)
+            Return New MetadataContext(Of VisualBasicMetadataContext)(
+                appDomainContext.MetadataBlocks,
+                appDomainContext.AssemblyContexts.SetItem(Nothing, context))
+        End Function
+
         Friend Shared Function CreateMethodContext(
             runtime As RuntimeInstance,
             methodName As String,
@@ -143,8 +218,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
 
             Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber)
 
-            Return EvaluationContext.CreateMethodContext(
-                Nothing,
+            Return CreateMethodContext(
+                New AppDomain(),
                 blocks,
                 If(lazyAssemblyReaders, MakeDummyLazyAssemblyReaders()),
                 symReader,
@@ -175,8 +250,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Dim typeToken = 0
             Dim localSignatureToken = 0
             GetContextState(runtime, typeName, blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
-            Return EvaluationContext.CreateTypeContext(
-                Nothing,
+            Return VisualBasicExpressionCompiler.CreateTypeContextHelper(
+                New AppDomain(),
+                Function(ad) ad.GetMetadataContext(),
                 blocks,
                 moduleVersionId,
                 typeToken,

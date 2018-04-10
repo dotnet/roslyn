@@ -3348,8 +3348,8 @@ End Class"
                 {
                     {methodToken, debugInfo}
                 }.ToImmutableDictionary())
-            Dim context = EvaluationContext.CreateMethodContext(
-                Nothing,
+            Dim context = CreateMethodContext(
+                New AppDomain(),
                 blocks,
                 MakeDummyLazyAssemblyReaders(),
                 symReader,

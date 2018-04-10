@@ -123,23 +123,60 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             }
         }
 
+        internal static EvaluationContext CreateTypeContext(
+            AppDomain appDomain,
+            ImmutableArray<MetadataBlock> blocks,
+            Guid moduleVersionId,
+            int typeToken,
+            MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllAssemblies)
+        {
+            return CSharpExpressionCompiler.CreateTypeContext(
+                appDomain,
+                ad => ad.GetMetadataContext(),
+                blocks,
+                moduleVersionId,
+                typeToken,
+                kind);
+        }
+
         internal static EvaluationContext CreateMethodContext(
             AppDomain appDomain,
             ImmutableArray<MetadataBlock> blocks,
-            (Guid ModuleVersionId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) state)
+            ISymUnmanagedReader symReader,
+            Guid moduleVersionId,
+            int methodToken,
+            int methodVersion,
+            uint ilOffset,
+            int localSignatureToken,
+            MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllAssemblies)
         {
             return CSharpExpressionCompiler.CreateMethodContext(
                 appDomain,
                 ad => ad.GetMetadataContext(),
-                (ad, mc) => ad.SetMetadataContext(mc),
+                (ad, mc, report) => ad.SetMetadataContext(mc),
                 blocks,
-                state.SymReader,
-                state.ModuleVersionId,
-                state.MethodToken,
-                methodVersion: 1,
-                state.ILOffset,
-                state.LocalSignatureToken,
-                MakeAssemblyReferencesKind.AllAssemblies);
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken,
+                kind);
+        }
+
+        internal static CSharpMetadataContext GetMetadataContext(MetadataContext<CSharpMetadataContext> appDomainContext, Guid mvid = default)
+        {
+            var assemblyContexts = appDomainContext.AssemblyContexts;
+            return assemblyContexts != null && assemblyContexts.TryGetValue(new MetadataContextId(mvid), out CSharpMetadataContext context) ?
+                context :
+                default;
+        }
+
+        internal static MetadataContext<CSharpMetadataContext> SetMetadataContext(MetadataContext<CSharpMetadataContext> appDomainContext, Guid mvid, CSharpMetadataContext context)
+        {
+            return new MetadataContext<CSharpMetadataContext>(
+                appDomainContext.MetadataBlocks,
+                appDomainContext.AssemblyContexts.SetItem(new MetadataContextId(mvid), context));
         }
 
         internal static (Guid ModuleVersionId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) GetContextState(RuntimeInstance runtime, string methodName)
@@ -227,8 +264,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
             uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber);
 
-            return EvaluationContext.CreateMethodContext(
-                default(CSharpMetadataContext),
+            return CreateMethodContext(
+                new AppDomain(),
                 blocks,
                 symReader,
                 moduleVersionId,
@@ -249,8 +286,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             int typeToken;
             int localSignatureToken;
             GetContextState(runtime, typeName, out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
-            return EvaluationContext.CreateTypeContext(
-                default(CSharpMetadataContext),
+            return CreateTypeContext(
+                new AppDomain(),
                 blocks,
                 moduleVersionId,
                 typeToken,

@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Property
 
         Friend Delegate Function GetMetadataContextDelegate(Of TAppDomain)(appDomain As TAppDomain) As MetadataContext(Of VisualBasicMetadataContext)
-        Friend Delegate Sub SetMetadataContextDelegate(Of TAppDomain)(appDomain As TAppDomain, metadataContext As MetadataContext(Of VisualBasicMetadataContext))
+        Friend Delegate Sub SetMetadataContextDelegate(Of TAppDomain)(appDomain As TAppDomain, metadataContext As MetadataContext(Of VisualBasicMetadataContext), report As Boolean)
 
         Friend Overrides Function CreateTypeContext(
             appDomain As DkmClrAppDomain,
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Return CreateTypeContextHelper(
                 appDomain,
-                Function(ad) ad.GetMetadataContext(Of MetadataContext(Of VisualBasicMetadataContext))(),
+                Function(ad) ad.GetMetadataContext(Of VisualBasicMetadataContext)(),
                 metadataBlocks,
                 moduleVersionId,
                 typeToken,
@@ -55,12 +55,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             metadataBlocks As ImmutableArray(Of MetadataBlock),
             moduleVersionId As Guid,
             typeToken As Integer,
-            kind As MakeAssemblyReferencesKind) As EvaluationContextBase
+            kind As MakeAssemblyReferencesKind) As EvaluationContext
+
+            Dim compilation As VisualBasicCompilation
 
             If kind = MakeAssemblyReferencesKind.DirectReferencesOnly Then
                 ' Avoid using the cache for referenced assemblies only
                 ' since this should be the exceptional case.
-                Dim compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
+                compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
                 Return EvaluationContext.CreateTypeContext(
                     compilation,
                     moduleVersionId,
@@ -69,22 +71,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim contextId = MetadataContextId.GetContextId(moduleVersionId, kind)
             Dim previous = getMetadataContext(appDomain)
-            Dim previousContext As VisualBasicMetadataContext = Nothing
+            Dim previousMetadataContext As VisualBasicMetadataContext = Nothing
             If previous.Matches(metadataBlocks) Then
-                previous.AssemblyContexts.TryGetValue(contextId, previousContext)
+                previous.AssemblyContexts.TryGetValue(contextId, previousMetadataContext)
             End If
+
+            ' Re-use the previous compilation if possible.
+            compilation = If(previousMetadataContext.Compilation,
+                metadataBlocks.ToCompilation(moduleVersionId, kind))
+
             Dim context = EvaluationContext.CreateTypeContext(
-                previousContext,
-                metadataBlocks,
+                compilation,
                 moduleVersionId,
-                typeToken,
-                kind)
+                typeToken)
 
             ' New type context is not attached to the AppDomain since it is less
             ' re-usable than the previous attached method context. (We could hold
             ' on to it if we don't have a previous method context but it's unlikely
             ' that we evaluated a type-level expression before a method-level.)
-            Debug.Assert(context IsNot previousContext.EvaluationContext)
+            Debug.Assert(context IsNot previousMetadataContext.EvaluationContext)
 
             Return context
         End Function
@@ -103,8 +108,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Return CreateMethodContextHelper(
                 appDomain,
-                Function(ad) ad.GetMetadataContext(Of MetadataContext(Of VisualBasicMetadataContext))(),
-                Sub(ad, mc) ad.SetMetadataContext(Of MetadataContext(Of VisualBasicMetadataContext))(mc),
+                Function(ad) ad.GetMetadataContext(Of VisualBasicMetadataContext)(),
+                Sub(ad, mc, report) ad.SetMetadataContext(Of VisualBasicMetadataContext)(mc, report),
                 metadataBlocks,
                 lazyAssemblyReaders,
                 symReader,
@@ -128,12 +133,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             methodVersion As Integer,
             ilOffset As UInteger,
             localSignatureToken As Integer,
-            kind As MakeAssemblyReferencesKind) As EvaluationContextBase
+            kind As MakeAssemblyReferencesKind) As EvaluationContext
+
+            Dim compilation As VisualBasicCompilation
+            Dim offset = EvaluationContextBase.NormalizeILOffset(ilOffset)
 
             If kind = MakeAssemblyReferencesKind.DirectReferencesOnly Then
                 ' Avoid using the cache for referenced assemblies only
                 ' since this should be the exceptional case.
-                Dim compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
+                compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
                 Return EvaluationContext.CreateMethodContext(
                     compilation,
                     lazyAssemblyReaders,
@@ -141,45 +149,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     moduleVersionId,
                     methodToken,
                     methodVersion,
-                    ilOffset,
+                    offset,
                     localSignatureToken)
             End If
 
             Dim contextId = MetadataContextId.GetContextId(moduleVersionId, kind)
             Dim previous = getMetadataContext(appDomain)
             Dim assemblyContexts = If(previous.Matches(metadataBlocks), previous.AssemblyContexts, ImmutableDictionary(Of MetadataContextId, VisualBasicMetadataContext).Empty)
-            Dim previousContext As VisualBasicMetadataContext = Nothing
-            assemblyContexts.TryGetValue(contextId, previousContext)
+            Dim previousMetadataContext As VisualBasicMetadataContext = Nothing
+            assemblyContexts.TryGetValue(contextId, previousMetadataContext)
+
+            ' Re-use the previous compilation if possible.
+            compilation = previousMetadataContext.Compilation
+            If compilation IsNot Nothing Then
+                ' Re-use entire context if method scope has not changed.
+                Dim previousContext = previousMetadataContext.EvaluationContext
+                If previousContext IsNot Nothing AndAlso
+                    previousContext.MethodContextReuseConstraints.HasValue AndAlso
+                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset) Then
+                    Return previousContext
+                End If
+            Else
+                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind)
+            End If
 
             Dim context = EvaluationContext.CreateMethodContext(
-                previousContext,
-                metadataBlocks,
+                compilation,
                 lazyAssemblyReaders,
                 symReader,
                 moduleVersionId,
                 methodToken,
                 methodVersion,
-                ilOffset,
-                localSignatureToken,
-                kind)
+                offset,
+                localSignatureToken)
 
-            If context IsNot previousContext.EvaluationContext Then
+            If context IsNot previousMetadataContext.EvaluationContext Then
                 setMetadataContext(
                     appDomain,
                     New MetadataContext(Of VisualBasicMetadataContext)(
                         metadataBlocks,
-                        assemblyContexts.SetItem(contextId, New VisualBasicMetadataContext(context.Compilation, context))))
+                        assemblyContexts.SetItem(contextId, New VisualBasicMetadataContext(context.Compilation, context))),
+                    report:=kind = MakeAssemblyReferencesKind.AllReferences)
             End If
 
             Return context
         End Function
 
         Friend Overrides Sub RemoveDataItem(appDomain As DkmClrAppDomain)
-            appDomain.RemoveMetadataContext(Of MetadataContext(Of VisualBasicMetadataContext))()
+            appDomain.RemoveMetadataContext(Of VisualBasicMetadataContext)()
         End Sub
 
         Friend Overrides Function GetMetadataBlocks(appDomain As DkmClrAppDomain, runtimeInstance As DkmClrRuntimeInstance) As ImmutableArray(Of MetadataBlock)
-            Dim previous = appDomain.GetMetadataContext(Of MetadataContext(Of VisualBasicMetadataContext))()
+            Dim previous = appDomain.GetMetadataContext(Of VisualBasicMetadataContext)()
             Return runtimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks)
         End Function
 

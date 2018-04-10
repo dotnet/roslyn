@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overrides Function GetCompilation(moduleInstance As DkmClrModuleInstance) As VisualBasicCompilation
             Dim appDomain = moduleInstance.AppDomain
             Dim moduleVersionId = moduleInstance.Mvid
-            Dim previous = appDomain.GetMetadataContext(Of MetadataContext(Of VisualBasicMetadataContext))()
+            Dim previous = appDomain.GetMetadataContext(Of VisualBasicMetadataContext)()
             Dim metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks)
 
             Dim kind = GetMakeAssemblyReferencesKind()
@@ -100,7 +100,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 appDomain.SetMetadataContext(
                     New MetadataContext(Of VisualBasicMetadataContext)(
                         metadataBlocks,
-                        assemblyContexts.SetItem(contextId, New VisualBasicMetadataContext(compilation))))
+                        assemblyContexts.SetItem(contextId, New VisualBasicMetadataContext(compilation))),
+                    report:=kind = MakeAssemblyReferencesKind.AllReferences)
             End If
 
             Return compilation

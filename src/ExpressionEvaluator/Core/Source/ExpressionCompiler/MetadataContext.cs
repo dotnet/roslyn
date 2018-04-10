@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public bool Equals(MetadataContextId other)
         {
-            return _moduleVersionId.Equals(other);
+            return _moduleVersionId.Equals(other._moduleVersionId);
         }
 
         public override bool Equals(object obj)

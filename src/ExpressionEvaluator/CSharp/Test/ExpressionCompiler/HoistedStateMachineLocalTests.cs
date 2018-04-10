@@ -1366,9 +1366,10 @@ class C
                 int localSignatureToken;
                 GetContextState(runtime, "C.<M>d__0.MoveNext", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
+                var appDomain = new AppDomain();
                 uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 100);
-                var context = EvaluationContext.CreateMethodContext(
-                    default(CSharpMetadataContext),
+                var context = CreateMethodContext(
+                    appDomain,
                     blocks,
                     symReader,
                     moduleVersionId,
@@ -1385,8 +1386,8 @@ class C
                 Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
 
                 ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 200);
-                context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(context.Compilation, context),
+                context = CreateMethodContext(
+                    appDomain,
                     blocks,
                     symReader,
                     moduleVersionId,

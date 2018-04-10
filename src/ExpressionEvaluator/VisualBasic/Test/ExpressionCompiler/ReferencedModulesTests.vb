@@ -101,8 +101,9 @@ End Class"
                     GetContextState(runtime, "C.M", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
                     ' Compile expression with type context.
-                    Dim context = EvaluationContext.CreateTypeContext(
-                        Nothing,
+                    Dim appDomain = New AppDomain()
+                    Dim context = CreateTypeContext(
+                        appDomain,
                         typeBlocks,
                         moduleVersionId,
                         typeToken,
@@ -121,9 +122,13 @@ End Class"
                     Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
 
                     ' Compile expression with method context.
-                    Dim previous = New VisualBasicMetadataContext(context.Compilation, context)
-                    context = EvaluationContext.CreateMethodContext(
-                        previous,
+                    appDomain.SetMetadataContext(
+                        SetMetadataContext(
+                            New MetadataContext(Of VisualBasicMetadataContext)(typeBlocks, ImmutableDictionary(Of MetadataContextId, VisualBasicMetadataContext).Empty),
+                            New VisualBasicMetadataContext(context.Compilation)))
+                    Dim previous = appDomain.GetMetadataContext()
+                    context = CreateMethodContext(
+                        appDomain,
                         methodBlocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -133,7 +138,8 @@ End Class"
                         ilOffset:=0,
                         localSignatureToken:=localSignatureToken,
                         kind:=MakeAssemblyReferencesKind.AllAssemblies)
-                    Assert.Equal(previous.Compilation, context.Compilation) ' re-use type context compilation
+                    Assert.NotSame(GetMetadataContext(previous).EvaluationContext, context)
+                    Assert.Same(GetMetadataContext(previous).Compilation, context.Compilation) ' re-use type context compilation
                     ' Ideally, B should be resolved to BS1.
                     context.CompileExpression("New B()", errorMessage)
                     Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
@@ -337,8 +343,8 @@ End Class"
                     Dim localSignatureToken = 0
                     GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
-                    Dim context = EvaluationContext.CreateMethodContext(
-                        Nothing,
+                    Dim context = CreateMethodContext(
+                        New AppDomain(),
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,

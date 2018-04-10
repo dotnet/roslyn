@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var appDomain = moduleInstance.AppDomain;
             var moduleVersionId = moduleInstance.Mvid;
-            var previous = appDomain.GetMetadataContext<MetadataContext<CSharpMetadataContext>>();
+            var previous = appDomain.GetMetadataContext<CSharpMetadataContext>();
             var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks);
 
             var kind = GetMakeAssemblyReferencesKind();
@@ -152,7 +152,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 appDomain.SetMetadataContext(
                     new MetadataContext<CSharpMetadataContext>(
                         metadataBlocks,
-                        assemblyContexts.SetItem(contextId, new CSharpMetadataContext(compilation))));
+                        assemblyContexts.SetItem(contextId, new CSharpMetadataContext(compilation))),
+                    report: kind == MakeAssemblyReferencesKind.AllReferences);
             }
 
             return compilation;
