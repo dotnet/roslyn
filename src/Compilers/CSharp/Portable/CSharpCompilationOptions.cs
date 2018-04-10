@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Hash.Combine(base.GetHashCodeHelper(),
                    Hash.Combine(this.AllowUnsafe,
-                   Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal),
+                   Hash.Combine(Hash.CombineValues(this.Usings, CaseInsensitiveComparison.Comparer),
                    Hash.Combine(TopLevelBinderFlags.GetHashCode(), 0))));
         }
 

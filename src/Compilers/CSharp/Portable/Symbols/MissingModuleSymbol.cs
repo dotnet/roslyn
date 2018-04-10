@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int GetHashCode()
         {
-            return Hash.Combine(assembly.GetHashCode(), StringComparer.OrdinalIgnoreCase.GetHashCode(_name));
+            return Hash.Combine(assembly.GetHashCode(), CaseInsensitiveComparison.GetHashCode(_name));
         }
 
         public override bool Equals(object obj)
