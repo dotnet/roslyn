@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim otherModule = otherAssembly.Modules(i)
 
                     ' use case sensitive comparison -- modules whose names differ in casing are considered distinct
-                    If StringComparer.Ordinal.Equals(otherModule.Name, [module].Name) Then
+                    If CaseInsensitiveComparison.Comparer.Equals(otherModule.Name, [module].Name) Then
                         Return otherModule
                     End If
                 Next

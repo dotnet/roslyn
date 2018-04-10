@@ -1385,7 +1385,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Debug.Assert(containing IsNot Nothing)
                     If containing.IsClosureType() Then
                         candidateSubstitutedSourceType = containing
-                        sourceMethodMustBeInstance = candidateSubstitutedSourceType.MemberNames.Contains(StringConstants.HoistedMeName, StringComparer.Ordinal)
+                        sourceMethodMustBeInstance = candidateSubstitutedSourceType.MemberNames.Contains(StringConstants.HoistedMeName, CaseInsensitiveComparison.Comparer)
                     End If
                 End If
 
