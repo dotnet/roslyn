@@ -846,7 +846,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
                 Dim namesChange As CodeModelEventType = 0
 
-                If NotCaseInsensitiveComparison.Equals(oldEnumMember.Identifier.ToString(), newEnumMember.Identifier.ToString()) Then
+                If Not CaseInsensitiveComparison.Equals(oldEnumMember.Identifier.ToString(), newEnumMember.Identifier.ToString()) Then
                     namesChange = CodeModelEventType.Rename
                     hasChanges = True
                 End If
@@ -893,7 +893,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim typesChange As CodeModelEventType = 0
                 Dim valuesChange As CodeModelEventType = 0
 
-                If NotCaseInsensitiveComparison.Equals(Me.CodeModelService.GetParameterName(oldParameter), Me.CodeModelService.GetParameterName(newParameter)) Then
+                If Not CaseInsensitiveComparison.Equals(Me.CodeModelService.GetParameterName(oldParameter), Me.CodeModelService.GetParameterName(newParameter)) Then
                     namesChange = CodeModelEventType.Rename
                     hasChanges = True
                 End If
