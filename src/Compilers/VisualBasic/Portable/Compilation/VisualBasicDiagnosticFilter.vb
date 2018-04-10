@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function Filter(diagnostic As Diagnostic, generalDiagnosticOption As ReportDiagnostic, specificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic)) As Diagnostic
             ' Diagnostic ids must be processed in case-insensitive fashion in VB.
             Dim caseInsensitiveSpecificDiagnosticOptions =
-            ImmutableDictionary.Create(Of String, ReportDiagnostic)(IdentifierComparison.Comparer).AddRange(specificDiagnosticOptions)
+            ImmutableDictionary.Create(Of String, ReportDiagnostic)(StringComparers.IdentifierComparer).AddRange(specificDiagnosticOptions)
 
             ' Filter void diagnostics so that our callers don't have to perform resolution
             ' (which might copy the list of diagnostics).

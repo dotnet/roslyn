@@ -224,11 +224,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             ' And now, methods and properties
             If type.TypeKind <> TypeKind.Delegate Then
                 Dim memberGroups = type.GetMembers().Where(AddressOf IncludeMember) _
-                                                    .GroupBy(Function(m) m.Name, CaseInsensitiveComparison.Comparer) _
+                                                    .GroupBy(Function(m) m.Name, StringComparers.IdentifierComparer) _
                                                     .OrderBy(Function(g) g.Key)
 
                 For Each memberGroup In memberGroups
-                    If Not CaseInsensitiveComparison.Equals(memberGroup.Key, WellKnownMemberNames.DestructorName) Then
+                    If Not StringComparers.IdentifierComparer.Equals(memberGroup.Key, WellKnownMemberNames.DestructorName) Then
                         childItems.AddRange(CreateItemsForMemberGroup(memberGroup, tree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
                     End If
                 Next

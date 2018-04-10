@@ -466,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub CheckMemberDistinctness(symbol As NamespaceOrTypeSymbol)
             Debug.Assert(IsAccessibleOutsideAssembly(symbol))
             Debug.Assert(IsTrue(GetDeclaredOrInheritedCompliance(symbol)))
-            Dim seenByName As MultiDictionary(Of String, Symbol) = New MultiDictionary(Of String, Symbol)(IdentifierComparison.Comparer)
+            Dim seenByName As MultiDictionary(Of String, Symbol) = New MultiDictionary(Of String, Symbol)(StringComparers.IdentifierComparer)
 
             ' BREAK: Dev11 does not consider collisions with inherited members
 

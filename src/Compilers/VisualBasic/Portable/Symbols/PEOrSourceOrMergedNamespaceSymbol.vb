@@ -137,13 +137,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Private Sub EnsureExtensionMethodsAreCollected()
             If _lazyExtensionMethodsMap Is Nothing Then
-                Dim map As New Dictionary(Of String, ArrayBuilder(Of MethodSymbol))(IdentifierComparison.Comparer)
+                Dim map As New Dictionary(Of String, ArrayBuilder(Of MethodSymbol))(StringComparers.IdentifierComparer)
                 BuildExtensionMethodsMap(map)
 
                 If map.Count = 0 Then
                     _lazyExtensionMethodsMap = s_emptyDictionary
                 Else
-                    Dim extensionMethods As New Dictionary(Of String, ImmutableArray(Of Symbol))(map.Count, IdentifierComparison.Comparer)
+                    Dim extensionMethods As New Dictionary(Of String, ImmutableArray(Of Symbol))(map.Count, StringComparers.IdentifierComparer)
 
                     For Each pair As KeyValuePair(Of String, ArrayBuilder(Of MethodSymbol)) In map
                         extensionMethods.Add(pair.Key, StaticCast(Of Symbol).From(pair.Value.ToImmutableAndFree()))

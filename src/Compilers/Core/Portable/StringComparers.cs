@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
 {
     public static class StringComparers
     {
-       public static StringComparer FileSystemNameComparer =  StringComparer.OrdinalIgnoreCase;
+        public static StringComparer FileSystemNameComparer =  StringComparer.OrdinalIgnoreCase;
        public static StringComparer IdentifierComparer = CaseInsensitiveComparison.Comparer; 
     }
 }

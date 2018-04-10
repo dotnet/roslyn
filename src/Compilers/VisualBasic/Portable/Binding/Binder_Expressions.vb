@@ -2402,7 +2402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Dev10 disallows implicit variable creation for "Null", "Empty", and "RND".
             Dim name As String = MakeHalfWidthIdentifier(nameSyntax.Identifier.ValueText)
-            If IdentifierComparison.Equals(name, "Null") OrElse IdentifierComparison.Equals(name, "Empty") OrElse IdentifierComparison.Equals(name, "RND") Then
+            If StringComparers.IdentifierComparer.Equals(name, "Null") OrElse StringComparers.IdentifierComparer.Equals(name, "Empty") OrElse StringComparers.IdentifierComparer.Equals(name, "RND") Then
                 Return False
             End If
 
@@ -2708,7 +2708,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If leftType IsNot Nothing Then
                         Dim leftName = node.Identifier.ValueText
-                        If IdentifierComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TypeKind.TypeParameter Then
+                        If StringComparers.IdentifierComparer.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TypeKind.TypeParameter Then
                             Dim typeDiagnostics = New DiagnosticBag()
                             Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
                             If boundType.Type = leftType Then
@@ -2773,7 +2773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     DirectCast(right, GenericNameSyntax).Identifier)
 
                 If Not identifier.IsBracketed AndAlso
-                        IdentifierComparison.Equals(identifier.ValueText, SyntaxFacts.GetText(SyntaxKind.NewKeyword)) Then
+                        StringComparers.IdentifierComparer.Equals(identifier.ValueText, SyntaxFacts.GetText(SyntaxKind.NewKeyword)) Then
 
                     If leftTypeSymbol.IsArrayType() Then
                         ' No instance constructors found. Can't call constructor on an array type.
@@ -3957,7 +3957,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If commonName Is Nothing Then
                         commonName = expressionType.Name
-                    ElseIf Not noCommonName AndAlso Not IdentifierComparison.Equals(commonName, expressionType.Name) Then
+                    ElseIf Not noCommonName AndAlso Not StringComparers.IdentifierComparer.Equals(commonName, expressionType.Name) Then
                         noCommonName = True
                     End If
                 End If

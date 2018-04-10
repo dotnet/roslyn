@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                           binder.GetSyntaxReference(typeParamSyntax))
 
                 ' method type parameters cannot have same name as containing Function (but can for a Sub)
-                If Me.DeclarationSyntax.Kind = SyntaxKind.FunctionStatement AndAlso IdentifierComparison.Equals(Me.Name, ident.ValueText) Then
+                If Me.DeclarationSyntax.Kind = SyntaxKind.FunctionStatement AndAlso StringComparers.IdentifierComparer.Equals(Me.Name, ident.ValueText) Then
                     Binder.ReportDiagnostic(diagBag, typeParamSyntax, ERRID.ERR_TypeParamNameFunctionNameCollision)
                 End If
             Next

@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrection
     Friend Class AutomaticEndConstructSet
-        Private Shared s_set As HashSet(Of String) = New HashSet(Of String)(CaseInsensitiveComparison.Comparer) _
+        Private Shared s_set As HashSet(Of String) = New HashSet(Of String)(StringComparers.IdentifierComparer) _
                 From {"structure", "enum", "interface", "class", "module", "namespace", "sub", "function", "get", "set"}
 
         Public Shared Function Contains(keyword As String) As Boolean

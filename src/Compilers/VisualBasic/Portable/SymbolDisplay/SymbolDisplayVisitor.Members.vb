@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             AddKeyword(SyntaxKind.FunctionKeyword)
                             AddSpace()
                         Else
-                            If IdentifierComparison.Equals(symbol.Name, WellKnownMemberNames.ImplicitConversionName) Then
+                            If StringComparers.IdentifierComparer.Equals(symbol.Name, WellKnownMemberNames.ImplicitConversionName) Then
                                 AddKeyword(SyntaxKind.WideningKeyword)
                                 AddSpace()
                             Else

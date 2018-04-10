@@ -1926,7 +1926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim implParameter As ParameterSymbol = implMethodParams(index)
 
                     '  Check type parameter name
-                    If Not IdentifierComparison.Equals(declParameter.Name, implParameter.Name) Then
+                    If Not StringComparers.IdentifierComparer.Equals(declParameter.Name, implParameter.Name) Then
 
                         Debug.Assert(implParameter.Locations.Length = 1)
                         diagnostics.Add(ERRID.ERR_PartialMethodParamNamesMustMatch3,
@@ -1947,7 +1947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim implParameter As TypeParameterSymbol = implTypeParams(index)
 
                     '  Check parameter name
-                    If Not IdentifierComparison.Equals(declParameter.Name, implParameter.Name) Then
+                    If Not StringComparers.IdentifierComparer.Equals(declParameter.Name, implParameter.Name) Then
 
                         Debug.Assert(implParameter.Locations.Length = 1)
                         diagnostics.Add(ERRID.ERR_PartialMethodTypeParamNameMismatch3,
@@ -2324,7 +2324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If baseType IsNot Nothing Then
                 Dim baseDefaultPropertyName = baseType.DefaultPropertyName
                 If baseDefaultPropertyName IsNot Nothing Then
-                    If Not IdentifierComparison.Equals(defaultPropertyName, baseDefaultPropertyName) Then
+                    If Not StringComparers.IdentifierComparer.Equals(defaultPropertyName, baseDefaultPropertyName) Then
                         ' BC40007: Default property '{0}' conflicts with the default property '{1}' in the base {2} '{3}'. '{0}' will be the default property
                         diagBag.Add(ERRID.WRN_DefaultnessShadowed4, location,
                                     defaultPropertyName, baseDefaultPropertyName, baseType.GetKindText(), CustomSymbolDisplayFormatter.ShortErrorName(baseType))
@@ -3059,7 +3059,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' If there are any errors in cases if defining members have same names.
                     ' In such cases, the errors should be reported on the defining symbols.
 
-                    If Not IdentifierComparison.Equals(firstAssociatedSymbol.Name,
+                    If Not StringComparers.IdentifierComparer.Equals(firstAssociatedSymbol.Name,
                                                        secondAssociatedSymbol.Name) Then
                         '{0} '{1}' implicitly defines '{2}', which conflicts with a member implicitly declared for {3} '{4}' in {5} '{6}'.
                         Binder.ReportDiagnostic(

@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Dim accumulatedGeneralWarningState = ReportDiagnostic.Default
 
             ' Captures reporting state for specific warnings. Diagnostic ids must be processed in case-insensitive fashion in VB.
-            Dim accumulatedSpecificWarningState = ImmutableDictionary.Create(Of String, ReportDiagnostic)(IdentifierComparison.Comparer)
+            Dim accumulatedSpecificWarningState = ImmutableDictionary.Create(Of String, ReportDiagnostic)(StringComparers.IdentifierComparer)
 
             While (index < directiveList.Length)
                 Dim currentDirective = directiveList(index)
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     ' Update the general reporting state and reset the specific one.
                     accumulatedGeneralWarningState = reportingState
                     ' Diagnostic ids must be processed in case-insensitive fashion in VB.
-                    accumulatedSpecificWarningState = ImmutableDictionary.Create(Of String, ReportDiagnostic)(IdentifierComparison.Comparer)
+                    accumulatedSpecificWarningState = ImmutableDictionary.Create(Of String, ReportDiagnostic)(StringComparers.IdentifierComparer)
                 Else
                     For i As Integer = 0 To codes.Count - 1
                         Dim currentCode = codes(i)

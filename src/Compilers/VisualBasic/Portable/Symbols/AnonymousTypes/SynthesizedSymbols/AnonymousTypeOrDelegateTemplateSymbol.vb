@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
                 ' TODO - Perf
-                Return ImmutableArray.CreateRange(From member In GetMembers() Where IdentifierComparison.Equals(member.Name, name))
+                Return ImmutableArray.CreateRange(From member In GetMembers() Where StringComparers.IdentifierComparer.Equals(member.Name, name))
             End Function
 
             Public Overrides ReadOnly Property MemberNames As IEnumerable(Of String)

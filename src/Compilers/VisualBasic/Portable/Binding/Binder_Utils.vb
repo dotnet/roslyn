@@ -897,7 +897,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim name = param.Name
                 For Each tp In typeParams
-                    If CaseInsensitiveComparison.Equals(tp.Name, name) Then
+                    If StringComparers.IdentifierComparer.Equals(tp.Name, name) Then
                         ' "'{0}' is already declared as a type parameter of this method."
                         ReportDiagnostic(diagBag, paramSyntax.Identifier, ERRID.ERR_NameSameAsMethodTypeParam1, name)
                         Exit For

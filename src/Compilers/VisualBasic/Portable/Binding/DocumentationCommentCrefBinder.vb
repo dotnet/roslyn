@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim symbols = ArrayBuilder(Of Symbol).GetInstance
 
             ' Bind the name part and collect type parameters
-            Dim typeParameters As New Dictionary(Of String, CrefTypeParameterSymbol)(IdentifierComparison.Comparer)
+            Dim typeParameters As New Dictionary(Of String, CrefTypeParameterSymbol)(StringComparers.IdentifierComparer)
             CollectCrefNameSymbolsStrict(reference.Name, reference.Signature.ArgumentTypes.Count, typeParameters, symbols, preserveAliases, useSiteDiagnostics)
             If symbols.Count = 0 Then
                 symbols.Free()
