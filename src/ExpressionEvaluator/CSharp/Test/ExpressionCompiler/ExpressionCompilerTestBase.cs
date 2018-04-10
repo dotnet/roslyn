@@ -164,6 +164,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 kind);
         }
 
+        internal static EvaluationContext CreateMethodContext(
+            AppDomain appDomain,
+            ImmutableArray<MetadataBlock> blocks,
+            (Guid ModuleVersionId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) state)
+        {
+            return CreateMethodContext(
+                appDomain,
+                blocks,
+                state.SymReader,
+                state.ModuleVersionId,
+                state.MethodToken,
+                methodVersion: 1,
+                state.ILOffset,
+                state.LocalSignatureToken,
+                MakeAssemblyReferencesKind.AllReferences);
+        }
+
         internal static CSharpMetadataContext GetMetadataContext(MetadataContext<CSharpMetadataContext> appDomainContext, Guid mvid = default)
         {
             var assemblyContexts = appDomainContext.AssemblyContexts;
@@ -206,23 +223,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             out int methodOrTypeToken,
             out int localSignatureToken)
         {
-            GetContextState(runtime.Modules, methodOrTypeName, out blocks, out moduleVersionId, out symReader, out methodOrTypeToken, out localSignatureToken);
-        }
-
-        internal static void GetContextState(
-            ImmutableArray<ModuleInstance> moduleInstances,
-            string methodOrTypeName,
-            out ImmutableArray<MetadataBlock> blocks,
-            out Guid moduleVersionId,
-            out ISymUnmanagedReader symReader,
-            out int methodOrTypeToken,
-            out int localSignatureToken,
-            Guid moduleVersionIdOpt = default,
-            MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllAssemblies) // TODO: Revert this change. No need for MakeAssemblyReferencesKind here.
-        {
+            var moduleInstances = runtime.Modules;
             blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
 
-            var compilation = blocks.ToCompilation(moduleVersionIdOpt, kind);
+            var compilation = blocks.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies);
 
             var methodOrType = GetMethodOrTypeBySignature(compilation, methodOrTypeName);
 
@@ -230,7 +234,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var id = module.Module.GetModuleVersionIdOrThrow();
             var moduleInstance = moduleInstances.First(m => m.ModuleVersionId == id);
 
-            Debug.Assert(kind == MakeAssemblyReferencesKind.AllAssemblies || moduleVersionIdOpt == id);
             moduleVersionId = id;
             symReader = (ISymUnmanagedReader)moduleInstance.SymReader;
 

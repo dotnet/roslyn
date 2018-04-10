@@ -12,16 +12,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     // when the Compilation references all loaded assemblies).
     internal struct MetadataContextId : IEquatable<MetadataContextId>
     {
-        private readonly Guid _moduleVersionId;
+        internal readonly Guid ModuleVersionId;
 
         internal MetadataContextId(Guid moduleVersionId)
         {
-            _moduleVersionId = moduleVersionId;
+            ModuleVersionId = moduleVersionId;
         }
 
         public bool Equals(MetadataContextId other)
         {
-            return _moduleVersionId.Equals(other._moduleVersionId);
+            return ModuleVersionId.Equals(other.ModuleVersionId);
         }
 
         public override bool Equals(object obj)
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public override int GetHashCode()
         {
-            return _moduleVersionId.GetHashCode();
+            return ModuleVersionId.GetHashCode();
         }
 
         internal static MetadataContextId GetContextId(Guid moduleVersionId, MakeAssemblyReferencesKind kind)

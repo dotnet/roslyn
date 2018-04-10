@@ -53,11 +53,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal static bool GetBoolRegistryValue(string name)
         {
             var value = RegistryHelpers.GetRegistryValue(name);
-            if ((value != null) && (value is int))
-            {
-                return (int)value == 1;
-            }
-            return false;
+            return value is int i && i == 1;
         }
     }
 

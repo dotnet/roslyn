@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 Debug.Assert(referencesBuilder.Count == 0);
                 // CommonReferenceManager<TCompilation, TAssemblySymbol>.Bind()
-                // expects COR library to be included in the explicit assemblies (see bug #...).
+                // expects COR library to be included in the explicit assemblies.
                 Debug.Assert(corLibrary != null);
                 if (corLibrary != null && referencesByIdentity.TryGetValue(corLibrary.Name, out var corLibraryReferences))
                 {

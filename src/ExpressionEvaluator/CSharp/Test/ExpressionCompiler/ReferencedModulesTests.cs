@@ -43,19 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
             using (var runtime = CreateRuntimeInstance(new[] { moduleMscorlib, moduleA1, moduleA2, moduleB1, moduleB2, moduleC }))
             {
-                var (moduleVersionId, symReader, methodToken, localSignatureToken, ilOffset) = GetContextState(runtime, "B2.M");
+                var stateB2 = GetContextState(runtime, "B2.M");
 
-                // Missing A1.
+                // B2.M with missing A1.
                 var context = CreateMethodContext(
                     new AppDomain(),
                     ImmutableArray.Create(moduleMscorlib, moduleA2, moduleB1, moduleB2, moduleC).SelectAsArray(m => m.MetadataBlock),
-                    symReader,
-                    moduleVersionId,
-                    methodToken: methodToken,
-                    methodVersion: 1,
-                    ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken,
-                    kind: MakeAssemblyReferencesKind.AllReferences);
+                    stateB2);
                 ResultProperties resultProperties;
                 string error;
                 ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
@@ -71,16 +65,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 AssertEx.Equal(new[] { identityA1 }, missingAssemblyIdentities);
                 VerifyResolutionRequests(context, (identityA1, null, 1));
 
+                // B2.M with all assemblies.
                 context = CreateMethodContext(
                     new AppDomain(),
                     ImmutableArray.Create(moduleMscorlib, moduleA1, moduleA2, moduleB1, moduleB2, moduleC).SelectAsArray(m => m.MetadataBlock),
-                    symReader,
-                    moduleVersionId,
-                    methodToken: methodToken,
-                    methodVersion: 1,
-                    ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken,
-                    kind: MakeAssemblyReferencesKind.AllReferences);
+                    stateB2);
                 var testData = new CompilationTestData();
                 context.CompileExpression("new B2()", out error, testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
@@ -93,16 +82,11 @@ IL_0005:  ret
 }");
                 VerifyResolutionRequests(context, (identityA1, identityA1, 1));
 
+                // B2.M with all assemblies in reverse order.
                 context = CreateMethodContext(
                     new AppDomain(),
                     ImmutableArray.Create(moduleC, moduleB2, moduleB1, moduleA2, moduleA1, moduleMscorlib, moduleIntrinsic).SelectAsArray(m => m.MetadataBlock),
-                    symReader,
-                    moduleVersionId,
-                    methodToken: methodToken,
-                    methodVersion: 1,
-                    ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken,
-                    kind: MakeAssemblyReferencesKind.AllReferences);
+                    stateB2);
                 testData = new CompilationTestData();
                 context.CompileExpression("new B2()", out error, testData);
                 methodData = testData.GetMethodData("<>x.<>m0");
@@ -115,7 +99,59 @@ IL_0005:  ret
 }");
                 VerifyResolutionRequests(context, (identityA1, identityA1, 1));
 
-                // TODO: Test { A1.M, B1.M, C.M } with all assemblies.
+                // A1.M with all assemblies.
+                var stateA1 = GetContextState(runtime, "A1.M");
+                context = CreateMethodContext(
+                    new AppDomain(),
+                    ImmutableArray.Create(moduleMscorlib, moduleA1, moduleA2, moduleB1, moduleB2, moduleC).SelectAsArray(m => m.MetadataBlock),
+                    stateA1);
+                testData = new CompilationTestData();
+                context.CompileExpression("new A1()", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""A1..ctor()""
+IL_0005:  ret
+}");
+                VerifyResolutionRequests(context);
+
+                // B1.M with all assemblies.
+                var stateB1 = GetContextState(runtime, "B1.M");
+                context = CreateMethodContext(
+                    new AppDomain(),
+                    ImmutableArray.Create(moduleMscorlib, moduleA1, moduleA2, moduleB1, moduleB2, moduleC).SelectAsArray(m => m.MetadataBlock),
+                    stateB1);
+                testData = new CompilationTestData();
+                context.CompileExpression("new B1()", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""B1..ctor()""
+IL_0005:  ret
+}");
+                VerifyResolutionRequests(context, (identityA1, identityA1, 1));
+
+                // C1.M with all assemblies.
+                var stateC = GetContextState(runtime, "C1.M");
+                context = CreateMethodContext(
+                    new AppDomain(),
+                    ImmutableArray.Create(moduleMscorlib, moduleA1, moduleA2, moduleB1, moduleB2, moduleC).SelectAsArray(m => m.MetadataBlock),
+                    stateC);
+                testData = new CompilationTestData();
+                context.CompileExpression("new C1()", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""C1..ctor()""
+IL_0005:  ret
+}");
+                VerifyResolutionRequests(context, (identityB2, identityB2, 1), (identityA1, identityA1, 1), (identityA2, identityA2, 1));
             }
         }
 
@@ -132,19 +168,13 @@ IL_0005:  ret
 
             using (var runtime = CreateRuntimeInstance(new[] { moduleMscorlib, moduleA1, moduleA2, moduleA3, moduleB1 }))
             {
-                var (moduleVersionId, symReader, methodToken, localSignatureToken, ilOffset) = GetContextState(runtime, "B.M");
+                var stateB = GetContextState(runtime, "B.M");
 
                 // Expected version of A.
                 var context = CreateMethodContext(
                     new AppDomain(),
                     ImmutableArray.Create(moduleMscorlib, moduleA2, moduleB1).SelectAsArray(m => m.MetadataBlock),
-                    symReader,
-                    moduleVersionId,
-                    methodToken: methodToken,
-                    methodVersion: 1,
-                    ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken,
-                    kind: MakeAssemblyReferencesKind.AllReferences);
+                    stateB);
                 string error;
                 var testData = new CompilationTestData();
                 context.CompileExpression("new B()", out error, testData);
@@ -162,13 +192,7 @@ IL_0005:  ret
                 context = CreateMethodContext(
                     new AppDomain(),
                     ImmutableArray.Create(moduleMscorlib, moduleA3, moduleB1).SelectAsArray(m => m.MetadataBlock),
-                    symReader,
-                    moduleVersionId,
-                    methodToken: methodToken,
-                    methodVersion: 1,
-                    ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken,
-                    kind: MakeAssemblyReferencesKind.AllReferences);
+                    stateB);
                 testData = new CompilationTestData();
                 context.CompileExpression("new B()", out error, testData);
                 methodData = testData.GetMethodData("<>x.<>m0");
@@ -185,13 +209,7 @@ IL_0005:  ret
                 context = CreateMethodContext(
                     new AppDomain(),
                     ImmutableArray.Create(moduleMscorlib, moduleA1, moduleB1).SelectAsArray(m => m.MetadataBlock),
-                    symReader,
-                    moduleVersionId,
-                    methodToken: methodToken,
-                    methodVersion: 1,
-                    ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken,
-                    kind: MakeAssemblyReferencesKind.AllReferences);
+                    stateB);
                 testData = new CompilationTestData();
                 context.CompileExpression("new B()", out error, testData);
                 Assert.Equal("error CS1705: Assembly 'B' with identity 'B, Version=1.1.1.1, Culture=neutral, PublicKeyToken=null' uses 'A, Version=2.2.2.2, Culture=neutral, PublicKeyToken=1f8a32457d187bf3' which has a higher version than referenced assembly 'A' with identity 'A, Version=1.1.1.1, Culture=neutral, PublicKeyToken=1f8a32457d187bf3'", error);
@@ -201,13 +219,7 @@ IL_0005:  ret
                 context = CreateMethodContext(
                     new AppDomain(),
                     ImmutableArray.Create(moduleMscorlib, moduleA1, moduleA3, moduleA2, moduleB1).SelectAsArray(m => m.MetadataBlock),
-                    symReader,
-                    moduleVersionId,
-                    methodToken: methodToken,
-                    methodVersion: 1,
-                    ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken,
-                    kind: MakeAssemblyReferencesKind.AllReferences);
+                    stateB);
                 testData = new CompilationTestData();
                 context.CompileExpression("new B()", out error, testData);
                 methodData = testData.GetMethodData("<>x.<>m0");
@@ -224,13 +236,7 @@ IL_0005:  ret
                 context = CreateMethodContext(
                     new AppDomain(),
                     ImmutableArray.Create(moduleMscorlib, moduleA3, moduleA1, moduleA3, moduleA1, moduleB1).SelectAsArray(m => m.MetadataBlock),
-                    symReader,
-                    moduleVersionId,
-                    methodToken: methodToken,
-                    methodVersion: 1,
-                    ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken,
-                    kind: MakeAssemblyReferencesKind.AllReferences);
+                    stateB);
                 testData = new CompilationTestData();
                 context.CompileExpression("new B()", out error, testData);
                 methodData = testData.GetMethodData("<>x.<>m0");
@@ -259,18 +265,13 @@ IL_0005:  ret
 
             using (var runtime = CreateRuntimeInstance(new[] { moduleMscorlib, moduleA, moduleB }))
             {
+                var stateB = GetContextState(runtime, "B.M");
                 var (moduleVersionId, symReader, methodToken, localSignatureToken, ilOffset) = GetContextState(runtime, "B.M");
 
                 var context = CreateMethodContext(
                     new AppDomain(),
                     ImmutableArray.Create(moduleMscorlib, moduleOther, moduleA, moduleB).SelectAsArray(m => m.MetadataBlock),
-                    symReader,
-                    moduleVersionId,
-                    methodToken: methodToken,
-                    methodVersion: 1,
-                    ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken,
-                    kind: MakeAssemblyReferencesKind.AllReferences);
+                    stateB);
                 string error;
                 var testData = new CompilationTestData();
                 context.CompileExpression("new B()", out error, testData);
@@ -287,13 +288,7 @@ IL_0005:  ret
                 context = CreateMethodContext(
                     new AppDomain(),
                     ImmutableArray.Create(moduleB, moduleA, moduleOther, moduleMscorlib).SelectAsArray(m => m.MetadataBlock),
-                    symReader,
-                    moduleVersionId,
-                    methodToken: methodToken,
-                    methodVersion: 1,
-                    ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken,
-                    kind: MakeAssemblyReferencesKind.AllReferences);
+                    stateB);
                 testData = new CompilationTestData();
                 context.CompileExpression("new B()", out error, testData);
                 methodData = testData.GetMethodData("<>x.<>m0");
@@ -340,83 +335,83 @@ IL_0005:  ret
                 // B1.M:
                 var appDomain = new AppDomain();
                 previous = appDomain.GetMetadataContext();
-                context = createMethodContext(appDomain, blocks, stateB1);
+                context = CreateMethodContext(appDomain, blocks, stateB1);
+                VerifyResolutionRequests(context, (identityA1, identityA1, 1));
+                VerifyAppDomainMetadataContext(appDomain, stateB1.ModuleVersionId);
                 // B2.M:
                 previous = appDomain.GetMetadataContext();
-                context = createMethodContext(appDomain, blocks, stateB2);
+                context = CreateMethodContext(appDomain, blocks, stateB2);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidB1).EvaluationContext);
                 Assert.Same(context.Compilation, GetMetadataContext(previous, mvidB1).Compilation);
                 VerifyResolutionRequests(context, (identityA1, identityA1, 1));
+                VerifyAppDomainMetadataContext(appDomain, stateB1.ModuleVersionId);
                 // A1.M:
                 previous = appDomain.GetMetadataContext();
-                context = createMethodContext(appDomain, blocks, stateA1);
+                context = CreateMethodContext(appDomain, blocks, stateA1);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidB1).EvaluationContext);
                 Assert.NotSame(context.Compilation, GetMetadataContext(previous, mvidB1).Compilation);
                 VerifyResolutionRequests(context);
+                VerifyAppDomainMetadataContext(appDomain, stateB1.ModuleVersionId, stateA1.ModuleVersionId);
                 // A2.M:
                 previous = appDomain.GetMetadataContext();
-                context = createMethodContext(appDomain, blocks, stateA2);
+                context = CreateMethodContext(appDomain, blocks, stateA2);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidA1).EvaluationContext);
                 Assert.NotSame(context.Compilation, GetMetadataContext(previous, mvidA1).Compilation);
                 VerifyResolutionRequests(context);
+                VerifyAppDomainMetadataContext(appDomain, stateB1.ModuleVersionId, stateA1.ModuleVersionId, stateA2.ModuleVersionId);
                 // A3.M:
                 previous = appDomain.GetMetadataContext();
-                context = createMethodContext(appDomain, blocks, stateA3);
+                context = CreateMethodContext(appDomain, blocks, stateA3);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidA2).EvaluationContext);
                 Assert.Same(context.Compilation, GetMetadataContext(previous, mvidA2).Compilation);
                 VerifyResolutionRequests(context);
+                VerifyAppDomainMetadataContext(appDomain, stateB1.ModuleVersionId, stateA1.ModuleVersionId, stateA2.ModuleVersionId);
 
                 // A1 -> A2 -> A3 -> B1 -> B2
                 // A1.M:
                 appDomain = new AppDomain();
-                context = createMethodContext(appDomain, blocks, stateA1);
+                context = CreateMethodContext(appDomain, blocks, stateA1);
+                VerifyResolutionRequests(context);
+                VerifyAppDomainMetadataContext(appDomain, stateA1.ModuleVersionId);
                 // A2.M:
                 previous = appDomain.GetMetadataContext();
-                context = createMethodContext(appDomain, blocks, stateA2);
+                context = CreateMethodContext(appDomain, blocks, stateA2);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidA1).EvaluationContext);
                 Assert.NotSame(context.Compilation, GetMetadataContext(previous, mvidA1).Compilation);
                 VerifyResolutionRequests(context);
+                VerifyAppDomainMetadataContext(appDomain, stateA1.ModuleVersionId, stateA2.ModuleVersionId);
                 // A3.M:
                 previous = appDomain.GetMetadataContext();
-                context = createMethodContext(appDomain, blocks, stateA3);
+                context = CreateMethodContext(appDomain, blocks, stateA3);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidA2).EvaluationContext);
                 Assert.Same(context.Compilation, GetMetadataContext(previous, mvidA2).Compilation);
                 VerifyResolutionRequests(context);
+                VerifyAppDomainMetadataContext(appDomain, stateA1.ModuleVersionId, stateA2.ModuleVersionId);
                 // B1.M:
                 previous = appDomain.GetMetadataContext();
-                context = createMethodContext(appDomain, blocks, stateB1);
+                context = CreateMethodContext(appDomain, blocks, stateB1);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidA2).EvaluationContext);
                 Assert.NotSame(context.Compilation, GetMetadataContext(previous, mvidA2).Compilation);
                 VerifyResolutionRequests(context, (identityA1, identityA1, 1));
+                VerifyAppDomainMetadataContext(appDomain, stateA1.ModuleVersionId, stateA2.ModuleVersionId, stateB1.ModuleVersionId);
                 // B2.M:
                 previous = appDomain.GetMetadataContext();
-                context = createMethodContext(appDomain, blocks, stateB2);
+                context = CreateMethodContext(appDomain, blocks, stateB2);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidB1).EvaluationContext);
                 Assert.Same(context.Compilation, GetMetadataContext(previous, mvidB1).Compilation);
                 VerifyResolutionRequests(context, (identityA1, identityA1, 1));
-            }
-
-            EvaluationContext createMethodContext(
-                AppDomain appDomain,
-                ImmutableArray<MetadataBlock> blocks,
-                (Guid ModuleVersionId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) state)
-            {
-                return CreateMethodContext(
-                    appDomain,
-                    blocks,
-                    state.SymReader,
-                    state.ModuleVersionId,
-                    state.MethodToken,
-                    methodVersion: 1,
-                    state.ILOffset,
-                    state.LocalSignatureToken,
-                    MakeAssemblyReferencesKind.AllReferences);
+                VerifyAppDomainMetadataContext(appDomain, stateA1.ModuleVersionId, stateA2.ModuleVersionId, stateB1.ModuleVersionId);
             }
         }
 
-        private static void VerifyAppDomainMetadataContext(AppDomain appDomain)
+        private static void VerifyAppDomainMetadataContext(AppDomain appDomain, params Guid[] moduleVersionIds)
         {
-            // TODO: Verify set of AssemblyMetadataContext instances.
+            var assemblyContexts = appDomain.GetMetadataContext().AssemblyContexts;
+            var actualIds = assemblyContexts.Keys.Select(key => key.ModuleVersionId.ToString()).ToArray();
+            Array.Sort(actualIds);
+            var expectedIds = moduleVersionIds.Select(mvid => mvid.ToString()).ToArray();
+            Array.Sort(expectedIds);
+            AssertEx.Equal(expectedIds, actualIds);
         }
 
         [WorkItem(1141029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")]
@@ -752,7 +747,7 @@ IL_0005:  ret
 
             void sort(ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)> builder)
             {
-                builder.Sort((x, y) => AssemblyIdentityComparer.SimpleNameComparer.Compare(x.Item1, y.Item1));
+                builder.Sort((x, y) => AssemblyIdentityComparer.SimpleNameComparer.Compare(x.Item1.GetDisplayName(), y.Item1.GetDisplayName()));
             }
 #endif
         }
