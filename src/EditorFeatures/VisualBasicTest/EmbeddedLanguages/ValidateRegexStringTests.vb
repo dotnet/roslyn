@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServ
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateRegexString
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
     Public Class ValidateRegexStringTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
