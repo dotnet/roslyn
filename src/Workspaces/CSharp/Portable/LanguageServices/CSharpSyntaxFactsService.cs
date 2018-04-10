@@ -207,9 +207,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsGenericName(SyntaxNode node)
-        {
-            return node is GenericNameSyntax;
-        }
+            => node is GenericNameSyntax;
+
+        public bool IsQualifiedName(SyntaxNode node)
+            => node.IsKind(SyntaxKind.QualifiedName);
 
         public bool IsNamedParameter(SyntaxNode node)
             => node.CheckParent<NameColonSyntax>(p => p.Name == node);
@@ -697,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => (node as ArgumentSyntax).GetRefKind();
 
         public bool IsArgument(SyntaxNode node)
-            => node.Kind() == SyntaxKind.Argument;
+            => node.IsKind(SyntaxKind.Argument);
 
         public bool IsSimpleArgument(SyntaxNode node)
         {
