@@ -38,6 +38,7 @@ param (
     [switch]$testDesktop = $false,
     [switch]$testCoreClr = $false,
     [switch]$testIOperation = $false,
+    [switch]$noRedirect = $false,
 
     # Special test options
     [switch]$testDeterminism = $false,
@@ -696,6 +697,9 @@ try {
     if ($cibuild) { 
         List-VSProcesses
         List-BuildProcesses
+    }
+
+    if (-not $noRedirect) {
         Redirect-Temp
     }
 
