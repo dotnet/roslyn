@@ -658,14 +658,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Symbol symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
 
-            if (inputType.IsErrorType() || hasErrors)
+            if (inputType.IsErrorType() || hasErrors || symbol == (object)null)
             {
                 memberType = CreateErrorType();
                 return null;
             }
-
-            memberType = symbol.GetTypeOrReturnType();
-            return symbol;
+            else
+            {
+                memberType = symbol.GetTypeOrReturnType();
+                return symbol;
+            }
         }
 
         private Symbol BindPropertyPatternMember(
@@ -726,16 +728,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             default:
                                 Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, memberName, name);
-                                hasErrors = true;
                                 break;
                         }
                     }
+
+                    hasErrors = true;
                     return null;
             }
 
             if (hasErrors || !CheckValueKind(node: memberName.Parent, expr: boundMember, valueKind: BindValueKind.RValue,
                                              checkingReceiver: false, diagnostics: diagnostics))
             {
+                hasErrors = true;
                 return null;
             }
 

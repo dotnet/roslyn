@@ -1254,6 +1254,59 @@ class Cat {}
             var comp = CompileAndVerify(compilation, expectedOutput: @"Fox Cat");
         }
 
+        [Fact]
+        public void PropertyPatternMemberMissing01()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        if (b is Blah { X: int i })
+        {
+        }
+    }
+}
+
+class Blah
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,25): error CS0117: 'Blah' does not contain a definition for 'X'
+                //         if (b is Blah { X: int i })
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("Blah", "X").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void PropertyPatternMemberMissing02()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        if (b is Blah { X: int i })
+        {
+        }
+    }
+}
+
+class Blah
+{
+    public int X { set {} }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,25): error CS0154: The property or indexer 'Blah.X' cannot be used in this context because it lacks the get accessor
+                //         if (b is Blah { X: int i })
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "X:").WithArguments("Blah.X").WithLocation(6, 25)
+                );
+        }
+
         // PROTOTYPE(patterns2): Need to have tests that exercise:
         // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
         // PROTOTYPE(patterns2): Definite assignment for the var-pattern
