@@ -3,19 +3,18 @@
 using System;
 using System.Collections.Generic;
 using System.Composition.Hosting;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit.Sdk;
@@ -95,13 +94,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var listenerProvider = exportProvider?.GetExportedValues<IAsynchronousOperationListenerProvider>().SingleOrDefault();
                 if (listenerProvider != null)
                 {
-                    // Immediately clear items from the foreground notification service for which cancellation is
-                    // requested. This service maintains a queue separately from Tasks, and work items scheduled for
-                    // execution after a delay are not immediately purged when cancellation is requested. This code
-                    // instructs the service to walk the list of queued work items and immediately cancel and purge any
-                    // which are already cancelled.
-                    var foregroundNotificationService = exportProvider?.GetExportedValues<IForegroundNotificationService>().SingleOrDefault() as ForegroundNotificationService;
-                    foregroundNotificationService?.ReleaseCancelledItems();
+                    if (ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind != ForegroundThreadDataKind.Unknown)
+                    {
+                        // Immediately clear items from the foreground notification service for which cancellation is
+                        // requested. This service maintains a queue separately from Tasks, and work items scheduled for
+                        // execution after a delay are not immediately purged when cancellation is requested. This code
+                        // instructs the service to walk the list of queued work items and immediately cancel and purge any
+                        // which are already cancelled.
+                        var foregroundNotificationService = exportProvider?.GetExportedValues<IForegroundNotificationService>().SingleOrDefault() as ForegroundNotificationService;
+                        foregroundNotificationService?.ReleaseCancelledItems();
+                    }
 
                     // Join remaining operations with a timeout
                     using (var timeoutTokenSource = new CancellationTokenSource(CleanupTimeout))
