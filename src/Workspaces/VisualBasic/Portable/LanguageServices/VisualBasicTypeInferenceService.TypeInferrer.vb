@@ -23,9 +23,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     otherSideType.Name = String.Empty
             End Function
 
-            Protected Overrides Function GetTypes_DoNotCallDirectly(expression As ExpressionSyntax, objectAsDefault As Boolean) As IEnumerable(Of TypeInferenceInfo)
-                If expression IsNot Nothing Then
-                    Dim info = SemanticModel.GetTypeInfo(expression)
+            Protected Overrides Function GetTypes_DoNotCallDirectly(node As SyntaxNode, objectAsDefault As Boolean) As IEnumerable(Of TypeInferenceInfo)
+                If node IsNot Nothing Then
+                    Dim info = SemanticModel.GetTypeInfo(node)
                     If info.Type IsNot Nothing AndAlso info.Type.TypeKind <> TypeKind.Error Then
                         Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(info.Type))
                     End If
@@ -34,8 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(info.ConvertedType))
                     End If
 
-                    If expression.Kind = SyntaxKind.AddressOfExpression Then
-                        Dim unaryExpression = DirectCast(expression, UnaryExpressionSyntax)
+                    If node.Kind = SyntaxKind.AddressOfExpression Then
+                        Dim unaryExpression = DirectCast(node, UnaryExpressionSyntax)
                         Dim symbol = SemanticModel.GetSymbolInfo(unaryExpression.Operand, CancellationToken).GetAnySymbol()
                         Dim type = symbol.ConvertToType(Me.Compilation)
                         If type IsNot Nothing Then
@@ -47,9 +47,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return If(objectAsDefault, SpecializedCollections.SingletonEnumerable(New TypeInferenceInfo(Me.Compilation.ObjectType)), SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)())
             End Function
 
-            Protected Overrides Function InferTypesWorker_DoNotCallDirectly(expression As ExpressionSyntax) As IEnumerable(Of TypeInferenceInfo)
-                expression = expression.WalkUpParentheses()
-                Dim parent = expression.Parent
+            Protected Overrides Function InferTypesWorker_DoNotCallDirectly(node As SyntaxNode) As IEnumerable(Of TypeInferenceInfo)
+                Dim expression = TryCast(node, ExpressionSyntax)
+                If expression IsNot Nothing Then
+                    expression = expression.WalkUpParentheses()
+                    node = expression
+                End If
+
+                Dim parent = node.Parent
 
                 Return parent.TypeSwitch(
                     Function(addRemoveHandlerStatement As AddRemoveHandlerStatementSyntax) InferTypeInAddRemoveHandlerStatementSyntax(addRemoveHandlerStatement, expression),

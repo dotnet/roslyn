@@ -319,8 +319,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsIsPatternExpressionExpression(SyntaxNode node);
         bool IsConstantPattern(SyntaxNode node);
-        bool IsSubPatternElement(SyntaxNode node);
-        bool IsPropertySubPattern(SyntaxNode node);
+        bool IsNameOfSubpatternElement(SyntaxNode node);
+        bool IsSubpatternElement(SyntaxNode node);
+        bool IsPropertySubpattern(SyntaxNode node);
         bool IsPropertyPattern(SyntaxNode node);
         SyntaxNode GetTypeOfPropertyPattern(SyntaxNode node);
 

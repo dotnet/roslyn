@@ -7612,7 +7612,7 @@ class C
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestPropertyPattern1()
+        public async Task TestPropertyPatternInIsPattern1()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -7650,7 +7650,7 @@ class C
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestPropertyPattern2()
+        public async Task TestPropertyPatternInIsPattern2()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -7673,9 +7673,91 @@ class C
 {
     void M2()
     {
-        object o = null;
+        Blah o = null;
         if (o is { X: int i })
         {
+        }
+    }
+
+    class Blah
+    {
+        public int X { get; internal set; }
+    }
+}");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInCasePattern1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        switch (o)
+        {
+            case Blah { [|X|]: int i }:
+                break;
+        }
+    }
+
+    class Blah
+    {
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        switch (o)
+        {
+            case Blah { [|X|]: int i }:
+                break;
+        }
+    }
+
+    class Blah
+    {
+        public int X { get; internal set; }
+    }
+}");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInCasePattern2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M2()
+    {
+        Blah o = null;
+        switch (o)
+        {
+            case { [|X|]: int i }:
+        }
+    }
+
+    class Blah
+    {
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        Blah o = null;
+        switch (o)
+        {
+            case { [|X|]: int i }:
         }
     }
 

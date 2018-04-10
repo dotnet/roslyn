@@ -154,19 +154,28 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 isStatic = false;
                 return;
             }
-            else if (syntaxFacts.IsIsPatternExpressionExpression(expression) &&
-                     syntaxFacts.IsConstantPattern(expression.Parent.Parent) &&
-                     syntaxFacts.IsSubPatternElement(expression.Parent.Parent.Parent) &&
-                     syntaxFacts.IsPropertySubPattern(expression.Parent.Parent.Parent.Parent) &&
-                     syntaxFacts.IsPropertyPattern(expression.Parent.Parent.Parent.Parent.Parent))
+            else if (syntaxFacts.IsNameOfSubpatternElement(expression) &&
+                     syntaxFacts.IsPropertySubpattern(expression.Parent.Parent.Parent) &&
+                     syntaxFacts.IsPropertyPattern(expression.Parent.Parent.Parent.Parent))
             {
-                var type = syntaxFacts.GetTypeOfPropertyPattern(expression.Parent.Parent.Parent.Parent.Parent);
-                if (type != null)
+                var propertyPattern = expression.Parent.Parent.Parent.Parent;
+                var type = syntaxFacts.GetTypeOfPropertyPattern(propertyPattern);
+                if (type == null)
                 {
-                    typeToGenerateIn = semanticModel.GetTypeInfo(type, cancellationToken).Type as INamedTypeSymbol;
-                    isStatic = false;
-                    return;
+                    // something like: { X: int i }
+                    // need to see how this property pattern is used.
+                    var inferenceService = document.Document.GetLanguageService<ITypeInferenceService>();
+                    typeToGenerateIn = inferenceService.InferType(semanticModel, propertyPattern, objectAsDefault: true, cancellationToken) as INamedTypeSymbol;
                 }
+                else
+                {
+                    // Something like: Blah { [|X|]: int i }
+                    // want to generate "int X" in "Blah".
+                    typeToGenerateIn = semanticModel.GetTypeInfo(type, cancellationToken).Type as INamedTypeSymbol;
+                }
+
+                isStatic = false;
+                return;
             }
 
             // Generating into the containing type.

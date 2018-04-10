@@ -756,11 +756,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function IsSubPatternElement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSubPatternElement
+        Public Function IsNameOfSubPatternElement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNameOfSubpatternElement
             Return False
         End Function
 
-        Public Function IsPropertySubPattern(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPropertySubPattern
+        Public Function IsSubpatternElement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSubpatternElement
+            Return False
+        End Function
+
+        Public Function IsPropertySubpattern(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPropertySubpattern
             Return False
         End Function
 

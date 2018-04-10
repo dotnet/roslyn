@@ -786,10 +786,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsConstantPattern(SyntaxNode node)
             => node.Kind() == SyntaxKind.ConstantPattern;
 
-        public bool IsSubPatternElement(SyntaxNode node)
+        public bool IsNameOfSubpatternElement(SyntaxNode node)
+            => node.IsKind(SyntaxKind.IdentifierName) &&
+               node.IsParentKind(SyntaxKind.NameColon) &&
+               node.Parent.IsParentKind(SyntaxKind.SubpatternElement);
+
+        public bool IsSubpatternElement(SyntaxNode node)
             => node.Kind() == SyntaxKind.SubpatternElement;
 
-        public bool IsPropertySubPattern(SyntaxNode node)
+        public bool IsPropertySubpattern(SyntaxNode node)
             => node.Kind() == SyntaxKind.PropertySubpattern;
 
         public bool IsPropertyPattern(SyntaxNode node)
