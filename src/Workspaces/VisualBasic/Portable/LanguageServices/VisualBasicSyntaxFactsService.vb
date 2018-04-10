@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public ReadOnly Property StringComparer As StringComparer Implements ISyntaxFactsService.StringComparer
             Get
-                Return CaseInsensitiveComparison.Comparer
+                Return StringComparers.IdentifierComparer
             End Get
         End Property
 

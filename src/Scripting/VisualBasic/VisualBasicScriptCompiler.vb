@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting
 
         Public Overrides ReadOnly Property IdentifierComparer As StringComparer
             Get
-                Return CaseInsensitiveComparison.Comparer
+                Return StringComparers.IdentifierComparer
             End Get
         End Property
 

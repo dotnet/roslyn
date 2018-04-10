@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             reservedNames = If(reservedNames, SpecializedCollections.EmptyEnumerable(Of String))
             Return semanticModel.GenerateParameterNames(
                 arguments,
-                Function(s) Not reservedNames.Any(Function(n) CaseInsensitiveComparison.Equals(s, n)),
+                Function(s) Not reservedNames.Any(Function(n) StringComparers.IdentifierComparer.Equals(s, n)),
                 cancellationToken)
         End Function
 

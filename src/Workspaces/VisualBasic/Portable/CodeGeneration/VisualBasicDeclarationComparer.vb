@@ -389,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Shared Function EqualIdentifierName(x As SyntaxToken, y As SyntaxToken, ByRef comparisonResult As Integer) As Boolean
             If NeitherNull(x, y, comparisonResult) Then
-                comparisonResult = CaseInsensitiveComparison.Compare(x.ValueText, y.ValueText)
+                comparisonResult = StringComparers.IdentifierComparer.Compare(x.ValueText, y.ValueText)
             End If
 
             Return comparisonResult = 0

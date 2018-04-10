@@ -632,7 +632,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             Dim nameParts = qualifiedName.Split("."c)
                             Dim numParts = nameParts.Length
                             Dim pos = 0
-                            If CaseInsensitiveComparison.Comparer.Equals(nameParts(0), "global") Then
+                            If StringComparers.IdentifierComparer.Equals(nameParts(0), "global") Then
                                 pos = 1
                                 Debug.Assert(pos < numParts)
                             End If

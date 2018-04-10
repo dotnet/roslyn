@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Private ReadOnly _tracker As ConflictingIdentifierTracker
 
         Public Sub New(tokenBeingRenamed As SyntaxToken)
-            _tracker = New ConflictingIdentifierTracker(tokenBeingRenamed, CaseInsensitiveComparison.Comparer)
+            _tracker = New ConflictingIdentifierTracker(tokenBeingRenamed, StringComparers.IdentifierComparer)
         End Sub
 
         Public Overrides Sub DefaultVisit(node As SyntaxNode)

@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             Private Function IsPossibleNameConflict(possibleNameConflicts As ICollection(Of String), candidate As String) As Boolean
                 For Each possibleNameConflict In possibleNameConflicts
-                    If CaseInsensitiveComparison.Equals(possibleNameConflict, candidate) Then
+                    If StringComparers.IdentifierComparer.Equals(possibleNameConflict, candidate) Then
                         Return True
                     End If
                 Next
@@ -408,10 +408,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 End If
 
                 Dim isRenameLocation = IsInRenameLocation(oldToken)
-                Dim isOldText = CaseInsensitiveComparison.Equals(oldToken.ValueText, _originalText)
+                Dim isOldText = StringComparers.IdentifierComparer.Equals(oldToken.ValueText, _originalText)
                 Dim tokenNeedsConflictCheck = isRenameLocation OrElse
                     isOldText OrElse
-                    CaseInsensitiveComparison.Equals(oldToken.ValueText, _replacementText) OrElse
+                    StringComparers.IdentifierComparer.Equals(oldToken.ValueText, _replacementText) OrElse
                     IsPossibleNameConflict(_possibleNameConflicts, oldToken.ValueText)
 
                 If tokenNeedsConflictCheck Then
@@ -612,7 +612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 If Me._isRenamingInComments Then
                     If newToken.Kind = SyntaxKind.XmlTextLiteralToken Then
                         newToken = RenameInStringLiteral(oldToken, newToken, AddressOf SyntaxFactory.XmlTextLiteralToken)
-                    ElseIf newToken.Kind = SyntaxKind.XmlNameToken AndAlso CaseInsensitiveComparison.Equals(oldToken.ValueText, _originalText) Then
+                    ElseIf newToken.Kind = SyntaxKind.XmlNameToken AndAlso StringComparers.IdentifierComparer.Equals(oldToken.ValueText, _originalText) Then
                         Dim newIdentifierToken = SyntaxFactory.XmlNameToken(newToken.LeadingTrivia, _replacementText, SyntaxFacts.GetKeywordKind(_replacementText), newToken.TrailingTrivia)
                         newToken = newToken.CopyAnnotationsTo(Me._renameAnnotations.WithAdditionalAnnotations(newIdentifierToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldToken.Span}))
                         AddModifiedSpan(oldToken.Span, newToken.Span)
@@ -684,7 +684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 ' in VB parameters of properties are not allowed to be the same as the containing property
                 If renamedSymbol.Kind = SymbolKind.Parameter AndAlso
                     renamedSymbol.ContainingSymbol.Kind = SymbolKind.Property AndAlso
-                    CaseInsensitiveComparison.Equals(renamedSymbol.ContainingSymbol.Name, renamedSymbol.Name) Then
+                    StringComparers.IdentifierComparer.Equals(renamedSymbol.ContainingSymbol.Name, renamedSymbol.Name) Then
 
                     Dim propertySymbol = renamedSymbol.ContainingSymbol
 
@@ -724,7 +724,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Dim currentTypeParameter = token.Parent
 
                     For Each typeParameter In DirectCast(currentTypeParameter.Parent, TypeParameterListSyntax).Parameters
-                        If typeParameter IsNot currentTypeParameter AndAlso CaseInsensitiveComparison.Equals(token.ValueText, typeParameter.Identifier.ValueText) Then
+                        If typeParameter IsNot currentTypeParameter AndAlso StringComparers.IdentifierComparer.Equals(token.ValueText, typeParameter.Identifier.ValueText) Then
                             conflicts.Add(reverseMappedLocations(typeParameter.Identifier.GetLocation()))
                         End If
                     Next
@@ -734,7 +734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             ' if the renamed symbol is a type member, it's name should not conflict with a type parameter
             If renamedSymbol.ContainingType IsNot Nothing AndAlso renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name).Contains(renamedSymbol) Then
                 Dim conflictingLocations = renamedSymbol.ContainingType.TypeParameters _
-                    .Where(Function(t) CaseInsensitiveComparison.Equals(t.Name, renamedSymbol.Name)) _
+                    .Where(Function(t) StringComparers.IdentifierComparer.Equals(t.Name, renamedSymbol.Name)) _
                     .SelectMany(Function(t) t.Locations)
 
                 For Each location In conflictingLocations
@@ -753,16 +753,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             ' Handle renaming of symbols used for foreach
             Dim implicitReferencesMightConflict = renameSymbol.Kind = SymbolKind.Property AndAlso
-                                                CaseInsensitiveComparison.Equals(renameSymbol.Name, "Current")
+                                                StringComparers.IdentifierComparer.Equals(renameSymbol.Name, "Current")
             implicitReferencesMightConflict = implicitReferencesMightConflict OrElse
                                                 (renameSymbol.Kind = SymbolKind.Method AndAlso
-                                                    (CaseInsensitiveComparison.Equals(renameSymbol.Name, "MoveNext") OrElse
-                                                    CaseInsensitiveComparison.Equals(renameSymbol.Name, "GetEnumerator")))
+                                                    (StringComparers.IdentifierComparer.Equals(renameSymbol.Name, "MoveNext") OrElse
+                                                    StringComparers.IdentifierComparer.Equals(renameSymbol.Name, "GetEnumerator")))
 
             ' TODO: handle Dispose for using statement and Add methods for collection initializers.
 
             If implicitReferencesMightConflict Then
-                If Not CaseInsensitiveComparison.Equals(renamedSymbol.Name, renameSymbol.Name) Then
+                If Not StringComparers.IdentifierComparer.Equals(renamedSymbol.Name, renameSymbol.Name) Then
                     For Each implicitReferenceLocation In implicitReferenceLocations
                         Dim token = Await implicitReferenceLocation.Location.SourceTree.GetTouchingTokenAsync(
                             implicitReferenceLocation.Location.SourceSpan.Start, cancellationToken, findInsideTrivia:=False).ConfigureAwait(False)
@@ -855,9 +855,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             cancellationToken As CancellationToken) As ImmutableArray(Of Location) Implements IRenameRewriterLanguageService.ComputePossibleImplicitUsageConflicts
 
             ' TODO: support other implicitly used methods like dispose
-            If CaseInsensitiveComparison.Equals(renamedSymbol.Name, "MoveNext") OrElse
-                    CaseInsensitiveComparison.Equals(renamedSymbol.Name, "GetEnumerator") OrElse
-                    CaseInsensitiveComparison.Equals(renamedSymbol.Name, "Current") Then
+            If StringComparers.IdentifierComparer.Equals(renamedSymbol.Name, "MoveNext") OrElse
+                    StringComparers.IdentifierComparer.Equals(renamedSymbol.Name, "GetEnumerator") OrElse
+                    StringComparers.IdentifierComparer.Equals(renamedSymbol.Name, "Current") Then
 
 
                 If TypeOf renamedSymbol Is IMethodSymbol Then
@@ -893,11 +893,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         If symbol.Kind = SymbolKind.Method Then
                             Dim method = DirectCast(symbol, IMethodSymbol)
 
-                            If CaseInsensitiveComparison.Equals(symbol.Name, "MoveNext") Then
+                            If StringComparers.IdentifierComparer.Equals(symbol.Name, "MoveNext") Then
                                 If Not method.ReturnsVoid AndAlso Not method.Parameters.Any() AndAlso method.ReturnType.SpecialType = SpecialType.System_Boolean Then
                                     Return ImmutableArray.Create(originalDeclarationLocation)
                                 End If
-                            ElseIf CaseInsensitiveComparison.Equals(symbol.Name, "GetEnumerator") Then
+                            ElseIf StringComparers.IdentifierComparer.Equals(symbol.Name, "GetEnumerator") Then
                                 ' we are a bit pessimistic here. 
                                 ' To be sure we would need to check if the returned type Is having a MoveNext And Current as required by foreach
                                 If Not method.ReturnsVoid AndAlso
@@ -906,7 +906,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                                 End If
                             End If
 
-                        ElseIf CaseInsensitiveComparison.Equals(symbol.Name, "Current") Then
+                        ElseIf StringComparers.IdentifierComparer.Equals(symbol.Name, "Current") Then
                             Dim [property] = DirectCast(symbol, IPropertySymbol)
 
                             If Not [property].Parameters.Any() AndAlso Not [property].IsWriteOnly Then
@@ -927,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Const AttributeSuffixLength As Integer = 9
             Debug.Assert(AttributeSuffixLength = AttributeSuffix.Length, "Assert (AttributeSuffixLength = AttributeSuffix.Length) failed.")
 
-            If replacementText.Length > AttributeSuffixLength AndAlso CaseInsensitiveComparison.Equals(halfWidthReplacementText.Substring(halfWidthReplacementText.Length - AttributeSuffixLength), AttributeSuffix) Then
+            If replacementText.Length > AttributeSuffixLength AndAlso StringComparers.IdentifierComparer.Equals(halfWidthReplacementText.Substring(halfWidthReplacementText.Length - AttributeSuffixLength), AttributeSuffix) Then
                 Dim conflict = replacementText.Substring(0, replacementText.Length - AttributeSuffixLength)
                 If Not possibleNameConflicts.Contains(conflict) Then
                     possibleNameConflicts.Add(conflict)
@@ -954,7 +954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 End If
             End If
 
-            If Not CaseInsensitiveComparison.Equals(valueText, replacementText) Then
+            If Not StringComparers.IdentifierComparer.Equals(valueText, replacementText) Then
                 possibleNameConflicts.Add(valueText)
             End If
         End Sub

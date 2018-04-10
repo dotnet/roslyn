@@ -1927,8 +1927,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If attribute.Target Is Nothing Then
                 Dim identifierValue = SyntaxFacts.MakeHalfWidthIdentifier(identifier.Identifier.ValueText)
 
-                If CaseInsensitiveComparison.Equals(identifierValue, "Assembly") OrElse
-                   CaseInsensitiveComparison.Equals(identifierValue, "Module") Then
+                If StringComparers.IdentifierComparer.Equals(identifierValue, "Assembly") OrElse
+                   StringComparers.IdentifierComparer.Equals(identifierValue, "Module") Then
                     Return True
                 End If
             End If

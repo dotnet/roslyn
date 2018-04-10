@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         End If
 
                         ' If the string representation of the value differs from the identifier text, create a new literal token with same value but pretty listed "valueText".
-                        If Not CaseInsensitiveComparison.Equals(valueText, idText) Then
+                        If Not StringComparers.IdentifierComparer.Equals(valueText, idText) Then
                             Return newNode.ReplaceToken(literal, CreateLiteralToken(literal, valueText, value))
                         End If
 
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         ' Compiler has parsed the literal text as a decimal value, fetch the string representation of this value.
                         Dim valueText As String = GetDecimalLiteralValueString(value) + GetTypeCharString(literal.GetTypeCharacter())
 
-                        If Not CaseInsensitiveComparison.Equals(valueText, idText) Then
+                        If Not StringComparers.IdentifierComparer.Equals(valueText, idText) Then
                             Return newNode.ReplaceToken(literal, CreateLiteralToken(literal, valueText, value))
                         End If
                     Case SyntaxKind.IntegerLiteralToken
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         'fetch the string representation of this value in the correct base.
                         Dim valueText As String = GetIntegerLiteralValueString(literal.Value, base.Value) + GetTypeCharString(literal.GetTypeCharacter())
 
-                        If Not CaseInsensitiveComparison.Equals(valueText, idText) Then
+                        If Not StringComparers.IdentifierComparer.Equals(valueText, idText) Then
                             Return newNode.ReplaceToken(literal, CreateLiteralToken(literal, valueText, value))
                         End If
                 End Select

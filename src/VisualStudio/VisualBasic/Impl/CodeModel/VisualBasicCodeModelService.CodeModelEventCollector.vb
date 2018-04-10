@@ -455,7 +455,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim modifiersChange As CodeModelEventType = 0
                 Dim baseListsChange As CodeModelEventType = 0
 
-                If Not CaseInsensitiveComparison.Equals(oldEnum.EnumStatement.Identifier.ToString(), newEnum.EnumStatement.Identifier.ToString()) Then
+                If Not StringComparers.IdentifierComparer.Equals(oldEnum.EnumStatement.Identifier.ToString(), newEnum.EnumStatement.Identifier.ToString()) Then
                     ' If the type name is different, it might mean that the whole type has been removed a new one added.
                     ' In that case, we shouldn't do any other checks and return immediately.
                     Dim change = CompareRenamedDeclarations(
@@ -597,7 +597,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim modifiersChange As CodeModelEventType = 0
                 Dim typesChange As CodeModelEventType = 0
 
-                If Not CaseInsensitiveComparison.Equals(oldMethod.GetNameText(), newMethod.GetNameText()) Then
+                If Not StringComparers.IdentifierComparer.Equals(oldMethod.GetNameText(), newMethod.GetNameText()) Then
                     ' If the method name is different, it might mean that the whole method has been removed a new one added.
                     ' In that case, we shouldn't do any other checks and return immediately.
                     Dim change = CompareRenamedDeclarations(
@@ -658,7 +658,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim modifiersChange As CodeModelEventType = 0
                 Dim typesChange As CodeModelEventType = 0
 
-                If Not CaseInsensitiveComparison.Equals(oldProperty.Identifier.ToString(), newProperty.Identifier.ToString()) Then
+                If Not StringComparers.IdentifierComparer.Equals(oldProperty.Identifier.ToString(), newProperty.Identifier.ToString()) Then
                     ' If the property name is different, it might mean that the property method has been removed a new one added.
                     ' In that case, we shouldn't do any other checks and return immediately.
                     Dim change = CompareRenamedDeclarations(
@@ -719,7 +719,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim modifiersChange As CodeModelEventType = 0
                 Dim typesChange As CodeModelEventType = 0
 
-                If Not CaseInsensitiveComparison.Equals(oldEvent.Identifier.ToString(), newEvent.Identifier.ToString()) Then
+                If Not StringComparers.IdentifierComparer.Equals(oldEvent.Identifier.ToString(), newEvent.Identifier.ToString()) Then
                     ' If the property name is different, it might mean that the property method has been removed a new one added.
                     ' In that case, we shouldn't do any other checks and return immediately.
                     Dim change = CompareRenamedDeclarations(
@@ -812,7 +812,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim typesChange As CodeModelEventType = 0
                 Dim modifiersChange As CodeModelEventType = 0
 
-                If Not CaseInsensitiveComparison.Equals(oldModifiedIdentifier.Identifier.ToString(), newModifiedIdentifier.Identifier.ToString()) Then
+                If Not StringComparers.IdentifierComparer.Equals(oldModifiedIdentifier.Identifier.ToString(), newModifiedIdentifier.Identifier.ToString()) Then
                     namesChange = CodeModelEventType.Rename
                     Return False
                 End If
@@ -1063,7 +1063,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         Dim oldIdentifierName = DirectCast(oldName, IdentifierNameSyntax)
                         Dim newIdentifierName = DirectCast(newName, IdentifierNameSyntax)
 
-                        Return CaseInsensitiveComparison.Equals(oldIdentifierName.Identifier.ToString(), newIdentifierName.Identifier.ToString())
+                        Return StringComparers.IdentifierComparer.Equals(oldIdentifierName.Identifier.ToString(), newIdentifierName.Identifier.ToString())
 
                     Case SyntaxKind.QualifiedName
                         Dim oldQualifiedName = DirectCast(oldName, QualifiedNameSyntax)

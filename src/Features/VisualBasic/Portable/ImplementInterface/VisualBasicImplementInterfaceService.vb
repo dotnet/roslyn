@@ -97,8 +97,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
                    classBlock.IsKind(SyntaxKind.ClassBlock) AndAlso
                    (symbol IsNot Nothing) AndAlso
                    Not symbol.GetMembers().Any(
-                       Function(m) CaseInsensitiveComparison.Comparer.Equals(m.MetadataName, "Dispose") OrElse
-                                   CaseInsensitiveComparison.Comparer.Equals(m.MetadataName, "disposedValue"))
+                       Function(m) StringComparers.IdentifierComparer.Equals(m.MetadataName, "Dispose") OrElse
+                                   StringComparers.IdentifierComparer.Equals(m.MetadataName, "disposedValue"))
         End Function
 
         Protected Overrides Function ImplementDisposePattern(document As Document, root As SyntaxNode, symbol As INamedTypeSymbol, position As Integer, explicitly As Boolean) As Document

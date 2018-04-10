@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             Dim inferredName = node.Expression.TryGetInferredMemberName()
             If inferredName Is Nothing OrElse
-                Not CaseInsensitiveComparison.Equals(inferredName, node.NameColonEquals.Name.Identifier.ValueText) Then
+                Not StringComparers.IdentifierComparer.Equals(inferredName, node.NameColonEquals.Name.Identifier.ValueText) Then
 
                 Return False
             End If
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             Dim inferredName = node.Expression.TryGetInferredMemberName()
             If inferredName Is Nothing OrElse
-                    Not CaseInsensitiveComparison.Equals(inferredName, node.Name.Identifier.ValueText) Then
+                    Not StringComparers.IdentifierComparer.Equals(inferredName, node.Name.Identifier.ValueText) Then
                 Return False
             End If
 
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Continue For
                 End If
 
-                If argument.NameColonEquals Is Nothing AndAlso CaseInsensitiveComparison.Equals(argument.Expression.TryGetInferredMemberName(), name) Then
+                If argument.NameColonEquals Is Nothing AndAlso StringComparers.IdentifierComparer.Equals(argument.Expression.TryGetInferredMemberName(), name) Then
                     Return True
                 End If
             Next
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 End If
 
                 Dim inferredInitializer = TryCast(initializer, InferredFieldInitializerSyntax)
-                If inferredInitializer IsNot Nothing AndAlso CaseInsensitiveComparison.Equals(inferredInitializer.Expression.TryGetInferredMemberName(), name) Then
+                If inferredInitializer IsNot Nothing AndAlso StringComparers.IdentifierComparer.Equals(inferredInitializer.Expression.TryGetInferredMemberName(), name) Then
                     Return True
                 End If
             Next

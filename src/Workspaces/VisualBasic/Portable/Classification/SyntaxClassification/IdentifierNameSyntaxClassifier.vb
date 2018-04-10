@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
         Public Overrides Sub AddClassifications(syntax As SyntaxNode, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
             Dim identifierName = DirectCast(syntax, IdentifierNameSyntax)
             Dim identifier = identifierName.Identifier
-            If CaseInsensitiveComparison.Equals(identifier.ValueText, s_awaitText) Then
+            If StringComparers.IdentifierComparer.Equals(identifier.ValueText, s_awaitText) Then
                 Dim symbolInfo = semanticModel.GetSymbolInfo(identifier)
                 If symbolInfo.GetAnySymbol() Is Nothing Then
                     result.Add(New ClassifiedSpan(ClassificationTypeNames.Keyword, identifier.Span))

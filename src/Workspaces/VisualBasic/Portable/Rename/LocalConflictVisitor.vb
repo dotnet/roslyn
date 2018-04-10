@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Private ReadOnly _cancellationToken As CancellationToken
 
         Public Sub New(tokenBeingRenamed As SyntaxToken, newSolution As Solution, cancellationToken As CancellationToken)
-            _tracker = New ConflictingIdentifierTracker(tokenBeingRenamed, CaseInsensitiveComparison.Comparer)
+            _tracker = New ConflictingIdentifierTracker(tokenBeingRenamed, StringComparers.IdentifierComparer)
             _newSolution = newSolution
             _cancellationToken = cancellationToken
         End Sub

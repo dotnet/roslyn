@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             _containingMethod = containingMethod
             _allowImplicitDeclarations = allowImplicitDeclarations
 
-            _implicitDeclarations = New Dictionary(Of String, LocalSymbol)(CaseInsensitiveComparison.Comparer)
+            _implicitDeclarations = New Dictionary(Of String, LocalSymbol)(StringComparers.IdentifierComparer)
             For Each [alias] As [Alias] In aliases
                 Dim local = PlaceholderLocalSymbol.Create(
                     typeNameDecoder,

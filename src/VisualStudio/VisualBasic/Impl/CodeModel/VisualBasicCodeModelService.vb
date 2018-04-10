@@ -4072,7 +4072,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Private Shared Function MakeHandledEventName(parentName As String, eventName As String) As String
             If eventName.Length >= parentName.Length Then
-                If CaseInsensitiveComparison.Equals(eventName.Substring(0, parentName.Length), parentName) Then
+                If StringComparers.IdentifierComparer.Equals(eventName.Substring(0, parentName.Length), parentName) Then
                     Return "MyBase" & eventName.Substring(parentName.Length)
                 End If
             End If
@@ -4187,7 +4187,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Dim handledEventNames = GetHandledEventNames(methodStatement)
 
             For Each handledEventName In handledEventNames
-                If CaseInsensitiveComparison.Equals(eventName, handledEventName) Then
+                If StringComparers.IdentifierComparer.Equals(eventName, handledEventName) Then
                     Return True
                 End If
             Next
@@ -4207,7 +4207,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw Exceptions.ThrowEUnexpected()
             End If
 
-            If CaseInsensitiveComparison.Equals(name, ExtenderNames.VBPartialMethodExtender) Then
+            If StringComparers.IdentifierComparer.Equals(name, ExtenderNames.VBPartialMethodExtender) Then
                 Dim methodSymbol = DirectCast(symbol, IMethodSymbol)
                 Dim isPartial = methodSymbol.PartialDefinitionPart IsNot Nothing OrElse methodSymbol.PartialImplementationPart IsNot Nothing
                 Dim isDeclaration = If(isPartial,
@@ -4232,7 +4232,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw Exceptions.ThrowEUnexpected()
             End If
 
-            If CaseInsensitiveComparison.Equals(name, ExtenderNames.VBAutoPropertyExtender) Then
+            If StringComparers.IdentifierComparer.Equals(name, ExtenderNames.VBAutoPropertyExtender) Then
                 Dim isAutoImplemented = TypeOf node Is PropertyStatementSyntax AndAlso
                                         Not TypeOf node.Parent Is InterfaceBlockSyntax
 
@@ -4249,7 +4249,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Public Overrides Function GetExternalTypeExtender(name As String, externalLocation As String) As Object
             Debug.Assert(externalLocation IsNot Nothing)
 
-            If CaseInsensitiveComparison.Equals(name, ExtenderNames.ExternalLocation) Then
+            If StringComparers.IdentifierComparer.Equals(name, ExtenderNames.ExternalLocation) Then
                 Return CodeTypeLocationExtender.Create(externalLocation)
             End If
 
@@ -4265,7 +4265,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw Exceptions.ThrowEUnexpected()
             End If
 
-            If CaseInsensitiveComparison.Equals(name, ExtenderNames.VBGenericExtender) Then
+            If StringComparers.IdentifierComparer.Equals(name, ExtenderNames.VBGenericExtender) Then
                 Return GenericExtender.Create(codeType)
             End If
 

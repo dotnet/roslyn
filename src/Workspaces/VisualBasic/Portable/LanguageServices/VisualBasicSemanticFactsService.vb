@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim root = original.SyntaxTree.GetCompilationUnitRoot()
 
-            Dim builder = ImmutableHashSet.CreateBuilder(Of String)(CaseInsensitiveComparison.Comparer)
+            Dim builder = ImmutableHashSet.CreateBuilder(Of String)(StringComparers.IdentifierComparer.Comparer)
             For Each globalImport In original.Compilation.AliasImports
                 globalImport.Name.AppendToAliasNameSet(builder)
             Next

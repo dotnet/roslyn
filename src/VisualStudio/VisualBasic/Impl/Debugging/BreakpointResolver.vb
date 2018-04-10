@@ -14,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     Friend Class BreakpointResolver
         Inherits AbstractBreakpointResolver
 
-        Private Shared ReadOnly s_identifierComparer As IEqualityComparer(Of String) = CaseInsensitiveComparison.Comparer
+        Private Shared ReadOnly s_identifierComparer As IEqualityComparer(Of String) = StringComparers.IdentifierComparer
 
         Public Sub New(solution As Solution, text As String)
             MyBase.New(solution, text, LanguageNames.VisualBasic, s_identifierComparer)

@@ -87,9 +87,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
 
         Protected Function MakeUnique(baseName As String, originalFieldName As String, containingType As INamedTypeSymbol, Optional willChangeFieldName As Boolean = True) As String
             If willChangeFieldName Then
-                Return NameGenerator.GenerateUniqueName(baseName, containingType.MemberNames.Where(Function(x) x <> originalFieldName).ToSet(), CaseInsensitiveComparison.Comparer)
+                Return NameGenerator.GenerateUniqueName(baseName, containingType.MemberNames.Where(Function(x) x <> originalFieldName).ToSet(), StringComparers.IdentifierComparer)
             Else
-                Return NameGenerator.GenerateUniqueName(baseName, containingType.MemberNames.ToSet(), CaseInsensitiveComparison.Comparer)
+                Return NameGenerator.GenerateUniqueName(baseName, containingType.MemberNames.ToSet(), StringComparers.IdentifierComparer)
             End If
         End Function
 
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
             Else
                 Dim propertyName = GeneratePropertyName(field.Name)
                 Dim containingTypeMemberNames = field.ContainingType.GetAccessibleMembersInThisAndBaseTypes(Of ISymbol)(field.ContainingType).Select(Function(s) s.Name)
-                propertyName = NameGenerator.GenerateUniqueName(propertyName, containingTypeMemberNames.Where(Function(m) m <> field.Name).ToSet(), CaseInsensitiveComparison.Comparer)
+                propertyName = NameGenerator.GenerateUniqueName(propertyName, containingTypeMemberNames.Where(Function(m) m <> field.Name).ToSet(), StringComparers.IdentifierComparer)
 
                 Dim newFieldName = MakeUnique("_" + Char.ToLower(propertyName(0)) + propertyName.Substring(1), field)
                 Return Tuple.Create(newFieldName, propertyName)
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
 
         Private Function MakeUnique(propertyName As String, field As IFieldSymbol) As String
             Dim containingTypeMemberNames = field.ContainingType.GetAccessibleMembersInThisAndBaseTypes(Of ISymbol)(field.ContainingType).Select(Function(s) s.Name)
-            Return NameGenerator.GenerateUniqueName(propertyName, containingTypeMemberNames.ToSet(), CaseInsensitiveComparison.Comparer)
+            Return NameGenerator.GenerateUniqueName(propertyName, containingTypeMemberNames.ToSet(), StringComparers.IdentifierComparer)
         End Function
 
         Friend Overrides Function GetConstructorNodes(containingType As INamedTypeSymbol) As IEnumerable(Of SyntaxNode)

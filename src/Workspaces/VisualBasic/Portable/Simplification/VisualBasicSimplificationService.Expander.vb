@@ -358,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                         elementName = argument.Expression?.TryGetInferredMemberName()
                     End If
 
-                    If CaseInsensitiveComparison.Equals(elementName, name) Then
+                    If StringComparers.IdentifierComparer.Equals(elementName, name) Then
                         If found Then
                             ' No duplicate names allowed
                             Return False
