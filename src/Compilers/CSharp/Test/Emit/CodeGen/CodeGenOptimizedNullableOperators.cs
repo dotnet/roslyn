@@ -1368,10 +1368,10 @@ class Program
 ";
             string expectedOutput = "";
             string expectedIL1 = @"{
-  // Code size       32 (0x20)
+  // Code size       31 (0x1f)
   .maxstack  2
   .locals init (int? V_0,
-  int V_1)
+                int V_1)
   IL_0000:  call       ""int? Program.N1()""
   IL_0005:  stloc.0
   IL_0006:  call       ""short Program.V2()""
@@ -1379,23 +1379,22 @@ class Program
   IL_000c:  ldloca.s   V_0
   IL_000e:  call       ""int int?.GetValueOrDefault()""
   IL_0013:  ldloc.1
-  IL_0014:  beq.s      IL_0018
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldloca.s   V_0
-  IL_001a:  call       ""bool int?.HasValue.get""
-  IL_001f:  ret
+  IL_0014:  ceq
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""bool int?.HasValue.get""
+  IL_001d:  and
+  IL_001e:  ret
 }";
 
             // TODO: We do a worse job than the native compiler here. Find out why.
 
             string expectedIL2 = @"{
-  // Code size       75 (0x4b)
+  // Code size       72 (0x48)
   .maxstack  2
   .locals init (decimal? V_0,
-  decimal V_1,
-  int? V_2,
-  decimal? V_3)
+                decimal V_1,
+                int? V_2,
+                decimal? V_3)
   IL_0000:  call       ""int? Program.N1()""
   IL_0005:  stloc.2
   IL_0006:  ldloca.s   V_2
@@ -1416,12 +1415,10 @@ class Program
   IL_0034:  call       ""decimal decimal?.GetValueOrDefault()""
   IL_0039:  ldloc.1
   IL_003a:  call       ""bool decimal.op_LessThan(decimal, decimal)""
-  IL_003f:  brtrue.s   IL_0043
-  IL_0041:  ldc.i4.0
-  IL_0042:  ret
-  IL_0043:  ldloca.s   V_0
-  IL_0045:  call       ""bool decimal?.HasValue.get""
-  IL_004a:  ret
+  IL_003f:  ldloca.s   V_0
+  IL_0041:  call       ""bool decimal?.HasValue.get""
+  IL_0046:  and
+  IL_0047:  ret
 }";
             string expectedIL3 = @"{
   // Code size       37 (0x25)

@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
                 // TODO: send telemetry on session
                 return await remoteHostClient.TryRunCodeAnalysisRemoteAsync<ReferenceCount>(
-                    solution, WellKnownServiceHubServices.CodeAnalysisService_GetReferenceCountAsync,
+                    solution, nameof(IRemoteCodeLensReferencesService.GetReferenceCountAsync),
                     new object[] { documentId, syntaxNode.Span, maxSearchResults }, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
                 // TODO: send telemetry on session
                 return await remoteHostClient.TryRunCodeAnalysisRemoteAsync<IEnumerable<ReferenceLocationDescriptor>>(
-                    solution, WellKnownServiceHubServices.CodeAnalysisService_FindReferenceLocationsAsync,
+                    solution, nameof(IRemoteCodeLensReferencesService.FindReferenceLocationsAsync),
                     new object[] { documentId, syntaxNode.Span }, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
                 // TODO: send telemetry on session
                 return await remoteHostClient.TryRunCodeAnalysisRemoteAsync<IEnumerable<ReferenceMethodDescriptor>>(
-                    solution, WellKnownServiceHubServices.CodeAnalysisService_FindReferenceMethodsAsync,
+                    solution, nameof(IRemoteCodeLensReferencesService.FindReferenceMethodsAsync),
                     new object[] { documentId, syntaxNode.Span }, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
                 // TODO: send telemetry on session
                 return await remoteHostClient.TryRunCodeAnalysisRemoteAsync<string>(
-                    solution, WellKnownServiceHubServices.CodeAnalysisService_GetFullyQualifiedName,
+                    solution, nameof(IRemoteCodeLensReferencesService.GetFullyQualifiedName),
                     new object[] { documentId, syntaxNode.Span }, cancellationToken).ConfigureAwait(false);
             }
         }
