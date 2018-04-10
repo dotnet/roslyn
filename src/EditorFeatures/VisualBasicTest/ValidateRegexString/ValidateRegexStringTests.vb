@@ -4,15 +4,16 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.VisualBasic.ValidateRegexString
+Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateRegexString
     Public Class ValidateRegexStringTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (New VisualBasicValidateRegexStringDiagnosticAnalyzer(), Nothing)
+            Return (New VisualBasicEmbeddedLanguageDiagnosticAnalyzer(), Nothing)
         End Function
 
         Private Function OptionOn() As IDictionary(Of OptionKey, Object)
@@ -40,9 +41,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateRegexStrin
             end sub
         end class",
                         options:=OptionOn(),
-                        diagnosticId:=IDEDiagnosticIds.RegexPatternDiagnosticId,
+                        diagnosticId:=RegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
-                        diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens))
+                        diagnosticMessage:=String.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
@@ -56,9 +57,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateRegexStrin
             end sub
         end class",
                         options:=OptionOn(),
-                        diagnosticId:=IDEDiagnosticIds.RegexPatternDiagnosticId,
+                        diagnosticId:=RegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
-                        diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens))
+                        diagnosticMessage:=String.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens))
         End Function
     End Class
 End Namespace
