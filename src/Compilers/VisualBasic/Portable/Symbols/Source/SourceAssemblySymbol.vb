@@ -950,7 +950,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If _lazyInternalsVisibleToMap Is Nothing Then
                 Interlocked.CompareExchange(_lazyInternalsVisibleToMap,
-                                            New ConcurrentDictionary(Of String, ConcurrentDictionary(Of ImmutableArray(Of Byte), Tuple(Of Location, String)))(StringComparer.OrdinalIgnoreCase), Nothing)
+                                            New ConcurrentDictionary(Of String, ConcurrentDictionary(Of ImmutableArray(Of Byte), Tuple(Of Location, String)))(CaseInsensitiveComparison.Comparer), Nothing)
             End If
 
             'later, once the identity is established we confirm that if the assembly being 
@@ -1314,7 +1314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If _modules.Length > 1 AndAlso Not _compilation.Options.OutputKind.IsNetModule() Then
                 Dim assemblyMachine = Me.Machine
                 Dim isPlatformAgnostic As Boolean = (assemblyMachine = PortableExecutable.Machine.I386 AndAlso Not Me.Bit32Required)
-                Dim knownModuleNames As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+                Dim knownModuleNames As New HashSet(Of String)(CaseInsensitiveComparison.Comparer)
 
                 For i As Integer = 1 To Modules.Length - 1
                     Dim m As ModuleSymbol = Modules(i)

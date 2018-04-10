@@ -225,8 +225,8 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 identifiers = SharedPools.StringIgnoreCaseHashSet.AllocateAndClear();
                 escapedIdentifiers = SharedPools.StringIgnoreCaseHashSet.AllocateAndClear();
 
-                Contract.Requires(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
-                Contract.Requires(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Contract.Requires(identifiers.Comparer == CaseInsensitiveComparison.Comparer);
+                Contract.Requires(escapedIdentifiers.Comparer == CaseInsensitiveComparison.Comparer);
                 return;
             }
 
@@ -241,8 +241,8 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
         {
             if (ignoreCase)
             {
-                Contract.Requires(identifiers.Comparer == StringComparer.OrdinalIgnoreCase);
-                Contract.Requires(escapedIdentifiers.Comparer == StringComparer.OrdinalIgnoreCase);
+                Contract.Requires(identifiers.Comparer == CaseInsensitiveComparison.Comparer);
+                Contract.Requires(escapedIdentifiers.Comparer == CaseInsensitiveComparison.Comparer);
 
                 SharedPools.StringIgnoreCaseHashSet.ClearAndFree(identifiers);
                 SharedPools.StringIgnoreCaseHashSet.ClearAndFree(escapedIdentifiers);

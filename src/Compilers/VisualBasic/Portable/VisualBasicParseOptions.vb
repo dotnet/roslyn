@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If features Is Nothing Then
                 Return New VisualBasicParseOptions(Me) With {._features = ImmutableDictionary(Of String, String).Empty}
             Else
-                Return New VisualBasicParseOptions(Me) With {._features = features.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)}
+                Return New VisualBasicParseOptions(Me) With {._features = features.ToImmutableDictionary(CaseInsensitiveComparison.Comparer)}
             End If
         End Function
 

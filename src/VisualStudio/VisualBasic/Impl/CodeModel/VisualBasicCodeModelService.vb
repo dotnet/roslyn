@@ -4207,7 +4207,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw Exceptions.ThrowEUnexpected()
             End If
 
-            If StringComparer.OrdinalIgnoreCase.Equals(name, ExtenderNames.VBPartialMethodExtender) Then
+            If CaseInsensitiveComparison.Equals(name, ExtenderNames.VBPartialMethodExtender) Then
                 Dim methodSymbol = DirectCast(symbol, IMethodSymbol)
                 Dim isPartial = methodSymbol.PartialDefinitionPart IsNot Nothing OrElse methodSymbol.PartialImplementationPart IsNot Nothing
                 Dim isDeclaration = If(isPartial,
@@ -4232,7 +4232,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw Exceptions.ThrowEUnexpected()
             End If
 
-            If StringComparer.OrdinalIgnoreCase.Equals(name, ExtenderNames.VBAutoPropertyExtender) Then
+            If CaseInsensitiveComparison.Equals(name, ExtenderNames.VBAutoPropertyExtender) Then
                 Dim isAutoImplemented = TypeOf node Is PropertyStatementSyntax AndAlso
                                         Not TypeOf node.Parent Is InterfaceBlockSyntax
 
@@ -4249,7 +4249,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Public Overrides Function GetExternalTypeExtender(name As String, externalLocation As String) As Object
             Debug.Assert(externalLocation IsNot Nothing)
 
-            If StringComparer.OrdinalIgnoreCase.Equals(name, ExtenderNames.ExternalLocation) Then
+            If CaseInsensitiveComparison.Equals(name, ExtenderNames.ExternalLocation) Then
                 Return CodeTypeLocationExtender.Create(externalLocation)
             End If
 
@@ -4265,7 +4265,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw Exceptions.ThrowEUnexpected()
             End If
 
-            If StringComparer.OrdinalIgnoreCase.Equals(name, ExtenderNames.VBGenericExtender) Then
+            If CaseInsensitiveComparison.Equals(name, ExtenderNames.VBGenericExtender) Then
                 Return GenericExtender.Create(codeType)
             End If
 

@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 var reference = obj as MetadataSymbolReference;
                 return base.Equals(reference) &&
-                    StringComparer.OrdinalIgnoreCase.Equals(_reference.FilePath, reference._reference.FilePath);
+                    CaseInsensitiveComparison.Equals(_reference.FilePath, reference._reference.FilePath);
             }
 
             public override int GetHashCode()
                 => Hash.Combine(
                     base.GetHashCode(),
-                    StringComparer.OrdinalIgnoreCase.GetHashCode(_reference.FilePath));
+                    CaseInsensitiveComparison.GetHashCode(_reference.FilePath));
         }
     }
 }

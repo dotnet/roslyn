@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
             public bool Equals(SymbolKey x, SymbolKey y)
             {
                 var comparer = _options.IgnoreCase
-                    ? StringComparer.OrdinalIgnoreCase
+                    ? CaseInsensitiveComparison.Comparer
                     : StringComparer.Ordinal;
 
                 if (!_options.IgnoreAssemblyKey)
