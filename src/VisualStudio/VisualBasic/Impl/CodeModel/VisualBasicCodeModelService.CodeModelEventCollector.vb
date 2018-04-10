@@ -6,6 +6,7 @@
 ' suppression of events is not supported in Roslyn.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.StringComparers
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -846,7 +847,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
                 Dim namesChange As CodeModelEventType = 0
 
-                If Not CaseInsensitiveComparison.Equals(oldEnumMember.Identifier.ToString(), newEnumMember.Identifier.ToString()) Then
+                If Not IdentifierComparer.Equals(oldEnumMember.Identifier.ToString(), newEnumMember.Identifier.ToString()) Then
                     namesChange = CodeModelEventType.Rename
                     hasChanges = True
                 End If
@@ -893,7 +894,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim typesChange As CodeModelEventType = 0
                 Dim valuesChange As CodeModelEventType = 0
 
-                If Not CaseInsensitiveComparison.Equals(Me.CodeModelService.GetParameterName(oldParameter), Me.CodeModelService.GetParameterName(newParameter)) Then
+                If Not IdentifierComparer.Equals(Me.CodeModelService.GetParameterName(oldParameter), Me.CodeModelService.GetParameterName(newParameter)) Then
                     namesChange = CodeModelEventType.Rename
                     hasChanges = True
                 End If
@@ -965,7 +966,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 End If
 
                 If TypeOf oldExpression Is LiteralExpressionSyntax Then
-                    Return CaseInsensitiveComparison.Equals(oldExpression.ToString(), newExpression.ToString())
+                    Return IdentifierComparer.Equals(oldExpression.ToString(), newExpression.ToString())
                 End If
 
                 If TypeOf oldExpression Is CastExpressionSyntax Then
@@ -1075,7 +1076,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         Dim oldGenericName = DirectCast(oldName, GenericNameSyntax)
                         Dim newGenericName = DirectCast(newName, GenericNameSyntax)
 
-                        If Not CaseInsensitiveComparison.Equals(oldGenericName.Identifier.ToString(), newGenericName.Identifier.ToString()) Then
+                        If Not IdentifierComparer.Equals(oldGenericName.Identifier.ToString(), newGenericName.Identifier.ToString()) Then
                             Return False
                         End If
 
