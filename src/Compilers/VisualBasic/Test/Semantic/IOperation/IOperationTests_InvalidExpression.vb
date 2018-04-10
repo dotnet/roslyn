@@ -55,7 +55,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.F(x As System.Int32)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'F(String.Empty)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'F')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'F')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'String.Empty')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'String.Empty')
@@ -95,7 +95,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
   Children(2):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'F')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'F')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'F')
       IFieldReferenceOperation: System.String.Empty As System.String (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'String.Empty')
         Instance Receiver: 
           null

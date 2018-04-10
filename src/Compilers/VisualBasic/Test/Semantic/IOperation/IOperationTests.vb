@@ -389,7 +389,7 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
   Children(3):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'Test2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Module1, IsImplicit) (Syntax: 'Test2')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Module1, IsImplicit) (Syntax: 'Test2')
       IObjectCreationOperation (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreation, Type: System.Guid, IsInvalid) (Syntax: 'New System.Guid()')
         Arguments(0)
         Initializer: 
@@ -401,19 +401,19 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
   Children(2):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'Test1')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Module1, IsImplicit) (Syntax: 'Test1')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Module1, IsImplicit) (Syntax: 'Test1')
       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'AddressOf Main')
         Children(1):
             IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Main')
               Children(1):
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Module1, IsInvalid, IsImplicit) (Syntax: 'Main')")
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Module1, IsInvalid, IsImplicit) (Syntax: 'Main')")
 
             comp.VerifyOperationTree(nodes(3), expectedOperationTree:=
 "IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... essOf Main)')
   Children(3):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'Test2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Module1, IsImplicit) (Syntax: 'Test2')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Module1, IsImplicit) (Syntax: 'Test2')
       IObjectCreationOperation (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreation, Type: System.Guid, IsInvalid) (Syntax: 'New System.Guid()')
         Arguments(0)
         Initializer: 
@@ -422,7 +422,7 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
         Children(1):
             IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Main')
               Children(1):
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Module1, IsInvalid, IsImplicit) (Syntax: 'Main')")
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Module1, IsInvalid, IsImplicit) (Syntax: 'Main')")
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>

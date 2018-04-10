@@ -1304,7 +1304,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
   LoopControlVariable: 
     IInvocationOperation ( void C.M(System.Int32 a, System.Int32 b)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M(1, 2)')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M')
       Arguments(2):
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -1356,7 +1356,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
   LoopControlVariable: 
     IInvocationOperation ( void C.M2(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(out var x)')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
       Arguments(1):
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'out var x')
             IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var x')
@@ -2885,7 +2885,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (Identity)
                   Operand: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass) (Syntax: 'this')
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass) (Syntax: 'this')
               Arguments(0)
 
     Next (Regular) Block[B2]
@@ -2982,7 +2982,7 @@ Block[B1] - Block
     Statements (1)
         IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'this')
           Children(1):
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass) (Syntax: 'this')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass) (Syntax: 'this')
 
     Next (Regular) Block[B2]
 Block[B2] - Block
@@ -3326,7 +3326,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (Identity)
                   Operand: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass) (Syntax: 'this')
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass) (Syntax: 'this')
               Arguments(0)
 
     Next (Regular) Block[B2]
@@ -3420,7 +3420,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (Identity)
                   Operand: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass) (Syntax: 'this')
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass) (Syntax: 'this')
               Arguments(0)
 
     Next (Regular) Block[B2]
@@ -3513,7 +3513,7 @@ Block[B1] - Block
     Statements (1)
         IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'this')
           Children(1):
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass) (Syntax: 'this')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass) (Syntax: 'this')
 
     Next (Regular) Block[B2]
 Block[B2] - Block

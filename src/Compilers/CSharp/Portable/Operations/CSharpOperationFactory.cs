@@ -624,11 +624,12 @@ namespace Microsoft.CodeAnalysis.Operations
                                             OperationFactory.NullOperation :
                                             new Lazy<IOperation>(() =>
                                                 new InstanceReferenceExpression(
-                                                semanticModel: _semanticModel,
-                                                syntax: boundObjectInitializerMember.Syntax,
-                                                type: boundObjectInitializerMember.ReceiverType,
-                                                constantValue: default(Optional<object>),
-                                                isImplicit: true));
+                                                    referenceKind: InstanceReferenceKind.ImplicitReceiver,
+                                                    semanticModel: _semanticModel,
+                                                    syntax: boundObjectInitializerMember.Syntax,
+                                                    type: boundObjectInitializerMember.ReceiverType,
+                                                    constantValue: default(Optional<object>),
+                                                    isImplicit: true));
 
             SyntaxNode syntax = boundObjectInitializerMember.Syntax;
             ITypeSymbol type = boundObjectInitializerMember.Type;
@@ -1001,20 +1002,22 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IInstanceReferenceOperation CreateBoundBaseReferenceOperation(BoundBaseReference boundBaseReference)
         {
+            InstanceReferenceKind referenceKind = InstanceReferenceKind.ContainingTypeInstance;
             SyntaxNode syntax = boundBaseReference.Syntax;
             ITypeSymbol type = boundBaseReference.Type;
             Optional<object> constantValue = ConvertToOptional(boundBaseReference.ConstantValue);
             bool isImplicit = boundBaseReference.WasCompilerGenerated;
-            return new InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit);
+            return new InstanceReferenceExpression(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IInstanceReferenceOperation CreateBoundThisReferenceOperation(BoundThisReference boundThisReference)
         {
+            InstanceReferenceKind referenceKind = InstanceReferenceKind.ContainingTypeInstance;
             SyntaxNode syntax = boundThisReference.Syntax;
             ITypeSymbol type = boundThisReference.Type;
             Optional<object> constantValue = ConvertToOptional(boundThisReference.ConstantValue);
             bool isImplicit = boundThisReference.WasCompilerGenerated;
-            return new InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit);
+            return new InstanceReferenceExpression(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IOperation CreateBoundAssignmentOperatorOrMemberInitializerOperation(BoundAssignmentOperator boundAssignmentOperator)
@@ -1264,11 +1267,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IInstanceReferenceOperation CreateBoundImplicitReceiverOperation(BoundImplicitReceiver boundImplicitReceiver)
         {
+            InstanceReferenceKind referenceKind = InstanceReferenceKind.ImplicitReceiver;
             SyntaxNode syntax = boundImplicitReceiver.Syntax;
             ITypeSymbol type = boundImplicitReceiver.Type;
             Optional<object> constantValue = ConvertToOptional(boundImplicitReceiver.ConstantValue);
             bool isImplicit = boundImplicitReceiver.WasCompilerGenerated;
-            return new InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit);
+            return new InstanceReferenceExpression(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IConditionalAccessOperation CreateBoundConditionalAccessOperation(BoundConditionalAccess boundConditionalAccess)

@@ -52,7 +52,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -75,7 +75,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Me.i')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -100,7 +100,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'MyBase.i')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'MyBase')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'MyBase')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -123,7 +123,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IFieldReferenceOperation: C.i As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'MyClass.i')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'MyClass')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'MyClass')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

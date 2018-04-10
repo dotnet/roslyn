@@ -875,6 +875,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInstanceReference(IInstanceReferenceOperation operation)
         {
             LogString(nameof(IInstanceReferenceOperation));
+            LogString($" (ReferenceKind: {operation.ReferenceKind})");
             LogCommonPropertiesAndNewLine(operation);
 
             if (operation.IsImplicit)

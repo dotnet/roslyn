@@ -27,7 +27,7 @@ ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'SyncLock o' ... nd Syn
   Expression: 
     IFieldReferenceOperation: C1.o As System.Object (OperationKind.FieldReference, Type: System.Object) (Syntax: 'o')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'o')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'o')
   Body: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'SyncLock o' ... nd SyncLock')
 ]]>.Value
@@ -272,7 +272,7 @@ ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'SyncLock M2 ... nd Syn
   Expression: 
     IInvocationOperation ( Function C1.M2() As System.Object) (OperationKind.Invocation, Type: System.Object) (Syntax: 'M2()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1, IsImplicit) (Syntax: 'M2')
       Arguments(0)
   Body: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'SyncLock M2 ... nd SyncLock')
@@ -306,7 +306,7 @@ ILockOperation (OperationKind.Lock, Type: null, IsInvalid) (Syntax: 'SyncLock M2
       Children(1):
           IInvocationOperation ( Sub C1.M2()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M2()')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'M2')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'M2')
             Arguments(0)
   Body: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'SyncLock M2 ... nd SyncLock')

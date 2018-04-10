@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -45,7 +45,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
       Target: 
         IMethodReferenceOperation: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReference, Type: null) (Syntax: 'Handler')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(6,31): warning CS0067: The event 'Test.MyEvent' is never used
@@ -84,7 +84,7 @@ class C
             string expectedOperationTree = @"
 IMethodReferenceOperation: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReference, Type: null) (Syntax: 'Handler')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0067: The event 'Test.MyEvent' is never used
@@ -172,7 +172,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
       Target: 
         IMethodReferenceOperation: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReference, Type: null) (Syntax: 'Handler')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(6,38): warning CS0067: The event 'Test.MyEvent' is never used
@@ -218,7 +218,7 @@ IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: Sy
       Target: 
         IMethodReferenceOperation: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReference, Type: null) (Syntax: 'Handler')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(6,38): warning CS0067: The event 'Test.MyEvent' is never used
@@ -265,7 +265,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
       Target: 
         IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Handler')
           Children(1):
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Handler')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(18,19): error CS0123: No overload for 'Handler' matches delegate 'EventHandler'
@@ -315,7 +315,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
       Target: 
         IMethodReferenceOperation: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReference, Type: null) (Syntax: 'Handler')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(18,19): error CS0176: Member 'Test.MyEvent' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -365,7 +365,7 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
       Target: 
         IMethodReferenceOperation: void C.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReference, Type: null) (Syntax: 'Handler')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(17,19): error CS0120: An object reference is required for the non-static field, method, or property 'Test.MyEvent'
@@ -405,13 +405,13 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
   Event Reference: 
     IEventReferenceOperation: event System.EventHandler Test.MyEvent (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'MyEvent')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Test, IsImplicit) (Syntax: 'MyEvent')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Test, IsImplicit) (Syntax: 'MyEvent')
   Handler: 
     IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.EventHandler, IsImplicit) (Syntax: 'Handler')
       Target: 
         IMethodReferenceOperation: void Test.Handler(System.Object sender, System.EventArgs e) (OperationKind.MethodReference, Type: null) (Syntax: 'Handler')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Test, IsImplicit) (Syntax: 'Handler')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Test, IsImplicit) (Syntax: 'Handler')
 ";
             var expectedDiagnostics = new[] {
                       // file.cs(6,31): warning CS0067: The event 'Test.MyEvent' is never used

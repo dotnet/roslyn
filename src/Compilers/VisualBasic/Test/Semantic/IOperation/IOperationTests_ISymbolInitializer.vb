@@ -206,7 +206,7 @@ IFieldInitializerOperation (2 initialized fields) (OperationKind.FieldInitialize
   IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Me')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
-      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid) (Syntax: 'Me')
+      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1, IsInvalid) (Syntax: 'Me')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -237,7 +237,7 @@ IPropertyInitializerOperation (2 initialized properties) (OperationKind.Property
   IObjectCreationOperation (Constructor: Sub C1..ctor(c As C1)) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'New C1(Me)')
     Arguments(1):
         IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null) (Syntax: 'Me')
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1) (Syntax: 'Me')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1) (Syntax: 'Me')
           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Initializer: 
@@ -264,7 +264,7 @@ End Class
 IPropertyInitializerOperation (2 initialized properties) (OperationKind.PropertyInitializer, Type: null, IsInvalid) (Syntax: '= Me')
   Property_1: WithEvents C1.e As C1
   Property_2: WithEvents C1.f As C1
-  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid) (Syntax: 'Me')
+  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1, IsInvalid) (Syntax: 'Me')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

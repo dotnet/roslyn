@@ -48,7 +48,7 @@ IFixedOperation (OperationKind.None, Type: null) (Syntax: 'fixed(int * ... }')
                           Reference: 
                             IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
                               Instance Receiver: 
-                                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i')
+                                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i')
         Initializer: 
           null
   Body: 
@@ -125,7 +125,7 @@ IFixedOperation (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
                           Reference: 
                             IFieldReferenceOperation: System.Int32 C.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
                               Instance Receiver: 
-                                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i1')
+                                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i1')
             IVariableDeclaratorOperation (Symbol: System.Int32* p2) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p2 = &i2')
               Initializer: 
                 IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= &i2')
@@ -135,7 +135,7 @@ IFixedOperation (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
                           Reference: 
                             IFieldReferenceOperation: System.Int32 C.i2 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i2')
                               Instance Receiver: 
-                                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i2')
+                                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i2')
         Initializer: 
           null
   Body: 
@@ -206,7 +206,7 @@ IFixedOperation (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
                           Reference: 
                             IFieldReferenceOperation: System.Int32 C.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
                               Instance Receiver: 
-                                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i1')
+                                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i1')
         Initializer: 
           null
   Body: 
@@ -225,7 +225,7 @@ IFixedOperation (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
                               Reference: 
                                 IFieldReferenceOperation: System.Int32 C.i2 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i2')
                                   Instance Receiver: 
-                                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i2')
+                                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i2')
             Initializer: 
               null
       Body: 
@@ -351,7 +351,7 @@ IFixedOperation (OperationKind.None, Type: null, IsInvalid) (Syntax: 'fixed (int
                           Reference: 
                             IFieldReferenceOperation: System.Int32 C.i1 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i1')
                               Instance Receiver: 
-                                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i1')
+                                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i1')
         Initializer: 
           null
   Body: 
@@ -428,7 +428,7 @@ Block[B0] - Entry
                         Reference: 
                           IFieldReferenceOperation: System.Int32 MyClass.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
                             Instance Receiver: 
-                              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass, IsImplicit) (Syntax: 'i')
+                              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass, IsImplicit) (Syntax: 'i')
 
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'System.Cons ... P is {p}"");')
               Expression: 
@@ -515,7 +515,7 @@ Block[B0] - Entry
                         Reference: 
                           IFieldReferenceOperation: System.Int32 MyClass.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
                             Instance Receiver: 
-                              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass, IsImplicit) (Syntax: 'i')
+                              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass, IsImplicit) (Syntax: 'i')
 
         Jump if False (Regular) to Block[B3]
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
@@ -616,7 +616,7 @@ Block[B0] - Entry
                   Reference: 
                     IFieldReferenceOperation: System.Int32 MyClass.i1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'i1')
                       Instance Receiver: 
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'i1')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'i1')
 
         Next (Regular) Block[B4]
     Block[B3] - Block
@@ -628,7 +628,7 @@ Block[B0] - Entry
                   Reference: 
                     IFieldReferenceOperation: System.Int32 MyClass.i2 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'i2')
                       Instance Receiver: 
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'i2')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'i2')
 
         Next (Regular) Block[B4]
     Block[B4] - Block
@@ -726,7 +726,7 @@ Block[B0] - Entry
                         Reference: 
                           IFieldReferenceOperation: System.Int32 P.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
                             Instance Receiver: 
-                              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'i')
+                              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'i')
 
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
               Value: 
@@ -806,7 +806,7 @@ Block[B0] - Entry
                         Reference: 
                           IFieldReferenceOperation: System.Int32 P.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
                             Instance Receiver: 
-                              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'i')
+                              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'i')
 
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
               Value: 
@@ -831,7 +831,7 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'this')
               Value: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P) (Syntax: 'this')
 
         Next (Regular) Block[B4]
     Block[B4] - Block
