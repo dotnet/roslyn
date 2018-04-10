@@ -68,8 +68,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' We must always escape "Rem" and "New" when they are being used in an identifier context.
                 ' For constructors, (say C.New) we emit New as a Keyword kind if it's a constructor, or
                 ' as an appropriate name kind if it's an identifier.
-                If CaseInsensitiveComparison.Equals(SyntaxFacts.GetText(SyntaxKind.REMKeyword), text) OrElse
-                   CaseInsensitiveComparison.Equals(SyntaxFacts.GetText(SyntaxKind.NewKeyword), text) Then
+                If IdentifierComparison.Equals(SyntaxFacts.GetText(SyntaxKind.REMKeyword), text) OrElse
+                   IdentifierComparison.Equals(SyntaxFacts.GetText(SyntaxKind.NewKeyword), text) Then
                     Return True
                 End If
             End If

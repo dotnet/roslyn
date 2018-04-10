@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Overrides Function GetHashCode() As Integer
-            Return Hash.Combine(m_Assembly.GetHashCode(), CaseInsensitiveComparison.GetHashCode(_name))
+            Return Hash.Combine(m_Assembly.GetHashCode(), IdentifierComparison.GetHashCode(_name))
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean

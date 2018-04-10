@@ -552,7 +552,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                                     ' Check for special dispids. Do this after incrementing NextDispId
                                     ' so we will keep the nth item as DispId n.
-                                    If CaseInsensitiveComparison.Equals(method.Name, getEnumeratorName) AndAlso
+                                    If IdentifierComparison.Equals(method.Name, getEnumeratorName) AndAlso
                                        method.ParameterCount = 0 AndAlso
                                        method.ReturnType.SpecialType = SpecialType.System_Collections_IEnumerator Then
                                         synthesizedDispId = ReservedDispId.DISPID_NEWENUM
@@ -586,7 +586,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                                     ' Check for special dispids. Do this after incrementing NextDispId
                                     ' so we will keep the nth item as DispId n.
-                                    If CaseInsensitiveComparison.Equals(prop.Name, getEnumeratorName) AndAlso
+                                    If IdentifierComparison.Equals(prop.Name, getEnumeratorName) AndAlso
                                        prop.ParameterCount = 0 AndAlso
                                        prop.Type.SpecialType = SpecialType.System_Collections_IEnumerator Then
                                         synthesizedDispId = ReservedDispId.DISPID_NEWENUM

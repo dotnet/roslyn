@@ -2846,7 +2846,7 @@ _Default:
             End If
 
             For Each param In params
-                If CaseInsensitiveComparison.Equals(param.Name, argumentName) Then
+                If IdentifierComparison.Equals(param.Name, argumentName) Then
                     Return param
                 End If
             Next
@@ -2916,7 +2916,7 @@ _Default:
                 Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = node.SyntaxTree.GetPreprocessingSymbolInfo(node)
 
                 If symbolInfo.Symbol IsNot Nothing Then
-                    Debug.Assert(CaseInsensitiveComparison.Equals(symbolInfo.Symbol.Name, node.Identifier.ValueText))
+                    Debug.Assert(IdentifierComparison.Equals(symbolInfo.Symbol.Name, node.Identifier.ValueText))
                     Return symbolInfo
                 End If
 

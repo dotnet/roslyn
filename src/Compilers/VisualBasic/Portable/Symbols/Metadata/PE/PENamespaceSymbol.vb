@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 isGlobalNamespace,
                 If(isGlobalNamespace, 0, ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat).Length),
                 typesByNS,
-                CaseInsensitiveComparison.Comparer,
+                IdentifierComparison.Comparer,
                 nestedTypes, nestedNamespaces)
 
             LazyInitializeTypes(nestedTypes)
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         )
             If m_lazyMembers Is Nothing Then
 
-                Dim members As New Dictionary(Of String, ImmutableArray(Of Symbol))(CaseInsensitiveComparison.Comparer)
+                Dim members As New Dictionary(Of String, ImmutableArray(Of Symbol))(IdentifierComparison.Comparer)
 
                 ' Add namespaces
                 For Each child In childNamespaces
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Next
 
                 Dim typesDict As Dictionary(Of String, ImmutableArray(Of PENamedTypeSymbol)) =
-                    children.ToDictionary(Function(c) c.Name, CaseInsensitiveComparison.Comparer)
+                    children.ToDictionary(Function(c) c.Name, IdentifierComparison.Comparer)
                 children.Free()
 
                 If _lazyNoPiaLocalTypes Is Nothing Then

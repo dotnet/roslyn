@@ -606,7 +606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim array As ArrayBuilder(Of LocalSymbol) = Nothing
 
                             If staticLocals Is Nothing Then
-                                staticLocals = New Dictionary(Of String, ArrayBuilder(Of LocalSymbol))(CaseInsensitiveComparison.Comparer)
+                                staticLocals = New Dictionary(Of String, ArrayBuilder(Of LocalSymbol))(IdentifierComparison.Comparer)
                                 array = New ArrayBuilder(Of LocalSymbol)()
                                 staticLocals.Add(local.Name, array)
                             ElseIf Not staticLocals.TryGetValue(local.Name, array) Then
@@ -1730,7 +1730,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Set the type of the symbol, so we don't have to re-compute it later.
             local.SetType(type)
 
-            If localForFunctionValue IsNot Nothing AndAlso CaseInsensitiveComparison.Equals(local.Name, localForFunctionValue.Name) Then
+            If localForFunctionValue IsNot Nothing AndAlso IdentifierComparison.Equals(local.Name, localForFunctionValue.Name) Then
                 ' Does name conflict with the function name?
                 ReportDiagnostic(diagnostics, nameSyntax, ERRID.ERR_LocalSameAsFunc)
 

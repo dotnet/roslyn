@@ -624,7 +624,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             hasErrors:=True)
             End If
 
-            Dim processedMembers As New HashSet(Of String)(CaseInsensitiveComparison.Comparer)
+            Dim processedMembers As New HashSet(Of String)(IdentifierComparison.Comparer)
             Dim memberAssignments = ArrayBuilder(Of BoundExpression).GetInstance
 
             ' The temporary diagnostic bag is needed to collect diagnostics until it is known that the accessed symbol

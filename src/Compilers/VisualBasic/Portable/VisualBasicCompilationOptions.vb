@@ -259,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 platform:=platform,
                 generalDiagnosticOption:=generalDiagnosticOption,
                 warningLevel:=1,
-                specificDiagnosticOptions:=specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(CaseInsensitiveComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
+                specificDiagnosticOptions:=specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(IdentifierComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
                 concurrentBuild:=concurrentBuild,
                 deterministic:=deterministic,
                 currentLocalTime:=currentLocalTime,
@@ -1097,7 +1097,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function GetHashCode() As Integer
             Return Hash.Combine(MyBase.GetHashCodeHelper(),
                    Hash.Combine(Hash.CombineValues(Me.GlobalImports),
-                   Hash.Combine(If(Me.RootNamespace IsNot Nothing, CaseInsensitiveComparison.GetHashCode(Me.RootNamespace), 0),
+                   Hash.Combine(If(Me.RootNamespace IsNot Nothing, IdentifierComparison.GetHashCode(Me.RootNamespace), 0),
                    Hash.Combine(Me.OptionStrict,
                    Hash.Combine(Me.OptionInfer,
                    Hash.Combine(Me.OptionExplicit,

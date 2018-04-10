@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 mapSize += 1 ' account for possible function return value
             End If
 
-            _parameterMap = New Dictionary(Of String, Symbol)(mapSize, CaseInsensitiveComparison.Comparer)
+            _parameterMap = New Dictionary(Of String, Symbol)(mapSize, IdentifierComparison.Comparer)
 
             For i = 0 To count - 1
                 Dim parameterSymbol = parameters(i)

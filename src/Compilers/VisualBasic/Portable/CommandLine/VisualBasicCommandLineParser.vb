@@ -144,10 +144,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim pathMap As ImmutableArray(Of KeyValuePair(Of String, String)) = ImmutableArray(Of KeyValuePair(Of String, String)).Empty
 
             ' Diagnostic ids specified via /nowarn /warnaserror must be processed in case-insensitive fashion.
-            Dim specificDiagnosticOptionsFromRuleSet = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
-            Dim specificDiagnosticOptionsFromGeneralArguments = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
-            Dim specificDiagnosticOptionsFromSpecificArguments = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
-            Dim specificDiagnosticOptionsFromNoWarnArguments = New Dictionary(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
+            Dim specificDiagnosticOptionsFromRuleSet = New Dictionary(Of String, ReportDiagnostic)(IdentifierComparison.Comparer)
+            Dim specificDiagnosticOptionsFromGeneralArguments = New Dictionary(Of String, ReportDiagnostic)(IdentifierComparison.Comparer)
+            Dim specificDiagnosticOptionsFromSpecificArguments = New Dictionary(Of String, ReportDiagnostic)(IdentifierComparison.Comparer)
+            Dim specificDiagnosticOptionsFromNoWarnArguments = New Dictionary(Of String, ReportDiagnostic)(IdentifierComparison.Comparer)
             Dim keyFileSetting As String = Nothing
             Dim keyContainerSetting As String = Nothing
             Dim delaySignSetting As Boolean? = Nothing
@@ -1184,7 +1184,7 @@ lVbRuntimePlus:
                 AddDiagnostic(diagnostics, ERRID.WRN_BadSwitch, arg)
             Next
 
-            Dim specificDiagnosticOptions = New Dictionary(Of String, ReportDiagnostic)(specificDiagnosticOptionsFromRuleSet, CaseInsensitiveComparison.Comparer)
+            Dim specificDiagnosticOptions = New Dictionary(Of String, ReportDiagnostic)(specificDiagnosticOptionsFromRuleSet, IdentifierComparison.Comparer)
 
             For Each item In specificDiagnosticOptionsFromGeneralArguments
                 specificDiagnosticOptions(item.Key) = item.Value
@@ -1685,7 +1685,7 @@ lVbRuntimePlus:
         Private Shared Function PublicSymbolsToInternalDefines(symbols As IEnumerable(Of KeyValuePair(Of String, Object)),
                                                                diagnosticBuilder As ArrayBuilder(Of Diagnostic)) As ImmutableDictionary(Of String, InternalSyntax.CConst)
 
-            Dim result = ImmutableDictionary.CreateBuilder(Of String, InternalSyntax.CConst)(CaseInsensitiveComparison.Comparer)
+            Dim result = ImmutableDictionary.CreateBuilder(Of String, InternalSyntax.CConst)(IdentifierComparison.Comparer)
 
             If symbols IsNot Nothing Then
                 For Each symbol In symbols

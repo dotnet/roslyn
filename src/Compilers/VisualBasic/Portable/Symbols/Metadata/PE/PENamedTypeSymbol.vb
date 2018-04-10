@@ -686,8 +686,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 CreateFields(members, withEventNames)
                 CreateEvents(methodHandleToSymbol, members)
 
-                Dim membersDict As New Dictionary(Of String, ImmutableArray(Of Symbol))(CaseInsensitiveComparison.Comparer)
-                Dim groupedMembers = members.GroupBy(Function(m) m.Name, CaseInsensitiveComparison.Comparer)
+                Dim membersDict As New Dictionary(Of String, ImmutableArray(Of Symbol))(IdentifierComparison.Comparer)
+                Dim groupedMembers = members.GroupBy(Function(m) m.Name, IdentifierComparison.Comparer)
 
                 For Each g In groupedMembers
                     membersDict.Add(g.Key, ImmutableArray.CreateRange(g))

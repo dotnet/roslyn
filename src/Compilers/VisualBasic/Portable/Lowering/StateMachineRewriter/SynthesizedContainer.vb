@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
-            Return If(CaseInsensitiveComparison.Equals(name, WellKnownMemberNames.InstanceConstructorName),
+            Return If(IdentifierComparison.Equals(name, WellKnownMemberNames.InstanceConstructorName),
                       ImmutableArray.Create(Of Symbol)(Me.Constructor), ImmutableArray(Of Symbol).Empty)
         End Function
 

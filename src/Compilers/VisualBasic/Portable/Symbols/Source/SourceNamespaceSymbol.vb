@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' NOTE: This method depends on MakeNameToMembersMap() on creating a proper 
                 ' NOTE: type of the array, see comments in MakeNameToMembersMap() for details
 
-                Dim dictionary As New Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))(CaseInsensitiveComparison.Comparer)
+                Dim dictionary As New Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))(IdentifierComparison.Comparer)
 
                 Dim map As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol)) = Me.GetNameToMembersMap()
                 For Each kvp In map

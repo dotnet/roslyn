@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(initializersCount > 0)
 
                 ' Initialize binder fields
-                Me._fieldName2index = New Dictionary(Of String, Integer)(initializersCount, CaseInsensitiveComparison.Comparer)
+                Me._fieldName2index = New Dictionary(Of String, Integer)(initializersCount, IdentifierComparison.Comparer)
                 Me._fields = New AnonymousTypeField(initializersCount - 1) {}
                 Me._fieldDeclarations = Nothing
                 Me._locals = New LocalSymbol(initializersCount - 1) {}
