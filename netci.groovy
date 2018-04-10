@@ -43,7 +43,7 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
       triggerCore = "${triggerCore}|${triggerPhraseExtra}"
     }
     def triggerPhrase = "(?im)^\\s*(@?dotnet-bot\\,?\\s+)?(re)?test\\s+(${triggerCore})(\\s+please\\.?)?\\s*\$";
-    def contextName = jobName
+    def contextName = "${branchName}/${jobName}"
     Utilities.addGithubPRTriggerForBranch(myJob, branchName, contextName, triggerPhrase, triggerPhraseOnly)
   } else {
     Utilities.standardJobSetupPush(myJob, projectName, "*/${branchName}");
