@@ -49,6 +49,7 @@
         <KeyBinding Key="Up" Modifiers="Alt" Command="{StaticResource MoveUp}" />
         <KeyBinding Key="Down" Modifiers="Alt" Command="{StaticResource MoveDown}" />
         <KeyBinding Key="Delete" Command="{StaticResource ToggleRemovedState}" />
+        <KeyBinding Key="Return" Command="{StaticResource ClickOK}" />
     </Window.InputBindings>
     <Grid Name="ContentGrid" Margin="11,6,11,11">
         <Grid.RowDefinitions>
