@@ -454,7 +454,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim modifiersChange As CodeModelEventType = 0
                 Dim baseListsChange As CodeModelEventType = 0
 
-                If Not StringComparer.OrdinalIgnoreCase.Equals(oldEnum.EnumStatement.Identifier.ToString(), newEnum.EnumStatement.Identifier.ToString()) Then
+                If Not CaseInsensitiveComparison.Equals(oldEnum.EnumStatement.Identifier.ToString(), newEnum.EnumStatement.Identifier.ToString()) Then
                     ' If the type name is different, it might mean that the whole type has been removed a new one added.
                     ' In that case, we shouldn't do any other checks and return immediately.
                     Dim change = CompareRenamedDeclarations(
@@ -596,7 +596,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim modifiersChange As CodeModelEventType = 0
                 Dim typesChange As CodeModelEventType = 0
 
-                If Not StringComparer.OrdinalIgnoreCase.Equals(oldMethod.GetNameText(), newMethod.GetNameText()) Then
+                If Not CaseInsensitiveComparison.Equals(oldMethod.GetNameText(), newMethod.GetNameText()) Then
                     ' If the method name is different, it might mean that the whole method has been removed a new one added.
                     ' In that case, we shouldn't do any other checks and return immediately.
                     Dim change = CompareRenamedDeclarations(
@@ -657,7 +657,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim modifiersChange As CodeModelEventType = 0
                 Dim typesChange As CodeModelEventType = 0
 
-                If Not StringComparer.OrdinalIgnoreCase.Equals(oldProperty.Identifier.ToString(), newProperty.Identifier.ToString()) Then
+                If Not CaseInsensitiveComparison.Equals(oldProperty.Identifier.ToString(), newProperty.Identifier.ToString()) Then
                     ' If the property name is different, it might mean that the property method has been removed a new one added.
                     ' In that case, we shouldn't do any other checks and return immediately.
                     Dim change = CompareRenamedDeclarations(
@@ -718,7 +718,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim modifiersChange As CodeModelEventType = 0
                 Dim typesChange As CodeModelEventType = 0
 
-                If Not StringComparer.OrdinalIgnoreCase.Equals(oldEvent.Identifier.ToString(), newEvent.Identifier.ToString()) Then
+                If Not CaseInsensitiveComparison.Equals(oldEvent.Identifier.ToString(), newEvent.Identifier.ToString()) Then
                     ' If the property name is different, it might mean that the property method has been removed a new one added.
                     ' In that case, we shouldn't do any other checks and return immediately.
                     Dim change = CompareRenamedDeclarations(
@@ -811,7 +811,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim typesChange As CodeModelEventType = 0
                 Dim modifiersChange As CodeModelEventType = 0
 
-                If Not StringComparer.OrdinalIgnoreCase.Equals(oldModifiedIdentifier.Identifier.ToString(), newModifiedIdentifier.Identifier.ToString()) Then
+                If Not CaseInsensitiveComparison.Equals(oldModifiedIdentifier.Identifier.ToString(), newModifiedIdentifier.Identifier.ToString()) Then
                     namesChange = CodeModelEventType.Rename
                     Return False
                 End If
@@ -846,7 +846,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
                 Dim namesChange As CodeModelEventType = 0
 
-                If Not StringComparer.Ordinal.Equals(oldEnumMember.Identifier.ToString(), newEnumMember.Identifier.ToString()) Then
+                If NotCaseInsensitiveComparison.Equals(oldEnumMember.Identifier.ToString(), newEnumMember.Identifier.ToString()) Then
                     namesChange = CodeModelEventType.Rename
                     hasChanges = True
                 End If
@@ -893,7 +893,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim typesChange As CodeModelEventType = 0
                 Dim valuesChange As CodeModelEventType = 0
 
-                If Not StringComparer.OrdinalIgnoreCase.Equals(Me.CodeModelService.GetParameterName(oldParameter), Me.CodeModelService.GetParameterName(newParameter)) Then
+                If NotCaseInsensitiveComparison.Equals(Me.CodeModelService.GetParameterName(oldParameter), Me.CodeModelService.GetParameterName(newParameter)) Then
                     namesChange = CodeModelEventType.Rename
                     hasChanges = True
                 End If
@@ -965,7 +965,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 End If
 
                 If TypeOf oldExpression Is LiteralExpressionSyntax Then
-                    Return StringComparer.OrdinalIgnoreCase.Equals(oldExpression.ToString(), newExpression.ToString())
+                    Return CaseInsensitiveComparison.Equals(oldExpression.ToString(), newExpression.ToString())
                 End If
 
                 If TypeOf oldExpression Is CastExpressionSyntax Then
@@ -1062,7 +1062,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         Dim oldIdentifierName = DirectCast(oldName, IdentifierNameSyntax)
                         Dim newIdentifierName = DirectCast(newName, IdentifierNameSyntax)
 
-                        Return StringComparer.OrdinalIgnoreCase.Equals(oldIdentifierName.Identifier.ToString(), newIdentifierName.Identifier.ToString())
+                        Return CaseInsensitiveComparison.Equals(oldIdentifierName.Identifier.ToString(), newIdentifierName.Identifier.ToString())
 
                     Case SyntaxKind.QualifiedName
                         Dim oldQualifiedName = DirectCast(oldName, QualifiedNameSyntax)
@@ -1075,7 +1075,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         Dim oldGenericName = DirectCast(oldName, GenericNameSyntax)
                         Dim newGenericName = DirectCast(newName, GenericNameSyntax)
 
-                        If Not StringComparer.OrdinalIgnoreCase.Equals(oldGenericName.Identifier.ToString(), newGenericName.Identifier.ToString()) Then
+                        If Not CaseInsensitiveComparison.Equals(oldGenericName.Identifier.ToString(), newGenericName.Identifier.ToString()) Then
                             Return False
                         End If
 
