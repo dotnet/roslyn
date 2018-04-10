@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                               .Concat(containingType.Name);
 
             var unusableNames = parameterNames.Concat(outerTypeParameterNames).ToSet(
-                syntaxFacts.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
+                syntaxFacts.IsCaseSensitive ? StringComparer.Ordinal : CaseInsensitiveComparison.Comparer);
 
             var newTypeParameterNames = NameGenerator.EnsureUniqueness(
                 method.TypeParameters.Select(tp => tp.Name).ToList(),

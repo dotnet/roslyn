@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             bool isCaseSensitive = true)
         {
             var suffix = 1;
-            var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+            var comparer = isCaseSensitive ? StringComparer.Ordinal : CaseInsensitiveComparison.Comparer;
             for (var i = 0; i < collisionIndices.Count; i++)
             {
                 var collisionIndex = collisionIndices[i];
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             string name,
             bool isCaseSensitive = true)
         {
-            var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+            var comparer = isCaseSensitive ? StringComparer.Ordinal : CaseInsensitiveComparison.Comparer;
             var collisionIndices =
                 names.Select((currentName, index) => new { currentName, index })
                      .Where(t => comparer.Equals(t.currentName, name))

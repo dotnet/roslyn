@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // we'll end up examining slightly more types (likely 0) when doing operations like 
         // Find all references.
         private readonly static ObjectPool<Dictionary<string, string>> s_aliasMapPool =
-            new ObjectPool<Dictionary<string, string>>(() => new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
+            new ObjectPool<Dictionary<string, string>>(() => new Dictionary<string, string>(CaseInsensitiveComparison.Comparer));
 
         protected static List<Dictionary<string, string>> AllocateAliasMapList()
             => s_aliasMapListPool.Allocate();

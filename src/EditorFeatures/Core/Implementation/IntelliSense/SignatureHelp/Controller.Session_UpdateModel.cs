@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 {
                     if (!string.IsNullOrEmpty(parameterName))
                     {
-                        var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+                        var comparer = isCaseSensitive ? StringComparer.Ordinal : CaseInsensitiveComparison.Comparer;
                         var index = bestItem.Parameters.IndexOf(p => comparer.Equals(p.Name, parameterName));
                         if (index >= 0)
                         {
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // matches that name.
                     if (name != null)
                     {
-                        var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+                        var comparer = isCaseSensitive ? StringComparer.Ordinal : CaseInsensitiveComparison.Comparer;
                         return item.Parameters.Any(p => comparer.Equals(p.Name, name));
                     }
 

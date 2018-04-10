@@ -560,8 +560,8 @@ namespace Microsoft.CodeAnalysis
 
                             // we have exactly the preferred culture or 
                             // we have neutral culture and the best candidate's culture isn't the preferred one:
-                            if (StringComparer.OrdinalIgnoreCase.Equals(candidateCulture, preferredCultureOpt) ||
-                                candidateCulture.Length == 0 && !StringComparer.OrdinalIgnoreCase.Equals(bestCulture, preferredCultureOpt))
+                            if (CaseInsensitiveComparison.Equals(candidateCulture, preferredCultureOpt) ||
+                                candidateCulture.Length == 0 && !CaseInsensitiveComparison.Equals(bestCulture, preferredCultureOpt))
                             {
                                 bestCandidate = candidate;
                                 bestVersion = candidateVersion;

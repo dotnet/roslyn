@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     {
                         // Both our names need to change.  Sort by the name we're 
                         // changing to.
-                        var diff = StringComparer.OrdinalIgnoreCase.Compare(
+                        var diff = CaseInsensitiveComparison.Compare(
                             this.SearchResult.DesiredName, other.SearchResult.DesiredName);
                         if (diff != 0)
                         {
