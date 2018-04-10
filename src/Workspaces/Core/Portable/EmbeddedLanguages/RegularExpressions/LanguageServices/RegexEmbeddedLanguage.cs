@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             SemanticFacts = semanticFacts;
             VirtualCharService = virtualCharService;
 
-            // BraceMatcher = new RegexEmbeddedBraceMatcher(this);
+            BraceMatcher = new RegexEmbeddedBraceMatcher(this);
             Classifier = new RegexEmbeddedClassifier(this);
             Highlighter = new RegexEmbeddedHighlighter(this);
-            // DiagnosticAnalyzer = new RegexDiagnosticAnalyzer(this);
+            DiagnosticAnalyzer = new RegexDiagnosticAnalyzer(this);
         }
 
         public IEmbeddedBraceMatcher BraceMatcher { get; }

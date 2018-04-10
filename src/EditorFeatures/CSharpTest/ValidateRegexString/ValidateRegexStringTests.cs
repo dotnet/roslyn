@@ -3,13 +3,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.ValidateRegexString;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateRegexString
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateRegexString
     public class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpValidateRegexStringDiagnosticAnalyzer(), null);
+            => (new CSharpEmbeddedLanguageDiagnosticAnalyzer(), null);
 
         private IDictionary<OptionKey, object> OptionOn()
         {
@@ -49,9 +49,9 @@ class Program
     }     
 }",
                 options: OptionOn(),
-                diagnosticId: IDEDiagnosticIds.RegexPatternDiagnosticId,
+                diagnosticId: RegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
-                diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens));
+                diagnosticMessage: string.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
@@ -68,9 +68,9 @@ class Program
     }     
 }",
                 options: OptionOn(),
-                diagnosticId: IDEDiagnosticIds.RegexPatternDiagnosticId,
+                diagnosticId: RegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
-                diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens));
+                diagnosticMessage: string.Format(WorkspacesResources.Regex_issue_0, WorkspacesResources.Too_many_close_parens));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]

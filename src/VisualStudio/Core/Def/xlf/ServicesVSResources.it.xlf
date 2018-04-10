@@ -1507,7 +1507,7 @@ L'utente accetta le condizioni sopra riportate:</target>
         <source>Manage naming styles</source>
         <target state="new">Manage naming styles</target>
         <note />
-      </trans-unit>      
+      </trans-unit>
       <trans-unit id="Field_preferences_colon">
         <source>Field preferences:</source>
         <target state="new">Field preferences:</target>
@@ -1526,6 +1526,26 @@ L'utente accetta le condizioni sopra riportate:</target>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
         <target state="new">Live code analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Colorize_regular_expressions">
+        <source>Colorize regular expressions</source>
+        <target state="new">Colorize regular expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_components_under_cursor">
+        <source>Highlight related components under cursor</source>
+        <target state="new">Highlight related components under cursor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regular_Expressions">
+        <source>Regular Expressions</source>
+        <target state="new">Regular Expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_regular_expressions">
+        <source>Report invalid regular expressions</source>
+        <target state="new">Report invalid regular expressions</target>
         <note />
       </trans-unit>
     </body>

@@ -2,17 +2,30 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    internal static class CommonRegexBraceMatcher
+    using RegexToken = EmbeddedSyntaxToken<RegexKind>;
+
+    /// <summary>
+    /// Brace matching impl for embedded regex strings.
+    /// </summary>
+    internal class RegexEmbeddedBraceMatcher : IEmbeddedBraceMatcher
     {
-        internal static async Task<BraceMatchingResult?> FindBracesAsync(
+        private readonly RegexEmbeddedLanguage _language;
+
+        public RegexEmbeddedBraceMatcher(RegexEmbeddedLanguage language)
+        {
+            _language = language;
+        }
+
+        public async Task<EmbeddedBraceMatchingResult?> FindBracesAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             var option = document.Project.Solution.Workspace.Options.GetOption(
@@ -31,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, syntaxFacts, document.GetLanguageService<ISemanticFactsService>());
-            var tree = detector?.TryParseRegexPattern(token, document.GetLanguageService<IVirtualCharService>(), cancellationToken);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _language);
+            var tree = detector?.TryParseRegexPattern(token, cancellationToken);
 
             if (tree == null)
             {
@@ -42,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             return GetMatchingBraces(tree, position);
         }
 
-        private static BraceMatchingResult? GetMatchingBraces(RegexTree tree, int position)
+        private static EmbeddedBraceMatchingResult? GetMatchingBraces(RegexTree tree, int position)
         {
             var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position));
             if (virtualChar == null)
@@ -59,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             return FindBraceHighlights(tree, ch);
         }
 
-        private static BraceMatchingResult? FindBraceHighlights(RegexTree tree, VirtualChar ch)
+        private static EmbeddedBraceMatchingResult? FindBraceHighlights(RegexTree tree, VirtualChar ch)
         {
             var node = FindGroupingNode(tree.Root, ch);
             if (node == null)
@@ -72,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                 return null;
             }
 
-            return new BraceMatchingResult(
+            return new EmbeddedBraceMatchingResult(
                 node.OpenParenToken.VirtualChars[0].Span,
                 node.CloseParenToken.VirtualChars[0].Span);
         }
