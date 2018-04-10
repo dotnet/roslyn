@@ -1985,11 +1985,6 @@ Version utilisée dans : {2}</target>
         <target state="translated">indexeur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Regex_issue_0">
-        <source>Regex issue: {0}</source>
-        <target state="new">Regex issue: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
         <target state="new">Alias ambiguous type '{0}'</target>

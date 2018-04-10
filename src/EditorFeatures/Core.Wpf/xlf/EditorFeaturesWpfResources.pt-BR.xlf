@@ -17,6 +17,7 @@
         <target state="translated">Baixando o índice do IntelliSense para {0}</target>
         <note />
       </trans-unit>
+<<<<<<< HEAD
       <trans-unit id="Regex_Comment">
         <source>Regex - Comment</source>
         <target state="new">Regex - Comment</target>
@@ -62,6 +63,8 @@
         <target state="new">Regex - Character Class</target>
         <note />
       </trans-unit>
+=======
+>>>>>>> embeddedLanguageServices2
     </body>
   </file>
 </xliff>

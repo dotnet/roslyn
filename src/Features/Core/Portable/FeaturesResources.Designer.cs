@@ -2563,15 +2563,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regex issue: {0}.
-        /// </summary>
-        internal static string Regex_issue_0 {
-            get {
-                return ResourceManager.GetString("Regex_issue_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remarks:.
         /// </summary>
         internal static string Remarks_colon {
