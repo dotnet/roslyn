@@ -271,22 +271,5 @@ class C
 }";
             await TestBraceHighlightingAsync(input);
         }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-        public async Task TestRegexBracket1()
-        {
-            var input = @"
-using System.Text.RegularExpressions;
-
-class C
-{
-    void Goo()
-    {
-        var r = new Regex(@""[|(|]a[|)|]$$"");
-    }
-}";
-
-            await TestBraceHighlightingAsync(input);
-        }
     }
 }
