@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var assemblyMachine = this.Machine;
                 bool isPlatformAgnostic = (assemblyMachine == System.Reflection.PortableExecutable.Machine.I386 && !this.Bit32Required);
-                var knownModuleNames = new HashSet<String>(CaseInsensitiveComparison.Comparer);
+                var knownModuleNames = new HashSet<String>(StringComparers.IdentifierComparer);
 
                 for (int i = 1; i < _modules.Length; i++)
                 {
@@ -2093,7 +2093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (lazyInternalsVisibleToMap == null)
             {
                 Interlocked.CompareExchange(ref lazyInternalsVisibleToMap,
-                                            new ConcurrentDictionary<string, ConcurrentDictionary<ImmutableArray<byte>, Tuple<Location, String>>>(CaseInsensitiveComparison.Comparer), null);
+                                            new ConcurrentDictionary<string, ConcurrentDictionary<ImmutableArray<byte>, Tuple<Location, String>>>(StringComparers.IdentifierComparer), null);
             }
 
             //later, once the identity is established we confirm that if the assembly being 

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public int Compare(NamedTypeSymbol x, NamedTypeSymbol y) // Implements IComparer<NamedTypeSymbol).Compare
         {
-            int result = CaseInsensitiveComparison.Compare(x.Name, y.Name);
+            int result = StringComparers.IdentifierComparer.Compare(x.Name, y.Name);
 
             if (result != 0)
             {

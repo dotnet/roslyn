@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var aliases = ArrayBuilder<string>.GetInstance(aliasSymbols.Count);
                 aliases.AddRange(aliasSymbols.Keys);
-                aliases.Sort(CaseInsensitiveComparison.Comparer); // Actual order doesn't matter - just want to be deterministic.
+                aliases.Sort(StringComparers.IdentifierComparer); // Actual order doesn't matter - just want to be deterministic.
 
                 foreach (var alias in aliases)
                 {

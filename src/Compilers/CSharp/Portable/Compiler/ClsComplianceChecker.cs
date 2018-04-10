@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             System.Diagnostics.Debug.Assert(IsAccessibleOutsideAssembly(symbol));
             System.Diagnostics.Debug.Assert(IsTrue(GetDeclaredOrInheritedCompliance(symbol)));
 
-            MultiDictionary<string, Symbol> seenByName = new MultiDictionary<string, Symbol>(CaseInsensitiveComparison.Comparer);
+            MultiDictionary<string, Symbol> seenByName = new MultiDictionary<string, Symbol>(StringComparers.IdentifierComparer);
 
             // For types, we also need to consider collisions with inherited members.
             if (symbol.Kind != SymbolKind.Namespace)

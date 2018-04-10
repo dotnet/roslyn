@@ -256,10 +256,10 @@ namespace Microsoft.CodeAnalysis.Completion
 
         int IComparable<CompletionItem>.CompareTo(CompletionItem other)
         {
-            var result = CaseInsensitiveComparison.Compare(this.SortText, other.SortText);
+            var result = StringComparers.IdentifierComparer.Compare(this.SortText, other.SortText);
             if (result == 0)
             {
-                result = CaseInsensitiveComparison.Compare(this.DisplayText, other.DisplayText);
+                result = StringComparers.IdentifierComparer.Compare(this.DisplayText, other.DisplayText);
             }
 
             return result;

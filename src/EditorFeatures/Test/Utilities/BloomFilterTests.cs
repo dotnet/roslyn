@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private void Test(bool isCaseSensitive)
         {
-            var comparer = isCaseSensitive ? StringComparer.Ordinal : CaseInsensitiveComparison.Comparer;
+            var comparer = isCaseSensitive ? StringComparer.Ordinal : StringComparers.IdentifierComparer;
             var strings = GenerateStrings(2000).Skip(500).Take(1000).ToSet(comparer);
             var testStrings = GenerateStrings(100000);
 

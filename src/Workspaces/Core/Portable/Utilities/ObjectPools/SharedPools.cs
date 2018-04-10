@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
         /// pool that uses string as element with StringComparer.OrdinalIgnoreCase as element comparer
         /// </summary>
         public static readonly ObjectPool<HashSet<string>> StringIgnoreCaseHashSet =
-            new ObjectPool<HashSet<string>>(() => new HashSet<string>(CaseInsensitiveComparison.Comparer), 20);
+            new ObjectPool<HashSet<string>>(() => new HashSet<string>(StringComparers.IdentifierComparer), 20);
 
         /// <summary>
         /// pool that uses string as element with StringComparer.Ordinal as element comparer
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
         private static class StringIgnoreCaseDictionaryNormalPool<T>
         {
             public static readonly ObjectPool<Dictionary<string, T>> Instance =
-                new ObjectPool<Dictionary<string, T>>(() => new Dictionary<string, T>(CaseInsensitiveComparison.Comparer), 20);
+                new ObjectPool<Dictionary<string, T>>(() => new Dictionary<string, T>(StringComparers.IdentifierComparer), 20);
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     _predicate = s => StringComparer.Ordinal.Equals(name, s);
                     break;
                 case SearchKind.ExactIgnoreCase:
-                    _predicate = s => CaseInsensitiveComparison.Comparer.Equals(name, s);
+                    _predicate = s => StringComparers.IdentifierComparer.Equals(name, s);
                     break;
                 case SearchKind.Fuzzy:
                     // Create a single WordSimilarityChecker and capture a delegate reference to 

@@ -225,8 +225,8 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 identifiers = SharedPools.StringIgnoreCaseHashSet.AllocateAndClear();
                 escapedIdentifiers = SharedPools.StringIgnoreCaseHashSet.AllocateAndClear();
 
-                Contract.Requires(identifiers.Comparer == CaseInsensitiveComparison.Comparer);
-                Contract.Requires(escapedIdentifiers.Comparer == CaseInsensitiveComparison.Comparer);
+                Contract.Requires(identifiers.Comparer == StringComparers.IdentifierComparer);
+                Contract.Requires(escapedIdentifiers.Comparer == StringComparers.IdentifierComparer);
                 return;
             }
 

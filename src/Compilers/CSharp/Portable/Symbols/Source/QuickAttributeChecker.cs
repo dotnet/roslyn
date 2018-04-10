@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private QuickAttributeChecker()
         {
-            _nameToAttributeMap = new Dictionary<string, QuickAttributes>(CaseInsensitiveComparison.Comparer);
+            _nameToAttributeMap = new Dictionary<string, QuickAttributes>(StringComparers.IdentifierComparer);
             // NOTE: caller must seal
         }
 
         private QuickAttributeChecker(QuickAttributeChecker previous)
         {
-            _nameToAttributeMap = new Dictionary<string, QuickAttributes>(previous._nameToAttributeMap, CaseInsensitiveComparison.Comparer);
+            _nameToAttributeMap = new Dictionary<string, QuickAttributes>(previous._nameToAttributeMap, StringComparers.IdentifierComparer);
             // NOTE: caller must seal
         }
 

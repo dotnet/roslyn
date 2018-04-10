@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public new CSharpParseOptions WithFeatures(IEnumerable<KeyValuePair<string, string>> features)
         {
             ImmutableDictionary<string, string> dictionary =
-                features?.ToImmutableDictionary(CaseInsensitiveComparison.Comparer)
+                features?.ToImmutableDictionary(StringComparers.IdentifierComparer)
                 ?? ImmutableDictionary<string, string>.Empty;
 
             return new CSharpParseOptions(this) { _features = dictionary };
