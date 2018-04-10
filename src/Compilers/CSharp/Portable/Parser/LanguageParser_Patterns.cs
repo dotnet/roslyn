@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // If it starts with 'nameof(', skip the 'if' and parse as a constant pattern.
             if (SyntaxFacts.IsPredefinedType(tk) ||
                 (tk == SyntaxKind.IdentifierToken &&
-                  (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)))
+                  (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)) ||
+                LooksLikeTupleArrayType())
             {
                 var resetPoint = this.GetResetPoint();
                 try
@@ -99,8 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.Release(ref resetPoint);
                 }
             }
+
             // check to see if it looks like a recursive pattern.
-            else if (!typeCannotBePattern && (tk == SyntaxKind.OpenParenToken || tk == SyntaxKind.OpenBraceToken))
+            if (tk == SyntaxKind.OpenParenToken || tk == SyntaxKind.OpenBraceToken)
             {
                 var resetPoint = this.GetResetPoint();
                 try
@@ -345,7 +347,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 TypeSyntax type = null;
                 if ((SyntaxFacts.IsPredefinedType(tk) || tk == SyntaxKind.IdentifierToken) &&
                       // If it is a nameof, skip the 'if' and parse as an expression. 
-                      (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken))
+                      (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken) ||
+                    LooksLikeTupleArrayType())
                 {
                     type = this.ParseType(ParseTypeMode.DefinitePattern);
                     if (type.IsMissing)
@@ -367,6 +370,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             finally
             {
+                this.Release(ref resetPoint);
+            }
+        }
+
+        private bool LooksLikeTupleArrayType()
+        {
+            if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
+            {
+                return false;
+            }
+
+            ResetPoint resetPoint = GetResetPoint();
+            try
+            {
+                return ScanType(forPattern: true) != ScanTypeFlags.NotType;
+            }
+            finally
+            {
+                this.Reset(ref resetPoint);
                 this.Release(ref resetPoint);
             }
         }

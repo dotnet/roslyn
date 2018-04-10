@@ -5957,13 +5957,14 @@ tryAgain:
                 lastTokenOfType = this.EatToken();
                 result = ScanTypeFlags.MustBeType;
             }
-            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && mode != ParseTypeMode.DefinitePattern)
+            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 lastTokenOfType = this.EatToken();
 
                 result = this.ScanTupleType(out lastTokenOfType);
-                if (result == ScanTypeFlags.NotType)
+                if (result == ScanTypeFlags.NotType || mode == ParseTypeMode.DefinitePattern && this.CurrentToken.Kind != SyntaxKind.OpenBracketToken)
                 {
+                    // A tuple type can appear in a pattern only if it is the element type of an array type.
                     return ScanTypeFlags.NotType;
                 }
             }
