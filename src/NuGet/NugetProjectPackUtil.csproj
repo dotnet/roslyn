@@ -14,6 +14,10 @@
     <_Version Condition="'$(NuGetPackageKind)' == 'release'">$(NuGetReleaseVersion)</_Version>
     <_Version Condition="'$(NuGetPackageKind)' == 'prerelease'">$(NuGetPreReleaseVersion)</_Version>
     <_Version Condition="'$(NuGetPackageKind)' == 'perbuildprerelease'">$(NuGetPerBuildPreReleaseVersion)</_Version>
+
+    <_CommitPathMessage>This an unofficial build from a developer's machine</_CommitPathMessage>
+    <_CommitPathMessage Condition="'$(UseRealCommit)' == 'true'">This package was built from the source at https://github.com/dotnet/roslyn/commit/$(GitHeadSha)</_CommitPathMessage>
+
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -27,6 +31,7 @@
     <NuspecProperties>$(NuspecProperties);additionalFilesPath=$(RepoRoot)build/NuGetAdditionalFiles</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);srcDirPath=$(RepoRoot)\src</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);emptyDirPath=$(EmptyDir)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);commitPathMessage=$(_CommitPathMessage)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);tags=Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</NuspecProperties>
 
     <!-- The set of NuGet packages whose versions we need in the NuSpec file -->

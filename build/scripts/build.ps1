@@ -354,7 +354,7 @@ function Build-InsertionItems() {
 
 function Build-NuGetPackages() {
 
-    function Pack-All([string]$packageKind) {
+    function Pack-All([string]$packageKind, $extraArgs) {
 
         $packDir = Join-Path $nugetOutDir $packageKind
         Create-Directory $packDir
@@ -364,23 +364,30 @@ function Build-NuGetPackages() {
         foreach ($item in Get-ChildItem *.nuspec) {
             $name = Split-Path -leaf $item
             Write-Host "`tPacking $name"
-            Exec-Command $dotnet "pack -nologo --no-build NuGetProjectPackUtil.csproj /p:EmptyDir=$emptyDir /p:NugetPackageKind=$packageKind /p:NuspecFile=$item /p:NuspecBasePath=$configDir -o $packDir" | Out-Null
+            Exec-Command $dotnet "pack -nologo --no-build NuGetProjectPackUtil.csproj $extraArgs /p:EmptyDir=$emptyDir /p:NugetPackageKind=$packageKind /p:NuspecFile=$item /p:NuspecBasePath=$configDir -o $packDir" | Out-Null
         }
     }
 
     Push-Location (Join-Path $repoDir "src\NuGet")
     try {
         $nugetOutDir = Join-Path $configDir "NuGet"
+        $extraArgs = ""
         Create-Directory $nugetOutDir
 
         if ($restore) { 
             Exec-Command $dotnet "restore NuGetProjectPackUtil.csproj"
         }
 
+        if ($official) {
+            $extraArgs += " /p:UseRealCommit=true"
+        }
+
         # Empty directory for packing explicit empty items in the nuspec
         $emptyDir = Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())
         Create-Directory $emptyDir
         New-Item -Path (Join-Path $emptyDir "_._") -Type File | Out-Null
+        $extraArgs += " /p:EmptyDir:$emptyDir"
+
 
         Pack-All "PreRelease"
         if ($packAll) {
