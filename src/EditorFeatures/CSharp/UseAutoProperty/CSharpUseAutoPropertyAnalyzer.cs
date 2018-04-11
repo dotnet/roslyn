@@ -14,7 +14,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 {
     [Export, DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
+    internal class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<
+        PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
     {
         protected override bool SupportsReadOnlyProperties(Compilation compilation)
             => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
@@ -69,50 +70,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                                         .Distinct()
                                         .GroupBy(n => n.SyntaxTree);
 
-            foreach (var group in groups)
+            foreach (var (tree, typeDeclarations) in groups)
             {
-                var tree = group.Key;
                 var semanticModel = compilation.GetSemanticModel(tree);
 
-                foreach (var typeDeclaration in group)
+                foreach (var typeDeclaration in typeDeclarations)
                 {
                     foreach (var argument in typeDeclaration.DescendantNodesAndSelf().OfType<ArgumentSyntax>())
                     {
-                        AnalyzeArgument(semanticModel, argument, ineligibleFields, cancellationToken);
+                        // An argument will disqualify a field if that field is used in a ref/out position.  
+                        // We can't change such field references to be property references in C#.
+                        if (argument.RefKindKeyword.Kind() != SyntaxKind.None)
+                        {
+                            AddIneligibleFields(semanticModel, argument.Expression, ineligibleFields, cancellationToken);
+                        }
+                    }
+
+                    foreach (var refExpression in typeDeclaration.DescendantNodesAndSelf().OfType<RefExpressionSyntax>())
+                    {
+                        AddIneligibleFields(semanticModel, refExpression.Expression, ineligibleFields, cancellationToken);
                     }
                 }
             }
         }
 
-        protected override ExpressionSyntax GetFieldInitializer(VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
+        protected override ExpressionSyntax GetFieldInitializer(
+            VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
         {
             return variable.Initializer?.Value;
         }
 
-        private void AnalyzeArgument(
-            SemanticModel semanticModel, ArgumentSyntax argument,
+        private static void AddIneligibleFields(
+            SemanticModel semanticModel, ExpressionSyntax expression,
             HashSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
         {
-            // An argument will disqualify a field if that field is used in a ref/out position.  
-            // We can't change such field references to be property references in C#.
-            if (argument.RefOrOutKeyword.Kind() == SyntaxKind.None)
-            {
-                return;
-            }
-
-            var symbolInfo = semanticModel.GetSymbolInfo(argument.Expression, cancellationToken);
-            AddIneligibleField(symbolInfo.Symbol, ineligibleFields);
+            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+            AddIneligibleField(symbolInfo.Symbol);
             foreach (var symbol in symbolInfo.CandidateSymbols)
             {
-                AddIneligibleField(symbol, ineligibleFields);
+                AddIneligibleField(symbol);
             }
-        }
 
-        private static void AddIneligibleField(ISymbol symbol, HashSet<IFieldSymbol> ineligibleFields)
-        {
-            if (symbol is IFieldSymbol field)
+            void AddIneligibleField(ISymbol symbol)
             {
-                ineligibleFields.Add(field);
+                if (symbol is IFieldSymbol field)
+                {
+                    ineligibleFields.Add(field);
+                }
             }
         }
 
@@ -178,7 +182,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             return null;
         }
 
-        protected override ExpressionSyntax GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken)
+        protected override ExpressionSyntax GetSetterExpression(
+            IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // Setter has to be of the form:
             //
@@ -205,7 +210,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             => setAccessor?.ExpressionBody?.Expression ??
                GetSingleStatementFromAccessor<ExpressionStatementSyntax>(setAccessor)?.Expression;
 
-        protected override SyntaxNode GetNodeToFade(FieldDeclarationSyntax fieldDeclaration, VariableDeclaratorSyntax variableDeclarator)
+        protected override SyntaxNode GetNodeToFade(
+            FieldDeclarationSyntax fieldDeclaration, VariableDeclaratorSyntax variableDeclarator)
         {
             return fieldDeclaration.Declaration.Variables.Count == 1
                 ? fieldDeclaration

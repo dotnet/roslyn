@@ -848,7 +848,7 @@ End Class";
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25931")]
         public async Task FileFromSameProjectTogetherTest()
         {
             var projectId1 = ProjectId.CreateNewId();

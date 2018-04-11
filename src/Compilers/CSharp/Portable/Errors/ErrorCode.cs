@@ -1596,6 +1596,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConstantPatternNamedUnderscore = 8412,
         WRN_IsTypeNamedUnderscore = 8413,
         ERR_ExpressionTreeContainsSwitchExpression = 8414,
+        ERR_SwitchGoverningExpressionRequiresParens = 8415,
+        ERR_TupleElementNameMismatch = 8416,
+        ERR_DeconstructParameterNameMismatch = 8417,
         #endregion diagnostics introduced for recursive patterns
 
     }
