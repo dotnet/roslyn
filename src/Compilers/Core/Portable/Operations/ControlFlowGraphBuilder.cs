@@ -2605,20 +2605,45 @@ namespace Microsoft.CodeAnalysis.Operations
             return null;
         }
 
+        internal override IOperation VisitFixed(IFixedOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+            bool haveLocals = !operation.Locals.IsEmpty;
+            if (haveLocals)
+            {
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            }
+
+            HandleVariableDeclarations(operation.Variables);
+
+            VisitStatement(operation.Body);
+
+            if (haveLocals)
+            {
+                LeaveRegion();
+            }
+
+            return null;
+        }
+
         public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, int? captureIdForResult)
         {
             // Anything that has a declaration group (such as for loops) needs to handle them directly itself,
             // this should only be encountered by the visitor for declaration statements.
             Debug.Assert(_currentStatement == operation);
 
+            HandleVariableDeclarations(operation);
+            return null;
+        }
+
+        private void HandleVariableDeclarations(IVariableDeclarationGroupOperation operation)
+        {
             // We erase variable declarations from the control flow graph, as variable lifetime information is
             // contained in a parallel data structure.
             foreach (var declaration in operation.Declarations)
             {
                 HandleVariableDeclaration(declaration);
             }
-
-            return null;
         }
 
         private void HandleVariableDeclaration(IVariableDeclarationOperation operation)
@@ -2896,11 +2921,6 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             // PROTOTYPE(dataflow): note that the loop control variable can be an IVariableDeclarator directly, and this function is expected to handle it without calling Visit(IVariableDeclarator)
             return new ForEachLoopStatement(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable), Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        internal override IOperation VisitFixed(IFixedOperation operation, int? captureIdForResult)
-        {
-            return new FixedStatement(Visit(operation.Variables), Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         internal override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)

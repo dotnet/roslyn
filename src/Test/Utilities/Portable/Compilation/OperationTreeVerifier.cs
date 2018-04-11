@@ -670,6 +670,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IFixedOperation));
             LogCommonPropertiesAndNewLine(operation);
 
+            LogLocals(operation.Locals);
             Visit(operation.Variables, "Declaration");
             Visit(operation.Body, "Body");
         }

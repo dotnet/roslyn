@@ -374,6 +374,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal override void VisitFixed(IFixedOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);
+            VisitLocals(operation.Locals);
             AssertEx.Equal(new[] { operation.Variables, operation.Body }, operation.Children);
         }
 

@@ -254,6 +254,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property ILocalSymbol_IsFixed As Boolean Implements ILocalSymbol.IsFixed
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend Overridable ReadOnly Property CanScheduleToStack As Boolean
             Get
                 ' cannot schedule constants and catch variables
