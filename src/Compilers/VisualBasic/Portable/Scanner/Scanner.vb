@@ -266,54 +266,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 EatThroughLine()
             End If
-
+            Dim c As Char = Nothing
             Dim condLineStart = _lineBufferOffset
-
             While (CanGet())
-                Dim c As Char = Peek()
-
-                Select Case (c)
-
-                    Case CARRIAGE_RETURN, LINE_FEED
-                        EatThroughLineBreak(c)
-                        condLineStart = _lineBufferOffset
-                        Continue While
-
-                    Case SPACE, CHARACTER_TABULATION
-                        Debug.Assert(IsWhitespace(Peek()))
-                        EatWhitespace()
-                        Continue While
-
-                    Case _
-                        "a"c, "b"c, "c"c, "d"c, "e"c, "f"c, "g"c, "h"c, "i"c, "j"c, "k"c, "l"c,
-                        "m"c, "n"c, "o"c, "p"c, "q"c, "r"c, "s"c, "t"c, "u"c, "v"c, "w"c, "x"c,
-                        "y"c, "z"c, "A"c, "B"c, "C"c, "D"c, "E"c, "F"c, "G"c, "H"c, "I"c, "J"c,
-                        "K"c, "L"c, "M"c, "N"c, "O"c, "P"c, "Q"c, "R"c, "S"c, "T"c, "U"c, "V"c,
-                        "W"c, "X"c, "Y"c, "Z"c, "'"c, "_"c
-
-                        EatThroughLine()
-                        condLineStart = _lineBufferOffset
-                        Continue While
-
-                    Case "#"c, FULLWIDTH_NUMBER_SIGN
-                        Exit While
-
-                    Case Else
-                        If IsWhitespace(c) Then
-                            EatWhitespace()
-                            Continue While
-
-                        ElseIf IsNewLine(c) Then
-                            EatThroughLineBreak(c)
-                            condLineStart = _lineBufferOffset
-                            Continue While
-
-                        End If
-
-                        EatThroughLine()
-                        condLineStart = _lineBufferOffset
-                        Continue While
-                End Select
+                c = Peek()
+                If c = SPACE OrElse c = CHARACTER_TABULATION Then
+                    Debug.Assert(IsWhitespace(Peek()))
+                    EatWhitespace()
+                    Continue While
+                ElseIf c = CARRIAGE_RETURN OrElse c = LINE_FEED OrElse IsNewLine(c) Then
+                    EatThroughLineBreak(c)
+                ElseIf c = "#"c OrElse c = FULLWIDTH_NUMBER_SIGN Then
+                    Exit While
+                ElseIf IsWhitespace(c) Then
+                    EatWhitespace()
+                Else
+                    EatThroughLine()
+                End If
+                condLineStart = _lineBufferOffset
             End While
 
             ' we did not find # or we have hit EoF.
@@ -430,6 +400,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(num >= -MaxCharsLookBehind)
 
             Return _lineBufferOffset + num < _bufferLen
+        End Function
+
+        Private Function TryGet(<Out> ByRef Ch As Char) As Boolean
+            Dim ok = CanGet()
+            Ch = If(ok, Peek(), Nothing)
+            Return ok
         End Function
 
         Private Function RemainingLength() As Integer
