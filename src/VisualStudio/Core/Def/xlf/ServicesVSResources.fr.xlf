@@ -1488,19 +1488,14 @@ Je suis d'accord avec tout ce qui précède :</target>
         <target state="translated">Les paramètres configurés ici s'appliquent uniquement à votre machine. Pour configurer ces paramètres afin qu'ils soient liés à votre solution, utilisez les fichiers .editorconfig.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sync_Class_View">
-        <source>Sync Class View</source>
-        <target state="new">Sync Class View</target>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="translated">Préférences de champ :</target>
         <note />
       </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Live_code_analysis">
-        <source>Live code analysis</source>
-        <target state="translated">Analyse de code en temps réel</target>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="translated">Préférer readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
@@ -1513,14 +1508,19 @@ Je suis d'accord avec tout ce qui précède :</target>
         <target state="new">Manage naming styles</target>
         <note />
       </trans-unit>
-      <trans-unit id="Field_preferences_colon">
-        <source>Field preferences:</source>
-        <target state="new">Field preferences:</target>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_readonly">
-        <source>Prefer readonly</source>
-        <target state="new">Prefer readonly</target>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="new">Sync Class View</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="new">Live code analysis</target>
         <note />
       </trans-unit>
     </body>
