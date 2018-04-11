@@ -155,27 +155,30 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 return;
             }
             else if (syntaxFacts.IsNameOfSubpatternElement(expression) &&
-                     syntaxFacts.IsPropertySubpattern(expression.Parent.Parent.Parent) &&
-                     syntaxFacts.IsPropertyPattern(expression.Parent.Parent.Parent.Parent))
+                     syntaxFacts.IsPropertySubpattern(expression.Parent.Parent.Parent))
             {
-                var propertyPattern = expression.Parent.Parent.Parent.Parent;
-                var type = syntaxFacts.GetTypeOfPropertyPattern(propertyPattern);
-                if (type == null)
-                {
-                    // something like: { X: int i }
-                    // need to see how this property pattern is used.
-                    var inferenceService = document.Document.GetLanguageService<ITypeInferenceService>();
-                    typeToGenerateIn = inferenceService.InferType(semanticModel, propertyPattern, objectAsDefault: true, cancellationToken) as INamedTypeSymbol;
-                }
-                else
-                {
-                    // Something like: Blah { [|X|]: int i }
-                    // want to generate "int X" in "Blah".
-                    typeToGenerateIn = semanticModel.GetTypeInfo(type, cancellationToken).Type as INamedTypeSymbol;
-                }
+                // something like: { [|X|]: int i } or like: Blah { [|X|]: int i }
+                var propertySubpattern = expression.Parent.Parent.Parent;
+                var inferenceService = document.Document.GetLanguageService<ITypeInferenceService>();
+                typeToGenerateIn = inferenceService.InferType(semanticModel, propertySubpattern, objectAsDefault: true, cancellationToken) as INamedTypeSymbol;
 
                 isStatic = false;
                 return;
+
+                //if (type == null)
+                //{
+                //    // something like: { X: int i }
+                //    // need to see how this property pattern is used.
+                //}
+                //else
+                //{
+                //    // Something like: Blah { [|X|]: int i }
+                //    // want to generate "int X" in "Blah".
+                //    typeToGenerateIn = semanticModel.GetTypeInfo(type, cancellationToken).Type as INamedTypeSymbol;
+                //}
+
+                //isStatic = false;
+                //return;
             }
 
             // Generating into the containing type.

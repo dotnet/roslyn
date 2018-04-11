@@ -167,9 +167,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression: return InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression);
                     case PostfixUnaryExpressionSyntax postfixUnary: return InferTypeInPostfixUnaryExpression(postfixUnary);
                     case PrefixUnaryExpressionSyntax prefixUnary: return InferTypeInPrefixUnaryExpression(prefixUnary);
+                    case PropertyPatternSyntax propertyPattern: return InferTypeInPropertyPattern(propertyPattern, node);
+                    case PropertySubpatternSyntax propertySubpattern: return InferTypeInPropertySubpattern(propertySubpattern, node);
                     case RefExpressionSyntax refExpression: return InferTypeInRefExpression(refExpression);
                     case ReturnStatementSyntax returnStatement: return InferTypeForReturnStatement(returnStatement);
                     case SimpleLambdaExpressionSyntax simpleLambdaExpression: return InferTypeInSimpleLambdaExpression(simpleLambdaExpression);
+                    case SubpatternElementSyntax subpatternElement: return InferTypeInSubpatternElement(subpatternElement, node);
                     case SwitchLabelSyntax switchLabel: return InferTypeInSwitchLabel(switchLabel);
                     case SwitchStatementSyntax switchStatement: return InferTypeInSwitchStatement(switchStatement);
                     case ThrowExpressionSyntax throwExpression: return InferTypeInThrowExpression(throwExpression);
@@ -1427,6 +1430,69 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
+            private IEnumerable<TypeInferenceInfo> InferTypeInPropertyPattern(
+                PropertyPatternSyntax propertyPattern,
+                SyntaxNode child)
+            {
+                // something like: { ... sub patterns ... } or like: Blah { ... sub patterns ... }
+                // in the latter case, we know the type, because it's explicitly stated.  In the former
+                // we have to walk higher to figure it out.
+                if (propertyPattern.Type != null)
+                {
+                    return GetTypes(propertyPattern.Type);
+                }
+
+                return InferTypes(propertyPattern);
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInPropertySubpattern(
+                PropertySubpatternSyntax propertySubpattern,
+                SyntaxNode child)
+            {
+                return InferTypes(propertySubpattern);
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInSubpatternElement(
+                SubpatternElementSyntax subpatternElement,
+                SyntaxNode child)
+            {
+                // we have  { X: ... }.  The type of ... is whatever the type of 'X' is in its
+                // parent type.  So look up the parent type first, then find the X member in it
+                // and use that type.
+                if (child == subpatternElement.Pattern &&
+                    subpatternElement.NameColon.Name is IdentifierNameSyntax identifier)
+                {
+                    var parentTypes = this.InferTypes(subpatternElement);
+                    var memberTypes = 
+                        parentTypes.SelectMany(ti => GetMemberReturnTypes(ti.InferredType, identifier.Identifier.ValueText))
+                                   .SelectAsArray(t => new TypeInferenceInfo(t));
+
+                    return memberTypes;
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private ImmutableArray<ITypeSymbol> GetMemberReturnTypes(ITypeSymbol type, string memberName)
+            {
+                var result = ArrayBuilder<ITypeSymbol>.GetInstance();
+                var members = type.GetMembers(memberName);
+                foreach (var member in members)
+                {
+                    switch (member)
+                    {
+                        case IFieldSymbol field:
+                            result.Add(field.Type);
+                            continue;
+                        case IPropertySymbol property:
+                            result.Add(property.Type);
+                            continue;
+                    }
+                }
+
+                return result.ToImmutableAndFree();
+            }
+
             private IEnumerable<TypeInferenceInfo> InferTypeInIsPatternExpression(
                 IsPatternExpressionSyntax isPatternExpression,
                 SyntaxNode child)
@@ -1440,7 +1506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetTypes(isPatternExpression.Expression);
                 }
 
-                return null;
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             private IEnumerable<TypeInferenceInfo> GetPatternTypes(PatternSyntax pattern)
@@ -1449,7 +1515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case DeclarationPatternSyntax declarationPattern: return GetTypes(declarationPattern.Type);
                     case ConstantPatternSyntax constantPattern: return GetTypes(constantPattern.Expression);
-                    default: return null;
+                    default: return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
             }
 
@@ -1721,7 +1787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetPatternTypes(subpattern.Pattern);
                 }
 
-                return null;
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInNameEquals(NameEqualsSyntax nameEquals, SyntaxToken? previousToken = null)

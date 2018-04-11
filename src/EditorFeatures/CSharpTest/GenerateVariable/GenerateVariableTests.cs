@@ -7693,6 +7693,54 @@ class C
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInIsPattern3()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { X: { [|Y|]: int i } })
+        {
+        }
+    }
+
+    class Frob
+    {
+    }
+
+    class Blah
+    {
+        public Frob X;
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { X: { Y: int i } })
+        {
+        }
+    }
+
+    class Frob
+    {
+        public int Y { get; internal set; }
+    }
+
+    class Blah
+    {
+        public Frob X;
+    }
+}");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern1()
         {
             await TestAsync(
