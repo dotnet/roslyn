@@ -1309,5 +1309,93 @@ Closed Open -> Opened
   IL_0042:  ret
 }");
         }
+
+        [Fact]
+        [WorkItem(20641, "https://github.com/dotnet/roslyn/issues/20641")]
+        [WorkItem(1395, "https://github.com/dotnet/csharplang/issues/1395")]
+        public void SharingTemps01()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args) { }
+    void M1(string x)
+    {
+        switch (x)
+        {
+            case ""a"":
+            case ""b"" when Mutate(ref x): // prevents sharing temps
+            case ""c"":
+                break;
+        }
+    }
+    void M2(string x)
+    {
+        switch (x)
+        {
+            case ""a"":
+            case ""b"" when Pure(x):
+            case ""c"":
+                break;
+        }
+    }
+    static bool Mutate(ref string x) { x = null; return false; }
+    static bool Pure(string x) { return false; }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithRecursivePatterns());
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("Program.M1",
+@"{
+  // Code size       53 (0x35)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0034
+  IL_0005:  ldloc.0
+  IL_0006:  ldstr      ""a""
+  IL_000b:  call       ""bool string.op_Equality(string, string)""
+  IL_0010:  brtrue.s   IL_0034
+  IL_0012:  ldloc.0
+  IL_0013:  ldstr      ""b""
+  IL_0018:  call       ""bool string.op_Equality(string, string)""
+  IL_001d:  brtrue.s   IL_002c
+  IL_001f:  ldloc.0
+  IL_0020:  ldstr      ""c""
+  IL_0025:  call       ""bool string.op_Equality(string, string)""
+  IL_002a:  pop
+  IL_002b:  ret
+  IL_002c:  ldarga.s   V_1
+  IL_002e:  call       ""bool Program.Mutate(ref string)""
+  IL_0033:  pop
+  IL_0034:  ret
+}");
+            compVerifier.VerifyIL("Program.M2",
+@"{
+  // Code size       50 (0x32)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0031
+  IL_0003:  ldarg.1
+  IL_0004:  ldstr      ""a""
+  IL_0009:  call       ""bool string.op_Equality(string, string)""
+  IL_000e:  brtrue.s   IL_0031
+  IL_0010:  ldarg.1
+  IL_0011:  ldstr      ""b""
+  IL_0016:  call       ""bool string.op_Equality(string, string)""
+  IL_001b:  brtrue.s   IL_002a
+  IL_001d:  ldarg.1
+  IL_001e:  ldstr      ""c""
+  IL_0023:  call       ""bool string.op_Equality(string, string)""
+  IL_0028:  pop
+  IL_0029:  ret
+  IL_002a:  ldarg.1
+  IL_002b:  call       ""bool Program.Pure(string)""
+  IL_0030:  pop
+  IL_0031:  ret
+}");
+        }
     }
 }

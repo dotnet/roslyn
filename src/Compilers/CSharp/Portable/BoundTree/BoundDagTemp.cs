@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Does this dag temp represent the original input of the pattern-matching operation?
         /// </summary>
-        public bool IsOriginalInput => this.Source == null;
+        public bool IsOriginalInput => this.Source is null;
 
         public static BoundDagTemp ForOriginalInput(SyntaxNode syntax, TypeSymbol type) => new BoundDagTemp(syntax, type, null, 0);
 

@@ -9557,7 +9557,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The name &apos;{0}&apos; does not identify tuple element {1}..
+        ///   Looks up a localized string similar to The name &apos;{0}&apos; does not identify tuple element &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_TupleElementNameMismatch {
             get {

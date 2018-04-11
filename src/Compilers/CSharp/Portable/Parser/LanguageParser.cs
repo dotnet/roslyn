@@ -8020,9 +8020,10 @@ tryAgain:
                             var node = CheckRecursivePatternFeature(ParseExpressionOrPattern(whenIsKeyword: true, precedence: Precedence.Ternary));
                             if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword && node is ExpressionSyntax)
                             {
-                                // if there is a 'where' token, we treat a case expression as a constant pattern.
+                                // if there is a 'when' token, we treat a case expression as a constant pattern.
                                 node = _syntaxFactory.ConstantPattern((ExpressionSyntax)node);
                             }
+
                             if (node is PatternSyntax)
                             {
                                 var whenClause = ParseWhenClause(Precedence.Expression);

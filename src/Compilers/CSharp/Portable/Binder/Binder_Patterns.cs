@@ -549,9 +549,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (foundElement == null || foundElement.TupleElementIndex != tupleIndex)
+            if (foundElement is null || foundElement.TupleElementIndex != tupleIndex)
             {
-                diagnostics.Add(ErrorCode.ERR_TupleElementNameMismatch, node.Location, name, tupleIndex);
+                diagnostics.Add(ErrorCode.ERR_TupleElementNameMismatch, node.Location, name, $"Item{tupleIndex+1}");
             }
 
             return foundElement;

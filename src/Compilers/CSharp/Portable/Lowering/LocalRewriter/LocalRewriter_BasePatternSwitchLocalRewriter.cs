@@ -145,23 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this._mightAssignSomething;
                 }
 
-                public override BoundNode VisitReturnStatement(BoundReturnStatement node)
-                {
-                    if (node.RefKind != RefKind.None)
-                    {
-                        // might be taking a ref to a variable in a lambda that the caller assigns.
-                        this._mightAssignSomething = true;
-                        return null;
-                    }
-
-                    return base.VisitReturnStatement(node);
-                }
-
                 public override BoundNode VisitCall(BoundCall node)
                 {
                     _mightAssignSomething =
-                        // might be a call to a local function that assigns a pattern temp
-                        _isSwitchStatement && node.Method.MethodKind == MethodKind.LocalFunction ||
+                        // might be a call to a local function that assigns something
+                        node.Method.MethodKind == MethodKind.LocalFunction ||
                         // or perhaps we are passing a variable by ref and mutating it that way
                         !node.ArgumentRefKindsOpt.IsDefault;
                     return base.VisitCall(node);
@@ -223,6 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return base.VisitDynamicIndexerAccess(node);
                 }
             }
+
             protected BoundDecisionDag ShareTempsIfPossibleAndEvaluateInput(
                 BoundDecisionDag decisionDag,
                 BoundExpression loweredSwitchGoverningExpression,
@@ -253,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Lower the given nodes into _loweredDecisionDag.
+            /// Lower the given nodes into _loweredDecisionDag. Should only be called once per instance of this.
             /// </summary>
             protected (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) LowerDecisionDag(BoundDecisionDag decisionDag)
             {
@@ -262,6 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LowerDecisionDagCore(decisionDag);
                 ImmutableArray<BoundStatement> loweredDag = this._loweredDecisionDag.ToImmutableAndFree();
                 ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections = this._switchArms.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableAndFree());
+                this._switchArms.Clear();
                 return (loweredDag, switchSections);
             }
 

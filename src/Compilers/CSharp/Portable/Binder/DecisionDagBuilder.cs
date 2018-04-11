@@ -1209,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static bool SameTest(BoundDagTest x, BoundDagTest y)
             {
-                if (x.Input != y.Input || x.Kind != y.Kind)
+                if (x.Kind != y.Kind || x.Input != y.Input)
                 {
                     return false;
                 }

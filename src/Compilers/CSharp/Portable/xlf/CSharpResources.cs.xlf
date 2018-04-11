@@ -8816,8 +8816,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleElementNameMismatch">
-        <source>The name '{0}' does not identify tuple element {1}.</source>
-        <target state="new">The name '{0}' does not identify tuple element {1}.</target>
+        <source>The name '{0}' does not identify tuple element '{1}'.</source>
+        <target state="new">The name '{0}' does not identify tuple element '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">

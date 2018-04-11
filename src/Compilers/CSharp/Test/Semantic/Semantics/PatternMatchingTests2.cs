@@ -1272,12 +1272,12 @@ class Cat {}
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,19): error CS8416: The name 'c' does not identify tuple element 0.
+                // (7,19): error CS8416: The name 'c' does not identify tuple element 'Item1'.
                 //             case (c: 2, d: 3): // error: c and d not defined
-                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "c").WithArguments("c", "0").WithLocation(7, 19),
-                // (7,25): error CS8416: The name 'd' does not identify tuple element 1.
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "c").WithArguments("c", "Item1").WithLocation(7, 19),
+                // (7,25): error CS8416: The name 'd' does not identify tuple element 'Item2'.
                 //             case (c: 2, d: 3): // error: c and d not defined
-                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "d").WithArguments("d", "1").WithLocation(7, 25)
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "d").WithArguments("d", "Item2").WithLocation(7, 25)
                 );
         }
 
@@ -1299,9 +1299,9 @@ class Cat {}
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,25): error CS8416: The name 'a' does not identify tuple element 1.
+                // (7,25): error CS8416: The name 'a' does not identify tuple element 'Item2'.
                 //             case (a: 2, a: 3):
-                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "a").WithArguments("a", "1").WithLocation(7, 25)
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "a").WithArguments("a", "Item2").WithLocation(7, 25)
                 );
         }
 
@@ -1534,6 +1534,30 @@ static class Extensions
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"111");
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns10()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (a: 1, b: 2)
+        {
+            case (Item2: 1, 2):
+                break;
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,19): error CS8416: The name 'Item2' does not identify tuple element 'Item1'.
+                //             case (Item2: 1, 2):
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "Item2").WithArguments("Item2", "Item1").WithLocation(7, 19)
+                );
         }
 
         // PROTOTYPE(patterns2): Need to have tests that exercise:

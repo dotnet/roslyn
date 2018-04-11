@@ -101,9 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A trivial node replacement function for use with <see cref="Rewrite(Func{BoundDecisionDagNode, Func{BoundDecisionDagNode, BoundDecisionDagNode}, BoundDecisionDagNode})"/>.
         /// </summary>
-        /// <param name="dag"></param>
-        /// <param name="replacement"></param>
-        /// <returns></returns>
         public static BoundDecisionDagNode TrivialReplacement(BoundDecisionDagNode dag, Func<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
         {
             switch (dag)

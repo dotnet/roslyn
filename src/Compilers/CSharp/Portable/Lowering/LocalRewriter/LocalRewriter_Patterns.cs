@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                 public string Dump()
                 {
-                    var poolElemenet = PooledStringBuilder.GetInstance();
-                    var builder = poolElemenet.Builder;
+                    var poolElement = PooledStringBuilder.GetInstance();
+                    var builder = poolElement.Builder;
                     foreach (var kv in _map)
                     {
                         builder.Append("Key: ");
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var result = builder.ToString();
-                    poolElemenet.Free();
+                    poolElement.Free();
                     return result;
                 }
 #endif
@@ -483,7 +483,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (evalNode.Evaluation is BoundDagFieldEvaluation eval &&
                                 eval.Input.IsOriginalInput &&
                                 eval.Field is var field &&
-                                field.IsTupleField &&
                                 field.CorrespondingTupleField != null &&
                                 field.TupleElementIndex is int i)
                             {
