@@ -11,6 +11,8 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AbstractVersionCheckAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CommonAccessibilityUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\BasicBlockExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowGraphExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InstanceReferenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisposeMethodKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HashUtilities.cs" />
@@ -34,6 +36,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)SolutionChangeAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolDisplayFormats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxGeneratorExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BranchWithInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ThrowBranchWithExceptionType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WordParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WordParserOptions.cs" />

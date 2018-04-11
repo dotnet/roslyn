@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -429,6 +430,12 @@ namespace Test.Utilities
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, parseOptions)
                 .GetProject(projectId);
+
+            // Enable Flow-Analysis feature on the project
+            parseOptions = project.ParseOptions.WithFeatures(
+                project.ParseOptions.Features.Concat(
+                    SpecializedCollections.SingletonEnumerable(KeyValuePair.Create("Flow-Analysis", "true"))));
+            project = project.WithParseOptions(parseOptions);
 
             if ((referenceFlags & ReferenceFlags.RemoveCodeAnalysis) != ReferenceFlags.RemoveCodeAnalysis)
             {

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -69,6 +71,18 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasNullConstantValue(this IOperation operation)
         {
             return operation.ConstantValue.HasValue && operation.ConstantValue.Value == null;
+        }
+
+        public static bool TryGetBoolConstantValue(this IOperation operation, out bool constantValue)
+        {
+            if (operation.ConstantValue.HasValue && operation.ConstantValue.Value is bool value)
+            {
+                constantValue = value;
+                return true;
+            }
+
+            constantValue = false;
+            return false;
         }
 
         public static bool HasConstantValue(this IOperation operation, long comparand)
@@ -316,8 +330,38 @@ namespace Analyzer.Utilities.Extensions
             return null;
         }
 
-        public static bool IsInsideCatchClause(this IOperation operation)
-            => operation.GetAncestor<ICatchClauseOperation>(OperationKind.CatchClause) != null;
+        public static bool IsInsideCatchRegion(this IOperation operation, ControlFlowGraph cfg)
+        {
+            foreach (var block in cfg.Blocks)
+            {
+                var isCatchRegionBlock = false;
+                var currentRegion = block.Region;
+                while (currentRegion != null)
+                {
+                    switch (currentRegion.Kind)
+                    {
+                        case ControlFlowGraph.RegionKind.Catch:
+                            isCatchRegionBlock = true;
+                            break;
+                    }
+
+                    currentRegion = currentRegion.Enclosing;
+                }
+
+                if (isCatchRegionBlock)
+                {
+                    foreach (var descendant in block.DescendantOperations())
+                    {
+                        if (operation == descendant)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
 
         public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, Func<IOperation, bool> predicate)
         {
@@ -353,55 +397,6 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Indicates if the given <paramref name="binaryOperation"/> is a ConditionalAnd/ConditionalOr operator ('&&' or '||').
-        /// </summary>
-        /// <param name="binaryOperation"></param>
-        /// <returns></returns>
-        public static bool IsConditionalOperator(this IBinaryOperation binaryOperation) => binaryOperation.IsConditionalAndOperator() || binaryOperation.IsConditionalOrOperator();
-
-        /// <summary>
-        /// Indicates if the given <paramref name="binaryOperation"/> is a ConditionalAnd operator ('&&').
-        /// </summary>
-        /// <param name="binaryOperation"></param>
-        /// <returns></returns>
-        public static bool IsConditionalAndOperator(this IBinaryOperation binaryOperation)
-        {
-            switch (binaryOperation.OperatorKind)
-            {
-                case BinaryOperatorKind.ConditionalAnd:
-                    return true;
-
-                case BinaryOperatorKind.And:
-                    // Workaround for https://github.com/dotnet/roslyn/issues/23956
-                    return binaryOperation.Type.SpecialType == SpecialType.System_Boolean;
-
-                default:
-                    return false;
-            }
-        }
-
-        /// <summary>
-        /// Indicates if the given <paramref name="binaryOperation"/> is a ConditionalOr operator ('||').
-        /// </summary>
-        /// <param name="binaryOperation"></param>
-        /// <returns></returns>
-        public static bool IsConditionalOrOperator(this IBinaryOperation binaryOperation)
-        {
-            switch (binaryOperation.OperatorKind)
-            {
-                case BinaryOperatorKind.ConditionalOr:
-                    return true;
-
-                case BinaryOperatorKind.Or:
-                    // Workaround for https://github.com/dotnet/roslyn/issues/23956
-                    return binaryOperation.Type.SpecialType == SpecialType.System_Boolean;
-
-                default:
-                    return false;
-            }
-        }
-
-        /// <summary>
         /// Indicates if the given <paramref name="binaryOperation"/> is a predicate operation used in a condition.
         /// </summary>
         /// <param name="binaryOperation"></param>
@@ -425,15 +420,15 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static ITypeSymbol GetExceptionType(this IThrowOperation throwOperation)
+        public static ITypeSymbol GetThrowExceptionType(this IOperation thrownOperation, BasicBlock currentBlock)
         {
-            if (throwOperation.Exception != null)
+            if (thrownOperation?.Type != null)
             {
-                return throwOperation.Exception.Type;
+                return thrownOperation.Type;
             }
 
-            var catchOperation = throwOperation.GetAncestor<ICatchClauseOperation>(OperationKind.CatchClause);
-            return catchOperation?.ExceptionType;
+            // rethrow or throw with no argument.
+            return currentBlock.GetEnclosingRegionExceptionType();
         }
 
         public static bool IsLambdaOrLocalFunctionOrDelegateInvocation(this IInvocationOperation operation)
