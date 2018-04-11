@@ -24,57 +24,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// includes the code to assign to the pattern variables and evaluate the when clause. Since a
             /// when clause can yield a false value, it can jump back to a label in the lowered decision dag.
             /// </summary>
-            protected readonly Dictionary<SyntaxNode, ArrayBuilder<BoundStatement>> _switchArms = new Dictionary<SyntaxNode, ArrayBuilder<BoundStatement>>();
-
-            /// <summary>
-            /// In a switch expression, some labels may first reached by a backward branch, and
-            /// it may occur when something (from the enclosing expression) is on the stack.
-            /// To satisfy the verifier, the caller must arrange forward jumps to these labels. The set of
-            /// states whose labels will need such forward jumps (if something can be on the stack) is stored in
-            /// _backwardLabels. In practice, this is exclusively the set of states that are reached
-            /// when a when-clause evaluates to false.
-            /// PROTOTYPE(patterns2): This is a placeholder. It is not used yet for lowering the
-            /// switch expression, where it will be needed.
-            /// </summary>
-            private readonly ArrayBuilder<BoundDecisionDagNode> _backwardLabels = ArrayBuilder<BoundDecisionDagNode>.GetInstance();
+            private readonly PooledDictionary<SyntaxNode, ArrayBuilder<BoundStatement>> _switchArms = PooledDictionary<SyntaxNode, ArrayBuilder<BoundStatement>>.GetInstance();
 
             /// <summary>
             /// The lowered decision dag. This includes all of the code to decide which pattern
             /// is matched, but not the code to assign to pattern variables and evaluate when clauses.
             /// </summary>
-            protected readonly ArrayBuilder<BoundStatement> _loweredDecisionDag = ArrayBuilder<BoundStatement>.GetInstance();
+            private readonly ArrayBuilder<BoundStatement> _loweredDecisionDag = ArrayBuilder<BoundStatement>.GetInstance();
 
             /// <summary>
             /// The label in the code for the beginning of code for each node of the dag.
             /// </summary>
-            private readonly Dictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = new Dictionary<BoundDecisionDagNode, LabelSymbol>();
+            private readonly PooledDictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = PooledDictionary<BoundDecisionDagNode, LabelSymbol>.GetInstance();
 
-            protected BasePatternSwitchLocalRewriter(LocalRewriter localRewriter, BoundExpression loweredInput, ImmutableArray<SyntaxNode> arms, BoundDecisionDag decisionDag)
-                : base(localRewriter, loweredInput)
+            /// <summary>
+            /// True if we are translating a switch statement. This affects sequence points (a when clause gets
+            /// a sequence point in a switch statement, but not in a switch expression).
+            /// </summary>
+            private readonly bool _isSwitchStatement;
+
+            protected BasePatternSwitchLocalRewriter(
+                SyntaxNode node,
+                LocalRewriter localRewriter,
+                ImmutableArray<SyntaxNode> arms,
+                bool isSwitchStatement)
+                : base(node, localRewriter)
             {
+                this._isSwitchStatement = isSwitchStatement;
                 foreach (var arm in arms)
                 {
-                    _switchArms.Add(arm, new ArrayBuilder<BoundStatement>());
+                    _switchArms.Add(arm, ArrayBuilder<BoundStatement>.GetInstance());
                 }
-
-                ImmutableArray<BoundDecisionDagNode> sortedNodes = decisionDag.TopologicallySortedNodes;
-                ComputeLabelSet(sortedNodes);
-                LowerDecisionDag(sortedNodes);
             }
 
-            private void ComputeLabelSet(ImmutableArray<BoundDecisionDagNode> sortedNodes)
+            private void ComputeLabelSet(BoundDecisionDag decisionDag)
             {
                 // Nodes with more than one predecessor are assigned a label
                 var hasPredecessor = PooledHashSet<BoundDecisionDagNode>.GetInstance();
-                void notePredecessor(BoundDecisionDagNode successor)
-                {
-                    if (successor != null && !hasPredecessor.Add(successor))
-                    {
-                        GetDagNodeLabel(successor);
-                    }
-                }
-
-                foreach (BoundDecisionDagNode node in sortedNodes)
+                foreach (BoundDecisionDagNode node in decisionDag.TopologicallySortedNodes)
                 {
                     switch (node)
                     {
@@ -83,7 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (w.WhenFalse != null)
                             {
                                 GetDagNodeLabel(w.WhenFalse);
-                                _backwardLabels.Add(w.WhenFalse);
                             }
                             break;
                         case BoundLeafDecisionDagNode d:
@@ -103,13 +89,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 hasPredecessor.Free();
+                return;
+
+                void notePredecessor(BoundDecisionDagNode successor)
+                {
+                    if (successor != null && !hasPredecessor.Add(successor))
+                    {
+                        GetDagNodeLabel(successor);
+                    }
+                }
             }
 
             protected new void Free()
             {
+                _dagNodeLabels.Free();
+                _switchArms.Free();
                 base.Free();
-                _loweredDecisionDag.Free();
-                _backwardLabels.Free();
             }
 
             protected virtual LabelSymbol GetDagNodeLabel(BoundDecisionDagNode dag)
@@ -123,10 +118,146 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Lower the given nodes into _loweredDecisionDag.
+            /// A utility class that is used to scan a when clause to determine if it might assign a variable,
+            /// directly or indirectly. Used to determine if we can skip the allocation of pattern-matching
+            /// temporary variables and use user-declared variables instead, because we can conclude that they
+            /// are not mutated while the pattern-matching automaton is running.
             /// </summary>
-            private void LowerDecisionDag(ImmutableArray<BoundDecisionDagNode> sortedNodes)
+            protected class WhenClauseMightAssignWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
             {
+                private readonly bool _isSwitchStatement;
+                private bool _mightAssignSomething;
+
+                internal WhenClauseMightAssignWalker(bool isSwitchStatement)
+                {
+                    this._isSwitchStatement = isSwitchStatement;
+                }
+
+                public bool MightAssignSomething(BoundExpression expr)
+                {
+                    if (expr == null || expr.ConstantValue != null)
+                    {
+                        return false;
+                    }
+
+                    this._mightAssignSomething = false;
+                    this.Visit(expr);
+                    return this._mightAssignSomething;
+                }
+
+                public override BoundNode VisitCall(BoundCall node)
+                {
+                    _mightAssignSomething =
+                        // might be a call to a local function that assigns something
+                        node.Method.MethodKind == MethodKind.LocalFunction ||
+                        // or perhaps we are passing a variable by ref and mutating it that way
+                        !node.ArgumentRefKindsOpt.IsDefault;
+                    return base.VisitCall(node);
+                }
+
+                public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
+                {
+                    _mightAssignSomething = true;
+                    return null;
+                }
+
+                public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
+                {
+                    _mightAssignSomething = true;
+                    return null;
+                }
+
+                public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
+                {
+                    _mightAssignSomething = true;
+                    return null;
+                }
+
+                public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
+                {
+                    // perhaps we are passing a variable by ref and mutating it that way
+                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
+                    return base.VisitDynamicInvocation(node);
+                }
+
+                public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
+                {
+                    // perhaps we are passing a variable by ref and mutating it that way
+                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
+                    return base.VisitObjectCreationExpression(node);
+                }
+
+                public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
+                {
+                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
+                    return base.VisitDynamicObjectCreationExpression(node);
+                }
+
+                public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
+                {
+                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
+                    return base.VisitObjectInitializerMember(node);
+                }
+
+                public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
+                {
+                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
+                    return base.VisitIndexerAccess(node);
+                }
+
+                public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
+                {
+                    _mightAssignSomething = !node.ArgumentRefKindsOpt.IsDefault;
+                    return base.VisitDynamicIndexerAccess(node);
+                }
+            }
+
+            protected BoundDecisionDag ShareTempsIfPossibleAndEvaluateInput(
+                BoundDecisionDag decisionDag,
+                BoundExpression loweredSwitchGoverningExpression,
+                ArrayBuilder<BoundStatement> result)
+            {
+                // Note that a when-clause can contain an assignment to a
+                // pattern variable declared in a different when-clause (e.g. in the same section, or
+                // in a different section via the use of a local function), so we need to analyze all
+                // of the when clauses to see if they are all simple enough to conclude that they do
+                // not mutate pattern variables.
+                var mightAssignWalker = new WhenClauseMightAssignWalker(isSwitchStatement: this._isSwitchStatement);
+                bool canShareTemps =
+                    !decisionDag.TopologicallySortedNodes
+                    .Any(node => node is BoundWhenDecisionDagNode w && mightAssignWalker.MightAssignSomething(w.WhenExpression));
+
+                if (canShareTemps)
+                {
+                    return ShareTempsAndEvaluateInput(loweredSwitchGoverningExpression, decisionDag, expr => result.Add(_factory.ExpressionStatement(expr)));
+                }
+                else
+                {
+                    // assign the input expression to its temp.
+                    BoundExpression inputTemp = _tempAllocator.GetTemp(InputTemp(loweredSwitchGoverningExpression));
+                    Debug.Assert(inputTemp != loweredSwitchGoverningExpression);
+                    result.Add(_factory.Assignment(inputTemp, loweredSwitchGoverningExpression));
+                    return decisionDag;
+                }
+            }
+
+            /// <summary>
+            /// Lower the given nodes into _loweredDecisionDag. Should only be called once per instance of this.
+            /// </summary>
+            protected (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) LowerDecisionDag(BoundDecisionDag decisionDag)
+            {
+                Debug.Assert(this._loweredDecisionDag.IsEmpty());
+                ComputeLabelSet(decisionDag);
+                LowerDecisionDagCore(decisionDag);
+                ImmutableArray<BoundStatement> loweredDag = this._loweredDecisionDag.ToImmutableAndFree();
+                ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections = this._switchArms.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableAndFree());
+                this._switchArms.Clear();
+                return (loweredDag, switchSections);
+            }
+
+            private void LowerDecisionDagCore(BoundDecisionDag decisionDag)
+            {
+                ImmutableArray<BoundDecisionDagNode> sortedNodes = decisionDag.TopologicallySortedNodes;
                 var firstNode = sortedNodes[0];
                 switch (firstNode)
                 {
@@ -136,16 +267,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // lowered decision dag, jump there to start.
                         _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(firstNode)));
                         break;
-                }
-
-                // Note that a when-clause can contain an assignment to a
-                // pattern variable declared in a different when-clause (e.g. in the same section, or
-                // in a different section via the use of a local function), so we only apply the optimization
-                // of using user-declared pattern variables as pattern-matching automaton temps
-                // when there are no nontrivial when-clauses at all.
-                if (!sortedNodes.Any(n => n is BoundWhenDecisionDagNode w && w.WhenExpression != null && w.WhenExpression.ConstantValue != ConstantValue.True))
-                {
-                    ShareTemps(sortedNodes);
                 }
 
                 // Code for each when clause goes in the separate code section for its switch section.
@@ -164,6 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDecisionDagNode node = nodesToLower[i];
                     if (loweredNodes.Contains(node))
                     {
+                        Debug.Assert(!_dagNodeLabels.TryGetValue(node, out _));
                         continue;
                     }
 
@@ -239,6 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private void GenerateTest(BoundExpression test, BoundDecisionDagNode whenTrue, BoundDecisionDagNode whenFalse, BoundDecisionDagNode nextNode)
             {
                 // Because we have already "optimized" away tests for a constant switch expression, the test should be nontrivial.
+                _factory.Syntax = test.Syntax;
                 Debug.Assert(test != null);
 
                 if (nextNode == whenFalse)
@@ -305,11 +428,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     EnsureStringHashFunction(cases.Count, node.Syntax);
                     stringEquality = _localRewriter.UnsafeGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__op_Equality);
-                }
-
-                if (_dagNodeLabels.TryGetValue(node, out LabelSymbol nodeLabel))
-                {
-                    _loweredDecisionDag.Add(_factory.Label(nodeLabel));
                 }
 
                 LabelSymbol defaultLabel = GetDagNodeLabel(previous.WhenFalse);
@@ -403,17 +521,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool foundSectionBuilder = _switchArms.TryGetValue(sectionSyntax, out ArrayBuilder<BoundStatement> sectionBuilder);
                 Debug.Assert(foundSectionBuilder);
                 sectionBuilder.Add(_factory.Label(labelToSectionScope));
-                foreach ((BoundExpression leftExpression, BoundDagTemp dagTemp) in whenClause.Bindings)
+                foreach (BoundPatternBinding binding in whenClause.Bindings)
                 {
-                    BoundExpression rightExpression = _tempAllocator.GetTemp(dagTemp);
-                    if (leftExpression == rightExpression)
+                    BoundExpression left = _localRewriter.VisitExpression(binding.VariableAccess);
+                    // Since a switch does not add variables to the enclosing scope, the pattern variables
+                    // are locals even in a script and rewriting them should have no effect.
+                    Debug.Assert(left.Kind == BoundKind.Local && left == binding.VariableAccess);
+                    BoundExpression right = _tempAllocator.GetTemp(binding.TempContainingValue);
+                    if (left != right)
                     {
-                        // In this case we would just be assigning the variable to itself, so we need generate no code.
-                        // This arises due to an optimization by which we use pattern variables as dag temps.
-                    }
-                    else
-                    {
-                        sectionBuilder.Add(_factory.Assignment(leftExpression, rightExpression));
+                        sectionBuilder.Add(_factory.Assignment(left, right));
                     }
                 }
 
@@ -421,11 +538,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var trueLabel = GetDagNodeLabel(whenTrue);
                 if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValue != ConstantValue.True)
                 {
-                    // PROTOTYPE(patterns2): there should perhaps be a sequence point (for e.g. a breakpoint) on the when clause.
-                    // However, it is not clear that is wanted for the switch expression as that would be a breakpoint where the stack is nonempty.
-                    sectionBuilder.Add(_factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), trueLabel, jumpIfTrue: true));
+                    _factory.Syntax = whenClause.Syntax;
+                    BoundStatement conditionalGoto = _factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), trueLabel, jumpIfTrue: true);
+
+                    // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
+                    if (_isSwitchStatement && !whenClause.WhenExpression.WasCompilerGenerated && _localRewriter.Instrument)
+                    {
+                        conditionalGoto = _localRewriter._instrumenter.InstrumentPatternSwitchWhenClauseConditionalGotoBody(whenClause.WhenExpression, conditionalGoto);
+                    }
+
+                    sectionBuilder.Add(conditionalGoto);
                     Debug.Assert(whenFalse != null);
-                    Debug.Assert(_backwardLabels.Contains(whenFalse));
                     sectionBuilder.Add(_factory.Goto(GetDagNodeLabel(whenFalse)));
                 }
                 else
@@ -440,6 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void LowerDecisionDagNode(BoundDecisionDagNode node, BoundDecisionDagNode nextNode)
             {
+                _factory.Syntax = node.Syntax;
                 switch (node)
                 {
                     case BoundEvaluationDecisionDagNode evaluationNode:

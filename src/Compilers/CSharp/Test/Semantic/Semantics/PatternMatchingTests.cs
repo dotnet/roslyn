@@ -5538,9 +5538,9 @@ namespace System
             compilation.VerifyDiagnostics(
                 );
             compilation.GetEmitDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Warning).Verify(
-                // (5,17): error CS0656: Missing compiler required member 'System.Single.IsNaN'
-                //         switch (o)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "o").WithArguments("System.Single", "IsNaN").WithLocation(5, 17)
+                // (7,13): error CS0656: Missing compiler required member 'System.Single.IsNaN'
+                //             case 0f/0f: break;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "case 0f/0f:").WithArguments("System.Single", "IsNaN").WithLocation(7, 13)
                 );
         }
 

@@ -892,7 +892,7 @@
     <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="disallow"/>
   </Node>
   <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode ">
-    <Field Name="Bindings" Type="ImmutableArray&lt;(BoundExpression left,BoundDagTemp dagTemp)&gt;" Null="disallow"/>
+    <Field Name="Bindings" Type="ImmutableArray&lt;BoundPatternBinding&gt;" Null="disallow"/>
     <!--
     WhenExpression is null when there was no when clause in source but there are bindings.
     In that case WhenFalse is null.

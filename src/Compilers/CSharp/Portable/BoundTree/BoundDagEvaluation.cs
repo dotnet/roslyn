@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (this)
                 {
-                    case BoundDagFieldEvaluation e: return e.Field;
+                    case BoundDagFieldEvaluation e: return e.Field.CorrespondingTupleField ?? e.Field;
                     case BoundDagPropertyEvaluation e: return e.Property;
                     case BoundDagTypeEvaluation e: return e.Type;
                     case BoundDagDeconstructEvaluation e: return e.DeconstructMethod;

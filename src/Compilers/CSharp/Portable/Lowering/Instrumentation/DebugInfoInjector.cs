@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)original.Syntax;
             TextSpan switchSequencePointSpan = TextSpan.FromBounds(
                 switchSyntax.SwitchKeyword.SpanStart,
-                switchSyntax.CloseParenToken.Span.End);
+                (switchSyntax.CloseParenToken != default) ? switchSyntax.CloseParenToken.Span.End : switchSyntax.Expression.Span.End);
 
             return new BoundSequencePointWithSpan(
                 syntax: switchSyntax,

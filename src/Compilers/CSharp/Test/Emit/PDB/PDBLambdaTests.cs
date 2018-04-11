@@ -1250,7 +1250,7 @@ class C
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
           <slot kind=""30"" offset=""86"" />
-          <slot kind=""35"" offset=""94"" />
+          <slot kind=""35"" offset=""86"" />
           <slot kind=""1"" offset=""86"" />
         </encLocalSlotMap>
         <encLambdaMap>
@@ -1285,8 +1285,7 @@ class C
       </scope>
     </method>
   </methods>
-</symbols>
-");
+</symbols>");
         }
 
         [Fact]

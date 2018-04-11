@@ -3275,6 +3275,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The name &apos;{0}&apos; does not match the corresponding &apos;Deconstruct&apos; parameter &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_DeconstructParameterNameMismatch {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructParameterNameMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Deconstruct assignment requires an expression with a type on the right-hand-side..
         /// </summary>
         internal static string ERR_DeconstructRequiresExpression {
@@ -9386,6 +9395,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parentheses are required around the switch governing expression..
+        /// </summary>
+        internal static string ERR_SwitchGoverningExpressionRequiresParens {
+            get {
+                return ResourceManager.GetString("ERR_SwitchGoverningExpressionRequiresParens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Command-line syntax error: Missing &apos;:&lt;number&gt;&apos; for &apos;{0}&apos; option.
         /// </summary>
         internal static string ERR_SwitchNeedsNumber {
@@ -9544,6 +9562,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TupleDuplicateElementName {
             get {
                 return ResourceManager.GetString("ERR_TupleDuplicateElementName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name &apos;{0}&apos; does not identify tuple element &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_TupleElementNameMismatch {
+            get {
+                return ResourceManager.GetString("ERR_TupleElementNameMismatch", resourceCulture);
             }
         }
         

@@ -3155,7 +3155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundWhenDecisionDagNode : BoundDecisionDagNode 
     {
-        public BoundWhenDecisionDagNode(SyntaxNode syntax, ImmutableArray<(BoundExpression left,BoundDagTemp dagTemp)> bindings, BoundExpression whenExpression, BoundDecisionDagNode  whenTrue, BoundDecisionDagNode  whenFalse, bool hasErrors = false)
+        public BoundWhenDecisionDagNode(SyntaxNode syntax, ImmutableArray<BoundPatternBinding> bindings, BoundExpression whenExpression, BoundDecisionDagNode  whenTrue, BoundDecisionDagNode  whenFalse, bool hasErrors = false)
             : base(BoundKind.WhenDecisionDagNode, syntax, hasErrors || whenExpression.HasErrors() || whenTrue.HasErrors() || whenFalse.HasErrors())
         {
 
@@ -3169,7 +3169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public ImmutableArray<(BoundExpression left,BoundDagTemp dagTemp)> Bindings { get; }
+        public ImmutableArray<BoundPatternBinding> Bindings { get; }
 
         public BoundExpression WhenExpression { get; }
 
@@ -3182,7 +3182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitWhenDecisionDagNode(this);
         }
 
-        public BoundWhenDecisionDagNode Update(ImmutableArray<(BoundExpression left,BoundDagTemp dagTemp)> bindings, BoundExpression whenExpression, BoundDecisionDagNode  whenTrue, BoundDecisionDagNode  whenFalse)
+        public BoundWhenDecisionDagNode Update(ImmutableArray<BoundPatternBinding> bindings, BoundExpression whenExpression, BoundDecisionDagNode  whenTrue, BoundDecisionDagNode  whenFalse)
         {
             if (bindings != this.Bindings || whenExpression != this.WhenExpression || whenTrue != this.WhenTrue || whenFalse != this.WhenFalse)
             {

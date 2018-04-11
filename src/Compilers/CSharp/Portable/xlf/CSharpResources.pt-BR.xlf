@@ -8810,6 +8810,21 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="new">An expression tree may not contain a switch expression.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
+        <source>Parentheses are required around the switch governing expression.</source>
+        <target state="new">Parentheses are required around the switch governing expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TupleElementNameMismatch">
+        <source>The name '{0}' does not identify tuple element '{1}'.</source>
+        <target state="new">The name '{0}' does not identify tuple element '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DeconstructParameterNameMismatch">
+        <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
+        <target state="new">The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IsPatternImpossible">
         <source>An expression of type '{0}' can never match the provided pattern.</source>
         <target state="new">An expression of type '{0}' can never match the provided pattern.</target>
