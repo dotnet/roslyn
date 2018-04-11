@@ -24,11 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
 
-            // PROTOTYPE(patterns2): Add examples of all the new pattern types once supported.
+            // Add nodes that are not yet in AllInOneCSharpCode to this list.
             var syntaxKinds = new HashSet<SyntaxKind>();
-            syntaxKinds.Add(SyntaxKind.SubpatternElement);
-            syntaxKinds.Add(SyntaxKind.DeconstructionPattern);
-            syntaxKinds.Add(SyntaxKind.VarPattern);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });

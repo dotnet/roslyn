@@ -52,12 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Report subsumption errors, but ignore the input's constant value for that.
             CheckSwitchErrors(node, boundSwitchGoverningExpression, ref switchSections, decisionDag, diagnostics);
 
-            if (boundSwitchGoverningExpression.ConstantValue != null)
-            {
-                // When the input is constant, we use that to reshape the decision dag that is returned
-                // so that flow analysis will see that some of the cases may be unreachable.
-                decisionDag = decisionDag.SimplifyDecisionDagForConstantInput(boundSwitchGoverningExpression, Conversions, diagnostics);
-            }
+            // When the input is constant, we use that to reshape the decision dag that is returned
+            // so that flow analysis will see that some of the cases may be unreachable.
+            decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(boundSwitchGoverningExpression);
 
             return new BoundPatternSwitchStatement(
                 syntax: node,

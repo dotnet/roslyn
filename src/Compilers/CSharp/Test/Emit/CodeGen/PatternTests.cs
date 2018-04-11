@@ -91,9 +91,9 @@ static class C {
                 // (14,18): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //             case int i: break;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(14, 18),
-                // (12,17): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
-                //         switch (x)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "get_Value").WithLocation(12, 17),
+                // (14,18): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
+                //             case int i: break;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_Value").WithLocation(14, 18),
                 // (17,36): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
                 //     static bool M2(int? x) => x is int i;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(17, 36),
@@ -339,12 +339,13 @@ True";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Program.Main",
 @"{
-  // Code size       82 (0x52)
+  // Code size       84 (0x54)
   .maxstack  2
   .locals init (Base<object> V_0, //x
                 Derived V_1, //y
                 Derived V_2, //z
-                Base<object> V_3)
+                Base<object> V_3,
+                Base<object> V_4)
   IL_0000:  nop
   IL_0001:  newobj     ""Derived..ctor()""
   IL_0006:  stloc.0
@@ -363,27 +364,27 @@ True";
   IL_0021:  call       ""void System.Console.WriteLine(bool)""
   IL_0026:  nop
   IL_0027:  ldloc.0
-  IL_0028:  stloc.3
-  IL_0029:  ldloc.3
-  IL_002a:  stloc.0
-  IL_002b:  ldloc.0
-  IL_002c:  isinst     ""Derived""
-  IL_0031:  stloc.2
-  IL_0032:  ldloc.2
-  IL_0033:  brtrue.s   IL_0037
-  IL_0035:  br.s       IL_0042
-  IL_0037:  br.s       IL_0039
-  IL_0039:  ldc.i4.1
-  IL_003a:  call       ""void System.Console.WriteLine(bool)""
-  IL_003f:  nop
-  IL_0040:  br.s       IL_0042
-  IL_0042:  ldloc.0
-  IL_0043:  isinst     ""Derived""
-  IL_0048:  ldnull
-  IL_0049:  cgt.un
-  IL_004b:  call       ""void System.Console.WriteLine(bool)""
-  IL_0050:  nop
-  IL_0051:  ret
+  IL_0028:  stloc.s    V_4
+  IL_002a:  ldloc.s    V_4
+  IL_002c:  stloc.3
+  IL_002d:  ldloc.3
+  IL_002e:  isinst     ""Derived""
+  IL_0033:  stloc.2
+  IL_0034:  ldloc.2
+  IL_0035:  brtrue.s   IL_0039
+  IL_0037:  br.s       IL_0044
+  IL_0039:  br.s       IL_003b
+  IL_003b:  ldc.i4.1
+  IL_003c:  call       ""void System.Console.WriteLine(bool)""
+  IL_0041:  nop
+  IL_0042:  br.s       IL_0044
+  IL_0044:  ldloc.0
+  IL_0045:  isinst     ""Derived""
+  IL_004a:  ldnull
+  IL_004b:  cgt.un
+  IL_004d:  call       ""void System.Console.WriteLine(bool)""
+  IL_0052:  nop
+  IL_0053:  ret
 }");
         }
 
@@ -469,60 +470,61 @@ class Program
 }");
             compVerifier.VerifyIL("Program.P5",
 @"{
-  // Code size       98 (0x62)
+  // Code size      103 (0x67)
   .maxstack  2
-  .locals init (double V_0,
-                float V_1,
-                object V_2,
-                bool V_3)
+  .locals init (object V_0,
+                double V_1,
+                float V_2,
+                object V_3,
+                bool V_4)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  stloc.2
-  IL_0003:  ldloc.2
-  IL_0004:  starg.s    V_0
-  IL_0006:  ldarg.0
-  IL_0007:  isinst     ""double""
-  IL_000c:  brfalse.s  IL_002b
-  IL_000e:  ldarg.0
-  IL_000f:  unbox.any  ""double""
-  IL_0014:  stloc.0
-  IL_0015:  ldloc.0
-  IL_0016:  call       ""bool double.IsNaN(double)""
-  IL_001b:  brtrue.s   IL_004c
-  IL_001d:  ldc.r8     3.14
-  IL_0026:  ldloc.0
-  IL_0027:  beq.s      IL_0054
-  IL_0029:  br.s       IL_005c
-  IL_002b:  ldarg.0
-  IL_002c:  isinst     ""float""
-  IL_0031:  brfalse.s  IL_005c
-  IL_0033:  ldarg.0
-  IL_0034:  unbox.any  ""float""
-  IL_0039:  stloc.1
-  IL_003a:  ldloc.1
-  IL_003b:  call       ""bool float.IsNaN(float)""
-  IL_0040:  brtrue.s   IL_0050
-  IL_0042:  ldc.r4     3.14
-  IL_0047:  ldloc.1
-  IL_0048:  beq.s      IL_0058
-  IL_004a:  br.s       IL_005c
-  IL_004c:  ldc.i4.1
-  IL_004d:  stloc.3
-  IL_004e:  br.s       IL_0060
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  isinst     ""double""
+  IL_000b:  brfalse.s  IL_002a
+  IL_000d:  ldloc.0
+  IL_000e:  unbox.any  ""double""
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  call       ""bool double.IsNaN(double)""
+  IL_001a:  brtrue.s   IL_004b
+  IL_001c:  ldc.r8     3.14
+  IL_0025:  ldloc.1
+  IL_0026:  beq.s      IL_0055
+  IL_0028:  br.s       IL_005f
+  IL_002a:  ldloc.0
+  IL_002b:  isinst     ""float""
+  IL_0030:  brfalse.s  IL_005f
+  IL_0032:  ldloc.0
+  IL_0033:  unbox.any  ""float""
+  IL_0038:  stloc.2
+  IL_0039:  ldloc.2
+  IL_003a:  call       ""bool float.IsNaN(float)""
+  IL_003f:  brtrue.s   IL_0050
+  IL_0041:  ldc.r4     3.14
+  IL_0046:  ldloc.2
+  IL_0047:  beq.s      IL_005a
+  IL_0049:  br.s       IL_005f
+  IL_004b:  ldc.i4.1
+  IL_004c:  stloc.s    V_4
+  IL_004e:  br.s       IL_0064
   IL_0050:  ldc.i4.1
-  IL_0051:  stloc.3
-  IL_0052:  br.s       IL_0060
-  IL_0054:  ldc.i4.1
-  IL_0055:  stloc.3
-  IL_0056:  br.s       IL_0060
-  IL_0058:  ldc.i4.1
-  IL_0059:  stloc.3
-  IL_005a:  br.s       IL_0060
-  IL_005c:  ldc.i4.0
-  IL_005d:  stloc.3
-  IL_005e:  br.s       IL_0060
-  IL_0060:  ldloc.3
-  IL_0061:  ret
+  IL_0051:  stloc.s    V_4
+  IL_0053:  br.s       IL_0064
+  IL_0055:  ldc.i4.1
+  IL_0056:  stloc.s    V_4
+  IL_0058:  br.s       IL_0064
+  IL_005a:  ldc.i4.1
+  IL_005b:  stloc.s    V_4
+  IL_005d:  br.s       IL_0064
+  IL_005f:  ldc.i4.0
+  IL_0060:  stloc.s    V_4
+  IL_0062:  br.s       IL_0064
+  IL_0064:  ldloc.s    V_4
+  IL_0066:  ret
 }");
         }
 
@@ -708,35 +710,32 @@ public class C
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M1",
 @"{
-  // Code size       35 (0x23)
+  // Code size       33 (0x21)
   .maxstack  1
-  .locals init (bool? V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloca.s   V_0
-  IL_0004:  call       ""bool bool?.HasValue.get""
-  IL_0009:  brfalse.s  IL_0018
-  IL_000b:  br.s       IL_001a
-  IL_000d:  ldloca.s   V_0
-  IL_000f:  call       ""bool bool?.GetValueOrDefault()""
-  IL_0014:  brtrue.s   IL_001f
-  IL_0016:  br.s       IL_0021
-  IL_0018:  ldc.i4.1
-  IL_0019:  ret
-  IL_001a:  ldarg.1
-  IL_001b:  brfalse.s  IL_000d
-  IL_001d:  ldc.i4.2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool bool?.HasValue.get""
+  IL_0007:  brfalse.s  IL_0016
+  IL_0009:  br.s       IL_0018
+  IL_000b:  ldarga.s   V_0
+  IL_000d:  call       ""bool bool?.GetValueOrDefault()""
+  IL_0012:  brtrue.s   IL_001d
+  IL_0014:  br.s       IL_001f
+  IL_0016:  ldc.i4.1
+  IL_0017:  ret
+  IL_0018:  ldarg.1
+  IL_0019:  brfalse.s  IL_000b
+  IL_001b:  ldc.i4.2
+  IL_001c:  ret
+  IL_001d:  ldc.i4.3
   IL_001e:  ret
-  IL_001f:  ldc.i4.3
+  IL_001f:  ldc.i4.4
   IL_0020:  ret
-  IL_0021:  ldc.i4.4
-  IL_0022:  ret
 }");
             compVerifier.VerifyIL("C.M2",
 @"{
   // Code size       19 (0x13)
   .maxstack  1
-  .locals init (string V_0)
+  .locals init (string V_0) //a
   IL_0000:  ldarg.0
   IL_0001:  isinst     ""string""
   IL_0006:  stloc.0
@@ -803,41 +802,35 @@ public class C
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.SwitchBasedPatternMatching",
 @"{
-  // Code size       71 (0x47)
+  // Code size       67 (0x43)
   .maxstack  2
-  .locals init (int V_0,
-                string V_1,
-                object V_2)
+  .locals init (int V_0) //n
   IL_0000:  ldarg.1
-  IL_0001:  stloc.2
-  IL_0002:  ldloc.2
-  IL_0003:  isinst     ""int""
-  IL_0008:  brfalse.s  IL_0013
-  IL_000a:  ldloc.2
-  IL_000b:  unbox.any  ""int""
-  IL_0010:  stloc.0
-  IL_0011:  br.s       IL_001e
-  IL_0013:  ldloc.2
-  IL_0014:  isinst     ""string""
-  IL_0019:  stloc.1
-  IL_001a:  ldloc.1
-  IL_001b:  brtrue.s   IL_002d
-  IL_001d:  ret
-  IL_001e:  ldloc.0
-  IL_001f:  ldc.i4.1
-  IL_0020:  bne.un.s   IL_0038
-  IL_0022:  ldstr      ""1""
-  IL_0027:  call       ""void System.Console.WriteLine(string)""
-  IL_002c:  ret
-  IL_002d:  ldstr      ""s""
-  IL_0032:  call       ""void System.Console.WriteLine(string)""
-  IL_0037:  ret
-  IL_0038:  ldloc.0
-  IL_0039:  ldc.i4.2
-  IL_003a:  bne.un.s   IL_0046
-  IL_003c:  ldstr      ""2""
-  IL_0041:  call       ""void System.Console.WriteLine(string)""
-  IL_0046:  ret
+  IL_0001:  isinst     ""int""
+  IL_0006:  brfalse.s  IL_0011
+  IL_0008:  ldarg.1
+  IL_0009:  unbox.any  ""int""
+  IL_000e:  stloc.0
+  IL_000f:  br.s       IL_001a
+  IL_0011:  ldarg.1
+  IL_0012:  isinst     ""string""
+  IL_0017:  brtrue.s   IL_0029
+  IL_0019:  ret
+  IL_001a:  ldloc.0
+  IL_001b:  ldc.i4.1
+  IL_001c:  bne.un.s   IL_0034
+  IL_001e:  ldstr      ""1""
+  IL_0023:  call       ""void System.Console.WriteLine(string)""
+  IL_0028:  ret
+  IL_0029:  ldstr      ""s""
+  IL_002e:  call       ""void System.Console.WriteLine(string)""
+  IL_0033:  ret
+  IL_0034:  ldloc.0
+  IL_0035:  ldc.i4.2
+  IL_0036:  bne.un.s   IL_0042
+  IL_0038:  ldstr      ""2""
+  IL_003d:  call       ""void System.Console.WriteLine(string)""
+  IL_0042:  ret
 }");
         }
 
@@ -1125,6 +1118,283 @@ class Program
   IL_0013:  ret
   IL_0014:  ldc.i4.0
   IL_0015:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(20641, "https://github.com/dotnet/roslyn/issues/20641")]
+        [WorkItem(1395, "https://github.com/dotnet/csharplang/issues/1395")]
+        public void TupleSwitch01()
+        {
+            var source = @"using System;
+
+public class Door
+{
+    public DoorState State;
+
+    public enum DoorState { Opened, Closed, Locked }
+
+    public enum Action { Open, Close, Lock, Unlock }
+
+    public void Act0(Action action, bool haveKey = false)
+    {
+        Console.Write($""{State} {action}{(haveKey ? "" withKey"" : null)}"");
+        State = ChangeState0(State, action, haveKey);
+        Console.WriteLine($"" -> {State}"");
+    }
+
+    public void Act1(Action action, bool haveKey = false)
+    {
+        Console.Write($""{State} {action}{(haveKey ? "" withKey"" : null)}"");
+        State = ChangeState1(State, action, haveKey);
+        Console.WriteLine($"" -> {State}"");
+    }
+
+    public static DoorState ChangeState0(DoorState state, Action action, bool haveKey = false)
+    {
+        switch (state, action)
+        {
+            case (DoorState.Opened, Action.Close):
+                return DoorState.Closed;
+            case (DoorState.Closed, Action.Open):
+                return DoorState.Opened;
+            case (DoorState.Closed, Action.Lock) when haveKey:
+                return DoorState.Locked;
+            case (DoorState.Locked, Action.Unlock) when haveKey:
+                return DoorState.Closed;
+            case var (oldState, _):
+                return oldState;
+        }
+    }
+
+    public static DoorState ChangeState1(DoorState state, Action action, bool haveKey = false) =>
+        (state, action) switch {
+            (DoorState.Opened, Action.Close) => DoorState.Closed,
+            (DoorState.Closed, Action.Open) => DoorState.Opened,
+            (DoorState.Closed, Action.Lock) when haveKey => DoorState.Locked,
+            (DoorState.Locked, Action.Unlock) when haveKey => DoorState.Closed,
+            _ => state };
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var door = new Door();
+        door.Act0(Door.Action.Close);
+        door.Act0(Door.Action.Lock);
+        door.Act0(Door.Action.Lock, true);
+        door.Act0(Door.Action.Open);
+        door.Act0(Door.Action.Unlock);
+        door.Act0(Door.Action.Unlock, true);
+        door.Act0(Door.Action.Open);
+        Console.WriteLine();
+
+        door = new Door();
+        door.Act1(Door.Action.Close);
+        door.Act1(Door.Action.Lock);
+        door.Act1(Door.Action.Lock, true);
+        door.Act1(Door.Action.Open);
+        door.Act1(Door.Action.Unlock);
+        door.Act1(Door.Action.Unlock, true);
+        door.Act1(Door.Action.Open);
+    }
+}";
+            var expectedOutput =
+@"Opened Close -> Closed
+Closed Lock -> Closed
+Closed Lock withKey -> Locked
+Locked Open -> Locked
+Locked Unlock -> Locked
+Locked Unlock withKey -> Closed
+Closed Open -> Opened
+
+Opened Close -> Closed
+Closed Lock -> Closed
+Closed Lock withKey -> Locked
+Locked Open -> Locked
+Locked Unlock -> Locked
+Locked Unlock withKey -> Closed
+Closed Open -> Opened
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("Door.ChangeState0",
+@"{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (Door.DoorState V_0) //oldState
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  switch    (
+        IL_0016,
+        IL_001c,
+        IL_0025)
+  IL_0014:  br.s       IL_0039
+  IL_0016:  ldc.i4.1
+  IL_0017:  ldarg.1
+  IL_0018:  beq.s      IL_002b
+  IL_001a:  br.s       IL_0039
+  IL_001c:  ldarg.1
+  IL_001d:  brfalse.s  IL_002d
+  IL_001f:  ldarg.1
+  IL_0020:  ldc.i4.2
+  IL_0021:  beq.s      IL_002f
+  IL_0023:  br.s       IL_0039
+  IL_0025:  ldc.i4.3
+  IL_0026:  ldarg.1
+  IL_0027:  beq.s      IL_0034
+  IL_0029:  br.s       IL_0039
+  IL_002b:  ldc.i4.1
+  IL_002c:  ret
+  IL_002d:  ldc.i4.0
+  IL_002e:  ret
+  IL_002f:  ldarg.2
+  IL_0030:  brfalse.s  IL_0039
+  IL_0032:  ldc.i4.2
+  IL_0033:  ret
+  IL_0034:  ldarg.2
+  IL_0035:  brfalse.s  IL_0039
+  IL_0037:  ldc.i4.1
+  IL_0038:  ret
+  IL_0039:  ldloc.0
+  IL_003a:  ret
+}");
+            compVerifier.VerifyIL("Door.ChangeState1",
+@"{
+  // Code size       67 (0x43)
+  .maxstack  2
+  .locals init (Door.DoorState V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  switch    (
+        IL_0014,
+        IL_001a,
+        IL_0023)
+  IL_0012:  br.s       IL_003f
+  IL_0014:  ldc.i4.1
+  IL_0015:  ldarg.1
+  IL_0016:  beq.s      IL_0029
+  IL_0018:  br.s       IL_003f
+  IL_001a:  ldarg.1
+  IL_001b:  brfalse.s  IL_002d
+  IL_001d:  ldarg.1
+  IL_001e:  ldc.i4.2
+  IL_001f:  beq.s      IL_0031
+  IL_0021:  br.s       IL_003f
+  IL_0023:  ldc.i4.3
+  IL_0024:  ldarg.1
+  IL_0025:  beq.s      IL_0038
+  IL_0027:  br.s       IL_003f
+  IL_0029:  ldc.i4.1
+  IL_002a:  stloc.0
+  IL_002b:  br.s       IL_0041
+  IL_002d:  ldc.i4.0
+  IL_002e:  stloc.0
+  IL_002f:  br.s       IL_0041
+  IL_0031:  ldarg.2
+  IL_0032:  brfalse.s  IL_003f
+  IL_0034:  ldc.i4.2
+  IL_0035:  stloc.0
+  IL_0036:  br.s       IL_0041
+  IL_0038:  ldarg.2
+  IL_0039:  brfalse.s  IL_003f
+  IL_003b:  ldc.i4.1
+  IL_003c:  stloc.0
+  IL_003d:  br.s       IL_0041
+  IL_003f:  ldarg.0
+  IL_0040:  stloc.0
+  IL_0041:  ldloc.0
+  IL_0042:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(20641, "https://github.com/dotnet/roslyn/issues/20641")]
+        [WorkItem(1395, "https://github.com/dotnet/csharplang/issues/1395")]
+        public void SharingTemps01()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args) { }
+    void M1(string x)
+    {
+        switch (x)
+        {
+            case ""a"":
+            case ""b"" when Mutate(ref x): // prevents sharing temps
+            case ""c"":
+                break;
+        }
+    }
+    void M2(string x)
+    {
+        switch (x)
+        {
+            case ""a"":
+            case ""b"" when Pure(x):
+            case ""c"":
+                break;
+        }
+    }
+    static bool Mutate(ref string x) { x = null; return false; }
+    static bool Pure(string x) { return false; }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithoutRecursivePatterns);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("Program.M1",
+@"{
+  // Code size       53 (0x35)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0034
+  IL_0005:  ldloc.0
+  IL_0006:  ldstr      ""a""
+  IL_000b:  call       ""bool string.op_Equality(string, string)""
+  IL_0010:  brtrue.s   IL_0034
+  IL_0012:  ldloc.0
+  IL_0013:  ldstr      ""b""
+  IL_0018:  call       ""bool string.op_Equality(string, string)""
+  IL_001d:  brtrue.s   IL_002c
+  IL_001f:  ldloc.0
+  IL_0020:  ldstr      ""c""
+  IL_0025:  call       ""bool string.op_Equality(string, string)""
+  IL_002a:  pop
+  IL_002b:  ret
+  IL_002c:  ldarga.s   V_1
+  IL_002e:  call       ""bool Program.Mutate(ref string)""
+  IL_0033:  pop
+  IL_0034:  ret
+}");
+            compVerifier.VerifyIL("Program.M2",
+@"{
+  // Code size       50 (0x32)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0031
+  IL_0003:  ldarg.1
+  IL_0004:  ldstr      ""a""
+  IL_0009:  call       ""bool string.op_Equality(string, string)""
+  IL_000e:  brtrue.s   IL_0031
+  IL_0010:  ldarg.1
+  IL_0011:  ldstr      ""b""
+  IL_0016:  call       ""bool string.op_Equality(string, string)""
+  IL_001b:  brtrue.s   IL_002a
+  IL_001d:  ldarg.1
+  IL_001e:  ldstr      ""c""
+  IL_0023:  call       ""bool string.op_Equality(string, string)""
+  IL_0028:  pop
+  IL_0029:  ret
+  IL_002a:  ldarg.1
+  IL_002b:  call       ""bool Program.Pure(string)""
+  IL_0030:  pop
+  IL_0031:  ret
 }");
         }
     }

@@ -1992,7 +1992,7 @@
     <Field Name="ColonToken" Type="SyntaxToken">
       <Kind Name="ColonToken"/>
       <PropertyComment>
-        <summary>Gets a SyntaxToken that represents the colon succeeding the statement's label.</summary>
+        <summary>Gets a SyntaxToken that represents the colon following the statement's label.</summary>
       </PropertyComment>
     </Field>
     <Field Name="Statement" Type="StatementSyntax"/>
@@ -2380,11 +2380,11 @@
         </summary>
       </PropertyComment>
     </Field>
-    <Field Name="OpenParenToken" Type="SyntaxToken">
+    <Field Name="OpenParenToken" Type="SyntaxToken" Optional="true">
       <Kind Name="OpenParenToken"/>
       <PropertyComment>
         <summary>
-          Gets a SyntaxToken that represents the open parenthesis preceding the switch expression.
+          Gets a SyntaxToken that represents the open parenthesis preceding the switch governing expression.
         </summary>
       </PropertyComment>
     </Field>
@@ -2395,11 +2395,11 @@
         </summary>
       </PropertyComment>
     </Field>
-    <Field Name="CloseParenToken" Type="SyntaxToken">
+    <Field Name="CloseParenToken" Type="SyntaxToken" Optional="true">
       <Kind Name="CloseParenToken"/>
       <PropertyComment>
         <summary>
-          Gets a SyntaxToken that represents the close parenthesis succeeding the switch expression.
+          Gets a SyntaxToken that represents the close parenthesis following the switch governing expression.
         </summary>
       </PropertyComment>
     </Field>
@@ -2422,7 +2422,7 @@
       <Kind Name="CloseBraceToken"/>
       <PropertyComment>
         <summary>
-          Gets a SyntaxToken that represents the open braces succeeding the switch sections.
+          Gets a SyntaxToken that represents the open braces following the switch sections.
         </summary>
       </PropertyComment>
     </Field>
