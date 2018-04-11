@@ -116,15 +116,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function GetDiagnosticReport(diagnosticInfo As DiagnosticInfo, options As CompilationOptions) As ReportDiagnostic
-            Dim hasSourceSuppression = False
             Return VisualBasicDiagnosticFilter.GetDiagnosticReport(diagnosticInfo.Severity,
                                                                    True,
                                                                    diagnosticInfo.MessageIdentifier,
                                                                    Location.None,
                                                                    diagnosticInfo.Category,
                                                                    options.GeneralDiagnosticOption,
-                                                                   options.SpecificDiagnosticOptions,
-                                                                   hasSourceSuppression)
+                                                                   options.SpecificDiagnosticOptions)
         End Function
 
 
