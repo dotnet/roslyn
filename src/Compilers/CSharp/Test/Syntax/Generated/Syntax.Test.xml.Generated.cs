@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchStatementSyntax GenerateSwitchStatement()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchStatement(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.SwitchKeyword), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseParenToken), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchSectionSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchStatement(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.SwitchKeyword), null, GenerateIdentifierName(), null, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchSectionSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchSectionSyntax GenerateSwitchSection()
@@ -2494,9 +2494,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateSwitchStatement();
             
             Assert.Equal(SyntaxKind.SwitchKeyword, node.SwitchKeyword.Kind);
-            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
+            Assert.Null(node.OpenParenToken);
             Assert.NotNull(node.Expression);
-            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
+            Assert.Null(node.CloseParenToken);
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
             Assert.NotNull(node.Sections);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
@@ -9906,7 +9906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static SwitchStatementSyntax GenerateSwitchStatement()
         {
-            return SyntaxFactory.SwitchStatement(SyntaxFactory.Token(SyntaxKind.SwitchKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<SwitchSectionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            return SyntaxFactory.SwitchStatement(SyntaxFactory.Token(SyntaxKind.SwitchKeyword), default(SyntaxToken), GenerateIdentifierName(), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<SwitchSectionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
         }
         
         private static SwitchSectionSyntax GenerateSwitchSection()
@@ -11804,9 +11804,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateSwitchStatement();
             
             Assert.Equal(SyntaxKind.SwitchKeyword, node.SwitchKeyword.Kind());
-            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
+            Assert.Equal(SyntaxKind.None, node.OpenParenToken.Kind());
             Assert.NotNull(node.Expression);
-            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
+            Assert.Equal(SyntaxKind.None, node.CloseParenToken.Kind());
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
             Assert.NotNull(node.Sections);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());

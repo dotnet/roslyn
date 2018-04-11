@@ -2,6 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -21,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class SwitchExpressionLocalRewriter : BasePatternSwitchLocalRewriter
         {
-            private SwitchExpressionLocalRewriter(LocalRewriter localRewriter, BoundSwitchExpression node)
-                : base(localRewriter, localRewriter.VisitExpression(node.Expression), node.SwitchArms.SelectAsArray(arm => arm.Syntax), node.DecisionDag)
+            private SwitchExpressionLocalRewriter(BoundSwitchExpression node, LocalRewriter localRewriter)
+                : base(node.Syntax, localRewriter, node.SwitchArms.SelectAsArray(arm => arm.Syntax), isSwitchStatement: false)
             {
             }
 
             public static BoundExpression Rewrite(LocalRewriter localRewriter, BoundSwitchExpression node)
             {
-                var rewriter = new SwitchExpressionLocalRewriter(localRewriter, node);
+                var rewriter = new SwitchExpressionLocalRewriter(node, localRewriter);
                 BoundExpression result = rewriter.LowerSwitchExpression(node);
                 rewriter.Free();
                 return result;
@@ -36,41 +39,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoundExpression LowerSwitchExpression(BoundSwitchExpression node)
             {
+                _factory.Syntax = node.Syntax;
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
-                var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax, kind: SynthesizedLocalKind.SwitchCasePatternMatching);
-                LabelSymbol afterSwitchExpression = _factory.GenerateLabel("afterSwitchExpression");
+                var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
 
-                // Assign the input to a temp
-                result.Add(_factory.Assignment(_tempAllocator.GetTemp(base._inputTemp), base._loweredInput));
+                // Note that a when-clause can contain an assignment to a
+                // pattern variable declared in a different when-clause (e.g. in the same section, or
+                // in a different section via the use of a local function), so we need to analyze all
+                // of the when clauses to see if they are all simple enough to conclude that they do
+                // not mutate pattern variables.
+                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result);
 
-                // then lower the rest of the dag that references that input
-                result.AddRange(_loweredDecisionDag.ToImmutable());
+                // lower the decision dag.
+                (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
+                    LowerDecisionDag(decisionDag);
+
+                // then add the rest of the lowered dag that references that input
+                result.Add(_factory.Block(loweredDag));
                 // A branch to the default label when no switch case matches is included in the
                 // decision tree, so the code in result is unreachable at this point.
 
-                // Lower each switch arm
+                // Lower each switch expression arm
+                LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax, kind: SynthesizedLocalKind.SwitchCasePatternMatching);
+                LabelSymbol afterSwitchExpression = _factory.GenerateLabel("afterSwitchExpression");
                 foreach (BoundSwitchExpressionArm arm in node.SwitchArms)
                 {
-                    ArrayBuilder<BoundStatement> sectionStatementBuilder = _switchArms[arm.Syntax];
-                    result.Add(_factory.Label(arm.Label));
-                    sectionStatementBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), _localRewriter.VisitExpression(arm.Value)));
-                    var statements = sectionStatementBuilder.ToImmutableAndFree();
-                    if (arm.Locals.IsEmpty)
-                    {
-                        result.Add(_factory.StatementList(statements));
-                    }
-                    else
-                    {
-                        // even though the whole switch expression will be lifted to the statement level, we
-                        // want the locals of each section to see a section-specific scope.
-                        result.Add(new BoundScope(arm.Syntax, arm.Locals, statements));
-                        locals.AddRange(arm.Locals);
-                    }
-
-                    result.Add(_factory.Goto(afterSwitchExpression));
+                    _factory.Syntax = arm.Syntax;
+                    var sectionBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+                    sectionBuilder.AddRange(switchSections[arm.Syntax]);
+                    sectionBuilder.Add(_factory.Label(arm.Label));
+                    sectionBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), _localRewriter.VisitExpression(arm.Value)));
+                    sectionBuilder.Add(_factory.Goto(afterSwitchExpression));
+                    result.Add(new BoundBlock(arm.Syntax, arm.Locals, sectionBuilder.ToImmutableAndFree()));
                 }
 
+                _factory.Syntax = node.Syntax;
                 if (node.DefaultLabel != null)
                 {
                     result.Add(_factory.Label(node.DefaultLabel));
@@ -79,9 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 result.Add(_factory.Label(afterSwitchExpression));
-                locals.AddRange(_tempAllocator.AllTemps());
-                locals.Add(resultTemp);
-                return _factory.SpillSequence(locals.ToImmutableAndFree(), result.ToImmutableAndFree(), _factory.Local(resultTemp));
+                return _factory.SpillSequence(_tempAllocator.AllTemps().Add(resultTemp), result.ToImmutableAndFree(), _factory.Local(resultTemp));
             }
         }
     }

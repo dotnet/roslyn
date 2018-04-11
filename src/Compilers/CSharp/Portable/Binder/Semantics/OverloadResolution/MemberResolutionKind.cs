@@ -47,6 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         NoCorrespondingNamedParameter,
 
         /// <summary>
+        /// The candidate member was rejected because there were two named arguments with the same parameter name.
+        /// </summary>
+        DuplicateNamedArgument,
+
+        /// <summary>
         /// The candidate member was rejected because an required parameter had no corresponding argument.
         /// </summary>
         RequiredParameterMissing,
@@ -79,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The candidate member was rejected because an argument could not be converted to the appropriate parameter
         /// type.
         /// </summary>
-        BadArguments,
+        BadArgumentConversion,
 
         /// <summary>
         /// The candidate member was rejected because type inference failed.

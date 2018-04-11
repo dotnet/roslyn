@@ -15,3 +15,9 @@ Each entry should include a short description of the break, followed by either a
 
       if (o is _) // warning: The name '_' refers to the type '_', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
   ```
+
+3. In C# 8.0, the parentheses of a switch statement are optional when the expression being switched on is a tuple expression, because the tuple expression has its own parentheses:
+  ``` c#
+      switch (a, b)
+  ```
+   Due to this the `OpenParenToken` and `CloseParenToken` fields of a `SwitchStatementSyntax` node may now sometimes be empty.

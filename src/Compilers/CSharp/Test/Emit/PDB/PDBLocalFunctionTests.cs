@@ -331,7 +331,7 @@ class C
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
           <slot kind=""30"" offset=""75"" />
-          <slot kind=""35"" offset=""83"" />
+          <slot kind=""35"" offset=""75"" />
           <slot kind=""1"" offset=""75"" />
         </encLocalSlotMap>
         <encLambdaMap>
