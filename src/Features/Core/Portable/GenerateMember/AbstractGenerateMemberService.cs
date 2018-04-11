@@ -164,21 +164,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember
 
                 isStatic = false;
                 return;
-
-                //if (type == null)
-                //{
-                //    // something like: { X: int i }
-                //    // need to see how this property pattern is used.
-                //}
-                //else
-                //{
-                //    // Something like: Blah { [|X|]: int i }
-                //    // want to generate "int X" in "Blah".
-                //    typeToGenerateIn = semanticModel.GetTypeInfo(type, cancellationToken).Type as INamedTypeSymbol;
-                //}
-
-                //isStatic = false;
-                //return;
             }
 
             // Generating into the containing type.
