@@ -26,6 +26,7 @@ param (
     [switch]$bootstrap = $false,
     [switch]$sign = $false,
     [switch]$pack = $false,
+    [switch]$packAll = $false,
     [switch]$binaryLog = $false,
     [switch]$noAnalyzers = $false,
     [string]$signType = "",
@@ -109,6 +110,9 @@ function Process-Arguments() {
         Write-Host "Cannot combine special testing with any other action"
         exit 1
     }
+
+    $pack = $pack -or $packAll
+    $packAll = $packAll -or ($pack -and $official)
 
     if ($buildCoreClr) {
         $script:build = $true
@@ -349,7 +353,44 @@ function Build-InsertionItems() {
 }
 
 function Build-NuGetPackages() {
-    Exec-Block { & "..\..\src\NuGet\build-nugets.ps1" -release:$release -packPerBuildPreRelease:$official -packPreRelease:$true -packRelease:$official }
+
+    function Pack-All([string]$packageKind) {
+
+        $packDir = Join-Path $nugetOutDir $packageKind
+        Create-Directory $packDir
+
+        Write-Host "Packing for $packageKind"
+
+        foreach ($item in Get-ChildItem *.nuspec) {
+            $name = Split-Path -leaf $item
+            Write-Host "`tPacking $name"
+            Exec-Command $dotnet "pack -nologo --no-build NuGetProjectPackUtil.csproj /p:EmptyDir=$emptyDir /p:NugetPackageKind=$packageKind /p:NuspecFile=$item /p:NuspecBasePath=$configDir -o $packDir" | Out-Null
+        }
+    }
+
+    Push-Location (Join-Path $repoDir "src\NuGet")
+    try {
+        $nugetOutDir = Join-Path $configDir "NuGet"
+        Create-Directory $nugetOutDir
+
+        if ($restore) { 
+            Exec-Command $dotnet "restore NuGetProjectPackUtil.csproj"
+        }
+
+        # Empty directory for packing explicit empty items in the nuspec
+        $emptyDir = Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())
+        Create-Directory $emptyDir
+        New-Item -Path (Join-Path $emptyDir "_._") -Type File | Out-Null
+
+        Pack-All "PreRelease"
+        if ($packAll) {
+            Pack-All "Release"
+            Pack-All "PerBuildPreRelease"
+        }
+    }
+    finally {
+        Pop-Location
+    }
 }
 
 function Build-DeployToSymStore() {
