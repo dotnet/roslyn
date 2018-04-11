@@ -1918,7 +1918,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)exprType == null ||
                 exprType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
                 !exprType.IsValueType ||
-                exprType.IsPointerType());
+                exprType.IsPointerType() ||
+                exprType.ContainsTypeParameter());
 
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 

@@ -1234,5 +1234,50 @@ False
   IL_001c:  ret
 }");
         }
+
+        [Fact]
+        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
+        public void ConstantPatternVsUnconstrainedTypeParameter02()
+        {
+            var source =
+@"class C<T>
+{
+    internal struct S { }
+    static bool Test1(S s)
+    {
+        return s is null;
+    }
+    static bool Test2(S s)
+    {
+        return s is 1;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C<T>.Test1(C<T>.S)",
+@"");
+            compVerifier.VerifyIL("C<T>.Test2(C<T>.S)",
+@"{
+  // Code size       32 (0x20)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""C<T>.S""
+  IL_0006:  isinst     ""int""
+  IL_000b:  brfalse.s  IL_001e
+  IL_000d:  ldarg.0
+  IL_000e:  box        ""C<T>.S""
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  stloc.0
+  IL_0019:  ldc.i4.1
+  IL_001a:  ldloc.0
+  IL_001b:  ceq
+  IL_001d:  ret
+  IL_001e:  ldc.i4.0
+  IL_001f:  ret
+}");
+        }
     }
 }
