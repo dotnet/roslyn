@@ -37,5 +37,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
         public IEmbeddedClassifier Classifier { get; }
         public IEmbeddedDiagnosticAnalyzer DiagnosticAnalyzer { get; }
         public IEmbeddedCodeFixProvider CodeFixProvider { get; }
+
+        // No document-highlights for embedded json currently.
+        public IEmbeddedHighlighter Highlighter => null;
     }
 }
