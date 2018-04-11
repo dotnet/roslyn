@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub SimpleFields()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Public Structure C
@@ -48,7 +48,7 @@ End Structure
         <Fact>
         <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub TupleAPIs()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Public Class C
@@ -67,7 +67,7 @@ End Class
 
         <Fact>
         Public Sub Fields1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="C">
     <file name="a.vb">
 Public Partial Class C
@@ -175,7 +175,7 @@ End Class
         <WorkItem(537491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537491")>
         <Fact>
         Public Sub ImplicitTypedFields01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Field">
     <file name="a.vb">
 'Imports statements should go here
@@ -234,7 +234,7 @@ End namespace
 
         <Fact>
         Public Sub Bug4993()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Option Infer Off
@@ -263,7 +263,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
 
         <Fact>
         Public Sub Bug4993_related_StrictOn()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Option Strict On
@@ -282,7 +282,7 @@ End Class
 
         <Fact>
         Public Sub Bug4993_related_StrictOff()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Option Strict Off
@@ -302,7 +302,7 @@ End Class
         <Fact>
         Public Sub ConstFieldWithoutValueErr()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
  <compilation name="ConstFieldWithoutValueErr">
      <file name="a.vb">
 Public Class C
@@ -363,7 +363,7 @@ BC30438: Constants must have a value.
             Dim index = 0
             For Each optionStrict In {"On", "Off"}
                 For Each infer In {"On", "Off"}
-                    Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+                    Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
         <compilation name="AAA">
             <file name="a.vb">
 Option Strict <%= optionStrict %>
@@ -406,7 +406,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
             Dim index = 0
             For Each optionStrict In {"On", "Off"}
                 For Each infer In {"On", "Off"}
-                    Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+                    Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
         <compilation name="AAA">
             <file name="a.vb">
 Option Strict <%= optionStrict %>
@@ -453,7 +453,7 @@ End Class]]>,
         <WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190")>
         <Fact>
         Public Sub RTSpecialName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -498,7 +498,7 @@ End Module
 
         <Fact>
         Public Sub MultipleFieldsWithBadType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Public Class C
@@ -517,7 +517,7 @@ BC30002: Type 'abcDef' is not defined.
 
         <Fact>
         Public Sub AssociatedSymbolOfSubstitutedField()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="AAA">
     <file name="a.vb">
 Public Class C(Of T)

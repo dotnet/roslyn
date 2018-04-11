@@ -74,10 +74,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{E35DA3
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "CommandLine", "src\Compilers\Core\CommandLine\CommandLine.shproj", "{AD6F474E-E6D4-4217-91F3-B7AF1BE31CCC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PortableServer", "src\Compilers\Server\PortableServer\PortableServer.csproj", "{06B26DCB-7A12-48EF-AE50-708593ABD05F}"
-EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ServerShared", "src\Compilers\Server\ServerShared\ServerShared.shproj", "{32691768-AF9C-4CAE-9D0F-10721091B9AA}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{6F016299-BA96-45BA-9BFF-6C0793979177}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RunTests", "src\Tools\Source\RunTests\RunTests.csproj", "{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}"
@@ -148,13 +144,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ILAsm", "src\Tools\ILAsm\IL
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		src\Compilers\Core\CommandLine\CommandLine.projitems*{06b26dcb-7a12-48ef-ae50-708593abd05f}*SharedItemsImports = 4
-		src\Compilers\Server\ServerShared\ServerShared.projitems*{06b26dcb-7a12-48ef-ae50-708593abd05f}*SharedItemsImports = 4
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
-		src\Compilers\Server\ServerShared\ServerShared.projitems*{32691768-af9c-4cae-9d0f-10721091b9aa}*SharedItemsImports = 13
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{4b45ca0c-03a0-400f-b454-3d4bcb16af38}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{54e08bf5-f819-404f-a18d-0ab9ea81ea04}*SharedItemsImports = 13
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{5f8d2414-064a-4b3a-9b42-8e2a04246be5}*SharedItemsImports = 4
@@ -292,10 +285,6 @@ Global
 		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Debug|Any CPU.Build.0 = Debug|x64
-		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|Any CPU.ActiveCfg = Release|x64
-		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|Any CPU.Build.0 = Release|x64
 		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -432,8 +421,6 @@ Global
 		{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{AD6F474E-E6D4-4217-91F3-B7AF1BE31CCC} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
-		{06B26DCB-7A12-48EF-AE50-708593ABD05F} = {E35DA3D1-16C0-4318-9187-6B664F12A870}
-		{32691768-AF9C-4CAE-9D0F-10721091B9AA} = {E35DA3D1-16C0-4318-9187-6B664F12A870}
 		{1A3941F1-1E1F-4EF7-8064-7729C4C2E2AA} = {6F016299-BA96-45BA-9BFF-6C0793979177}
 		{CCBD3438-3E84-40A9-83AD-533F23BCFCA5} = {6F016299-BA96-45BA-9BFF-6C0793979177}
 		{C1930979-C824-496B-A630-70F5369A636F} = {3CDEA9FB-CD44-4AB4-98A8-5537AAA2169B}

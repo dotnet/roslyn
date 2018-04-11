@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case BoundKind.Block:
                         case BoundKind.StatementList:
-                        case BoundKind.FieldInitializer:
+                        case BoundKind.FieldEqualsValue:
                             return node;
 
                         case BoundKind.GlobalStatementInitializer:

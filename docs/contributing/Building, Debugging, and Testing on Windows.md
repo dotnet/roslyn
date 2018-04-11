@@ -23,7 +23,7 @@ If a stack trace is displayed on .NET Framework older than 4.7.1 (e.g. by xUnit 
 1. [Visual Studio 2017 Version 15.6 Preview 4](https://www.visualstudio.com/vs/preview/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
     - Ensure Visual Studio is on Version "15.6 Preview 4" or greater
-1. [.NET Core SDK 2.2](https://www.microsoft.com/net/download/core) (if you don't see the 2.2 SDK binaries there yet, the current previews are: [Windows x64 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x64.exe), [Windows x86 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x86.exe))
+1. [.NET Core SDK 2.1.300](https://www.microsoft.com/net/download/core) (if you don't see the 2.2 SDK binaries there yet, the current previews are: [Windows x64 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.1.300-preview2-008324/dotnet-sdk-2.1.300-preview2-008324-win-x64.exe), [Windows x86 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.1.300-preview2-008324/dotnet-sdk-2.1.300-preview2-008324-win-x86.exe))
 1. [PowerShell 3.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on Windows 7. The download link is under the "upgrading existing Windows PowerShell" heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
@@ -76,7 +76,7 @@ will start a new Visual Studio instance using those VSIX which override our inst
 binaries.  This means trying out a change to the language, IDE or debugger is as
 simple as hitting F5.
 
-The startup project needs to be set to VisualStudioSetup.Next.  This should be
+The startup project needs to be set to VisualStudioSetup.  This should be
 the default but in same cases will need to be set explicitly.
 
 Here are what is deployed with each extension, by project that builds it. If
@@ -84,11 +84,6 @@ you're working on a particular area, you probably want to set the appropriate
 project as your startup project to ensure the right things are built and
 deployed.
 
-- **VisualStudioSetup.Next**: this project can be found inside the VisualStudio
-  folder from the Solution Explorer, and builds Roslyn.VisualStudio.Setup.vsix.
-  In theory, it contains code to light up features for the next version of VS
-  (Dev16), but currently hasn't been updated for that since Dev15/VS2017 shipped.
-  If you're working on fixing an IDE bug, this is the project you want to use.
 - **VisualStudioSetup**: this project can be found inside the VisualStudio folder
   from the Solution Explorer, and builds Roslyn.VisualStudio.Setup.vsix. It
   contains the core language services that provide C# and VB editing. It also
@@ -96,8 +91,8 @@ deployed.
   semantic analysis in Visual Studio. Although this is the copy of the compiler
   that's used to generate squiggles and other information, it's not the
   compiler used to actually produce your final .exe or .dll when you do a
-  build. If you're working on fixing an IDE bug, this is *NOT* the project you want
-  to use right now - use VisualStudioSetup.Next instead.
+  build. If you're working on fixing an IDE bug, this is the project you want
+  to use.
 - **CompilerExtension**: this project can be found inside the Compilers folder
   from the Solution Explorer, and builds Roslyn.Compilers.Extension.vsix.
   This deploys a copy of the command line compilers that are used to do actual

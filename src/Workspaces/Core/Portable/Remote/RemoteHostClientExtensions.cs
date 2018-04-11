@@ -225,6 +225,14 @@ namespace Microsoft.CodeAnalysis.Remote
             this RemoteHostClient client, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken)
             => TryRunRemoteAsync<T>(client, WellKnownServiceHubServices.CodeAnalysisService, solution, targetName, arguments, cancellationToken);
 
+        public static Task<bool> TryRunCodeAnalysisRemoteAsync(
+            this RemoteHostClient client, string targetName, object argument, CancellationToken cancellationToken)
+            => TryRunRemoteAsync(client, WellKnownServiceHubServices.CodeAnalysisService, targetName, new object[] { argument }, cancellationToken);
+
+        public static Task<bool> TryRunCodeAnalysisRemoteAsync(
+            this RemoteHostClient client, string targetName, object[] arguments, CancellationToken cancellationToken)
+            => TryRunRemoteAsync(client, WellKnownServiceHubServices.CodeAnalysisService, targetName, arguments, cancellationToken);
+
         /// <summary>
         /// Synchronize given solution as primary workspace solution in remote host
         /// </summary>

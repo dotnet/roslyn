@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -12,6 +13,7 @@ using DisposableFile = Microsoft.CodeAnalysis.Test.Utilities.DisposableFile;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
+    [UseExportProvider]
     public class AnalyzersTests
     {
         [WpfFact]

@@ -9,11 +9,8 @@ namespace Microsoft.CodeAnalysis.Remote
     internal interface IRemoteHostService
     {
         string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken);
-        Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken);
-        Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken);
 
-        void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken);
-        void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken);
+        void UpdateSolutionStorageLocation(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken);
 
         /// <summary>
         /// This is only for debugging
@@ -28,5 +25,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </remarks>
         void OnGlobalOperationStarted(string unused);
         void OnGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled);
+
+        /// <summary>
+        /// Synchronize data to OOP proactively without anyone asking for it to make most of operation
+        /// faster
+        /// </summary>
+        Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken);
+        Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken);
     }
 }

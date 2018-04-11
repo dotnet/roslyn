@@ -48,6 +48,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _pendingWork = new Dictionary<DocumentId, Data>();
 
                     Start();
+
+                    // Register a clean-up task to ensure pending work items are flushed from the queue if they will
+                    // never be processed.
+                    AsyncProcessorTask.ContinueWith(
+                        _ => ClearQueueWorker(_workGate, _pendingWork, data => data.AsyncToken),
+                        CancellationToken.None,
+                        TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
                 }
 
                 public override Task AsyncProcessorTask
@@ -282,6 +290,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
+                private static void ClearQueueWorker<TKey, TValue>(NonReentrantLock gate, Dictionary<TKey, TValue> map, Func<TValue, IDisposable> disposerSelector)
+                {
+                    using (gate.DisposableWait(CancellationToken.None))
+                    {
+                        foreach (var (_, data) in map)
+                        {
+                            disposerSelector?.Invoke(data)?.Dispose();
+                        }
+
+                        map.Clear();
+                    }
+                }
+
                 private static IEnumerable<ProjectId> GetProjectsToAnalyze(Solution solution, ProjectId projectId)
                 {
                     var graph = solution.GetProjectDependencyGraph();
@@ -339,6 +360,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _pendingWork = new Dictionary<ProjectId, Data>();
 
                         Start();
+
+                        // Register a clean-up task to ensure pending work items are flushed from the queue if they will
+                        // never be processed.
+                        AsyncProcessorTask.ContinueWith(
+                            _ => ClearQueueWorker(_workGate, _pendingWork, data => data.AsyncToken),
+                            CancellationToken.None,
+                            TaskContinuationOptions.ExecuteSynchronously,
+                            TaskScheduler.Default);
                     }
 
                     public void Enqueue(ProjectId projectId, bool needDependencyTracking = false)
