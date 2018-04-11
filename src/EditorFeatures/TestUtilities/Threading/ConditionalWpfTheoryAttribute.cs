@@ -4,9 +4,9 @@ using System;
 
 namespace Roslyn.Test.Utilities
 {
-    public class ConditionalWpfFactAttribute : WpfFactAttribute
+    public class ConditionalWpfTheoryAttribute : WpfTheoryAttribute
     {
-        public ConditionalWpfFactAttribute(Type skipCondition)
+        public ConditionalWpfTheoryAttribute(Type skipCondition)
         {
             var condition = Activator.CreateInstance(skipCondition) as ExecutionCondition;
             if (condition.ShouldSkip)
