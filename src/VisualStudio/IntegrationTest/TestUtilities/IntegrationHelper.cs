@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             foreach (var process in Process.GetProcessesByName(processName))
             {
-                KillProcess(processName);
+                KillProcess(process);
             }
         }
 
