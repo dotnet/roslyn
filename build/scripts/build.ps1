@@ -388,7 +388,6 @@ function Build-NuGetPackages() {
         New-Item -Path (Join-Path $emptyDir "_._") -Type File | Out-Null
         $extraArgs += " /p:EmptyDir:$emptyDir"
 
-
         Pack-All "PreRelease"
         if ($packAll) {
             Pack-All "Release"
