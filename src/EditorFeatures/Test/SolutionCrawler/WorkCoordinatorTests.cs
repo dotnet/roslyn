@@ -1087,12 +1087,11 @@ End Class";
 
         private class WorkCoordinatorWorkspace : TestWorkspace
         {
-            private static readonly IExportProviderFactory s_exportFactory = CreateExportProviderFactory();
             private readonly IAsynchronousOperationWaiter _workspaceWaiter;
             private readonly IAsynchronousOperationWaiter _solutionCrawlerWaiter;
 
             public WorkCoordinatorWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
-                : base(s_exportFactory.CreateExportProvider(), workspaceKind, disablePartialSolutions)
+                : base(EditorServicesUtil.ExportProvider, workspaceKind, disablePartialSolutions)
             {
                 _workspaceWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.Workspace);
                 _solutionCrawlerWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.SolutionCrawler);
@@ -1109,20 +1108,6 @@ End Class";
 
                 Assert.False(_workspaceWaiter.HasPendingWork);
                 Assert.False(_solutionCrawlerWaiter.HasPendingWork);
-            }
-
-            private static IExportProviderFactory CreateExportProviderFactory()
-            {
-                var assemblies = TestExportProvider
-                    .GetCSharpAndVisualBasicAssemblies()
-                    .Concat(new[] { typeof(EditorServicesUtil).Assembly });
-
-                return ExportProviderCache
-                    .GetOrCreateExportProviderFactory(
-                        ExportProviderCache
-                            .GetOrCreateAssemblyCatalog(
-                                assemblies, ExportProviderCache.CreateResolver())
-                            .WithPart(typeof(TestGlobalOperationService)));
             }
         }
 
