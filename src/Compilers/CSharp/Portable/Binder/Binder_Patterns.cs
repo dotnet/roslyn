@@ -173,10 +173,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If we are pattern-matching against an open type, we do not convert the constant to the type of the input.
             // This permits us to match a value of type `IComparable<T>` with a pattern of type `int`.
             bool inputContainsTypeParameter = inputType.ContainsTypeParameter();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (inputContainsTypeParameter)
             {
                 convertedExpression = expression;
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 if (expression.ConstantValue == ConstantValue.Null)
                 {
                     if (inputType.IsNonNullableValueType())
