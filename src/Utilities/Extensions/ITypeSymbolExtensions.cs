@@ -78,7 +78,7 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static bool DerivesFrom(this ITypeSymbol symbol, ITypeSymbol candidateBaseType, bool baseTypesOnly = false)
+        public static bool DerivesFrom(this ITypeSymbol symbol, ITypeSymbol candidateBaseType, bool baseTypesOnly = false, bool checkTypeParameterConstraints = true)
         {
             if (candidateBaseType == null || symbol == null)
             {
@@ -88,6 +88,18 @@ namespace Analyzer.Utilities.Extensions
             if (!baseTypesOnly && symbol.AllInterfaces.OfType<ITypeSymbol>().Contains(candidateBaseType))
             {
                 return true;
+            }
+
+            if (checkTypeParameterConstraints && symbol.TypeKind == TypeKind.TypeParameter)
+            {
+                var typeParameterSymbol = (ITypeParameterSymbol)symbol;
+                foreach (var constraintType in typeParameterSymbol.ConstraintTypes)
+                {
+                    if (constraintType.DerivesFrom(candidateBaseType, baseTypesOnly, checkTypeParameterConstraints))
+                    {
+                        return true;
+                    }
+                }
             }
 
             while (symbol != null)
@@ -102,6 +114,18 @@ namespace Analyzer.Utilities.Extensions
 
             return false;
         }
+
+        /// <summary>
+        /// Indicates if the given <paramref name="type"/> implements <paramref name="iDisposable"/>.
+        /// </summary>
+        public static bool ImplementsIDisposable(this ITypeSymbol type, INamedTypeSymbol iDisposable)
+            => iDisposable != null && type.AllInterfaces.Contains(iDisposable);
+
+        /// <summary>
+        /// Indicates if the given <paramref name="type"/> is a reference type that implements <paramref name="iDisposable"/> or is <see cref="IDisposable"/> type itself.
+        /// </summary>
+        public static bool IsDisposable(this ITypeSymbol type, INamedTypeSymbol iDisposable)
+            => type.IsReferenceType && (type == iDisposable || type.ImplementsIDisposable(iDisposable));
 
         public static IEnumerable<AttributeData> GetApplicableAttributes(this INamedTypeSymbol type)
         {
@@ -134,6 +158,18 @@ namespace Analyzer.Utilities.Extensions
 
             return false;
         }
+
+        public static bool HasValueCopySemantics(this ITypeSymbol typeSymbol)
+            => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
+
+        public static bool IsNonNullableValueType(this ITypeSymbol typeSymbol)
+            => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T;
+
+        public static bool IsNullableValueType(this ITypeSymbol typeSymbol)
+            => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+
+        public static bool IsReferenceTypeOrNullableValueType(this ITypeSymbol typeSymbol)
+            => typeSymbol != null && (typeSymbol.IsReferenceType || typeSymbol.IsNullableValueType());
 
         public static Accessibility DetermineMinimalAccessibility(this ITypeSymbol typeSymbol)
         {

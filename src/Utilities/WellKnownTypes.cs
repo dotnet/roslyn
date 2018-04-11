@@ -16,6 +16,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Collections.Generic.ICollection`1");
         }
 
+        public static INamedTypeSymbol GenericIReadOnlyCollection(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyCollection`1");
+        }
+
         public static INamedTypeSymbol IEnumerable(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
@@ -121,9 +126,24 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Threading.Thread");
         }
 
+        public static INamedTypeSymbol Task(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
+        }
+
+        public static INamedTypeSymbol WebMethodAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.Services.WebMethodAttribute");
+        }
+
         public static INamedTypeSymbol WebUIControl(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Web.UI.Control");
+        }
+
+        public static INamedTypeSymbol WebUILiteralControl(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Web.UI.LiteralControl");
         }
 
         public static INamedTypeSymbol WinFormsUIControl(Compilation compilation)
@@ -351,6 +371,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
         }
 
+        public static INamedTypeSymbol LocalizableAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.ComponentModel.LocalizableAttribute");
+        }
+
         public static INamedTypeSymbol FieldOffsetAttribute(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.FieldOffsetAttribute");
@@ -370,5 +395,117 @@ namespace Analyzer.Utilities
         {
             return compilation.GetTypeByMetadataName("System.Data.IDataAdapter");
         }
+
+        #region Test Framework Types
+        public static INamedTypeSymbol TestCleanupAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.TestCleanupAttribute");
+        }
+
+        public static INamedTypeSymbol TestInitializeAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.TestInitializeAttribute");
+        }
+
+        public static INamedTypeSymbol TestMethodAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute");
+        }
+
+        public static INamedTypeSymbol ExpectedException(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.ExpectedExceptionAttribute");
+        }
+
+        public static INamedTypeSymbol UnitTestingAssert(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.Assert");
+        }
+
+        public static INamedTypeSymbol UnitTestingCollectionAssert(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.CollectionAssert");
+        }
+
+        public static INamedTypeSymbol UnitTestingCollectionStringAssert(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.StringAssert");
+        }
+
+        public static INamedTypeSymbol XunitAssert(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Xunit.Assert");
+        }
+
+        public static INamedTypeSymbol XunitFact(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Xunit.FactAttribute");
+        }
+
+        public static INamedTypeSymbol XunitTheory(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Xunit.TheoryAttribute");
+        }
+
+        public static INamedTypeSymbol NunitAssert(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.Assert");
+        }
+
+        public static INamedTypeSymbol NunitOneTimeSetUp(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.OneTimeSetUpAttribute");
+        }
+
+        public static INamedTypeSymbol NunitOneTimeTearDown(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.OneTimeTearDownAttribute");
+        }
+
+        public static INamedTypeSymbol NunitSetUp(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.SetUpAttribute");
+        }
+
+        public static INamedTypeSymbol NunitSetUpFixture(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.SetUpFixtureAttribute");
+        }
+
+        public static INamedTypeSymbol NunitTearDown(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.TearDownAttribute");
+        }
+
+        public static INamedTypeSymbol NunitTest(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.TestAttribute");
+        }
+
+        public static INamedTypeSymbol NunitTestCase(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.TestCaseAttribute");
+        }
+
+        public static INamedTypeSymbol NunitTestCaseSource(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.TestCaseSourceAttribute");
+        }
+
+        public static INamedTypeSymbol NunitTheory(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("NUnit.Framework.TheoryAttribute");
+        }
+
+        public static INamedTypeSymbol SystemDiagnosticContractsContract(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Diagnostics.Contracts.Contract");
+        }
+
+        public static INamedTypeSymbol XmlWriter(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("System.Xml.XmlWriter");
+        }
+        #endregion
     }
 }

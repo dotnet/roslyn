@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -65,6 +66,12 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsIndexer(this ISymbol symbol)
         {
             return (symbol as IPropertySymbol)?.IsIndexer == true;
+        }
+
+        public static bool IsPropertyWithBackingField(this ISymbol symbol)
+        {
+            return symbol is IPropertySymbol propertySymbol &&
+                propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && f.AssociatedSymbol == symbol);
         }
 
         public static bool IsUserDefinedOperator(this ISymbol symbol)
@@ -373,6 +380,51 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Checks if a given symbol implements an interface member or overrides an implementation of an interface member.
+        /// </summary>
+        public static bool IsOverrideOrImplementationOfInterfaceMember(this ISymbol symbol, ISymbol interfaceMember)
+        {
+            Debug.Assert(symbol != null);
+            if (interfaceMember == null)
+            {
+                return false;
+            }
+
+            if (symbol.IsImplementationOfInterfaceMember(interfaceMember))
+            {
+                return true;
+            }
+
+            return symbol.IsOverride &&
+                symbol.GetOverriddenMember().IsOverrideOrImplementationOfInterfaceMember(interfaceMember);
+        }
+
+        /// <summary>
+        /// Gets the symbol overridden by the given <paramref name="symbol"/>.
+        /// </summary>
+        /// <remarks>Requires that <see cref="ISymbol.IsOverride"/> is true for the given <paramref name="symbol"/>.</remarks>
+        public static ISymbol GetOverriddenMember(this ISymbol symbol)
+        {
+            Debug.Assert(symbol != null);
+            Debug.Assert(symbol.IsOverride);
+
+            switch(symbol)
+            {
+                case IMethodSymbol methodSymbol:
+                    return methodSymbol.OverriddenMethod;
+
+                case IPropertySymbol propertySymbol:
+                    return propertySymbol.OverriddenProperty;
+
+                case IEventSymbol eventSymbol:
+                    return eventSymbol.OverriddenEvent;
+
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
         /// Checks if a given symbol implements an interface member explicitly
         /// </summary>
         public static bool IsImplementationOfAnyExplicitInterfaceMember(this ISymbol symbol)
@@ -393,6 +445,56 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return false;
+        }
+
+        public static ITypeSymbol GetMemerOrLocalOrParameterType(this ISymbol symbol)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Event:
+                    return ((IEventSymbol)symbol).Type;
+
+                case SymbolKind.Field:
+                    return ((IFieldSymbol)symbol).Type;
+
+                case SymbolKind.Method:
+                    return ((IMethodSymbol)symbol).ReturnType;
+
+                case SymbolKind.Property:
+                    return ((IPropertySymbol)symbol).Type;
+
+                case SymbolKind.Local:
+                    return ((ILocalSymbol)symbol).Type;
+
+                case SymbolKind.Parameter:
+                    return ((IParameterSymbol)symbol).Type;
+
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the specified symbol has the specified
+        /// attribute.
+        /// </summary>
+        /// <param name="symbol">
+        /// The symbol being examined.
+        /// </param>
+        /// <param name="attribute">
+        /// The attribute in question.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if <paramref name="symbol"/> has an attribute of type
+        /// <paramref name="attribute"/>; otherwise <c>false</c>.
+        /// </returns>
+        /// <remarks>
+        /// If <paramref name="symbol"/> is a type, this method does not find attributes
+        /// on its base types.
+        /// </remarks>
+        public static bool HasAttribute(this ISymbol symbol, INamedTypeSymbol attribute)
+        {
+            return symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute));
         }
     }
 }

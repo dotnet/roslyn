@@ -112,7 +112,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool OverridesEquals(this INamedTypeSymbol symbol)
         {
             // Does the symbol override Object.Equals?
-            return symbol.GetMembers(WellKnownMemberNames.ObjectEquals).OfType<IMethodSymbol>().Any(m => m.IsEqualsOverride());
+            return symbol.GetMembers(WellKnownMemberNames.ObjectEquals).OfType<IMethodSymbol>().Any(m => m.IsObjectEqualsOverride());
         }
 
         public static bool OverridesGetHashCode(this INamedTypeSymbol symbol)
@@ -127,29 +127,6 @@ namespace Analyzer.Utilities.Extensions
                 .Where(m => m.Kind == SymbolKind.Method)
                 .Cast<IMethodSymbol>()
                 .Any(m => m.IsFinalizer());
-        }
-
-        /// <summary>
-        /// Returns a value indicating whether the specified symbol has the specified
-        /// attribute.
-        /// </summary>
-        /// <param name="symbol">
-        /// The symbol being examined.
-        /// </param>
-        /// <param name="attribute">
-        /// The attribute in question.
-        /// </param>
-        /// <returns>
-        /// <c>true</c> if <paramref name="symbol"/> has an attribute of type
-        /// <paramref name="attribute"/>; otherwise <c>false</c>.
-        /// </returns>
-        /// <remarks>
-        /// If <paramref name="symbol"/> is a type, this method does not find attributes
-        /// on its base types.
-        /// </remarks>
-        public static bool HasAttribute(this INamedTypeSymbol symbol, INamedTypeSymbol attribute)
-        {
-            return symbol.GetAttributes().Any(attr => attr.AttributeClass.Equals(attribute));
         }
 
         /// <summary>

@@ -24,10 +24,7 @@ namespace Test.Utilities
         public int Line { get; private set; }
         public int Column { get; private set; }
 
-        // TODO: Remove the below suppression once https://github.com/dotnet/roslyn-analyzers/issues/938 is fixed.
-#pragma warning disable CA1720 // Identifier contains type name
         public override bool Equals(object obj)
-#pragma warning restore CA1720 // Identifier contains type name
         {
             return this.Equals((DiagnosticResultLocation)obj);
         }
@@ -59,7 +56,9 @@ namespace Test.Utilities
     {
         private DiagnosticResultLocation[] _locations;
 
+#pragma warning disable CA1819 // Properties should not return arrays
         public DiagnosticResultLocation[] Locations
+#pragma warning restore CA1819 // Properties should not return arrays
         {
             get
             {
@@ -111,10 +110,7 @@ namespace Test.Utilities
             return $"{System.IO.Path.GetFileName(Path)}({Line},{Column}): {GetSeverityString(Severity)} {Id}: {Message}";
         }
 
-        // TODO: Remove the below suppression once https://github.com/dotnet/roslyn-analyzers/issues/938 is fixed.
-#pragma warning disable CA1720 // Identifier contains type name
         public override bool Equals(object obj)
-#pragma warning restore CA1720 // Identifier contains type name
         {
             return this.Equals((DiagnosticResult)obj);
         }

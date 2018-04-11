@@ -95,7 +95,7 @@ namespace Test.Utilities
             VerifyDocuments(solution, documents, newSources);
         }
 
-        protected void VerifyAdditionalFileFix(
+        protected static void VerifyAdditionalFileFix(
             string language, 
             DiagnosticAnalyzer analyzerOpt, 
             CodeFixProvider codeFixProvider, 
@@ -123,7 +123,7 @@ namespace Test.Utilities
             var additionalFileText = newAdditionalFileToVerify.GetText().ToString();
 
             Solution newSolution;
-            var runner = new CodeFixRunner(analyzerOpt, codeFixProvider, DefaultTestValidationMode);
+            var runner = new CodeFixRunner(analyzerOpt, codeFixProvider, validationMode);
             if (onlyFixFirstFixableDiagnostic || codeFixIndex.HasValue)
             {
                 newSolution = runner.ApplySingleFix(document.Project, additionalFiles, codeFixIndex.HasValue ? codeFixIndex.Value : 0, fixableDiagnosticIndex: 0);

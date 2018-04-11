@@ -242,7 +242,7 @@ namespace Roslyn.Diagnostics.Analyzers
             return shippedText != null && unshippedText != null;
         }
 
-        private bool ValidateApiFiles(ApiData shippedData, ApiData unshippedData, out List<Diagnostic> errors)
+        private static bool ValidateApiFiles(ApiData shippedData, ApiData unshippedData, out List<Diagnostic> errors)
         {
             errors = new List<Diagnostic>();
             if (shippedData.RemovedApiList.Length > 0)

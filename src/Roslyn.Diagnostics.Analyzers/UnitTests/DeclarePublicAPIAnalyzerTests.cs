@@ -61,19 +61,19 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         private void VerifyBasic(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
         {
             var additionalFiles = GetAdditionalTextFiles(shippedApiText, unshippedApiText);
-            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, expected: expected);
+            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, parseOptions: null, expected: expected);
         }
 
         private void VerifyCSharp(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
         {
             var additionalFiles = GetAdditionalTextFiles(shippedApiText, unshippedApiText);
-            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, expected: expected);
+            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, parseOptions: null, expected: expected);
         }
 
         private void VerifyCSharp(string source, string shippedApiText, string unshippedApiText, string shippedApiFilePath, string unshippedApiFilePath, params DiagnosticResult[] expected)
         {
             var additionalFiles = GetAdditionalTextFiles(shippedApiText, unshippedApiText, shippedApiFilePath, unshippedApiFilePath);
-            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, expected: expected);
+            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), additionalFiles, compilationOptions: null, parseOptions: null, expected: expected);
         }
 
         private void VerifyCSharpAdditionalFileFix(string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText, bool onlyFixFirstFixableDiagnostic = false)
@@ -532,9 +532,8 @@ C.Method() -> void
                 GetAdditionalFileResultAt(7, 1, shippedFilePath, DeclarePublicAPIAnalyzer.RemoveDeletedApiRule, "C.Method() -> void"));
         }
 
-
         [Fact]
-        public void TypeForwardsAreProcessed()
+        public void TypeForwardsAreProcessed1()
         {
             var source = @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparison))]
@@ -548,6 +547,34 @@ System.StringComparison.InvariantCulture = 2 -> System.StringComparison (forward
 System.StringComparison.InvariantCultureIgnoreCase = 3 -> System.StringComparison (forwarded, contained in mscorlib)
 System.StringComparison.Ordinal = 4 -> System.StringComparison (forwarded, contained in mscorlib)
 System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwarded, contained in mscorlib)
+";
+            string unshippedText = $@"";
+
+            VerifyCSharp(source, shippedText, unshippedText);
+        }
+
+        [Fact]
+        public void TypeForwardsAreProcessed2()
+        {
+            var source = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparer))]
+";
+            string shippedText = $@"
+System.StringComparer (forwarded, contained in mscorlib)
+static System.StringComparer.InvariantCulture.get -> System.StringComparer (forwarded, contained in mscorlib)
+static System.StringComparer.InvariantCultureIgnoreCase.get -> System.StringComparer (forwarded, contained in mscorlib)
+static System.StringComparer.CurrentCulture.get -> System.StringComparer (forwarded, contained in mscorlib)
+static System.StringComparer.CurrentCultureIgnoreCase.get -> System.StringComparer (forwarded, contained in mscorlib)
+static System.StringComparer.Ordinal.get -> System.StringComparer (forwarded, contained in mscorlib)
+static System.StringComparer.OrdinalIgnoreCase.get -> System.StringComparer (forwarded, contained in mscorlib)
+static System.StringComparer.Create(System.Globalization.CultureInfo culture, bool ignoreCase) -> System.StringComparer (forwarded, contained in mscorlib)
+System.StringComparer.Compare(object x, object y) -> int (forwarded, contained in mscorlib)
+System.StringComparer.Equals(object x, object y) -> bool (forwarded, contained in mscorlib)
+System.StringComparer.GetHashCode(object obj) -> int (forwarded, contained in mscorlib)
+abstract System.StringComparer.Compare(string x, string y) -> int (forwarded, contained in mscorlib)
+abstract System.StringComparer.Equals(string x, string y) -> bool (forwarded, contained in mscorlib)
+abstract System.StringComparer.GetHashCode(string obj) -> int (forwarded, contained in mscorlib)
+System.StringComparer.StringComparer() -> void (forwarded, contained in mscorlib)
 ";
             string unshippedText = $@"";
 

@@ -1,25 +1,58 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.Extensions
 {
     internal static class IMethodSymbolExtensions
     {
         /// <summary>
-        /// Checks if the given method overrides Object.Equals.
+        /// Checks if the given method overrides <see cref="object.Equals(object)"/>.
         /// </summary>
-        public static bool IsEqualsOverride(this IMethodSymbol method)
+        public static bool IsObjectEqualsOverride(this IMethodSymbol method)
         {
             return method != null &&
-                   method.IsOverride &&
-                   method.Name == WellKnownMemberNames.ObjectEquals &&
-                   method.ReturnType.SpecialType == SpecialType.System_Boolean &&
-                   method.Parameters.Length == 1 &&
-                   method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-                   IsObjectMethodOverride(method);
+                method.IsOverride &&
+                method.Name == WellKnownMemberNames.ObjectEquals &&
+                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                method.Parameters.Length == 1 &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+                IsObjectMethodOverride(method);
+        }
+
+        /// <summary>
+        /// Checks if the given method is <see cref="object.Equals(object)"/>.
+        /// </summary>
+        public static bool IsObjectEquals(this IMethodSymbol method)
+        {
+            return method != null &&
+                method.ContainingType.SpecialType == SpecialType.System_Object &&
+                method.IsVirtual &&
+                method.Name == WellKnownMemberNames.ObjectEquals &&
+                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                method.Parameters.Length == 1 &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
+        }
+
+        /// <summary>
+        /// Checks if the given <paramref name="method"/> is <see cref="object.Equals(object, object)"/> or <see cref="object.ReferenceEquals(object, object)"/>.
+        /// </summary>
+        public static bool IsStaticObjectEqualsOrReferenceEquals(this IMethodSymbol method)
+        {
+            return method != null &&
+                method.IsStatic &&
+                method.ContainingType.SpecialType == SpecialType.System_Object &&
+                method.Parameters.Length == 2 &&
+                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+                method.Parameters[1].Type.SpecialType == SpecialType.System_Object &&
+                (method.Name == WellKnownMemberNames.ObjectEquals || method.Name == "ReferenceEquals");
         }
 
         /// <summary>
@@ -120,18 +153,100 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsDisposeImplementation(this IMethodSymbol method, Compilation compilation)
         {
-            if (method.ReturnType.SpecialType == SpecialType.System_Void && method.Parameters.Length == 0)
+            INamedTypeSymbol iDisposable = WellKnownTypes.IDisposable(compilation);
+            return method.IsDisposeImplementation(iDisposable);
+        }
+
+        /// <summary>
+        /// Checks if the given method implements <see cref="IDisposable.Dispose"/> or overrides an implementation of <see cref="IDisposable.Dispose"/>.
+        /// </summary>
+        public static bool IsDisposeImplementation(this IMethodSymbol method, INamedTypeSymbol iDisposable)
+        {
+            if (method == null)
             {
-                // Identify the implementor of IDisposable.Dispose in the given method's containing type and check
-                // if it is the given method.
-                INamedTypeSymbol iDisposable = WellKnownTypes.IDisposable(compilation);
-                if (method.IsImplementationOfInterfaceMethod(null, iDisposable, "Dispose"))
-                {
-                    return true;
-                }
+                return false;
+            }
+
+            if (method.IsOverride)
+            {
+                return method.OverriddenMethod.IsDisposeImplementation(iDisposable);
+            }
+
+            // Identify the implementor of IDisposable.Dispose in the given method's containing type and check
+            // if it is the given method.
+            return method.ReturnsVoid &&
+                method.Parameters.Length == 0 &&
+                method.IsImplementationOfInterfaceMethod(null, iDisposable, "Dispose");
+        }
+
+        /// <summary>
+        /// Checks if the given method has the signature "void Dispose()".
+        /// </summary>
+        private static bool HasDisposeMethodSignature(this IMethodSymbol method)
+        {
+            return method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnsVoid && method.Parameters.IsEmpty;
+        }
+
+        /// <summary>
+        /// Checks if the given method has the signature "void Dispose(bool)".
+        /// </summary>
+        public static bool HasDisposeBoolMethodSignature(this IMethodSymbol method)
+        {
+            if (method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnsVoid && method.Parameters.Length == 1)
+            {
+                IParameterSymbol parameter = method.Parameters[0];
+                return parameter.Type != null &&
+                    parameter.Type.SpecialType == SpecialType.System_Boolean &&
+                    parameter.RefKind == RefKind.None;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Checks if the given method has the signature "void Close()".
+        /// </summary>
+        private static bool HasDisposeCloseMethodSignature(this IMethodSymbol method)
+        {
+            return method.Name == "Close" && method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnsVoid && method.Parameters.IsEmpty;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="DisposeMethodKind"/> for the given method.
+        /// </summary>
+        public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, Compilation compilation)
+        {
+            INamedTypeSymbol iDisposable = WellKnownTypes.IDisposable(compilation);
+            return method.GetDisposeMethodKind(iDisposable);
+        }
+
+        /// <summary>
+        /// Gets the <see cref="DisposeMethodKind"/> for the given method.
+        /// </summary>
+        public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, INamedTypeSymbol iDisposable)
+        {
+            if (method.ContainingType.IsDisposable(iDisposable))
+            {
+                if (IsDisposeImplementation(method, iDisposable) ||
+                    (method.ContainingType == iDisposable &&
+                     method.HasDisposeMethodSignature()))
+                {
+                    return DisposeMethodKind.Dispose;
+                }
+                else if (method.HasDisposeBoolMethodSignature())
+                {
+                    return DisposeMethodKind.DisposeBool;
+                }
+                else if (method.HasDisposeCloseMethodSignature())
+                {
+                    return DisposeMethodKind.Close;
+                }
+            }
+
+            return DisposeMethodKind.None;
         }
 
         /// <summary>
@@ -190,6 +305,82 @@ namespace Analyzer.Utilities.Extensions
                     yield return member;
                 }
             }
+        }
+
+        /// <summary>
+        /// Determine if the specific method is an Add method that adds to a collection.
+        /// </summary>
+        /// <param name="method">The method to test.</param>
+        /// <returns>'true' if <paramref name="method"/> is believed to be the add method of a collection.</returns>
+        /// <remarks>
+        /// The current heuristic is that we consider a method to be an add method if its name begins with "Add" and its
+        /// enclosing type derives from ICollection or any instantiation of ICollection&lt;T&gt;.
+        /// </remarks>
+        public static bool IsCollectionAddMethod(this IMethodSymbol method, ImmutableHashSet<INamedTypeSymbol> iCollectionTypes)
+            => !iCollectionTypes.IsEmpty &&
+               method.Name.StartsWith("Add", StringComparison.Ordinal) &&
+               method.ContainingType.AllInterfaces.Any(i => iCollectionTypes.Contains(i.OriginalDefinition));
+
+        /// <summary>
+        /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
+        /// </summary>
+        public static IBlockOperation GetTopmostOperationBlock(this IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (method.ContainingAssembly != compilation.Assembly)
+            {
+                return null;
+            }
+
+            foreach (var decl in method.DeclaringSyntaxReferences)
+            {
+                var syntax = decl.GetSyntax(cancellationToken);
+
+                // VB Workaround: declaration.GetSyntax returns StatementSyntax nodes instead of BlockSyntax nodes
+                //                GetOperation returns null for StatementSyntax, and the method's operation block for BlockSyntax.
+                if (compilation.Language == LanguageNames.VisualBasic)
+                {
+                    syntax = syntax.Parent;
+                }
+
+                var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+                foreach (var descendant in syntax.DescendantNodesAndSelf())
+                {
+                    var operation = semanticModel.GetOperation(descendant, cancellationToken);
+                    if (operation is IBlockOperation blockOperation)
+                    {
+                        return blockOperation;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public static bool IsLambdaOrLocalFunctionOrDelegate(this IMethodSymbol method)
+        {
+            switch (method.MethodKind)
+            {
+                case MethodKind.LambdaMethod:
+                case MethodKind.LocalFunction:
+                case MethodKind.DelegateInvoke:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+      
+        public static int GetParameterIndex(this IMethodSymbol methodSymbol, IParameterSymbol parameterSymbol)
+        {
+            for (var i = 0; i < methodSymbol.Parameters.Length; i++)
+            {
+                if (parameterSymbol == methodSymbol.Parameters[i])
+                {
+                    return i;
+                }
+            }
+
+            throw new ArgumentException("Invalid paramater", nameof(parameterSymbol));
         }
     }
 }

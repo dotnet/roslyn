@@ -317,4 +317,16 @@
   <data name="AnalyzerCategoryAndIdRangeFileInvalidDescription" xml:space="preserve">
     <value>Invalid entry in analyzer category and diagnostic ID range specification file.</value>
   </data>
+  <data name="DoNotUseTypesFromAssemblyRuleDescription" xml:space="preserve">
+    <value>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</value>
+  </data>
+  <data name="DoNotUseTypesFromAssemblyRuleDirectMessage" xml:space="preserve">
+    <value>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</value>
+  </data>
+  <data name="DoNotUseTypesFromAssemblyRuleIndirectMessage" xml:space="preserve">
+    <value>Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</value>
+  </data>
+  <data name="DoNotUseTypesFromAssemblyRuleTitle" xml:space="preserve">
+    <value>Do not use types from Workspaces assembly in an analyzer</value>
+  </data>
 </root>

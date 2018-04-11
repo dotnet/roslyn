@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 }
             }
 
-            private bool IsViolatingCodeActionCreateInvocation(IInvocationOperation invocation)
+            private static bool IsViolatingCodeActionCreateInvocation(IInvocationOperation invocation)
             {
                 IParameterSymbol param = invocation.TargetMethod.Parameters.SingleOrDefault(p => p.Name == EquivalenceKeyParameterName);
                 if (param == null)

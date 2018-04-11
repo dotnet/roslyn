@@ -57,7 +57,7 @@ namespace Roslyn.Diagnostics.Analyzers
             return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(DeclarePublicAPIAnalyzer.UnshippedFileName, StringComparison.Ordinal));
         }
 
-        private async Task<Solution> GetFix(TextDocument publicSurfaceAreaDocument, string newSymbolName, ImmutableHashSet<string> siblingSymbolNamesToRemove, CancellationToken cancellationToken)
+        private static async Task<Solution> GetFix(TextDocument publicSurfaceAreaDocument, string newSymbolName, ImmutableHashSet<string> siblingSymbolNamesToRemove, CancellationToken cancellationToken)
         {
             SourceText sourceText = await publicSurfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             SourceText newSourceText = AddSymbolNamesToSourceText(sourceText, new[] { newSymbolName });
