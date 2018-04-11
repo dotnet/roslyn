@@ -349,13 +349,7 @@ function Build-InsertionItems() {
 }
 
 function Build-NuGetPackages() {
-    $buildArgs = ""
-    if (-not $official) {
-        $buildArgs = '/p:SkipReleaseVersion=true /p:SkipPreReleaseVersion=true'
-    }
-
-    Ensure-NuGet | Out-Null
-    Run-MSBuild "src\NuGet\NuGet.proj" $buildArgs
+    Exec-Block { & "..\..\src\NuGet\build-nugets.ps1" -release:$release -packPerBuildPreRelease:$official -packPreRelease:$true -packRelease:$official }
 }
 
 function Build-DeployToSymStore() {
