@@ -8825,6 +8825,31 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="new">The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IsPatternImpossible">
+        <source>An expression of type '{0}' can never match the provided pattern.</source>
+        <target state="new">An expression of type '{0}' can never match the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionNeverMatchesPattern">
+        <source>The given expression never matches the provided pattern.</source>
+        <target state="new">The given expression never matches the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionNeverMatchesPattern_Title">
+        <source>The given expression never matches the provided pattern.</source>
+        <target state="new">The given expression never matches the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
+        <source>The given expression always matches the provided constant.</source>
+        <target state="new">The given expression always matches the provided constant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant_Title">
+        <source>The given expression always matches the provided constant.</source>
+        <target state="new">The given expression always matches the provided constant.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="new">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>

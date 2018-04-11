@@ -13,8 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             var isPatternRewriter = new IsPatternExpressionLocalRewriter(node.Syntax, this);
-            BoundExpression loweredExpression = VisitExpression(node.Expression);
-            BoundExpression result = isPatternRewriter.LowerIsPattern(loweredExpression, node.Pattern, this._compilation, this._diagnostics);
+            BoundExpression result = isPatternRewriter.LowerIsPattern(node, node.Pattern, this._compilation, this._diagnostics);
             isPatternRewriter.Free();
             return result;
         }
@@ -85,11 +84,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public BoundExpression LowerIsPattern(BoundExpression loweredInput, BoundPattern pattern, CSharpCompilation compilation, DiagnosticBag diagnostics)
+            public BoundExpression LowerIsPattern(
+                BoundIsPatternExpression isPatternExpression, BoundPattern pattern, CSharpCompilation compilation, DiagnosticBag diagnostics)
             {
-                LabelSymbol failureLabel = new GeneratedLabelSymbol("failure");
-                BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(compilation, pattern.Syntax, loweredInput, pattern, failureLabel, diagnostics, out LabelSymbol successLabel);
-                decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(loweredInput);
+                BoundDecisionDag decisionDag = isPatternExpression.DecisionDag;
+                LabelSymbol whenTrueLabel = isPatternExpression.WhenTrueLabel;
+                LabelSymbol whenFalseLabel = isPatternExpression.WhenFalseLabel;
+                BoundExpression loweredInput = _localRewriter.VisitExpression(isPatternExpression.Expression);
 
                 // The optimization of sharing pattern-matching temps with user variables can always apply to
                 // an is-pattern expression because there is no when clause that could possibly intervene during
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundTestDecisionDagNode testNode:
                             {
-                                Debug.Assert(testNode.WhenFalse is BoundLeafDecisionDagNode x && x.Label == failureLabel);
+                                Debug.Assert(testNode.WhenFalse is BoundLeafDecisionDagNode x && x.Label == whenFalseLabel);
                                 if (testNode.WhenTrue is BoundEvaluationDecisionDagNode e &&
                                     TryLowerTypeTestAndCast(testNode.Test, e.Evaluation, out BoundExpression sideEffect, out BoundExpression testExpression))
                                 {
@@ -134,14 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundLeafDecisionDagNode leafNode:
                         {
-                            if (leafNode.Label == failureLabel)
+                            if (leafNode.Label == whenFalseLabel)
                             {
                                 // It is not clear that this can occur given the dag "optimizations" we performed earlier.
                                 AddConjunct(_factory.Literal(false));
                             }
                             else
                             {
-                                Debug.Assert(leafNode.Label == successLabel);
+                                Debug.Assert(leafNode.Label == whenTrueLabel);
                             }
                         }
 
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundWhenDecisionDagNode whenNode:
                         {
                             Debug.Assert(whenNode.WhenExpression == null);
-                            Debug.Assert(whenNode.WhenTrue is BoundLeafDecisionDagNode d && d.Label == successLabel);
+                            Debug.Assert(whenNode.WhenTrue is BoundLeafDecisionDagNode d && d.Label == whenTrueLabel);
                             foreach (BoundPatternBinding binding in whenNode.Bindings)
                             {
                                 BoundExpression left = _localRewriter.VisitExpression(binding.VariableAccess);

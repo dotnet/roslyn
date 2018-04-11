@@ -1512,9 +1512,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #region Visitors
 
-        public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
+        public override void VisitPattern(BoundPattern pattern)
         {
-            base.VisitPattern(expression, pattern);
+            base.VisitPattern(pattern);
             var whenFail = StateWhenFalse;
             SetState(StateWhenTrue);
             AssignPatternVariables(pattern);
@@ -1560,7 +1560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
                 default:
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }
         }
 

@@ -1397,5 +1397,85 @@ Closed Open -> Opened
   IL_0031:  ret
 }");
         }
+
+        [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
+        public void IrrefutablePatternInIs01()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        if (Get() is int index) { }
+        Console.WriteLine(index);
+    }
+
+    public static int Get()
+    {
+        Console.WriteLine(""eval"");
+        return 1;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"eval
+1";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
+        public void IrrefutablePatternInIs02()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        if (Get() is Assignment(int left, var right)) { }
+        Console.WriteLine(left);
+        Console.WriteLine(right);
+    }
+
+    public static Assignment Get()
+    {
+        Console.WriteLine(""eval"");
+        return new Assignment(1, 2);
+    }
+}
+public struct Assignment
+{
+    public int Left, Right;
+    public Assignment(int left, int right) => (Left, Right) = (left, right);
+    public void Deconstruct(out int left, out int right) => (left, right) = (Left, Right);
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"eval
+1
+2";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void MissingNullCheck01()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        string s = null;
+        System.Console.WriteLine(s is string { Length: 3 });
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"False";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }

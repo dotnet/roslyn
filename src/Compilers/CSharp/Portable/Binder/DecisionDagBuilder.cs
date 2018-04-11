@@ -107,23 +107,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundExpression inputExpression,
             BoundPattern pattern,
-            LabelSymbol defaultLabel,
-            DiagnosticBag diagnostics,
-            out LabelSymbol successLabel)
+            LabelSymbol whenTrueLabel,
+            LabelSymbol whenFalseLabel,
+            DiagnosticBag diagnostics)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
-            return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, out successLabel);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, diagnostics);
+            return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel);
         }
 
         private BoundDecisionDag CreateDecisionDagForIsPattern(
             SyntaxNode syntax,
             BoundExpression inputExpression,
             BoundPattern pattern,
-            out LabelSymbol successLabel)
+            LabelSymbol whenTrueLabel)
         {
-            successLabel = new GeneratedLabelSymbol("success");
             var rootIdentifier = new BoundDagTemp(inputExpression.Syntax, inputExpression.Type, source: null, index: 0);
-            return MakeDecisionDag(syntax, ImmutableArray.Create(MakeTestsForPattern(index: 1, pattern.Syntax, rootIdentifier, pattern, whenClause: null, successLabel)));
+            return MakeDecisionDag(syntax, ImmutableArray.Create(MakeTestsForPattern(index: 1, pattern.Syntax, rootIdentifier, pattern, whenClause: null, whenTrueLabel)));
         }
 
         private BoundDecisionDag CreateDecisionDagForSwitchStatement(
@@ -402,9 +401,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundPatternBinding> bindings)
         {
             Debug.Assert(input.Type.IsErrorType() || input.Type == recursive.InputType);
-            if (recursive.DeclaredType != null && recursive.DeclaredType.Type != input.Type)
+            if (recursive.DeclaredType != null)
             {
                 input = MakeConvertToType(input, recursive.Syntax, recursive.DeclaredType.Type, tests);
+            }
+            else
+            {
+                MakeCheckNotNull(input, recursive.Syntax, tests);
             }
 
             if (!recursive.Deconstruction.IsDefault)
