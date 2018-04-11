@@ -775,38 +775,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsObjectCreationExpression(SyntaxNode node)
-        {
-            return node is ObjectCreationExpressionSyntax;
-        }
-
-        public bool IsIsPatternExpressionExpression(SyntaxNode node)
-            => node.IsParentKind(SyntaxKind.IsPatternExpression) &&
-               ((IsPatternExpressionSyntax)node.Parent).Expression == node;
-
-        public bool IsConstantPattern(SyntaxNode node)
-            => node.Kind() == SyntaxKind.ConstantPattern;
+            => node is ObjectCreationExpressionSyntax;
 
         public bool IsNameOfSubpatternElement(SyntaxNode node)
             => node.IsKind(SyntaxKind.IdentifierName) &&
                node.IsParentKind(SyntaxKind.NameColon) &&
                node.Parent.IsParentKind(SyntaxKind.SubpatternElement);
 
-        public bool IsSubpatternElement(SyntaxNode node)
-            => node.Kind() == SyntaxKind.SubpatternElement;
-
         public bool IsPropertySubpattern(SyntaxNode node)
             => node.Kind() == SyntaxKind.PropertySubpattern;
 
-        public bool IsPropertyPattern(SyntaxNode node)
-            => node.Kind() == SyntaxKind.PropertyPattern;
-
-        public SyntaxNode GetTypeOfPropertyPattern(SyntaxNode node)
-            => ((PropertyPatternSyntax)node).Type;
-
         public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node)
-        {
-            return IsObjectInitializerNamedAssignmentIdentifier(node, out var unused);
-        }
+            => IsObjectInitializerNamedAssignmentIdentifier(node, out var unused);
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(
             SyntaxNode node, out SyntaxNode initializedInstance)

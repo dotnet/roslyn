@@ -748,32 +748,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Public Function IsIsPatternExpressionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsIsPatternExpressionExpression
-            Return False
-        End Function
-
-        Public Function IsConstantPattern(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConstantPattern
-            Return False
-        End Function
-
         Public Function IsNameOfSubPatternElement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNameOfSubpatternElement
-            Return False
-        End Function
-
-        Public Function IsSubpatternElement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsSubpatternElement
             Return False
         End Function
 
         Public Function IsPropertySubpattern(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPropertySubpattern
             Return False
-        End Function
-
-        Public Function IsPropertyPattern(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsPropertyPattern
-            Return False
-        End Function
-
-        Public Function GetTypeOfPropertyPattern(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetTypeOfPropertyPattern
-            Throw New NotImplementedException()
         End Function
 
         Public Function IsElementAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsElementAccessExpression
