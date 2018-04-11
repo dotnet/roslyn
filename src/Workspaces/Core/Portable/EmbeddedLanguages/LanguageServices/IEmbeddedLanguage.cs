@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         IEmbeddedClassifier Classifier { get; }
 
         /// <summary>
+        /// A optional highlighter that can highlight spans for an embedded language string.
+        /// </summary>
+        IEmbeddedHighlighter Highlighter { get; }
+
+        /// <summary>
         /// An optional analyzer that produces diagnostics for an embedded language string.
         /// </summary>
         IEmbeddedDiagnosticAnalyzer DiagnosticAnalyzer { get; }
