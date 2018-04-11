@@ -237,7 +237,7 @@ namespace Analyzer.Utilities.Extensions
         {
             Debug.Assert(isInsideObjectInitializer ==
                 (operation.GetAncestor<IObjectOrCollectionInitializerOperation>(OperationKind.ObjectOrCollectionInitializer) != null ||
-                 operation.GetAncestor<IAnonymousObjectCreationOperation>(OperationKind.ObjectOrCollectionInitializer) != null));
+                 operation.GetAncestor<IAnonymousObjectCreationOperation>(OperationKind.AnonymousObjectCreation) != null));
 
             if (isInsideObjectInitializer)
             {

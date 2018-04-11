@@ -326,6 +326,11 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static IBlockOperation GetTopmostOperationBlock(this IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (method.ContainingAssembly != compilation.Assembly)
+            {
+                return null;
+            }
+
             foreach (var decl in method.DeclaringSyntaxReferences)
             {
                 var syntax = decl.GetSyntax(cancellationToken);
