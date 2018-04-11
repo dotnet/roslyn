@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Enumerator GetEnumerator()
         {
-            return new Enumerator(in this);
+            return new Enumerator(this);
         }
 
         IEnumerator<TNode> IEnumerable<TNode>.GetEnumerator()
