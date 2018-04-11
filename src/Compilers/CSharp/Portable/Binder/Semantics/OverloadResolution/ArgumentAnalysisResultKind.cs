@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NoCorrespondingParameter,
         FirstInvalid = NoCorrespondingParameter,
         NoCorrespondingNamedParameter,
+        DuplicateNamedArgument,
         RequiredParameterMissing,
         NameUsedForPositional,
         BadNonTrailingNamedArgument // if a named argument refers to a different position, all following arguments must be named

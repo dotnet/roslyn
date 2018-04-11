@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal virtual void SetRefEscape(uint value)
         {
-            throw ExceptionUtilities.Unreachable;
+            _refEscapeScope = value;
         }
 
         internal virtual void SetValEscape(uint value)

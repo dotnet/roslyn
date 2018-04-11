@@ -1043,5 +1043,12 @@ class C
     void M(C c = $$
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref int x = ref $$"));
+        }
     }
 }
