@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 
         /// We use the key to de-duplicate analyzer references if they are referenced from multiple places.
         /// </summary>
-        private readonly ImmutableDictionary<object, AnalyzerReference> _hostAnalyzerReferencesMap;
+        private readonly Lazy<ImmutableDictionary<object, AnalyzerReference>> _hostAnalyzerReferencesMap;
 
         /// <summary>
         /// Key is the language the <see cref="DiagnosticAnalyzer"/> supports and key for the second map is analyzer reference identity and
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _hostDiagnosticAnalyzerPackages = hostAnalyzerPackages;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
-            _hostAnalyzerReferencesMap = hostAnalyzerReferences.IsDefault ? ImmutableDictionary<object, AnalyzerReference>.Empty : CreateAnalyzerReferencesMap(hostAnalyzerReferences);
+            _hostAnalyzerReferencesMap = new Lazy<ImmutableDictionary<object, AnalyzerReference>>(() => hostAnalyzerReferences.IsDefault ? ImmutableDictionary<object, AnalyzerReference>.Empty : CreateAnalyzerReferencesMap(hostAnalyzerReferences));
             _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);
-            _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap), isThreadSafe: true);
+            _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap.Value), isThreadSafe: true);
 
             _compilerDiagnosticAnalyzerMap = ImmutableDictionary<string, DiagnosticAnalyzer>.Empty;
             _compilerDiagnosticAnalyzerDescriptorMap = ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>>.Empty;
@@ -120,10 +120,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (projectOpt == null)
             {
-                return _hostAnalyzerReferencesMap;
+                return _hostAnalyzerReferencesMap.Value;
             }
 
-            return _hostAnalyzerReferencesMap.AddRange(CreateProjectAnalyzerReferencesMap(projectOpt));
+            return _hostAnalyzerReferencesMap.Value.AddRange(CreateProjectAnalyzerReferencesMap(projectOpt));
         }
 
         /// <summary>
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var nameMap = CreateAnalyzerPathToPackageNameMap();
 
             var builder = ImmutableDictionary.CreateBuilder<object, ImmutableArray<DiagnosticAnalyzer>>();
-            foreach (var kv in _hostAnalyzerReferencesMap)
+            foreach (var kv in _hostAnalyzerReferencesMap.Value)
             {
                 var referenceIdentity = kv.Key;
                 var reference = kv.Value;
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            return !_hostAnalyzerReferencesMap.ContainsKey(reference.Id);
+            return !_hostAnalyzerReferencesMap.Value.ContainsKey(reference.Id);
         }
 
         private static ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> CreateDiagnosticAnalyzersPerReferenceMap(
