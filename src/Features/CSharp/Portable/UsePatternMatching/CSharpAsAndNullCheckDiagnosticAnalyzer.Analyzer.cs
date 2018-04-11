@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                                 //      if ((x = o as string) == null && SomeExpression)
                                 //      if ((x = o as string) != null || SomeExpression)
                                 //
-                                // Here, x would never be definitely assigned if pattern matching were used
+                                // Here, x would never be definitely assigned if pattern-matching were used.
                                 return false;
                             }
 
@@ -102,8 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                                     ? conditionalExpression.WhenFalse
                                     : conditionalExpression.WhenTrue))
                             {
-                                // In a conditional expression, the pattern variable may not
-                                // be definitely assigned in the opposite branch.
+                                // In a conditional expression, the pattern variable
+                                // would not be definitely assigned in the opposite branch.
                                 return false;
                             }
 
@@ -185,12 +185,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                             // does not garantee definite assignment. We should make sure that
                             // the pattern variable is not used outside of the expression boundaries.
                             return CheckExpression(expression);
+
                         case StatementSyntax statement:
                             // If we reached here, it means that the null-check is appeared in
                             // a statement. In that case, the variable would be actually in the
                             // scope in subsequent statements, but not definitely assigned.
                             // Therefore, we should ensure that there is no use before assignment.
                             return CheckStatement(statement);
+
                         default:
                             // If the current node was neither an expression nor a statement,
                             // it's probably a part of another statement like a local declaration
@@ -223,15 +225,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
                 if (!defAssignedWhenTrue && LocalFlowsIn(body))
                 {
-                    // If the local is access before assignment
+                    // If the local is accessed before assignment
                     // in the loop body, we should make sure that
                     // the variable is definitely assigned by then.
                     return false;
                 }
 
-                // Scope of the pattern variables for all loops
+                // The scope of the pattern variables for loops
                 // does not leak out of the loop statement.
-                return !IsAccessedOutOfScope(node);
+                return !IsAccessedOutOfScope(scope: node);
             }
 
             private bool CheckExpression(ExpressionSyntax exprsesion)
@@ -240,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 // declared inside a sub-expression, because it would not be
                 // definitely assigned after this point. It's possible to allow
                 // use after assignment but it's rather unlikely to happen.
-                return !IsAccessedOutOfScope(exprsesion);
+                return !IsAccessedOutOfScope(scope: exprsesion);
             }
 
             private bool CheckStatement(StatementSyntax statement)
@@ -252,13 +254,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 // of the new variable. Otherwise the scope is the statement itself.
                 if (statement.Parent.IsKind(SyntaxKind.Block, out BlockSyntax block))
                 {
-                    if (IsAccessedOutOfScope(block))
+                    if (IsAccessedOutOfScope(scope: block))
                     {
                         return false;
                     }
 
                     // Check if the local is accessed before assignment 
-                    // in the subsequent statements. If so, this is can't
+                    // in the subsequent statements. If so, this can't
                     // be converted to pattern-matching.
                     return !LocalFlowsIn(
                         firstStatement: statement.GetNextStatement(),
@@ -266,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 }
                 else
                 {
-                    return !IsAccessedOutOfScope(statement);
+                    return !IsAccessedOutOfScope(scope: statement);
                 }
             }
 
@@ -306,14 +308,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     }
                 }
 
-                // Either no reference ewre found or all
-                // references were inside the designated scope.
+                // Either no reference ewre found, or all
+                // references were inside the given scope.
                 return false;
             }
 
             private bool LocalFlowsIn(SyntaxNode statementOrExpression)
             {
-                if (statementOrExpression != null)
+                if (statementOrExpression == null)
                 {
                     return false;
                 }
@@ -323,8 +325,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             private bool LocalFlowsIn(StatementSyntax firstStatement, StatementSyntax lastStatement)
             {
-                if (firstStatement == null ||
-                    lastStatement == null)
+                if (firstStatement == null || lastStatement == null)
+                {
+                    return false;
+                }
+
+                if (firstStatement.SpanStart > lastStatement.SpanStart)
                 {
                     return false;
                 }

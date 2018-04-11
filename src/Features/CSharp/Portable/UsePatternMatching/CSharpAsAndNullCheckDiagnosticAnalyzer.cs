@@ -155,8 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // Looks good!
             var additionalLocations = ImmutableArray.Create(
-                localStatement.GetLocation(),
-                comparison.GetAncestor<StatementSyntax>().GetLocation(),
+                declarator.GetLocation(),
                 comparison.GetLocation(),
                 asExpression.GetLocation());
 
