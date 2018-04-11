@@ -4115,9 +4115,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode SwitchStatement(SyntaxNode expression, IEnumerable<SyntaxNode> caseClauses)
         {
-            return SyntaxFactory.SwitchStatement(
-                (ExpressionSyntax)expression,
-                caseClauses.Cast<SwitchSectionSyntax>().ToSyntaxList());
+            if (expression is TupleExpressionSyntax)
+            {
+                return SyntaxFactory.SwitchStatement(
+                    (ExpressionSyntax)expression,
+                    caseClauses.Cast<SwitchSectionSyntax>().ToSyntaxList());
+            }
+            else
+            {
+                return SyntaxFactory.SwitchStatement(
+                    SyntaxFactory.Token(SyntaxKind.SwitchKeyword),
+                    SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+                    (ExpressionSyntax)expression,
+                    SyntaxFactory.Token(SyntaxKind.CloseParenToken),
+                    SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
+                    caseClauses.Cast<SwitchSectionSyntax>().ToSyntaxList(),
+                    SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            }
         }
 
         public override SyntaxNode SwitchSection(IEnumerable<SyntaxNode> expressions, IEnumerable<SyntaxNode> statements)

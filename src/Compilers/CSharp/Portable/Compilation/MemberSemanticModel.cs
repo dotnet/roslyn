@@ -250,6 +250,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
+                else if (kind == SyntaxKind.SwitchExpression)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
                 else if (kind == SyntaxKind.SwitchExpressionArm)
                 {
                     binder = rootBinder.GetBinder(current);
@@ -297,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.SwitchStatement:
                     var switchStmt = (SwitchStatementSyntax)stmt;
-                    if (LookupPosition.IsBetweenTokens(position, switchStmt.OpenParenToken, switchStmt.OpenBraceToken))
+                    if (LookupPosition.IsBetweenTokens(position, switchStmt.SwitchKeyword, switchStmt.OpenBraceToken))
                     {
                         binder = binder.GetBinder(switchStmt.Expression);
                         Debug.Assert(binder != null);

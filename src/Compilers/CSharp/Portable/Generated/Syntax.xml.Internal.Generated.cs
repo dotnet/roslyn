@@ -14406,7 +14406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     /// <summary>Gets the identifier.</summary>
     public SyntaxToken Identifier { get { return this.identifier; } }
-    /// <summary>Gets a SyntaxToken that represents the colon succeeding the statement's label.</summary>
+    /// <summary>Gets a SyntaxToken that represents the colon following the statement's label.</summary>
     public SyntaxToken ColonToken { get { return this.colonToken; } }
     public StatementSyntax Statement { get { return this.statement; } }
 
@@ -17686,12 +17686,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.SlotCount = 7;
         this.AdjustFlagsAndWidth(switchKeyword);
         this.switchKeyword = switchKeyword;
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
+        if (openParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+        }
         this.AdjustFlagsAndWidth(expression);
         this.expression = expression;
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
+        if (closeParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
         this.AdjustFlagsAndWidth(openBraceToken);
         this.openBraceToken = openBraceToken;
         if (sections != null)
@@ -17711,12 +17717,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.SlotCount = 7;
         this.AdjustFlagsAndWidth(switchKeyword);
         this.switchKeyword = switchKeyword;
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
+        if (openParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+        }
         this.AdjustFlagsAndWidth(expression);
         this.expression = expression;
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
+        if (closeParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
         this.AdjustFlagsAndWidth(openBraceToken);
         this.openBraceToken = openBraceToken;
         if (sections != null)
@@ -17735,12 +17747,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         this.SlotCount = 7;
         this.AdjustFlagsAndWidth(switchKeyword);
         this.switchKeyword = switchKeyword;
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
+        if (openParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+        }
         this.AdjustFlagsAndWidth(expression);
         this.expression = expression;
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
+        if (closeParenToken != null)
+        {
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
         this.AdjustFlagsAndWidth(openBraceToken);
         this.openBraceToken = openBraceToken;
         if (sections != null)
@@ -17757,7 +17775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// </summary>
     public SyntaxToken SwitchKeyword { get { return this.switchKeyword; } }
     /// <summary>
-    /// Gets a SyntaxToken that represents the open parenthesis preceding the switch expression.
+    /// Gets a SyntaxToken that represents the open parenthesis preceding the switch governing expression.
     /// </summary>
     public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
     /// <summary>
@@ -17765,7 +17783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// </summary>
     public ExpressionSyntax Expression { get { return this.expression; } }
     /// <summary>
-    /// Gets a SyntaxToken that represents the close parenthesis succeeding the switch expression.
+    /// Gets a SyntaxToken that represents the close parenthesis following the switch governing expression.
     /// </summary>
     public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
     /// <summary>
@@ -17777,7 +17795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// </summary>
     public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax> Sections { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SwitchSectionSyntax>(this.sections); } }
     /// <summary>
-    /// Gets a SyntaxToken that represents the open braces succeeding the switch sections.
+    /// Gets a SyntaxToken that represents the open braces following the switch sections.
     /// </summary>
     public SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
 
@@ -42940,25 +42958,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException("switchKeyword");
       }
-      if (openParenToken == null)
-        throw new ArgumentNullException(nameof(openParenToken));
+      if (openParenToken != null)
+      {
       switch (openParenToken.Kind)
       {
         case SyntaxKind.OpenParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException("openParenToken");
       }
+      }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
-      if (closeParenToken == null)
-        throw new ArgumentNullException(nameof(closeParenToken));
+      if (closeParenToken != null)
+      {
       switch (closeParenToken.Kind)
       {
         case SyntaxKind.CloseParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException("closeParenToken");
+      }
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
@@ -50119,25 +50141,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         default:
           throw new ArgumentException("switchKeyword");
       }
-      if (openParenToken == null)
-        throw new ArgumentNullException(nameof(openParenToken));
+      if (openParenToken != null)
+      {
       switch (openParenToken.Kind)
       {
         case SyntaxKind.OpenParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException("openParenToken");
       }
+      }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
-      if (closeParenToken == null)
-        throw new ArgumentNullException(nameof(closeParenToken));
+      if (closeParenToken != null)
+      {
       switch (closeParenToken.Kind)
       {
         case SyntaxKind.CloseParenToken:
+        case SyntaxKind.None:
           break;
         default:
           throw new ArgumentException("closeParenToken");
+      }
       }
       if (openBraceToken == null)
         throw new ArgumentNullException(nameof(openBraceToken));
