@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,13 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewriter.Free();
                 return result;
             }
-
-            /// <summary>
-            /// Map from switch section's syntax to the lowered code for the section. The code for a section
-            /// includes the code to assign to the pattern variables and evaluate the when clause. Since a
-            /// when clause can yield a false value, it can jump back to a label in the lowered decision dag.
-            /// </summary>
-            private Dictionary<SyntaxNode, ArrayBuilder<BoundStatement>> _switchSections => base._switchArms;
 
             /// <summary>
             /// A map from section syntax to the first label in that section.
@@ -69,30 +63,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private PatternSwitchLocalRewriter(BoundPatternSwitchStatement node, LocalRewriter localRewriter)
-                : base(localRewriter, localRewriter.VisitExpression(node.Expression), node.SwitchSections.SelectAsArray(section => section.Syntax), node.DecisionDag)
+                : base(node.Syntax, localRewriter, node.SwitchSections.SelectAsArray(section => section.Syntax), isSwitchStatement: true)
             {
             }
 
             private BoundStatement LowerPatternSwitchStatement(BoundPatternSwitchStatement node)
             {
-                var reachableLabels = node.DecisionDag.ReachableLabels;
-
                 _factory.Syntax = node.Syntax;
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
-
-                // The set of variables attached to the outer block
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
-                outerVariables.AddRange(node.InnerLocals);
-
-                // EnC: We need to insert a hidden sequence point to handle function remapping in case
-                // the containing method is edited while methods invoked in the expression are being executed.
-                var expression = _loweredInput;
+                var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
                 if (!node.WasCompilerGenerated && _localRewriter.Instrument)
                 {
-                    var instrumentedExpression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, expression, _factory);
-                    if (expression.ConstantValue == null)
+                    // EnC: We need to insert a hidden sequence point to handle function remapping in case
+                    // the containing method is edited while methods invoked in the expression are being executed.
+                    var instrumentedExpression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, loweredSwitchGoverningExpression, _factory);
+                    if (loweredSwitchGoverningExpression.ConstantValue == null)
                     {
-                        expression = instrumentedExpression;
+                        loweredSwitchGoverningExpression = instrumentedExpression;
                     }
                     else
                     {
@@ -102,20 +90,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                // Assign the input to a temp
-                BoundExpression inputTemp = _tempAllocator.GetTemp(base._inputTemp);
-                if (inputTemp == expression)
-                {
-                    // In this case we would just be assigning the variable to itself, so we need generate no code.
-                    // This arises due to an optimization by which we use pattern variables as pattern-matching temps.
-                }
-                else
-                {
-                    result.Add(_factory.Assignment(inputTemp, expression));
-                }
+                // The set of variables attached to the outer block
+                outerVariables.AddRange(node.InnerLocals);
+
+                // Evaluate the input and set up sharing for dag temps with user variables
+                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result);
+
+                // lower the decision dag.
+                (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
+                    LowerDecisionDag(decisionDag);
 
                 // then add the rest of the lowered dag that references that input
-                result.Add(_factory.Block(this._loweredDecisionDag.ToImmutable()));
+                result.Add(_factory.Block(loweredDag));
 
                 // A branch to the default label when no switch case matches is included in the
                 // decision dag, so the code in `result` is unreachable at this point.
@@ -124,7 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (BoundPatternSwitchSection section in node.SwitchSections)
                 {
                     _factory.Syntax = section.Syntax;
-                    ArrayBuilder<BoundStatement> sectionBuilder = _switchSections[section.Syntax];
+                    var sectionBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+                    sectionBuilder.AddRange(switchSections[section.Syntax]);
                     foreach (BoundPatternSwitchLabel switchLabel in section.SwitchLabels)
                     {
                         sectionBuilder.Add(_factory.Label(switchLabel.Label));
@@ -147,8 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // Note the scope of the locals, even though they are included for the purposes of
-                        // closure analysis in the enclosing scope.
+                        // Note the language scope of the locals, even though they are included for the purposes of
+                        // lifetime analysis in the enclosing scope.
                         result.Add(new BoundScope(section.Syntax, section.Locals, statements));
                     }
                 }

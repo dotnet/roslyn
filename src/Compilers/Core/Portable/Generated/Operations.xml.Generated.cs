@@ -6108,32 +6108,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <summary>
-    /// Represents a C# discard pattern.
-    /// </summary>
-    internal sealed partial class DiscardPattern : Operation, IDiscardPatternOperation
-    {
-        public DiscardPattern(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-                    base(OperationKind.DeclarationPattern, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-        }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                yield break;
-            }
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitDiscardPattern(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitDiscardPattern(this, argument);
-        }
-    }
-
-    /// <summary>
     /// Represents a C# declaration pattern.
     /// </summary>
     internal sealed partial class RecursivePattern : Operation, IRecursivePatternOperation
@@ -6789,5 +6763,28 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
         public override IBlockOperation BlockBody => SetParentOperation(_lazyBlockBody.Value, this);
         public override IBlockOperation ExpressionBody => SetParentOperation(_lazyExpressionBody.Value, this);
+    }
+
+    internal sealed class DiscardOperation : Operation, IDiscardOperation
+    {
+        public DiscardOperation(IDiscardSymbol discardSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.Discard, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            DiscardSymbol = discardSymbol;
+        }
+
+        public IDiscardSymbol DiscardSymbol { get; }
+
+        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDiscardOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDiscardOperation(this, argument);
+        }
     }
 }

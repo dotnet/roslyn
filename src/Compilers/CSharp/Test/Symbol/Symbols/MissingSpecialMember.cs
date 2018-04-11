@@ -2080,9 +2080,9 @@ public class X
                 // (13,13): error CS0656: Missing compiler required member 'System.String.op_Equality'
                 //             case "hmm":
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""hmm"":").WithArguments("System.String", "op_Equality").WithLocation(13, 13),
-                // (11,17): error CS0656: Missing compiler required member 'System.String.op_Equality'
-                //         switch (o)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "o").WithArguments("System.String", "op_Equality").WithLocation(11, 17)
+                // (33,13): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                //             case "baz":
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""baz"":").WithArguments("System.String", "op_Equality").WithLocation(33, 13)
                 );
         }
 

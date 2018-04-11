@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.Host
     {
         ParseOptions GetDefaultParseOptions();
 
+        ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
+
         // new tree from root node
         SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root);
 

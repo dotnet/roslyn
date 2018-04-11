@@ -243,6 +243,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateConstructorBodyOperation((BoundConstructorMethodBody)boundNode);
                 case BoundKind.NonConstructorMethodBody:
                     return CreateMethodBodyOperation((BoundNonConstructorMethodBody)boundNode);
+                case BoundKind.DiscardExpression:
+                    return CreateBoundDiscardExpressionOperation((BoundDiscardExpression)boundNode);
 
                 default:
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
@@ -1451,16 +1453,17 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 loopControlVariable = new Lazy<IOperation>(() => Create(boundForEachStatement.DeconstructionOpt.DeconstructionAssignment.Left));
             }
-            else if (locals.Length == 1)
+            else if (boundForEachStatement.IterationErrorExpressionOpt != null)
             {
-                var local = (LocalSymbol)locals.Single();
-                // We use iteration variable type syntax as the underlying syntax node as there is no variable declarator syntax in the syntax tree.
-                var declaratorSyntax = boundForEachStatement.IterationVariableType.Syntax;
-                loopControlVariable = new Lazy<IOperation>(() => new VariableDeclarator(local, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: declaratorSyntax, type: null, constantValue: default, isImplicit: false));
+                loopControlVariable = new Lazy<IOperation>(() => Create(boundForEachStatement.IterationErrorExpressionOpt));
             }
             else
             {
-                loopControlVariable = OperationFactory.NullOperation;
+                Debug.Assert(locals.Length == 1);
+                var local = (LocalSymbol)locals[0];
+                // We use iteration variable type syntax as the underlying syntax node as there is no variable declarator syntax in the syntax tree.
+                var declaratorSyntax = boundForEachStatement.IterationVariableType.Syntax;
+                loopControlVariable = new Lazy<IOperation>(() => new VariableDeclarator(local, initializer: null, ignoredArguments: ImmutableArray<IOperation>.Empty, semanticModel: _semanticModel, syntax: declaratorSyntax, type: null, constantValue: default, isImplicit: false));
             }
 
             Lazy<IOperation> collection = new Lazy<IOperation>(() => Create(boundForEachStatement.Expression));
@@ -1788,15 +1791,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new DeclarationPattern(variable, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IDiscardPatternOperation CreateBoundDiscardPatternOperation(BoundDiscardPattern boundDiscardPattern)
-        {
-            SyntaxNode syntax = boundDiscardPattern.Syntax;
-            ITypeSymbol type = null;
-            Optional<object> constantValue = default(Optional<object>);
-            bool isImplicit = boundDiscardPattern.WasCompilerGenerated;
-            return new DiscardPattern(_semanticModel, syntax, type, constantValue, isImplicit);
-        }
-
         private IRecursivePatternOperation CreateBoundRecursivePatternOperation(BoundRecursivePattern boundRecursivePattern)
         {
             ISymbol variable = boundRecursivePattern.Variable;
@@ -1878,6 +1872,26 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             // We do not have operation nodes for the bound range variables, just it's value.
             return Create(boundRangeVariable.Value);
+        }
+
+        private IOperation CreateBoundDiscardExpressionOperation(BoundDiscardExpression boundNode)
+        {
+            return new DiscardOperation((IDiscardSymbol)boundNode.ExpressionSymbol,
+                                        _semanticModel,
+                                        boundNode.Syntax,
+                                        boundNode.Type,
+                                        ConvertToOptional(boundNode.ConstantValue),
+                                        isImplicit: boundNode.WasCompilerGenerated);
+        }
+
+        private IOperation CreateBoundDiscardPatternOperation(BoundDiscardPattern boundNode)
+        {
+            return new DiscardOperation(boundNode.DiscardSymbol,
+                                        _semanticModel,
+                                        boundNode.Syntax,
+                                        boundNode.InputType,
+                                        null,
+                                        isImplicit: boundNode.WasCompilerGenerated);
         }
     }
 }

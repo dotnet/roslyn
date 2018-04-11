@@ -1564,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NewBoundWithUnmanaged = 8375,
         ERR_UnmanagedConstraintMustBeFirst = 8376,
         ERR_UnmanagedConstraintNotSatisfied = 8377,
-        ERR_UnmanagedConstraintWithLocalFunctions = 8378,
+        // not used/claimable = 8378,
         ERR_ConWithUnmanagedCon = 8379,
         ERR_UnmanagedBoundWithClass = 8380,
 
@@ -1596,6 +1596,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConstantPatternNamedUnderscore = 8412,
         WRN_IsTypeNamedUnderscore = 8413,
         ERR_ExpressionTreeContainsSwitchExpression = 8414,
+        ERR_SwitchGoverningExpressionRequiresParens = 8415,
+        ERR_TupleElementNameMismatch = 8416,
+        ERR_DeconstructParameterNameMismatch = 8417,
         #endregion diagnostics introduced for recursive patterns
 
     }
