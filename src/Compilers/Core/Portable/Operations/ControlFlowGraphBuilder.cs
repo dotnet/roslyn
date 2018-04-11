@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             var continueDispatchAfterFinally = PooledDictionary<ControlFlowGraph.Region, bool>.GetInstance();
             var dispatchedExceptionsFromRegions = PooledHashSet<ControlFlowGraph.Region>.GetInstance();
-            MarkReachableBlocks(blocks, firstBlockOrdinal: 0, lastBlockOrdinal: blocks.Count - 1, 
-                                outOfRangeBlocksToVisit: null, 
+            MarkReachableBlocks(blocks, firstBlockOrdinal: 0, lastBlockOrdinal: blocks.Count - 1,
+                                outOfRangeBlocksToVisit: null,
                                 continueDispatchAfterFinally,
                                 dispatchedExceptionsFromRegions,
                                 out _);
@@ -81,10 +81,10 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         private static BitVector MarkReachableBlocks(
-            ArrayBuilder<BasicBlock> blocks, 
-            int firstBlockOrdinal, 
-            int lastBlockOrdinal, 
-            ArrayBuilder<BasicBlock> outOfRangeBlocksToVisit, 
+            ArrayBuilder<BasicBlock> blocks,
+            int firstBlockOrdinal,
+            int lastBlockOrdinal,
+            ArrayBuilder<BasicBlock> outOfRangeBlocksToVisit,
             PooledDictionary<ControlFlowGraph.Region, bool> continueDispatchAfterFinally,
             PooledHashSet<ControlFlowGraph.Region> dispatchedExceptionsFromRegions,
             out bool fellThrough)
@@ -216,11 +216,11 @@ namespace Microsoft.CodeAnalysis.Operations
                     // to make sure that the resume dispatch point is reachable from its beginning.
                     // It could also be reachable through invalid branches into the finally and we don't want to consider 
                     // these cases for regular finally handling.
-                    BitVector isolated = MarkReachableBlocks(blocks, 
-                                                             @finally.FirstBlockOrdinal, 
+                    BitVector isolated = MarkReachableBlocks(blocks,
+                                                             @finally.FirstBlockOrdinal,
                                                              @finally.LastBlockOrdinal,
-                                                             outOfRangeBlocksToVisit: toVisit, 
-                                                             continueDispatchAfterFinally, 
+                                                             outOfRangeBlocksToVisit: toVisit,
+                                                             continueDispatchAfterFinally,
                                                              dispatchedExceptionsFromRegions,
                                                              out bool isolatedFellThrough);
                     visited.UnionWith(isolated);
@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.Operations
             )
         {
 #if DEBUG
-            Debug.Assert(spillingTheStack || !_evalStack.Any(o => o.Kind != OperationKind.FlowCaptureReference));
+            Debug.Assert(spillingTheStack || _evalStack.All(o => o.Kind == OperationKind.FlowCaptureReference || o.Kind == OperationKind.DeclarationExpression));
 #endif
             if (statement == null)
             {
@@ -1266,11 +1266,12 @@ namespace Microsoft.CodeAnalysis.Operations
             for (int i = 0; i < _evalStack.Count; i++)
             {
                 IOperation operation = _evalStack[i];
-                if (operation.Kind != OperationKind.FlowCaptureReference)
+                // Declarations cannot have control flow, so we don't need to spill them.
+                if (operation.Kind != OperationKind.FlowCaptureReference && operation.Kind != OperationKind.DeclarationExpression)
                 {
                     int captureId = _availableCaptureId++;
 
-                    AddStatement(new FlowCapture(captureId, operation.Syntax, Visit(operation))
+                    AddStatement(new FlowCapture(captureId, operation.Syntax, operation)
 #if DEBUG
                                  , spillingTheStack: true
 #endif
@@ -1788,8 +1789,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (_currentStatement != operation)
                 {
                     var expressionStatement = (IExpressionStatementOperation)_currentStatement;
-                    result = new ExpressionStatement(result, semanticModel: null, expressionStatement.Syntax, 
-                                                     expressionStatement.Type, expressionStatement.ConstantValue, 
+                    result = new ExpressionStatement(result, semanticModel: null, expressionStatement.Syntax,
+                                                     expressionStatement.Type, expressionStatement.ConstantValue,
                                                      expressionStatement.IsImplicit);
                 }
 
@@ -2306,7 +2307,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     (IVariableDeclarationOperation declaration, IVariableDeclaratorOperation declarator) = resourceQueueOpt.Pop();
                     HandleVariableDeclarator(declaration, declarator);
                     ILocalSymbol localSymbol = declarator.Symbol;
-                    processResource(new LocalReferenceExpression(localSymbol, isDeclaration: false, semanticModel: null, declarator.Syntax, localSymbol.Type, 
+                    processResource(new LocalReferenceExpression(localSymbol, isDeclaration: false, semanticModel: null, declarator.Syntax, localSymbol.Type,
                                                                  constantValue: default, isImplicit: true),
                                     resourceQueueOpt);
                 }
@@ -2791,6 +2792,68 @@ namespace Microsoft.CodeAnalysis.Operations
             return objectCreation;
         }
 
+        public override IOperation VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, int? captureIdForResult)
+        {
+            // If the assignment target is a tuple, we want to decompose the tuple and push each element back onto the stack, so that if the value
+            // has control flow the individual elements are captured. Then we can recompose the tuple after operation.Value has been visited.
+            // We do this to keep the graph sane, so that users don't have to track a tuple captured via flow control when it's not really
+            // the tuple that's been captured, it's the operands to the tuple.
+            pushTargetAndUnwrapTupleIfNecessary(operation.Target);
+            IOperation visitedValue = Visit(operation.Value);
+            IOperation visitedTarget = popTargetAndWrapTupleIfNecessary(operation.Target);
+
+            return new DeconstructionAssignmentExpression(visitedTarget, visitedValue, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+
+            // Recursively push nexted values onto the stack for visiting
+            void pushTargetAndUnwrapTupleIfNecessary(IOperation value)
+            {
+                if (value.Kind == OperationKind.Tuple)
+                {
+                    var tuple = (ITupleOperation)value;
+
+                    foreach (IOperation element in tuple.Elements)
+                    {
+                        pushTargetAndUnwrapTupleIfNecessary(element);
+                    }
+                }
+                else
+                {
+                    _evalStack.Push(Visit(value));
+                }
+            }
+
+            // Recursively pop nested tuple values off the stack after visiting
+            IOperation popTargetAndWrapTupleIfNecessary(IOperation value)
+            {
+                if (value.Kind == OperationKind.Tuple)
+                {
+                    var tuple = (ITupleOperation)value;
+                    var numElements = tuple.Elements.Length;
+                    var elementBuilder = ArrayBuilder<IOperation>.GetInstance(numElements);
+                    for (int i = numElements - 1; i >= 0; i--)
+                    {
+                        elementBuilder.Add(popTargetAndWrapTupleIfNecessary(tuple.Elements[i]));
+                    }
+                    elementBuilder.ReverseContents();
+                    return new TupleExpression(elementBuilder.ToImmutableAndFree(), semanticModel: null, tuple.Syntax, tuple.Type, tuple.NaturalType, tuple.ConstantValue, tuple.IsImplicit);
+                }
+                else
+                {
+                    return _evalStack.Pop();
+                }
+            }
+        }
+
+        public override IOperation VisitDeclarationExpression(IDeclarationExpressionOperation operation, int? captureIdForResult)
+        {
+            return new DeclarationExpression(Visit(operation.Expression), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitTuple(ITupleOperation operation, int? captureIdForResult)
+        {
+            PushArray(operation.Elements);
+            return new TupleExpression(PopArray(operation.Elements), semanticModel: null, operation.Syntax, operation.Type, operation.NaturalType, operation.ConstantValue, operation.IsImplicit);
+        }
 
         internal override IOperation VisitNoneOperation(IOperation operation, int? captureIdForResult)
         {
@@ -2848,6 +2911,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public IOperation Visit(IOperation operation)
         {
+            // We should never be revisiting nodes we've already visited, and we don't set SemanticModel in this builder.
+            Debug.Assert(operation == null || ((Operation)operation).SemanticModel != null);
             return Visit(operation, argument: null);
         }
 
@@ -3083,16 +3148,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ArrayInitializer(VisitArray(operation.ElementValues), semanticModel: null, operation.Syntax, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, int? captureIdForResult)
-        {
-            return new DeconstructionAssignmentExpression(Visit(operation.Target), Visit(operation.Value), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitDeclarationExpression(IDeclarationExpressionOperation operation, int? captureIdForResult)
-        {
-            return new DeclarationExpression(Visit(operation.Expression), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, int? captureIdForResult)
         {
             bool isDecrement = operation.Kind == OperationKind.Decrement;
@@ -3177,11 +3232,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, int? captureIdForResult)
         {
             return new PatternCaseClause(operation.Label, Visit(operation.Pattern), Visit(operation.Guard), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitTuple(ITupleOperation operation, int? captureIdForResult)
-        {
-            return new TupleExpression(VisitArray(operation.Elements), semanticModel: null, operation.Syntax, operation.Type, operation.NaturalType, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
