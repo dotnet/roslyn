@@ -177,8 +177,7 @@ function Restore-Packages() {
 
     $all = @(
         "Roslyn Toolset:build\ToolsetPackages\RoslynToolset.csproj",
-        "Roslyn:Roslyn.sln",
-        "NuGetUtil:src\NuGet\NuGetProjectPackUtil.csproj")
+        "Roslyn:Roslyn.sln")
 
     foreach ($cur in $all) {
         $both = $cur.Split(':')
