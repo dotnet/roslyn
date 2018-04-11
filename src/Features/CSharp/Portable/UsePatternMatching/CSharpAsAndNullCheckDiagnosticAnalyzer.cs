@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                             continue;
 
                         case SyntaxKind.LogicalNotExpression:
-                            // The !-operator revenrse the definitive assignment state.
+                            // The !-operator reverses the definitive assignment state.
                             defAssignedWhenTrue = !defAssignedWhenTrue;
                             continue;
 
