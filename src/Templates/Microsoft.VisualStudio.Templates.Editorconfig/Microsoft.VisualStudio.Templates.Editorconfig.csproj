@@ -1,0 +1,36 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+
+    <!-- VSIX -->
+    <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
+    <ExtensionInstallationFolder>Microsoft\Templates\Editorconfig</ExtensionInstallationFolder>
+    <VisualStudioInsertionComponent>Microsoft.VisualStudio.Templates.Editorconfig</VisualStudioInsertionComponent>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Templates.Editorconfig.Wizard\Templates.Editorconfig.Wizard.csproj">
+      <Name>Templates.Editorconfig.Wizard</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <VSTemplate Include="Editorconfig.vstemplate">
+      <OutputSubPath>General</OutputSubPath>
+    </VSTemplate>
+  </ItemGroup>
+
+  <!-- rewriting of .vstemplate files to reference the correct assembly version number -->
+  <UsingTask AssemblyFile="$(ArtifactsBinDir)UpdateTemplateVersion\net461\UpdateTemplateVersion.dll" TaskName="UpdateTemplateVersion" />
+  <Target Name="UpdateAssemblyVersionInTemplates" BeforeTargets="GetZipFilesFromVSTemplates">
+    <ItemGroup>
+      <_OriginalVSTemplate Include="@(VSTemplate)" />
+    </ItemGroup>
+    <UpdateTemplateVersion VSTemplatesToRewrite="@(VSTemplate)" AssemblyVersion="$(AssemblyVersion)" IntermediatePath="ModifiedTemplates">
+      <Output TaskParameter="NewVSTemplates" ItemName="VSTemplate" />
+    </UpdateTemplateVersion>
+    <ItemGroup>
+      <VSTemplate Remove="@(_OriginalVSTemplate)" />
+    </ItemGroup>
+  </Target>
+</Project>
