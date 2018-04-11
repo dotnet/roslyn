@@ -5285,6 +5285,26 @@ class Outer<T>
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "e2 is Outer<long>.E").WithArguments("Outer<long>.E").WithLocation(32, 13));
         }
 
+        [Fact]
+        public void TestIsOperatorWithGenericClassAndValueType()
+        {
+            var source = @"
+class Program
+{
+    static bool Goo<T>(C<T> c)
+    {
+        return c is int;   // always false
+    }
+}
+class C<T> { }
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,16): warning CS0184: The given expression is never of the provided ('int') type
+                //         return c is int;   // always false
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "c is int").WithArguments("int").WithLocation(6, 16)
+                );
+        }
+
         [WorkItem(844635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844635")]
         [Fact()]
         public void TestIsOperatorWithTypesThatCannotUnify()

@@ -1543,27 +1543,5 @@ False
   IL_001f:  ret
 }");
         }
-
-        [Fact]
-        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
-        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
-        public void ConstantPatternVsUnconstrainedTypeParameter03()
-        {
-            var source =
-@"class C<T>
-{
-    internal struct S { }
-    static bool Test(S s)
-    {
-        return s is null;
-    }
-}";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
-            compilation.VerifyDiagnostics(
-                // (6,21): error CS0037: Cannot convert null to 'C<T>.S' because it is a non-nullable value type
-                //         return s is null;
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("C<T>.S").WithLocation(6, 21)
-                );
-        }
     }
 }

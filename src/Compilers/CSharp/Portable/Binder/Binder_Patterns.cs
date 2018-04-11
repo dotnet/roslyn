@@ -172,11 +172,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If we are pattern-matching against an open type, we do not convert the constant to the type of the input.
             // This permits us to match a value of type `IComparable<T>` with a pattern of type `int`.
-            if (inputType.ContainsTypeParameter() &&
-                // But do not permit matching null against a struct type.
-                (expression.ConstantValue != ConstantValue.Null || !inputType.IsNonNullableValueType()))
+            bool inputContainsTypeParameter = inputType.ContainsTypeParameter();
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            if (inputContainsTypeParameter)
             {
                 convertedExpression = expression;
+                if (expression.ConstantValue == ConstantValue.Null)
+                {
+                    if (inputType.IsNonNullableValueType())
+                    {
+                        // We do not permit matching null against a struct type.
+                        diagnostics.Add(ErrorCode.ERR_ValueCantBeNull, expression.Syntax.Location, inputType);
+                    }
+                }
+                else if (ExpressionOfTypeMatchesPatternType(Conversions, inputType, expression.Type, ref useSiteDiagnostics, out _, operandConstantValue: null) == false)
+                {
+                    diagnostics.Add(ErrorCode.ERR_PatternWrongType, expression.Syntax.Location, inputType, expression.Display);
+                }
+
+                diagnostics.Add(node, useSiteDiagnostics);
             }
             else
             {
