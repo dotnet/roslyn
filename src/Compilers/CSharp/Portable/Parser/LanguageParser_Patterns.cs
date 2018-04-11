@@ -314,9 +314,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// It is used for parsing patterns in the switch cases. It never returns constant pattern, because for a `case` we
         /// need to use a pre-pattern-matching syntax node for a constant case.
         /// </summary>
-        /// <param name="forCase">prevents the use of "when" for the identifier</param>
+        /// <param name="whenIsKeyword">prevents the use of "when" for the identifier</param>
         /// <returns></returns>
-        private CSharpSyntaxNode ParseExpressionOrPattern(bool forCase, Precedence precedence)
+        private CSharpSyntaxNode ParseExpressionOrPattern(bool whenIsKeyword, Precedence precedence)
         {
             // handle common error recovery situations during typing
             var tk = this.CurrentToken.Kind;
@@ -359,10 +359,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                PatternSyntax p = ParsePatternContinued(type, forCase);
+                PatternSyntax p = ParsePatternContinued(type, whenIsKeyword);
                 if (p != null)
                 {
-                    return (forCase && p is ConstantPatternSyntax c) ? c.expression : (CSharpSyntaxNode)p;
+                    return (whenIsKeyword && p is ConstantPatternSyntax c) ? c.expression : (CSharpSyntaxNode)p;
                 }
 
                 this.Reset(ref resetPoint);
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private PatternSyntax ParsePatternContinued(TypeSyntax type, bool forCase)
+        private PatternSyntax ParsePatternContinued(TypeSyntax type, bool whenIsKeyword)
         {
             bool parsePropertySubpattern(out PropertySubpatternSyntax propertySubpatternResult)
             {
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool parseDesignation(out VariableDesignationSyntax designationResult)
             {
                 designationResult = null;
-                if (this.IsTrueIdentifier() && (!forCase || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
+                if (this.IsTrueIdentifier() && (!whenIsKeyword || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
                 {
                     designationResult = ParseSimpleDesignation();
                     return true;
@@ -505,9 +505,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return null;
         }
 
-        private PatternSyntax ParsePattern(Precedence precedence)
+        private PatternSyntax ParsePattern(Precedence precedence, bool whenIsKeyword = false)
         {
-            var node = ParseExpressionOrPattern(forCase: false, precedence: precedence);
+            var node = ParseExpressionOrPattern(whenIsKeyword: whenIsKeyword, precedence: precedence);
             switch (node)
             {
                 case PatternSyntax pattern:
@@ -628,6 +628,63 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleSubpatternElement(),
                 p => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken || p.IsTerminator(),
                 expected);
+        }
+
+        private ExpressionSyntax ParseSwitchExpression(ExpressionSyntax leftOperand)
+        {
+            // PROTOTYPE(patterns2): for better error recovery when an expression is typed on a line before
+            // a switch statement, we should check if the cases between the parens look like cases with
+            // arrows, and whether the
+            // switch keyword is on the same line as the end of the expression. If those are not satisfied,
+            // we should refuse to consume the switch token here and instead let a "missing semicolon"
+            // occur in a caller. For now we just put up with poor error recovery in that case.
+            var governingExpression = leftOperand;
+            var switchKeyword = this.EatToken();
+            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+            var arms = this.ParseSwitchExpressionArms();
+            // PROTOTYPE(patterns2): Should skip any unexpected tokens up through the close brace token.
+            var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
+            var result = _syntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBrace, arms, closeBrace);
+            result = this.CheckFeatureAvailability(result, MessageID.IDS_FeatureRecursivePatterns);
+            return result;
+        }
+
+        private SeparatedSyntaxList<SwitchExpressionArmSyntax> ParseSwitchExpressionArms()
+        {
+            // PROTOTYPE(patterns2): Error recovery here leaves much to be desired.
+            var arms = _pool.AllocateSeparated<SwitchExpressionArmSyntax>();
+            do
+            {
+                // Use a precedence that excludes lambdas, assignments, and a ternary which could have a
+                // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
+                // to be consumed by the switch arm. The strange side-effect of that is that the ternary
+                // expression is not permitted as a constant expression here; it would have to be parenthesized.
+                var pattern = ParsePattern(Precedence.Coalescing, whenIsKeyword: true);
+                var whenClause = ParseWhenClause(Precedence.Coalescing);
+                var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
+                var expression = ParseExpressionCore();
+                var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(pattern, whenClause, arrow, expression);
+                arms.Add(switchExpressionCase);
+                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                {
+                    var commaToken = this.EatToken();
+                    if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                    {
+                        commaToken = this.AddError(commaToken, ErrorCode.ERR_UnexpectedToken, this.CurrentToken.Text);
+                    }
+
+                    arms.AddSeparator(commaToken);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken);
+
+            SeparatedSyntaxList<SwitchExpressionArmSyntax> result = arms;
+            _pool.Free(arms);
+            return result;
         }
     }
 }

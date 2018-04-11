@@ -826,6 +826,7 @@
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
     <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundPatternSwitchSection&gt;"/>
+    <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="DefaultLabel" Type="BoundPatternSwitchLabel" Null="allow"/>
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
   </Node>
@@ -862,6 +863,7 @@
   <Node Name="BoundSwitchExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="SwitchArms" Type="ImmutableArray&lt;BoundSwitchExpressionArm&gt;"/>
+    <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="DefaultLabel" Type="LabelSymbol" Null="allow"/>
   </Node>
   <Node Name="BoundSwitchExpressionArm" Base="BoundNode">
@@ -890,7 +892,7 @@
     <Field Name="WhenFalse" Type="BoundDecisionDagNode " Null="disallow"/>
   </Node>
   <Node Name="BoundWhenDecisionDagNode" Base="BoundDecisionDagNode ">
-    <Field Name="Bindings" Type="ImmutableArray&lt;(BoundExpression left,BoundDagTemp dagTemp)&gt;" Null="disallow"/>
+    <Field Name="Bindings" Type="ImmutableArray&lt;BoundPatternBinding&gt;" Null="disallow"/>
     <!--
     WhenExpression is null when there was no when clause in source but there are bindings.
     In that case WhenFalse is null.
@@ -1720,6 +1722,9 @@
   <Node Name="BoundIsPatternExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+    <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
+    <Field Name="WhenTrueLabel" Type="LabelSymbol" Null="disallow"/>
+    <Field Name="WhenFalseLabel" Type="LabelSymbol" Null="disallow"/>
   </Node>
 
   <AbstractNode Name="BoundPattern" Base="BoundNode">

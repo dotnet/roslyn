@@ -107,23 +107,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundExpression inputExpression,
             BoundPattern pattern,
-            LabelSymbol defaultLabel,
-            DiagnosticBag diagnostics,
-            out LabelSymbol successLabel)
+            LabelSymbol whenTrueLabel,
+            LabelSymbol whenFalseLabel,
+            DiagnosticBag diagnostics)
         {
-            var builder = new DecisionDagBuilder(compilation, defaultLabel, diagnostics);
-            return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, out successLabel);
+            var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, diagnostics);
+            return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel);
         }
 
         private BoundDecisionDag CreateDecisionDagForIsPattern(
             SyntaxNode syntax,
             BoundExpression inputExpression,
             BoundPattern pattern,
-            out LabelSymbol successLabel)
+            LabelSymbol whenTrueLabel)
         {
-            successLabel = new GeneratedLabelSymbol("success");
             var rootIdentifier = new BoundDagTemp(inputExpression.Syntax, inputExpression.Type, source: null, index: 0);
-            return MakeDecisionDag(syntax, ImmutableArray.Create(MakeTestsForPattern(index: 1, pattern.Syntax, rootIdentifier, pattern, whenClause: null, successLabel)));
+            return MakeDecisionDag(syntax, ImmutableArray.Create(MakeTestsForPattern(index: 1, pattern.Syntax, rootIdentifier, pattern, whenClause: null, whenTrueLabel)));
         }
 
         private BoundDecisionDag CreateDecisionDagForSwitchStatement(
@@ -178,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression whenClause,
             LabelSymbol label)
         {
-            MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundDagTest> tests, out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings);
+            MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundDagTest> tests, out ImmutableArray<BoundPatternBinding> bindings);
             return new RemainingTestsForCase(index, syntax, tests, bindings, whenClause, label);
         }
 
@@ -186,10 +185,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             BoundPattern pattern,
             out ImmutableArray<BoundDagTest> tests,
-            out ImmutableArray<(BoundExpression, BoundDagTemp)> bindings)
+            out ImmutableArray<BoundPatternBinding> bindings)
         {
             var testsBuilder = ArrayBuilder<BoundDagTest>.GetInstance();
-            var bindingsBuilder = ArrayBuilder<(BoundExpression, BoundDagTemp)>.GetInstance();
+            var bindingsBuilder = ArrayBuilder<BoundPatternBinding>.GetInstance();
             MakeTestsAndBindings(input, pattern, testsBuilder, bindingsBuilder);
             SimplifyTestsAndBindings(testsBuilder, bindingsBuilder);
             tests = testsBuilder.ToImmutableAndFree();
@@ -198,14 +197,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void SimplifyTestsAndBindings(
             ArrayBuilder<BoundDagTest> testsBuilder,
-            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindingsBuilder)
+            ArrayBuilder<BoundPatternBinding> bindingsBuilder)
         {
             // Now simplify the tests and bindings. We don't need anything in tests that does not
             // contribute to the result. This will, for example, permit us to match `(2, 3) is (2, _)` without
             // fetching `Item2` from the input.
             var usedValues = PooledHashSet<BoundDagEvaluation>.GetInstance();
-            foreach ((var _, BoundDagTemp temp) in bindingsBuilder)
+            foreach (BoundPatternBinding binding in bindingsBuilder)
             {
+                BoundDagTemp temp = binding.TempContainingValue;
                 if (temp.Source != (object)null)
                 {
                     usedValues.Add(temp.Source);
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             BoundPattern pattern,
             ArrayBuilder<BoundDagTest> tests,
-            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings)
+            ArrayBuilder<BoundPatternBinding> bindings)
         {
             switch (pattern)
             {
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             BoundDeclarationPattern declaration,
             ArrayBuilder<BoundDagTest> tests,
-            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings)
+            ArrayBuilder<BoundPatternBinding> bindings)
         {
             TypeSymbol type = declaration.DeclaredType.Type;
             SyntaxNode syntax = declaration.Syntax;
@@ -305,11 +305,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 input = MakeConvertToType(input, declaration.Syntax, type, tests);
             }
 
-            BoundExpression left = declaration.VariableAccess;
-            if (left != null)
+            BoundExpression variableAccess = declaration.VariableAccess;
+            if (variableAccess != null)
             {
-                Debug.Assert(left.Type == input.Type);
-                bindings.Add((left, input));
+                Debug.Assert(variableAccess.Type == input.Type);
+                bindings.Add(new BoundPatternBinding(variableAccess, input));
             }
             else
             {
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             BoundConstantPattern constant,
             ArrayBuilder<BoundDagTest> tests,
-            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings)
+            ArrayBuilder<BoundPatternBinding> bindings)
         {
             if (constant.ConstantValue == ConstantValue.Null)
             {
@@ -398,12 +398,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             BoundRecursivePattern recursive,
             ArrayBuilder<BoundDagTest> tests,
-            ArrayBuilder<(BoundExpression, BoundDagTemp)> bindings)
+            ArrayBuilder<BoundPatternBinding> bindings)
         {
             Debug.Assert(input.Type.IsErrorType() || input.Type == recursive.InputType);
-            if (recursive.DeclaredType != null && recursive.DeclaredType.Type != input.Type)
+            if (recursive.DeclaredType != null)
             {
                 input = MakeConvertToType(input, recursive.Syntax, recursive.DeclaredType.Type, tests);
+            }
+            else
+            {
+                MakeCheckNotNull(input, recursive.Syntax, tests);
             }
 
             if (!recursive.Deconstruction.IsDefault)
@@ -481,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (recursive.VariableAccess != null)
             {
                 // we have a "variable" declaration
-                bindings.Add((recursive.VariableAccess, input));
+                bindings.Add(new BoundPatternBinding(recursive.VariableAccess, input));
             }
         }
 
@@ -596,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_defaultLabel != null);
             var finalStates = PooledDictionary<LabelSymbol, BoundDecisionDagNode>.GetInstance();
             finalStates.Add(_defaultLabel, defaultDecision);
-            BoundDecisionDagNode finalState(SyntaxNode syntax, LabelSymbol label, ImmutableArray<(BoundExpression, BoundDagTemp)> bindings)
+            BoundDecisionDagNode finalState(SyntaxNode syntax, LabelSymbol label, ImmutableArray<BoundPatternBinding> bindings)
             {
                 if (!finalStates.TryGetValue(label, out BoundDecisionDagNode final))
                 {
@@ -1175,14 +1179,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly int Index;
             public readonly SyntaxNode Syntax;
             public readonly ImmutableArray<BoundDagTest> RemainingTests;
-            public readonly ImmutableArray<(BoundExpression, BoundDagTemp)> Bindings;
+            public readonly ImmutableArray<BoundPatternBinding> Bindings;
             public readonly BoundExpression WhenClause;
             public readonly LabelSymbol CaseLabel;
             public RemainingTestsForCase(
                 int Index,
                 SyntaxNode Syntax,
                 ImmutableArray<BoundDagTest> RemainingTests,
-                ImmutableArray<(BoundExpression, BoundDagTemp)> Bindings,
+                ImmutableArray<BoundPatternBinding> Bindings,
                 BoundExpression WhenClause,
                 LabelSymbol CaseLabel)
             {
@@ -1208,7 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static bool SameTest(BoundDagTest x, BoundDagTest y)
             {
-                if (x.Input != y.Input || x.Kind != y.Kind)
+                if (x.Kind != y.Kind || x.Input != y.Input)
                 {
                     return false;
                 }
@@ -1221,8 +1225,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.DagValueTest:
                         return ((BoundDagValueTest)x).Value == ((BoundDagValueTest)y).Value;
 
-                    default:
+                    case BoundKind.DagNullTest:
+                    case BoundKind.DagNonNullTest:
                         return true;
+
+                    default:
+                        // For an evaluation, we defer to its .Equals
+                        return x.Equals(y);
                 }
             }
 

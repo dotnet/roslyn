@@ -15,3 +15,19 @@ Each entry should include a short description of the break, followed by either a
 
       if (o is _) // warning: The name '_' refers to the type '_', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
   ```
+
+3. In C# 8.0, the parentheses of a switch statement are optional when the expression being switched on is a tuple expression, because the tuple expression has its own parentheses:
+  ``` c#
+      switch (a, b)
+  ```
+   Due to this the `OpenParenToken` and `CloseParenToken` fields of a `SwitchStatementSyntax` node may now sometimes be empty.
+
+4. In an *is-pattern-expression*, a warning is now issued when a constant expression does not match the provided pattern because of its value. Such code was previously accepted but gave no warning. For example
+  ``` c#
+      if (3 is 4) // warning: the given expression never matches the provided pattern.
+  ```
+  We also issue a warning when a constant expression *always* matches a constant pattern in an *is-pattern-expression*. For example
+  ``` c#
+      if (3 is 3) // warning: the given expression always matches the provided constant.
+  ```
+  Other cases of the pattern always matching (e.g. `e is var t`) do not trigger a warning, even when they are known by the compiler to produce an invariant result.
