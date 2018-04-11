@@ -177,7 +177,8 @@ function Restore-Packages() {
 
     $all = @(
         "Roslyn Toolset:build\ToolsetPackages\RoslynToolset.csproj",
-        "Roslyn:Roslyn.sln")
+        "Roslyn:Roslyn.sln",
+        "NuGetUtil:src\NuGet\NuGetProjectPackUtil.csproj")
 
     foreach ($cur in $all) {
         $both = $cur.Split(':')
@@ -218,13 +219,7 @@ function Make-BootstrapBuild() {
             Run-MSBuild $projectFilePath "/t:Publish /p:TargetFramework=netcoreapp2.0 $bootstrapArgs" -logFileName $logFileName -useDotnetBuild
         }
 
-        # The csi executable is only supported on desktop (even though we do multi-target it to 
-        # netcoreapp2.). Need to build the desktop version here in order to build our NuGet 
-        # packages below. 
-        Run-MSBuild "src/Interactive/csi/csi.csproj" -logFileName "BootstrapCsi" -useDotnetBuild
-
-        Ensure-NuGet | Out-Null
-        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 42.42.42.42-bootstrap $dir `"<developer build>`" Microsoft.NETCore.Compilers.nuspec"
+        Pack-One "Microsoft.NetCore.Compilers.nuspec" "Bootstrap" $dir
         Unzip-File "$dir\Microsoft.NETCore.Compilers.42.42.42.42-bootstrap.nupkg" "$dir\Microsoft.NETCore.Compilers\42.42.42.42"
 
         Write-Host "Cleaning Bootstrap compiler artifacts"
@@ -236,8 +231,7 @@ function Make-BootstrapBuild() {
         Remove-Item -re $dir -ErrorAction SilentlyContinue
         Create-Directory $dir
 
-        Ensure-NuGet | Out-Null
-        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 42.42.42.42-bootstrap $dir `"<developer build>`" Microsoft.Net.Compilers.nuspec"
+        Pack-One "Microsoft.Net.Compilers.nuspec" "Bootstrap" $dir
         Unzip-File "$dir\Microsoft.Net.Compilers.42.42.42.42-bootstrap.nupkg" "$dir\Microsoft.Net.Compilers\42.42.42.42"
 
         Write-Host "Cleaning Bootstrap compiler artifacts"
@@ -352,19 +346,23 @@ function Build-InsertionItems() {
     }
 }
 
+function Pack-One([string]$nuspecFileName, [string]$packageKind, [string]$packageOutDir, [string]$extraArgs) { 
+    $nugetDir = Join-Path $repoDir "src\Nuget"
+    $nuspecFilePath = Join-Path $nugetDir $nuspecFileName
+    $projectFilePath = Join-Path $nugetDir "NuGetProjectPackUtil.csproj"
+    Exec-Console $dotnet "pack -nologo --no-build $projectFilePath $extraArgs /p:NugetPackageKind=$packageKind /p:NuspecFile=$nuspecFilePath /p:NuspecBasePath=$configDir -o $packageOutDir" | Out-Host
+}
+
 function Build-NuGetPackages() {
 
     function Pack-All([string]$packageKind, $extraArgs) {
 
         $packDir = Join-Path $nugetOutDir $packageKind
         Create-Directory $packDir
-
         Write-Host "Packing for $packageKind"
-
         foreach ($item in Get-ChildItem *.nuspec) {
             $name = Split-Path -leaf $item
-            Write-Host "`tPacking $name"
-            Exec-Command $dotnet "pack -nologo --no-build NuGetProjectPackUtil.csproj $extraArgs /p:EmptyDir=$emptyDir /p:NugetPackageKind=$packageKind /p:NuspecFile=$item /p:NuspecBasePath=$configDir -o $packDir" | Out-Null
+            Pack-One $name $packageKind $packDir $extraArgs
         }
     }
 
@@ -373,10 +371,6 @@ function Build-NuGetPackages() {
         $nugetOutDir = Join-Path $configDir "NuGet"
         $extraArgs = ""
         Create-Directory $nugetOutDir
-
-        if ($restore) { 
-            Exec-Command $dotnet "restore NuGetProjectPackUtil.csproj"
-        }
 
         if ($official) {
             $extraArgs += " /p:UseRealCommit=true"

@@ -14,6 +14,7 @@
     <_Version Condition="'$(NuGetPackageKind)' == 'release'">$(NuGetReleaseVersion)</_Version>
     <_Version Condition="'$(NuGetPackageKind)' == 'prerelease'">$(NuGetPreReleaseVersion)</_Version>
     <_Version Condition="'$(NuGetPackageKind)' == 'perbuildprerelease'">$(NuGetPerBuildPreReleaseVersion)</_Version>
+    <_Version Condition="'$(NuGetPackageKind)' == 'bootstrap'">42.42.42.42-bootstrap</_Version>
 
     <_CommitPathMessage>This an unofficial build from a developer's machine</_CommitPathMessage>
     <_CommitPathMessage Condition="'$(UseRealCommit)' == 'true'">This package was built from the source at https://github.com/dotnet/roslyn/commit/$(GitHeadSha)</_CommitPathMessage>
@@ -30,7 +31,7 @@
     <NuspecProperties>$(NuspecProperties);projectUrl=https://github.com/dotnet/roslyn</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);additionalFilesPath=$(RepoRoot)build/NuGetAdditionalFiles</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);srcDirPath=$(RepoRoot)\src</NuspecProperties>
-    <NuspecProperties>$(NuspecProperties);emptyDirPath=$(EmptyDir)</NuspecProperties>
+    <NuspecProperties Condition="'$(EmptyDir)' != ''">$(NuspecProperties);emptyDirPath=$(EmptyDir)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);commitPathMessage=$(_CommitPathMessage)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);tags=Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</NuspecProperties>
 
