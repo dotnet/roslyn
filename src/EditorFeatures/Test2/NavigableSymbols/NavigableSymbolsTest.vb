@@ -51,7 +51,7 @@ class {|target:C|}
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateCSharp(text, exportProvider:=s_exportProvider)
+            Using workspace = TestWorkspace.CreateCSharp(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
                 Await TestNotNavigated(workspace, position.Value, spans)
             End Using
         End Function
@@ -64,7 +64,7 @@ class {|target:C|}
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateCSharp(text, exportProvider:=s_exportProvider)
+            Using workspace = TestWorkspace.CreateCSharp(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
                 Await TestNotNavigated(workspace, position.Value, spans)
             End Using
         End Function
@@ -94,7 +94,7 @@ End Class"
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(text, exportProvider:=s_exportProvider)
+            Using workspace = TestWorkspace.CreateVisualBasic(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
                 Await TestNotNavigated(workspace, position.Value, spans)
             End Using
         End Function
@@ -108,7 +108,7 @@ End Class"
             Dim spans As IDictionary(Of String, ImmutableArray(Of TextSpan)) = Nothing
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(text, exportProvider:=s_exportProvider)
+            Using workspace = TestWorkspace.CreateVisualBasic(text, exportProvider:=s_exportProviderFactory.CreateExportProvider())
                 Await TestNotNavigated(workspace, position.Value, spans)
             End Using
         End Function
