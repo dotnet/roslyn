@@ -1599,6 +1599,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SwitchGoverningExpressionRequiresParens = 8415,
         ERR_TupleElementNameMismatch = 8416,
         ERR_DeconstructParameterNameMismatch = 8417,
+        ERR_IsPatternImpossible = 8418,
+        WRN_GivenExpressionNeverMatchesPattern = 8419,
+        WRN_GivenExpressionAlwaysMatchesConstant = 8420,
         #endregion diagnostics introduced for recursive patterns
 
     }
