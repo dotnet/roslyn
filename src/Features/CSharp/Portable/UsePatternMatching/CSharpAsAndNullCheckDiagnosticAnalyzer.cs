@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     ///     
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal partial class CSharpAsAndNullCheckDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         public override bool OpenFileOnly(Workspace workspace) => false;
 
@@ -85,17 +85,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 }
             }
 
-            if (!TryGetTypeCheckParts(operand, semanticModel,
-                   out var declarator,
-                   out var asExpression,
-                   out var localSymbol))
+            if (!TryGetTypeCheckParts(
+                    semanticModel,
+                    operand,
+                    out var declarator,
+                    out var asExpression,
+                    out var localSymbol))
             {
                 return;
             }
 
             var localStatement = declarator.Parent?.Parent;
             var enclosingBlock = localStatement?.Parent;
-            if (localStatement == null || 
+            if (localStatement == null ||
                 enclosingBlock == null)
             {
                 return;
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var typeNode = ((BinaryExpressionSyntax)asExpression).Right;
+            var typeNode = asExpression.Right;
             var asType = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
             if (asType.IsNullable())
             {
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            if (!((ILocalSymbol)localSymbol).Type.Equals(asType))
+            if (!localSymbol.Type.Equals(asType))
             {
                 // We have something like:
                 //
@@ -138,7 +140,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            if (!CanSafelyConvertToPatternMatching())
+            var analyzer = new Analyzer(
+                semanticModel,
+                localSymbol,
+                comparison,
+                operand,
+                localStatement,
+                enclosingBlock,
+                cancellationToken);
+            if (!analyzer.CanSafelyConvertToPatternMatching())
             {
                 return;
             }
@@ -155,237 +165,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 GetDescriptorWithSeverity(styleOption.Notification.Value),
                 localStatement.GetLocation(),
                 additionalLocations));
-
-            bool CanSafelyConvertToPatternMatching()
-            {
-                bool DataFlowsIn(SyntaxNode statementOrExpression)
-                {
-                    return statementOrExpression != null
-                        && semanticModel.AnalyzeDataFlow(statementOrExpression).DataFlowsIn.Contains(localSymbol);
-                }
-
-                var defAssignedWhenTrue = comparison.Kind() == SyntaxKind.NotEqualsExpression;
-                for (var current = comparison.Parent; current != null; current = current.Parent)
-                {
-                    switch (current.Kind())
-                    {
-                        case SyntaxKind.ParenthesizedExpression:
-                        case SyntaxKind.CastExpression:
-                            // Parentheses and cast expressions do not contribute to the flow analysis.
-                            continue;
-
-                        case SyntaxKind.LogicalNotExpression:
-                            // The !-operator reverses the definitive assignment state.
-                            defAssignedWhenTrue = !defAssignedWhenTrue;
-                            continue;
-
-                        case SyntaxKind.LogicalAndExpression:
-                            if (!defAssignedWhenTrue)
-                            {
-                                return false;
-                            }
-
-                            continue;
-
-                        case SyntaxKind.LogicalOrExpression:
-                            if (defAssignedWhenTrue)
-                            {
-                                return false;
-                            }
-
-                            continue;
-
-                        case SyntaxKind.ConditionalExpression:
-                            var conditionalExpression = (ConditionalExpressionSyntax)current;
-                            if (DataFlowsIn(defAssignedWhenTrue
-                                    ? conditionalExpression.WhenFalse
-                                    : conditionalExpression.WhenTrue))
-                            {
-                                return false;
-                            }
-
-                            return CheckExpression(conditionalExpression);
-
-                        case SyntaxKind.ForStatement:
-                            var forStatement = (ForStatementSyntax)current;
-                            if (!forStatement.Condition.Span.Contains(comparison.Span))
-                            {
-                                return false;
-                            }
-
-                            return CheckLoop(loopBody: forStatement.Statement);
-
-                        case SyntaxKind.WhileStatement:
-                            var whileStatement = (WhileStatementSyntax)current;
-                            return CheckLoop(loopBody: whileStatement.Statement);
-
-                        case SyntaxKind.IfStatement:
-                            var ifStatement = (IfStatementSyntax)current;
-                            var oppositeStatement = defAssignedWhenTrue
-                                ? ifStatement.Else?.Statement
-                                : ifStatement.Statement;
-
-                            if (oppositeStatement != null)
-                            {
-                                var dataFlow = semanticModel.AnalyzeDataFlow(oppositeStatement);
-                                if (dataFlow.DataFlowsIn.Contains(localSymbol))
-                                {
-                                    // Access before assignment is not safe in the opposite branch
-                                    // as the variable is not definitely assgined at this point.
-                                    // For example:
-                                    //
-                                    //    if (o is string x) { }
-                                    //    else { Use(x); }
-                                    //
-                                    return false;
-                                }
-
-                                if (dataFlow.AlwaysAssigned.Contains(localSymbol))
-                                {
-                                    // If the variable is always assigned here, we don't need to check
-                                    // subsequent statements as it's definitely assigned afterwards.
-                                    // For example:
-                                    //
-                                    //     if (o is string x) { }
-                                    //     else { x = null; }
-                                    //
-                                    return true;
-                                }
-                            }
-
-                            if (!defAssignedWhenTrue && 
-                                !semanticModel.AnalyzeControlFlow(ifStatement.Statement).EndPointIsReachable)
-                            {
-                                // Access before assignment here is only valid if we have a negative
-                                // pattern-matching in an if-statement with an unreachable endpoint.
-                                // For example:
-                                //
-                                //      if (!(o is string x)) {
-                                //        return;
-                                //      }
-                                //
-                                //      // The 'return' statement above ensures x is definitely assigned here
-                                //      Console.WriteLine(x);
-                                //
-                                return true;
-                            }
-
-                            return CheckStatement(ifStatement);
-                    }
-
-                    switch (current)
-                    {
-                        case ExpressionSyntax expression:
-                            return CheckExpression(expression);
-                        case StatementSyntax statement:
-                            return CheckStatement(statement);
-                        default:
-                            return CheckStatement(current.GetAncestor<StatementSyntax>());
-                    }
-
-                    bool CheckLoop(StatementSyntax loopBody)
-                    {
-                        if (operand.Kind() == SyntaxKind.IdentifierName)
-                        {
-                            // We have something like:
-                            //
-                            //      var x = e as T;
-                            //      while (b != null) { ... }
-                            //
-                            // It's not necessarily safe to convert this to:
-                            //
-                            //      while (x is T b) { ... }
-                            //
-                            // That's because in this case, unlike the original code, we're type-checking in every iteration
-                            // so we do not replace a simple null check with the "is" operator if it's in a loop.
-                            return false;
-                        }
-
-                        if (!defAssignedWhenTrue && DataFlowsIn(loopBody))
-                        {
-                            return false;
-                        }
-
-                        return !IsAccessedOutOfScope(current);
-                    }
-
-                    bool CheckExpression(ExpressionSyntax exprsesion)
-                    {
-                        // It wouldn't be safe to read after the pattern variable is
-                        // declared inside a sub-expression, because it would not be
-                        // definitely assigned after this point. It's possible to allow
-                        // use after assignment but it's rather unlikely to happen.
-                        return !IsAccessedOutOfScope(exprsesion);
-                    }
-
-                    bool CheckStatement(StatementSyntax statement)
-                    {
-                        if (statement.Parent.IsKind(SyntaxKind.Block, out BlockSyntax block))
-                        {
-                            if (IsAccessedOutOfScope(block))
-                            {
-                                return false;
-                            }
-
-                            var nextStatement = statement.GetNextStatement();
-                            if (nextStatement != null)
-                            {
-                                var dataFlow = semanticModel.AnalyzeDataFlow(nextStatement, block.Statements.Last());
-                                return !dataFlow.DataFlowsIn.Contains(localSymbol);
-                            }
-
-                            return true;
-                        }
-                        else
-                        {
-                            return !IsAccessedOutOfScope(statement);
-                        }
-                    }
-
-                    bool IsAccessedOutOfScope(SyntaxNode scope)
-                    {
-                        var localStatementStart = localStatement.Span.Start;
-                        var variableName = localSymbol.Name;
-
-                        foreach (var descendentNode in enclosingBlock.DescendantNodes())
-                        {
-                            var descendentStart = descendentNode.Span.Start;
-                            if (descendentStart <= localStatementStart)
-                            {
-                                // We're not interested in nodes that are apeared before
-                                // the local declaration statement. It's either an error
-                                // or not the local reference we're looking for.
-                                continue;
-                            }
-
-                            if (scope.Span.Contains(descendentNode.Span))
-                            {
-                                // If this is in the scope, we don't bother checking the symbol.
-                                continue;
-                            }
-
-                            if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName) &&
-                                identifierName.Identifier.ValueText == variableName && 
-                                localSymbol.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol))
-                            {
-                                return true;
-                            }
-                        }
-
-                        return false;
-                    }
-                }
-
-                return false;
-            }
         }
 
         private static bool TryGetTypeCheckParts(
-            SyntaxNode operand,
             SemanticModel semanticModel,
+            SyntaxNode operand,
             out VariableDeclaratorSyntax declarator,
-            out SyntaxNode asExpression,
-            out ISymbol localSymbol)
+            out BinaryExpressionSyntax asExpression,
+            out ILocalSymbol localSymbol)
         {
             switch (operand.Kind())
             {
@@ -394,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         // var x = e as T;
                         // if (x != null) F(x);
                         var identifier = (IdentifierNameSyntax)operand;
-                        if (!TryFindVariableDeclarator(identifier, semanticModel, out localSymbol, out declarator))
+                        if (!TryFindVariableDeclarator(semanticModel, identifier, out localSymbol, out declarator))
                         {
                             break;
                         }
@@ -419,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                             break;
                         }
 
-                        if (!TryFindVariableDeclarator(identifier, semanticModel, out localSymbol, out declarator))
+                        if (!TryFindVariableDeclarator(semanticModel, identifier, out localSymbol, out declarator))
                         {
                             break;
                         }
@@ -435,11 +222,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         }
 
         private static bool TryFindVariableDeclarator(
-            IdentifierNameSyntax identifier, SemanticModel semanticModel,
-            out ISymbol localSymbol,
+            SemanticModel semanticModel,
+            IdentifierNameSyntax identifier,
+            out ILocalSymbol localSymbol,
             out VariableDeclaratorSyntax declarator)
         {
-            localSymbol = semanticModel.GetSymbolInfo(identifier).Symbol;
+            localSymbol = semanticModel.GetSymbolInfo(identifier).Symbol as ILocalSymbol;
             declarator = localSymbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as VariableDeclaratorSyntax;
             return declarator != null;
         }
