@@ -82,6 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.UsingDirective((NameSyntax)name);
         }
 
+        public override SyntaxNode AliasImportDeclaration(string aliasIdentifierName, SyntaxNode name)
+            => SyntaxFactory.UsingDirective(SyntaxFactory.NameEquals(aliasIdentifierName), (NameSyntax)name);
+
         public override SyntaxNode NamespaceDeclaration(SyntaxNode name, IEnumerable<SyntaxNode> declarations)
         {
             return SyntaxFactory.NamespaceDeclaration(
@@ -3961,6 +3964,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.QualifiedName((NameSyntax)left, (SimpleNameSyntax)right).WithAdditionalAnnotations(Simplifier.Annotation);
         }
+
+        public override SyntaxNode NameExpression(INamespaceOrTypeSymbol namespaceOrTypeSymbol)
+            => namespaceOrTypeSymbol.GenerateNameSyntax();
 
         public override SyntaxNode TypeExpression(ITypeSymbol typeSymbol)
         {

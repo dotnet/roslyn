@@ -5380,5 +5380,108 @@ namespace Test
   IL_00ae:  ret
 }");
         }
+
+        [Fact, WorkItem(25991, "https://github.com/dotnet/roslyn/issues/25991")]
+        public void CompilerCrash01()
+        {
+            var source =
+@"namespace Issue25991
+{
+    using System;
+    using System.Threading.Tasks;
+
+    public class CrashClass
+    {
+        public static void Main()
+        {
+            Console.WriteLine(""Passed"");
+        }
+        public async Task CompletedTask()
+        {
+        }
+        public async Task OnCrash()
+        {
+            var switchObject = new object();
+            switch (switchObject)
+            {
+                case InvalidCastException _:
+                    switch (switchObject)
+                    {
+                        case NullReferenceException exception:
+                            await CompletedTask();
+                            var myexception = exception;
+                            break;
+                    }
+                    break;
+                case InvalidOperationException _:
+                    switch (switchObject)
+                    {
+                        case NullReferenceException exception:
+                            await CompletedTask();
+                            var myexception = exception;
+                            break;
+                    }
+                    break;
+            }
+        }
+    }
+}
+";
+            var expected = @"Passed";
+            CompileAndVerify(source, expectedOutput: expected);
+        }
+
+        [Fact, WorkItem(25991, "https://github.com/dotnet/roslyn/issues/25991")]
+        public void CompilerCrash02()
+        {
+            var source =
+@"namespace Issue25991
+{
+    using System;
+    using System.Threading.Tasks;
+
+    public class CrashClass
+    {
+        public static void Main()
+        {
+            Console.WriteLine(""Passed"");
+        }
+        public async Task CompletedTask()
+        {
+        }
+        public async Task OnCrash()
+        {
+            var switchObject = new object();
+            switch (switchObject)
+            {
+                case InvalidCastException x1:
+                    switch (switchObject)
+                    {
+                        case NullReferenceException exception:
+                            await CompletedTask();
+                            var myexception1 = x1;
+                            var myexception = exception;
+                            break;
+                    }
+                    break;
+                case InvalidOperationException x1:
+                    switch (switchObject)
+                    {
+                        case NullReferenceException exception:
+                            await CompletedTask();
+                            var myexception1 = x1;
+                            var myexception = exception;
+                            var x2 = switchObject;
+                            break;
+                    }
+                    break;
+            }
+        }
+    }
+}
+";
+            var expected = @"Passed";
+            CompileAndVerify(source, expectedOutput: expected);
+        }
     }
 }

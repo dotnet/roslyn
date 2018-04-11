@@ -986,6 +986,12 @@ End Module").Path
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
             Assert.Null(desc)
+
+            Dim longI = New String("i"c, 260)
+
+            desc = VisualBasicCommandLineParser.ParseResourceDescription("", String.Format("{0},e,private", longI), _baseDirectory, diags, embedded:=False)
+            ' // error BC2032: File name 'iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+            diags.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii").WithLocation(1, 1))
         End Sub
 
         <Fact>
@@ -2137,6 +2143,66 @@ End Module").Path
 
             parsedArgs = DefaultParse({"/reference-:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/reference-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
+        End Sub
+
+        Private Class SimpleMetadataResolver
+            Inherits MetadataReferenceResolver
+
+            Private ReadOnly _pathResolver As RelativePathResolver
+
+            Public Sub New(baseDirectory As String)
+                _pathResolver = New RelativePathResolver(ImmutableArray(Of String).Empty, baseDirectory)
+            End Sub
+
+            Public Overrides Function ResolveReference(reference As String, baseFilePath As String, properties As MetadataReferenceProperties) As ImmutableArray(Of PortableExecutableReference)
+                Dim resolvedPath = _pathResolver.ResolvePath(reference, baseFilePath)
+
+                If resolvedPath Is Nothing OrElse Not File.Exists(reference) Then
+                    Return Nothing
+                End If
+
+                Return ImmutableArray.Create(MetadataReference.CreateFromFile(resolvedPath, properties))
+            End Function
+
+            Public Overrides Function Equals(other As Object) As Boolean
+                Return True
+            End Function
+
+            Public Overrides Function GetHashCode() As Integer
+                Return 1
+            End Function
+        End Class
+
+        <Fact>
+        Public Sub Reference_CorLibraryAddedWhenThereAreUnresolvedReferences()
+            Dim parsedArgs = DefaultParse({"/r:unresolved", "a.vb"}, _baseDirectory)
+
+            Dim metadataResolver = New SimpleMetadataResolver(_baseDirectory)
+            Dim references = parsedArgs.ResolveMetadataReferences(metadataResolver).ToImmutableArray()
+
+            Assert.Equal(4, references.Length)
+            Assert.Contains(references, Function(r) r.IsUnresolved)
+            Assert.Contains(references, Function(r)
+                                            Dim peRef = TryCast(r, PortableExecutableReference)
+                                            Return peRef IsNot Nothing AndAlso
+                                                   peRef.FilePath.EndsWith("mscorlib.dll", StringComparison.Ordinal)
+                                        End Function)
+        End Sub
+
+        <Fact>
+        Public Sub Reference_CorLibraryAddedWhenThereAreNoUnresolvedReferences()
+            Dim parsedArgs = DefaultParse({"a.vb"}, _baseDirectory)
+
+            Dim metadataResolver = New SimpleMetadataResolver(_baseDirectory)
+            Dim references = parsedArgs.ResolveMetadataReferences(metadataResolver).ToImmutableArray()
+
+            Assert.Equal(3, references.Length)
+            Assert.DoesNotContain(references, Function(r) r.IsUnresolved)
+            Assert.Contains(references, Function(r)
+                                            Dim peRef = TryCast(r, PortableExecutableReference)
+                                            Return peRef IsNot Nothing AndAlso
+                                                   peRef.FilePath.EndsWith("mscorlib.dll", StringComparison.Ordinal)
+                                        End Function)
         End Sub
 
         <Fact>
@@ -8876,6 +8942,25 @@ Class Program
     End Sub
 End Class").Path
         End Function
+
+        <Fact>
+        <WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")>
+        Public Sub InvalidPathCharacterInPathMap()
+            Dim filePath = Temp.CreateFile().WriteAllText("").Path
+            Dim compiler = New MockVisualBasicCompiler(Nothing, _baseDirectory,
+            {
+                filePath,
+                "/debug:embedded",
+                "/pathmap:test\\=""",
+                "/target:library",
+                "/preferreduilang:en"
+            })
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = compiler.Run(outWriter)
+            Assert.Equal(1, exitCode)
+            Assert.Contains("vbc : error BC37253: The pathmap option was incorrectly formatted.", outWriter.ToString(), StringComparison.Ordinal)
+        End Sub
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

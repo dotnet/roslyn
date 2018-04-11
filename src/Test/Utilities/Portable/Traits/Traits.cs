@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsAddOverload = "CodeActions.AddOverloads";
             public const string CodeActionsAddParameter = "CodeActions.AddParameter";
             public const string CodeActionsAddParenthesesAroundConditionalExpressionInInterpolatedString = "CodeActions.AddParenthesesAroundConditionalExpressionInInterpolatedString";
+            public const string CodeActionsAliasAmbiguousType = "CodeActions.AliasAmbiguousType";
             public const string CodeActionsChangeToAsync = "CodeActions.ChangeToAsync";
             public const string CodeActionsChangeToIEnumerable = "CodeActions.ChangeToIEnumerable";
             public const string CodeActionsChangeToYield = "CodeActions.ChangeToYield";
@@ -166,6 +167,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string LineSeparators = nameof(LineSeparators);
             public const string LinkedFileDiffMerging = nameof(LinkedFileDiffMerging);
             public const string MetadataAsSource = nameof(MetadataAsSource);
+            public const string MSBuildWorkspace = nameof(MSBuildWorkspace);
             public const string NamingStyle = nameof(NamingStyle);
             public const string NavigableSymbols = nameof(NavigableSymbols);
             public const string NavigateTo = nameof(NavigateTo);
