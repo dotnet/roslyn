@@ -18,6 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    [UseExportProvider]
     public class EditSessionTests : TestBase
     {
         internal sealed class TestActiveStatementProvider : IActiveStatementProvider

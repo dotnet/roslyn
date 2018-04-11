@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
                 case Glyph.Parameter:
                 case Glyph.Local:
-                    return new ImageId(KnownMonikers.LocalVariable.Guid, KnownMonikers.LocalVariable.Id);
+                    return new ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.LocalVariable);
 
                 case Glyph.Namespace:
                     return new ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.Namespace);
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 case Glyph.Reference:
                     return new ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.Reference);
 
-                //// this is not a copy-paste mistake, we were using these before in the previous GetImageMoniker()               
+                //// this is not a copy-paste mistake, we were using these before in the previous GetImageMoniker()
                 //case Glyph.StructurePublic:
                 //    return KnownMonikers.ValueTypePublic;
                 //case Glyph.StructureProtected:
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 //    return KnownMonikers.ValueTypePrivate;
                 //case Glyph.StructureInternal:
                 //    return KnownMonikers.ValueTypeInternal;
-                
+
                 case Glyph.StructurePublic:
                     return new ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.ValueTypePublic);
                 case Glyph.StructureProtected:
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 case Glyph.StatusInformation:
                     return new ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.StatusInformation);
 
-                case Glyph.NuGet:                    
+                case Glyph.NuGet:
                     return new ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.NuGet);
 
                 default:
