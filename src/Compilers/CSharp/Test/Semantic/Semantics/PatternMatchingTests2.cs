@@ -1307,6 +1307,63 @@ class Blah
                 );
         }
 
+        [Fact]
+        public void PropertyPatternMemberMissing03()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        switch (b)
+        {
+            case Blah { X: int i }:
+                break;
+        }
+    }
+}
+
+class Blah
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,25): error CS0117: 'Blah' does not contain a definition for 'X'
+                //             case Blah { X: int i }:
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("Blah", "X").WithLocation(8, 25)
+                );
+        }
+
+        [Fact]
+        public void PropertyPatternMemberMissing04()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        switch (b)
+        {
+            case Blah { X: int i }:
+                break;
+        }
+    }
+}
+
+class Blah
+{
+    public int X { set {} }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,25): error CS0154: The property or indexer 'Blah.X' cannot be used in this context because it lacks the get accessor
+                //             case Blah { X: int i }:
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "X:").WithArguments("Blah.X").WithLocation(8, 25)
+                );
+        }
+
         // PROTOTYPE(patterns2): Need to have tests that exercise:
         // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
         // PROTOTYPE(patterns2): Definite assignment for the var-pattern
