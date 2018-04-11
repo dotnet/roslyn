@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
-            BoundExpression convertedExpression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);
+            BoundExpression convertedExpression = ConvertPatternExpression(operandType, patternExpression, expression, out constantValueOpt, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
             if (!convertedExpression.HasErrors && constantValueOpt == null)
             {
@@ -166,19 +166,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, hasErrors);
         }
 
-        internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, CSharpSyntaxNode node, BoundExpression expression, ref ConstantValue constantValue, DiagnosticBag diagnostics)
+        internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, CSharpSyntaxNode node, BoundExpression expression, out ConstantValue constantValue, DiagnosticBag diagnostics)
         {
             BoundExpression convertedExpression;
-            if (inputType.ContainsTypeParameter())
+
+            // If we are pattern-matching against an open type, we do not convert the constant to the type of the input.
+            // This permits us to match a value of type `IComparable<T>` with a pattern of type `int`.
+            if (inputType.ContainsTypeParameter() &&
+                // But do not permit matching null against a struct type.
+                (expression.ConstantValue != ConstantValue.Null || !inputType.IsNonNullableValueType()))
             {
-                // If we are pattern-matching against an open type, we do not convert the constant to the type of the input.
                 convertedExpression = expression;
             }
             else
             {
-                // NOTE: This will allow user-defined conversions, even though they're not allowed here.  This is acceptable
-                // because the result of a user-defined conversion does not have a ConstantValue and we'll report a diagnostic
-                // to that effect later.
+                // This will allow user-defined conversions, even though they're not permitted here.  This is acceptable
+                // because the result of a user-defined conversion does not have a ConstantValue. A constant pattern
+                // requires a constant value so we'll report a diagnostic to that effect later.
                 convertedExpression = GenerateConversionForAssignment(inputType, expression, diagnostics);
 
                 if (convertedExpression.Kind == BoundKind.Conversion)
