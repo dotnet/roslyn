@@ -22,7 +22,17 @@ Each entry should include a short description of the break, followed by either a
   ```
    Due to this the `OpenParenToken` and `CloseParenToken` fields of a `SwitchStatementSyntax` node may now sometimes be empty.
 
-4. https://github.com/dotnet/roslyn/issues/26098 In C# 8, we give a warning when an is-type expression is always `false` because the input type is an open class type and the type it is tested against is a value type:
+4. In an *is-pattern-expression*, a warning is now issued when a constant expression does not match the provided pattern because of its value. Such code was previously accepted but gave no warning. For example
+  ``` c#
+      if (3 is 4) // warning: the given expression never matches the provided pattern.
+  ```
+  We also issue a warning when a constant expression *always* matches a constant pattern in an *is-pattern-expression*. For example
+  ``` c#
+      if (3 is 3) // warning: the given expression always matches the provided constant.
+  ```
+  Other cases of the pattern always matching (e.g. `e is var t`) do not trigger a warning, even when they are known by the compiler to produce an invariant result.
+
+5. https://github.com/dotnet/roslyn/issues/26098 In C# 8, we give a warning when an is-type expression is always `false` because the input type is an open class type and the type it is tested against is a value type:
   ``` c#
     class C<T> { }
     void M<T>(C<T> x)

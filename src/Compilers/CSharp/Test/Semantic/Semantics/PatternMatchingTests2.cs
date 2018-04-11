@@ -157,6 +157,47 @@ class Program
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
+                // (9,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                //         Check(false, p is (1, 4) { x: 3 });
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (1, 4) { x: 3 }").WithArguments("(int x, int y)").WithLocation(9, 22),
+                // (10,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                //         Check(false, p is (3, 1) { y: 4 });
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (3, 1) { y: 4 }").WithArguments("(int x, int y)").WithLocation(10, 22),
+                // (11,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                //         Check(false, p is (3, 4) { x: 1 });
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (3, 4) { x: 1 }").WithArguments("(int x, int y)").WithLocation(11, 22),
+                // (13,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                //         Check(false, p is (1, 4) { x: 3 });
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (1, 4) { x: 3 }").WithArguments("(int x, int y)").WithLocation(13, 22),
+                // (15,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                //         Check(false, p is (3, 4) { x: 1 });
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (3, 4) { x: 1 }").WithArguments("(int x, int y)").WithLocation(15, 22)
+                );
+        }
+
+        [Fact]
+        public void Patterns2_04b()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        var p = (x: 3, y: 4);
+        Check(true, p is (3, 4) q1 && Check(p, q1));
+        Check(true, p is (3, 4) { x: 3 } q2 && Check(p, q2));
+        Check(false, p is (3, 1) { x: 3 });
+    }
+    private static bool Check<T>(T expected, T actual)
+    {
+        if (!object.Equals(expected, actual)) throw new Exception($""expected: {expected}; actual: {actual}"");
+        return true;
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "");
         }
@@ -1220,6 +1261,164 @@ class Program1
                 );
         }
 
+        [Fact]
+        public void ERR_IsPatternImpossible()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""frog"" is string { Length: 4, Length: 5 });
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,34): error CS8415: An expression of type 'string' can never match the provided pattern.
+                //         System.Console.WriteLine("frog" is string { Length: 4, Length: 5 });
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"""frog"" is string { Length: 4, Length: 5 }").WithArguments("string").WithLocation(5, 34)
+                );
+        }
+
+        [Fact]
+        public void WRN_GivenExpressionNeverMatchesPattern01()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(3 is 4);
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,34): warning CS8416: The given expression never matches the provided pattern.
+                //         System.Console.WriteLine(3 is 4);
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "3 is 4").WithLocation(5, 34)
+                );
+        }
+
+        [Fact]
+        public void WRN_GivenExpressionNeverMatchesPattern02()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        const string s = null;
+        System.Console.WriteLine(s is string { Length: 3 });
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,34): warning CS8416: The given expression never matches the provided pattern.
+                //         System.Console.WriteLine(s is string { Length: 3 });
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string { Length: 3 }").WithLocation(6, 34)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignmentForIsPattern01()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        string s = 300.ToString();
+        System.Console.WriteLine(s is string { Length: int j });
+        System.Console.WriteLine(j);
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,34): error CS0165: Use of unassigned local variable 'j'
+                //         System.Console.WriteLine(j);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "j").WithArguments("j").WithLocation(7, 34)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignmentForIsPattern02()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        const string s = ""300"";
+        System.Console.WriteLine(s is string { Length: int j });
+        System.Console.WriteLine(j);
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"True
+3";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void DefiniteAssignmentForIsPattern03()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int j;
+        const string s = null;
+        if (s is string { Length: 3 })
+        {
+            System.Console.WriteLine(j);
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,13): warning CS8416: The given expression never matches the provided pattern.
+                //         if (s is string { Length: 3 })
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string { Length: 3 }").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void RefutableConstantPattern01()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int j;
+        const int N = 3;
+        const int M = 3;
+        if (N is M)
+        {
+        }
+        else
+        {
+            System.Console.WriteLine(j);
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,13): warning CS8417: The given expression always matches the provided constant.
+                //         if (N is M)
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "N is M").WithLocation(8, 13)
+                );
+        }
+
         [Fact, WorkItem(25591, "https://github.com/dotnet/roslyn/issues/25591")]
         public void TupleSubsumptionError()
         {
@@ -1557,6 +1756,116 @@ static class Extensions
                 // (7,19): error CS8416: The name 'Item2' does not identify tuple element 'Item1'.
                 //             case (Item2: 1, 2):
                 Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "Item2").WithArguments("Item2", "Item1").WithLocation(7, 19)
+                );
+        }
+
+        [Fact]
+        public void PropertyPatternMemberMissing01()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        if (b is Blah { X: int i })
+        {
+        }
+    }
+}
+
+class Blah
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,25): error CS0117: 'Blah' does not contain a definition for 'X'
+                //         if (b is Blah { X: int i })
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("Blah", "X").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void PropertyPatternMemberMissing02()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        if (b is Blah { X: int i })
+        {
+        }
+    }
+}
+
+class Blah
+{
+    public int X { set {} }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,25): error CS0154: The property or indexer 'Blah.X' cannot be used in this context because it lacks the get accessor
+                //         if (b is Blah { X: int i })
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "X:").WithArguments("Blah.X").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void PropertyPatternMemberMissing03()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        switch (b)
+        {
+            case Blah { X: int i }:
+                break;
+        }
+    }
+}
+
+class Blah
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,25): error CS0117: 'Blah' does not contain a definition for 'X'
+                //             case Blah { X: int i }:
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("Blah", "X").WithLocation(8, 25)
+                );
+        }
+
+        [Fact]
+        public void PropertyPatternMemberMissing04()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        switch (b)
+        {
+            case Blah { X: int i }:
+                break;
+        }
+    }
+}
+
+class Blah
+{
+    public int X { set {} }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,25): error CS0154: The property or indexer 'Blah.X' cannot be used in this context because it lacks the get accessor
+                //             case Blah { X: int i }:
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "X:").WithArguments("Blah.X").WithLocation(8, 25)
                 );
         }
 

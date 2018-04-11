@@ -2641,9 +2641,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!operand.HasAnyErrors)
                     {
                         Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
-                        operand = BadExpression(node, operand).MakeCompilerGenerated();
                     }
 
+                    operand = BadExpression(node, operand).MakeCompilerGenerated();
                     return true;
 
                 default:
@@ -2655,6 +2655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Error(diagnostics, ErrorCode.ERR_BadUnaryOp, node, SyntaxFacts.GetText(SyntaxKind.IsKeyword), operand.Display);
                         }
 
+                        operand = BadExpression(node, operand).MakeCompilerGenerated();
                         return true;
                     }
 
@@ -2724,7 +2725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     isTypeDiagnostics.Free();
                     diagnostics.AddRangeAndFree(isPatternDiagnostics);
-                    return new BoundIsPatternExpression(node, operand, boundConstantPattern, resultType, operandHasErrors);
+                    return MakeIsPatternExpression(node, operand, boundConstantPattern, resultType, operandHasErrors, diagnostics);
                 }
 
                 isPatternDiagnostics.Free();

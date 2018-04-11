@@ -20,23 +20,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol expressionType = expression.Type;
             if ((object)expressionType == null || expressionType.SpecialType == SpecialType.System_Void)
             {
-                expressionType = CreateErrorType();
                 if (!hasErrors)
                 {
                     // value expected
                     diagnostics.Add(ErrorCode.ERR_BadPatternExpression, node.Expression.Location, expression.Display);
                     hasErrors = true;
                 }
+
+                expression = BadExpression(expression.Syntax, expression);
             }
 
-            BoundPattern pattern = BindPattern(node.Pattern, expressionType, hasErrors, diagnostics);
-            if (!hasErrors && pattern is BoundDeclarationPattern p && !p.IsVar && expression.ConstantValue == ConstantValue.Null)
+            BoundPattern pattern = BindPattern(node.Pattern, expression.Type, hasErrors, diagnostics);
+            hasErrors |= pattern.HasErrors;
+            return MakeIsPatternExpression(
+                node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node),
+                hasErrors, diagnostics);
+        }
+
+        private BoundExpression MakeIsPatternExpression(SyntaxNode node, BoundExpression expression, BoundPattern pattern, TypeSymbol boolType, bool hasErrors, DiagnosticBag diagnostics)
+        {
+            // Note that these labels are for the convenience of the compilation of patterns, and are not actually emitted into the lowered code.
+            LabelSymbol whenTrueLabel = new GeneratedLabelSymbol("isPatternSuccess");
+            LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
+            BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
+                this.Compilation, pattern.Syntax, expression, pattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
+            if (!hasErrors && !decisionDag.ReachableLabels.Contains(whenTrueLabel))
             {
-                diagnostics.Add(ErrorCode.WRN_IsAlwaysFalse, node.Location, p.DeclaredType.Type);
+                diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
+                hasErrors = true;
             }
 
-            return new BoundIsPatternExpression(
-                node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
+            if (expression.ConstantValue != null)
+            {
+                decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(expression);
+                if (!hasErrors)
+                {
+                    if (!decisionDag.ReachableLabels.Contains(whenTrueLabel))
+                    {
+                        diagnostics.Add(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, node.Location);
+                    }
+                    else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel) && pattern.Kind == BoundKind.ConstantPattern)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, node.Location);
+                    }
+                }
+            }
+
+            return new BoundIsPatternExpression(node, expression, pattern, decisionDag, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, boolType, hasErrors);
         }
 
         private BoundExpression BindSwitchExpression(SwitchExpressionSyntax node, DiagnosticBag diagnostics)
@@ -726,14 +756,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Symbol symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
 
-            if (inputType.IsErrorType() || hasErrors)
+            if (inputType.IsErrorType() || hasErrors || symbol == (object)null)
             {
                 memberType = CreateErrorType();
                 return null;
             }
-
-            memberType = symbol.GetTypeOrReturnType();
-            return symbol;
+            else
+            {
+                memberType = symbol.GetTypeOrReturnType();
+                return symbol;
+            }
         }
 
         private Symbol BindPropertyPatternMember(
@@ -794,16 +826,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             default:
                                 Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, memberName, name);
-                                hasErrors = true;
                                 break;
                         }
                     }
+
+                    hasErrors = true;
                     return null;
             }
 
             if (hasErrors || !CheckValueKind(node: memberName.Parent, expr: boundMember, valueKind: BindValueKind.RValue,
                                              checkingReceiver: false, diagnostics: diagnostics))
             {
+                hasErrors = true;
                 return null;
             }
 

@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variablesDeclared = null;
         }
 
-        public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
+        public override void VisitPattern(BoundPattern pattern)
         {
-            base.VisitPattern(expression, pattern);
+            base.VisitPattern(pattern);
             NoteDeclaredPatternVariables(pattern);
         }
 
