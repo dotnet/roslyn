@@ -1254,6 +1254,312 @@ class Cat {}
             var comp = CompileAndVerify(compilation, expectedOutput: @"Fox Cat");
         }
 
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns01()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (a: 1, b: 2)
+        {
+            case (c: 2, d: 3): // error: c and d not defined
+                break;
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,19): error CS8416: The name 'c' does not identify tuple element 'Item1'.
+                //             case (c: 2, d: 3): // error: c and d not defined
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "c").WithArguments("c", "Item1").WithLocation(7, 19),
+                // (7,25): error CS8416: The name 'd' does not identify tuple element 'Item2'.
+                //             case (c: 2, d: 3): // error: c and d not defined
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "d").WithArguments("d", "Item2").WithLocation(7, 25)
+                );
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns02()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (a: 1, b: 2)
+        {
+            case (a: 2, a: 3):
+                break;
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,25): error CS8416: The name 'a' does not identify tuple element 'Item2'.
+                //             case (a: 2, a: 3):
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "a").WithArguments("a", "Item2").WithLocation(7, 25)
+                );
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns03()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (a: 1, b: 2)
+        {
+            case (a: 2, Item2: 3):
+                System.Console.WriteLine(666);
+                break;
+            case (a: 1, Item2: 2):
+                System.Console.WriteLine(111);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"111");
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns04()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (new T(a: 1, b: 2))
+        {
+            case (c: 2, d: 3):
+                break;
+        }
+    }
+}
+class T
+{
+    public int A;
+    public int B;
+    public T(int a, int b) => (A, B) = (a, b);
+    public void Deconstruct(out int a, out int b) => (a, b) = (A, B);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,19): error CS8417: The name 'c' does not match the corresponding 'Deconstruct' parameter 'a'.
+                //             case (c: 2, d: 3):
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "c").WithArguments("c", "a").WithLocation(7, 19),
+                // (7,25): error CS8417: The name 'd' does not match the corresponding 'Deconstruct' parameter 'b'.
+                //             case (c: 2, d: 3):
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "d").WithArguments("d", "b").WithLocation(7, 25)
+                );
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns05()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (new T(a: 1, b: 2))
+        {
+            case (c: 2, d: 3):
+                break;
+        }
+    }
+}
+class T
+{
+    public int A;
+    public int B;
+    public T(int a, int b) => (A, B) = (a, b);
+}
+static class Extensions
+{
+    public static void Deconstruct(this T t, out int a, out int b) => (a, b) = (t.A, t.B);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,19): error CS8417: The name 'c' does not match the corresponding 'Deconstruct' parameter 'a'.
+                //             case (c: 2, d: 3):
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "c").WithArguments("c", "a").WithLocation(7, 19),
+                // (7,25): error CS8417: The name 'd' does not match the corresponding 'Deconstruct' parameter 'b'.
+                //             case (c: 2, d: 3):
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "d").WithArguments("d", "b").WithLocation(7, 25)
+                );
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns06()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (new T(a: 1, b: 2))
+        {
+            case (a: 2, a: 3):
+                break;
+        }
+    }
+}
+class T
+{
+    public int A;
+    public int B;
+    public T(int a, int b) => (A, B) = (a, b);
+    public void Deconstruct(out int a, out int b) => (a, b) = (A, B);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,25): error CS8417: The name 'a' does not match the corresponding 'Deconstruct' parameter 'b'.
+                //             case (a: 2, a: 3):
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "a").WithArguments("a", "b").WithLocation(7, 25)
+                );
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns07()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (new T(a: 1, b: 2))
+        {
+            case (a: 2, a: 3):
+                break;
+        }
+    }
+}
+class T
+{
+    public int A;
+    public int B;
+    public T(int a, int b) => (A, B) = (a, b);
+}
+static class Extensions
+{
+    public static void Deconstruct(this T t, out int a, out int b) => (a, b) = (t.A, t.B);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,25): error CS8417: The name 'a' does not match the corresponding 'Deconstruct' parameter 'b'.
+                //             case (a: 2, a: 3):
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "a").WithArguments("a", "b").WithLocation(7, 25)
+                );
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns08()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (new T(a: 1, b: 2))
+        {
+            case (a: 2, b: 3):
+                System.Console.WriteLine(666);
+                break;
+            case (a: 1, b: 2):
+                System.Console.WriteLine(111);
+                break;
+        }
+    }
+}
+class T
+{
+    public int A;
+    public int B;
+    public T(int a, int b) => (A, B) = (a, b);
+    public void Deconstruct(out int a, out int b) => (a, b) = (A, B);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"111");
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns09()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (new T(a: 1, b: 2))
+        {
+            case (a: 2, b: 3):
+                System.Console.WriteLine(666);
+                break;
+            case (a: 1, b: 2):
+                System.Console.WriteLine(111);
+                break;
+        }
+    }
+}
+class T
+{
+    public int A;
+    public int B;
+    public T(int a, int b) => (A, B) = (a, b);
+}
+static class Extensions
+{
+    public static void Deconstruct(this T t, out int a, out int b) => (a, b) = (t.A, t.B);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"111");
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns10()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (a: 1, b: 2)
+        {
+            case (Item2: 1, 2):
+                break;
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,19): error CS8416: The name 'Item2' does not identify tuple element 'Item1'.
+                //             case (Item2: 1, 2):
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "Item2").WithArguments("Item2", "Item1").WithLocation(7, 19)
+                );
+        }
+
         // PROTOTYPE(patterns2): Need to have tests that exercise:
         // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
         // PROTOTYPE(patterns2): Definite assignment for the var-pattern
