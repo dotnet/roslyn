@@ -20,11 +20,14 @@
     <NuspecFile></NuspecFile>
     <NuspecProperties>$(NuspecProperties);version=$(_Version)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);authors=Microsoft</NuspecProperties>
-    <NuspecProperties>$(NuspecProperties);licenseUrl=http://go.microsoft.com/fwlink/?LinkId=529443</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);licenseUrlRedist=http://go.microsoft.com/fwlink/?LinkId=529443</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);licenseUrlNonRedist=http://go.microsoft.com/fwlink/?LinkId=529444</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);licenseUrlSource=https://github.com/dotnet/roslyn/blob/master/License.txt</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);projectUrl=https://github.com/dotnet/roslyn</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);additionalFilesPath=$(RepoRoot)build/NuGetAdditionalFiles</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);srcDirPath=$(RepoRoot)\src</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);emptyDirPath=$(EmptyDir)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);tags=Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</NuspecProperties>
 
     <!-- The set of NuGet packages whose versions we need in the NuSpec file -->
     <NuspecProperties>$(NuspecProperties);MicrosoftBuildFixedVersion=$(MicrosoftBuildFixedVersion)</NuspecProperties>
