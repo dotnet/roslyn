@@ -120,8 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var localSymbol1 = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
-            if (!localSymbol1.Type.Equals(asType))
+            if (!((ILocalSymbol)localSymbol).Type.Equals(asType))
             {
                 // We have something like:
                 //
@@ -298,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                             //      while (x is T b) { ... }
                             //
                             // That's because in this case, unlike the original code, we're type-checking in every iteration
-                            // so we do not replace simple null check with the "is" operator if it's in a while loop
+                            // so we do not replace a simple null check with the "is" operator if it's in a loop.
                             return false;
                         }
 
@@ -353,15 +352,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                             var descendentStart = descendentNode.Span.Start;
                             if (descendentStart <= localStatementStart)
                             {
-                                // We're not interested in node that are apeared before
+                                // We're not interested in nodes that are apeared before
                                 // the local declaration statement. It's either an error
                                 // or not the local reference we're looking for.
                                 continue;
                             }
 
+                            if (scope.Span.Contains(descendentNode.Span))
+                            {
+                                // If this is in the scope, we don't bother checking the symbol.
+                                continue;
+                            }
+
                             if (descendentNode.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName) &&
                                 identifierName.Identifier.ValueText == variableName && 
-                                !scope.Span.Contains(identifierName.Span) && 
                                 localSymbol.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol))
                             {
                                 return true;
