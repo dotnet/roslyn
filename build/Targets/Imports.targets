@@ -299,7 +299,7 @@
     <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
   </PropertyGroup>
 
-  <Target Name="RestoreToolsetCheck" Condition="'$(BuildingProject)' == 'true'">
+  <Target Name="RestoreToolsetCheck" Condition="'$(BuildingProject)' == 'true' AND '$(DotNetBuildFromSource)' != 'true'">
       <Error Text="Toolset packages have not been restored, run Restore.cmd before building. Expected '$(RoslynToolsetPropsFilePath)' to exist."
              Condition="!Exists('$(RoslynToolsetPropsFilePath)')" />
       <Error Text="Analyzer packages have not been restored, run Restore.cmd before building. File not found: '$(RoslynDiagnosticsPropsFilePath)'"
