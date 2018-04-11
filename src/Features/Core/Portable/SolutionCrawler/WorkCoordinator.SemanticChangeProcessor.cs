@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal sealed partial class SolutionCrawlerRegistrationService
     {
+        /// <summary>
+        /// this will be used in the unit test to indicate certain action has happened or not.
+        /// </summary>
         public const string EnqueueItem = nameof(EnqueueItem);
 
         private sealed partial class WorkCoordinator
@@ -77,7 +80,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     var data = Dequeue();
 
-                    try
+                    using (data.AsyncToken)
                     {
                         // we have a hint. check whether we can take advantage of it
                         if (await TryEnqueueFromHint(data.Document, data.ChangedMember).ConfigureAwait(continueOnCapturedContext: false))
@@ -86,10 +89,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         EnqueueFullProjectDependency(data.Document);
-                    }
-                    finally
-                    {
-                        data.AsyncToken.Dispose();
                     }
                 }
 
@@ -421,7 +420,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         var data = Dequeue();
 
-                        try
+                        using (data.AsyncToken)
                         {
                             var project = _registration.CurrentSolution.GetProject(data.ProjectId);
                             if (project == null)
@@ -442,10 +441,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 project = solution.GetProject(projectId);
                                 await EnqueueWorkItemAsync(project).ConfigureAwait(false);
                             }
-                        }
-                        finally
-                        {
-                            data.AsyncToken.Dispose();
                         }
                     }
 

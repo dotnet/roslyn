@@ -1280,12 +1280,6 @@ End Class";
             #endregion
         }
 
-        [ExportWorkspaceService(typeof(IGlobalOperationNotificationService), SolutionCrawler), Shared, PartNotDiscoverable]
-        private class TestGlobalOperationService : GlobalOperationNotificationService
-        {
-            // this test only global notification service
-        }
-
 #if false
         private string GetListenerTrace(ExportProvider provider)
         {
