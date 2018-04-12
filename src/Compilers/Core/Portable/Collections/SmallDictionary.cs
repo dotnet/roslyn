@@ -244,17 +244,14 @@ namespace Microsoft.CodeAnalysis
 
         private void Insert(int hashCode, K key, V value, bool add)
         {
-            AvlNode currentNode = _root;
-
-            if (currentNode == null)
+            if (_root == null)
             {
                 _root = new AvlNode(hashCode, key, value);
                 return;
             }
 
-            AvlNode currentNodeParent = null;
-            AvlNode unbalanced = currentNode;
-            AvlNode unbalancedParent = null;
+            ref AvlNode currentNode = ref _root;
+            ref AvlNode unbalanced = ref currentNode;
 
             // ====== insert new node
             // also make a note of the last unbalanced node and its parent (for rotation if needed)
@@ -263,41 +260,26 @@ namespace Microsoft.CodeAnalysis
             // either way nodes above unbalanced do not change their balance
             for (;;)
             {
-                // schedule hk read 
                 var hc = currentNode.HashCode;
+                if (hc == hashCode)
+                {
+                    this.HandleInsert(ref currentNode, key, value, add);
+                    return;
+                }
+
+                currentNode = ref (hc > hashCode) ?
+                                        ref currentNode.Left:
+                                        ref currentNode.Right;
+
+                if (currentNode == null)
+                {
+                    currentNode = new AvlNode(hashCode, key, value);
+                    break;
+                }
 
                 if (currentNode.Balance != 0)
                 {
-                    unbalancedParent = currentNodeParent;
-                    unbalanced = currentNode;
-                }
-
-                if (hc > hashCode)
-                {
-                    if (currentNode.Left == null)
-                    {
-                        currentNode.Left = currentNode = new AvlNode(hashCode, key, value);
-                        break;
-                    }
-
-                    currentNodeParent = currentNode;
-                    currentNode = currentNode.Left;
-                }
-                else if (hc < hashCode)
-                {
-                    if (currentNode.Right == null)
-                    {
-                        currentNode.Right = currentNode = new AvlNode(hashCode, key, value);
-                        break;
-                    }
-
-                    currentNodeParent = currentNode;
-                    currentNode = currentNode.Right;
-                }
-                else // (p.HashCode == hashCode)
-                {
-                    this.HandleInsert(currentNode, currentNodeParent, key, value, add);
-                    return;
+                    unbalanced = ref currentNode;
                 }
             }
 
@@ -323,37 +305,18 @@ namespace Microsoft.CodeAnalysis
             while (n != currentNode);
 
             // ====== rotate unbalanced node if needed
-            AvlNode rotated;
             var balance = unbalanced.Balance;
             if (balance == -2)
             {
-                rotated = unbalanced.Right.Balance < 0 ?
+                unbalanced = unbalanced.Right.Balance < 0 ?
                     LeftSimple(unbalanced) :
                     LeftComplex(unbalanced);
             }
             else if (balance == 2)
             {
-                rotated = unbalanced.Left.Balance > 0 ?
+                unbalanced = unbalanced.Left.Balance > 0 ?
                     RightSimple(unbalanced) :
                     RightComplex(unbalanced);
-            }
-            else
-            {
-                return;
-            }
-
-            // ===== make parent to point to rotated
-            if (unbalancedParent == null)
-            {
-                _root = rotated;
-            }
-            else if (unbalanced == unbalancedParent.Left)
-            {
-                unbalancedParent.Left = rotated;
-            }
-            else
-            {
-                unbalancedParent.Right = rotated;
             }
         }
 
@@ -432,57 +395,34 @@ namespace Microsoft.CodeAnalysis
         }
 
 
-        private void HandleInsert(AvlNode node, AvlNode parent, K key, V value, bool add)
+        private void HandleInsert(ref AvlNode node, K key, V value, bool add)
         {
-            Node currentNode = node;
-            do
+            for(Node currentNode = node; currentNode != null; currentNode = currentNode.Next)
             {
                 if (CompareKeys(currentNode.Key, key))
                 {
                     if (add)
                     {
-                        throw new InvalidOperationException();
+                        throw new InvalidOperationException("adding a duplicate");
                     }
 
                     currentNode.Value = value;
                     return;
                 }
+            }
 
-                currentNode = currentNode.Next;
-            } while (currentNode != null);
-
-            AddNode(node, parent, key, value);
-        }
-
-        private void AddNode(AvlNode node, AvlNode parent, K key, V value)
-        {
-            AvlNodeHead head = node as AvlNodeHead;
-            if (head != null)
+            if (node is AvlNodeHead head)
             {
-                var newNext = new NodeLinked(key, value, head.next);
-                head.next = newNext;
+                head.next = new NodeLinked(key, value, head.next);
                 return;
             }
 
-            var newHead = new AvlNodeHead(node.HashCode, key, value, node);
-            newHead.Balance = node.Balance;
-            newHead.Left = node.Left;
-            newHead.Right = node.Right;
-
-            if (parent == null)
+            node = new AvlNodeHead(node.HashCode, key, value, node)
             {
-                _root = newHead;
-                return;
-            }
-
-            if (node == parent.Left)
-            {
-                parent.Left = newHead;
-            }
-            else
-            {
-                parent.Right = newHead;
-            }
+                Balance = node.Balance,
+                Left = node.Left,
+                Right = node.Right
+            };
         }
 
         public KeyCollection Keys => new KeyCollection(this);
