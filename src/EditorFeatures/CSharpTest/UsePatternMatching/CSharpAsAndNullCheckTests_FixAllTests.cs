@@ -60,5 +60,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task FixAllInDocument2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Symbol
+{
+    public ContainingSymbol { get; }
+
+    void M(object o, bool b0, bool b1)
+    {
+        {|FixAllInDocument:var|} symbol = o as Symbol;
+        if (symbol != null)
+        {
+            while ((object)symbol != null && b1)
+            {
+                symbol = symbol.ContainingSymbol as Symbol;
+            }
+
+            if ((object)symbol == null || b2)
+            {
+                throw null;
+            }
+
+            var use = symbol;
+        }
+    }
+}",
+@"class Symbol
+{
+    public ContainingSymbol { get; }
+
+    void M(object o, bool b0, bool b1)
+    {
+    if (o is Symbol symbol)
+    {
+        while ((object)symbol != null && b1)
+        {
+            symbol = symbol.ContainingSymbol as Symbol;
+        }
+
+        if ((object)symbol == null || b2)
+        {
+            throw null;
+        }
+
+        var use = symbol;
+    }
+}
+}");
+        }
     }
 }
