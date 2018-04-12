@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -25,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpdateProje
                 var actions = await GetCodeActionsAsync(workspace, parameters);
                 var operations = await VerifyInputsAndGetOperationsAsync(0, actions, priority: null);
 
-                var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
-                var oldSolution = appliedChanges.Item1;
-                var newSolution = appliedChanges.Item2;
+                var (oldSolution, newSolution) = ApplyOperationsAndGetSolution(workspace, operations);
                 Assert.True(((CSharpCompilationOptions)newSolution.Projects.Single().CompilationOptions).AllowUnsafe);
             }
 
