@@ -38,7 +38,7 @@ namespace Roslyn.Test.PdbUtilities
         private static string GetModuleFullPath(string moduleName)
         {
             var capacity = ushort.MaxValue;
-            var moduleHandle = GetModuleHandle(moduleName;
+            var moduleHandle = GetModuleHandle(moduleName);
             var buffer = new StringBuilder(capacity);
             int actualLength = GetModuleFileName(moduleHandle, buffer, capacity);
             return buffer.ToString(0, actualLength);
