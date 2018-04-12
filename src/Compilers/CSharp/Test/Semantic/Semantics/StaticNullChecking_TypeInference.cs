@@ -1165,7 +1165,7 @@ class C
             var source =
 @"class C
 {
-    static (T, T) F<T>((T, T?) t) => (t.Item1, t.Item1);
+    static (T, T) F<T>((T, T?) t) where T : class => (t.Item1, t.Item1);
     static void G(string x, string? y)
     {
         F((x, x)).Item2.ToString();
@@ -1193,7 +1193,7 @@ class C
             var source =
 @"class C
 {
-    static T F<T>((T, T?) t) => t.Item1;
+    static T F<T>((T, T?) t) where T : class => t.Item1;
     static void G((string, string) x, (string, string?) y, (string?, string) z, (string?, string?) w)
     {
         F(x).ToString();
@@ -1221,7 +1221,7 @@ class C
             var source =
 @"class C
 {
-    static T F<T>(ref (T, T?) t) => throw new System.Exception();
+    static T F<T>(ref (T, T?) t) where T : class => throw new System.Exception();
     static void G(string x, string? y)
     {
         (string, string) t1 = (x, x);
@@ -1259,7 +1259,7 @@ class C
             var source =
 @"class C
 {
-    static T F<T>(out (T, T?) t) => throw new System.Exception();
+    static T F<T>(out (T, T?) t) where T : class => throw new System.Exception();
     static void G()
     {
         F(out (string, string) t1).ToString();
@@ -1296,7 +1296,7 @@ interface IIn<in T> { }
 interface IOut<out T> { }
 class C
 {
-    static T F<T>(I<(T, T?)> t) => throw new System.Exception();
+    static T F<T>(I<(T, T?)> t) where T : class => throw new System.Exception();
     static void G(I<(string, string)> x, I<(string, string?)> y, I<(string?, string)> z, I<(string?, string?)> w)
     {
         F(x).ToString();
@@ -1304,7 +1304,7 @@ class C
         F(z).ToString();
         F(w).ToString();
     }
-    static T F<T>(IIn<(T, T?)> t) => throw new System.Exception();
+    static T F<T>(IIn<(T, T?)> t) where T : class => throw new System.Exception();
     static void G(IIn<(string, string)> x, IIn<(string, string?)> y, IIn<(string?, string)> z, IIn<(string?, string?)> w)
     {
         F(x).ToString();
@@ -1312,7 +1312,7 @@ class C
         F(z).ToString();
         F(w).ToString();
     }
-    static T F<T>(IOut<(T, T?)> t) => throw new System.Exception();
+    static T F<T>(IOut<(T, T?)> t) where T : class => throw new System.Exception();
     static void G(IOut<(string, string)> x, IOut<(string, string?)> y, IOut<(string?, string)> z, IOut<(string?, string?)> w)
     {
         F(x).ToString();

@@ -1531,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!node.HasErrors)
             {
-                var refKindsOpt = node.ArgumentRefKindsOpt;
+                ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
                 ImmutableArray<BoundExpression> arguments = RemoveArgumentConversions(node.Arguments, refKindsOpt);
                 ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, node.Expanded);
                 if (method.IsGenericMethod && HasImplicitTypeArguments(node))
@@ -1651,8 +1651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = 0; i < arguments.Length; i++)
             {
-                bool expandedParameter = expanded;
-                var parameter = GetCorrespondingParameter(i, parameters, argsToParamsOpt, ref expandedParameter);
+                (ParameterSymbol parameter, TypeSymbolWithAnnotations parameterType) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
                 if (parameter is null)
                 {
                     continue;
@@ -1661,7 +1660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments[i],
                     GetRefKind(refKindsOpt, i),
                     parameter,
-                    expandedParameter,
+                    parameterType,
                     results[i]);
             }
         }
@@ -1670,12 +1669,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument,
             RefKind refKind,
             ParameterSymbol parameter,
-            bool expanded,
+            TypeSymbolWithAnnotations parameterType,
             Result result)
         {
-            var parameterType = GetParameterType(parameter, expanded);
-            var conversion = GenerateConversion(_conversions, argument, result.Type?.TypeSymbol, parameterType.TypeSymbol);
-            var resultType = InferResultNullability(argument, conversion, parameterType.TypeSymbol, result.Type);
+            Conversion conversion = GenerateConversion(_conversions, argument, result.Type?.TypeSymbol, parameterType.TypeSymbol);
+            TypeSymbolWithAnnotations resultType = InferResultNullability(argument, conversion, parameterType.TypeSymbol, result.Type);
             bool reported = false;
             if (refKind != RefKind.Out)
             {
@@ -1709,7 +1707,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     RefKind refKind = GetRefKind(refKindsOpt, i);
                     var argument = arguments[i];
-                    var conversion = Conversion.Identity;
                     if (refKind == RefKind.None)
                     {
                         argument = RemoveImplicitConversions(argument);
@@ -1729,7 +1726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return arguments;
         }
 
-        private static ParameterSymbol GetCorrespondingParameter(int argumentOrdinal, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt, ref bool expanded)
+        private static (ParameterSymbol, TypeSymbolWithAnnotations) GetCorrespondingParameter(int argumentOrdinal, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt, bool expanded)
         {
             Debug.Assert(!parameters.IsDefault);
 
@@ -1766,19 +1763,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert((object)parameter != null || !expanded);
-            if (expanded && (parameter.Ordinal < n - 1 || !parameter.Type.IsSZArray()))
+            if (parameter is null)
             {
-                expanded = false;
+                Debug.Assert(!expanded);
+                return (null, null);
             }
 
-            return parameter;
-        }
-
-        private static TypeSymbolWithAnnotations GetParameterType(ParameterSymbol parameter, bool expanded)
-        {
             var type = parameter.Type;
-            return (expanded && parameter.IsParams) ? ((ArrayTypeSymbol)type.TypeSymbol).ElementType : type;
+            if (expanded && parameter.Ordinal == n - 1 && parameter.Type.IsSZArray())
+            {
+                type = ((ArrayTypeSymbol)type.TypeSymbol).ElementType;
+            }
+
+            return (parameter, type);
         }
 
         private MethodSymbol InferMethod(BoundCall node, MethodSymbol method, ImmutableArray<TypeSymbolWithAnnotations> argumentTypes)
@@ -2525,7 +2522,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportArgumentWarnings(BoundExpression argument, TypeSymbolWithAnnotations argumentType, ParameterSymbol parameter)
         {
-            Debug.Assert(!parameter.IsParams);
             var paramType = parameter.Type;
 
             ReportNullReferenceArgumentIfNecessary(argument, argumentType, parameter, paramType);

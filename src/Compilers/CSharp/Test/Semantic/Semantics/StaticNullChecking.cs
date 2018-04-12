@@ -4251,6 +4251,100 @@ class C
         }
 
         [Fact]
+        public void ParamsArgument_NotLast()
+        {
+            var source =
+@"class C
+{
+    static void F(object[]? a, object? b)
+    {
+        G(a, b, a);
+    }
+    static void G(params object[] x, params object[] y)
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,19): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //     static void G(params object[] x, params object[] y)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params object[] x").WithLocation(7, 19),
+                // (5,11): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(params object[] x, params object[] y)'.
+                //         G(a, b, a);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("x", "void C.G(params object[] x, params object[] y)").WithLocation(5, 11),
+                // (5,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(params object[] x, params object[] y)'.
+                //         G(a, b, a);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("y", "void C.G(params object[] x, params object[] y)").WithLocation(5, 14),
+                // (5,17): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(params object[] x, params object[] y)'.
+                //         G(a, b, a);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("y", "void C.G(params object[] x, params object[] y)").WithLocation(5, 17));
+        }
+
+        [Fact]
+        public void ParamsArgument_NotArray()
+        {
+            var source =
+@"class C
+{
+    static void F1(object x, object? y)
+    {
+        F2(y);
+        F2(x, y);
+        F3(y, x);
+        F3(x, y, x);
+    }
+    static void F2(params object x)
+    {
+    }
+    static void F3(params object x, params object[] y)
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,20): error CS0225: The params parameter must be a single dimensional array
+                //     static void F2(params object x)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(10, 20),
+                // (13,20): error CS0225: The params parameter must be a single dimensional array
+                //     static void F3(params object x, params object[] y)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(13, 20),
+                // (13,20): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //     static void F3(params object x, params object[] y)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params object x").WithLocation(13, 20),
+                // (6,9): error CS1501: No overload for method 'F2' takes 2 arguments
+                //         F2(x, y);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "F2").WithArguments("F2", "2").WithLocation(6, 9),
+                // (5,12): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.F2(params object x)'.
+                //         F2(y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.F2(params object x)").WithLocation(5, 12),
+                // (7,12): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.F3(params object x, params object[] y)'.
+                //         F3(y, x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.F3(params object x, params object[] y)").WithLocation(7, 12),
+                // (8,15): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.F3(params object x, params object[] y)'.
+                //         F3(x, y, x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void C.F3(params object x, params object[] y)").WithLocation(8, 15));
+        }
+
+        [Fact]
+        public void ParamsArgument_BinaryOperator()
+        {
+            var source =
+@"class C
+{
+    public static object operator+(C x, params object?[] y) => x;
+    static object F(C x, object[] y) => x + y;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,41): error CS1670: params is not valid in this context
+                //     public static object operator+(C x, params object?[] y) => x;
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(3, 41),
+                // (4,45): warning CS8620: Nullability of reference types in argument of type 'object[]' doesn't match target type 'object?[]' for parameter 'y' in 'object C.operator +(C x, params object?[] y)'.
+                //     static object F(C x, object[] y) => x + y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("object[]", "object?[]", "y", "object C.operator +(C x, params object?[] y)").WithLocation(4, 45));
+        }
+
+        [Fact]
         public void RefOutParameters_01()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
