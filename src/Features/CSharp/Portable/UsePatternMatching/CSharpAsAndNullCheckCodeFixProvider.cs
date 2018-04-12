@@ -81,10 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var currentCondition = nullCheckExpression;
 
-            var declaration = (VariableDeclarationSyntax)declarator.Parent;
-            if (declaration.Variables.Count == 1)
+            if (declarator.Parent is VariableDeclarationSyntax declaration && 
+                declaration.Parent is LocalDeclarationStatementSyntax localDeclaration && 
+                declaration.Variables.Count == 1)
             {
-                var localDeclaration = (StatementSyntax)declaration.Parent;
                 // Trivia on the local declaration will move to the next statement.
                 // use the callback form as the next statement may be the place where we're
                 // inlining the declaration, and thus need to see the effects of that change.
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             editor.RemoveNode(declarator, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-            editor.ReplaceNode(currentCondition, updatedCondition.WithAdditionalAnnotations(Formatter.Annotation));
+            editor.ReplaceNode(currentCondition, updatedCondition);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
