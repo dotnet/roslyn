@@ -1252,30 +1252,22 @@ public static class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test11()
+        public async Task Test13()
         {
             await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(object e)
     {
-        if ((x = o as string) == null || b
-        [|C|] c = null, x = null;
-        for (; !((c = e as C)==null);)
-        {
-            M(c);
-        }
+        [||]var c = e as C;
+        C F() => c == null ? null : c;
     }
 }",
 @"class C
 {
     void M(object e)
     {
-        C x = null;
-        for (; !(!(e is C c));)
-        {
-            M(c);
-        }
+        C F() => !(e is C c) ? null : c;
     }
 }");
         }

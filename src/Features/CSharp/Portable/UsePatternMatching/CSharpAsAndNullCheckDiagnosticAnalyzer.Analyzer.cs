@@ -319,6 +319,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     return false;
                 }
 
+                if (statementOrExpression.ContainsDiagnostics)
+                {
+                    return false;
+                }
+
                 return _semanticModel.AnalyzeDataFlow(statementOrExpression).DataFlowsIn.Contains(_localSymbol);
             }
 
@@ -329,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     return false;
                 }
 
-                if (firstStatement.SpanStart > lastStatement.SpanStart)
+                if (firstStatement.ContainsDiagnostics || lastStatement.ContainsDiagnostics)
                 {
                     return false;
                 }
