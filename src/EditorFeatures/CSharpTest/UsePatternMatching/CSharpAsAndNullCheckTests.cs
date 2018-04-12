@@ -879,7 +879,7 @@ public static class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         [WorkItem(25993, "https://github.com/dotnet/roslyn/issues/25993")]
-        public async Task TestEmbeddedStatement()
+        public async Task TestEmbeddedStatement1()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -908,6 +908,29 @@ public static class C
             M(fe);
         }
         else if (e is C ae)
+        {
+            M(ae);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [WorkItem(25993, "https://github.com/dotnet/roslyn/issues/25993")]
+        public async Task TestEmbeddedStatement2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(object e)
+    {
+        var fe = e as C;
+        [|var|] ae = e as C;
+        if (fe != null)
+        {
+            M(ae);
+        }
+        else if (ae != null)
         {
             M(ae);
         }
