@@ -111,8 +111,8 @@ function Process-Arguments() {
         exit 1
     }
 
-    $pack = $pack -or $packAll
-    $packAll = $packAll -or ($pack -and $official)
+    $script:pack = $pack -or $packAll
+    $script:packAll = $packAll -or ($pack -and $official)
 
     if ($buildCoreClr) {
         $script:build = $true

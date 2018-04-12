@@ -361,7 +361,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevDivPackagesDebugger", "s
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "DevDivInsertionFiles", "src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.vbproj", "{5FE910A9-E7C9-40E1-AAF1-6C6C7DD61B67}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NugetProjectPackUtil", "src\NuGet\NugetProjectPackUtil.csproj", "{B2B261E8-56EC-45DC-8AB8-A491A065EFD4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGetProjectPackUtil", "src\NuGet\NuGetProjectPackUtil.csproj", "{B2B261E8-56EC-45DC-8AB8-A491A065EFD4}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution

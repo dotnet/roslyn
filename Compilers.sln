@@ -142,7 +142,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BasicAnalyzerDriver", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ILAsm", "src\Tools\ILAsm\ILAsm.csproj", "{46B3E63A-C462-4133-9F27-3B85DA5E7D37}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NugetProjectPackUtil", "src\NuGet\NugetProjectPackUtil.csproj", "{B2B261E8-56EC-45DC-8AB8-A491A065EFD4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGetProjectPackUtil", "src\NuGet\NuGetProjectPackUtil.csproj", "{B2B261E8-56EC-45DC-8AB8-A491A065EFD4}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
