@@ -392,12 +392,12 @@ function Build-NuGetPackages() {
         $emptyDir = Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())
         Create-Directory $emptyDir
         New-Item -Path (Join-Path $emptyDir "_._") -Type File | Out-Null
-        $extraArgs += " /p:EmptyDir:$emptyDir"
+        $extraArgs += " /p:EmptyDir=$emptyDir"
 
-        Pack-All "PreRelease"
+        Pack-All "PreRelease" $extraArgs
         if ($packAll) {
-            Pack-All "Release"
-            Pack-All "PerBuildPreRelease"
+            Pack-All "Release" $extraArgs
+            Pack-All "PerBuildPreRelease" $extraArgs
         }
     }
     finally {
