@@ -71,10 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (DecomposeBinaryOrAssignmentExpression(node,
                         out var operatorToken, out var left, out var right))
                 {
-                    var types = InferTypeInBinaryOrAssignmentExpression(node, operatorToken, left, right, left).Where(IsUsableTypeFunc);
+                    var types = InferTypeInBinaryOrAssignmentExpression((ExpressionSyntax)node, operatorToken, left, right, left).Where(IsUsableTypeFunc);
                     if (types.IsEmpty())
                     {
-                        types = InferTypeInBinaryOrAssignmentExpression(node, operatorToken, left, right, right).Where(IsUsableTypeFunc);
+                        types = InferTypeInBinaryOrAssignmentExpression((ExpressionSyntax)node, operatorToken, left, right, right).Where(IsUsableTypeFunc);
                     }
 
                     return types;
@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (tokenIndex + 1) / 2;
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInBinaryOrAssignmentExpression(SyntaxNode binop, SyntaxToken operatorToken, ExpressionSyntax left, ExpressionSyntax right, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
+            private IEnumerable<TypeInferenceInfo> InferTypeInBinaryOrAssignmentExpression(ExpressionSyntax binop, SyntaxToken operatorToken, ExpressionSyntax left, ExpressionSyntax right, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
             {
                 // If we got here through a token, then it must have actually been the binary
                 // operator's token.
