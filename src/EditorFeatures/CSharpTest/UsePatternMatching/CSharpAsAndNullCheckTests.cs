@@ -939,7 +939,7 @@ public static class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test00()
+        public async Task TestUseBeforeDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -949,20 +949,13 @@ public static class C
         [|var|] c = e as C;
         {
             {
-                // read before decl
                 var x1 = c;
 
                 if (c != null)
                 {
 
                 }
-
-                // possibly unassigned
-                //var x2 = c;
             }
-
-            // out of scope
-            //var x3 = c;
         }
     }
 
@@ -970,7 +963,7 @@ public static class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test01()
+        public async Task TestPossiblyUnassigned()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -980,46 +973,11 @@ public static class C
         [|var|] c = e as C;
         {
             {
-                // read before decl
-                var x1 = c;
-
                 if (c != null)
                 {
 
                 }
 
-                // possibly unassigned
-                var x2 = c;
-            }
-
-            // out of scope
-            var x3 = c;
-        }
-    }
-
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test02()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(object e)
-    {
-        [|var|] c = e as C;
-        {
-            {
-                // read before decl
-                //var x1 = c;
-
-                if (c != null)
-                {
-
-                }
-
-                // possibly unassigned
                 var x2 = c;
             }
 
@@ -1028,11 +986,10 @@ public static class C
         }
     }
 }");
-
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test03()
+        public async Task TestOutOfScope()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1042,16 +999,10 @@ public static class C
         [|var|] c = e as C;
         {
             {
-                // read before decl
-                //var x1 = c;
-
                 if (c != null)
                 {
 
                 }
-
-                // possibly unassigned
-                //var x2 = c;
             }
 
             // out of scope
@@ -1059,11 +1010,10 @@ public static class C
         }
     }
 }");
-
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test04()
+        public async Task TestDeclarationOnOuterBlock()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1073,20 +1023,11 @@ public static class C
         [|var|] c = e as C;
         {
             {
-                // read before decl
-                //var x1 = c;
-
                 if (c != null)
                 {
 
                 }
-
-                // possibly unassigned
-                //var x2 = c;
             }
-
-            // out of scope
-            //var x3 = c;
         }
     }
 }",
@@ -1096,27 +1037,18 @@ public static class C
     {
         {
             {
-                // read before decl
-                //var x1 = c;
-
                 if (e is C c)
                 {
 
                 }
-
-                // possibly unassigned
-                //var x2 = c;
             }
-
-            // out of scope
-            //var x3 = c;
         }
     }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test05()
+        public async Task TestConditionalExpression()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1137,7 +1069,7 @@ public static class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test06()
+        public async Task TestConditionalExpression_OppositeBranch()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1151,7 +1083,7 @@ public static class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test07()
+        public async Task TestForStatement_NoInlineTypeCheck()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1165,7 +1097,7 @@ public static class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test08()
+        public async Task TestForStatement_InlineTypeCheck()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1186,7 +1118,7 @@ public static class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test09()
+        public async Task TestForStatement_InScope()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1213,16 +1145,17 @@ public static class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test10()
+        public async Task TestForStatement_NotAssignedBeforeAccess()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(object e)
     {
-        [|C|] c = null;;
+        [|C|] c = null;
         for (; ((c = e as C)==null);)
         {
+            if (b) c = null;
             M(c);
         }
     }
@@ -1230,7 +1163,38 @@ public static class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test11()
+        public async Task TestForStatement_AssignedBeforeAccess()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object e, bool b)
+    {
+        [|C|] c = null;
+        for (; (c = e as C)==null;)
+        {
+            if (b) c = null;
+            else c = null;
+            M(c);
+        }
+    }
+}",
+@"class C
+{
+    void M(object e, bool b)
+    {
+        for (; !(e is C c);)
+        {
+            if (b) c = null;
+            else c = null;
+            M(c);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestForStatement_MultipleDeclarators()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1258,7 +1222,7 @@ public static class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test12()
+        public async Task TestForStatemnet_UseBeforeDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1275,7 +1239,7 @@ public static class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task Test13()
+        public async Task TestLocalFunction()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1291,6 +1255,21 @@ public static class C
     void M(object e)
     {
         C F() => !(e is C c) ? null : c;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestLocalFunction_UseOutOfScope()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    C M(object e)
+    {
+        [||]var c = e as C;
+        C F() => c == null ? null : c;
+        return c;
     }
 }");
         }

@@ -276,14 +276,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 Debug.Assert(scope != null);
 
-                var localStatementStart = _localStatement.Span.Start;
+                var localStatementStart = _localStatement.SpanStart;
+                var comparisonSpanStart = _comparison.SpanStart;
                 var variableName = _localSymbol.Name;
                 var scopeSpan = scope.Span;
 
                 // Iterate over all descendent nodes to find possible out-of-scope references.
                 foreach (var descendentNode in _enclosingBlock.DescendantNodes())
                 {
-                    if (descendentNode.SpanStart <= localStatementStart)
+                    var descendentNodeSpanStart = descendentNode.SpanStart;
+                    if (descendentNodeSpanStart <= localStatementStart)
                     {
                         // We're not interested in nodes that are apeared before
                         // the local declaration statement. It's either an error
@@ -291,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         continue;
                     }
 
-                    if (descendentNode.SpanStart >= _comparison.SpanStart && scopeSpan.Contains(descendentNode.Span))
+                    if (descendentNodeSpanStart >= comparisonSpanStart && scopeSpan.Contains(descendentNode.Span))
                     {
                         // If this is in the scope and after null-check, we don't bother checking the symbol.
                         continue;
