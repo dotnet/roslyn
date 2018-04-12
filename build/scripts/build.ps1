@@ -342,7 +342,6 @@ function Build-InsertionItems() {
         Write-Host "Packing VS.Tools.Roslyn.nuspec"
         Pack-One (Join-Path $vsToolsDir "VS.Tools.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir -basePath $vsToolsDir -useConsole:$false | Out-Null
 
-        Run-MSBuild "DevDivPackages\Roslyn.proj" -logFileName "RoslynPackagesProj"
         Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj" -buildArgs $extraArgs
         Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" -buildArgs $extraArgs
         Run-MSBuild "DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" -buildArgs "$extraArgs"
@@ -364,12 +363,12 @@ function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packag
     }
     $nuspecFileName = Split-Path -leaf $nuspecFilePath
     $projectFilePath = Join-Path $nugetDir "NuGetProjectPackUtil.csproj"
-    $args = "pack -nologo --no-build $projectFilePath $extraArgs /p:NugetPackageKind=$packageKind /p:NuspecFile=$nuspecFilePath /p:NuspecBasePath=$basePath -o $packageOutDir" | Out-Host
+    $packArgs = "pack -nologo --no-build $projectFilePath $extraArgs /p:NugetPackageKind=$packageKind /p:NuspecFile=$nuspecFilePath /p:NuspecBasePath=$basePath -o $packageOutDir" 
     if ($useConsole) { 
-        Exec-Console $dotnet $args
+        Exec-Console $dotnet $packArgs
     }
     else {
-        Exec-Command $dotnet $args
+        Exec-Command $dotnet $packArgs
     }
 }
 
