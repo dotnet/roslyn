@@ -56,7 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // We walk up the tree from the point of null-check and see if any of the above is violated.
             public bool CanSafelyConvertToPatternMatching()
             {
+                // Keep track of whether the pattern variable is definitely assigned when false/true.
+                // We start by the null-check itself, if it's compared with '==', the pattern variable
+                // will be definitely assigned when false, because we wrap the is-operator in a !-operator.
                 var defAssignedWhenTrue = _comparison.Kind() == SyntaxKind.NotEqualsExpression;
+
                 foreach (var current in _comparison.Ancestors())
                 {
                     switch (current.Kind())
@@ -204,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return false;
             }
 
-            private bool CheckLoop(SyntaxNode node, StatementSyntax body, bool defAssignedWhenTrue)
+            private bool CheckLoop(SyntaxNode statement, StatementSyntax body, bool defAssignedWhenTrue)
             {
                 if (_operand.Kind() == SyntaxKind.IdentifierName)
                 {
@@ -233,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
                 // The scope of the pattern variables for loops
                 // does not leak out of the loop statement.
-                return !IsAccessedOutOfScope(scope: node);
+                return !IsAccessedOutOfScope(scope: statement);
             }
 
             private bool CheckExpression(ExpressionSyntax exprsesion)
@@ -254,17 +258,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 // of the new variable. Otherwise the scope is the statement itself.
                 if (statement.Parent.IsKind(SyntaxKind.Block, out BlockSyntax block))
                 {
-                    if (IsAccessedOutOfScope(scope: block))
+                    // Check if the local is accessed before assignment 
+                    // in the subsequent statements. If so, this can't
+                    // be converted to pattern-matching.
+                    if (LocalFlowsIn(firstStatement: statement.GetNextStatement(),
+                                     lastStatement: block.Statements.Last()))
                     {
                         return false;
                     }
 
-                    // Check if the local is accessed before assignment 
-                    // in the subsequent statements. If so, this can't
-                    // be converted to pattern-matching.
-                    return !LocalFlowsIn(
-                        firstStatement: statement.GetNextStatement(),
-                        lastStatement: block.Statements.Last());
+                    return !IsAccessedOutOfScope(scope: block);
                 }
                 else
                 {
