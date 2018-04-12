@@ -16,5 +16,8 @@ namespace Roslyn.Utilities
             key = keyValuePair.Key;
             value = keyValuePair.Value;
         }
+
+        public static KeyValuePair<TKey, TValue> ToKeyValuePair<TKey, TValue>(this (TKey key, TValue value) tuple)
+            => Create(tuple.key, tuple.value);
     }
 }

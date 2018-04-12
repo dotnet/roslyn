@@ -490,13 +490,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal Diagnostic WithReportDiagnostic(ReportDiagnostic reportAction)
+        internal Diagnostic WithReportDiagnostic(ReportDiagnostic reportAction, bool reportSuppressedDiagnostics)
         {
             switch (reportAction)
             {
                 case ReportDiagnostic.Suppress:
-                    // Suppressed diagnostic.
-                    return null;
+                    return reportSuppressedDiagnostics ? WithIsSuppressed(true) : null;
                 case ReportDiagnostic.Error:
                     return this.WithSeverity(DiagnosticSeverity.Error);
                 case ReportDiagnostic.Default:

@@ -1109,7 +1109,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
-            Return VisualBasicDiagnosticFilter.Filter(diagnostic, GeneralDiagnosticOption, SpecificDiagnosticOptions)
+            Return VisualBasicDiagnosticFilter.Filter(
+                diagnostic,
+                GeneralDiagnosticOption,
+                SpecificDiagnosticOptions,
+                ReportSuppressedDiagnostics)
         End Function
 
         '' 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
