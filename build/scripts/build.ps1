@@ -336,24 +336,29 @@ function Build-InsertionItems() {
         $insertionDir = Join-Path $configDir "DevDivInsertionFiles"
         $vsToolsDir = Join-Path $insertionDir "VS.Tools.Roslyn"
         $packageOutDir = Join-Path $configDir "DevDivPackages\Roslyn"
+        $packArgs = "/p:NoPackageAnalysis=true"
         Create-Directory $packageOutDir
-        Write-Host "Packing VS.ExternalAPIs.Roslyn.nuspec"
-        Pack-One (Join-Path $insertionDir "VS.ExternalAPIs.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir -useConsole:$false | Out-Null
-        Write-Host "Packing VS.Tools.Roslyn.nuspec"
-        Pack-One (Join-Path $vsToolsDir "VS.Tools.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir -basePath $vsToolsDir -useConsole:$false | Out-Null
+        Pack-One (Join-Path $insertionDir "VS.ExternalAPIs.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir $packArgs 
+        Pack-One (Join-Path $vsToolsDir "VS.Tools.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir $packArgs -basePath $vsToolsDir 
+
+        $netfx20Dir = Join-Path $repoDir "src\Dependencies\Microsoft.NetFX20"
+        Pack-One (Join-Path $netfx20Dir "Microsoft.NetFX20.nuspec") "PerBuildPreRelease" -packageOutDir (Join-Path $configDir "NuGet\NetFX20") -basePath $netfx20Dir -extraArgs "$packArgs /p:CurrentVersion=4.3.0" 
 
         Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj" -buildArgs $extraArgs
         Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" -buildArgs $extraArgs
         Run-MSBuild "DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" -buildArgs "$extraArgs"
-        Run-MSBuild "..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj"
     }
     finally {
         Pop-Location
     }
 }
 
-function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packageOutDir, [string]$extraArgs, [string]$basePath = "", [switch]$useConsole = $true) { 
+function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packageOutDir = "", [string]$extraArgs = "", [string]$basePath = "", [switch]$useConsole = $true) { 
     $nugetDir = Join-Path $repoDir "src\Nuget"
+    if ($packageOutDir -eq "") {
+        $packageOutDir = Join-Path $configDir "NuGet\$packageKind"
+    }
+
     if ($basePath -eq "") { 
         $basePath = $configDir
     }
@@ -361,6 +366,8 @@ function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packag
     if (-not ([IO.Path]::IsPathRooted($nuspecFilePath))) { 
         $nuspecFilePath = Join-Path $nugetDir $nuspecFilePath
     }
+
+    Create-Directory $packageOutDir
     $nuspecFileName = Split-Path -leaf $nuspecFilePath
     $projectFilePath = Join-Path $nugetDir "NuGetProjectPackUtil.csproj"
     $packArgs = "pack -nologo --no-build $projectFilePath $extraArgs /p:NugetPackageKind=$packageKind /p:NuspecFile=$nuspecFilePath /p:NuspecBasePath=$basePath -o $packageOutDir" 
@@ -387,9 +394,7 @@ function Build-NuGetPackages() {
 
     Push-Location (Join-Path $repoDir "src\NuGet")
     try {
-        $nugetOutDir = Join-Path $configDir "NuGet"
         $extraArgs = ""
-        Create-Directory $nugetOutDir
 
         if ($official) {
             $extraArgs += " /p:UseRealCommit=true"

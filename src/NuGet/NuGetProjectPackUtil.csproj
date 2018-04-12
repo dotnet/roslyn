@@ -32,6 +32,7 @@
     <NuspecProperties>$(NuspecProperties);additionalFilesPath=$(RepoRoot)build/NuGetAdditionalFiles</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);srcDirPath=$(RepoRoot)\src</NuspecProperties>
     <NuspecProperties Condition="'$(EmptyDir)' != ''">$(NuspecProperties);emptyDirPath=$(EmptyDir)</NuspecProperties>
+    <NuspecProperties Condition="'$(CurrentVersion)' != ''">$(NuspecProperties);currentVersion=$(CurrentVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);commitPathMessage=$(_CommitPathMessage)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);tags=Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</NuspecProperties>
 
