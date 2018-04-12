@@ -283,8 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 // Iterate over all descendent nodes to find possible out-of-scope references.
                 foreach (var descendentNode in _enclosingBlock.DescendantNodes())
                 {
-                    var descendentNodeSpan = descendentNode.Span;
-                    if (descendentNodeSpan.Start <= localStatementStart)
+                    if (descendentNode.SpanStart <= localStatementStart)
                     {
                         // We're not interested in nodes that are apeared before
                         // the local declaration statement. It's either an error
@@ -292,9 +291,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         continue;
                     }
 
-                    if (scopeSpan.Contains(descendentNodeSpan))
+                    if (descendentNode.SpanStart >= _comparison.SpanStart && scopeSpan.Contains(descendentNode.Span))
                     {
-                        // If this is in the scope, we don't bother checking the symbol.
+                        // If this is in the scope and after null-check, we don't bother checking the symbol.
                         continue;
                     }
 
