@@ -271,7 +271,6 @@ function Build-Artifacts() {
 # finish building these before we can run signing.
 function Build-ExtraSignArtifacts() { 
 
-    Ensure-NuGet | Out-Null
     Push-Location (Join-Path $repoDir "src\Setup")
     try {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
@@ -334,6 +333,13 @@ function Build-InsertionItems() {
             $extraArgs = " /p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
         }
 
+        $insertionDir = Join-Path $configDir "DevDivInsertionFiles"
+        $vsToolsDir = Join-Path $insertionDir "VS.Tools.Roslyn"
+        $packageOutDir = Join-Path $configDir "DevDivPackages\Roslyn"
+        Create-Directory $packageOutDir
+        Pack-One (Join-Path $insertionDir "VS.ExternalAPIs.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir | Out-Null
+        Pack-One (Join-Path $vsToolsDir "VS.Tools.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir -basePath $vsToolsDir | Out-Null
+
         Run-MSBuild "DevDivPackages\Roslyn.proj" -logFileName "RoslynPackagesProj"
         Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj" -buildArgs $extraArgs
         Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" -buildArgs $extraArgs
@@ -345,11 +351,18 @@ function Build-InsertionItems() {
     }
 }
 
-function Pack-One([string]$nuspecFileName, [string]$packageKind, [string]$packageOutDir, [string]$extraArgs) { 
+function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packageOutDir, [string]$extraArgs, [string]$basePath = "") { 
     $nugetDir = Join-Path $repoDir "src\Nuget"
-    $nuspecFilePath = Join-Path $nugetDir $nuspecFileName
+    if ($basePath -eq "") { 
+        $basePath = $configDir
+    }
+    
+    if (-not ([IO.Path]::IsPathRooted($nuspecFilePath))) { 
+        $nuspecFilePath = Join-Path $nugetDir $nuspecFilePath
+    }
+    $nuspecFileName = Split-Path -leaf $nuspecFilePath
     $projectFilePath = Join-Path $nugetDir "NuGetProjectPackUtil.csproj"
-    Exec-Console $dotnet "pack -nologo --no-build $projectFilePath $extraArgs /p:NugetPackageKind=$packageKind /p:NuspecFile=$nuspecFilePath /p:NuspecBasePath=$configDir -o $packageOutDir" | Out-Host
+    Exec-Console $dotnet "pack -nologo --no-build $projectFilePath $extraArgs /p:NugetPackageKind=$packageKind /p:NuspecFile=$nuspecFilePath /p:NuspecBasePath=$basePath -o $packageOutDir" | Out-Host
 }
 
 function Build-NuGetPackages() {
