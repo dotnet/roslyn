@@ -383,12 +383,10 @@ function Build-NuGetPackages() {
 
     function Pack-All([string]$packageKind, $extraArgs) {
 
-        $packDir = Join-Path $nugetOutDir $packageKind
-        Create-Directory $packDir
         Write-Host "Packing for $packageKind"
         foreach ($item in Get-ChildItem *.nuspec) {
             $name = Split-Path -leaf $item
-            Pack-One $name $packageKind $packDir $extraArgs
+            Pack-One $name $packageKind -extraArgs $extraArgs
         }
     }
 
