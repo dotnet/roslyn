@@ -275,7 +275,7 @@ class Program
         }
         #endregion C# 7.3
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26115")]
         public async Task UpgradeAllProjectsToCSharp7()
         {
             await TestLanguageVersionUpgradedAsync(
@@ -305,7 +305,7 @@ class C
                 index: 1);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26115")]
         public async Task ListAllSuggestions()
         {
             await TestExactActionSetOfferedAsync(
@@ -385,7 +385,7 @@ class C
                     });
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26115")]
         public async Task OnlyOfferFixAllProjectsToDefaultWhenApplicable()
         {
             await TestExactActionSetOfferedAsync(
