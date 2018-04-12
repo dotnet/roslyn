@@ -6185,9 +6185,9 @@ class C
                 // (11,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case _: // not a discard
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case _:").WithArguments("pattern matching", "7.0").WithLocation(11, 13),
-                // (11,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
+                // (11,18): error CS8059: Feature 'recursive patterns' is not available in C# 6. Please use language version 8.0 or greater.
                 //             case _: // not a discard
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(11, 18),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("recursive patterns", "8.0").WithLocation(11, 18),
                 // (16,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case int _:
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case int _:").WithArguments("pattern matching", "7.0").WithLocation(16, 13),

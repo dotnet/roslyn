@@ -157,6 +157,47 @@ class Program
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
+                // (9,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                //         Check(false, p is (1, 4) { x: 3 });
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (1, 4) { x: 3 }").WithArguments("(int x, int y)").WithLocation(9, 22),
+                // (10,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                //         Check(false, p is (3, 1) { y: 4 });
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (3, 1) { y: 4 }").WithArguments("(int x, int y)").WithLocation(10, 22),
+                // (11,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                //         Check(false, p is (3, 4) { x: 1 });
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (3, 4) { x: 1 }").WithArguments("(int x, int y)").WithLocation(11, 22),
+                // (13,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                //         Check(false, p is (1, 4) { x: 3 });
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (1, 4) { x: 3 }").WithArguments("(int x, int y)").WithLocation(13, 22),
+                // (15,22): error CS8415: An expression of type '(int x, int y)' can never match the provided pattern.
+                //         Check(false, p is (3, 4) { x: 1 });
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "p is (3, 4) { x: 1 }").WithArguments("(int x, int y)").WithLocation(15, 22)
+                );
+        }
+
+        [Fact]
+        public void Patterns2_04b()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        var p = (x: 3, y: 4);
+        Check(true, p is (3, 4) q1 && Check(p, q1));
+        Check(true, p is (3, 4) { x: 3 } q2 && Check(p, q2));
+        Check(false, p is (3, 1) { x: 3 });
+    }
+    private static bool Check<T>(T expected, T actual)
+    {
+        if (!object.Equals(expected, actual)) throw new Exception($""expected: {expected}; actual: {actual}"");
+        return true;
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "");
         }
@@ -342,10 +383,10 @@ public class Point
         var r = 1 switch { _ => 0 };
     }
 }";
-            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
-                // (5,17): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //         var r = 1 switch ( _ => 0 );
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch { _ => 0 }").WithArguments("recursive patterns", "patterns2").WithLocation(5, 17)
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
+                // (5,17): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         var r = 1 switch { _ => 0 };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _ => 0 }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
                 );
         }
 
@@ -1220,6 +1261,164 @@ class Program1
                 );
         }
 
+        [Fact]
+        public void ERR_IsPatternImpossible()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(""frog"" is string { Length: 4, Length: 5 });
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,34): error CS8415: An expression of type 'string' can never match the provided pattern.
+                //         System.Console.WriteLine("frog" is string { Length: 4, Length: 5 });
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"""frog"" is string { Length: 4, Length: 5 }").WithArguments("string").WithLocation(5, 34)
+                );
+        }
+
+        [Fact]
+        public void WRN_GivenExpressionNeverMatchesPattern01()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(3 is 4);
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (5,34): warning CS8416: The given expression never matches the provided pattern.
+                //         System.Console.WriteLine(3 is 4);
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "3 is 4").WithLocation(5, 34)
+                );
+        }
+
+        [Fact]
+        public void WRN_GivenExpressionNeverMatchesPattern02()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        const string s = null;
+        System.Console.WriteLine(s is string { Length: 3 });
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,34): warning CS8416: The given expression never matches the provided pattern.
+                //         System.Console.WriteLine(s is string { Length: 3 });
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string { Length: 3 }").WithLocation(6, 34)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignmentForIsPattern01()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        string s = 300.ToString();
+        System.Console.WriteLine(s is string { Length: int j });
+        System.Console.WriteLine(j);
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,34): error CS0165: Use of unassigned local variable 'j'
+                //         System.Console.WriteLine(j);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "j").WithArguments("j").WithLocation(7, 34)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignmentForIsPattern02()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        const string s = ""300"";
+        System.Console.WriteLine(s is string { Length: int j });
+        System.Console.WriteLine(j);
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"True
+3";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void DefiniteAssignmentForIsPattern03()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int j;
+        const string s = null;
+        if (s is string { Length: 3 })
+        {
+            System.Console.WriteLine(j);
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,13): warning CS8416: The given expression never matches the provided pattern.
+                //         if (s is string { Length: 3 })
+                Diagnostic(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, "s is string { Length: 3 }").WithLocation(7, 13)
+                );
+        }
+
+        [Fact]
+        public void RefutableConstantPattern01()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        int j;
+        const int N = 3;
+        const int M = 3;
+        if (N is M)
+        {
+        }
+        else
+        {
+            System.Console.WriteLine(j);
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,13): warning CS8417: The given expression always matches the provided constant.
+                //         if (N is M)
+                Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "N is M").WithLocation(8, 13)
+                );
+        }
+
         [Fact, WorkItem(25591, "https://github.com/dotnet/roslyn/issues/25591")]
         public void TupleSubsumptionError()
         {
@@ -1252,6 +1451,465 @@ class Cat {}
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"Fox Cat");
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns01()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (a: 1, b: 2)
+        {
+            case (c: 2, d: 3): // error: c and d not defined
+                break;
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,19): error CS8416: The name 'c' does not identify tuple element 'Item1'.
+                //             case (c: 2, d: 3): // error: c and d not defined
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "c").WithArguments("c", "Item1").WithLocation(7, 19),
+                // (7,25): error CS8416: The name 'd' does not identify tuple element 'Item2'.
+                //             case (c: 2, d: 3): // error: c and d not defined
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "d").WithArguments("d", "Item2").WithLocation(7, 25)
+                );
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns02()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (a: 1, b: 2)
+        {
+            case (a: 2, a: 3):
+                break;
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,25): error CS8416: The name 'a' does not identify tuple element 'Item2'.
+                //             case (a: 2, a: 3):
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "a").WithArguments("a", "Item2").WithLocation(7, 25)
+                );
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns03()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (a: 1, b: 2)
+        {
+            case (a: 2, Item2: 3):
+                System.Console.WriteLine(666);
+                break;
+            case (a: 1, Item2: 2):
+                System.Console.WriteLine(111);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"111");
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns04()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (new T(a: 1, b: 2))
+        {
+            case (c: 2, d: 3):
+                break;
+        }
+    }
+}
+class T
+{
+    public int A;
+    public int B;
+    public T(int a, int b) => (A, B) = (a, b);
+    public void Deconstruct(out int a, out int b) => (a, b) = (A, B);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,19): error CS8417: The name 'c' does not match the corresponding 'Deconstruct' parameter 'a'.
+                //             case (c: 2, d: 3):
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "c").WithArguments("c", "a").WithLocation(7, 19),
+                // (7,25): error CS8417: The name 'd' does not match the corresponding 'Deconstruct' parameter 'b'.
+                //             case (c: 2, d: 3):
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "d").WithArguments("d", "b").WithLocation(7, 25)
+                );
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns05()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (new T(a: 1, b: 2))
+        {
+            case (c: 2, d: 3):
+                break;
+        }
+    }
+}
+class T
+{
+    public int A;
+    public int B;
+    public T(int a, int b) => (A, B) = (a, b);
+}
+static class Extensions
+{
+    public static void Deconstruct(this T t, out int a, out int b) => (a, b) = (t.A, t.B);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,19): error CS8417: The name 'c' does not match the corresponding 'Deconstruct' parameter 'a'.
+                //             case (c: 2, d: 3):
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "c").WithArguments("c", "a").WithLocation(7, 19),
+                // (7,25): error CS8417: The name 'd' does not match the corresponding 'Deconstruct' parameter 'b'.
+                //             case (c: 2, d: 3):
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "d").WithArguments("d", "b").WithLocation(7, 25)
+                );
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns06()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (new T(a: 1, b: 2))
+        {
+            case (a: 2, a: 3):
+                break;
+        }
+    }
+}
+class T
+{
+    public int A;
+    public int B;
+    public T(int a, int b) => (A, B) = (a, b);
+    public void Deconstruct(out int a, out int b) => (a, b) = (A, B);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,25): error CS8417: The name 'a' does not match the corresponding 'Deconstruct' parameter 'b'.
+                //             case (a: 2, a: 3):
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "a").WithArguments("a", "b").WithLocation(7, 25)
+                );
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns07()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (new T(a: 1, b: 2))
+        {
+            case (a: 2, a: 3):
+                break;
+        }
+    }
+}
+class T
+{
+    public int A;
+    public int B;
+    public T(int a, int b) => (A, B) = (a, b);
+}
+static class Extensions
+{
+    public static void Deconstruct(this T t, out int a, out int b) => (a, b) = (t.A, t.B);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,25): error CS8417: The name 'a' does not match the corresponding 'Deconstruct' parameter 'b'.
+                //             case (a: 2, a: 3):
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "a").WithArguments("a", "b").WithLocation(7, 25)
+                );
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns08()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (new T(a: 1, b: 2))
+        {
+            case (a: 2, b: 3):
+                System.Console.WriteLine(666);
+                break;
+            case (a: 1, b: 2):
+                System.Console.WriteLine(111);
+                break;
+        }
+    }
+}
+class T
+{
+    public int A;
+    public int B;
+    public T(int a, int b) => (A, B) = (a, b);
+    public void Deconstruct(out int a, out int b) => (a, b) = (A, B);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"111");
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns09()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (new T(a: 1, b: 2))
+        {
+            case (a: 2, b: 3):
+                System.Console.WriteLine(666);
+                break;
+            case (a: 1, b: 2):
+                System.Console.WriteLine(111);
+                break;
+        }
+    }
+}
+class T
+{
+    public int A;
+    public int B;
+    public T(int a, int b) => (A, B) = (a, b);
+}
+static class Extensions
+{
+    public static void Deconstruct(this T t, out int a, out int b) => (a, b) = (t.A, t.B);
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"111");
+        }
+
+        [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
+        public void NamesInPositionalPatterns10()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        switch (a: 1, b: 2)
+        {
+            case (Item2: 1, 2):
+                break;
+        }
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (7,19): error CS8416: The name 'Item2' does not identify tuple element 'Item1'.
+                //             case (Item2: 1, 2):
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "Item2").WithArguments("Item2", "Item1").WithLocation(7, 19)
+                );
+        }
+
+        [Fact]
+        public void PropertyPatternMemberMissing01()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        if (b is Blah { X: int i })
+        {
+        }
+    }
+}
+
+class Blah
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,25): error CS0117: 'Blah' does not contain a definition for 'X'
+                //         if (b is Blah { X: int i })
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("Blah", "X").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void PropertyPatternMemberMissing02()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        if (b is Blah { X: int i })
+        {
+        }
+    }
+}
+
+class Blah
+{
+    public int X { set {} }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,25): error CS0154: The property or indexer 'Blah.X' cannot be used in this context because it lacks the get accessor
+                //         if (b is Blah { X: int i })
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "X:").WithArguments("Blah.X").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void PropertyPatternMemberMissing03()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        switch (b)
+        {
+            case Blah { X: int i }:
+                break;
+        }
+    }
+}
+
+class Blah
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,25): error CS0117: 'Blah' does not contain a definition for 'X'
+                //             case Blah { X: int i }:
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("Blah", "X").WithLocation(8, 25)
+                );
+        }
+
+        [Fact]
+        public void PropertyPatternMemberMissing04()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        switch (b)
+        {
+            case Blah { X: int i }:
+                break;
+        }
+    }
+}
+
+class Blah
+{
+    public int X { set {} }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,25): error CS0154: The property or indexer 'Blah.X' cannot be used in this context because it lacks the get accessor
+                //             case Blah { X: int i }:
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "X:").WithArguments("Blah.X").WithLocation(8, 25)
+                );
+        }
+
+        [Fact]
+        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
+        public void ConstantPatternVsUnconstrainedTypeParameter03()
+        {
+            var source =
+@"class C<T>
+{
+    internal struct S { }
+    static bool Test(S s)
+    {
+        return s is null;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (6,21): error CS0037: Cannot convert null to 'C<T>.S' because it is a non-nullable value type
+                //         return s is null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("C<T>.S").WithLocation(6, 21)
+                );
+        }
+
+        [Fact]
+        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
+        public void ConstantPatternVsUnconstrainedTypeParameter04()
+        {
+            var source =
+@"class C<T>
+{
+    static bool Test(C<T> x)
+    {
+        return x is 1;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (5,21): error CS8121: An expression of type 'C<T>' cannot be handled by a pattern of type 'int'.
+                //         return x is 1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C<T>", "int").WithLocation(5, 21)
+                );
         }
 
         // PROTOTYPE(patterns2): Need to have tests that exercise:

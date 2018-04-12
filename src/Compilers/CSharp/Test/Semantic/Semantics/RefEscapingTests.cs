@@ -3369,5 +3369,27 @@ class C
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S").WithLocation(10, 26)
                 );
         }
+
+        [Fact]
+        [WorkItem(25485, "https://github.com/dotnet/roslyn/issues/25485")]
+        public void ArrayAccess_CrashesEscapeRules()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+public class Class1
+{
+    public void Foo(Span<Thing>[] first, Thing[] second)
+    {
+        var x = first[0];
+    }
+}
+public struct Thing
+{
+}
+").VerifyDiagnostics(
+                // (5,21): error CS0611: Array elements cannot be of type 'Span<Thing>'
+                //     public void Foo(Span<Thing>[] first, Thing[] second)
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "Span<Thing>").WithArguments("System.Span<Thing>").WithLocation(5, 21));
+        }
     }
 }

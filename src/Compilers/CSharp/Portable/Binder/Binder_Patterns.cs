@@ -20,23 +20,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol expressionType = expression.Type;
             if ((object)expressionType == null || expressionType.SpecialType == SpecialType.System_Void)
             {
-                expressionType = CreateErrorType();
                 if (!hasErrors)
                 {
                     // value expected
                     diagnostics.Add(ErrorCode.ERR_BadPatternExpression, node.Expression.Location, expression.Display);
                     hasErrors = true;
                 }
+
+                expression = BadExpression(expression.Syntax, expression);
             }
 
-            BoundPattern pattern = BindPattern(node.Pattern, expressionType, hasErrors, diagnostics);
-            if (!hasErrors && pattern is BoundDeclarationPattern p && !p.IsVar && expression.ConstantValue == ConstantValue.Null)
+            BoundPattern pattern = BindPattern(node.Pattern, expression.Type, hasErrors, diagnostics);
+            hasErrors |= pattern.HasErrors;
+            return MakeIsPatternExpression(
+                node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node),
+                hasErrors, diagnostics);
+        }
+
+        private BoundExpression MakeIsPatternExpression(SyntaxNode node, BoundExpression expression, BoundPattern pattern, TypeSymbol boolType, bool hasErrors, DiagnosticBag diagnostics)
+        {
+            // Note that these labels are for the convenience of the compilation of patterns, and are not actually emitted into the lowered code.
+            LabelSymbol whenTrueLabel = new GeneratedLabelSymbol("isPatternSuccess");
+            LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
+            BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
+                this.Compilation, pattern.Syntax, expression, pattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
+            if (!hasErrors && !decisionDag.ReachableLabels.Contains(whenTrueLabel))
             {
-                diagnostics.Add(ErrorCode.WRN_IsAlwaysFalse, node.Location, p.DeclaredType.Type);
+                diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
+                hasErrors = true;
             }
 
-            return new BoundIsPatternExpression(
-                node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
+            if (expression.ConstantValue != null)
+            {
+                decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(expression);
+                if (!hasErrors)
+                {
+                    if (!decisionDag.ReachableLabels.Contains(whenTrueLabel))
+                    {
+                        diagnostics.Add(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, node.Location);
+                    }
+                    else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel) && pattern.Kind == BoundKind.ConstantPattern)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, node.Location);
+                    }
+                }
+            }
+
+            return new BoundIsPatternExpression(node, expression, pattern, decisionDag, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, boolType, hasErrors);
         }
 
         private BoundExpression BindSwitchExpression(SwitchExpressionSyntax node, DiagnosticBag diagnostics)
@@ -146,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
-            BoundExpression convertedExpression = ConvertPatternExpression(inputType, patternExpression, expression, ref constantValueOpt, diagnostics);
+            BoundExpression convertedExpression = ConvertPatternExpression(inputType, patternExpression, expression, out constantValueOpt, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
             if (!convertedExpression.HasErrors && constantValueOpt == null)
             {
@@ -166,37 +196,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
         }
 
-        internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, CSharpSyntaxNode node, BoundExpression expression, ref ConstantValue constantValue, DiagnosticBag diagnostics)
+        internal BoundExpression ConvertPatternExpression(TypeSymbol inputType, CSharpSyntaxNode node, BoundExpression expression, out ConstantValue constantValue, DiagnosticBag diagnostics)
         {
-            // NOTE: This will allow user-defined conversions, even though they're not allowed here.  This is acceptable
-            // because the result of a user-defined conversion does not have a ConstantValue and we'll report a diagnostic
-            // to that effect later.
-            BoundExpression convertedExpression = GenerateConversionForAssignment(inputType, expression, diagnostics);
+            BoundExpression convertedExpression;
 
-            if (convertedExpression.Kind == BoundKind.Conversion)
+            // If we are pattern-matching against an open type, we do not convert the constant to the type of the input.
+            // This permits us to match a value of type `IComparable<T>` with a pattern of type `int`.
+            bool inputContainsTypeParameter = inputType.ContainsTypeParameter();
+            if (inputContainsTypeParameter)
             {
-                var conversion = (BoundConversion)convertedExpression;
-                BoundExpression operand = conversion.Operand;
-                if (inputType.IsNullableType() && (convertedExpression.ConstantValue == null || !convertedExpression.ConstantValue.IsNull))
+                convertedExpression = expression;
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                if (expression.ConstantValue == ConstantValue.Null)
                 {
-                    // Null is a special case here because we want to compare null to the Nullable<T> itself, not to the underlying type.
-                    var discardedDiagnostics = DiagnosticBag.GetInstance(); // We are not intested in the diagnostic that get created here
-                    convertedExpression = CreateConversion(operand, inputType.GetNullableUnderlyingType(), discardedDiagnostics);
-                    discardedDiagnostics.Free();
+                    if (inputType.IsNonNullableValueType())
+                    {
+                        // We do not permit matching null against a struct type.
+                        diagnostics.Add(ErrorCode.ERR_ValueCantBeNull, expression.Syntax.Location, inputType);
+                    }
                 }
-                else if ((conversion.ConversionKind == ConversionKind.Boxing || conversion.ConversionKind == ConversionKind.ImplicitReference)
-                    && operand.ConstantValue != null && convertedExpression.ConstantValue == null)
+                else if (ExpressionOfTypeMatchesPatternType(Conversions, inputType, expression.Type, ref useSiteDiagnostics, out _, operandConstantValue: null) == false)
                 {
-                    // A boxed constant (or string converted to object) is a special case because we prefer
-                    // to compare to the pre-converted value by casting the input value to the type of the constant
-                    // (that is, unboxing or downcasting it) and then testing the resulting value using primitives.
-                    // That is much more efficient than calling object.Equals(x, y), and we can share the downcasted
-                    // input value among many constant tests.
-                    convertedExpression = operand;
+                    diagnostics.Add(ErrorCode.ERR_PatternWrongType, expression.Syntax.Location, inputType, expression.Display);
                 }
-                else if (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true)
+
+                diagnostics.Add(node, useSiteDiagnostics);
+            }
+            else
+            {
+                // This will allow user-defined conversions, even though they're not permitted here.  This is acceptable
+                // because the result of a user-defined conversion does not have a ConstantValue. A constant pattern
+                // requires a constant value so we'll report a diagnostic to that effect later.
+                convertedExpression = GenerateConversionForAssignment(inputType, expression, diagnostics);
+
+                if (convertedExpression.Kind == BoundKind.Conversion)
                 {
-                    convertedExpression = operand;
+                    var conversion = (BoundConversion)convertedExpression;
+                    BoundExpression operand = conversion.Operand;
+                    if (inputType.IsNullableType() && (convertedExpression.ConstantValue == null || !convertedExpression.ConstantValue.IsNull))
+                    {
+                        // Null is a special case here because we want to compare null to the Nullable<T> itself, not to the underlying type.
+                        var discardedDiagnostics = DiagnosticBag.GetInstance(); // We are not intested in the diagnostic that get created here
+                        convertedExpression = CreateConversion(operand, inputType.GetNullableUnderlyingType(), discardedDiagnostics);
+                        discardedDiagnostics.Free();
+                    }
+                    else if ((conversion.ConversionKind == ConversionKind.Boxing || conversion.ConversionKind == ConversionKind.ImplicitReference)
+                        && operand.ConstantValue != null && convertedExpression.ConstantValue == null)
+                    {
+                        // A boxed constant (or string converted to object) is a special case because we prefer
+                        // to compare to the pre-converted value by casting the input value to the type of the constant
+                        // (that is, unboxing or downcasting it) and then testing the resulting value using primitives.
+                        // That is much more efficient than calling object.Equals(x, y), and we can share the downcasted
+                        // input value among many constant tests.
+                        convertedExpression = operand;
+                    }
+                    else if (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true)
+                    {
+                        convertedExpression = operand;
+                    }
                 }
             }
 
@@ -469,15 +526,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (elementTypes.Length != node.SubPatterns.Count && !hasErrors)
                 {
                     var location = new SourceLocation(node.SyntaxTree, new Text.TextSpan(node.OpenParenToken.SpanStart, node.CloseParenToken.Span.End - node.OpenParenToken.SpanStart));
-                    diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, declType.TupleElementTypes, elementTypes.Length, node.SubPatterns.Count);
+                    diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, declType, elementTypes.Length, node.SubPatterns.Count);
                     hasErrors = true;
                 }
                 for (int i = 0; i < node.SubPatterns.Count; i++)
                 {
+                    var subPattern = node.SubPatterns[i];
                     bool isError = i >= elementTypes.Length;
                     TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i];
-                    // PROTOTYPE(patterns2): Check that node.SubPatterns[i].NameColon?.Name corresponds to tuple element i of declType.
-                    BoundPattern boundSubpattern = BindPattern(node.SubPatterns[i].Pattern, elementType, isError, diagnostics);
+                    if (subPattern.NameColon != null)
+                    {
+                        string name = subPattern.NameColon.Name.Identifier.ValueText;
+                        FieldSymbol foundField = CheckIsTupleElement(subPattern.NameColon.Name, (NamedTypeSymbol)declType, name, i, diagnostics);
+                        // PROTOTYPE(patterns2): Should the tuple field binding for the name be stored somewhere in the node?
+
+                    }
+                    BoundPattern boundSubpattern = BindPattern(subPattern.Pattern, elementType, isError, diagnostics);
                     patterns.Add(boundSubpattern);
                 }
             }
@@ -485,19 +549,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // It is not a tuple type. Seek an appropriate Deconstruct method.
                 var inputPlaceholder = new BoundImplicitReceiver(node, declType); // A fake receiver expression to permit us to reuse binding logic
+                // PROTOTYPE(patterns2): Can we include element names node.SubPatterns[i].NameColon?.Name in the AnalyzedArguments
+                // used in MakeDeconstructInvocationExpression so they are used to disambiguate? LDM needs to reconcile with deconstruction.
                 BoundExpression deconstruct = MakeDeconstructInvocationExpression(
                     node.SubPatterns.Count, inputPlaceholder, node, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
                 deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
-                // PROTOTYPE(patterns2): Set and check the deconstructMethod
-
+                int skippedExtensionParameters = deconstructMethod?.IsExtensionMethod == true ? 1 : 0;
                 for (int i = 0; i < node.SubPatterns.Count; i++)
                 {
+                    var subPattern = node.SubPatterns[i];
                     bool isError = outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
                     TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
-                    // PROTOTYPE(patterns2): Check that node.SubPatterns[i].NameColon?.Name corresponds to parameter i of the method. Or,
-                    // better yet, include those names in the AnalyzedArguments used in MakeDeconstructInvocationExpression so they are
-                    // used to disambiguate.
-                    BoundPattern boundSubpattern = BindPattern(node.SubPatterns[i].Pattern, elementType, isError, diagnostics);
+                    if (subPattern.NameColon != null && !isError)
+                    {
+                        // Check that the given name is the same as the corresponding parameter of the method.
+                        string name = subPattern.NameColon.Name.Identifier.ValueText;
+                        int parameterIndex = i + skippedExtensionParameters;
+                        string parameterName = deconstructMethod.Parameters[parameterIndex].Name;
+                        if (name != parameterName)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMismatch, subPattern.NameColon.Name.Location, name, parameterName);
+                        }
+                        // PROTOTYPE(patterns2): Should the parameter binding for the name be stored somewhere in the node?
+                    }
+                    BoundPattern boundSubpattern = BindPattern(subPattern.Pattern, elementType, isError, diagnostics);
                     patterns.Add(boundSubpattern);
                 }
 
@@ -514,6 +589,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, inputType: inputType, deconstructMethodOpt: deconstructMethod,
                 deconstruction: patterns.ToImmutableAndFree(), propertiesOpt: propertiesOpt, variable: variableSymbol, variableAccess: variableAccess, hasErrors: hasErrors);
+        }
+
+        /// <summary>
+        /// Check that the given name designates a tuple element at the given index, and return that element.
+        /// </summary>
+        private FieldSymbol CheckIsTupleElement(SyntaxNode node, NamedTypeSymbol tupleType, string name, int tupleIndex, DiagnosticBag diagnostics)
+        {
+            FieldSymbol foundElement = null;
+            foreach (var symbol in tupleType.GetMembers(name))
+            {
+                if (symbol is FieldSymbol field && field.IsTupleElement())
+                {
+                    foundElement = field;
+                    break;
+                }
+            }
+
+            if (foundElement is null || foundElement.TupleElementIndex != tupleIndex)
+            {
+                diagnostics.Add(ErrorCode.ERR_TupleElementNameMismatch, node.Location, name, $"Item{tupleIndex+1}");
+            }
+
+            return foundElement;
         }
 
         private BoundPattern BindVarPattern(VarPatternSyntax node, TypeSymbol inputType, bool hasErrors, DiagnosticBag diagnostics)
@@ -658,14 +756,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Symbol symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
 
-            if (inputType.IsErrorType() || hasErrors)
+            if (inputType.IsErrorType() || hasErrors || symbol == (object)null)
             {
                 memberType = CreateErrorType();
                 return null;
             }
-
-            memberType = symbol.GetTypeOrReturnType();
-            return symbol;
+            else
+            {
+                memberType = symbol.GetTypeOrReturnType();
+                return symbol;
+            }
         }
 
         private Symbol BindPropertyPatternMember(
@@ -726,16 +826,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             default:
                                 Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, memberName, name);
-                                hasErrors = true;
                                 break;
                         }
                     }
+
+                    hasErrors = true;
                     return null;
             }
 
             if (hasErrors || !CheckValueKind(node: memberName.Parent, expr: boundMember, valueKind: BindValueKind.RValue,
                                              checkingReceiver: false, diagnostics: diagnostics))
             {
+                hasErrors = true;
                 return null;
             }
 

@@ -6765,7 +6765,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IBlockOperation ExpressionBody => SetParentOperation(_lazyExpressionBody.Value, this);
     }
 
-    internal sealed class DiscardOperation : Operation, IDiscardOperation
+    internal sealed class DiscardOperation : Operation, IDiscardOperation, IPatternOperation
     {
         public DiscardOperation(IDiscardSymbol discardSymbol, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.Discard, semanticModel, syntax, type, constantValue, isImplicit)

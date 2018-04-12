@@ -923,72 +923,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             VisitRvalue(node.Expression);
-            VisitPattern(node.Expression, node.Pattern);
+            VisitPattern(node.Pattern);
+            var reachableLabels = node.DecisionDag.ReachableLabels;
+            if (!reachableLabels.Contains(node.WhenTrueLabel))
+            {
+                SetState(this.StateWhenFalse);
+                SetConditionalState(UnreachableState(), this.State);
+            }
+            else if (!reachableLabels.Contains(node.WhenFalseLabel))
+            {
+                SetState(this.StateWhenTrue);
+                SetConditionalState(this.State, UnreachableState());
+            }
+
             return null;
         }
 
-        public virtual void VisitPattern(BoundExpression expression, BoundPattern pattern)
+        public virtual void VisitPattern(BoundPattern pattern)
         {
             Split();
-            if (expression != null)
-            {
-                bool? knownMatch = CheckRefutations(expression, pattern);
-                switch (knownMatch)
-                {
-                    case true:
-                        SetState(StateWhenTrue);
-                        SetConditionalState(this.State, UnreachableState());
-                        break;
-                    case false:
-                        SetState(StateWhenFalse);
-                        SetConditionalState(UnreachableState(), this.State);
-                        break;
-                    case null:
-                        break;
-                }
-            }
         }
 
         public override BoundNode VisitConstantPattern(BoundConstantPattern node)
         {
             // All patterns are handled by VisitPattern
             throw ExceptionUtilities.Unreachable;
-        }
-
-        /// <summary>
-        /// Check if the given expression is known to *always* match, or *always* fail against the given pattern.
-        /// Return true for known match, false for known fail, and null otherwise. Used for the "is pattern" expression.
-        /// </summary>
-        private bool? CheckRefutations(BoundExpression expression, BoundPattern pattern)
-        {
-            Debug.Assert(expression != null);
-            switch (pattern.Kind)
-            {
-                case BoundKind.DeclarationPattern:
-                    {
-                        var declPattern = (BoundDeclarationPattern)pattern;
-                        if (declPattern.IsVar || // var pattern always matches
-                            declPattern.DeclaredType?.Type?.IsValueType == true && declPattern.DeclaredType.Type == (object)expression.Type) // exact match
-                        {
-                            return true;
-                        }
-                        Debug.Assert(!declPattern.IsVar);
-                        switch (expression.ConstantValue?.IsNull)
-                        {
-                            case true: return false;
-                            case false: return true;
-                            default: return null;
-                        }
-                    }
-                case BoundKind.ConstantPattern:
-                    {
-                        var constPattern = (BoundConstantPattern)pattern;
-                        if (expression.ConstantValue == null || constPattern.ConstantValue == null) return null;
-                        return Equals(expression.ConstantValue.Value, constPattern.ConstantValue.Value);
-                    }
-            }
-
-            return null;
         }
 
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
@@ -2767,16 +2726,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Expression);
             var dispatchState = this.State;
             var endState = UnreachableState();
+            var reachableLabels = node.DecisionDag.ReachableLabels;
             foreach (var arm in node.SwitchArms)
             {
                 SetState(dispatchState.Clone());
-                VisitPattern(node.Expression, arm.Pattern);
+                VisitPattern(arm.Pattern);
                 SetState(StateWhenTrue);
-                if (arm.Pattern.HasErrors)
+                if (!reachableLabels.Contains(arm.Label) || arm.Pattern.HasErrors)
                 {
-                    // suppress definite assignment errors on broken switch arms
                     SetUnreachable();
                 }
+
                 if (arm.WhenClause != null)
                 {
                     VisitCondition(arm.WhenClause);

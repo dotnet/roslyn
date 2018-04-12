@@ -1579,6 +1579,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 
+        ERR_FeatureNotAvailableInVersion8_0 = 8399,
+
         #region diagnostics introduced for recursive patterns
         // PROTOTYPE(patterns2): renumber these before committing
         ERR_MissingPattern = 8400,
@@ -1596,6 +1598,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConstantPatternNamedUnderscore = 8412,
         WRN_IsTypeNamedUnderscore = 8413,
         ERR_ExpressionTreeContainsSwitchExpression = 8414,
+        ERR_SwitchGoverningExpressionRequiresParens = 8415,
+        ERR_TupleElementNameMismatch = 8416,
+        ERR_DeconstructParameterNameMismatch = 8417,
+        ERR_IsPatternImpossible = 8418,
+        WRN_GivenExpressionNeverMatchesPattern = 8419,
+        WRN_GivenExpressionAlwaysMatchesConstant = 8420,
         #endregion diagnostics introduced for recursive patterns
 
     }

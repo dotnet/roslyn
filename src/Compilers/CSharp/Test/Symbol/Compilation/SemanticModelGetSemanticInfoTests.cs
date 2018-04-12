@@ -8911,9 +8911,6 @@ public class Test
 }
 ";
             CreateCompilation(sourceCode).VerifyDiagnostics(
-                // (12,28): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case /*<bind>*/()=>3/*</bind>*/:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(12, 28),
                 // (12,30): error CS1003: Syntax error, ':' expected
                 //             case /*<bind>*/()=>3/*</bind>*/:
                 Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(12, 30),
@@ -8925,7 +8922,13 @@ public class Test
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(12, 44),
                 // (12,44): error CS1513: } expected
                 //             case /*<bind>*/()=>3/*</bind>*/:
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(12, 44)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(12, 44),
+                // (12,28): error CS1501: No overload for method 'Deconstruct' takes 0 arguments
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_BadArgCount, "()").WithArguments("Deconstruct", "0").WithLocation(12, 28),
+                // (12,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'string', with 0 out parameters and a void return type.
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(12, 28)
                 );
         }
 
@@ -8955,15 +8958,18 @@ public class Test
 }
 ";
             CreateCompilation(sourceCode).VerifyDiagnostics(
-                // (13,28): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case /*<bind>*/()=>/*</bind>*/:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(13, 28),
                 // (13,30): error CS1003: Syntax error, ':' expected
                 //             case /*<bind>*/()=>/*</bind>*/:
                 Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(13, 30),
                 // (13,30): error CS1513: } expected
                 //             case /*<bind>*/()=>/*</bind>*/:
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(13, 30)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(13, 30),
+                // (13,28): error CS1501: No overload for method 'Deconstruct' takes 0 arguments
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_BadArgCount, "()").WithArguments("Deconstruct", "0").WithLocation(13, 28),
+                // (13,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'string', with 0 out parameters and a void return type.
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(13, 28)
                 );
         }
 

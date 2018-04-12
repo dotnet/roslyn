@@ -3275,6 +3275,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The name &apos;{0}&apos; does not match the corresponding &apos;Deconstruct&apos; parameter &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_DeconstructParameterNameMismatch {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructParameterNameMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Deconstruct assignment requires an expression with a type on the right-hand-side..
         /// </summary>
         internal static string ERR_DeconstructRequiresExpression {
@@ -4688,6 +4697,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 8.0. Please use language version {1} or greater..
+        /// </summary>
+        internal static string ERR_FeatureNotAvailableInVersion8_0 {
+            get {
+                return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion8_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_FeatureNotValidInExpressionTree {
@@ -6097,6 +6115,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InvalidVersionFormatDeterministic {
             get {
                 return ResourceManager.GetString("ERR_InvalidVersionFormatDeterministic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression of type &apos;{0}&apos; can never match the provided pattern..
+        /// </summary>
+        internal static string ERR_IsPatternImpossible {
+            get {
+                return ResourceManager.GetString("ERR_IsPatternImpossible", resourceCulture);
             }
         }
         
@@ -9377,6 +9404,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parentheses are required around the switch governing expression..
+        /// </summary>
+        internal static string ERR_SwitchGoverningExpressionRequiresParens {
+            get {
+                return ResourceManager.GetString("ERR_SwitchGoverningExpressionRequiresParens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Command-line syntax error: Missing &apos;:&lt;number&gt;&apos; for &apos;{0}&apos; option.
         /// </summary>
         internal static string ERR_SwitchNeedsNumber {
@@ -9535,6 +9571,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TupleDuplicateElementName {
             get {
                 return ResourceManager.GetString("ERR_TupleDuplicateElementName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name &apos;{0}&apos; does not identify tuple element &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_TupleElementNameMismatch {
+            get {
+                return ResourceManager.GetString("ERR_TupleElementNameMismatch", resourceCulture);
             }
         }
         
@@ -10449,16 +10494,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
         
         /// <summary>
         ///   Looks up a localized string similar to 
-        ///                              Visual C# Compiler Options
+        ///                             Visual C# Compiler Options
         ///
-        ///                        - OUTPUT FILES -
-        /// /out:&lt;file&gt;                   Specify output file name (default: base name of
-        ///                               file with main class or first file)
-        /// /target:exe                   Build a console executable (default) (Short
-        ///                               form: /t:exe)
-        /// /target:winexe                Build a Windows executable (Short form:
-        ///                               /t:winexe)
-        /// /target:library        [rest of string was truncated]&quot;;.
+        ///                       - OUTPUT FILES -
+        ///-out:&lt;file&gt;                   Specify output file name (default: base name of
+        ///                              file with main class or first file)
+        ///-target:exe                   Build a console executable (default) (Short
+        ///                              form: -t:exe)
+        ///-target:winexe                Build a Windows executable (Short form:
+        ///                              -t:winexe)
+        ///-target:library               B [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string IDS_CSCHelp {
             get {
@@ -13543,6 +13588,42 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_FinalizeMethod_Title {
             get {
                 return ResourceManager.GetString("WRN_FinalizeMethod_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given expression always matches the provided constant..
+        /// </summary>
+        internal static string WRN_GivenExpressionAlwaysMatchesConstant {
+            get {
+                return ResourceManager.GetString("WRN_GivenExpressionAlwaysMatchesConstant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given expression always matches the provided constant..
+        /// </summary>
+        internal static string WRN_GivenExpressionAlwaysMatchesConstant_Title {
+            get {
+                return ResourceManager.GetString("WRN_GivenExpressionAlwaysMatchesConstant_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given expression never matches the provided pattern..
+        /// </summary>
+        internal static string WRN_GivenExpressionNeverMatchesPattern {
+            get {
+                return ResourceManager.GetString("WRN_GivenExpressionNeverMatchesPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given expression never matches the provided pattern..
+        /// </summary>
+        internal static string WRN_GivenExpressionNeverMatchesPattern_Title {
+            get {
+                return ResourceManager.GetString("WRN_GivenExpressionNeverMatchesPattern_Title", resourceCulture);
             }
         }
         
