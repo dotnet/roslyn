@@ -1759,6 +1759,159 @@ static class Extensions
                 );
         }
 
+        [Fact]
+        public void PropertyPatternMemberMissing01()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        if (b is Blah { X: int i })
+        {
+        }
+    }
+}
+
+class Blah
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,25): error CS0117: 'Blah' does not contain a definition for 'X'
+                //         if (b is Blah { X: int i })
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("Blah", "X").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void PropertyPatternMemberMissing02()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        if (b is Blah { X: int i })
+        {
+        }
+    }
+}
+
+class Blah
+{
+    public int X { set {} }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,25): error CS0154: The property or indexer 'Blah.X' cannot be used in this context because it lacks the get accessor
+                //         if (b is Blah { X: int i })
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "X:").WithArguments("Blah.X").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        public void PropertyPatternMemberMissing03()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        switch (b)
+        {
+            case Blah { X: int i }:
+                break;
+        }
+    }
+}
+
+class Blah
+{
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,25): error CS0117: 'Blah' does not contain a definition for 'X'
+                //             case Blah { X: int i }:
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("Blah", "X").WithLocation(8, 25)
+                );
+        }
+
+        [Fact]
+        public void PropertyPatternMemberMissing04()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Blah b = null;
+        switch (b)
+        {
+            case Blah { X: int i }:
+                break;
+        }
+    }
+}
+
+class Blah
+{
+    public int X { set {} }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,25): error CS0154: The property or indexer 'Blah.X' cannot be used in this context because it lacks the get accessor
+                //             case Blah { X: int i }:
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "X:").WithArguments("Blah.X").WithLocation(8, 25)
+                );
+        }
+
+        [Fact]
+        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
+        public void ConstantPatternVsUnconstrainedTypeParameter03()
+        {
+            var source =
+@"class C<T>
+{
+    internal struct S { }
+    static bool Test(S s)
+    {
+        return s is null;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (6,21): error CS0037: Cannot convert null to 'C<T>.S' because it is a non-nullable value type
+                //         return s is null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("C<T>.S").WithLocation(6, 21)
+                );
+        }
+
+        [Fact]
+        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
+        public void ConstantPatternVsUnconstrainedTypeParameter04()
+        {
+            var source =
+@"class C<T>
+{
+    static bool Test(C<T> x)
+    {
+        return x is 1;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (5,21): error CS8121: An expression of type 'C<T>' cannot be handled by a pattern of type 'int'.
+                //         return x is 1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C<T>", "int").WithLocation(5, 21)
+                );
+        }
+
         // PROTOTYPE(patterns2): Need to have tests that exercise:
         // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
         // PROTOTYPE(patterns2): Definite assignment for the var-pattern
