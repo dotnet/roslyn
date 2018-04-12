@@ -3,10 +3,8 @@
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    using System;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal partial class LanguageParser : SyntaxParser
@@ -349,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                       (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken))
                 {
                     type = this.ParseType(ParseTypeMode.DefinitePattern);
-                    if (type.IsMissing || !IsTokenFollowingTypeInPattern())
+                    if (type.IsMissing || !CanTokenFollowTypeInPattern())
                     {
                         // either it is not shaped like a type, or it is a constant expression.
                         this.Reset(ref resetPoint);
@@ -375,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// Is the current token something that could follow a type in a pattern?
         /// </summary>
-        private bool IsTokenFollowingTypeInPattern()
+        private bool CanTokenFollowTypeInPattern()
         {
             switch (this.CurrentToken.Kind)
             {
@@ -428,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var typeIdentifier = (IdentifierNameSyntax)type;
                 var typeIdentifierToken = typeIdentifier.Identifier;
                 if (typeIdentifierToken.ContextualKind == SyntaxKind.VarKeyword &&
-                    IsTokenFollowingTypeInPattern() && (!whenIsKeyword || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
+                    CanTokenFollowTypeInPattern() && (!whenIsKeyword || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
                 {
                     // we have a "var" pattern; "var" is not permitted to be a stand-in for a type (or a constant) in a pattern.
                     var varToken = ConvertToKeyword(typeIdentifierToken);
