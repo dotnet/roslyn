@@ -2,17 +2,28 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
+using KeyValuePair = Roslyn.Utilities.KeyValuePair;
 
 namespace Roslyn.Test.Utilities
 {
     public static class TestHelpers
     {
+        public static ImmutableDictionary<TKey, TValue> CreateImmutableDictionary<TKey, TValue>(
+            IEqualityComparer<TKey> comparer,
+            params (TKey, TValue)[] entries)
+            => ImmutableDictionary.CreateRange(comparer, entries.Select(KeyValuePair.ToKeyValuePair));
+
+        public static ImmutableDictionary<TKey, TValue> CreateImmutableDictionary<TKey, TValue>(params (TKey, TValue)[] entries)
+            => ImmutableDictionary.CreateRange(entries.Select(KeyValuePair.ToKeyValuePair));
+
         public static IEnumerable<Type> GetAllTypesWithStaticFieldsImplementingType(Assembly assembly, Type type)
         {
             return assembly.GetTypes().Where(t =>
