@@ -92,21 +92,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
                             if (textBuffer != null)
                             {
-                                var point = textBuffer.CurrentSnapshot.GetPoint(iLine, iCol);
-                                var document = point.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                                if (document != null)
+                                var nullablePoint = textBuffer.CurrentSnapshot.TryGetPoint(iLine, iCol);
+                                if (nullablePoint.HasValue)
                                 {
-                                    // NOTE(cyrusn): We have to wait here because the debuggers' 
-                                    // GetNameOfLocation is a blocking call.  In the future, it 
-                                    // would be nice if they could make it async.
-                                    var debugLocationInfo = _languageDebugInfo.GetLocationInfoAsync(document, point, cancellationToken).WaitAndGetResult(cancellationToken);
+                                    var point = nullablePoint.Value;
+                                    var document = point.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
 
-                                    if (!debugLocationInfo.IsDefault)
+                                    if (document != null)
                                     {
-                                        succeeded = true;
-                                        name = debugLocationInfo.Name;
-                                        lineOffset = debugLocationInfo.LineOffset;
+                                        // NOTE(cyrusn): We have to wait here because the debuggers' 
+                                        // GetNameOfLocation is a blocking call.  In the future, it 
+                                        // would be nice if they could make it async.
+                                        var debugLocationInfo = _languageDebugInfo.GetLocationInfoAsync(document, point, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                                        if (!debugLocationInfo.IsDefault)
+                                        {
+                                            succeeded = true;
+                                            name = debugLocationInfo.Name;
+                                            lineOffset = debugLocationInfo.LineOffset;
+                                        }
                                     }
                                 }
                             }
@@ -149,13 +153,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                             if (document != null)
                             {
-                                var point = snapshot.GetPoint(iLine, iCol);
-                                var proximityExpressions = _proximityExpressionsService.GetProximityExpressionsAsync(document, point.Position, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
-
-                                if (proximityExpressions != null)
+                                var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
+                                if (nullablePoint.HasValue)
                                 {
-                                    enumBSTR = new VsEnumBSTR(proximityExpressions);
-                                    succeeded = true;
+                                    var point = nullablePoint.Value;
+                                    var proximityExpressions = _proximityExpressionsService.GetProximityExpressionsAsync(document, point.Position, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+
+                                    if (proximityExpressions != null)
+                                    {
+                                        enumBSTR = new VsEnumBSTR(proximityExpressions);
+                                        succeeded = true;
+                                    }
                                 }
                             }
                         }
@@ -281,7 +289,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     Document document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                     if (document != null)
                     {
-                        var point = snapshot.GetPoint(iLine, iCol);
+                        var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
+                        if (!nullablePoint.HasValue)
+                        {
+                            // The point disappeared between sessions. Do not allow a breakpoint here.
+                            return VSConstants.E_FAIL;
+                        }
+
+                        var point = nullablePoint.Value;
                         var length = 0;
                         if (pCodeSpan != null && pCodeSpan.Length > 0)
                         {
