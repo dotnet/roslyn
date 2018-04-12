@@ -306,13 +306,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         identifierName.Identifier.ValueText == variableName &&
                         _localSymbol.Equals(_semanticModel.GetSymbolInfo(identifierName, _cancellationToken).Symbol))
                     {
-                        // If we get here, it that means we have a local
+                        // If we got here, it means we have a local
                         // reference out of scope of the pattern variable.
                         return true;
                     }
                 }
 
-                // Either no reference ewre found, or all
+                // Either no reference were found, or all
                 // references were inside the given scope.
                 return false;
             }
