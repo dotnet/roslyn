@@ -13331,7 +13331,7 @@ public static class P
         }
 
         [WorkItem(26113, "https://github.com/dotnet/roslyn/issues/26113")]
-        [Fact()]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VarargByRef()
         {
 
