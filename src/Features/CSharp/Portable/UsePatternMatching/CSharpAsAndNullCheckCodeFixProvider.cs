@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var locations = new HashSet<Location>();
+            var declaratorLocations = new HashSet<Location>();
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (locations.Add(diagnostic.AdditionalLocations[0]))
+                if (declaratorLocations.Add(diagnostic.AdditionalLocations[0]))
                 {
                     AddEdits(editor, diagnostic, cancellationToken);
                 }
@@ -57,29 +57,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             CancellationToken cancellationToken)
         {
             var declaratorLocation = diagnostic.AdditionalLocations[0];
-            var nullCheckLocation = diagnostic.AdditionalLocations[1];
+            var comparisonLocation = diagnostic.AdditionalLocations[1];
             var asExpressionLocation = diagnostic.AdditionalLocations[2];
 
             var declarator = (VariableDeclaratorSyntax)declaratorLocation.FindNode(cancellationToken);
-            var nullCheckExpression = (BinaryExpressionSyntax)nullCheckLocation.FindNode(cancellationToken);
+            var comparison = (BinaryExpressionSyntax)comparisonLocation.FindNode(cancellationToken);
             var asExpression = (BinaryExpressionSyntax)asExpressionLocation.FindNode(cancellationToken);
             var newIdentifier = declarator.Identifier
-                .WithoutTrivia().WithTrailingTrivia(nullCheckExpression.Right.GetTrailingTrivia());
+                .WithoutTrivia().WithTrailingTrivia(comparison.Right.GetTrailingTrivia());
 
-            ExpressionSyntax updatedCondition = SyntaxFactory.IsPatternExpression(
+            ExpressionSyntax isExpression = SyntaxFactory.IsPatternExpression(
                 asExpression.Left, SyntaxFactory.DeclarationPattern(
                     ((TypeSyntax)asExpression.Right).WithoutTrivia(),
                     SyntaxFactory.SingleVariableDesignation(newIdentifier)));
 
             // We should negate the is-expression if we have something like "x == null"
-            if (nullCheckExpression.IsKind(SyntaxKind.EqualsExpression))
+            if (comparison.IsKind(SyntaxKind.EqualsExpression))
             {
-                updatedCondition = SyntaxFactory.PrefixUnaryExpression(
+                isExpression = SyntaxFactory.PrefixUnaryExpression(
                     SyntaxKind.LogicalNotExpression,
-                    updatedCondition.Parenthesize());
+                    isExpression.Parenthesize());
             }
-
-            var currentCondition = nullCheckExpression;
 
             if (declarator.Parent is VariableDeclarationSyntax declaration && 
                 declaration.Parent is LocalDeclarationStatementSyntax localDeclaration && 
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             editor.RemoveNode(declarator, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-            editor.ReplaceNode(currentCondition, updatedCondition);
+            editor.ReplaceNode(comparison, isExpression.WithTriviaFrom(comparison));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
