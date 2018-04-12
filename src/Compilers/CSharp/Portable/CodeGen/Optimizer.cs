@@ -1179,7 +1179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                RefKind refKind = argRefKindsOpt.IsDefaultOrEmpty ? RefKind.None : node.ArgumentRefKindsOpt[i];
+                RefKind refKind = argRefKindsOpt.IsDefaultOrEmpty ? RefKind.None : argRefKindsOpt[i];
                 VisitArgument(arguments, ref rewrittenArguments, i, refKind);
             }
 
