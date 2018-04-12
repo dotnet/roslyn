@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         /// Computes the desired refkind of the argument.
-        /// Consiuders all the cases where ref kinds are explicit, omitted, vararg cases.
+        /// Considers all the cases - where ref kinds are explicit, omitted, vararg cases.
         /// </summary>
         internal static RefKind GetArgumentRefKind(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt, int i)
         {
