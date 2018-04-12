@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
@@ -49,16 +50,26 @@ namespace Roslyn.Test.PdbUtilities
             object symReader = null;
             string moduleName;
 
-            var guid = default(Guid);
-            if (IntPtr.Size == 4)
+            try
             {
-                CreateSymReader32(ref guid, out symReader);
-                moduleName = "Microsoft.DiaSymReader.Native.x86.dll";
+                var guid = default(Guid);
+                if (IntPtr.Size == 4)
+                {
+                    CreateSymReader32(ref guid, out symReader);
+                    moduleName = "Microsoft.DiaSymReader.Native.x86.dll";
+                }
+                else
+                {
+                    CreateSymReader64(ref guid, out symReader);
+                    moduleName = "Microsoft.DiaSymReader.Native.amd64.dll";
+                }
             }
-            else
+            catch (DllNotFoundException e)
             {
-                CreateSymReader64(ref guid, out symReader);
-                moduleName = "Microsoft.DiaSymReader.Native.amd64.dll";
+                var getLocation = (Func<Assembly, string>)typeof(Assembly).GetMethod("get_Location").CreateDelegate(typeof(Func<Assembly, string>));
+                var assemblyFile = getLocation(typeof(SymReaderFactory).GetTypeInfo().Assembly);
+                var files = Directory.EnumerateFiles(Path.GetDirectoryName(assemblyFile), "*.dll");
+                throw new InvalidOperationException(e.Message + $"Files next to {assemblyFile}: " + string.Join(";", files.Select(Path.GetFileName)));
             }
 
             var reader = symReader as ISymUnmanagedReader5;
