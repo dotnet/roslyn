@@ -1443,78 +1443,42 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (21,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case (int, int):
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int)").WithArguments("recursive patterns", "patterns2").WithLocation(21, 18),
                 // (21,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(21, 19),
                 // (21,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(21, 24),
-                // (22,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case (int x, int y):
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int x, int y)").WithArguments("recursive patterns", "patterns2").WithLocation(22, 18),
-                // (23,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int) z").WithArguments("recursive patterns", "patterns2").WithLocation(23, 18),
                 // (23,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(23, 19),
                 // (23,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(23, 24),
-                // (24,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int a, int b) c").WithArguments("recursive patterns", "patterns2").WithLocation(24, 18),
-                // (25,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(long, long) d").WithArguments("recursive patterns", "patterns2").WithLocation(25, 18),
                 // (25,19): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 19),
                 // (25,25): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(25, 25),
-                // (30,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int) z").WithArguments("recursive patterns", "patterns2").WithLocation(30, 18),
                 // (30,19): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(30, 19),
                 // (30,24): error CS1525: Invalid expression term 'int'
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(30, 24),
-                // (32,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case (long, long) d:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(long, long) d").WithArguments("recursive patterns", "patterns2").WithLocation(32, 18),
                 // (32,19): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(32, 19),
                 // (32,25): error CS1525: Invalid expression term 'long'
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "long").WithArguments("long").WithLocation(32, 25),
-                // (37,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int32, System.Int32) z").WithArguments("recursive patterns", "patterns2").WithLocation(37, 18),
-                // (39,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int64, System.Int64) d").WithArguments("recursive patterns", "patterns2").WithLocation(39, 18),
-                // (43,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if (o is (int, int)) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int)").WithArguments("recursive patterns", "patterns2").WithLocation(43, 22),
                 // (43,23): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(43, 23),
                 // (43,28): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(43, 28),
-                // (44,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if (o is (int x, int y)) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int x, int y)").WithArguments("recursive patterns", "patterns2").WithLocation(44, 22),
-                // (45,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int) z").WithArguments("recursive patterns", "patterns2").WithLocation(45, 22),
                 // (45,23): error CS1525: Invalid expression term 'int'
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(45, 23),
@@ -1530,18 +1494,6 @@ class Program
                 // (45,35): error CS1513: } expected
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(45, 35),
-                // (46,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if (o is (int a, int b) c) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int a, int b) c").WithArguments("recursive patterns", "patterns2").WithLocation(46, 22),
-                // (49,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if (o is (System.Int32, System.Int32)) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int32, System.Int32)").WithArguments("recursive patterns", "patterns2").WithLocation(49, 22),
-                // (50,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if (o is (System.Int32 x, System.Int32 y)) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int32 x, System.Int32 y)").WithArguments("recursive patterns", "patterns2").WithLocation(50, 22),
-                // (51,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int32, System.Int32) z").WithArguments("recursive patterns", "patterns2").WithLocation(51, 22),
                 // (51,53): error CS1525: Invalid expression term ')'
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(51, 53),
@@ -1551,9 +1503,6 @@ class Program
                 // (51,53): error CS1513: } expected
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(51, 53),
-                // (52,22): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if (o is (System.Int32 a, System.Int32 b) c) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(System.Int32 a, System.Int32 b) c").WithArguments("recursive patterns", "patterns2").WithLocation(52, 22),
                 // (21,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(21, 18),
@@ -1563,6 +1512,9 @@ class Program
                 // (21,24): error CS0150: A constant value is expected
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(21, 24),
+                // (22,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             case (int x, int y):
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int x, int y)").WithArguments("object", "Deconstruct").WithLocation(22, 18),
                 // (22,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int x, int y):
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("object", "2").WithLocation(22, 18),
@@ -1575,6 +1527,9 @@ class Program
                 // (23,24): error CS0150: A constant value is expected
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(23, 24),
+                // (24,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             case (int a, int b) c:
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int a, int b) c").WithArguments("object", "Deconstruct").WithLocation(24, 18),
                 // (24,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int a, int b) c:
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int a, int b) c").WithArguments("object", "2").WithLocation(24, 18),
@@ -1605,6 +1560,9 @@ class Program
                 // (32,25): error CS0150: A constant value is expected
                 //             case (long, long) d:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "long").WithLocation(32, 25),
+                // (37,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             case (System.Int32, System.Int32) z:
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32, System.Int32) z").WithArguments("object", "Deconstruct").WithLocation(37, 18),
                 // (37,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (System.Int32, System.Int32) z:
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32) z").WithArguments("object", "2").WithLocation(37, 18),
@@ -1614,6 +1572,9 @@ class Program
                 // (37,33): error CS0119: 'int' is a type, which is not valid in the given context
                 //             case (System.Int32, System.Int32) z:
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(37, 33),
+                // (39,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             case (System.Int64, System.Int64) d:
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int64, System.Int64) d").WithArguments("object", "Deconstruct").WithLocation(39, 18),
                 // (39,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (System.Int64, System.Int64) d:
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int64, System.Int64) d").WithArguments("object", "2").WithLocation(39, 18),
@@ -1632,6 +1593,9 @@ class Program
                 // (43,28): error CS0150: A constant value is expected
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(43, 28),
+                // (44,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             if (o is (int x, int y)) {}
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int x, int y)").WithArguments("object", "Deconstruct").WithLocation(44, 22),
                 // (44,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (int x, int y)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("object", "2").WithLocation(44, 22),
@@ -1644,9 +1608,15 @@ class Program
                 // (45,28): error CS0150: A constant value is expected
                 //             if (o is (int, int) z)) {}
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(45, 28),
+                // (46,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             if (o is (int a, int b) c) {}
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(int a, int b) c").WithArguments("object", "Deconstruct").WithLocation(46, 22),
                 // (46,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (int a, int b) c) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int a, int b) c").WithArguments("object", "2").WithLocation(46, 22),
+                // (49,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             if (o is (System.Int32, System.Int32)) {}
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32, System.Int32)").WithArguments("object", "Deconstruct").WithLocation(49, 22),
                 // (49,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (System.Int32, System.Int32)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(49, 22),
@@ -1656,9 +1626,15 @@ class Program
                 // (49,37): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 37),
+                // (50,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             if (o is (System.Int32 x, System.Int32 y)) {}
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32 x, System.Int32 y)").WithArguments("object", "Deconstruct").WithLocation(50, 22),
                 // (50,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (System.Int32 x, System.Int32 y)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32 x, System.Int32 y)").WithArguments("object", "2").WithLocation(50, 22),
+                // (51,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             if (o is (System.Int32, System.Int32) z)) {}
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32, System.Int32) z").WithArguments("object", "Deconstruct").WithLocation(51, 22),
                 // (51,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32) z").WithArguments("object", "2").WithLocation(51, 22),
@@ -1668,6 +1644,9 @@ class Program
                 // (51,37): error CS0119: 'int' is a type, which is not valid in the given context
                 //             if (o is (System.Int32, System.Int32) z)) {}
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(51, 37),
+                // (52,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+                //             if (o is (System.Int32 a, System.Int32 b) c) {}
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32 a, System.Int32 b) c").WithArguments("object", "Deconstruct").WithLocation(52, 22),
                 // (52,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32 a, System.Int32 b) c").WithArguments("object", "2").WithLocation(52, 22)

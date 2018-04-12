@@ -321,7 +321,7 @@ class C
         }
 
         [WorkItem(542562, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26115"), Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestMissingOnAmbiguity1()
         {
             await TestMissingInRegularAndScriptAsync(
