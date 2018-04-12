@@ -1217,7 +1217,7 @@ Locked Unlock -> Locked
 Locked Unlock withKey -> Closed
 Closed Open -> Opened
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithRecursivePatterns());
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
             compilation.VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Door.ChangeState0",
@@ -1342,7 +1342,7 @@ Closed Open -> Opened
     static bool Mutate(ref string x) { x = null; return false; }
     static bool Pure(string x) { return false; }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithRecursivePatterns());
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithoutRecursivePatterns);
             compilation.VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("Program.M1",
