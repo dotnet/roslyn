@@ -375,7 +375,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// Is the current token something that could follow a type in a pattern?
         /// </summary>
-        /// <returns></returns>
         private bool IsTokenFollowingTypeInPattern()
         {
             switch (this.CurrentToken.Kind)
