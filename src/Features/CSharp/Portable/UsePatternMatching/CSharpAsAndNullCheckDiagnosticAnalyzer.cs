@@ -85,12 +85,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 }
             }
 
-            if (!TryGetTypeCheckParts(
-                    semanticModel,
-                    operand,
-                    out var declarator,
-                    out var asExpression,
-                    out var localSymbol))
+            if (semanticModel.GetSymbolInfo(comparison).GetAnySymbol().IsUserDefinedOperator())
+            {
+                return;
+            }
+
+            if (!TryGetTypeCheckParts(semanticModel, operand,
+                    out VariableDeclaratorSyntax declarator,
+                    out BinaryExpressionSyntax asExpression,
+                    out ILocalSymbol localSymbol))
             {
                 return;
             }
@@ -99,11 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var enclosingBlock = localStatement?.Parent;
             if (localStatement == null ||
                 enclosingBlock == null)
-            {
-                return;
-            }
-
-            if (semanticModel.GetSymbolInfo(comparison).GetAnySymbol().IsUserDefinedOperator())
             {
                 return;
             }
