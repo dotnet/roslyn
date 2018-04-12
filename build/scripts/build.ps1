@@ -337,8 +337,10 @@ function Build-InsertionItems() {
         $vsToolsDir = Join-Path $insertionDir "VS.Tools.Roslyn"
         $packageOutDir = Join-Path $configDir "DevDivPackages\Roslyn"
         Create-Directory $packageOutDir
-        Pack-One (Join-Path $insertionDir "VS.ExternalAPIs.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir | Out-Null
-        Pack-One (Join-Path $vsToolsDir "VS.Tools.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir -basePath $vsToolsDir | Out-Null
+        Write-Host "Packing VS.ExternalAPIs.Roslyn.nuspec"
+        Pack-One (Join-Path $insertionDir "VS.ExternalAPIs.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir -useConsole:$false | Out-Null
+        Write-Host "Packing VS.Tools.Roslyn.nuspec"
+        Pack-One (Join-Path $vsToolsDir "VS.Tools.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir -basePath $vsToolsDir -useConsole:$false | Out-Null
 
         Run-MSBuild "DevDivPackages\Roslyn.proj" -logFileName "RoslynPackagesProj"
         Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj" -buildArgs $extraArgs
@@ -351,7 +353,7 @@ function Build-InsertionItems() {
     }
 }
 
-function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packageOutDir, [string]$extraArgs, [string]$basePath = "") { 
+function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packageOutDir, [string]$extraArgs, [string]$basePath = "", [switch]$useConsole = $true) { 
     $nugetDir = Join-Path $repoDir "src\Nuget"
     if ($basePath -eq "") { 
         $basePath = $configDir
@@ -362,7 +364,13 @@ function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packag
     }
     $nuspecFileName = Split-Path -leaf $nuspecFilePath
     $projectFilePath = Join-Path $nugetDir "NuGetProjectPackUtil.csproj"
-    Exec-Console $dotnet "pack -nologo --no-build $projectFilePath $extraArgs /p:NugetPackageKind=$packageKind /p:NuspecFile=$nuspecFilePath /p:NuspecBasePath=$basePath -o $packageOutDir" | Out-Host
+    $args = "pack -nologo --no-build $projectFilePath $extraArgs /p:NugetPackageKind=$packageKind /p:NuspecFile=$nuspecFilePath /p:NuspecBasePath=$basePath -o $packageOutDir" | Out-Host
+    if ($useConsole) { 
+        Exec-Console $dotnet $args
+    }
+    else {
+        Exec-Command $dotnet $args
+    }
 }
 
 function Build-NuGetPackages() {
