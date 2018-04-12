@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -36,10 +37,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
+            var locations = new HashSet<Location>();
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(editor, diagnostic, cancellationToken);
+
+                if (locations.Add(diagnostic.AdditionalLocations[0]))
+                {
+                    AddEdits(editor, diagnostic, cancellationToken);
+                }
             }
 
             return SpecializedTasks.EmptyTask;
