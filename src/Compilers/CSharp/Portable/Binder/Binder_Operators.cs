@@ -2891,11 +2891,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // nevertheless, X could be constructed as an enumerated type.
                     // However, we can sometimes know that the result will be false.
                     //
-                    // Scenario 2: Constrained type parameter compared to reference type.
+                    // Scenario 2a: Constrained type parameter compared to reference type.
                     //
-                    // bool M2<X>(X x) where X : struct { return x is string; }
+                    // bool M2a<X>(X x) where X : struct { return x is string; }
                     //
                     // We know that X, constrained to struct, will never be string.
+                    //
+                    // Scenario 2b: Reference type compared to constrained type parameter.
+                    //
+                    // bool M2b<X>(string x) where X : struct { return x is X; }
+                    //
+                    // We know that string will never be X, constrained to struct.
                     //
                     // Scenario 3: Value type compared to type parameter.
                     //
@@ -2937,10 +2943,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // * Otherwise, at least one of them is of an open type. If the operand is of value type 
-                    //   and the target is a class type other than System.Enum, then we are in scenario 2, 
-                    //   not scenario 1, and can correctly deduce that the result is false.
+                    //   and the target is a class type other than System.Enum, or vice versa, then we are
+                    //   in scenario 2, not scenario 1, and can correctly deduce that the result is false.
 
-                    if (operandType.IsValueType && targetType.IsClassType() && targetType.SpecialType != SpecialType.System_Enum)
+                    if (operandType.IsValueType && targetType.IsClassType() && targetType.SpecialType != SpecialType.System_Enum ||
+                        targetType.IsValueType && operandType.IsClassType() && operandType.SpecialType != SpecialType.System_Enum)
                     {
                         return ConstantValue.False;
                     }

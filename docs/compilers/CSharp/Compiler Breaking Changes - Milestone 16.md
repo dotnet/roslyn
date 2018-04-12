@@ -31,3 +31,20 @@ Each entry should include a short description of the break, followed by either a
       if (3 is 3) // warning: the given expression always matches the provided constant.
   ```
   Other cases of the pattern always matching (e.g. `e is var t`) do not trigger a warning, even when they are known by the compiler to produce an invariant result.
+
+5. https://github.com/dotnet/roslyn/issues/26098 In C# 8, we give a warning when an is-type expression is always `false` because the input type is an open class type and the type it is tested against is a value type:
+  ``` c#
+    class C<T> { }
+    void M<T>(C<T> x)
+    {
+        if (x is int) { } // warning: the given expression is never of the provided ('int') type.
+    }
+  ```
+  previously, we gave the warning only in the reverse case
+  ``` c#
+    void M<T>(int x)
+    {
+        if (x is C<T>) { } // warning: the given expression is never of the provided ('C<T>') type.
+    }
+  ```
+

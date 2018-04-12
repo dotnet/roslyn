@@ -1869,6 +1869,49 @@ class Blah
                 );
         }
 
+        [Fact]
+        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
+        public void ConstantPatternVsUnconstrainedTypeParameter03()
+        {
+            var source =
+@"class C<T>
+{
+    internal struct S { }
+    static bool Test(S s)
+    {
+        return s is null;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (6,21): error CS0037: Cannot convert null to 'C<T>.S' because it is a non-nullable value type
+                //         return s is null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("C<T>.S").WithLocation(6, 21)
+                );
+        }
+
+        [Fact]
+        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
+        public void ConstantPatternVsUnconstrainedTypeParameter04()
+        {
+            var source =
+@"class C<T>
+{
+    static bool Test(C<T> x)
+    {
+        return x is 1;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (5,21): error CS8121: An expression of type 'C<T>' cannot be handled by a pattern of type 'int'.
+                //         return x is 1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C<T>", "int").WithLocation(5, 21)
+                );
+        }
+
         // PROTOTYPE(patterns2): Need to have tests that exercise:
         // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
         // PROTOTYPE(patterns2): Definite assignment for the var-pattern
