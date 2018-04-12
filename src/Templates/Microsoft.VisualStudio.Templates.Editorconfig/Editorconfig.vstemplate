@@ -4,8 +4,10 @@
     <Description>Create an editorconfig file to persist your editor and code settings.</Description>
     <TemplateID>Microsoft.VisualStudio.Templates.Editorconfig</TemplateID>
     <ProjectType>CSharp</ProjectType>
+    <Icon>Icon.png</Icon>
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
     <DefaultName>.editorconfig</DefaultName>
+    <AppliesTo>ABC | (!ABC)</AppliesTo>
   </TemplateData>
   <TemplateContent>
   </TemplateContent>
