@@ -141,7 +141,7 @@ then
 
     rm -rf ${bootstrap_path}
     mkdir -p ${bootstrap_path} 
-    dotnet pack src/NuGet/Bootstrap.csproj /p:NuspecBasePath=${binaries_path}/Debug -o ${bootstrap_path}
+    dotnet pack -nologo src/NuGet/NuGetProjectPackUtil.csproj -p:NuSpecFile=Microsoft.NETCore.Compilers.nuspec -p:NuGetPackageKind=Bootstrap -p:NuspecBasePath=${binaries_path}/Debug -o ${bootstrap_path}
     mkdir -p ${bootstrap_path}/microsoft.netcore.compilers
     unzip ${bootstrap_path}/Microsoft.NETCore.Compilers.42.42.42.42-bootstrap.nupkg -d ${bootstrap_path}/microsoft.netcore.compilers/42.42.42.42
     chmod -R 755 ${bootstrap_path}/microsoft.netcore.compilers
