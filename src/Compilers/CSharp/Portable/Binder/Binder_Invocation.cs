@@ -205,12 +205,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case RefKind.None:
                     case RefKind.Ref:
                         break;
-                    case RefKind.In:
-                    case RefKind.Out:
+                    default:
+                        // Disallow "in" or "out" arguments
                         Error(diagnostics, ErrorCode.ERR_CantUseInOrOutInArglist, argument.Syntax);
                         break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(analyzedArguments.RefKind(i));
                 }
             }
 
