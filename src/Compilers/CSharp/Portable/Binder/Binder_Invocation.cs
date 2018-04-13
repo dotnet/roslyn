@@ -199,6 +199,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_CantUseVoidInArglist, argument.Syntax);
                 }
+
+                switch (analyzedArguments.RefKind(i))
+                {
+                    case RefKind.None:
+                    case RefKind.Ref:
+                        break;
+                    case RefKind.In:
+                    case RefKind.Out:
+                        Error(diagnostics, ErrorCode.ERR_CantUseInOrOutInArglist, argument.Syntax);
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(analyzedArguments.RefKind(i));
+                }
             }
 
             ImmutableArray<BoundExpression> arguments = analyzedArguments.Arguments.ToImmutable();

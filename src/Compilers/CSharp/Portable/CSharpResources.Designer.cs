@@ -2717,6 +2717,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to __arglist cannot have an argument passed by &apos;in&apos; or &apos;out&apos;.
+        /// </summary>
+        internal static string ERR_CantUseInOrOutInArglist {
+            get {
+                return ResourceManager.GetString("ERR_CantUseInOrOutInArglist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The RequiredAttribute attribute is not permitted on C# types.
         /// </summary>
         internal static string ERR_CantUseRequiredAttribute {
