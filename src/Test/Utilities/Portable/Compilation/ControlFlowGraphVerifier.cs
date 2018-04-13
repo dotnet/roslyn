@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Utilities;
 using Xunit;
@@ -179,6 +180,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 validateBranch(block, nextBranch);
+
+                validateLocalsLifetime(block);
 
                 if (currentRegion.LastBlockOrdinal == block.Ordinal && i != blocks.Length - 1)
                 {
@@ -446,6 +449,41 @@ endRegion:
                     Assert.Null(((Operation)operation).SemanticModel);
                     Assert.True(CanBeInControlFlowGraph(operation), $"Unexpected node kind OperationKind.{operation.Kind}");
                 }
+            }
+
+            void validateLocalsLifetime(BasicBlock block)
+            {
+
+                ILocalSymbol[] localsInBlock = Enumerable.Concat(block.Statements, new[] { block.Conditional.Condition, block.Next.Value }).
+                                                    Where(o => o != null).
+                                                    SelectMany(o => o.DescendantsAndSelf().OfType<ILocalReferenceOperation>().Select(l => l.Local)).
+                                                    Distinct().ToArray();
+
+                if (localsInBlock.Length == 0)
+                {
+                    return;
+                }
+
+                var localsInRegions = PooledHashSet<ILocalSymbol>.GetInstance();
+                ControlFlowGraph.Region region = block.Region;
+
+                do
+                {
+                    foreach(ILocalSymbol l in region.Locals)
+                    {
+                        Assert.True(localsInRegions.Add(l));
+                    }
+
+                    region = region.Enclosing;
+                }
+                while (region != null);
+
+                foreach (ILocalSymbol l in localsInBlock)
+                {
+                    Assert.False(localsInRegions.Add(l), $"Local without owning region {l.ToTestDisplayString()} in [B{block.Ordinal}]");
+                }
+
+                localsInRegions.Free();
             }
         }
 

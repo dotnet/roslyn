@@ -1188,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateEmptyCompilation(
-                spanSource,
+                SpanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: TestOptions.UnsafeReleaseDll);
 
@@ -1206,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
-            var textWitSpan = new string[] { text, spanSource };
+            var textWitSpan = new string[] { text, SpanSource };
             var comp = CreateEmptyCompilation(
                 textWitSpan,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
@@ -1216,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return comp;
         }
 
-        private static string spanSource = @"
+        protected static readonly string SpanSource = @"
 namespace System
     {
         public readonly ref struct Span<T>

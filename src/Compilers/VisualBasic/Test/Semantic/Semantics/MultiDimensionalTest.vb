@@ -1165,25 +1165,38 @@ Test1
 
             verifier.VerifyIL("C.Main",
             <![CDATA[
-{
-  // Code size       43 (0x2b)
-  .maxstack  1
-  .locals init (System.Collections.IEnumerator V_0)
-  IL_0000:  newobj     "Sub Test..ctor()"
-  IL_0005:  callvirt   "Function Test.Test1() As Double(*)"
-  IL_000a:  callvirt   "Function System.Array.GetEnumerator() As System.Collections.IEnumerator"
-  IL_000f:  stloc.0
-  IL_0010:  br.s       IL_0022
-  IL_0012:  ldloc.0
-  IL_0013:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
-  IL_0018:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToDouble(Object) As Double"
-  IL_001d:  call       "Sub System.Console.WriteLine(Double)"
-  IL_0022:  ldloc.0
-  IL_0023:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
-  IL_0028:  brtrue.s   IL_0012
-  IL_002a:  ret
-}
+            {
+              // Code size       43 (0x2b)
+              .maxstack  1
+              .locals init (System.Collections.IEnumerator V_0)
+              IL_0000:  newobj     "Sub Test..ctor()"
+              IL_0005:  callvirt   "Function Test.Test1() As Double(*)"
+              IL_000a:  callvirt   "Function System.Array.GetEnumerator() As System.Collections.IEnumerator"
+              IL_000f:  stloc.0
+              IL_0010:  br.s       IL_0022
+              IL_0012:  ldloc.0
+              IL_0013:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
+              IL_0018:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToDouble(Object) As Double"
+              IL_001d:  call       "Sub System.Console.WriteLine(Double)"
+              IL_0022:  ldloc.0
+              IL_0023:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+              IL_0028:  brtrue.s   IL_0012
+              IL_002a:  ret
+            }
 ]]>)
+            Dim tree = verifier.Compilation.SyntaxTrees.Single()
+            Dim model = verifier.Compilation.GetSemanticModel(tree)
+
+            Dim foreachSyntax = tree.GetRoot().DescendantNodes().OfType(Of ForEachStatementSyntax)().Single()
+            Dim info As ForEachStatementInfo = model.GetForEachStatementInfo(foreachSyntax)
+
+            Assert.Equal("Function System.Array.GetEnumerator() As System.Collections.IEnumerator", info.GetEnumeratorMethod.ToTestDisplayString())
+            Assert.Equal("ReadOnly Property System.Collections.IEnumerator.Current As System.Object", info.CurrentProperty.ToTestDisplayString())
+            Assert.Equal("System.Double", info.ElementType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.NarrowingValue, info.CurrentConversion.Kind)
+            Assert.Null(info.CurrentConversion.Method)
+            Assert.Equal(ConversionKind.Identity, info.ElementConversion.Kind)
+            Assert.Null(info.ElementConversion.Method)
         End Sub
 
         <WorkItem(1211526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1211526"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")>
