@@ -167,7 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         internal static EvaluationContext CreateMethodContext(
             AppDomain appDomain,
             ImmutableArray<MetadataBlock> blocks,
-            (Guid ModuleVersionId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) state)
+            (Guid ModuleVersionId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) state,
+            MakeAssemblyReferencesKind kind =  MakeAssemblyReferencesKind.AllReferences)
         {
             return CreateMethodContext(
                 appDomain,
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 methodVersion: 1,
                 state.ILOffset,
                 state.LocalSignatureToken,
-                MakeAssemblyReferencesKind.AllReferences);
+                kind);
         }
 
         internal static CSharpMetadataContext GetMetadataContext(MetadataContext<CSharpMetadataContext> appDomainContext, Guid mvid = default)

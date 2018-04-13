@@ -409,6 +409,57 @@ IL_0005:  ret
             ExpressionCompilerTestHelpers.VerifyAppDomainMetadataContext(appDomain.GetMetadataContext(), moduleVersionIds);
         }
 
+        [WorkItem(26159, "https://github.com/dotnet/roslyn/issues/26159")]
+        [Fact]
+        public void TypeOutsideAssemblyReferences()
+        {
+            var sourceA =
+@"public class A
+{
+    void M()
+    {
+    }
+}";
+            var sourceB =
+@"#pragma warning disable 169
+class B : A
+{
+    object F;
+}";
+            var (identityMscorlib, moduleMscorlib) = (MscorlibRef.GetAssemblyIdentity(), MscorlibRef.ToModuleInstance());
+            var (identityA, moduleA, refA) = Compile("A", sourceA);
+            var (identityB, moduleB, refB) = Compile("B", sourceB, refA);
+
+            using (var runtime = CreateRuntimeInstance(new[] { moduleMscorlib, moduleA, moduleB }))
+            {
+                var blocks = runtime.Modules.SelectAsArray(m => m.MetadataBlock);
+                var stateA = GetContextState(runtime, "A.M");
+                const string expr = "((B)this).F";
+
+                // A.M, all assemblies
+                var context = CreateMethodContext(new AppDomain(), blocks, stateA, MakeAssemblyReferencesKind.AllAssemblies);
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(expr, out error, testData);
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  castclass  ""B""
+  IL_0006:  ldfld      ""object B.F""
+  IL_000b:  ret
+}");
+
+                // A.M, all referenced assemblies
+                context = CreateMethodContext(new AppDomain(), blocks, stateA, MakeAssemblyReferencesKind.AllReferences);
+                testData = new CompilationTestData();
+                context.CompileExpression(expr, out error, testData);
+                Assert.Equal("error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)", error);
+            }
+        }
+
         [WorkItem(1141029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")]
         [Fact]
         public void AssemblyDuplicateReferences()
@@ -703,9 +754,9 @@ IL_0005:  ret
                 var moduleVersionId = target.GetModuleVersionId();
                 var blocks = runtime.Modules.SelectAsArray(m => m.MetadataBlock);
 
-                Dictionary<string, ImmutableArray<(AssemblyIdentity, MetadataReference)>> referencesByIdentity;
-                var actualReferences = blocks.MakeAssemblyReferences(moduleVersionId, CompilationExtensions.IdentityComparer, MakeAssemblyReferencesKind.DirectReferencesOnly, out referencesByIdentity);
-                Assert.Null(referencesByIdentity);
+                IReadOnlyDictionary<string, ImmutableArray<(AssemblyIdentity, MetadataReference)>> referencesBySimpleName;
+                var actualReferences = blocks.MakeAssemblyReferences(moduleVersionId, CompilationExtensions.IdentityComparer, MakeAssemblyReferencesKind.DirectReferencesOnly, out referencesBySimpleName);
+                Assert.Null(referencesBySimpleName);
                 // Verify identities.
                 var actualIdentities = actualReferences.SelectAsArray(r => r.GetAssemblyIdentity());
                 AssertEx.Equal(expectedIdentities, actualIdentities);
@@ -713,13 +764,13 @@ IL_0005:  ret
                 var uniqueIdentities = actualIdentities.Distinct();
                 Assert.Equal(actualIdentities.Length, uniqueIdentities.Length);
 
-                actualReferences = blocks.MakeAssemblyReferences(moduleVersionId, CompilationExtensions.IdentityComparer, MakeAssemblyReferencesKind.AllReferences, out referencesByIdentity);
+                actualReferences = blocks.MakeAssemblyReferences(moduleVersionId, CompilationExtensions.IdentityComparer, MakeAssemblyReferencesKind.AllReferences, out referencesBySimpleName);
                 Assert.Equal(2, actualReferences.Length);
                 Assert.Equal(moduleVersionId, actualReferences[1].GetModuleVersionId());
                 foreach (var reference in references)
                 {
                     var identity = reference.GetAssemblyIdentity();
-                    var pairs = referencesByIdentity[identity.Name];
+                    var pairs = referencesBySimpleName[identity.Name];
                     var other = pairs.FirstOrDefault(p => identity.Equals(p.Item1));
                     Assert.Equal(identity, other.Item1);
                 }

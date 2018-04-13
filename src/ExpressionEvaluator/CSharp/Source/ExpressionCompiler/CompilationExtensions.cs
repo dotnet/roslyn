@@ -92,13 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal static CSharpCompilation ToCompilation(this ImmutableArray<MetadataBlock> metadataBlocks, Guid moduleVersionId, MakeAssemblyReferencesKind kind)
         {
-            Dictionary<string, ImmutableArray<(AssemblyIdentity, MetadataReference)>> referencesByIdentity;
-            var references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer, kind, out referencesByIdentity);
+            var references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer, kind, out var referencesBySimpleName);
             var options = s_compilationOptions;
-            if (referencesByIdentity != null)
+            if (referencesBySimpleName != null)
             {
                 Debug.Assert(kind == MakeAssemblyReferencesKind.AllReferences);
-                var resolver = new EEMetadataReferenceResolver(IdentityComparer, referencesByIdentity);
+                var resolver = new EEMetadataReferenceResolver(IdentityComparer, referencesBySimpleName);
                 options = options.WithMetadataReferenceResolver(resolver);
             }
             return CSharpCompilation.Create(

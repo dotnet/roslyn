@@ -9,37 +9,37 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     internal sealed class EEMetadataReferenceResolver : MetadataReferenceResolver
     {
         private readonly AssemblyIdentityComparer _identityComparer;
-        private readonly Dictionary<string, ImmutableArray<(AssemblyIdentity, MetadataReference)>> _referencesByIdentity;
+        private readonly IReadOnlyDictionary<string, ImmutableArray<(AssemblyIdentity Identity, MetadataReference Reference)>> _referencesBySimpleName;
 
 #if DEBUG
         internal readonly Dictionary<AssemblyIdentity, (AssemblyIdentity Identity, int Count)> Requests = new Dictionary<AssemblyIdentity, (AssemblyIdentity Identity, int Count)>();
 #endif
 
-        internal EEMetadataReferenceResolver(AssemblyIdentityComparer identityComparer, Dictionary<string, ImmutableArray<(AssemblyIdentity, MetadataReference)>> referencesByIdentity)
+        internal EEMetadataReferenceResolver(
+            AssemblyIdentityComparer identityComparer,
+            IReadOnlyDictionary<string, ImmutableArray<(AssemblyIdentity Identity, MetadataReference Reference)>> referencesBySimpleName)
         {
             _identityComparer = identityComparer;
-            _referencesByIdentity = referencesByIdentity;
+            _referencesBySimpleName = referencesBySimpleName;
         }
 
         public override bool ResolveMissingAssemblies => true;
 
         public override PortableExecutableReference ResolveMissingAssembly(MetadataReference definition, AssemblyIdentity referenceIdentity)
         {
-            ImmutableArray<(AssemblyIdentity, MetadataReference)> references;
-            (AssemblyIdentity, MetadataReference) result = default;
-            if (_referencesByIdentity.TryGetValue(referenceIdentity.Name, out references))
+            (AssemblyIdentity Identity, MetadataReference Reference) result = default;
+            if (_referencesBySimpleName.TryGetValue(referenceIdentity.Name, out var references))
             {
                 result = GetBestMatch(references, referenceIdentity);
             }
 #if DEBUG
-            (AssemblyIdentity Identity, int Count) request;
-            if (!Requests.TryGetValue(referenceIdentity, out request))
+            if (!Requests.TryGetValue(referenceIdentity, out var request))
             {
                 request = (referenceIdentity, 0);
             }
-            Requests[referenceIdentity] = (result.Item1, request.Count + 1);
+            Requests[referenceIdentity] = (result.Identity, request.Count + 1);
 #endif
-            return (PortableExecutableReference)result.Item2;
+            return (PortableExecutableReference)result.Reference;
         }
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
@@ -57,12 +57,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             throw ExceptionUtilities.Unreachable;
         }
 
-        private (AssemblyIdentity, MetadataReference) GetBestMatch(ImmutableArray<(AssemblyIdentity, MetadataReference)> references, AssemblyIdentity referenceIdentity)
+        private (AssemblyIdentity Identity, MetadataReference Reference) GetBestMatch(
+            ImmutableArray<(AssemblyIdentity Identity, MetadataReference Reference)> references,
+            AssemblyIdentity referenceIdentity)
         {
-            (AssemblyIdentity, MetadataReference) best = default;
+            (AssemblyIdentity Identity, MetadataReference Reference) best = default;
             foreach (var pair in references)
             {
-                var identity = pair.Item1;
+                var identity = pair.Identity;
                 var compareResult = _identityComparer.Compare(referenceIdentity, identity);
                 switch (compareResult)
                 {
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     case AssemblyIdentityComparer.ComparisonResult.Equivalent:
                         return pair;
                     case AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion:
-                        if (best.Item1 is null || identity.Version > best.Item1.Version)
+                        if (best.Identity is null || identity.Version > best.Identity.Version)
                         {
                             best = pair;
                         }

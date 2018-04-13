@@ -87,12 +87,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         <Extension>
         Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock), moduleVersionId As Guid, kind As MakeAssemblyReferencesKind) As VisualBasicCompilation
-            Dim referencesByIdentity As Dictionary(Of String, ImmutableArray(Of (AssemblyIdentity, MetadataReference))) = Nothing
-            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer, kind, referencesByIdentity)
+            Dim referencesBySimpleName As IReadOnlyDictionary(Of String, ImmutableArray(Of (AssemblyIdentity, MetadataReference))) = Nothing
+            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer, kind, referencesBySimpleName)
             Dim options = s_compilationOptions
-            If referencesByIdentity IsNot Nothing Then
+            If referencesBySimpleName IsNot Nothing Then
                 Debug.Assert(kind = MakeAssemblyReferencesKind.AllReferences)
-                Dim resolver = New EEMetadataReferenceResolver(IdentityComparer, referencesByIdentity)
+                Dim resolver = New EEMetadataReferenceResolver(IdentityComparer, referencesBySimpleName)
                 options = options.WithMetadataReferenceResolver(resolver)
             End If
             Return VisualBasicCompilation.Create(
