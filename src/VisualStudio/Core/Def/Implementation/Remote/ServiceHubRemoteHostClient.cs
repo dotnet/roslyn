@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 var projectTracker = vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider);
 
-                projectTracker.RegisterWorkspaceHost(host);
+                projectTracker.RegisterWorkspaceHost(host, neverPushProjects: true);
                 projectTracker.StartSendingEventsToWorkspaceHost(host);
             }, CancellationToken.None, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler).ConfigureAwait(false);
         }
