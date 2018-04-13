@@ -13334,7 +13334,6 @@ public static class P
         [ConditionalFact(typeof(DesktopOnly))]
         public void VarargByRef()
         {
-
             var code = @"
 using System;
 class A
@@ -13353,9 +13352,7 @@ class A
     }
 }
 ";
-
             var comp = CompileAndVerify(code, expectedOutput: "5", options: TestOptions.DebugExe);
-
             comp.VerifyIL("A.Main",
 @"
 {
@@ -13376,7 +13373,6 @@ class A
 ");
 
             comp = CompileAndVerify(code, expectedOutput: "5", options: TestOptions.ReleaseExe);
-
             comp.VerifyIL("A.Main",
 @"
 {
@@ -13392,7 +13388,6 @@ class A
   IL_000f:  ret
 }
 ");
-
         }
 
         [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
