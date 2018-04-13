@@ -619,7 +619,7 @@ class C
 {
     void M()
     {
-        (object name, double age) [|person|] = (string.Empty, 0);
+        (object name, double age) [|person|] = (null, 0);
         Console.WriteLine(person.name + "" "" + person.age);
     }
 }",
@@ -627,7 +627,7 @@ class C
 {
     void M()
     {
-        (object name, double age) = (string.Empty, 0);
+        (object name, double age) = (null, 0);
         Console.WriteLine(name + "" "" + age);
     }
 }");
