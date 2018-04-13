@@ -6,8 +6,6 @@ namespace Roslyn.Utilities
 {
     internal static class DateTimeUtilities
     {
-        internal const string DateTimeInternalTicksPropertyName = "InternalTicks";
-
         // From DateTime.cs.
         private const long TicksMask = 0x3FFFFFFFFFFFFFFF;
 
