@@ -1498,19 +1498,19 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
         <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Manage_naming_styles">
-        <source>Manage naming styles</source>
-        <target state="new">Manage naming styles</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Field_preferences_colon">
         <source>Field preferences:</source>
-        <target state="new">Field preferences:</target>
+        <target state="translated">Preferencje pola:</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly">
         <source>Prefer readonly</source>
-        <target state="new">Prefer readonly</target>
+        <target state="translated">Preferuj tylko do odczytu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="new">Manage naming styles</target>
         <note />
       </trans-unit>
     </body>

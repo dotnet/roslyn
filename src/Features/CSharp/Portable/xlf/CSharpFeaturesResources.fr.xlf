@@ -624,22 +624,22 @@
       </trans-unit>
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
         <source>Add parentheses</source>
-        <target state="new">Add parentheses</target>
+        <target state="translated">Ajouter des parenthèses</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_switch">
         <source>Convert to 'switch'</source>
-        <target state="new">Convert to 'switch'</target>
+        <target state="translated">Convertir en 'switch'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
-        <target state="new">Convert to 'foreach'</target>
+        <target state="translated">Convertir en 'foreach'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_for">
         <source>Convert to 'for'</source>
-        <target state="new">Convert to 'for'</target>
+        <target state="translated">Convertir en 'for'</target>
         <note />
       </trans-unit>
     </body>
