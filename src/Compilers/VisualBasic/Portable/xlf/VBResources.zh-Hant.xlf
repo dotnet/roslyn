@@ -247,11 +247,6 @@
         <target state="translated">已忽略 /win32manifest 選項</target>
         <note />
       </trans-unit>
-      <trans-unit id="FTL_InputFileNameTooLong">
-        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">檔案名稱 '{0}' 是空的、包含了無效字元、指定了磁碟機但不是絕對路徑，或太長了。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InvalidInNamespace">
         <source>Statement is not valid in a namespace.</source>
         <target state="translated">命名空間中的陳述式無效。</target>
@@ -9084,6 +9079,11 @@
       <trans-unit id="FEATURE_InterpolatedStrings">
         <source>interpolated strings</source>
         <target state="translated">內插字串</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FTL_InvalidInputFileName">
+        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
+        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
         <note />
       </trans-unit>
     </body>
