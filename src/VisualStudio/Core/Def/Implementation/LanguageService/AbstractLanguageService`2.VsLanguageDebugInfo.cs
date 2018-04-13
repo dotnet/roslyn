@@ -290,7 +290,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     if (document != null)
                     {
                         var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
-                        if (!nullablePoint.HasValue)
+                        if (nullablePoint == null)
                         {
                             // The point disappeared between sessions. Do not allow a breakpoint here.
                             return VSConstants.E_FAIL;
