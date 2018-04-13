@@ -125,10 +125,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             }
 
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
-            var expressionType = semanticModel.GetTypeInfo(declarator.Initializer.Value, cancellationToken).Type;
+            var initializerConversion = semanticModel.GetConversion(declarator.Initializer.Value, cancellationToken);
 
             return TryAnalyze(
-                semanticModel, local, variableDeclaration.Type, declarator.Identifier, expressionType,
+                semanticModel, local, variableDeclaration.Type, declarator.Identifier, initializerConversion,
                 variableDeclaration.Parent.Parent, out tupleType, out memberAccessExpressions, cancellationToken);
         }
 
@@ -140,10 +140,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             CancellationToken cancellationToken)
         {
             var local = semanticModel.GetDeclaredSymbol(forEachStatement, cancellationToken);
-            var elementType = semanticModel.GetForEachStatementInfo(forEachStatement).ElementType;
+            var elementConversion = semanticModel.GetForEachStatementInfo(forEachStatement).ElementConversion;
 
             return TryAnalyze(
-                semanticModel, local, forEachStatement.Type, forEachStatement.Identifier, elementType,
+                semanticModel, local, forEachStatement.Type, forEachStatement.Identifier, elementConversion,
                 forEachStatement, out tupleType, out memberAccessExpressions, cancellationToken);
         }
 
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             ILocalSymbol local,
             TypeSyntax typeNode,
             SyntaxToken identifier,
-            ITypeSymbol initializerType,
+            Conversion conversion,
             SyntaxNode searchScope,
             out INamedTypeSymbol tupleType,
             out ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions,
@@ -171,9 +171,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return false;
             }
 
+            if (conversion.Exists &&
+                !conversion.IsIdentity &&
+                !conversion.IsTupleConversion &&
+                !conversion.IsTupleLiteralConversion)
+            {
+                return false;
+            }
+
             var type = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
-            if (type == null || !type.IsTupleType ||
-                initializerType == null || !initializerType.IsTupleType)
+            if (type == null || !type.IsTupleType)
             {
                 return false;
             }
