@@ -337,81 +337,76 @@ IL_0005:  ret
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateB1);
                 VerifyResolutionRequests(context, (identityA1, identityA1, 1));
-                VerifyAppDomainMetadataContext(appDomain, stateB1.ModuleVersionId);
+                VerifyAppDomainMetadataContext(appDomain, mvidB1);
                 // B2.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateB2);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidB1).EvaluationContext);
                 Assert.Same(context.Compilation, GetMetadataContext(previous, mvidB1).Compilation);
                 VerifyResolutionRequests(context, (identityA1, identityA1, 1));
-                VerifyAppDomainMetadataContext(appDomain, stateB1.ModuleVersionId);
+                VerifyAppDomainMetadataContext(appDomain, mvidB1);
                 // A1.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateA1);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidB1).EvaluationContext);
                 Assert.NotSame(context.Compilation, GetMetadataContext(previous, mvidB1).Compilation);
                 VerifyResolutionRequests(context);
-                VerifyAppDomainMetadataContext(appDomain, stateB1.ModuleVersionId, stateA1.ModuleVersionId);
+                VerifyAppDomainMetadataContext(appDomain, mvidB1, mvidA1);
                 // A2.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateA2);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidA1).EvaluationContext);
                 Assert.NotSame(context.Compilation, GetMetadataContext(previous, mvidA1).Compilation);
                 VerifyResolutionRequests(context);
-                VerifyAppDomainMetadataContext(appDomain, stateB1.ModuleVersionId, stateA1.ModuleVersionId, stateA2.ModuleVersionId);
+                VerifyAppDomainMetadataContext(appDomain, mvidB1, mvidA1, mvidA2);
                 // A3.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateA3);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidA2).EvaluationContext);
                 Assert.Same(context.Compilation, GetMetadataContext(previous, mvidA2).Compilation);
                 VerifyResolutionRequests(context);
-                VerifyAppDomainMetadataContext(appDomain, stateB1.ModuleVersionId, stateA1.ModuleVersionId, stateA2.ModuleVersionId);
+                VerifyAppDomainMetadataContext(appDomain, mvidB1, mvidA1, mvidA2);
 
                 // A1 -> A2 -> A3 -> B1 -> B2
                 // A1.M:
                 appDomain = new AppDomain();
                 context = CreateMethodContext(appDomain, blocks, stateA1);
                 VerifyResolutionRequests(context);
-                VerifyAppDomainMetadataContext(appDomain, stateA1.ModuleVersionId);
+                VerifyAppDomainMetadataContext(appDomain, mvidA1);
                 // A2.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateA2);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidA1).EvaluationContext);
                 Assert.NotSame(context.Compilation, GetMetadataContext(previous, mvidA1).Compilation);
                 VerifyResolutionRequests(context);
-                VerifyAppDomainMetadataContext(appDomain, stateA1.ModuleVersionId, stateA2.ModuleVersionId);
+                VerifyAppDomainMetadataContext(appDomain, mvidA1, mvidA2);
                 // A3.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateA3);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidA2).EvaluationContext);
                 Assert.Same(context.Compilation, GetMetadataContext(previous, mvidA2).Compilation);
                 VerifyResolutionRequests(context);
-                VerifyAppDomainMetadataContext(appDomain, stateA1.ModuleVersionId, stateA2.ModuleVersionId);
+                VerifyAppDomainMetadataContext(appDomain, mvidA1, mvidA2);
                 // B1.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateB1);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidA2).EvaluationContext);
                 Assert.NotSame(context.Compilation, GetMetadataContext(previous, mvidA2).Compilation);
                 VerifyResolutionRequests(context, (identityA1, identityA1, 1));
-                VerifyAppDomainMetadataContext(appDomain, stateA1.ModuleVersionId, stateA2.ModuleVersionId, stateB1.ModuleVersionId);
+                VerifyAppDomainMetadataContext(appDomain, mvidA1, mvidA2, mvidB1);
                 // B2.M:
                 previous = appDomain.GetMetadataContext();
                 context = CreateMethodContext(appDomain, blocks, stateB2);
                 Assert.NotSame(context, GetMetadataContext(previous, mvidB1).EvaluationContext);
                 Assert.Same(context.Compilation, GetMetadataContext(previous, mvidB1).Compilation);
                 VerifyResolutionRequests(context, (identityA1, identityA1, 1));
-                VerifyAppDomainMetadataContext(appDomain, stateA1.ModuleVersionId, stateA2.ModuleVersionId, stateB1.ModuleVersionId);
+                VerifyAppDomainMetadataContext(appDomain, mvidA1, mvidA2, mvidB1);
             }
         }
 
         private static void VerifyAppDomainMetadataContext(AppDomain appDomain, params Guid[] moduleVersionIds)
         {
-            var assemblyContexts = appDomain.GetMetadataContext().AssemblyContexts;
-            var actualIds = assemblyContexts.Keys.Select(key => key.ModuleVersionId.ToString()).ToArray();
-            Array.Sort(actualIds);
-            var expectedIds = moduleVersionIds.Select(mvid => mvid.ToString()).ToArray();
-            Array.Sort(expectedIds);
-            AssertEx.Equal(expectedIds, actualIds);
+            ExpressionCompilerTestHelpers.VerifyAppDomainMetadataContext(appDomain.GetMetadataContext(), moduleVersionIds);
         }
 
         [WorkItem(1141029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1141029")]
@@ -733,23 +728,9 @@ IL_0005:  ret
 
         private static void VerifyResolutionRequests(EvaluationContext context, params (AssemblyIdentity, AssemblyIdentity, int)[] expectedRequests)
         {
-#if DEBUG
-            var resolver = (EEMetadataReferenceResolver)context.Compilation.Options.MetadataReferenceResolver;
-            var expected = ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)>.GetInstance();
-            var actual = ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)>.GetInstance();
-            expected.AddRange(expectedRequests);
-            sort(expected);
-            actual.AddRange(resolver.Requests.Select(pair => (pair.Key, pair.Value.Identity, pair.Value.Count)));
-            sort(actual);
-            AssertEx.Equal(expected, actual);
-            actual.Free();
-            expected.Free();
-
-            void sort(ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)> builder)
-            {
-                builder.Sort((x, y) => AssemblyIdentityComparer.SimpleNameComparer.Compare(x.Item1.GetDisplayName(), y.Item1.GetDisplayName()));
-            }
-#endif
+            ExpressionCompilerTestHelpers.VerifyResolutionRequests(
+                (EEMetadataReferenceResolver)context.Compilation.Options.MetadataReferenceResolver,
+                expectedRequests);
         }
 
         [Fact]

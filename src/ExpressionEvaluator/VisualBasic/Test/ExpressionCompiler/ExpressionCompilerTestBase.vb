@@ -93,6 +93,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Return instance
         End Function
 
+        Friend Shared Function GetContextState(
+            runtime As RuntimeInstance,
+            methodName As String) As (ModuleVersionId As Guid, SymReader As ISymUnmanagedReader, MethodToken As Integer, LocalSignatureToken As Integer, ILOffset As UInteger)
+
+            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+            Dim moduleVersionId As Guid = Nothing
+            Dim symReader As ISymUnmanagedReader = Nothing
+            Dim methodToken As Integer
+            Dim localSignatureToken As Integer
+            GetContextState(runtime, methodName, blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+            Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
+            Return (moduleVersionId, symReader, methodToken, localSignatureToken, ilOffset)
+        End Function
+
         Friend Shared Sub GetContextState(
             runtime As RuntimeInstance,
             methodOrTypeName As String,
@@ -186,13 +200,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
                 kind)
         End Function
 
-        Friend Shared Function GetMetadataContext(appDomainContext As MetadataContext(Of VisualBasicMetadataContext)) As VisualBasicMetadataContext
+        Friend Shared Function CreateMethodContext(
+            appDomain As AppDomain,
+            blocks As ImmutableArray(Of MetadataBlock),
+            state As (ModuleVersionId As Guid, SymReader As ISymUnmanagedReader, MethodToken As Integer, LocalSignatureToken As Integer, ILOffset As UInteger)) As EvaluationContext
+
+            Return CreateMethodContext(
+                appDomain,
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                state.SymReader,
+                state.ModuleVersionId,
+                state.MethodToken,
+                methodVersion:=1,
+                state.ILOffset,
+                state.LocalSignatureToken,
+                MakeAssemblyReferencesKind.AllReferences)
+        End Function
+
+        Friend Shared Function GetMetadataContext(appDomainContext As MetadataContext(Of VisualBasicMetadataContext), Optional mvid As Guid = Nothing) As VisualBasicMetadataContext
             Dim assemblyContexts = appDomainContext.AssemblyContexts
             If assemblyContexts Is Nothing Then
                 Return Nothing
             End If
             Dim context As VisualBasicMetadataContext = Nothing
-            assemblyContexts.TryGetValue(Nothing, context)
+            assemblyContexts.TryGetValue(New MetadataContextId(mvid), context)
             Return context
         End Function
 
