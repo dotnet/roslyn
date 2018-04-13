@@ -149,7 +149,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             private T _member;
 
-
             public TypeWithOneMember(T value)
             {
                 _member = value;
