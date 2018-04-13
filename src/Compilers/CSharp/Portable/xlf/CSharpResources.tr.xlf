@@ -5383,11 +5383,6 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <target state="translated">/target için geçersiz hedef türü: 'exe', 'winexe', 'library' veya 'module' belirtilmelidir</target>
         <note />
       </trans-unit>
-      <trans-unit id="FTL_InputFileNameTooLong">
-        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">{0}' dosya adı boş, geçersiz karakterler içeriyor, mutlak bir yol olmadan sürücü özelliğine sahip veya çok uzun</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NoConfigNotOnCommandLine">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
         <target state="translated">Bir yanıt dosyası içinde belirtildiğinden /noconfig seçeneği yoksayılıyor</target>
@@ -8728,6 +8723,11 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_InvalidObjectCreation">
         <source>Invalid object creation</source>
         <target state="new">Invalid object creation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FTL_InvalidInputFileName">
+        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
+        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
         <note />
       </trans-unit>
     </body>
