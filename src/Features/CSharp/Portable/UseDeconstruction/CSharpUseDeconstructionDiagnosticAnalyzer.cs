@@ -176,6 +176,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 !conversion.IsTupleConversion &&
                 !conversion.IsTupleLiteralConversion)
             {
+                // If there is any other conversion, we bail out because the source type might not be a tuple
+                // or it is a tuple but only thanks to target type inference, which won't occur in a deconstruction.
+                // Interesting case that illustrates this is initialization with a default literal:
+                // (int a, int b) t = default;
+                // This is classified as conversion.IsNullLiteral.
                 return false;
             }
 
