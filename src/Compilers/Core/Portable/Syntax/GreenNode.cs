@@ -437,6 +437,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        bool IObjectWritable.IsReusable => this.IsCacheable;
+
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             this.WriteTo(writer);

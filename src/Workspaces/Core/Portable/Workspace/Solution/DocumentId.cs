@@ -98,6 +98,8 @@ namespace Microsoft.CodeAnalysis
             return !(left == right);
         }
 
+        bool IObjectWritable.IsReusable => true;
+
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             ProjectId.WriteTo(writer);

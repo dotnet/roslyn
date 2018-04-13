@@ -93,6 +93,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        bool IObjectWritable.IsReusable => true;
+
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             writer.WriteType(_resourceSource);

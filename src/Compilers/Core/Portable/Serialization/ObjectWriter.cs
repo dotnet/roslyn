@@ -361,10 +361,14 @@ namespace Roslyn.Utilities
             public bool TryGetReferenceId(object value, out int referenceId)
                 => _valueToIdMap.TryGetValue(value, out referenceId);
 
-            public void Add(object value)
+            public void Add(object value, bool isReusable = true)
             {
                 var id = _nextId++;
-                _valueToIdMap.Add(value, id);
+
+                if (isReusable)
+                {
+                    _valueToIdMap.Add(value, id);
+                }
             }
         }
 
@@ -801,9 +805,9 @@ namespace Roslyn.Utilities
 
         private void WriteObjectWorker(IObjectWritable writable)
         {
-            // emit object header up front
-            _objectReferenceMap.Add(writable);
+            _objectReferenceMap.Add(writable, writable.IsReusable);
 
+            // emit object header up front
             _writer.Write((byte)EncodingKind.Object);
 
             // Directly write out the type-id for this object.  i.e. no need to write out the 'Type'

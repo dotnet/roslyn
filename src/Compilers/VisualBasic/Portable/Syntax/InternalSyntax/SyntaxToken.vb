@@ -89,6 +89,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._trailingTrivia = DirectCast(reader.ReadValue(), GreenNode)
             End Sub
 
+            Private ReadOnly Property IsReausable As Boolean Implements IObjectWritable.IsReusable
+                Get
+                    Return _leadingTrivia IsNot Nothing AndAlso
+                        ShouldCacheTriviaInfo(_leadingTrivia, _trailingTrivia)
+                End Get
+            End Property
+
             Public Sub WriteTo(writer As ObjectWriter) Implements IObjectWritable.WriteTo
                 writer.WriteValue(_leadingTrivia)
                 writer.WriteValue(_trailingTrivia)

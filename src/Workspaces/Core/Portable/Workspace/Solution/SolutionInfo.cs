@@ -112,6 +112,8 @@ namespace Microsoft.CodeAnalysis
                 FilePath = filePath;
             }
 
+            bool IObjectWritable.IsReusable => true;
+
             public void WriteTo(ObjectWriter writer)
             {
                 Id.WriteTo(writer);

@@ -88,6 +88,8 @@ namespace Microsoft.CodeAnalysis
             return !(left == right);
         }
 
+        bool IObjectWritable.IsReusable => true;
+
         public void WriteTo(ObjectWriter writer)
             => _checkSum.WriteTo(writer);
 

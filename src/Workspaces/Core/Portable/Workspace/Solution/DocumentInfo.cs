@@ -204,6 +204,8 @@ namespace Microsoft.CodeAnalysis
                 return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated);
             }
 
+            bool IObjectWritable.IsReusable => true;
+
             public void WriteTo(ObjectWriter writer)
             {
                 Id.WriteTo(writer);

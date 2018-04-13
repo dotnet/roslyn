@@ -138,6 +138,8 @@ namespace Microsoft.CodeAnalysis
 
         #region Serialization
 
+        bool IObjectWritable.IsReusable => true;
+
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             this.WriteTo(writer);
