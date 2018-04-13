@@ -830,54 +830,105 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void InForStatement1()
+        public async void InUsingStatement1()
         {
             var markup = @"
-using System.Threading;
+using System.IO;
 
 class C
 {
     void M()
     {
-        for (CancellationToken c$$
+        using (StreamReader s$$
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "streamReader");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InUsingStatement2()
+        {
+            var markup = @"
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (StreamReader s1, $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "streamReader");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InUsingStatement_Var()
+        {
+            var markup = @"
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var m$$ = new MemoryStream())
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "memoryStream");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InForStatement1()
+        {
+            var markup = @"
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        for (StreamReader s$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "streamReader");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void InForStatement2()
         {
             var markup = @"
-using System.Threading;
+using System.IO;
 
 class C
 {
     void M()
     {
-        for (CancellationToken c1, $$
+        for (StreamReader s1, $$
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "streamReader");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void InForStatement_Var()
         {
             var markup = @"
-using System.Threading;
+using System.IO;
 
 class C
 {
     void M()
     {
-        for (var c$$ = new CancellationToken();
+        for (var m$$ = new MemoryStream();
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "memoryStream");
         }
 
         [WorkItem(26021, "https://github.com/dotnet/roslyn/issues/26021")]
@@ -885,34 +936,34 @@ class C
         public async void InForEachStatement()
         {
             var markup = @"
-using System.Threading;
+using System.IO;
 
 class C
 {
     void M()
     {
-        foreach (CancellationToken $$
+        foreach (StreamReader $$
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "streamReader");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void InForEachStatement_Var()
         {
             var markup = @"
-using System.Threading;
+using System.IO;
 
 class C
 {
     void M()
     {
-        foreach (var c$$ in new CancellationToken[] { })
+        foreach (var m$$ in new[] { new MemoryStream() })
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "cancellationToken");
+            await VerifyItemExistsAsync(markup, "memoryStream");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

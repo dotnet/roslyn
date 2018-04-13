@@ -254,7 +254,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 result = IsFollowingTypeOrComma<VariableDeclarationSyntax>(token, semanticModel,
                      typeSyntaxGetter: v => v.Type,
                      modifierGetter: v =>
-                        v.Parent is LocalDeclarationStatementSyntax l ? l.Modifiers :
+                        v.Parent is LocalDeclarationStatementSyntax localDeclaration ? localDeclaration.Modifiers :
+                        v.Parent is UsingStatementSyntax ? default(SyntaxTokenList) :
                         v.Parent is ForStatementSyntax ? default(SyntaxTokenList) : null as SyntaxTokenList?,
                      d => ImmutableArray.Create(SymbolKind.Local),
                      cancellationToken);
