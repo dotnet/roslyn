@@ -4597,22 +4597,66 @@ class CL0<T>
             var source =
 @"class C
 {
-    static void F()
+    static void F(object? x, object? y, object? z)
     {
-        object? x = null;
-        object? y = null;
-        G(out x, ref y);
+        G(out x, ref y, in z);
+        x.ToString();
+        y.ToString();
+        z.ToString();
     }
-    static void G(out object x, ref object y)
+    static void G(out object x, ref object y, in object z)
     {
         x = new object();
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,22): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(out object x, ref object y)'.
-                //         G(out x, ref y);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void C.G(out object x, ref object y)").WithLocation(7, 22));
+                // (5,22): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(out object x, ref object y, in object z)'.
+                //         G(out x, ref y, in z);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void C.G(out object x, ref object y, in object z)").WithLocation(5, 22),
+                // (5,28): warning CS8604: Possible null reference argument for parameter 'z' in 'void C.G(out object x, ref object y, in object z)'.
+                //         G(out x, ref y, in z);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "z").WithArguments("z", "void C.G(out object x, ref object y, in object z)").WithLocation(5, 28),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void RefOutParameters_06()
+        {
+            var source =
+@"class C
+{
+    static void F(object x, object y, object z)
+    {
+        G(out x, ref y, in z);
+        x.ToString();
+        y.ToString();
+        z.ToString();
+    }
+    static void G(out object? x, ref object? y, in object? z)
+    {
+        x = new object();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         G(out x, ref y, in z);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(5, 15),
+                // (5,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         G(out x, ref y, in z);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(5, 22),
+                // (5,28): warning CS8620: Nullability of reference types in argument of type 'object' doesn't match target type 'object' for parameter 'z' in 'void C.G(out object? x, ref object? y, in object? z)'.
+                //         G(out x, ref y, in z);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("object", "object", "z", "void C.G(out object? x, ref object? y, in object? z)").WithLocation(5, 28),
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 9),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(7, 9));
         }
 
         [Fact]
