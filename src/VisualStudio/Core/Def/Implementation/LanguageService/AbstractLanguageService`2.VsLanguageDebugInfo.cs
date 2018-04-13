@@ -150,11 +150,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         if (textBuffer != null)
                         {
                             var snapshot = textBuffer.CurrentSnapshot;
-                            Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                            if (document != null)
+                            var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
+                            if (nullablePoint.HasValue)
                             {
-                                var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
-                                if (nullablePoint.HasValue)
+                                Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                                if (document != null)
                                 {
                                     var point = nullablePoint.Value;
                                     var proximityExpressions = _proximityExpressionsService.GetProximityExpressionsAsync(document, point.Position, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
@@ -286,16 +286,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 if (textBuffer != null)
                 {
                     var snapshot = textBuffer.CurrentSnapshot;
+                    var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
+                    if (nullablePoint == null)
+                    {
+                        // The point disappeared between sessions. Do not allow a breakpoint here.
+                        return VSConstants.E_FAIL;
+                    }
+
                     Document document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                     if (document != null)
                     {
-                        var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
-                        if (nullablePoint == null)
-                        {
-                            // The point disappeared between sessions. Do not allow a breakpoint here.
-                            return VSConstants.E_FAIL;
-                        }
-
                         var point = nullablePoint.Value;
                         var length = 0;
                         if (pCodeSpan != null && pCodeSpan.Length > 0)
