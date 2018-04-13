@@ -143,7 +143,6 @@
         "Vsix\\CompilerExtension\\Roslyn.Compilers.Extension.vsix",
         "Vsix\\VisualStudioDiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
         "Vsix\\VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.vsix",
-        "Vsix\\VisualStudioSetup.Next\\Roslyn.VisualStudio.Setup.Next.vsix",
         "Vsix\\VisualStudioSetup\\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\\Roslyn\\RoslynDeployment.vsix",
         "Vsix\\VisualStudioIntegrationTestSetup\\Microsoft.VisualStudio.IntegrationTest.Setup.vsix",
