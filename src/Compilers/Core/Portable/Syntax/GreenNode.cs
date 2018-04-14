@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        bool IObjectWritable.IsReusable => ShouldReuseInSerialization;
+        bool IObjectWritable.ShouldReuseInSerialization => ShouldReuseInSerialization;
 
         internal virtual bool ShouldReuseInSerialization => this.IsCacheable;
 

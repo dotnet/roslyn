@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis
                 FilePath = filePath;
             }
 
-            bool IObjectWritable.IsReusable => true;
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             public void WriteTo(ObjectWriter writer)
             {

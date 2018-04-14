@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis
             return baseVersion._utcLastModified == persistedVersion._utcLastModified;
         }
 
-        bool IObjectWritable.IsReusable => true;
+        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {

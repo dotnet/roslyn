@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
-        bool IObjectWritable.IsReusable => true;
+        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public void WriteTo(ObjectWriter writer)
         {

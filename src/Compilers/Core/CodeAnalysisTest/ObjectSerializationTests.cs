@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     : (T)reader.ReadValue();
             }
 
-            bool IObjectWritable.IsReusable => true;
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 _member2 = (S)reader.ReadValue();
             }
 
-            bool IObjectWritable.IsReusable => true;
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }
 
-            bool IObjectWritable.IsReusable => true;
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 TestReadingPrimitiveArrays(reader);
             }
 
-            bool IObjectWritable.IsReusable => true;
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
@@ -812,7 +812,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 TestReadingPrimitiveAPIs(reader);
             }
 
-            bool IObjectWritable.IsReusable => true;
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 TestReadingPrimitiveValues(reader);
             }
 
-            bool IObjectWritable.IsReusable => true;
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             void IObjectWritable.WriteTo(ObjectWriter writer)
             {
@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             private static readonly Func<ObjectReader, object> s_createInstance = r => new Node(r);
 
-            bool IObjectWritable.IsReusable => _isReusable;
+            bool IObjectWritable.ShouldReuseInSerialization => _isReusable;
 
             public void WriteTo(ObjectWriter writer)
             {

@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis
                     newHasAllInformation);
             }
 
-            bool IObjectWritable.IsReusable => true;
+            bool IObjectWritable.ShouldReuseInSerialization => true;
 
             public void WriteTo(ObjectWriter writer)
             {

@@ -89,10 +89,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._trailingTrivia = DirectCast(reader.ReadValue(), GreenNode)
             End Sub
 
-            Private ReadOnly Property IsReausable As Boolean Implements IObjectWritable.IsReusable
+            Private ReadOnly Property IsReausable As Boolean Implements IObjectWritable.ShouldReuseInSerialization
                 Get
-                    Return _leadingTrivia IsNot Nothing AndAlso
-                        ShouldCacheTriviaInfo(_leadingTrivia, _trailingTrivia)
+                    Return ShouldCacheTriviaInfo(_leadingTrivia, _trailingTrivia)
                 End Get
             End Property
 

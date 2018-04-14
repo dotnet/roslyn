@@ -608,7 +608,7 @@ namespace Roslyn.Utilities
             // recursive: read and construct instance immediately from member elements encoding next in the stream
             var instance = typeReader(this);
 
-            if (instance.IsReusable)
+            if (instance.ShouldReuseInSerialization)
             {
                 _objectReferenceMap.AddValue(objectId, instance);
             }

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub New()
         End Sub
 
-        Private ReadOnly Property IsReausable As Boolean Implements IObjectWritable.IsReusable
+        Private ReadOnly Property IsReausable As Boolean Implements IObjectWritable.ShouldReuseInSerialization
             Get
                 Return True
             End Get

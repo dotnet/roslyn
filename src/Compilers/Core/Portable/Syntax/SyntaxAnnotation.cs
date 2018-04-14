@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
             this.Data = reader.ReadString();
         }
 
-        bool IObjectWritable.IsReusable => true;
+        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {

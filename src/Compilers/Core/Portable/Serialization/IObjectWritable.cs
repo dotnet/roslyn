@@ -15,6 +15,6 @@ namespace Roslyn.Utilities
         /// Instances that return "false" should not be tracked or the purpose 
         /// of de-duplication while serializing/deserializing.
         /// </summary>
-        bool IsReusable { get; }
+        bool ShouldReuseInSerialization { get; }
     }
 }

@@ -43,7 +43,7 @@ namespace Roslyn.Utilities
             return array;
         }
 
-        bool IObjectWritable.IsReusable => true;
+        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {

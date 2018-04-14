@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             return this.Id.GetHashCode();
         }
 
-        bool IObjectWritable.IsReusable => true;
+        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
