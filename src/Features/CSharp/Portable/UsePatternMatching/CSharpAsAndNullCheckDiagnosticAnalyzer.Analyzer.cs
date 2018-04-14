@@ -83,9 +83,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 {
                     switch (current.Kind())
                     {
+                        // Parentheses and cast expressions do not contribute to the flow analysis.
                         case SyntaxKind.ParenthesizedExpression:
                         case SyntaxKind.CastExpression:
-                            // Parentheses and cast expressions do not contribute to the flow analysis.
+
+                        // Skip over declaration parts to get to the parenting statement
+                        // which might be a for-statement or a local declaration statement.
+                        case SyntaxKind.EqualsValueClause:
+                        case SyntaxKind.VariableDeclarator:
+                        case SyntaxKind.VariableDeclaration:
                             continue;
 
                         case SyntaxKind.LogicalNotExpression:
