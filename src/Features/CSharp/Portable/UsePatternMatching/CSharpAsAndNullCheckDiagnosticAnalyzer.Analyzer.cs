@@ -220,13 +220,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                             // scope in subsequent statements, but not definitely assigned.
                             // Therefore, we should ensure that there is no use before assignment.
                             return CheckStatement(statement);
-
-                        default:
-                            // If the current node was neither an expression nor a statement,
-                            // it's probably a part of another statement like a local declaration
-                            // initializer, so we just look up for a parenting statement.
-                            return CheckStatement(current.GetAncestor<StatementSyntax>());
                     }
+
+                    // We shouldn't normally get here but if we do
+                    // it's either an error or an unhandled case.
+                    break;
                 }
 
                 return false;
