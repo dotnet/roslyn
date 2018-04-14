@@ -197,6 +197,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
+        Friend Overrides ReadOnly Property ShouldReuseInSerialization As Boolean
+            Get
+                Return MyBase.ShouldReuseInSerialization AndAlso
+                    Me.FullWidth < Scanner.MAX_CACHED_TOKENSIZE
+            End Get
+        End Property
+
         Friend Overrides Sub WriteTo(writer As ObjectWriter)
             MyBase.WriteTo(writer)
             writer.WriteString(Me._text)
