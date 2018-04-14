@@ -1222,7 +1222,7 @@ public static class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-        public async Task TestForStatemnet_UseBeforeDeclaration()
+        public async Task TestForStatement_UseBeforeDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class C
@@ -1231,6 +1231,23 @@ public static class C
     {
         [|C|] c = null, x = c;
         for (; !((c = e as C)==null);)
+        {
+            M(c);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestForStatement_Initializer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(object e)
+    {
+        [|C|] c;
+        for (var i = !((c = e as C)==null); i != null; )
         {
             M(c);
         }
