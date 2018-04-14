@@ -48,10 +48,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // To convert a null-check to pattern-matching, we should make sure of a few things:
             //
             //      (1) The pattern variable may not be used before the point of declaration.
+            //
+            //          {
+            //              var use = t;
+            //              if (x is T t) {}
+            //          }
+            //
             //      (2) The pattern variable may not be used outside of the new scope which
             //          is determined by the parent statement.
+            //
+            //          {
+            //              if (x is T t) {}
+            //          }
+            //
+            //          var use = t;
+            //
             //      (3) The pattern variable may not be used before assignment in opposite
             //          branches, if any.
+            //
+            //          {
+            //              if (x is T t) {}
+            //              var use = t;
+            //          }
             //
             // We walk up the tree from the point of null-check and see if any of the above is violated.
             public bool CanSafelyConvertToPatternMatching()
