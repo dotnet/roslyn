@@ -1273,5 +1273,41 @@ public static class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestExpressionLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object e)
+    {
+        [||]var c = e as C;
+        System.Func<C> f = () => c == null ? null : c;
+    }
+}",
+@"class C
+{
+    void M(object e)
+    {
+        System.Func<C> f = () => !(e is C c) ? null : c;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestExpressionLambda_UseOutOfScope()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    C M(object e)
+    {
+        [||]var c = e as C;
+        System.Func<C> f = () => c == null ? null : c;
+        return c;
+    }
+}");
+        }
     }
 }
