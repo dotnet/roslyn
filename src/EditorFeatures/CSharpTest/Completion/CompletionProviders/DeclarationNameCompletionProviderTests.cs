@@ -32,8 +32,8 @@ public class MyClass
     MyClass $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic);
             await VerifyItemExistsAsync(markup, "myClass", glyph: (int)Glyph.FieldPublic);
+            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic);
             await VerifyItemExistsAsync(markup, "GetMyClass", glyph: (int)Glyph.MethodPublic);
         }
 
@@ -552,7 +552,9 @@ public class MyClass
     MyClass $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            await VerifyItemExistsAsync(markup, "myClass", glyph: (int)Glyph.FieldPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            await VerifyItemExistsAsync(markup, "GetMyClass", glyph: (int)Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
 
         [WorkItem(20273, "https://github.com/dotnet/roslyn/issues/20273")]
