@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         public IDictionary<OptionKey, object> LocalsAreCamelCaseConstantsAreUpperCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), LocalsAreCamelCaseConstantsAreUpperCaseOption());
 
+        public IDictionary<OptionKey, object> AsyncFunctionNamesEndWithAsync =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), AsyncFunctionNamesEndWithAsyncOption());
+
         private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
             return new Dictionary<OptionKey, object>
@@ -360,6 +363,40 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 ImmutableArray.Create(camelCaseNamingStyle, allUpperNamingStyle),
                 ImmutableArray.Create(constLocalsUpperCaseNamingRule, localsCamelCaseNamingRule));
 
+            return info;
+        }
+
+        private static NamingStylePreferences AsyncFunctionNamesEndWithAsyncOption()
+        {
+            var symbolSpecification = new SymbolSpecification(
+                null,
+                "Name",
+                ImmutableArray.Create(
+                    new SymbolSpecification.SymbolOrTypeOrMethodKind(MethodKind.Ordinary),
+                    new SymbolSpecification.SymbolOrTypeOrMethodKind(MethodKind.LocalFunction)),
+                ImmutableArray<Accessibility>.Empty,
+                ImmutableArray.Create(new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsAsync)));
+ 
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.PascalCase,
+                name: "Name",
+                prefix: "",
+                suffix: "Async",
+                wordSeparator: "");
+ 
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = DiagnosticSeverity.Error
+            };
+ 
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+ 
             return info;
         }
     }
