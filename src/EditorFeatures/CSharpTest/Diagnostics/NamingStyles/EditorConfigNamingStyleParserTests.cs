@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        public static void TestAsyncMethodsRule()
+        public static void TestAsyncMethodsAndLocalFunctionsRule()
         {
             var dictionary = new Dictionary<string, object>()
             {
                 ["dotnet_naming_rule.async_methods_must_end_with_async.severity"] = "error",
                 ["dotnet_naming_rule.async_methods_must_end_with_async.symbols"] = "method_symbols",
                 ["dotnet_naming_rule.async_methods_must_end_with_async.style"] = "end_in_async_style",
-                ["dotnet_naming_symbols.method_symbols.applicable_kinds"] = "method",
+                ["dotnet_naming_symbols.method_symbols.applicable_kinds"] = "method,local_function",
                 ["dotnet_naming_symbols.method_symbols.required_modifiers"] = "async",
                 ["dotnet_naming_style.end_in_async_style.capitalization "] = "pascal_case",
                 ["dotnet_naming_style.end_in_async_style.required_suffix"] = "Async",
@@ -82,8 +82,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
             Assert.Equal(DiagnosticSeverity.Error, namingRule.EnforcementLevel);
             Assert.Equal("method_symbols", symbolSpec.Name);
-            Assert.Single(symbolSpec.ApplicableSymbolKindList);
-            Assert.Contains(new SymbolOrTypeOrMethodKind(MethodKind.Ordinary), symbolSpec.ApplicableSymbolKindList);
+            var expectedApplicableSymbolKindList = new[]
+            {
+                new SymbolOrTypeOrMethodKind(MethodKind.Ordinary),
+                new SymbolOrTypeOrMethodKind(MethodKind.LocalFunction)
+            };
+            AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             Assert.Single(symbolSpec.RequiredModifierList);
             Assert.Contains(new ModifierKind(ModifierKindEnum.IsAsync), symbolSpec.RequiredModifierList);
             Assert.Empty(symbolSpec.ApplicableAccessibilityList);
