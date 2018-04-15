@@ -232,6 +232,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 new SymbolOrTypeOrMethodKind(SymbolKind.Local),
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
+            Assert.Empty(symbolSpec.ApplicableAccessibilityList);
+            Assert.Empty(symbolSpec.RequiredModifierList);
+
+            Assert.Equal("camel_case_style", namingStyle.Name);
+            Assert.Equal("", namingStyle.Prefix);
+            Assert.Equal("", namingStyle.Suffix);
+            Assert.Equal("", namingStyle.WordSeparator);
+            Assert.Equal(Capitalization.CamelCase, namingStyle.CapitalizationScheme);
+        }
+
+        [Fact]
+        public static void TestLocalFunctionsAreCamelCaseRule()
+        {
+            var dictionary = new Dictionary<string, object>()
+            {
+                ["dotnet_naming_rule.local_functions_are_camel_case.severity"] = "suggestion",
+                ["dotnet_naming_rule.local_functions_are_camel_case.symbols"] = "local_functions",
+                ["dotnet_naming_rule.local_functions_are_camel_case.style"] = "camel_case_style",
+                ["dotnet_naming_symbols.local_functions.applicable_kinds"] = "local_function",
+                ["dotnet_naming_style.camel_case_style.capitalization"] = "camel_case",
+            };
+
+            var result = ParseDictionary(dictionary);
+            Assert.Single(result.NamingRules);
+            var namingRule = result.NamingRules.Single();
+            Assert.Single(result.NamingStyles);
+            var namingStyle = result.NamingStyles.Single();
+            Assert.Single(result.SymbolSpecifications);
+
+            var symbolSpec = result.SymbolSpecifications.Single();
+            Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
+            Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
+            Assert.Equal(DiagnosticSeverity.Info, namingRule.EnforcementLevel);
+
+            Assert.Equal("local_functions", symbolSpec.Name);
+            var expectedApplicableSymbolKindList = new[] { new SymbolOrTypeOrMethodKind(MethodKind.LocalFunction) };
+            AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
+            Assert.Empty(symbolSpec.ApplicableAccessibilityList);
+            Assert.Empty(symbolSpec.RequiredModifierList);
 
             Assert.Equal("camel_case_style", namingStyle.Name);
             Assert.Equal("", namingStyle.Prefix);
