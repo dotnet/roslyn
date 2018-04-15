@@ -45,17 +45,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private static readonly ImmutableArray<NamingRule> s_builtInRules = ImmutableArray.Create(
                 new NamingRule(new SymbolSpecification(
                     Guid.NewGuid(), "Property",
-                    ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property))),
+                    ImmutableArray.Create(new SymbolSpecification.SymbolOrTypeOrMethodKind(SymbolKind.Property))),
                     new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.PascalCase),
                     enforcementLevel: DiagnosticSeverity.Hidden),
                 new NamingRule(new SymbolSpecification(
                     Guid.NewGuid(), "Field",
-                    ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field))),
+                    ImmutableArray.Create(new SymbolSpecification.SymbolOrTypeOrMethodKind(SymbolKind.Field))),
                     new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.CamelCase),
                     enforcementLevel: DiagnosticSeverity.Hidden),
                 new NamingRule(new SymbolSpecification(
                     Guid.NewGuid(), "FieldWithUnderscore",
-                    ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field))),
+                    ImmutableArray.Create(new SymbolSpecification.SymbolOrTypeOrMethodKind(SymbolKind.Field))),
                     new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
                     enforcementLevel: DiagnosticSeverity.Hidden));
 

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return false;
         }
 
-        private static ImmutableArray<SymbolKindOrTypeKind> GetSymbolsApplicableKinds(
+        private static ImmutableArray<SymbolOrTypeOrMethodKind> GetSymbolsApplicableKinds(
             string symbolSpecName,
             IReadOnlyDictionary<string, object> conventionsDictionary)
         {
@@ -59,21 +59,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return ParseSymbolKindList(result as string ?? string.Empty);
             }
 
-            return ImmutableArray<SymbolKindOrTypeKind>.Empty;
+            return ImmutableArray<SymbolOrTypeOrMethodKind>.Empty;
         }
 
-        private static readonly SymbolKindOrTypeKind _class = new SymbolKindOrTypeKind(TypeKind.Class);
-        private static readonly SymbolKindOrTypeKind _struct = new SymbolKindOrTypeKind(TypeKind.Struct);
-        private static readonly SymbolKindOrTypeKind _interface = new SymbolKindOrTypeKind(TypeKind.Interface);
-        private static readonly SymbolKindOrTypeKind _enum = new SymbolKindOrTypeKind(TypeKind.Enum);
-        private static readonly SymbolKindOrTypeKind _property = new SymbolKindOrTypeKind(SymbolKind.Property);
-        private static readonly SymbolKindOrTypeKind _method = new SymbolKindOrTypeKind(SymbolKind.Method);
-        private static readonly SymbolKindOrTypeKind _field = new SymbolKindOrTypeKind(SymbolKind.Field);
-        private static readonly SymbolKindOrTypeKind _event = new SymbolKindOrTypeKind(SymbolKind.Event);
-        private static readonly SymbolKindOrTypeKind _delegate = new SymbolKindOrTypeKind(TypeKind.Delegate);
-        private static readonly SymbolKindOrTypeKind _parameter = new SymbolKindOrTypeKind(SymbolKind.Parameter);
-        private static readonly SymbolKindOrTypeKind _local = new SymbolKindOrTypeKind(SymbolKind.Local);
-        private static readonly ImmutableArray<SymbolKindOrTypeKind> _all =
+        private static readonly SymbolOrTypeOrMethodKind _class = new SymbolOrTypeOrMethodKind(TypeKind.Class);
+        private static readonly SymbolOrTypeOrMethodKind _struct = new SymbolOrTypeOrMethodKind(TypeKind.Struct);
+        private static readonly SymbolOrTypeOrMethodKind _interface = new SymbolOrTypeOrMethodKind(TypeKind.Interface);
+        private static readonly SymbolOrTypeOrMethodKind _enum = new SymbolOrTypeOrMethodKind(TypeKind.Enum);
+        private static readonly SymbolOrTypeOrMethodKind _property = new SymbolOrTypeOrMethodKind(SymbolKind.Property);
+        private static readonly SymbolOrTypeOrMethodKind _method = new SymbolOrTypeOrMethodKind(SymbolKind.Method);
+        private static readonly SymbolOrTypeOrMethodKind _field = new SymbolOrTypeOrMethodKind(SymbolKind.Field);
+        private static readonly SymbolOrTypeOrMethodKind _event = new SymbolOrTypeOrMethodKind(SymbolKind.Event);
+        private static readonly SymbolOrTypeOrMethodKind _delegate = new SymbolOrTypeOrMethodKind(TypeKind.Delegate);
+        private static readonly SymbolOrTypeOrMethodKind _parameter = new SymbolOrTypeOrMethodKind(SymbolKind.Parameter);
+        private static readonly SymbolOrTypeOrMethodKind _local = new SymbolOrTypeOrMethodKind(SymbolKind.Local);
+        private static readonly ImmutableArray<SymbolOrTypeOrMethodKind> _all =
             ImmutableArray.Create(
                 _class,
                 _struct,
@@ -87,11 +87,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 _parameter,
                 _local);
 
-        private static ImmutableArray<SymbolKindOrTypeKind> ParseSymbolKindList(string symbolSpecApplicableKinds)
+        private static ImmutableArray<SymbolOrTypeOrMethodKind> ParseSymbolKindList(string symbolSpecApplicableKinds)
         {
             if (symbolSpecApplicableKinds == null)
             {
-                return ImmutableArray<SymbolKindOrTypeKind>.Empty;
+                return ImmutableArray<SymbolOrTypeOrMethodKind>.Empty;
             }
 
             if (symbolSpecApplicableKinds.Trim() == "*")
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return _all;
             }
 
-            var builder = ArrayBuilder<SymbolKindOrTypeKind>.GetInstance();
+            var builder = ArrayBuilder<SymbolOrTypeOrMethodKind>.GetInstance();
             foreach (var symbolSpecApplicableKind in symbolSpecApplicableKinds.Split(',').Select(x => x.Trim()))
             {
                 switch (symbolSpecApplicableKind)

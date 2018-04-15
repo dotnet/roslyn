@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("method_and_property_symbols", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
-                new SymbolKindOrTypeKind(SymbolKind.Method),
-                new SymbolKindOrTypeKind(SymbolKind.Property)
+                new SymbolOrTypeOrMethodKind(SymbolKind.Method),
+                new SymbolOrTypeOrMethodKind(SymbolKind.Property)
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             Assert.Empty(symbolSpec.RequiredModifierList);
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal(DiagnosticSeverity.Error, namingRule.EnforcementLevel);
             Assert.Equal("method_symbols", symbolSpec.Name);
             Assert.Single(symbolSpec.ApplicableSymbolKindList);
-            Assert.Contains(new SymbolKindOrTypeKind(SymbolKind.Method), symbolSpec.ApplicableSymbolKindList);
+            Assert.Contains(new SymbolOrTypeOrMethodKind(SymbolKind.Method), symbolSpec.ApplicableSymbolKindList);
             Assert.Single(symbolSpec.RequiredModifierList);
             Assert.Contains(new ModifierKind(ModifierKindEnum.IsAsync), symbolSpec.RequiredModifierList);
             Assert.Empty(symbolSpec.ApplicableAccessibilityList);
@@ -136,11 +136,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("public_symbols", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
-                new SymbolKindOrTypeKind(SymbolKind.Property),
-                new SymbolKindOrTypeKind(SymbolKind.Method),
-                new SymbolKindOrTypeKind(SymbolKind.Field),
-                new SymbolKindOrTypeKind(SymbolKind.Event),
-                new SymbolKindOrTypeKind(TypeKind.Delegate)
+                new SymbolOrTypeOrMethodKind(SymbolKind.Property),
+                new SymbolOrTypeOrMethodKind(SymbolKind.Method),
+                new SymbolOrTypeOrMethodKind(SymbolKind.Field),
+                new SymbolOrTypeOrMethodKind(SymbolKind.Event),
+                new SymbolOrTypeOrMethodKind(TypeKind.Delegate)
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             var expectedApplicableAccessibilityList = new[]
@@ -184,11 +184,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("non_public_symbols", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
-                new SymbolKindOrTypeKind(SymbolKind.Property),
-                new SymbolKindOrTypeKind(SymbolKind.Method),
-                new SymbolKindOrTypeKind(SymbolKind.Field),
-                new SymbolKindOrTypeKind(SymbolKind.Event),
-                new SymbolKindOrTypeKind(TypeKind.Delegate)
+                new SymbolOrTypeOrMethodKind(SymbolKind.Property),
+                new SymbolOrTypeOrMethodKind(SymbolKind.Method),
+                new SymbolOrTypeOrMethodKind(SymbolKind.Field),
+                new SymbolOrTypeOrMethodKind(SymbolKind.Event),
+                new SymbolOrTypeOrMethodKind(TypeKind.Delegate)
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             Assert.Single(symbolSpec.ApplicableAccessibilityList);
@@ -228,8 +228,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("parameters_and_locals", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
-                new SymbolKindOrTypeKind(SymbolKind.Parameter),
-                new SymbolKindOrTypeKind(SymbolKind.Local),
+                new SymbolOrTypeOrMethodKind(SymbolKind.Parameter),
+                new SymbolOrTypeOrMethodKind(SymbolKind.Local),
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
 

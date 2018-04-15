@@ -182,15 +182,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 IsChecked = specification.ApplicableSymbolKindList.Any(k => k.TypeKind == typeKind);
             }
 
-            internal SymbolKindOrTypeKind CreateSymbolKindOrTypeKind()
+            internal SymbolOrTypeOrMethodKind CreateSymbolKindOrTypeKind()
             {
                 if (_symbolKind.HasValue)
                 {
-                    return new SymbolKindOrTypeKind(_symbolKind.Value);
+                    return new SymbolOrTypeOrMethodKind(_symbolKind.Value);
                 }
                 else
                 {
-                    return new SymbolKindOrTypeKind(_typeKind.Value);
+                    return new SymbolOrTypeOrMethodKind(_typeKind.Value);
                 }
             }
         }

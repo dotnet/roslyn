@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                     new SymbolSpecification(
                         Guid.NewGuid(),
                         "Field",
-                        ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
+                        ImmutableArray.Create(new SymbolSpecification.SymbolOrTypeOrMethodKind(SymbolKind.Field)),
                         modifiers: modifiers),
                     new NamingStyles.NamingStyle(
                         Guid.NewGuid(),
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             foreach (var rule in rules)
             {
                 if (rule.SymbolSpecification.AppliesTo(
-                    new SymbolKindOrTypeKind(SymbolKind.Field),
+                    new SymbolOrTypeOrMethodKind(SymbolKind.Field),
                     property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None,
                     Accessibility.Private))
                 {

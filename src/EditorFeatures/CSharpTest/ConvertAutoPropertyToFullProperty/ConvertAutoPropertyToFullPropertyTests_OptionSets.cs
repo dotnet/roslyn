@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
             var symbolSpecification = new SymbolSpecification(
                 null,
                 "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
+                ImmutableArray.Create(new SymbolSpecification.SymbolOrTypeOrMethodKind(SymbolKind.Field)),
                 ImmutableArray<Accessibility>.Empty,
                 ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
             var symbolSpecification = new SymbolSpecification(
                 null,
                 "Name",
-                ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field)),
+                ImmutableArray.Create(new SymbolOrTypeOrMethodKind(SymbolKind.Field)),
                 ImmutableArray<Accessibility>.Empty,
                 ImmutableArray.Create(new ModifierKind(DeclarationModifiers.Static)));
 

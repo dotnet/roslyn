@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var result = new Dictionary<string, SymbolKind>();
             foreach (var symbolKind in declarationInfo.PossibleSymbolKinds)
             {
-                var kind = new SymbolKindOrTypeKind(symbolKind);
+                var kind = new SymbolOrTypeOrMethodKind(symbolKind);
                 var modifiers = declarationInfo.Modifiers;
                 foreach (var rule in rules)
                 {

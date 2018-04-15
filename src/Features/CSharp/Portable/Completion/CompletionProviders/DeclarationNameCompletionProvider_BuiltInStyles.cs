@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static NamingRule CreateGetAsyncRule()
         {
-            var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Method));
+            var kinds = ImmutableArray.Create(new SymbolOrTypeOrMethodKind(SymbolKind.Method));
             var modifiers = ImmutableArray.Create(new ModifierKind(ModifierKindEnum.IsAsync));
             return new NamingRule(
                 new SymbolSpecification(Guid.NewGuid(), "endswithasync", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static NamingRule CreateCamelCaseFieldsAndParametersRule()
         {
-            var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field), new SymbolKindOrTypeKind(SymbolKind.Parameter), new SymbolKindOrTypeKind(SymbolKind.Local));
+            var kinds = ImmutableArray.Create(new SymbolOrTypeOrMethodKind(SymbolKind.Field), new SymbolOrTypeOrMethodKind(SymbolKind.Parameter), new SymbolOrTypeOrMethodKind(SymbolKind.Local));
             var modifiers = ImmutableArray.Create<ModifierKind>();
             return new NamingRule(
                 new SymbolSpecification(Guid.NewGuid(), "camelcasefields", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static NamingRule CreateEndWithAsyncRule()
         {
-            var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Method));
+            var kinds = ImmutableArray.Create(new SymbolOrTypeOrMethodKind(SymbolKind.Method));
             var modifiers = ImmutableArray.Create(new ModifierKind(ModifierKindEnum.IsAsync));
             return new NamingRule(
                 new SymbolSpecification(Guid.NewGuid(), "endswithasynct", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static NamingRule CreateMethodStartsWithGetRule()
         {
-            var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Method));
+            var kinds = ImmutableArray.Create(new SymbolOrTypeOrMethodKind(SymbolKind.Method));
             var modifiers = ImmutableArray.Create<ModifierKind>();
             return new NamingRule(
                 new SymbolSpecification(Guid.NewGuid(), "startswithget", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
