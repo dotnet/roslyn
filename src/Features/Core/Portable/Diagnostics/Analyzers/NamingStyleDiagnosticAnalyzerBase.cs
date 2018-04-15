@@ -47,12 +47,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 concurrencyLevel: 2, capacity: 0);
 
             context.RegisterSymbolAction(c => SymbolAction(c, idToCachedResult), _symbolKinds);
+            OnCompilationStartAction(context, idToCachedResult);
+        }
+
+        protected virtual void OnCompilationStartAction(
+            CompilationStartAnalysisContext context,
+            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult)
+        {
         }
 
         private static readonly Func<Guid, ConcurrentDictionary<string, string>> s_createCache =
             _ => new ConcurrentDictionary<string, string>(concurrencyLevel: 2, capacity: 0);
 
-        private void SymbolAction(
+        protected void SymbolAction(
             SymbolAnalysisContext context,
             ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult)
         { 
