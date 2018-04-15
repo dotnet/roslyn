@@ -1,8 +1,11 @@
 ﻿namespace Microsoft.CodeAnalysis.UseNameof
 {
+    using System.Collections.Immutable;
+    using System.Linq;
     using System.Threading;
     using Microsoft.CodeAnalysis.CodeStyle;
     using Microsoft.CodeAnalysis.Diagnostics;
+    using Microsoft.CodeAnalysis.Editing;
     using Microsoft.CodeAnalysis.LanguageServices;
     using Microsoft.CodeAnalysis.Operations;
 
@@ -36,45 +39,63 @@
                 literal.Type.SpecialType == SpecialType.System_String &&
                 literal.ConstantValue.HasValue &&
                 literal.ConstantValue.Value is string value &&
-                this.GetSyntaxFactsService().IsValidIdentifier(value))
+                GetSyntaxFactsService() is ISyntaxFactsService syntaxFacts &&
+                syntaxFacts.IsValidIdentifier(value))
             {
-                var semanticModel = context.Compilation.GetSemanticModel(literal.Syntax.SyntaxTree);
-                foreach (var symbol in semanticModel.LookupSymbols(literal.Syntax.SpanStart, name: value))
+                var symbol = context.Compilation.GetSemanticModel(literal.Syntax.SyntaxTree)
+                                    .LookupSymbols(literal.Syntax.SpanStart, name: value)
+                                    .FirstOrDefault();
+                switch (symbol)
                 {
-                    switch (symbol)
-                    {
-                        case IParameterSymbol _:
-                            context.ReportDiagnostic(Diagnostic.Create(this.InfoDescriptor, literal.Syntax.GetLocation()));
-                            break;
-                        case IFieldSymbol _:
-                        case IEventSymbol _:
-                        case IPropertySymbol _:
-                        case IMethodSymbol _:
-                            if (context.ContainingSymbol.ContainingType == symbol.ContainingType)
-                            {
-                                context.ReportDiagnostic(Diagnostic.Create(this.InfoDescriptor, literal.Syntax.GetLocation()));
-                            }
+                    case IParameterSymbol _:
+                        context.ReportDiagnostic(Diagnostic.Create(InfoDescriptor, literal.Syntax.GetLocation()));
+                        break;
+                    case IFieldSymbol _:
+                    case IEventSymbol _:
+                    case IPropertySymbol _:
+                    case IMethodSymbol _:
+                        if (Equals(symbol.ContainingType, ContainingSymbol()))
+                        {
+                            context.ReportDiagnostic(
+                                Diagnostic.Create(
+                                    InfoDescriptor,
+                                    literal.Syntax.GetLocation(),
+                                    IsInInstanceContext()
+                                        ? ImmutableDictionary<string, string>.Empty.Add(nameof(SyntaxGenerator.ThisExpression), "true")
+                                        : null));
+                        }
 
-                            break;
-                        case ILocalSymbol local when IsVisible(literal, local, context.CancellationToken):
-                            context.ReportDiagnostic(Diagnostic.Create(this.InfoDescriptor, literal.Syntax.GetLocation()));
-                            break;
-                    }
+                        break;
+                    case ILocalSymbol local when IsVisible(local):
+                        context.ReportDiagnostic(Diagnostic.Create(InfoDescriptor, literal.Syntax.GetLocation()));
+                        break;
                 }
             }
-        }
 
-        private static bool IsVisible(ILiteralOperation literal, ILocalSymbol local, CancellationToken cancellationToken)
-        {
-            if (local.DeclaringSyntaxReferences.Length == 1 &&
-                local.DeclaringSyntaxReferences[0].Span.Start < literal.Syntax.SpanStart)
+            ITypeSymbol ContainingSymbol()
             {
-                var declaration = local.DeclaringSyntaxReferences[0]
-                                       .GetSyntax(cancellationToken);
-                return !declaration.Contains(literal.Syntax);
+                return context.ContainingSymbol as ITypeSymbol ??
+                       context.ContainingSymbol.ContainingType;
             }
 
-            return false;
+            bool IsInInstanceContext()
+            {
+                return !(syntaxFacts.IsInStaticContext(literal.Syntax) ||
+                         syntaxFacts.IsInConstantContext(literal.Syntax));
+            }
+
+            bool IsVisible(ILocalSymbol local)
+            {
+                if (local.DeclaringSyntaxReferences.Length == 1 &&
+                    local.DeclaringSyntaxReferences[0].Span.Start < literal.Syntax.SpanStart)
+                {
+                    var declaration = local.DeclaringSyntaxReferences[0]
+                                           .GetSyntax(context.CancellationToken);
+                    return !declaration.Contains(literal.Syntax);
+                }
+
+                return false;
+            }
         }
     }
 }
