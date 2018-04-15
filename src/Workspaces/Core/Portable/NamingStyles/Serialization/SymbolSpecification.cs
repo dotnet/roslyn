@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     new SymbolOrTypeOrMethodKind(TypeKind.Pointer),
                     new SymbolOrTypeOrMethodKind(TypeKind.TypeParameter),
                     new SymbolOrTypeOrMethodKind(SymbolKind.Property),
-                    new SymbolOrTypeOrMethodKind(SymbolKind.Method),
+                    new SymbolOrTypeOrMethodKind(MethodKind.Ordinary),
+                    new SymbolOrTypeOrMethodKind(MethodKind.LocalFunction),
                     new SymbolOrTypeOrMethodKind(SymbolKind.Field),
                     new SymbolOrTypeOrMethodKind(SymbolKind.Event),
                     new SymbolOrTypeOrMethodKind(SymbolKind.Parameter),
@@ -250,6 +251,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             foreach (var typeKindElement in symbolKindListElement.Elements(nameof(TypeKind)))
             {
                 applicableSymbolKindList.Add(SymbolOrTypeOrMethodKind.AddTypeKindFromXElement(typeKindElement));
+            }
+
+            foreach (var methodKindElement in symbolKindListElement.Elements(nameof(MethodKind)))
+            {
+                applicableSymbolKindList.Add(SymbolOrTypeOrMethodKind.AddMethodKindFromXElement(methodKindElement));
             }
 
             return applicableSymbolKindList.ToImmutableAndFree();

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     /// </summary>
     internal class NamingStylePreferences : IEquatable<NamingStylePreferences>
     {
-        private const int s_serializationVersion = 4;
+        private const int s_serializationVersion = 5;
 
         public readonly ImmutableArray<SymbolSpecification> SymbolSpecifications;
         public readonly ImmutableArray<NamingStyle> NamingStyles;
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     </SymbolSpecification>
     <SymbolSpecification ID=""390caed4-f0a9-42bb-adbb-b44c4a302a22"" Name=""{WorkspacesResources.Method}"">
       <ApplicableSymbolKindList>
-        <SymbolKind>Method</SymbolKind>
+        <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
       <ApplicableAccessibilityList>
         <AccessibilityKind>Public</AccessibilityKind>
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     </SymbolSpecification>
     <SymbolSpecification ID=""af410767-f189-47c6-b140-aeccf1ff242e"" Name=""{WorkspacesResources.Private_Method}"">
       <ApplicableSymbolKindList>
-        <SymbolKind>Method</SymbolKind>
+        <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
       <ApplicableAccessibilityList>
         <AccessibilityKind>Private</AccessibilityKind>
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     </SymbolSpecification>
     <SymbolSpecification ID=""8076757e-6a4a-47f1-9b4b-ae8a3284e987"" Name=""{WorkspacesResources.Abstract_Method}"">
       <ApplicableSymbolKindList>
-        <SymbolKind>Method</SymbolKind>
+        <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
       <ApplicableAccessibilityList>
         <AccessibilityKind>Public</AccessibilityKind>
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     </SymbolSpecification>
     <SymbolSpecification ID=""16133061-a8e7-4392-92c3-1d93cd54c218"" Name=""{WorkspacesResources.Static_Method}"">
       <ApplicableSymbolKindList>
-        <SymbolKind>Method</SymbolKind>
+        <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
       <ApplicableAccessibilityList>
         <AccessibilityKind>Public</AccessibilityKind>
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     <SymbolSpecification ID=""5f3ddba1-279f-486c-801e-5c097c36dd85"" Name=""{WorkspacesResources.Non_Field_Members}"">
       <ApplicableSymbolKindList>
         <SymbolKind>Property</SymbolKind>
-        <SymbolKind>Method</SymbolKind>
+        <MethodKind>Ordinary</MethodKind>
         <SymbolKind>Event</SymbolKind>
       </ApplicableSymbolKindList>
       <ApplicableAccessibilityList>

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("method_and_property_symbols", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
-                new SymbolOrTypeOrMethodKind(SymbolKind.Method),
+                new SymbolOrTypeOrMethodKind(MethodKind.Ordinary),
                 new SymbolOrTypeOrMethodKind(SymbolKind.Property)
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal(DiagnosticSeverity.Error, namingRule.EnforcementLevel);
             Assert.Equal("method_symbols", symbolSpec.Name);
             Assert.Single(symbolSpec.ApplicableSymbolKindList);
-            Assert.Contains(new SymbolOrTypeOrMethodKind(SymbolKind.Method), symbolSpec.ApplicableSymbolKindList);
+            Assert.Contains(new SymbolOrTypeOrMethodKind(MethodKind.Ordinary), symbolSpec.ApplicableSymbolKindList);
             Assert.Single(symbolSpec.RequiredModifierList);
             Assert.Contains(new ModifierKind(ModifierKindEnum.IsAsync), symbolSpec.RequiredModifierList);
             Assert.Empty(symbolSpec.ApplicableAccessibilityList);
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var expectedApplicableSymbolKindList = new[]
             {
                 new SymbolOrTypeOrMethodKind(SymbolKind.Property),
-                new SymbolOrTypeOrMethodKind(SymbolKind.Method),
+                new SymbolOrTypeOrMethodKind(MethodKind.Ordinary),
                 new SymbolOrTypeOrMethodKind(SymbolKind.Field),
                 new SymbolOrTypeOrMethodKind(SymbolKind.Event),
                 new SymbolOrTypeOrMethodKind(TypeKind.Delegate)
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var expectedApplicableSymbolKindList = new[]
             {
                 new SymbolOrTypeOrMethodKind(SymbolKind.Property),
-                new SymbolOrTypeOrMethodKind(SymbolKind.Method),
+                new SymbolOrTypeOrMethodKind(MethodKind.Ordinary),
                 new SymbolOrTypeOrMethodKind(SymbolKind.Field),
                 new SymbolOrTypeOrMethodKind(SymbolKind.Event),
                 new SymbolOrTypeOrMethodKind(TypeKind.Delegate)
