@@ -537,12 +537,28 @@ namespace Microsoft.CodeAnalysis.Operations
             ArrayBuilder<RegionBuilder> fromPredecessor = null;
 
             bool anyRemoved = false;
+retryLabel:
+            bool retry = false;
 
             int count = blocks.Count - 1;
             for (int i = 1; i < count; i++)
             {
                 BasicBlock block = blocks[i];
                 block.Ordinal = i;
+
+                // PROTOTYPE(dataflow): Consider if we want to do the following transformation.
+                //                      Should we care if condition has a constant value?
+                // If conditional and fallthrough branches have the same kind and destination,
+                // move condition to the statement list and clear the conditional branch
+                //if (block.InternalConditional.Condition != null &&
+                //    block.InternalConditional.Branch.Destination == block.InternalNext.Branch.Destination &&
+                //    block.InternalConditional.Branch.Kind == block.InternalNext.Branch.Kind)
+                //{
+                //    Debug.Assert(block.InternalNext.Value == null);
+                //    block.AddStatement(block.InternalConditional.Condition);
+                //    block.InternalConditional = default;
+                //    retry = true;
+                //}
 
                 if (!block.Statements.IsEmpty)
                 {
@@ -636,6 +652,7 @@ namespace Microsoft.CodeAnalysis.Operations
                             Debug.Assert(regionMap[block] == tryAndFinallyEnclosing);
                             removeBlock(block, tryAndFinallyEnclosing);
                             anyRemoved = true;
+                            retry = true;
                         }
 
                         continue;
@@ -771,6 +788,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     count--;
                     removeBlock(block, currentRegion);
                     anyRemoved = true;
+                    retry = true;
                 }
                 else
                 {
@@ -827,12 +845,18 @@ namespace Microsoft.CodeAnalysis.Operations
                         count--;
                         removeBlock(block, currentRegion);
                         anyRemoved = true;
+                        retry = true;
                     }
                 }
             }
 
             blocks[0].Ordinal = 0;
             blocks[count].Ordinal = count;
+
+            if (retry)
+            {
+                goto retryLabel;
+            }
 
             fromCurrent?.Free();
             fromDestination?.Free();

@@ -1115,5 +1115,93 @@ Block[B6] - Exit
         }
 
         // PROTOTYPE(dataflow): Port unit-tests BranchFlow_38 - BranchFlow_48 from VB
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void BranchFlow_49()
+        {
+            var source = @"
+class C
+{
+    void F(bool a)
+    /*<bind>*/{
+        if (a) goto label1;
+        goto label1;
+
+label1: return;
+    }/*</bind>*/
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B2]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void BranchFlow_50()
+        {
+            var source = @"
+class C
+{
+    void F(bool a, bool b)
+    /*<bind>*/{
+        goto label2;
+label1:
+        if (a) goto label3;
+        goto label3;
+label2:
+        if (b) goto label1;
+        goto label1;
+
+label3: ;
+    }/*</bind>*/
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B2]
+Block[B1] - Block
+    Predecessors: [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Next (Regular) Block[B3]
+Block[B2] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B1]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next (Regular) Block[B1]
+Block[B3] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
     }
 }

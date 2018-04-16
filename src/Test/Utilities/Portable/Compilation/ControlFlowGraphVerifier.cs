@@ -125,6 +125,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 BasicBlock.Branch conditionalBranch = block.Conditional.Branch;
 
+                Assert.NotEqual(BasicBlock.BranchKind.Return, conditionalBranch.Kind);
+                Assert.NotEqual(BasicBlock.BranchKind.Throw, conditionalBranch.Kind);
+
                 if (block.Conditional.Condition != null)
                 {
                     if (conditionalBranch.Destination != null)
@@ -168,13 +171,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     if (value != null)
                     {
+                        Assert.True(BasicBlock.BranchKind.Return == nextBranch.Kind || BasicBlock.BranchKind.Throw == nextBranch.Kind);
                         validateRoot(value);
                         stringBuilder.Append(OperationTreeVerifier.GetOperationTree(compilation, value, initialIndent: 8 + indent));
+                    }
+                    else
+                    {
+                        Assert.NotEqual(BasicBlock.BranchKind.Return, nextBranch.Kind);
+                        Assert.NotEqual(BasicBlock.BranchKind.Throw, nextBranch.Kind);
                     }
                 }
                 else
                 {
-                    Assert.Equal(0, (int)nextBranch.Kind);
+                    Assert.Equal(BasicBlock.BranchKind.None, nextBranch.Kind);
                     Assert.Null(nextBranch.Destination);
                     Assert.Null(block.Next.Value);
                 }
@@ -387,9 +396,13 @@ endRegion:
                     Assert.Empty(branch.FinallyRegions);
                     Assert.Empty(branch.LeavingRegions);
                     Assert.Empty(branch.EnteringRegions);
+                    Assert.True(BasicBlock.BranchKind.None == branch.Kind || BasicBlock.BranchKind.Throw == branch.Kind ||
+                                BasicBlock.BranchKind.ReThrow == branch.Kind || BasicBlock.BranchKind.StructuredExceptionHandling == branch.Kind ||
+                                BasicBlock.BranchKind.ProgramTermination == branch.Kind);
                     return;
                 }
 
+                Assert.True(BasicBlock.BranchKind.Regular == branch.Kind || BasicBlock.BranchKind.Return == branch.Kind);
                 Assert.True(branch.Destination.Predecessors.Contains(fromBlock));
 
                 if (!branch.FinallyRegions.IsEmpty)
