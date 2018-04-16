@@ -26,32 +26,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNameOf
                 context.RegisterCodeFix(
                     new CodeAction.DocumentChangeAction(
                         "Use nameof.",
-                        c => CreateChangedDocumentAsync(c, diagnostic),
+                        cancellationToken => CreateChangedDocumentAsync(context.Document, diagnostic, cancellationToken),
                         "Use nameof."),
                     diagnostic);
             }
 
             return Task.CompletedTask;
+        }
 
-            async Task<Document> CreateChangedDocumentAsync(CancellationToken cancellationToken, Diagnostic diagnostic)
+        private static async Task<Document> CreateChangedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        {
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken)
+                                           .ConfigureAwait(false);
+
+            if (syntaxRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) is LiteralExpressionSyntax literal)
             {
-                var syntaxRoot = await context.Document
-                                              .GetSyntaxRootAsync(cancellationToken)
-                                              .ConfigureAwait(false);
-
-                if (syntaxRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) is LiteralExpressionSyntax literal)
-                {
-                    var nameOf = diagnostic.Properties.ContainsKey(nameof(SyntaxGenerator.ThisExpression))
-                        ? SyntaxFactory.ParseExpression($"nameof(this.{literal.Token.ValueText})").WithAdditionalAnnotations(Simplifier.Annotation)
-                        : SyntaxFactory.ParseExpression($"nameof({literal.Token.ValueText})");
-                    return context.Document.WithSyntaxRoot(
-                        syntaxRoot.ReplaceNode(
-                            literal,
-                            nameOf));
-                }
-
-                return context.Document;
+                var nameOf = diagnostic.Properties.ContainsKey(nameof(SyntaxGenerator.ThisExpression))
+                    ? SyntaxFactory.ParseExpression($"nameof(this.{literal.Token.ValueText})").WithAdditionalAnnotations(Simplifier.Annotation)
+                    : SyntaxFactory.ParseExpression($"nameof({literal.Token.ValueText})");
+                return document.WithSyntaxRoot(
+                    syntaxRoot.ReplaceNode(
+                        literal,
+                        nameOf));
             }
+
+            return document;
         }
     }
 }
