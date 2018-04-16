@@ -12,12 +12,10 @@ using Microsoft.CodeAnalysis.Simplification;
 namespace Microsoft.CodeAnalysis.CSharp.UseNameOf
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpUseNameofCodeFixProvider)), Shared]
-    internal class CSharpUseNameofCodeFixProvider : CodeFixProvider
+    internal class CSharpUseNameofCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(
             IDEDiagnosticIds.UseNameofDiagnosticId);
-
-        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -32,6 +30,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNameOf
             }
 
             return Task.CompletedTask;
+        }
+
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        {
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken)
+                                           .ConfigureAwait(false);
+            foreach (var diagnostic in diagnostics)
+            {
+                if (syntaxRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) is LiteralExpressionSyntax literal)
+                {
+                    var nameOf = diagnostic.Properties.ContainsKey(nameof(SyntaxGenerator.ThisExpression))
+                        ? SyntaxFactory.ParseExpression($"nameof(this.{literal.Token.ValueText})").WithAdditionalAnnotations(Simplifier.Annotation)
+                        : SyntaxFactory.ParseExpression($"nameof({literal.Token.ValueText})");
+                    editor.ReplaceNode(literal, nameOf);
+                }
+            }
         }
 
         private static async Task<Document> CreateChangedDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
