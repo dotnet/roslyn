@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UseNameof
                 IDEDiagnosticIds.UseNameofDiagnosticId,
                 "Use nameof.",
                 "Use nameof.",
-                false)
+                configurable: false)
         {
         }
 
@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.UseNameof
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.EnableConcurrentExecution();
             context.RegisterOperationAction(Handle, OperationKind.Literal);
         }
 
@@ -38,8 +37,7 @@ namespace Microsoft.CodeAnalysis.UseNameof
                 literal.Type.SpecialType == SpecialType.System_String &&
                 literal.ConstantValue.HasValue &&
                 literal.ConstantValue.Value is string value &&
-                GetSyntaxFactsService() is ISyntaxFactsService syntaxFacts &&
-                syntaxFacts.IsValidIdentifier(value))
+                GetSyntaxFactsService().IsValidIdentifier(value))
             {
                 var symbol = context.Compilation.GetSemanticModel(literal.Syntax.SyntaxTree)
                                     .LookupSymbols(literal.Syntax.SpanStart, name: value)
@@ -79,6 +77,7 @@ namespace Microsoft.CodeAnalysis.UseNameof
 
             bool IsInInstanceContext()
             {
+                var syntaxFacts = GetSyntaxFactsService();
                 return !(syntaxFacts.IsInStaticContext(literal.Syntax) ||
                          syntaxFacts.IsInConstantContext(literal.Syntax));
             }
