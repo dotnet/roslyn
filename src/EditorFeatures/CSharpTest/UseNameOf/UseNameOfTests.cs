@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
         {
             await TestDiagnosticMissingAsync(
                 @"
-[System.Diagnostics.DebuggerDisplay(""{Name}"")]
+[System.Diagnostics.DebuggerDisplay([|""{Name}""|])]
 public class Foo
 {
     public string Name { get; }
@@ -258,13 +258,13 @@ public class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNameOf)]
         public async Task IgnoreTypeName()
         {
-            await TestDiagnosticMissingAsync(
+            await TestMissingAsync(
                 @"
 public class Foo
 {
     public void Bar()
     {
-        var text = Id(""Foo"");
+        var text = Id([|""Foo""|]);
     }
 
     private static string Id(string value) => value;
@@ -274,7 +274,7 @@ public class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNameOf)]
         public async Task IgnoreLocalWhenNotInScope()
         {
-            await TestDiagnosticMissingAsync(
+            await TestMissingAsync(
                 @"
 public class Foo
 {
@@ -284,7 +284,7 @@ public class Foo
             var text = Id(""text"");
         }
         {
-            var text = Id(""text"");
+            var text = Id([|""text""|]);
         }
         {
             var text = Id(""text"");
@@ -298,7 +298,7 @@ public class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNameOf)]
         public async Task IgnoreNamespaceName()
         {
-            await TestDiagnosticMissingAsync(
+            await TestMissingAsync(
                 @"
 namespace Namespace
 {
@@ -306,7 +306,7 @@ namespace Namespace
     {
         public Foo()
         {
-            var text = Id(""Namespace"");
+            var text = Id([|""Namespace""|]);
         }
 
         private static string Id(string value) => value;
