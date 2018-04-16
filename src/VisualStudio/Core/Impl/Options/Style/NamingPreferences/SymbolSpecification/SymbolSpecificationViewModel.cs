@@ -192,12 +192,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 IsChecked = specification.ApplicableSymbolKindList.Any(k => k.MethodKind == methodKind);
             }
 
-            internal SymbolOrTypeOrMethodKind CreateSymbolOrTypeOrMethodKind()
+            internal SymbolKindOrTypeKind CreateSymbolOrTypeOrMethodKind()
             {
                 return
-                    _symbolKind.HasValue ? new SymbolOrTypeOrMethodKind(_symbolKind.Value) :
-                    _typeKind.HasValue ? new SymbolOrTypeOrMethodKind(_typeKind.Value) :
-                    _methodKind.HasValue ? new SymbolOrTypeOrMethodKind(_methodKind.Value) :
+                    _symbolKind.HasValue ? new SymbolKindOrTypeKind(_symbolKind.Value) :
+                    _typeKind.HasValue ? new SymbolKindOrTypeKind(_typeKind.Value) :
+                    _methodKind.HasValue ? new SymbolKindOrTypeKind(_methodKind.Value) :
                     throw ExceptionUtilities.Unreachable;
             }
         }

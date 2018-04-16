@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("method_and_property_symbols", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
-                new SymbolOrTypeOrMethodKind(MethodKind.Ordinary),
-                new SymbolOrTypeOrMethodKind(SymbolKind.Property)
+                new SymbolKindOrTypeKind(MethodKind.Ordinary),
+                new SymbolKindOrTypeKind(SymbolKind.Property)
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             Assert.Empty(symbolSpec.RequiredModifierList);
@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("method_symbols", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
-                new SymbolOrTypeOrMethodKind(MethodKind.Ordinary),
-                new SymbolOrTypeOrMethodKind(MethodKind.LocalFunction)
+                new SymbolKindOrTypeKind(MethodKind.Ordinary),
+                new SymbolKindOrTypeKind(MethodKind.LocalFunction)
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             Assert.Single(symbolSpec.RequiredModifierList);
@@ -140,11 +140,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("public_symbols", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
-                new SymbolOrTypeOrMethodKind(SymbolKind.Property),
-                new SymbolOrTypeOrMethodKind(MethodKind.Ordinary),
-                new SymbolOrTypeOrMethodKind(SymbolKind.Field),
-                new SymbolOrTypeOrMethodKind(SymbolKind.Event),
-                new SymbolOrTypeOrMethodKind(TypeKind.Delegate)
+                new SymbolKindOrTypeKind(SymbolKind.Property),
+                new SymbolKindOrTypeKind(MethodKind.Ordinary),
+                new SymbolKindOrTypeKind(SymbolKind.Field),
+                new SymbolKindOrTypeKind(SymbolKind.Event),
+                new SymbolKindOrTypeKind(TypeKind.Delegate)
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             var expectedApplicableAccessibilityList = new[]
@@ -188,11 +188,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("non_public_symbols", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
-                new SymbolOrTypeOrMethodKind(SymbolKind.Property),
-                new SymbolOrTypeOrMethodKind(MethodKind.Ordinary),
-                new SymbolOrTypeOrMethodKind(SymbolKind.Field),
-                new SymbolOrTypeOrMethodKind(SymbolKind.Event),
-                new SymbolOrTypeOrMethodKind(TypeKind.Delegate)
+                new SymbolKindOrTypeKind(SymbolKind.Property),
+                new SymbolKindOrTypeKind(MethodKind.Ordinary),
+                new SymbolKindOrTypeKind(SymbolKind.Field),
+                new SymbolKindOrTypeKind(SymbolKind.Event),
+                new SymbolKindOrTypeKind(TypeKind.Delegate)
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             Assert.Single(symbolSpec.ApplicableAccessibilityList);
@@ -232,8 +232,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("parameters_and_locals", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
-                new SymbolOrTypeOrMethodKind(SymbolKind.Parameter),
-                new SymbolOrTypeOrMethodKind(SymbolKind.Local),
+                new SymbolKindOrTypeKind(SymbolKind.Parameter),
+                new SymbolKindOrTypeKind(SymbolKind.Local),
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             Assert.Empty(symbolSpec.ApplicableAccessibilityList);
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal(DiagnosticSeverity.Info, namingRule.EnforcementLevel);
 
             Assert.Equal("local_functions", symbolSpec.Name);
-            var expectedApplicableSymbolKindList = new[] { new SymbolOrTypeOrMethodKind(MethodKind.LocalFunction) };
+            var expectedApplicableSymbolKindList = new[] { new SymbolKindOrTypeKind(MethodKind.LocalFunction) };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             Assert.Empty(symbolSpec.ApplicableAccessibilityList);
             Assert.Empty(symbolSpec.RequiredModifierList);

@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         public Guid ID { get; }
         public string Name { get; }
 
-        public ImmutableArray<SymbolOrTypeOrMethodKind> ApplicableSymbolKindList { get; }
+        public ImmutableArray<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; }
         public ImmutableArray<Accessibility> ApplicableAccessibilityList { get; }
         public ImmutableArray<ModifierKind> RequiredModifierList { get; }
 
         public SymbolSpecification(
             Guid? id, string symbolSpecName,
-            ImmutableArray<SymbolOrTypeOrMethodKind> symbolKindList,
+            ImmutableArray<SymbolKindOrTypeKind> symbolKindList,
             ImmutableArray<Accessibility> accessibilityList = default,
             ImmutableArray<ModifierKind> modifiers = default)
         {
@@ -44,22 +44,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 id: Guid.NewGuid(),
                 symbolSpecName: null,
                 symbolKindList: ImmutableArray.Create(
-                    new SymbolOrTypeOrMethodKind(SymbolKind.Namespace),
-                    new SymbolOrTypeOrMethodKind(TypeKind.Class),
-                    new SymbolOrTypeOrMethodKind(TypeKind.Struct),
-                    new SymbolOrTypeOrMethodKind(TypeKind.Interface),
-                    new SymbolOrTypeOrMethodKind(TypeKind.Delegate),
-                    new SymbolOrTypeOrMethodKind(TypeKind.Enum),
-                    new SymbolOrTypeOrMethodKind(TypeKind.Module),
-                    new SymbolOrTypeOrMethodKind(TypeKind.Pointer),
-                    new SymbolOrTypeOrMethodKind(TypeKind.TypeParameter),
-                    new SymbolOrTypeOrMethodKind(SymbolKind.Property),
-                    new SymbolOrTypeOrMethodKind(MethodKind.Ordinary),
-                    new SymbolOrTypeOrMethodKind(MethodKind.LocalFunction),
-                    new SymbolOrTypeOrMethodKind(SymbolKind.Field),
-                    new SymbolOrTypeOrMethodKind(SymbolKind.Event),
-                    new SymbolOrTypeOrMethodKind(SymbolKind.Parameter),
-                    new SymbolOrTypeOrMethodKind(SymbolKind.Local)),
+                    new SymbolKindOrTypeKind(SymbolKind.Namespace),
+                    new SymbolKindOrTypeKind(TypeKind.Class),
+                    new SymbolKindOrTypeKind(TypeKind.Struct),
+                    new SymbolKindOrTypeKind(TypeKind.Interface),
+                    new SymbolKindOrTypeKind(TypeKind.Delegate),
+                    new SymbolKindOrTypeKind(TypeKind.Enum),
+                    new SymbolKindOrTypeKind(TypeKind.Module),
+                    new SymbolKindOrTypeKind(TypeKind.Pointer),
+                    new SymbolKindOrTypeKind(TypeKind.TypeParameter),
+                    new SymbolKindOrTypeKind(SymbolKind.Property),
+                    new SymbolKindOrTypeKind(MethodKind.Ordinary),
+                    new SymbolKindOrTypeKind(MethodKind.LocalFunction),
+                    new SymbolKindOrTypeKind(SymbolKind.Field),
+                    new SymbolKindOrTypeKind(SymbolKind.Event),
+                    new SymbolKindOrTypeKind(SymbolKind.Parameter),
+                    new SymbolKindOrTypeKind(SymbolKind.Local)),
                 accessibilityList: ImmutableArray.Create(
                     Accessibility.Public,
                     Accessibility.Internal,
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         internal bool AppliesTo(SymbolKind symbolKind, Accessibility accessibility)
-            => this.AppliesTo(new SymbolOrTypeOrMethodKind(symbolKind), new DeclarationModifiers(), accessibility);
+            => this.AppliesTo(new SymbolKindOrTypeKind(symbolKind), new DeclarationModifiers(), accessibility);
 
-        internal bool AppliesTo(SymbolOrTypeOrMethodKind kind, DeclarationModifiers modifiers, Accessibility accessibility)
+        internal bool AppliesTo(SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility accessibility)
         {
             if (ApplicableSymbolKindList.Any() && !ApplicableSymbolKindList.Any(k => k.Equals(kind)))
             {
@@ -240,22 +240,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 accessibilityList: GetAccessibilityListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableAccessibilityList))),
                 modifiers: GetModifierListFromXElement(symbolSpecificationElement.Element(nameof(RequiredModifierList))));
 
-        private static ImmutableArray<SymbolOrTypeOrMethodKind> GetSymbolKindListFromXElement(XElement symbolKindListElement)
+        private static ImmutableArray<SymbolKindOrTypeKind> GetSymbolKindListFromXElement(XElement symbolKindListElement)
         {
-            var applicableSymbolKindList = ArrayBuilder<SymbolOrTypeOrMethodKind>.GetInstance();
+            var applicableSymbolKindList = ArrayBuilder<SymbolKindOrTypeKind>.GetInstance();
             foreach (var symbolKindElement in symbolKindListElement.Elements(nameof(SymbolKind)))
             {
-                applicableSymbolKindList.Add(SymbolOrTypeOrMethodKind.AddSymbolKindFromXElement(symbolKindElement));
+                applicableSymbolKindList.Add(SymbolKindOrTypeKind.AddSymbolKindFromXElement(symbolKindElement));
             }
 
             foreach (var typeKindElement in symbolKindListElement.Elements(nameof(TypeKind)))
             {
-                applicableSymbolKindList.Add(SymbolOrTypeOrMethodKind.AddTypeKindFromXElement(typeKindElement));
+                applicableSymbolKindList.Add(SymbolKindOrTypeKind.AddTypeKindFromXElement(typeKindElement));
             }
 
             foreach (var methodKindElement in symbolKindListElement.Elements(nameof(MethodKind)))
             {
-                applicableSymbolKindList.Add(SymbolOrTypeOrMethodKind.AddMethodKindFromXElement(methodKindElement));
+                applicableSymbolKindList.Add(SymbolKindOrTypeKind.AddMethodKindFromXElement(methodKindElement));
             }
 
             return applicableSymbolKindList.ToImmutableAndFree();
@@ -287,27 +287,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             bool MatchesSymbol(ISymbol symbol);
         }
 
-        public struct SymbolOrTypeOrMethodKind : IEquatable<SymbolOrTypeOrMethodKind>, ISymbolMatcher
+        public struct SymbolKindOrTypeKind : IEquatable<SymbolKindOrTypeKind>, ISymbolMatcher
         {
             public SymbolKind? SymbolKind { get; }
             public TypeKind? TypeKind { get; }
             public MethodKind? MethodKind { get; }
 
-            public SymbolOrTypeOrMethodKind(SymbolKind symbolKind) : this()
+            public SymbolKindOrTypeKind(SymbolKind symbolKind) : this()
             {
                 SymbolKind = symbolKind;
                 TypeKind = null;
                 MethodKind = null;
             }
 
-            public SymbolOrTypeOrMethodKind(TypeKind typeKind) : this()
+            public SymbolKindOrTypeKind(TypeKind typeKind) : this()
             {
                 SymbolKind = null;
                 TypeKind = typeKind;
                 MethodKind = null;
             }
 
-            public SymbolOrTypeOrMethodKind(MethodKind methodKind) : this()
+            public SymbolKindOrTypeKind(MethodKind methodKind) : this()
             {
                 SymbolKind = null;
                 TypeKind = null;
@@ -326,19 +326,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                    MethodKind.HasValue ? new XElement(nameof(MethodKind), MethodKind) :
                    throw ExceptionUtilities.Unreachable;
 
-            internal static SymbolOrTypeOrMethodKind AddSymbolKindFromXElement(XElement symbolKindElement)
-                => new SymbolOrTypeOrMethodKind((SymbolKind)Enum.Parse(typeof(SymbolKind), symbolKindElement.Value));
+            internal static SymbolKindOrTypeKind AddSymbolKindFromXElement(XElement symbolKindElement)
+                => new SymbolKindOrTypeKind((SymbolKind)Enum.Parse(typeof(SymbolKind), symbolKindElement.Value));
 
-            internal static SymbolOrTypeOrMethodKind AddTypeKindFromXElement(XElement typeKindElement)
-                => new SymbolOrTypeOrMethodKind((TypeKind)Enum.Parse(typeof(TypeKind), typeKindElement.Value));
+            internal static SymbolKindOrTypeKind AddTypeKindFromXElement(XElement typeKindElement)
+                => new SymbolKindOrTypeKind((TypeKind)Enum.Parse(typeof(TypeKind), typeKindElement.Value));
 
-            internal static SymbolOrTypeOrMethodKind AddMethodKindFromXElement(XElement methodKindElement)
-                => new SymbolOrTypeOrMethodKind((MethodKind)Enum.Parse(typeof(MethodKind), methodKindElement.Value));
+            internal static SymbolKindOrTypeKind AddMethodKindFromXElement(XElement methodKindElement)
+                => new SymbolKindOrTypeKind((MethodKind)Enum.Parse(typeof(MethodKind), methodKindElement.Value));
 
             public override bool Equals(object obj)
-                => Equals((SymbolOrTypeOrMethodKind)obj);
+                => Equals((SymbolKindOrTypeKind)obj);
 
-            public bool Equals(SymbolOrTypeOrMethodKind other)
+            public bool Equals(SymbolKindOrTypeKind other)
                 => this.SymbolKind == other.SymbolKind && this.TypeKind == other.TypeKind && this.MethodKind == other.MethodKind;
 
             public override int GetHashCode()
