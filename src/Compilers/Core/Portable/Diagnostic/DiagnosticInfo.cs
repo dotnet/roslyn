@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis
 
         #region Serialization
 
-        bool IObjectWritable.ShouldReuseInSerialization => true;
+        bool IObjectWritable.ShouldReuseInSerialization => false;
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {

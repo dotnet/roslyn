@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Roslyn.Utilities
 {
-    internal struct ObjectBinderSnapshot
+    internal readonly struct ObjectBinderSnapshot
     {
         private readonly Dictionary<Type, int> _typeToIndex;
         private readonly ImmutableArray<Type> _types;
