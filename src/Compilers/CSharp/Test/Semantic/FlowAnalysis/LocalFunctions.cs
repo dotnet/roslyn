@@ -8,6 +8,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctions : FlowTestBase
     {
         [Fact]
+        public void LocalFunctionDefaultParamUnused()
+        {
+            var comp = CreateCompilation(@"
+using System;
+public class C
+{
+    public void M(string p)
+    {
+        void Local() {}
+        void Local2(string s = nameof(Local)) => Console.WriteLine(s);
+        const string s2 = ""test"";
+        void Local3(string s = s2) => Console.WriteLine(s);
+        Local2();
+        Local3();
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         [WorkItem(17829, "https://github.com/dotnet/roslyn/issues/17829")]
         public void UncalledLambdaInLocalFunction()
         {
