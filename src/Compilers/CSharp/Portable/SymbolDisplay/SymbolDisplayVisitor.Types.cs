@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     case false:
-                        if (!typeSymbol.IsValueType &&
-                            format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
+                        if (!typeSymbol.IsValueType && format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
                         {
                             AddPunctuation(SyntaxKind.ExclamationToken);
                         }
@@ -397,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var namedType = symbol as NamedTypeSymbol;
                         if ((object)namedType != null)
                         {
-                            modifiers = namedType.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(a => a.CustomModifiers) ;
+                            modifiers = namedType.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(a => a.CustomModifiers);
                         }
                     }
 

@@ -767,7 +767,7 @@ class Repro
   IL_0007:  brtrue.s   IL_000b
   IL_0009:  pop
   IL_000a:  ldnull
-  IL_000b:  call       ""string string.Concat(string, string)""
+  IL_000b:  call       ""string string.Concat(string?, string?)""
   IL_0010:  ret
 }
 ");
@@ -804,7 +804,7 @@ class Repro
   IL_0007:  brtrue.s   IL_000b
   IL_0009:  pop
   IL_000a:  ldnull
-  IL_000b:  call       ""string string.Concat(string, string)""
+  IL_000b:  call       ""string string.Concat(string?, string?)""
   IL_0010:  ret
 }
 ");
@@ -915,12 +915,12 @@ c17d18c19
   IL_001a:  ldloca.s   V_0
   IL_001c:  call       ""string char.ToString()""
   IL_0021:  ldstr      ""3""
-  IL_0026:  call       ""string string.Concat(string, string)""
+  IL_0026:  call       ""string string.Concat(string?, string?)""
   IL_002b:  call       ""void System.Console.WriteLine(string)""
   IL_0030:  ldstr      ""4""
   IL_0035:  ldloca.s   V_1
   IL_0037:  call       ""string char.ToString()""
-  IL_003c:  call       ""string string.Concat(string, string)""
+  IL_003c:  call       ""string string.Concat(string?, string?)""
   IL_0041:  call       ""void System.Console.WriteLine(string)""
   IL_0046:  ldc.i4.1
   IL_0047:  stloc.2
