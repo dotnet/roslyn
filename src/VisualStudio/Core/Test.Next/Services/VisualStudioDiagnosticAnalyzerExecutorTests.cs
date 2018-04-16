@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -116,6 +118,32 @@ End Class";
                         // only cancellation is expected
                         Assert.True(ex is OperationCanceledException, $"cancellationToken : {source.Token.IsCancellationRequested}/r/n{ex.ToString()}");
                     }
+                }
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestCancellationOnSessionWithSolution()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using (var workspace = CreateWorkspace(LanguageNames.CSharp, code))
+            {
+                var solution = workspace.CurrentSolution;
+                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+
+                var source = new CancellationTokenSource();
+                var connection = new MyConnection(source);
+                try
+                {
+                    await SessionWithSolution.CreateAsync(connection, solution, source.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // make sure things that should have been cleaned up are cleaned up
+                    var service = (RemotableDataServiceFactory.Service)solution.Workspace.Services.GetService<IRemotableDataService>();
+                    Assert.Null(service.GetRemotableData_TestOnly(solutionChecksum, CancellationToken.None));
+                    Assert.True(connection.Disposed);
                 }
             }
         }
@@ -291,6 +319,46 @@ End Class";
             }
 
             public override Workspace Workspace => _workspace;
+        }
+
+        private class MyConnection : RemoteHostClient.Connection
+        {
+            private readonly CancellationTokenSource _source;
+
+            public bool Disposed = false;
+
+            public MyConnection(CancellationTokenSource source)
+            {
+                _source = source;
+            }
+
+            public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+            {
+                // cancel and throw cancellation exception
+                _source.Cancel();
+                _source.Token.ThrowIfCancellationRequested();
+
+                return Task.CompletedTask;
+            }
+
+            public override Task<T> InvokeAsync<T>(
+                string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+                => throw new NotImplementedException();
+
+            public override Task InvokeAsync(
+                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+                => throw new NotImplementedException();
+
+            public override Task<T> InvokeAsync<T>(
+                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+                => throw new NotImplementedException();
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+
+                Disposed = true;
+            }
         }
     }
 }
