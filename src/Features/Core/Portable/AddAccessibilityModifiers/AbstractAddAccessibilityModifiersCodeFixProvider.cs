@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,11 +46,15 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
 
                 var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
 
+                // Check to see if we need to add or remove
+                // If there's a modifier, then we need to remove it, otherwise no modifier, add it.
                 editor.ReplaceNode(
                     declaration,
                     (currentDeclaration, generator) =>
                     {
-                        return generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility);
+                        return generator.GetAccessibility(currentDeclaration) == Accessibility.NotApplicable
+                                    ? generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility) // No accessibilty was declared, we need to add it
+                                    : generator.WithAccessibility(currentDeclaration, Accessibility.NotApplicable); // There was an accessibility, so remove it                       
                     });
             }
         }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -12,9 +13,9 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Services;
 using Microsoft.CodeAnalysis.Remote.Storage;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
@@ -28,13 +29,16 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// basically, this is used to manage lifetime of the service hub.
     /// </summary>
-    internal class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
+    internal partial class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
     {
+        private readonly static TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);
+
         // it is saved here more on debugging purpose.
         private static Func<FunctionId, bool> s_logChecker = _ => false;
 
         private string _host;
         private int _primaryInstance;
+        private PerformanceReporter _performanceReporter;
 
         static RemoteHostService()
         {
@@ -52,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Rpc.StartListening();
         }
 
-        public string Connect(string host, string serializedSession, CancellationToken cancellationToken)
+        public string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken)
         {
             return RunService(token =>
             {
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var existing = Interlocked.CompareExchange(ref _host, host, null);
 
-                SetGlobalContext(serializedSession);
+                SetGlobalContext(uiCultureLCID, cultureLCID, serializedSession);
 
                 if (existing != null && existing != host)
                 {
@@ -85,50 +89,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(async token =>
-            {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, token))
-                {
-                    var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, token).ConfigureAwait(false);
-                }
-            }, cancellationToken);
-        }
-
-        public Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(async token =>
-            {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, token))
-                {
-                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, token).ConfigureAwait(false);
-
-                    foreach (var asset in assets)
-                    {
-                        AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
-                    }
-                }
-            }, cancellationToken);
-        }
-
-        public void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
+        public void UpdateSolutionStorageLocation(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
         {
             RunService(_ =>
             {
                 var persistentStorageService = GetPersistentStorageService();
-                persistentStorageService?.RegisterPrimarySolution(solutionId);
-                RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
-            }, cancellationToken);
-        }
-
-        public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken)
-        {
-            RunService(_ =>
-            {
-                var persistentStorageService = GetPersistentStorageService();
-                persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
+                persistentStorageService.UpdateStorageLocation(solutionId, storageLocation);
             }, cancellationToken);
         }
 
@@ -204,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Remote
             m["InstanceId"] = _primaryInstance;
         }
 
-        private static void SetGlobalContext(string serializedSession)
+        private void SetGlobalContext(int uiCultureLCID, int cultureLCID, string serializedSession)
         {
             // set global telemetry session
             var session = GetTelemetrySession(serializedSession);
@@ -212,6 +178,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return;
             }
+
+            EnsureCulture(uiCultureLCID, cultureLCID);
 
             // set roslyn loggers
             WatsonReporter.SetTelemetrySession(session);
@@ -221,6 +189,39 @@ namespace Microsoft.CodeAnalysis.Remote
             // set both handler as NFW
             FatalError.Handler = WatsonReporter.Report;
             FatalError.NonFatalHandler = WatsonReporter.Report;
+
+            // start performance reporter
+            var diagnosticAnalyzerPerformanceTracker = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
+            if (diagnosticAnalyzerPerformanceTracker != null)
+            {
+                var globalOperationNotificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>();
+                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, s_reportInterval, ShutdownCancellationToken);
+            }
+        }
+
+        private static void EnsureCulture(int uiCultureLCID, int cultureLCID)
+        {
+            // this follows what VS does
+            // http://index/?leftProject=Microsoft.VisualStudio.Platform.AppDomainManager&leftSymbol=wok83tw8yxy7&file=VsAppDomainManager.cs&line=106
+            try
+            {
+                // set default culture for Roslyn OOP
+                CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(uiCultureLCID);
+                CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(cultureLCID);
+            }
+            catch (Exception ex) when (ExpectedCultureIssue(ex))
+            {
+                // ignore expected culture issue
+            }
+        }
+
+        private static bool ExpectedCultureIssue(Exception ex)
+        {
+            // report exception
+            WatsonReporter.Report(ex);
+
+            // ignore expected exception
+            return ex is ArgumentOutOfRangeException || ex is CultureNotFoundException;
         }
 
         private static TelemetrySession GetTelemetrySession(string serializedSession)
@@ -233,20 +234,14 @@ namespace Microsoft.CodeAnalysis.Remote
             return session;
         }
 
-        private static AbstractPersistentStorageService GetPersistentStorageService()
+        private RemotePersistentStorageLocationService GetPersistentStorageService()
         {
-            // A bit slimy.  We just create an adhoc workspace so it will create the singleton
-            // PersistentStorageService.  This service will be shared among all Workspaces we 
-            // create in this process.  So updating it will be seen by all.
-            var workspace = new AdhocWorkspace(RoslynServices.HostServices);
-            var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
-            return persistentStorageService;
+            return (RemotePersistentStorageLocationService)SolutionService.PrimaryWorkspace.Services.GetService<IPersistentStorageLocationService>();
         }
 
         private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()
         {
-            var workspace = SolutionService.PrimaryWorkspace;
-            var notificationService = workspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
+            var notificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
             return notificationService;
         }
 
@@ -260,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Set LoadLibrary search directory to %VSINSTALLDIR%\Common7\IDE so that the compiler
                 // can P/Invoke to Microsoft.DiaSymReader.Native when emitting Windows PDBs.
                 //
-                // The AppDomain base directory is specified in VisualStudio\Setup.Next\codeAnalysisService.servicehub.service.json
+                // The AppDomain base directory is specified in VisualStudio\Setup\codeAnalysisService.servicehub.service.json
                 // to be the directory where devenv.exe is -- which is exactly the directory we need to add to the search paths:
                 //
                 //   "appBasePath": "%VSAPPIDDIR%"
@@ -281,6 +276,34 @@ namespace Microsoft.CodeAnalysis.Remote
                     Environment.SetEnvironmentVariable("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", loadDir);
                 }
             }
+        }
+
+        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async token =>
+            {
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, token))
+                {
+                    var solutionController = (ISolutionController)RoslynServices.SolutionService;
+                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, token).ConfigureAwait(false);
+                }
+            }, cancellationToken);
+        }
+
+        public Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async token =>
+            {
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, token))
+                {
+                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, token).ConfigureAwait(false);
+
+                    foreach (var asset in assets)
+                    {
+                        AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
+                    }
+                }
+            }, cancellationToken);
         }
     }
 }

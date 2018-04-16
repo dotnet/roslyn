@@ -243,7 +243,7 @@ End Namespace
 
 
 
-        Dim tree = CreateCompilationWithMscorlib(source).SyntaxTrees.Item(0)
+        Dim tree = CreateCompilationWithMscorlib40(source).SyntaxTrees.Item(0)
         Dim symNode = FindNodeOrTokenByKind(tree, SyntaxKind.AddressOfExpression, 1).AsNode
         Assert.False(SyntaxFacts.IsAddressOfOperand(DirectCast(symNode, ExpressionSyntax)))
         Assert.False(SyntaxFacts.IsInvocationOrAddressOfOperand(DirectCast(symNode, ExpressionSyntax)))

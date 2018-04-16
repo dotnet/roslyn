@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         // PDB reader can only be accessed from a single thread, so avoid concurrent compilation:
         protected readonly CSharpCompilationOptions ComSafeDebugDll = TestOptions.DebugDll.WithConcurrentBuild(false);
 
-        protected static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
-
         internal static readonly Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> EmptyLocalsProvider = handle => default(EditAndContinueMethodDebugInformation);
 
         internal static string Visualize(ModuleMetadata baseline, params PinnedMetadata[] deltas)

@@ -408,17 +408,19 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                if (diag.Severity == DiagnosticSeverity.Error)
-                {
-                    hasErrors = true;
-                }
-
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
                 errorLoggerOpt?.LogDiagnostic(diag);
                 if (diag.IsSuppressed)
                 {
                     continue;
+                }
+
+                // Diagnostics that aren't suppressed will be reported to the console output and, if they are errors,
+                // they should fail the run
+                if (diag.Severity == DiagnosticSeverity.Error)
+                {
+                    hasErrors = true;
                 }
 
                 PrintError(diag, consoleOutput);

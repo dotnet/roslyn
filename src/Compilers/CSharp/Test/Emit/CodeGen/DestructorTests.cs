@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CSharp.RuntimeBinder;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class DestructorTests : EmitMetadataTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ClassDestructor()
         {
             var text = @"
@@ -75,7 +74,7 @@ public class Program
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [CompilerTrait(CompilerFeature.ExpressionBody)]
         public void ExpressionBodiedClassDestructor()
         {
@@ -129,7 +128,7 @@ public class Program
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [CompilerTrait(CompilerFeature.ExpressionBody)]
         public void ExpressionBodiedSubClassDestructor()
         {
@@ -210,7 +209,7 @@ public class Program
             compVerifier.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void SubclassDestructor()
         {
             var text = @"
@@ -296,7 +295,7 @@ public class Program
         compVerifier.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DestructorOverridesNonDestructor()
         {
             var text = @"
@@ -361,7 +360,7 @@ public class Program
         }
 
         [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void BaseTypeHasNonVirtualFinalize()
         {
             var text = @"
@@ -417,7 +416,7 @@ public class Program
         }
 
         [WorkItem(542828, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542828")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void GenericBaseTypeHasNonVirtualFinalize()
         {
             var text = @"
@@ -662,7 +661,7 @@ public class M<T> : L<T>
 
 } // end of class D
 ";
-            var compilation = CreateCompilationWithCustomILSource("", text);
+            var compilation = CreateCompilationWithILAndMscorlib40("", text);
 
             var globalNamespace = compilation.GlobalNamespace;
 
@@ -685,7 +684,7 @@ public class B : A
     ~B() { }
 }
 ";
-            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseDll);
 
             // NOTE: has warnings, but not errors.
             compilation.VerifyDiagnostics(

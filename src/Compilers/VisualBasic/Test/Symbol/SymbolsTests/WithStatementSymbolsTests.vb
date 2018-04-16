@@ -268,7 +268,7 @@ End Structure
             Dim spans As New List(Of TextSpan)
             ExtractTextIntervals(text, spans)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(text, {SystemRef, SystemCoreRef, MsvbRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(text, {SystemRef, SystemCoreRef, MsvbRef})
             If errors Is Nothing Then
                 CompilationUtils.AssertNoErrors(compilation)
             Else

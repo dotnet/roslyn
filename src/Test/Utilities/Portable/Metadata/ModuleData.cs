@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
-    public struct ModuleDataId
+    public readonly struct ModuleDataId
     {
         public string SimpleName { get; }
         public string FullName { get; }

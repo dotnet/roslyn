@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var outLocals = ArrayBuilder<BoundExpression>.GetInstance(outputPlaceholders.Length);
             foreach (var outputPlaceholder in outputPlaceholders)
             {
-                var localSymbol = new SynthesizedLocal(_factory.CurrentMethod, outputPlaceholder.Type, SynthesizedLocalKind.LoweringTemp);
+                var localSymbol = new SynthesizedLocal(_factory.CurrentFunction, outputPlaceholder.Type, SynthesizedLocalKind.LoweringTemp);
 
                 var localBound = new BoundLocal(target.Syntax, localSymbol, constantValueOpt: null, type: outputPlaceholder.Type)
                 { WasCompilerGenerated = true };
@@ -268,10 +268,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return outLocals.ToImmutableAndFree();
         }
 
-        BoundExpression EvaluateSideEffectingArgumentToTemp(BoundExpression arg, ArrayBuilder<BoundExpression> effects,
+        private BoundExpression EvaluateSideEffectingArgumentToTemp(BoundExpression arg, ArrayBuilder<BoundExpression> effects,
             ref ArrayBuilder<LocalSymbol> temps)
         {
-            if (CanChangeValueBetweenReads(arg, localsMayBeAssignedOrCaptured: true))
+            if (CanChangeValueBetweenReads(arg, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true))
             {
                 BoundAssignmentOperator store;
                 var temp = _factory.StoreToTemp(arg, out store);
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return assignmentTargets;
         }
 
-        internal class DeconstructionSideEffects
+        private class DeconstructionSideEffects
         {
             internal ArrayBuilder<BoundExpression> init;
             internal ArrayBuilder<BoundExpression> deconstructions;

@@ -21,14 +21,13 @@ xunit_console_version="$(get_package_version dotnet-xunit)"
 if [[ "${runtime}" == "dotnet" ]]; then
     target_framework=netcoreapp2.0
     file_list=( "${unittest_dir}"/*/netcoreapp2.0/*.UnitTests.dll )
-    xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
+    xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
 elif [[ "${runtime}" == "mono" ]]; then
-    source ${root_path}/build/scripts/obtain_mono.sh
     file_list=(
         "${unittest_dir}/CSharpCompilerSymbolTest/net461/Roslyn.Compilers.CSharp.Symbol.UnitTests.dll"
         "${unittest_dir}/CSharpCompilerSyntaxTest/net461/Roslyn.Compilers.CSharp.Syntax.UnitTests.dll"
         )
-    xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/net452/xunit.console.exe
+    xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/net452/xunit.console.exe
 else
     echo "Unknown runtime: ${runtime}"
     exit 1
@@ -67,9 +66,14 @@ do
         continue
     fi
 
-    echo Running "${file_name[@]}"
+    echo Running "${runtime} ${file_name[@]}"
     if [[ "${runtime}" == "dotnet" ]]; then
         runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
+        if [[ "${file_name[@]}" == *'Roslyn.Compilers.CSharp.Emit.UnitTests.dll' ]]
+        then
+            echo "Skipping ${file_name[@]}"
+            continue
+        fi
     elif [[ "${runtime}" == "mono" ]]; then
         runner=mono
     fi

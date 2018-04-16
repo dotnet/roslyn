@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             str = s_formatter.FormatObject(obj, SeparateLinesOptions);
 
             // TODO: better overflow handling
-            Assert.Equal("!<Stack overflow while evaluating object>", str);
+            Assert.Equal(ScriptingResources.StackOverflowWhileEvaluating, str);
         }
 
         [Fact]

@@ -2578,6 +2578,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return memberBinding.Name;
             }
 
+            if (node is AliasQualifiedNameSyntax aliasQualifiedName && aliasQualifiedName.Name != null)
+            {
+                return aliasQualifiedName.Name;
+            }
+
             return null;
         }
 

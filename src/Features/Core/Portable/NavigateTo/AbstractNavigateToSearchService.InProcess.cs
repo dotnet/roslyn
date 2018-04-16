@@ -268,6 +268,31 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return NavigateToMatchKind.Substring;
             }
 
+            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCaseExact))
+            {
+                return NavigateToMatchKind.CamelCaseExact;
+            }
+
+            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCasePrefix))
+            {
+                return NavigateToMatchKind.CamelCasePrefix;
+            }
+
+            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCaseNonContiguousPrefix))
+            {
+                return NavigateToMatchKind.CamelCaseNonContiguousPrefix;
+            }
+
+            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCaseSubstring))
+            {
+                return NavigateToMatchKind.CamelCaseSubstring;
+            }
+
+            if (nameMatches.Any(r => r.Kind == PatternMatchKind.CamelCaseNonContiguousSubstring))
+            {
+                return NavigateToMatchKind.CamelCaseNonContiguousSubstring;
+            }
+
             return NavigateToMatchKind.Regular;
         }
     }

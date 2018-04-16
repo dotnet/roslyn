@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 #Region "Semantic API"
         <Fact()>
         Public Sub MultipleResourceWithDifferentType_SemanticAPI()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MultipleResourceWithDifferentType">
     <file name="a.vb">
 Option Infer On
@@ -50,7 +50,7 @@ End Structure
 
         <Fact()>
         Public Sub InitResourceWithFunctionCall()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Infer On
@@ -91,7 +91,7 @@ End Structure
 
         <Fact()>
         Public Sub InitResource()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="InitResource">
     <file name="a.vb">
 Option Infer On
@@ -128,7 +128,7 @@ End Structure
 
         <Fact()>
         Public Sub NoVariableDeclaredInUSING()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoVariableDeclaredInUSING">
     <file name="a.vb">
 Option Infer On
@@ -165,7 +165,7 @@ End Structure
 
         <Fact()>
         Public Sub NestedUsing()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NestedUsing">
     <file name="a.vb">
 Option Infer On

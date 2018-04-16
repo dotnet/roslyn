@@ -289,32 +289,38 @@ namespace Roslyn.Test.Utilities.Desktop
             return GetEmitData().AllModuleData;
         }
 
-        public void PeVerify()
+        public void Verify(Verification verification)
         {
+            if (verification == Verification.Skipped)
+            {
+                return;
+            }
+
+            var shouldSucceed = verification == Verification.Passes;
             try
             {
                 var emitData = GetEmitData();
                 emitData.RuntimeData.PeverifyRequested = true;
-                emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName });
+                emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName }, throwOnError: true);
+                if (!shouldSucceed)
+                {
+                    throw new Exception("Verification succeeded unexpectedly");
+                }
             }
-            catch (RuntimePeVerifyException e)
+            catch (RuntimePeVerifyException)
             {
-                throw new PeVerifyException(e.Output, e.ExePath);
+                if (shouldSucceed)
+                {
+                    throw new Exception("Verification failed");
+                }
             }
         }
 
-        public string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true)
+        public string[] VerifyModules(string[] modulesToVerify)
         {
-            try
-            {
-                var emitData = GetEmitData();
-                emitData.RuntimeData.PeverifyRequested = true;
-                return emitData.Manager.PeVerifyModules(modulesToVerify, throwOnError);
-            }
-            catch (RuntimePeVerifyException e)
-            {
-                throw new PeVerifyException(e.Output, e.ExePath);
-            }
+            var emitData = GetEmitData();
+            emitData.RuntimeData.PeverifyRequested = true;
+            return emitData.Manager.PeVerifyModules(modulesToVerify, throwOnError: false);
         }
 
         public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)

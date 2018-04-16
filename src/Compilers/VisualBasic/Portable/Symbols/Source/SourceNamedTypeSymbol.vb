@@ -2293,6 +2293,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub CheckPresenceOfTypeIdentifierAttribute()
 
+            ' Have we already decoded well-known attributes?
+            If Me.m_lazyCustomAttributesBag?.IsDecodedWellKnownAttributeDataComputed Then
+                Return
+            End If
+
             ' We want this function to be as cheap as possible, it is called for every top level type
             ' and we don't want to bind attributes attached to the declaration unless there is a chance
             ' that one of them is TypeIdentifier attribute.
@@ -2383,7 +2388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
+        Public NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Dim data = GetDecodedWellKnownAttributeData()
                 Return data IsNot Nothing AndAlso data.HasSerializableAttribute

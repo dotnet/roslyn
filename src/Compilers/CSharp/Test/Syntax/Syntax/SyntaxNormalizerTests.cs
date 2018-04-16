@@ -275,6 +275,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        [WorkItem(24454, "https://github.com/dotnet/roslyn/issues/24454")]
+        public void TestSpacingOnInterpolatedString()
+        {
+            TestNormalizeExpression("$\"{3:C}\"", "$\"{3:C}\"");
+            TestNormalizeExpression("$\"{3: C}\"", "$\"{3: C}\"");
+        }
+
+        [Fact]
         [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnMethodConstraint()
         {
