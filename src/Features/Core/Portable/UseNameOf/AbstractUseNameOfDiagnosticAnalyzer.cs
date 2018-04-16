@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -10,6 +9,8 @@ namespace Microsoft.CodeAnalysis.UseNameof
 {
     internal abstract class AbstractUseNameOfDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
+        private static readonly ImmutableDictionary<string, string> UseThisProperties = ImmutableDictionary<string, string>.Empty.Add(nameof(SyntaxGenerator.ThisExpression), "true");
+
         protected AbstractUseNameOfDiagnosticAnalyzer()
             : base(
                 IDEDiagnosticIds.UseNameofDiagnosticId,
@@ -39,47 +40,56 @@ namespace Microsoft.CodeAnalysis.UseNameof
                 literal.ConstantValue.Value is string value &&
                 GetSyntaxFactsService().IsValidIdentifier(value))
             {
-                var symbol = context.Compilation.GetSemanticModel(literal.Syntax.SyntaxTree)
-                                    .LookupSymbols(literal.Syntax.SpanStart, name: value)
-                                    .FirstOrDefault();
-                switch (symbol)
+                foreach (var symbol in context.Compilation.GetSemanticModel(literal.Syntax.SyntaxTree)
+                                                .LookupSymbols(literal.Syntax.SpanStart, name: value))
                 {
-                    case IParameterSymbol _:
-                        context.ReportDiagnostic(Diagnostic.Create(InfoDescriptor, literal.Syntax.GetLocation()));
-                        break;
-                    case IFieldSymbol _:
-                    case IEventSymbol _:
-                    case IPropertySymbol _:
-                    case IMethodSymbol _:
-                        if (Equals(symbol.ContainingType, ContainingSymbol()))
-                        {
-                            context.ReportDiagnostic(
-                                Diagnostic.Create(
-                                    InfoDescriptor,
-                                    literal.Syntax.GetLocation(),
-                                    IsInInstanceContext()
-                                        ? ImmutableDictionary<string, string>.Empty.Add(nameof(SyntaxGenerator.ThisExpression), "true")
-                                        : null));
-                        }
+                    switch (symbol)
+                    {
+                        case IParameterSymbol _:
+                            context.ReportDiagnostic(Diagnostic.Create(InfoDescriptor, literal.Syntax.GetLocation()));
+                            return;
+                        case IFieldSymbol _:
+                        case IEventSymbol _:
+                        case IPropertySymbol _:
+                        case IMethodSymbol _:
+                            if (Equals(symbol.ContainingType, ContainingType()))
+                            {
+                                context.ReportDiagnostic(
+                                    Diagnostic.Create(
+                                        InfoDescriptor,
+                                        literal.Syntax.GetLocation(),
+                                        GetProperties(symbol)));
+                            }
 
-                        break;
-                    case ILocalSymbol local when IsVisible(local):
-                        context.ReportDiagnostic(Diagnostic.Create(InfoDescriptor, literal.Syntax.GetLocation()));
-                        break;
+                            return;
+                        case ILocalSymbol local when IsVisible(local):
+                            context.ReportDiagnostic(Diagnostic.Create(InfoDescriptor, literal.Syntax.GetLocation()));
+                            return;
+                    }
                 }
             }
 
-            ITypeSymbol ContainingSymbol()
+            ITypeSymbol ContainingType()
             {
                 return context.ContainingSymbol as ITypeSymbol ??
                        context.ContainingSymbol.ContainingType;
             }
 
-            bool IsInInstanceContext()
+            ImmutableDictionary<string, string> GetProperties(ISymbol symbol)
             {
+                if (symbol.IsStatic || context.ContainingSymbol.IsStatic)
+                {
+                    return null;
+                }
+
                 var syntaxFacts = GetSyntaxFactsService();
-                return !(syntaxFacts.IsInStaticContext(literal.Syntax) ||
-                         syntaxFacts.IsInConstantContext(literal.Syntax));
+                if (syntaxFacts.IsInStaticContext(literal.Syntax) ||
+                    syntaxFacts.IsInConstantContext(literal.Syntax))
+                {
+                    return null;
+                }
+
+                return UseThisProperties;
             }
 
             bool IsVisible(ILocalSymbol local)
