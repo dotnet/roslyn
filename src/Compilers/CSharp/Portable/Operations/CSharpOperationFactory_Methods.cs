@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private ImmutableArray<IOperation> ToStatements(BoundStatement statement)
         {
-            var statementList = statement as BoundStatementList;
-            if (statementList != null)
-            {
-                return statementList.Statements.SelectAsArray(n => Create(n));
-            }
-            else if (statement == null)
+            if (statement == null)
             {
                 return ImmutableArray<IOperation>.Empty;
+            }
+
+            if (statement.Kind == BoundKind.StatementList)
+            {
+                return ((BoundStatementList)statement).Statements.SelectAsArray(n => Create(n));
             }
 
             return ImmutableArray.Create(Create(statement));

@@ -498,6 +498,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IForLoopOperation));
             LogLoopStatementHeader(operation);
 
+            LogLocals(operation.ConditionLocals, header: nameof(operation.ConditionLocals));
+
             Visit(operation.Condition, "Condition");
             VisitArray(operation.Before, "Before", logElementCount: false);
             VisitArray(operation.AtLoopBottom, "AtLoopBottom", logElementCount: false);
