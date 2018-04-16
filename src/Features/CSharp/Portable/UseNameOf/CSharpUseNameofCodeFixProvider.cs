@@ -1,17 +1,17 @@
-﻿namespace Microsoft.CodeAnalysis.CSharp.UseNameOf
-{
-    using System.Collections.Immutable;
-    using System.Composition;
-    using System.Threading.Tasks;
-    using Microsoft.CodeAnalysis.CodeActions;
-    using Microsoft.CodeAnalysis.CodeFixes;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using Microsoft.CodeAnalysis.Diagnostics;
-    using Microsoft.CodeAnalysis.Editing;
-    using Microsoft.CodeAnalysis.Simplification;
+﻿using System.Collections.Immutable;
+using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Simplification;
 
-    [Shared]
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpUseNameofCodeFixProvider))]
+namespace Microsoft.CodeAnalysis.CSharp.UseNameOf
+{
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpUseNameofCodeFixProvider)), Shared]
     internal class CSharpUseNameofCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(
@@ -26,17 +26,17 @@
                 context.RegisterCodeFix(
                     new CodeAction.DocumentChangeAction(
                         "Use nameof.",
-                        _ => CreateChangedDocument(diagnostic),
+                        c => CreateChangedDocumentAsync(c, diagnostic),
                         "Use nameof."),
                     diagnostic);
             }
 
             return Task.CompletedTask;
 
-            async Task<Document> CreateChangedDocument(Diagnostic diagnostic)
+            async Task<Document> CreateChangedDocumentAsync(CancellationToken cancellationToken, Diagnostic diagnostic)
             {
                 var syntaxRoot = await context.Document
-                                              .GetSyntaxRootAsync(context.CancellationToken)
+                                              .GetSyntaxRootAsync(cancellationToken)
                                               .ConfigureAwait(false);
 
                 if (syntaxRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) is LiteralExpressionSyntax literal)
