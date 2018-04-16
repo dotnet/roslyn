@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.NamingStyles;
@@ -62,11 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal static NamingStylePreferences FromXElement(XElement element)
         {
-            var serializationVersion = int.Parse(element.Attribute("SerializationVersion").Value);
-            if (serializationVersion != s_serializationVersion)
-            {
-                element = XElement.Parse(DefaultNamingPreferencesString);
-            }
+            element = GetUpgradedSerializationIfNecessary(element);
 
             return new NamingStylePreferences(
                 element.Element(nameof(SymbolSpecifications)).Elements(nameof(SymbolSpecification))
@@ -108,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             => CreateXElement().ToString().GetHashCode();
 
         private static readonly string _defaultNamingPreferencesString = $@"
-<NamingPreferencesInfo SerializationVersion=""4"">
+<NamingPreferencesInfo SerializationVersion=""{s_serializationVersion}"">
   <SymbolSpecifications>
     <SymbolSpecification ID=""5c545a62-b14d-460a-88d8-e936c0a39316"" Name=""{WorkspacesResources.Class}"">
       <ApplicableSymbolKindList>
@@ -315,8 +312,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     <SymbolSpecification ID=""5f3ddba1-279f-486c-801e-5c097c36dd85"" Name=""{WorkspacesResources.Non_Field_Members}"">
       <ApplicableSymbolKindList>
         <SymbolKind>Property</SymbolKind>
-        <MethodKind>Ordinary</MethodKind>
         <SymbolKind>Event</SymbolKind>
+        <MethodKind>Ordinary</MethodKind>
       </ApplicableSymbolKindList>
       <ApplicableAccessibilityList>
         <AccessibilityKind>Public</AccessibilityKind>
@@ -339,5 +336,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
   </NamingRules>
 </NamingPreferencesInfo>
 ";
+
+        private static XElement GetUpgradedSerializationIfNecessary(XElement rootElement)
+        {
+            var serializationVersion = int.Parse(rootElement.Attribute("SerializationVersion").Value);
+
+            if (serializationVersion == 4)
+            {
+                UpgradeSerialization_4To5(rootElement = new XElement(rootElement));
+                serializationVersion = 5;
+            }
+
+            // Add future version checks here. If the version is off by more than 1, these upgrades will run in sequence.
+            // The next one should check serializationVersion == 5 and update it to 6.
+            Debug.Assert(s_serializationVersion == 5, "After increasing the serialization version, add an upgrade path here.");
+
+            return serializationVersion == s_serializationVersion
+                ? rootElement
+                : XElement.Parse(DefaultNamingPreferencesString);
+        }
+
+        private static void UpgradeSerialization_4To5(XElement rootElement)
+        {
+            var methodElements = rootElement
+                .Descendants()
+                .Where(e => e.Name.LocalName == "SymbolKind" && e.Value == "Method").ToList();
+
+            foreach (var element in methodElements)
+            {
+                element.ReplaceWith(XElement.Parse("<MethodKind>Ordinary</MethodKind>"));
+            }
+        }
     }
 }
