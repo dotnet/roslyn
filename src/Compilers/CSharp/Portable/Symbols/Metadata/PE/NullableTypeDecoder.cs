@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     ExtraAnnotations.AssertTypeNeedsNoAnnotation(metadataType.TypeSymbol);
                 }
-                return  NullableTypeDecoder.TransformOrEraseNullability(metadataType, targetSymbolToken, containingModule);
+                return NullableTypeDecoder.TransformOrEraseNullability(metadataType, targetSymbolToken, containingModule);
             }
             else
             {

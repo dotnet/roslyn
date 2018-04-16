@@ -181,7 +181,7 @@ True
   IL_007d:  ldstr      ""Method ""
   IL_0082:  ldloca.s   V_1
   IL_0084:  call       ""string int.ToString()""
-  IL_0089:  call       ""string string.Concat(string, string)""
+  IL_0089:  call       ""string string.Concat(string?, string?)""
   IL_008e:  call       ""void System.Console.WriteLine(string)""
   IL_0093:  ldloc.0
   IL_0094:  ldc.i4.8
@@ -201,7 +201,7 @@ True
   IL_00ac:  ldloc.3
   IL_00ad:  ldelema    ""int""
   IL_00b2:  call       ""string int.ToString()""
-  IL_00b7:  call       ""string string.Concat(string, string)""
+  IL_00b7:  call       ""string string.Concat(string?, string?)""
   IL_00bc:  call       ""void System.Console.WriteLine(string)""
   IL_00c1:  ldloc.0
   IL_00c2:  ldc.i4.s   9

@@ -13,9 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     {
         // APIs that are useful to annotate:
         //   1) don't accept null input
-        //   2) can return null
-        //   3) never return null
-        internal static readonly Dictionary<string, ImmutableArray<ImmutableArray<bool>>> Annotations =
+        //   2) return a reference type
+        private static readonly ImmutableDictionary<string, ImmutableArray<ImmutableArray<bool>>> Annotations =
             new Dictionary<string, ImmutableArray<ImmutableArray<bool>>>
             {
                 { "System.Boolean System.Boolean.Parse(System.String)", Parameters(skip, Nullable(false)) },
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 { "System.Byte System.Byte.Parse(System.String, System.Globalization.NumberStyles)", Parameters(skip, Nullable(false), Nullable(false)) },
                 { "System.Byte System.Byte.Parse(System.String, System.Globalization.NumberStyles, System.IFormatProvider)", Parameters(skip, Nullable(false), Nullable(false), skip) },
                 { "System.String System.String.Concat(System.String, System.String)", Parameters(Nullable(false), Nullable(true), Nullable(true)) },
-            };
+            }.ToImmutableDictionary();
 
         internal static string MakeMethodKey(PEMethodSymbol method, ParamInfo<TypeSymbol>[] paramInfo)
         {
@@ -69,13 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private static readonly ImmutableArray<bool> skip = ImmutableArray<bool>.Empty;
 
-        static ImmutableArray<ImmutableArray<bool>> Parameters(params ImmutableArray<bool>[] values)
+        private static ImmutableArray<ImmutableArray<bool>> Parameters(params ImmutableArray<bool>[] values)
             => values.ToImmutableArray();
 
-        static ImmutableArray<bool> Nullable(params bool[] values)
+        private static ImmutableArray<bool> Nullable(params bool[] values)
             => values.ToImmutableArray();
 
-        internal static ImmutableArray< ImmutableArray<bool>> GetExtraAnnotations(string key)
+        internal static ImmutableArray<ImmutableArray<bool>> GetExtraAnnotations(string key)
         {
             if (!Annotations.TryGetValue(key, out var flags))
             {
