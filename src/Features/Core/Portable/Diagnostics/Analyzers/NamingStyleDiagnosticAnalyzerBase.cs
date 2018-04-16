@@ -49,6 +49,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 concurrencyLevel: 2, capacity: 0);
 
             context.RegisterSymbolAction(SymbolAction, _symbolKinds);
+            OnCompilationStartAction(context, idToCachedResult);
+            return;
+
+            // Local functions
 
             void SymbolAction(SymbolAnalysisContext symbolContext)
             {
@@ -60,17 +64,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     symbolContext.CancellationToken);
 
                 if (diagnostic != null)
+                {
                     symbolContext.ReportDiagnostic(diagnostic);
+                }
             }
-
-            OnCompilationStartAction(context, idToCachedResult);
         }
 
-        protected virtual void OnCompilationStartAction(
+        protected abstract void OnCompilationStartAction(
             CompilationStartAnalysisContext context,
-            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult)
-        {
-        }
+            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult);
 
         private static readonly Func<Guid, ConcurrentDictionary<string, string>> s_createCache =
             _ => new ConcurrentDictionary<string, string>(concurrencyLevel: 2, capacity: 0);
@@ -131,6 +133,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             builder["OptionLanguage"] = compilation.Language;
 
             return Diagnostic.Create(descriptor, symbol.Locations.First(), builder.ToImmutable());
+
+            // Local functions
 
             async Task<NamingStylePreferences> GetNamingStylePreferencesAsync()
             {

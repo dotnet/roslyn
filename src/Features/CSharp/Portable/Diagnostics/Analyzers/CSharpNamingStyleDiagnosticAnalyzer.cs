@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
         {
             // HACK: RegisterSymbolAction doesn't work with local functions
             context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.LocalFunctionStatement);
+            return;
+
+            // Local functions
 
             void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
             {
@@ -27,7 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
                     syntaxContext.CancellationToken);
 
                 if (diagnostic != null)
+                {
                     syntaxContext.ReportDiagnostic(diagnostic);
+                }
             }
         }
     }
