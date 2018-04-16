@@ -42,16 +42,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
     public Foo()
     {
         object o = null;
-        var text = [|""o""|];
+        var text = Id([|""o""|]);
     }
+
+    private static string Id(string value) => value;
 }",
 @"public class Foo
 {
     public Foo()
     {
         object o = null;
-        var text = nameof(o);
+        var text = Id(nameof(o));
     }
+
+    private static string Id(string value) => value;
 }");
         }
 
@@ -61,11 +65,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
             await TestInRegularAndScriptAsync(
 @"public class Foo
 {
-    public string Bar { get; } = [|""Bar""|];
+    public string Bar { get; } = Id([|""Bar""|]);
+
+    private static string Id(string value) => value;
 }",
 @"public class Foo
 {
-    public string Bar { get; } = nameof(Bar);
+    public string Bar { get; } = Id(nameof(Bar));
+
+    private static string Id(string value) => value;
 }");
         }
 
@@ -75,11 +83,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
             await TestInRegularAndScriptAsync(
 @"public class Foo
 {
-    public string Bar => [|""Bar""|];
+    public string Bar => Id([|""Bar""|]);
+
+    private static string Id(string value) => value;
 }",
 @"public class Foo
 {
-    public string Bar => nameof(this.Bar);
+    public string Bar => Id(nameof(this.Bar));
+
+    private static string Id(string value) => value;
 }");
         }
 
@@ -89,11 +101,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
             await TestInRegularAndScriptAsync(
 @"public class Foo
 {
-    public static string Bar { get; } = [|""Bar""|];
+    public static string Bar { get; } = Id([|""Bar""|]);
+
+    private static string Id(string value) => value;
 }",
 @"public class Foo
 {
-    public static string Bar { get; } = nameof(Bar);
+    public static string Bar { get; } = Id(nameof(Bar));
+
+    private static string Id(string value) => value;
 }");
         }
 
@@ -103,11 +119,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
             await TestInRegularAndScriptAsync(
 @"public class Foo
 {
-    public static string Bar => [|""Bar""|];
+    public static string Bar => Id([|""Bar""|]);
+
+    private static string Id(string value) => value;
 }",
 @"public class Foo
 {
-    public static string Bar => nameof(Bar);
+    public static string Bar => Id(nameof(Bar));
+
+    private static string Id(string value) => value;
 }");
         }
 
@@ -119,13 +139,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
 {
     public int Bar { get; set; }
 
-    public static string Text() => [|""Bar""|];
+    public static string Text() => Id([|""Bar""|]);
+
+    private static string Id(string value) => value;
 }",
 @"public class Foo
 {
     public int Bar { get; set; }
 
-    public string Text() => nameof(Bar);
+    public static string Text() => Id(nameof(Bar));
+
+    private static string Id(string value) => value;
 }");
         }
 
@@ -137,13 +161,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
 {
     public static int Bar { get; set; }
 
-    public string Text() => [|""Bar""|];
+    public string Text() => Id([|""Bar""|]);
+
+    private static string Id(string value) => value;
 }",
 @"public class Foo
 {
     public static int Bar { get; set; }
 
-    public string Text() => nameof(Bar);
+    public string Text() => Id(nameof(Bar));
+
+    private static string Id(string value) => value;
 }");
         }
 
@@ -155,13 +183,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
 {
     public int Bar { get; set; }
 
-    public string Text() => [|""Bar""|];
+    public string Text() => Id([|""Bar""|]);
+
+    private static string Id(string value) => value;
 }",
 @"public class Foo
 {
     public int Bar { get; set; }
 
-    public string Text() => nameof(this.Bar);
+    public string Text() => Id(nameof(this.Bar));
+
+    private static string Id(string value) => value;
 }");
         }
 
@@ -171,11 +203,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
             await TestInRegularAndScriptAsync(
 @"public class Foo
 {
-    private readonly string bar = [|""bar""|];
+    private readonly string bar = Id([|""bar""|]);
+
+    private static string Id(string value) => value;
 }",
 @"public class Foo
 {
-    private readonly string bar = nameof(bar);
+    private readonly string bar = Id(nameof(bar));
+
+    private static string Id(string value) => value;
 }");
         }
 
@@ -189,8 +225,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
 
     public Foo()
     {
-        var text = [|""bar""|];
+        var text = Id([|""bar""|]);
     }
+
+    private static string Id(string value) => value;
 }",
 @"public class Foo
 {
@@ -198,15 +236,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
 
     public Foo()
     {
-        var text = nameof(this.bar);
+        var text = Id(nameof(this.bar));
     }
+
+    private static string Id(string value) => value;
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNameOf)]
         public async Task IgnoreDebuggerDisplay()
         {
-            await TestMissingAsync(
+            await TestDiagnosticMissingAsync(
                 @"
 [System.Diagnostics.DebuggerDisplay(""{Name}"")]
 public class Foo
@@ -218,7 +258,7 @@ public class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNameOf)]
         public async Task IgnoreTypeName()
         {
-            await TestMissingAsync(
+            await TestDiagnosticMissingAsync(
                 @"
 public class Foo
 {
@@ -234,7 +274,7 @@ public class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNameOf)]
         public async Task IgnoreLocalWhenNotInScope()
         {
-            await TestMissingAsync(
+            await TestDiagnosticMissingAsync(
                 @"
 public class Foo
 {
@@ -258,7 +298,7 @@ public class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNameOf)]
         public async Task IgnoreNamespaceName()
         {
-            await TestMissingAsync(
+            await TestDiagnosticMissingAsync(
                 @"
 namespace Namespace
 {
