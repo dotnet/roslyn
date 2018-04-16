@@ -1,14 +1,13 @@
-﻿namespace Microsoft.CodeAnalysis.UseNameof
-{
-    using System.Collections.Immutable;
-    using System.Linq;
-    using System.Threading;
-    using Microsoft.CodeAnalysis.CodeStyle;
-    using Microsoft.CodeAnalysis.Diagnostics;
-    using Microsoft.CodeAnalysis.Editing;
-    using Microsoft.CodeAnalysis.LanguageServices;
-    using Microsoft.CodeAnalysis.Operations;
+﻿using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 
+namespace Microsoft.CodeAnalysis.UseNameof
+{
     internal abstract class AbstractUseNameOfDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
         protected AbstractUseNameOfDiagnosticAnalyzer()

@@ -1,13 +1,13 @@
-﻿namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
-{
-    using System.Threading.Tasks;
-    using Microsoft.CodeAnalysis.CodeFixes;
-    using Microsoft.CodeAnalysis.CSharp.UseNameOf;
-    using Microsoft.CodeAnalysis.Diagnostics;
-    using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-    using Microsoft.CodeAnalysis.Test.Utilities;
-    using Xunit;
+﻿using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.UseNameOf;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit;
 
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
+{
     public partial class UseNameOfTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)

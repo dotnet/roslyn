@@ -1,9 +1,9 @@
-﻿namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
-{
-    using System.Threading.Tasks;
-    using Microsoft.CodeAnalysis.Test.Utilities;
-    using Xunit;
+﻿using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit;
 
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseNameOf
+{
     public partial class UseNameOfTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNameOf)]
