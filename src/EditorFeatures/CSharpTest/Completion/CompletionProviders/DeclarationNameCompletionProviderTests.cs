@@ -552,6 +552,21 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCorrectOrder()
+        {
+            var markup = @"
+public class MyClass
+{
+    MyClass $$
+}
+";
+            var items = await GetCompletionItemsAsync(markup, SourceCodeKind.Regular);
+            Assert.Equal(
+                new[] { "myClass", "my", "@class", "MyClass", "My", "Class", "GetMyClass", "GetMy", "GetClass" },
+                items.Select(item => item.DisplayText));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestDescriptionInsideClass()
         {
             var markup = @"
