@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     [StructLayout(LayoutKind.Auto)]
-    public struct SyntaxTrivia : IEquatable<SyntaxTrivia>
+    public readonly struct SyntaxTrivia : IEquatable<SyntaxTrivia>
     {
         internal static readonly Func<SyntaxTrivia, bool> Any = t => true;
 
-        internal SyntaxTrivia(SyntaxToken token, GreenNode triviaNode, int position, int index)
+        internal SyntaxTrivia(in SyntaxToken token, GreenNode triviaNode, int position, int index)
         {
             Token = token;
             UnderlyingNode = triviaNode;
