@@ -3,11 +3,11 @@ resources:
   clean: true
 queue:
   name: VSEng-MicroBuildVS2017
+  timeoutInMinutes: 360
   demands: 
   - msbuild
   - visualstudio
   - DotNetFramework
-
 
 variables:
   BuildPlatform: 'Any CPU'
