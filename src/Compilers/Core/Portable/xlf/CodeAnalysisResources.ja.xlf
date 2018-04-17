@@ -740,7 +740,7 @@
       </trans-unit>
       <trans-unit id="TupleElementNameCountMismatch">
         <source>If tuple element names are specified, the number of element names must match the cardinality of the tuple.</source>
-        <target state="translated">タプル要素名を指定する場合、要素名の数は、タプルの基数と一致する必要があります。</target>
+        <target state="translated">タプル要素の場所を指定する場合、場所の数はタプルのカーディナリティと一致する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNameEmpty">
