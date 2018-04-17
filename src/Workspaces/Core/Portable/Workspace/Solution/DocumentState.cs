@@ -293,9 +293,19 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool HasContentChanged(DocumentState oldState)
         {
-            return oldState._treeSource != this._treeSource
-                || oldState.sourceTextOpt != this.sourceTextOpt
-                || oldState.textAndVersionSource != this.textAndVersionSource;
+            if (oldState.sourceTextOpt != this.sourceTextOpt
+                || oldState.textAndVersionSource != this.textAndVersionSource)
+            {
+                return true;
+            }
+            else if (oldState._treeSource == this._treeSource)
+            {
+                return false;
+            }
+            else
+            {
+                return oldState._treeSource.GetValue() == this._treeSource.GetValue();
+            }
         }
 
         public DocumentState UpdateParseOptions(ParseOptions options)
@@ -442,8 +452,8 @@ namespace Microsoft.CodeAnalysis
                 ? CreateStrongText(newTextAndVersion)
                 : CreateRecoverableText(newTextAndVersion, this.solutionServices);
 
-            // always chain incremental parsing request, it will internally put 
-            // appropriate request such as full parsing request if there are too many pending 
+            // always chain incremental parsing request, it will internally put
+            // appropriate request such as full parsing request if there are too many pending
             // incremental parsing requests hanging around.
             //
             // However, don't bother with the chaining if this is a document that doesn't support
@@ -587,7 +597,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                // uses CachedWeakValueSource so the document and tree will return the same SourceText instance across multiple accesses as long 
+                // uses CachedWeakValueSource so the document and tree will return the same SourceText instance across multiple accesses as long
                 // as the text is referenced elsewhere.
                 lazyTextAndVersion = new TreeTextSource(
                     new CachedWeakValueSource<SourceText>(

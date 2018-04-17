@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var newState = _newProject.GetDocumentState(id);
                 var oldState = _oldProject.GetDocumentState(id);
-                if (oldState != null && newState != oldState)
+                if (oldState != null && newState.HasContentChanged(oldState))
                 {
                     yield return id;
                 }
