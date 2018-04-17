@@ -232,12 +232,16 @@ class C
 {{
     private string s;
 
-    public C(string s)
+    void M1(string s)
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
         this.s = s ?? throw new ArgumentNullException(nameof(s));
-
+//]
+    }}
+    void M2(string s)
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         if (s == null)
         {{
@@ -257,12 +261,16 @@ class C
 {{
     private string s;
 
-    public C(string s)
+    void M1(string s)
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
         var v = x ?? y;
-
+//]
+    }}
+    void M2(string s)
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         var v = x != null ? x : y; // {ServicesVSResources.or}
         var v = x == null ? y : x;
@@ -278,12 +286,16 @@ class C
 {{
     private string s;
 
-    public C(string s)
+    void M1(string s)
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
         func?.Invoke(args);
-
+//]
+    }}
+    void M2(string s)
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         if (func != null)
         {{
@@ -299,12 +311,16 @@ using System;
 
 class C
 {{
-    public C(object o)
+    void M1(object o)
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
         var v = o?.ToString();
-
+//]
+    }}
+    void M2(object o)
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         var v = o == null ? null : o.ToString(); // {ServicesVSResources.or}
         var v = o != null ? o.ToString() : null;
@@ -316,14 +332,18 @@ class C
         private static readonly string s_preferPatternMatchingOverAsWithNullCheck = $@"
 class C
 {{
-    void M()
+    void M1()
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
         if (o is string s)
         {{
         }}
-
+//]
+    }}
+    void M2()
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         var s = o as string;
         if (s != null)
@@ -337,14 +357,18 @@ class C
         private static readonly string s_preferPatternMatchingOverIsWithCastCheck = $@"
 class C
 {{
-    void M()
+    void M1()
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
         if (o is int i)
         {{
         }}
-
+//]
+    }}
+    void M2()
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         if (o is int)
         {{
@@ -362,7 +386,7 @@ class Customer
 {{
     private int Age;
 
-    public Customer()
+    void M1()
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
@@ -370,7 +394,11 @@ class Customer
         {{
             Age = 21
         }};
-
+//]
+    }}
+    void M2()
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         var c = new Customer();
         c.Age = 21;
@@ -386,7 +414,7 @@ class Customer
 {{
     private int Age;
 
-    public Customer()
+    void M1()
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
@@ -396,7 +424,11 @@ class Customer
             2,
             3
         }};
-
+//]
+    }}
+    void M2()
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         var list = new List<int>();
         list.Add(1);
@@ -410,14 +442,18 @@ class Customer
         private static readonly string s_preferExplicitTupleName = $@"
 class Customer
 {{
-    public Customer()
+    void M1()
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
         (string name, int age) customer = GetCustomer();
         var name = customer.name;
         var age = customer.age;
-
+//]
+    }}
+    void M2()
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         (string name, int age) customer = GetCustomer();
         var name = customer.Item1;
@@ -430,12 +466,16 @@ class Customer
         private static readonly string s_preferSimpleDefaultExpression = $@"
 using System.Threading;
 
-class Customer
+class Customer1
 {{
 //[
     // {ServicesVSResources.Prefer_colon}
     void DoWork(CancellationToken cancellationToken = default) {{ }}
-
+//]
+}}
+class Customer2
+{{
+//[
     // {ServicesVSResources.Over_colon}
     void DoWork(CancellationToken cancellationToken = default(CancellationToken)) {{ }}
 //]
@@ -447,12 +487,16 @@ using System.Threading;
 
 class Customer
 {{
-    public Customer(int age, string name)
+    void M1(int age, string name)
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
         var tuple = (age, name);
-
+//]
+    }}
+    void M2(int age, string name)
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         var tuple = (age: age, name: name);
 //]
@@ -465,12 +509,16 @@ using System.Threading;
 
 class Customer
 {{
-    public Customer(int age, string name)
+    void M1(int age, string name)
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
         var anon = new {{ age, name }};
-
+//]
+    }}
+    void M2(int age, string name)
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         var anon = new {{ age = age, name = name }};
 //]
@@ -483,14 +531,18 @@ using System;
 
 class Customer
 {{
-    public Customer(string value)
+    void M1(string value)
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
         if (int.TryParse(value, out int i))
         {{
         }}
-
+//]
+    }}
+    void M2(string value)
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         int i;
         if (int.TryParse(value, out i))
@@ -506,7 +558,7 @@ using System;
 
 class Customer
 {{
-    public Customer(string value)
+    void M1(string value)
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
@@ -515,7 +567,11 @@ class Customer
 
         (int x, int y) = GetPointTuple();
         Console.WriteLine($""{{x}} {{y}}"");
-
+//]
+    }}
+    void M2(string value)
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         var person = GetPersonTuple();
         Console.WriteLine($""{{person.name}} {{person.age}}"");
@@ -534,7 +590,7 @@ class Customer
 {{
     private int Age;
 
-    public int GetAge()
+    void M1()
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
@@ -542,7 +598,11 @@ class Customer
         {{
             this.Display();
         }}
-        
+//]
+    }}
+    void M2()
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         if (test)
             this.Display();
@@ -554,12 +614,16 @@ class Customer
         private static readonly string s_preferAutoProperties = $@"
 using System;
 
-class Customer
+class Customer1
 {{
 //[
     // {ServicesVSResources.Prefer_colon}
     public int Age {{ get; }}
-
+//]
+}}
+class Customer2
+{{
+//[
     // {ServicesVSResources.Over_colon}
     private int age;
 
@@ -579,7 +643,7 @@ using System;
 
 class Customer
 {{
-    public Customer(string value)
+    void M1(string value)
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
@@ -587,7 +651,11 @@ class Customer
         {{
             return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
         }}
-
+//]
+    }}
+    void M2(string value)
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         Func<int, int> fibonacci = null;
         fibonacci = (int n) =>
@@ -604,13 +672,17 @@ using System;
 
 class Customer
 {{
-    public Customer(string value)
+    void M1(string value)
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
         if (value is null)
             return;
-
+//]
+    }}
+    void M2(string value)
+    {{
+//[
         // {ServicesVSResources.Over_colon}
         if (object.ReferenceEquals(value, null))
             return;
@@ -786,13 +858,17 @@ class List<T>
 ";
 
         private static readonly string s_preferReadonly = $@"
-class Customer
+class Customer1
 {{
 //[
         // {ServicesVSResources.Prefer_colon}
         // '_value' can only be assigned in constructor
         private readonly int _value = 0;
-        
+//]
+}}
+class Customer2
+{{
+//[
         // {ServicesVSResources.Over_colon}
         // '_value' can be assigned anywhere
         private int _value = 0;
