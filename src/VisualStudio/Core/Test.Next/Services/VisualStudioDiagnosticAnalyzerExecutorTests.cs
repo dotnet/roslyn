@@ -140,11 +140,12 @@ End Class";
                 }
                 catch (OperationCanceledException)
                 {
-                    // make sure things that should have been cleaned up are cleaned up
-                    var service = (RemotableDataServiceFactory.Service)solution.Workspace.Services.GetService<IRemotableDataService>();
-                    Assert.Null(service.GetRemotableData_TestOnly(solutionChecksum, CancellationToken.None));
-                    Assert.True(connection.Disposed);
                 }
+                
+                // make sure things that should have been cleaned up are cleaned up
+                var service = (RemotableDataServiceFactory.Service)solution.Workspace.Services.GetService<IRemotableDataService>();
+                Assert.Null(service.GetRemotableData_TestOnly(solutionChecksum, CancellationToken.None));
+                Assert.True(connection.Disposed);
             }
         }
 
