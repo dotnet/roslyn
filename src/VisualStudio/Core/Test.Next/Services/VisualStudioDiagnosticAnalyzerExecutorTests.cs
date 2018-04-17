@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Remote;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
@@ -123,6 +124,7 @@ End Class";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        [WorkItem(26178, "https://github.com/dotnet/roslyn/pull/26178")]
         public async Task TestCancellationOnSessionWithSolution()
         {
             var code = @"class Test { void Method() { } }";
@@ -133,9 +135,9 @@ End Class";
                 var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
                 var source = new CancellationTokenSource();
-                var connection = new MyConnection(source);
+                var connection = new InvokeThrowsCancellationConnection(source);
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(() => SessionWithSolution.CreateAsync(connection, solution, source.Token));
-                
+
                 // make sure things that should have been cleaned up are cleaned up
                 var service = (RemotableDataServiceFactory.Service)solution.Workspace.Services.GetService<IRemotableDataService>();
                 Assert.Null(service.GetRemotableData_TestOnly(solutionChecksum, CancellationToken.None));
@@ -316,13 +318,13 @@ End Class";
             public override Workspace Workspace => _workspace;
         }
 
-        private class MyConnection : RemoteHostClient.Connection
+        private class InvokeThrowsCancellationConnection : RemoteHostClient.Connection
         {
             private readonly CancellationTokenSource _source;
 
             public bool Disposed = false;
 
-            public MyConnection(CancellationTokenSource source)
+            public InvokeThrowsCancellationConnection(CancellationTokenSource source)
             {
                 _source = source;
             }
@@ -333,7 +335,7 @@ End Class";
                 _source.Cancel();
                 _source.Token.ThrowIfCancellationRequested();
 
-                return Task.CompletedTask;
+                throw Utilities.ExceptionUtilities.Unreachable;
             }
 
             public override Task<T> InvokeAsync<T>(
