@@ -23,6 +23,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 typeSymbol.Accept(visitor);
+
+                if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.PlainReferenceTypes))
+                {
+                    Debug.Assert(!format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier));
+
+                    // No annotations on nullable or non-nullable reference types (for printing IL)
+                    return;
+                }
+
                 switch (isNullable)
                 {
                     case true:

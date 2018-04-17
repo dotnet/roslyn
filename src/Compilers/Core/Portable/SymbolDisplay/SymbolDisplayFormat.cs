@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames);
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames | SymbolDisplayCompilerInternalOptions.PlainReferenceTypes);
 
         /// <summary>
         /// Used to normalize explicit interface implementation member names.

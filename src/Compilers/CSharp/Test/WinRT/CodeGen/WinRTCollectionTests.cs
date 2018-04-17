@@ -203,7 +203,7 @@ public class Class1
   IL_001d:  ldc.i4.0
   IL_001e:  callvirt   ""Windows.Foundation.IWwwFormUrlDecoderEntry System.Collections.Generic.IReadOnlyList<Windows.Foundation.IWwwFormUrlDecoderEntry>.this[int].get""
   IL_0023:  callvirt   ""string Windows.Foundation.IWwwFormUrlDecoderEntry.Value.get""
-  IL_0028:  call       ""string string.Concat(string?, string?)""
+  IL_0028:  call       ""string string.Concat(string, string)""
   IL_002d:  callvirt   ""void System.IO.TextWriter.WriteLine(string)""
   IL_0032:  ret
 }");
