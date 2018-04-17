@@ -151,10 +151,6 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
         $args += " /p:BootstrapBuildPath=$bootstrapDir"
     }
 
-    if ($testIOperation) {
-        $args += " /p:TestIOperationInterface=true"
-    }
-
     $args += " $buildArgs"
     $args += " $projectFilePath"
 
@@ -482,6 +478,10 @@ function Test-XUnit() {
         Deploy-VsixViaTool
     }
 
+    if ($testIOperation) {
+        $env:ROSLYN_TEST_IOPERATION = "true"
+    }
+
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net452"
@@ -489,7 +489,7 @@ function Test-XUnit() {
     $args += " -logpath:$logsDir"
     $args += " -nocache"
 
-    if ($testDesktop) {
+    if ($testDesktop -or $testIOperation) {
         if ($test32) {
             $dlls = Get-ChildItem -re -in "*.UnitTests.dll" $unitDir
         }
@@ -539,6 +539,9 @@ function Test-XUnit() {
     }
     finally {
         Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process    
+        if ($testIOperation) { 
+            Remove-Item env:\ROSLYN_TEST_IOPERATION
+        }
     }
 }
 
@@ -723,7 +726,7 @@ try {
         Build-Artifacts
     }
 
-    if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore) {
+    if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore -or $testIOperation) {
         Test-XUnit
     } 
 
