@@ -42,7 +42,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             GenerateTypeDialog.VerifyClosed();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [Fact(Skip= "https://github.com/dotnet/roslyn/issues/26205"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void CSharpToBasic()
         {
             var vbProj = new ProjectUtils.Project("VBProj");
