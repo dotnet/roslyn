@@ -1308,6 +1308,8 @@ class Configuration
                 specificationStyles.Select(t => t.style).ToImmutableArray(),
                 specificationStyles.Select(t => CreateRule(t.specification, t.style)).ToImmutableArray());
 
+            // Local functions
+
             (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string suffix)
             {
                 var symbolSpecification = new SymbolSpecification(
