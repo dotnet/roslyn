@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeDescription">
         <source>Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.</source>
-        <target state="translated">Nicht abstrakte Untertypen von DiagnosticAnalyzer müssen mit "DiagnosticAnalyzerAttribute(s)" markiert werden. Das Argument für diese Attribute, falls vorhanden, legt die unterstützten Sprachen für die Analyse fest. Analysetypen ohne dieses Attribut werden vom Analysemodul ignoriert.</target>
+        <target state="translated">Nicht abstrakte Untertypen von DiagnosticAnalyzer müssen mit "DiagnosticAnalyzerAttribute(s)" markiert werden. Das Argument für diese Attribute, falls vorhanden, legt die unterstützten Sprachen für die Analyse fest. Analysetypen ohne dieses Attribut werden von der Analyse-Engine ignoriert.</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerMessage">
@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticDescription">
         <source>ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.</source>
-        <target state="translated">ReportDiagnostic darf nur mit unterstützten DiagnosticDescriptors aufgerufen werden, die von der Eigenschaft "DiagnosticAnalyzer.SupportedDiagnostics" zurückgegeben werden. Andernfalls wird die gemeldete Diagnose durch das Analysemodul herausgefiltert.</target>
+        <target state="translated">ReportDiagnostic darf nur mit unterstützten DiagnosticDescriptors aufgerufen werden, die von der Eigenschaft "DiagnosticAnalyzer.SupportedDiagnostics" zurückgegeben werden. Andernfalls wird die gemeldete Diagnose durch die Analyse-Engine herausgefiltert.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentMessage">
