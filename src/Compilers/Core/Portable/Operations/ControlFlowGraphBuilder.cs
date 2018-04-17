@@ -2385,14 +2385,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (!knownToImplementIDisposable)
             {
-                Debug.Assert(!(resource.Type?.IsValueType == true && !ITypeSymbolHelpers.IsNullableType(resource.Type)));
+                Debug.Assert(!isNotNullableValueType(resource.Type));
                 resource = ConvertToIDisposable(resource, iDisposable, isTryCast: true);
                 int captureId = _availableCaptureId++;
                 AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
                 resource = new FlowCaptureReference(captureId, resource.Syntax, iDisposable, constantValue: default);
             }
 
-            if (!knownToImplementIDisposable || !(resource.Type?.IsValueType == true && !ITypeSymbolHelpers.IsNullableType(resource.Type)))
+            if (!knownToImplementIDisposable || !isNotNullableValueType(resource.Type))
             {
                 IOperation condition = MakeIsNullOperation(OperationCloner.CloneOperation(resource), compilation);
                 condition = Operation.SetParentOperation(condition, null);
@@ -2427,6 +2427,11 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 return null;
+            }
+
+            bool isNotNullableValueType(ITypeSymbol type)
+            {
+                return type?.IsValueType == true && !ITypeSymbolHelpers.IsNullableType(type);
             }
         }
 
@@ -2620,9 +2625,9 @@ namespace Microsoft.CodeAnalysis.Operations
             if (haveLocals && operation.LoopControlVariable.Kind == OperationKind.VariableDeclarator)
             {
                 // VB has rather interesting scoping rules for control variable.
-                // It is in scope in collection expression. However, it is considered to be 
+                // It is in scope in the collection expression. However, it is considered to be 
                 // "a different" version of that local. Effectively when the code is emitted,
-                // there are two distinct locals, one is used in collection expression and the 
+                // there are two distinct locals, one is used in the collection expression and the 
                 // other is used as a loop control variable. This is done to have proper hoisting 
                 // and lifetime in presence of lambdas.
                 // Rather than introducing a separate local symbol, we will simply add another 
@@ -2631,15 +2636,18 @@ namespace Microsoft.CodeAnalysis.Operations
                 var declarator = (IVariableDeclaratorOperation)operation.LoopControlVariable;
                 ILocalSymbol local = declarator.Symbol;
 
-                if (operation.Collection.DescendantsAndSelf().OfType<ILocalReferenceOperation>().Where(l => l.Local.Equals(local)).Any())
+                foreach (IOperation op in operation.Collection.DescendantsAndSelf())
                 {
-                    EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: ImmutableArray.Create(local)));
-                    createdRegionForCollection = true;
+                    if (op is ILocalReferenceOperation l && l.Local.Equals(local))
+                    {
+                        EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: ImmutableArray.Create(local)));
+                        createdRegionForCollection = true;
+                        break;
+                    }
                 }
             }
 
-            IOperation collection = Visit(operation.Collection);
-            IOperation enumerator = getEnumerator(collection);
+            IOperation enumerator = getEnumerator();
 
             if (createdRegionForCollection)
             {
@@ -2710,21 +2718,25 @@ namespace Microsoft.CodeAnalysis.Operations
                 return operand;
             }
 
-            IOperation getEnumerator(IOperation enumerable)
+            IOperation getEnumerator()
             {
                 if (info.GetEnumeratorMethod != null)
                 {
-                    int enumeratorCaptureId = _availableCaptureId++;
-                    AddStatement(new FlowCapture(enumeratorCaptureId, enumerable.Syntax,
-                                                 makeInvocation(info.GetEnumeratorMethod, enumerable, info.GetEnumeratorArguments)));
+                    IOperation invocation = makeInvocation(operation.Collection.Syntax,
+                                                           info.GetEnumeratorMethod,
+                                                           info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection),
+                                                           info.GetEnumeratorArguments);
 
-                    return new FlowCaptureReference(enumeratorCaptureId, enumerable.Syntax, info.GetEnumeratorMethod.ReturnType, constantValue: default);
+                    int enumeratorCaptureId = _availableCaptureId++;
+                    AddStatement(new FlowCapture(enumeratorCaptureId, operation.Collection.Syntax, invocation));
+
+                    return new FlowCaptureReference(enumeratorCaptureId, operation.Collection.Syntax, info.GetEnumeratorMethod.ReturnType, constantValue: default);
                 }
                 else
                 {
                     // This must be an error case
-                    AddStatement(MakeInvalidOperation(type: null, enumerable));
-                    return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, enumerable.Syntax, 
+                    AddStatement(MakeInvalidOperation(type: null, Visit(operation.Collection)));
+                    return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Collection.Syntax, 
                                                 type: null,constantValue: default, isImplicit: true);
                 }
             }
@@ -2733,7 +2745,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (info.MoveNextMethod != null)
                 {
-                    return makeInvocation(info.MoveNextMethod, enumeratorRef, info.MoveNextArguments);
+                    return makeInvocationDroppingInstanceForStaticMethods(info.MoveNextMethod, enumeratorRef, info.MoveNextArguments);
                 }
                 else
                 {
@@ -2777,9 +2789,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     case OperationKind.DeclarationExpression:
                         Debug.Assert(info.ElementConversion?.ToCommonConversion().IsIdentity != false);
 
-                        // PROTOTYPE(dataflow): Reuse the logic from VisitDeconstructionAssignment (https://github.com/dotnet/roslyn/pull/26108)
-                        //                      in order to make sure that tuples remain tuples. Add relevant tests, if possible. 
-                        return new DeconstructionAssignmentExpression(Visit(operation.LoopControlVariable), current, semanticModel: null,
+                        return new DeconstructionAssignmentExpression(VisitPreservingTupleOperations(operation.LoopControlVariable), 
+                                                                      current, semanticModel: null,
                                                                       operation.LoopControlVariable.Syntax, operation.LoopControlVariable.Type,
                                                                       constantValue: default, isImplicit: true);
                     default:
@@ -2791,11 +2802,17 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
 
-            InvocationExpression makeInvocation(IMethodSymbol method, IOperation instance, Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            InvocationExpression makeInvocationDroppingInstanceForStaticMethods(IMethodSymbol method, IOperation instance, Lazy<ImmutableArray<IArgumentOperation>> arguments)
             {
-                return new InvocationExpression(method, method.IsStatic ? null : instance,
+                return makeInvocation(instance.Syntax, method, method.IsStatic ? null : instance, arguments);
+            }
+
+            InvocationExpression makeInvocation(SyntaxNode syntax, IMethodSymbol method, IOperation instanceOpt, Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            {
+                Debug.Assert(method.IsStatic == (instanceOpt == null));
+                return new InvocationExpression(method, instanceOpt,
                                                 isVirtual: method.IsVirtual || method.IsAbstract || method.IsOverride,
-                                                makeArguments(arguments), semanticModel: null, instance.Syntax,
+                                                makeArguments(arguments), semanticModel: null, syntax,
                                                 method.ReturnType, constantValue: default, isImplicit: true);
             }
 
@@ -3015,55 +3032,65 @@ namespace Microsoft.CodeAnalysis.Operations
             // has control flow the individual elements are captured. Then we can recompose the tuple after operation.Value has been visited.
             // We do this to keep the graph sane, so that users don't have to track a tuple captured via flow control when it's not really
             // the tuple that's been captured, it's the operands to the tuple.
-            pushTargetAndUnwrapTupleIfNecessary(operation.Target);
+            PushTargetAndUnwrapTupleIfNecessary(operation.Target);
             IOperation visitedValue = Visit(operation.Value);
-            IOperation visitedTarget = popTargetAndWrapTupleIfNecessary(operation.Target);
+            IOperation visitedTarget = PopTargetAndWrapTupleIfNecessary(operation.Target);
 
             return new DeconstructionAssignmentExpression(visitedTarget, visitedValue, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
 
-            // Recursively push nexted values onto the stack for visiting
-            void pushTargetAndUnwrapTupleIfNecessary(IOperation value)
+        /// <summary>
+        /// Recursively push nexted values onto the stack for visiting
+        /// </summary>
+        private void PushTargetAndUnwrapTupleIfNecessary(IOperation value)
+        {
+            if (value.Kind == OperationKind.Tuple)
             {
-                if (value.Kind == OperationKind.Tuple)
-                {
-                    var tuple = (ITupleOperation)value;
+                var tuple = (ITupleOperation)value;
 
-                    foreach (IOperation element in tuple.Elements)
-                    {
-                        pushTargetAndUnwrapTupleIfNecessary(element);
-                    }
-                }
-                else
+                foreach (IOperation element in tuple.Elements)
                 {
-                    _evalStack.Push(Visit(value));
+                    PushTargetAndUnwrapTupleIfNecessary(element);
                 }
             }
-
-            // Recursively pop nested tuple values off the stack after visiting
-            IOperation popTargetAndWrapTupleIfNecessary(IOperation value)
+            else
             {
-                if (value.Kind == OperationKind.Tuple)
+                _evalStack.Push(Visit(value));
+            }
+        }
+
+        /// <summary>
+        /// Recursively pop nested tuple values off the stack after visiting
+        /// </summary>
+        private IOperation PopTargetAndWrapTupleIfNecessary(IOperation value)
+        {
+            if (value.Kind == OperationKind.Tuple)
+            {
+                var tuple = (ITupleOperation)value;
+                var numElements = tuple.Elements.Length;
+                var elementBuilder = ArrayBuilder<IOperation>.GetInstance(numElements);
+                for (int i = numElements - 1; i >= 0; i--)
                 {
-                    var tuple = (ITupleOperation)value;
-                    var numElements = tuple.Elements.Length;
-                    var elementBuilder = ArrayBuilder<IOperation>.GetInstance(numElements);
-                    for (int i = numElements - 1; i >= 0; i--)
-                    {
-                        elementBuilder.Add(popTargetAndWrapTupleIfNecessary(tuple.Elements[i]));
-                    }
-                    elementBuilder.ReverseContents();
-                    return new TupleExpression(elementBuilder.ToImmutableAndFree(), semanticModel: null, tuple.Syntax, tuple.Type, tuple.NaturalType, tuple.ConstantValue, tuple.IsImplicit);
+                    elementBuilder.Add(PopTargetAndWrapTupleIfNecessary(tuple.Elements[i]));
                 }
-                else
-                {
-                    return _evalStack.Pop();
-                }
+                elementBuilder.ReverseContents();
+                return new TupleExpression(elementBuilder.ToImmutableAndFree(), semanticModel: null, tuple.Syntax, tuple.Type, tuple.NaturalType, tuple.ConstantValue, tuple.IsImplicit);
+            }
+            else
+            {
+                return _evalStack.Pop();
             }
         }
 
         public override IOperation VisitDeclarationExpression(IDeclarationExpressionOperation operation, int? captureIdForResult)
         {
-            return new DeclarationExpression(Visit(operation.Expression), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new DeclarationExpression(VisitPreservingTupleOperations(operation.Expression), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        private IOperation VisitPreservingTupleOperations(IOperation operation)
+        {
+            PushTargetAndUnwrapTupleIfNecessary(operation);
+            return PopTargetAndWrapTupleIfNecessary(operation);
         }
 
         public override IOperation VisitTuple(ITupleOperation operation, int? captureIdForResult)

@@ -2802,7 +2802,7 @@ Block[B7] - Exit
 Imports System
 Public Class C
     Sub M() 'BIND:"Sub M"
-        For Each z As Long in GetC()
+        For Each z As Long in If(GetC(), GetC())
         Next
     End Sub
 
@@ -2827,14 +2827,14 @@ End Class]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-        For Each z As Long in GetC()
-                              ~~~~~~
+        For Each z As Long in If(GetC(), GetC())
+                              ~~~~~~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-        For Each z As Long in GetC()
-                              ~~~~~~
+        For Each z As Long in If(GetC(), GetC())
+                              ~~~~~~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-        For Each z As Long in GetC()
-                              ~~~~~~
+        For Each z As Long in If(GetC(), GetC())
+                              ~~~~~~~~~~~~~~~~~~
 ]]>.Value
             Dim expectedFlowGraph = <![CDATA[
 Block[B0] - Entry
@@ -2843,9 +2843,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetC()')
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(GetC(), GetC())')
           Value: 
-            IInvocationOperation (Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'GetC()')
+            IInvocationOperation (Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'If(GetC(), GetC())')
               Instance Receiver: 
                 null
               Arguments(0)
@@ -2855,7 +2855,7 @@ Block[B2] - Block
     Predecessors: [B1] [B3]
     Statements (0)
     Jump if False (Regular) to Block[B4]
-        IInvocationOperation (Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'GetC()')
+        IInvocationOperation (Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'If(GetC(), GetC())')
           Instance Receiver: 
             null
           Arguments(0)

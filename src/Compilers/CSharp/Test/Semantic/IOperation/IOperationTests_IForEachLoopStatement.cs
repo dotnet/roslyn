@@ -3476,5 +3476,125 @@ Block[B5] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ForEachFlow_26()
+        {
+            string source = @"
+public sealed class MyClass
+{
+    void M(bool result, object a, object b)
+    /*<bind>*/{
+        foreach ((var x, (var y, var z), a ?? b) in this) 
+        { 
+        }
+    }/*</bind>*/
+    public bool MoveNext() => false;
+    public (int a, (int, int) b, object c) Current => default;
+    public MyClass GetEnumerator() => throw null;
+}
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(6,42): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         foreach ((var x, (var y, var z), a ?? b) in this) 
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "a ?? b").WithLocation(6, 42),
+                // file.cs(6,18): error CS8186: A foreach loop must declare its iteration variables.
+                //         foreach ((var x, (var y, var z), a ?? b) in this) 
+                Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(var x, (var y, var z), a ?? b)").WithLocation(6, 18)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'this')
+          Children(1):
+              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MyClass) (Syntax: 'this')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1] [B6]
+    Statements (0)
+    Jump if False (Regular) to Block[B7]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsImplicit) (Syntax: 'this')
+          Children(1):
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'this')
+                Children(0)
+
+    Next (Regular) Block[B3]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 x] [System.Int32 y] [System.Int32 z]
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+              Value: 
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'a')
+
+        Jump if True (Regular) to Block[B5]
+            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
+              Operand: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'a')
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B3]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+              Value: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'a')
+
+        Next (Regular) Block[B6]
+    Block[B5] - Block
+        Predecessors: [B3]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'b')
+              Value: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'b')
+
+        Next (Regular) Block[B6]
+    Block[B6] - Block
+        Predecessors: [B4] [B5]
+        Statements (1)
+            IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type: (System.Int32 x, (System.Int32 y, System.Int32 z), System.Object), IsInvalid, IsImplicit) (Syntax: '(var x, (va ... z), a ?? b)')
+              Left: 
+                ITupleOperation (OperationKind.Tuple, Type: (System.Int32 x, (System.Int32 y, System.Int32 z), System.Object), IsInvalid) (Syntax: '(var x, (va ... z), a ?? b)')
+                  NaturalType: (System.Int32 x, (System.Int32 y, System.Int32 z), System.Object)
+                  Elements(3):
+                      IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var x')
+                        ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+                      ITupleOperation (OperationKind.Tuple, Type: (System.Int32 y, System.Int32 z), IsInvalid) (Syntax: '(var y, var z)')
+                        NaturalType: (System.Int32 y, System.Int32 z)
+                        Elements(2):
+                            IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var y')
+                              ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
+                            IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'var z')
+                              ILocalReferenceOperation: z (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'z')
+                      IInvalidOperation (OperationKind.Invalid, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'a ?? b')
+                        Children(1):
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'a ?? b')
+              Right: 
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'this')
+                  Children(1):
+                      IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'this')
+                        Children(0)
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B7] - Exit
+    Predecessors: [B2]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }
