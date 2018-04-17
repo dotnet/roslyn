@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return;
                     }
 
-                    var text = await GetSourceText().ConfigureAwait(false);
+                    var text = await TryGetSourceTextAsync().ConfigureAwait(false);
                     if (text == null)
                     {
                         // it won't bring in base text if it is not there already.
@@ -332,10 +332,18 @@ namespace Microsoft.CodeAnalysis.Remote
                     var newChecksum = service.CreateChecksum(newText, token);
 
                     // save new text in the cache so that when asked, the data is most likely already there
+                    //
+                    // this cache is very short live. and new text created above is ChangedText which share
+                    // text data with original text except the changes.
+                    // so memory wise, this doesn't put too much pressure on the cache. it will not duplicates
+                    // same text multiple times.
+                    //
+                    // also, once the changes are picked up and put into Workspace, normal Workspace 
+                    // caching logic will take care of the text
                     AssetStorage.TryAddAsset(newChecksum, newText);
                 }
 
-                async Task<SourceText> GetSourceText()
+                async Task<SourceText> TryGetSourceTextAsync()
                 {
                     // check the cheap and fast one first.
                     // see if the cache has the source text
@@ -352,7 +360,10 @@ namespace Microsoft.CodeAnalysis.Remote
                         return null;
                     }
 
-                    // check checksum if it is already there
+                    // check checksum whether it is there.
+                    // since we lazily synchronize whole solution (SynchronizePrimaryWorkspaceAsync) when things are idle,
+                    // soon or later this will get hit even if text changes got out of sync due to issues in VS side
+                    // such as file is first opened and there is no SourceText in memory yet.
                     if (!document.State.TryGetStateChecksums(out var state) ||
                         !state.Text.Equals(baseTextChecksum))
                     {

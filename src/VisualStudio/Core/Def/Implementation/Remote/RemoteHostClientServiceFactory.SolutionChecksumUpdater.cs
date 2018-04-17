@@ -133,10 +133,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             private void PushTextChanges(Document oldDocument, Document newDocument)
             {
+                // this pushes text changes to the remote side if it can.
+                // this is purely perf optimization. whether this pushing text change
+                // worked or not doesn't affect feature's functionality.
+                //
+                // this basically see whether it can cheaply find out text changes
+                // between 2 snapshots, if it can, it will send out that text changes to
+                // remote side.
+                //
+                // the remote side, once got the text change, will again see whether
+                // it can use that text change information without any high cost and
+                // create new snapshot from it.
+                //
+                // otherwise, it will do the normal behavior of getting full text from
+                // VS side. this optimization saves times we need to do full text
+                // synchronization for typing scenario.
+
                 SourceText oldText = null;
                 SourceText newText = null;
-                if ((oldDocument?.TryGetText(out oldText) == false) ||
-                    (newDocument?.TryGetText(out newText) == false))
+                if ((oldDocument.TryGetText(out oldText) == false) ||
+                    (newDocument.TryGetText(out newText) == false))
                 {
                     // we only support case where text already exist
                     return;
@@ -161,13 +177,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var token = Listener.BeginAsyncOperation(nameof(PushTextChanges));
                 _textChangeQueue.ScheduleTask(async () =>
                 {
-                    var state = await oldDocument.State.GetStateChecksumsAsync(CancellationToken).ConfigureAwait(false);
-
                     var client = await _service.Workspace.TryGetRemoteHostClientAsync(CancellationToken).ConfigureAwait(false);
                     if (client == null)
                     {
                         return;
                     }
+
+                    var state = await oldDocument.State.GetStateChecksumsAsync(CancellationToken).ConfigureAwait(false);
 
                     await client.TryRunRemoteAsync(
                         WellKnownRemoteHostServices.RemoteHostService, nameof(IRemoteHostService.SynchronizeTextAsync),
