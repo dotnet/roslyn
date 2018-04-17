@@ -97,6 +97,23 @@ commitPullList.each { isPr ->
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
+// IOperation unit test verification
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "windows_debug_ioperation_unit32", isPr)
+  def myJob = job(jobName) {
+    description("Windows debug unit tests on unit32 for IOperation")
+          steps {
+            batchFile(""".\\build\\scripts\\cibuild.cmd -debug -test32 -testIOperation""")
+          }
+  }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = ""
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
 // Windows CoreCLR
 commitPullList.each { isPr ->
   ['debug', 'release'].each { configuration ->
