@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
     // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
-    internal class ExtraAnnotations
+    internal static class ExtraAnnotations
     {
         // APIs that are useful to annotate:
         //   1) don't accept null input

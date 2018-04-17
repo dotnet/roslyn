@@ -608,6 +608,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                // PROTOTYPE(NullableReferenceTypes):
+                // Should probably be: TypeParameters.SelectAsArray((typeParameter, module) => TypeSymbolWithAnnotations.Create(module, typeParameter), ContainingModule);
+                // Relevant test: TestOverrideGenericMethodWithTypeParamDiffNameWithCustomModifiers
+
                 return TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
             }
         }

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier));
 
-                    // No annotations on nullable or non-nullable reference types (for printing IL)
+                    // No annotations on nullable or non-nullable reference types (for example, for printing IL)
                     return;
                 }
 
