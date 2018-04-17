@@ -21,3 +21,9 @@ For each language feature:
 - designated reviewer should document and validate a test plan
 - blocking issues should be identified and resolved before merging feature back to `master` (that includes resolving `PROTOTYPE` comments)
 - update the feature status when the feature is complete
+
+To add a language version:
+- add it to the compiler (tests have a checklist)
+- add it to project-systems so that it appears in the UI drop-down
+- for VB, add it in an internal repo for legacy project system
+- add it to [release.json](https://github.com/dotnet/core/pull/1454) (needs to be confirmed)
