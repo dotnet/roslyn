@@ -3185,5 +3185,31 @@ unsafe class C
                 //         UnmanagedWithInterface(&a);         // fail (does not match interface)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "UnmanagedWithInterface").WithArguments("C.UnmanagedWithInterface<T>(T*)", "System.IDisposable", "T", "int").WithLocation(20, 9));
         }
+
+        [Fact]
+        [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
+        public void UnmanagedConstraint_PointersTypeInference_WithOtherArgs()
+        {
+            var compilation = CreateCompilation(@"
+unsafe class C
+{
+    static void F<T>(T* a, T b) where T : unmanaged
+    {
+        F(null, b);
+    }
+}", options: TestOptions.UnsafeReleaseDll);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var inferredMethod = (MethodSymbol)model.GetSymbolInfo(call).Symbol;
+            var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("F");
+
+            Assert.Equal(declaredMethod, inferredMethod);
+            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single());
+        }
     }
 }

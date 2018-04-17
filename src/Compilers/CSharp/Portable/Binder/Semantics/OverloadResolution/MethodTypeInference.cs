@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression argument = _arguments[arg];
                 TypeSymbol target = _formalParameterTypes[arg];
-                bool isExactInference = GetRefKind(arg).IsManagedReference() || argument.Type.IsPointerType() || target.IsPointerType();
+                bool isExactInference = GetRefKind(arg).IsManagedReference() || target.IsPointerType();
 
                 MakeExplicitParameterTypeInferences(binder, argument, target, isExactInference, ref useSiteDiagnostics);
             }
