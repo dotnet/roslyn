@@ -1021,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional `in` parameters or `ref dynamic` behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
-        private static uint GetInvocationEscapeScope(
+        internal static uint GetInvocationEscapeScope(
             Symbol symbol,
             BoundExpression receiverOpt,
             ImmutableArray<ParameterSymbol> parameters,

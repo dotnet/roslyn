@@ -14638,10 +14638,10 @@ class C : IEnumerable
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (11,46): error CS1623: Iterators cannot have ref or out parameters
+                // (11,46): error CS1623: Iterators cannot have ref, in or out parameters
                 //     public IEnumerator GetEnumerator(ref int i)  // CS1623
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "i"),
-                // (16,48): error CS1623: Iterators cannot have ref or out parameters
+                // (16,48): error CS1623: Iterators cannot have ref, in or out parameters
                 //     public IEnumerator GetEnumerator(out float f)  // CS1623
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "f")
                 );
@@ -16233,22 +16233,19 @@ public class C
 public class C
 {
     public static int Main()
-        {
-            Test(Name: ""5"", Name: """");
+    {
+        Test(age: 5, Name: ""5"", Name: """");
         return 0;
-        }
-    public static void Test(int age , string Name)
-    { }
+    }
+    public static void Test(int age, string Name)
+    {
+    }
 }";
             var compilation = CSharpTestBase.CreateCompilation(text);
             compilation.VerifyDiagnostics(
-                // (6,29): error CS1740: Named argument 'Name' cannot be specified multiple times
-                //             Test(Name: "5", Name: "");
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "Name").WithArguments("Name").WithLocation(6, 29),
-                // (6,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'age' of 'C.Test(int, string)'
-                //             Test(Name: "5", Name: "");
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("age", "C.Test(int, string)").WithLocation(6, 13)
-                );
+                // (6,33): error CS1740: Named argument 'Name' cannot be specified multiple times
+                //         Test(age: 5, Name: "5", Name: "");
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "Name").WithArguments("Name").WithLocation(6, 33));
         }
 
         [Fact]
@@ -17051,9 +17048,29 @@ class Test
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (7,75): error CS1951: An expression tree lambda may not contain an out or ref parameter
+                // (7,75): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
                 //         System.Linq.Expressions.Expression<TestDelegate> tree1 = (ref int x) => x; // CS1951
-                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x")
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x").WithLocation(7, 75)
+                );
+        }
+
+        [Fact]
+        public void CS1951ERR_InParameterInExpressionTree()
+        {
+            var text = @"
+public delegate int TestDelegate(in int i);
+class Test
+{
+    static void Main()
+    {
+        System.Linq.Expressions.Expression<TestDelegate> tree1 = (in int x) => x; // CS1951
+    }
+}
+";
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (7,74): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                //         System.Linq.Expressions.Expression<TestDelegate> tree1 = (in int x) => x; // CS1951
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x").WithLocation(7, 74)
                 );
         }
 
