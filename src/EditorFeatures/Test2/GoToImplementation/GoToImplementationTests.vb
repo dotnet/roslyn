@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
 
                     expectedDefinitions.Sort()
 
-                    Assert.Equal(actualDefinitions.Count, expectedDefinitions.Count)
+                    Assert.Equal(expectedDefinitions.Count, actualDefinitions.Count)
 
                     For i = 0 To actualDefinitions.Count - 1
                         Dim actual = actualDefinitions(i)
@@ -104,6 +104,33 @@ class [|D|] : C
 interface $$I { }
 abstract class [|C|] : I { }
 class [|D|] : C { }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(26167, "https://github.com/dotnet/roslyn/issues/26167")>
+        Public Async Function TestWithAbstracProperty() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+
+public abstract class Base
+{
+    public abstract int P { get; set; }
+    void N()
+    {
+        _ = this.P$$;
+    }
+}
+public class C : Base
+{
+    public override int [|P|] { get; set; }
+}
         </Document>
     </Project>
 </Workspace>
@@ -327,12 +354,13 @@ interface I { void $$M(); }
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
+        <WorkItem(26167, "https://github.com/dotnet/roslyn/issues/26167")>
         Public Async Function TestWithAbstractMethodImplementation() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-class C : I { public abstract void [|M|]() { } }
+class C : I { public abstract void M() { } }
 class D : C { public override void [|M|]() { } }}
 interface I { void $$M(); }
         </Document>
@@ -439,7 +467,7 @@ class D : C
         public virtual void $$[|M|]() { }
     }
     abstract class B : A {
-        public abstract override void [|M|]();
+        public abstract override void M();
     }
     sealed class C1 : B {
         public override void [|M|]() { }
