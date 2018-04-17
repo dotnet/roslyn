@@ -136,6 +136,23 @@ End Program</a>.Value
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestObjectInitializerOfGenericTypeСonstraint() As Task
+            Dim text = <a>Class C
+    Public Function testSub(Of T As {IExample, New})()
+        Return New T With { .$$
+    End Function
+End Class
+
+Interface IExample
+    Property A As String
+    Property B As String
+End Interface</a>.Value
+
+            Await VerifyItemExistsAsync(text, "A")
+            Await VerifyItemExistsAsync(text, "B")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOneItemAfterComma() As Task
             Dim text = <a>Public Class C
     Public bar as Integer

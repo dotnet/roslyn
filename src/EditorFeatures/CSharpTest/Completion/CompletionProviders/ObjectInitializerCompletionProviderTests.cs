@@ -820,6 +820,33 @@ class Program
             await VerifyItemExistsAsync(markup, "Value");
         }
 
+        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObjectInitializerOfGenericTypeСonstraint()
+        {
+            var markup = @"
+internal interface IExample
+{
+    string A { get; set; }
+    string B { get; set; }
+}
+
+internal class Example
+{
+    public static T Create<T>()
+        where T : IExample, new()
+    {
+        return new T
+        {
+            $$
+        };
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "A");
+            await VerifyItemExistsAsync(markup, "B");
+        }
+
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
             using (var workspace = TestWorkspace.CreateCSharp(markup))
