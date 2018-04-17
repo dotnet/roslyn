@@ -1174,7 +1174,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
 
             var symMethod = (ISymUnmanagedMethod2)_pdbReader.Value.GetMethodByVersion(MetadataTokens.GetToken(methodHandle), methodVersion: 1);
-            return MetadataTokens.StandaloneSignatureHandle(symMethod.GetLocalSignatureToken());
+
+            // async methods do not have debug info.
+            return symMethod == null ? default : MetadataTokens.StandaloneSignatureHandle(symMethod.GetLocalSignatureToken());
         }
 
         /// <summary>
