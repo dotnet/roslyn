@@ -134,13 +134,7 @@ End Class";
 
                 var source = new CancellationTokenSource();
                 var connection = new MyConnection(source);
-                try
-                {
-                    await SessionWithSolution.CreateAsync(connection, solution, source.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                }
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => SessionWithSolution.CreateAsync(connection, solution, source.Token));
                 
                 // make sure things that should have been cleaned up are cleaned up
                 var service = (RemotableDataServiceFactory.Service)solution.Workspace.Services.GetService<IRemotableDataService>();
