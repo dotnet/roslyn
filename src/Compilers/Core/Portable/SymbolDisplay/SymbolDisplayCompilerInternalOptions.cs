@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis
         IncludeNonNullableTypeModifier = 1 << 6,
 
         /// <summary>
-        /// Don't append '!' (or '?') to non-nullable (or nullable) reference types.
+        /// Append '?' to nullable reference types.
         /// Cannot be used in conjunction with <see cref="IncludeNonNullableTypeModifier"/>.
         /// PROTOTYPE(NullableReferenceTypes): review design for this option before shipping. See https://github.com/dotnet/roslyn/issues/26198
         /// </summary>
-        PlainReferenceTypes = 1 << 7,
+        IncludeNullableTypeModifier = 1 << 7,
     }
 }

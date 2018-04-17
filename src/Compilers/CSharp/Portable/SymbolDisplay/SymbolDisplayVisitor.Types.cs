@@ -24,18 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 typeSymbol.Accept(visitor);
 
-                if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.PlainReferenceTypes))
-                {
-                    Debug.Assert(!format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier));
-
-                    // No annotations on nullable or non-nullable reference types (for example, for printing IL)
-                    return;
-                }
+                // If we want to display `!`, then we surely also want to display `?`
+                Debug.Assert(format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier)
+                    || !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier));
 
                 switch (isNullable)
                 {
                     case true:
-                        if (!typeSymbol.IsNullableType())
+                        if (!typeSymbol.IsNullableType() && format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier))
                         {
                             AddPunctuation(SyntaxKind.QuestionToken);
                         }
@@ -107,10 +103,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AddArrayRank(arrayType);
 
+                // If we want to display `!`, then we surely also want to display `?`
+                Debug.Assert(format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier)
+                    || !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier));
+
                 switch (isNullable)
                 {
                     case true:
-                        AddPunctuation(SyntaxKind.QuestionToken);
+                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier))
+                        {
+                            AddPunctuation(SyntaxKind.QuestionToken);
+                        }
                         break;
                     case false:
                         if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))

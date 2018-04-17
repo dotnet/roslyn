@@ -12574,7 +12574,10 @@ class F : C<F?>, I1<C<B?>>, I2<C<B>?>
             Assert.Equal("void B.M3(System.String?* x)", b.GetMember("M3").ToTestDisplayString());
             Assert.Equal("System.String? B.this[System.Action? x] { get; set; }", b.GetMember("this[]").ToTestDisplayString());
             Assert.Equal("B.implicit operator B?(int)", b.GetMember("op_Implicit").ToDisplayString());
-            Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1").ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature)));
+
+            Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1")
+                .ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
+                    compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier)));
 
             var f = compilation.GetTypeByMetadataName("F");
             Assert.Equal("C<F?>", f.BaseType().ToTestDisplayString());
@@ -12659,7 +12662,10 @@ public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
                                     Assert.Equal("System.String? B.this[System.Action? x] { get; set; }", b.GetMember("this[]").ToTestDisplayString());
                                     Assert.Equal("B.implicit operator B?(int)", b.GetMember("op_Implicit").ToDisplayString());
                                     Assert.Equal("event System.Action? B.E2", b.GetMember("E2").ToTestDisplayString());
-                                    Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1").ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature)));
+
+                                    Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1")
+                                        .ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
+                                            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier)));
 
                                     var f = ((PEModuleSymbol)m).GlobalNamespace.GetTypeMember("F");
                                     Assert.Equal("C<F?>", f.BaseType().ToTestDisplayString());
