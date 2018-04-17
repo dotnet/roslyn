@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly IOperation _operation;
         private readonly ISymbol _containingSymbol;
-        private readonly Compilation _compilation;
+        private readonly SemanticModel _semanticModel;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
@@ -1152,9 +1152,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ISymbol ContainingSymbol => _containingSymbol;
 
         /// <summary>
+        /// <see cref="CodeAnalysis.SemanticModel"/> that can provide semantic information about the <see cref="IOperation"/>.
+        /// </summary>
+        public SemanticModel SemanticModel => _semanticModel;
+
+        /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="IOperation"/>.
         /// </summary>
-        public Compilation Compilation => _compilation;
+        public Compilation Compilation => _semanticModel.Compilation;
 
         /// <summary>
         /// Options specified for the analysis.
@@ -1166,11 +1171,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
+        [Obsolete("Prefer the constructor that takes SemanticModel instead of Compilation")]
         public OperationAnalysisContext(IOperation operation, ISymbol containingSymbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+            : this(operation, containingSymbol, compilation.GetSemanticModel(operation.Syntax.SyntaxTree), options, reportDiagnostic, isSupportedDiagnostic, cancellationToken)
+        {
+        }
+
+        internal OperationAnalysisContext(IOperation operation, ISymbol containingSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
             _operation = operation;
             _containingSymbol = containingSymbol;
-            _compilation = compilation;
+            _semanticModel = semanticModel;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
@@ -1183,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _compilation, _isSupportedDiagnostic);
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _semanticModel.Compilation, _isSupportedDiagnostic);
             lock (_reportDiagnostic)
             {
                 _reportDiagnostic(diagnostic);
