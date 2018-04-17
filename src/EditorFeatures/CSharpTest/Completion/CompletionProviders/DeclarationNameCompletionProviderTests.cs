@@ -256,6 +256,46 @@ public class C
             await VerifyItemExistsAsync(markup, "builder");
         }
 
+        [WorkItem(25214, "https://github.com/dotnet/roslyn/issues/25214")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsLazyOfType1()
+        {
+            var markup = @"
+using System;
+using System.Collections.Generic;
+
+internal class Example
+{
+    public Lazy<Item> $$
+}
+
+public class Item { }
+";
+            await VerifyItemExistsAsync(markup, "item");
+            await VerifyItemExistsAsync(markup, "Item");
+            await VerifyItemExistsAsync(markup, "GetItem");
+        }
+
+        [WorkItem(25214, "https://github.com/dotnet/roslyn/issues/25214")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TypeImplementsLazyOfType2()
+        {
+            var markup = @"
+using System;
+using System.Collections.Generic;
+
+internal class Example
+{
+    public List<Lazy<Item>> $$
+}
+
+public class Item { }
+";
+            await VerifyItemExistsAsync(markup, "items");
+            await VerifyItemExistsAsync(markup, "Items");
+            await VerifyItemExistsAsync(markup, "GetItems");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void NoSuggestionsForInt()
         {
