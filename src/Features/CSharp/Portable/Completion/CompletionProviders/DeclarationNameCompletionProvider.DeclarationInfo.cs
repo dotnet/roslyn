@@ -256,8 +256,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                      modifierGetter: v =>
                         v.Parent is LocalDeclarationStatementSyntax localDeclaration ? localDeclaration.Modifiers :
                         v.Parent is UsingStatementSyntax ? default(SyntaxTokenList) :
-                        v.Parent is ForStatementSyntax ? default(SyntaxTokenList) : null as SyntaxTokenList?,
-                     d => ImmutableArray.Create(SymbolKind.Local),
+                        v.Parent is ForStatementSyntax ? default(SyntaxTokenList) :
+                        default(SyntaxTokenList?), // Return null to bail out.
+                     possibleDeclarationComputer: d => ImmutableArray.Create(SymbolKind.Local),
                      cancellationToken);
                 return result.Type != null;
             }
@@ -270,9 +271,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 result = IsLastTokenOfType<CommonForEachStatementSyntax>(token, semanticModel,
                     typeSyntaxGetter: f =>
                         f is ForEachStatementSyntax forEachStatement ? forEachStatement.Type :
-                        f is ForEachVariableStatementSyntax forEachVariableStatement ? forEachVariableStatement.Variable : null,
+                        f is ForEachVariableStatementSyntax forEachVariableStatement ? forEachVariableStatement.Variable :
+                        null, // Return null to bail out.
                     modifierGetter: f => default,
-                    d => ImmutableArray.Create(SymbolKind.Local),
+                    possibleDeclarationComputer: d => ImmutableArray.Create(SymbolKind.Local),
                     cancellationToken);
                 return result.Type != null;
             }
