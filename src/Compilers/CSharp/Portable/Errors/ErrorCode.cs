@@ -1565,7 +1565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NewBoundWithUnmanaged = 8375,
         ERR_UnmanagedConstraintMustBeFirst = 8376,
         ERR_UnmanagedConstraintNotSatisfied = 8377,
-        // not used/claimable = 8378,
+        ERR_CantUseInOrOutInArglist = 8378,
         ERR_ConWithUnmanagedCon = 8379,
         ERR_UnmanagedBoundWithClass = 8380,
 

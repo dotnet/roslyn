@@ -5324,4 +5324,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureIndexingMovableFixedBuffers" xml:space="preserve">
     <value>indexing movable fixed buffers</value>
   </data>
+  <data name="ERR_CantUseInOrOutInArglist" xml:space="preserve">
+    <value>__arglist cannot have an argument passed by 'in' or 'out'</value>
+  </data>
 </root>

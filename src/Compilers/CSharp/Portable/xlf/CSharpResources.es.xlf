@@ -8730,6 +8730,11 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CantUseInOrOutInArglist">
+        <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
+        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
