@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
                 .RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeName);
 
-            var symbols = builder.SelectDistinct(s => s.ToDisplayString(format));
+            var symbols = builder.SelectAsArray(s => s.ToDisplayString(format));
             builder.Free();
 
             AssertEx.Equal(expectedUsesOfNullable, symbols, itemInspector: s => $"\"{s}\"");
