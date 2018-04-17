@@ -72,29 +72,38 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             return null;
         }
 
-        // Can use non const fields and properties with setters in them.
+        protected static bool IsReadableInstanceFieldOrProperty(ISymbol symbol)
+            => !symbol.IsStatic && IsReadableFieldOrProperty(symbol);
+
         protected static bool IsWritableInstanceFieldOrProperty(ISymbol symbol)
-            => IsViableInstanceFieldOrProperty(symbol) &&
-               IsWritableFieldOrProperty(symbol);
+            => !symbol.IsStatic && IsWritableFieldOrProperty(symbol);
+
+        private static bool IsReadableFieldOrProperty(ISymbol symbol)
+        {
+            switch (symbol)
+            {
+                case IFieldSymbol field: return IsViableField(field);
+                case IPropertySymbol property: return IsViableProperty(property) && !property.IsWriteOnly;
+                default: return false;
+            }
+        }
 
         private static bool IsWritableFieldOrProperty(ISymbol symbol)
         {
             switch (symbol)
             {
-                case IFieldSymbol field: return !field.IsConst && IsViableField(field);
-                case IPropertySymbol property: return property.IsWritableInConstructor();
+                // Can use non const fields and properties with setters in them.
+                case IFieldSymbol field: return IsViableField(field) && !field.IsConst;
+                case IPropertySymbol property: return IsViableProperty(property) && property.IsWritableInConstructor();
                 default: return false;
             }
         }
 
-        protected static bool IsViableInstanceFieldOrProperty(ISymbol symbol)
-            => !symbol.IsStatic && (IsViableField(symbol) || IsViableProperty(symbol));
+        private static bool IsViableField(IFieldSymbol field)
+            => field.AssociatedSymbol == null;
 
-        private static bool IsViableProperty(ISymbol symbol)
-            => symbol.Kind == SymbolKind.Property;
-
-        private static bool IsViableField(ISymbol symbol)
-            => symbol is IFieldSymbol field && field.AssociatedSymbol == null;
+        private static bool IsViableProperty(IPropertySymbol property)
+            => property.Parameters.IsEmpty;
 
         protected ImmutableArray<IParameterSymbol> DetermineParameters(
             ImmutableArray<ISymbol> selectedMembers)
