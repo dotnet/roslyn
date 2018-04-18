@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 interfaceDocumentId,
                 cancellationToken);
 
-            var solutionWithFormattedInterfaceDocument = GetSolutionWithFormattedInterfaceDocument(unformattedInterfaceDocument, cancellationToken);
+            var solutionWithFormattedInterfaceDocument = GetSolutionWithFormattedInterfaceDocument(unformattedInterfaceDocument, extractInterfaceOptions, cancellationToken);
 
             var completedSolution = GetSolutionWithOriginalTypeUpdated(
                 solutionWithFormattedInterfaceDocument,
@@ -234,6 +234,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
             var generatedNameTypeParameterSuffix = GetGeneratedNameTypeParameterSuffix(GetTypeParameters(type, extractableMembers), document.Project.Solution.Workspace);
 
+            var fileBanner = syntaxFactsService.GetFileBanner(document.GetSyntaxRootSynchronously(cancellationToken));
+
             var service = document.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
             return service.GetExtractInterfaceOptions(
                 syntaxFactsService,
@@ -243,7 +245,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 conflictingTypeNames.ToList(),
                 containingNamespace,
                 generatedNameTypeParameterSuffix,
-                document.Project.Language);
+                document.Project.Language,
+                fileBanner);
         }
 
         private Document GetUnformattedInterfaceDocument(
@@ -270,10 +273,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return unformattedInterfaceDocument;
         }
 
-        private static Solution GetSolutionWithFormattedInterfaceDocument(Document unformattedInterfaceDocument, CancellationToken cancellationToken)
+        private static Solution GetSolutionWithFormattedInterfaceDocument(Document unformattedInterfaceDocument, ExtractInterfaceOptionsResult extractInterfaceOptions, CancellationToken cancellationToken)
         {
             Solution solutionWithInterfaceDocument;
-            var formattedRoot = Formatter.Format(unformattedInterfaceDocument.GetSyntaxRootSynchronously(cancellationToken),
+            var formattedRoot = Formatter.Format(unformattedInterfaceDocument.GetSyntaxRootSynchronously(cancellationToken).WithPrependedLeadingTrivia(extractInterfaceOptions.FileBanner),
                 unformattedInterfaceDocument.Project.Solution.Workspace, cancellationToken: cancellationToken);
             var rootToSimplify = formattedRoot.WithAdditionalAnnotations(Simplifier.Annotation);
             var finalInterfaceDocument = Simplifier.ReduceAsync(unformattedInterfaceDocument.WithSyntaxRoot(rootToSimplify), cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);

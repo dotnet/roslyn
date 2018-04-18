@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -32,7 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             List<string> allTypeNames,
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
-            string languageName)
+            string languageName,
+            ImmutableArray<SyntaxTrivia> fileBanner)
         {
             var viewModel = new ExtractInterfaceDialogViewModel(
                 syntaxFactsService,
@@ -55,7 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                     isCancelled: false,
                     includedMembers: viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.MemberSymbol),
                     interfaceName: viewModel.InterfaceName.Trim(),
-                    fileName: viewModel.FileName.Trim());
+                    fileName: viewModel.FileName.Trim(),
+                    fileBanner: fileBanner);
             }
             else
             {

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -31,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             List<string> conflictingTypeNames,
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
-            string languageName)
+            string languageName,
+            ImmutableArray<SyntaxTrivia> fileBanner)
         {
             this.AllExtractableMembers = extractableMembers;
             this.DefaultInterfaceName = defaultInterfaceName;
@@ -45,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     isCancelled: false,
                     includedMembers: ChosenMembers ?? AllExtractableMembers,
                     interfaceName: ChosenInterfaceName ?? defaultInterfaceName,
-                    fileName: ChosenFileName ?? defaultInterfaceName);
+                    fileName: ChosenFileName ?? defaultInterfaceName,
+                    fileBanner: fileBanner);
         }
     }
 }
