@@ -531,7 +531,7 @@ Public Class BuildDevDivInsertionFiles
 
                         Dim runtimeTarget = Path.GetDirectoryName(assemblyProperty.Name)
 
-                        Dim compileDll = contracts?.Properties().Select(Function(p) p.Name).Where(Function(n) Path.GetFileName(n) = fileName).Single()
+                        Dim compileDll = contracts?.Properties().Select(Function(p) p.Name).Where(Function(n) Path.GetFileName(n) = fileName).SingleOrDefault()
                         Dim compileTarget = If(compileDll IsNot Nothing, Path.GetDirectoryName(compileDll), Nothing)
 
                         result.Add(fileName, New DependencyInfo(compileTarget,
