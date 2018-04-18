@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(originalDefinition)
         {
             Debug.Assert(originalDefinition.IsDefinition);
+            Debug.Assert(!originalDefinition.IsErrorType());
             _newContainer = newContainer;
             _inputMap = map;
             _unbound = unbound;

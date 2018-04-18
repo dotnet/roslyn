@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -17,6 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    [UseExportProvider]
     public class EditSessionTests : TestBase
     {
         internal sealed class TestActiveStatementProvider : IActiveStatementProvider
@@ -90,8 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions = null,
             Func<Solution, Solution> adjustSolution = null)
         {
-            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
+            
+            var exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(typeof(CSharpEditAndContinueAnalyzer)).WithPart(typeof(DummyLanguageService)));
+
+            var exportProvider = exportProviderFactory.CreateExportProvider();
 
             using (var workspace = TestWorkspace.CreateCSharp(
                 ActiveStatementsDescription.ClearTags(markedSource),
@@ -179,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         private static string GetFirstLineText(LinePositionSpan span, SourceText text)
             => text.Lines[span.Start.Line].ToString().Trim();
 
-        [Fact]
+        [Fact, UseExportProvider]
         public async Task BaseActiveStatementsAndExceptionRegions1()
         {
             var markedSource = new[]
@@ -360,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan}"));
         }
 
-        [Fact, WorkItem(24439, "https://github.com/dotnet/roslyn/issues/24439")]
+        [Fact, UseExportProvider, WorkItem(24439, "https://github.com/dotnet/roslyn/issues/24439")]
         public async Task BaseActiveStatementsAndExceptionRegions2()
         {
             var baseSource =
@@ -460,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan} '{GetFirstLineText(v.NewSpan, updatedText)}'"));
         }
 
-        [Fact]
+        [Fact, UseExportProvider]
         public async Task BaseActiveStatementsAndExceptionRegions_WithInitialNonRemappableRegions()
         {
             var markedSourceV1 =
@@ -649,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, activeStatementsInUpdatedMethods.Select(v => $"thread={v.ThreadId} {v.OldInstructionId.GetDebuggerDisplay()}: {v.NewSpan} '{GetFirstLineText(v.NewSpan, sourceTextV3)}'"));
         }
 
-        [Fact]
+        [Fact, UseExportProvider]
         public async Task BaseActiveStatementsAndExceptionRegions_Recursion()
         {
             var markedSource = new[]
@@ -730,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             }, baseExceptionRegions.Select(r => "[" + string.Join(",", r.Spans) + "]"));
         }
 
-        [Fact, WorkItem(24320, "https://github.com/dotnet/roslyn/issues/24320")]
+        [Fact, UseExportProvider, WorkItem(24320, "https://github.com/dotnet/roslyn/issues/24320")]
         public async Task BaseActiveStatementsAndExceptionRegions_LinkedDocuments()
         {
             var markedSource = new[]

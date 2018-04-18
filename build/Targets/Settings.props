@@ -62,12 +62,6 @@
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)</IntermediateOutputPath>
     <ArtifactsSymStoreDirectory Condition="'$(DeveloperBuild)' != 'true' and '$(OS)' == 'Windows_NT'">$(BaseOutputPath)$(Configuration)\SymStore\</ArtifactsSymStoreDirectory>
 
-    <ToolsetPackagesSemaphore>$(ToolsetPackagesDir)toolsetpackages.semaphore</ToolsetPackagesSemaphore>
-    <ToolsetCompilerPackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">Microsoft.NETCore.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPackageVersion Condition="'$(MSBuildRuntimeType)' != 'Core'">$(MicrosoftNetCompilersVersion)</ToolsetCompilerPackageVersion>
-    <ToolsetCompilerPackageVersion Condition="'$(MSBuildRuntimeType)' == 'Core'">$(MicrosoftNETCoreCompilersVersion)</ToolsetCompilerPackageVersion>
-    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)/$(ToolsetCompilerPackageName.ToLower())/$(ToolsetCompilerPackageVersion)/build/$(ToolsetCompilerPackageName).props</ToolsetCompilerPropsFilePath>
     <TargetFrameworkRootPath>$(NuGetPackageRoot)\roslyntools.referenceassemblies\$(RoslynToolsReferenceAssembliesVersion)\tools\framework</TargetFrameworkRootPath>
 
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
@@ -169,6 +163,25 @@
     <CustomAfterMicrosoftCommonTargets>$(MSBuildThisFileDirectory)\AfterCommonTargets.targets</CustomAfterMicrosoftCommonTargets>
   </PropertyGroup>
 
+  <!-- Determine compiler toolset props file to use for this build -->
+  <PropertyGroup>
+    <_PackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</_PackageName>
+    <_PackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">Microsoft.NETCore.Compilers</_PackageName>
+    <_PackageVersion Condition="'$(MSBuildRuntimeType)' != 'Core' AND '$(BootstrapBuildPath)' == ''">$(MicrosoftNetCompilersVersion)</_PackageVersion>
+    <_PackageVersion Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(BootstrapBuildPath)' == ''">$(MicrosoftNETCoreCompilersVersion)</_PackageVersion>
+    <_PackageVersion Condition="'$(BootstrapBuildPath)' != ''">42.42.42.42</_PackageVersion>
+    <_PackageRoot>$(NuGetPackageRoot)</_PackageRoot>
+    <_PackageRoot Condition="'$(BootstrapBuildPath)' != ''">$(BootstrapBuildPath)</_PackageRoot>
+    <RoslynToolsetDirectory>$(_PackageRoot)\$(_PackageName.ToLower())\$(_PackageVersion)</RoslynToolsetDirectory>
+    <RoslynToolsetPropsFilePath>$(RoslynToolsetDirectory)\build\$(_PackageName).props</RoslynToolsetPropsFilePath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+    <SkipApplyOptimizations>true</SkipApplyOptimizations>
+    <RoslynPortableTargetFrameworks46>netcoreapp2.0</RoslynPortableTargetFrameworks46>
+    <RoslynPortableTargetFrameworks>netcoreapp2.0</RoslynPortableTargetFrameworks>
+  </PropertyGroup>
+
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
 
@@ -189,24 +202,10 @@
     <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
-    <CSharpCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
-    <VisualBasicCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
-  </PropertyGroup>
+  <Import Project="$(RoslynToolsetPropsFilePath)" Condition="Exists('$(RoslynToolsetPropsFilePath)')" />
 
-  <!-- During bootstrap builds it's important to load our bootstrap tasks before doing any
-       other imports (which could load a same named DLL) -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc"
-             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
-             Condition="'$(BootstrapBuildPath)' != ''" />
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc"
-             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
-             Condition="'$(BootstrapBuildPath)' != ''" />
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
-             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
-             Condition="'$(BootstrapBuildPath)' != ''" />
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.CopyRefAssembly"
-             AssemblyFile="$(BootstrapBuildPath)\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             AssemblyFile="$(RoslynToolsetDirectory)\tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
   <UsingTask TaskName="Roslyn.MSBuild.Util.FindNuGetAssetsForVsix"
              AssemblyFile="$(NuGetPackageRoot)\Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"
@@ -222,8 +221,6 @@
       Project="$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props"
       Condition="Exists('$(NuGetPackageRoot)\Microsoft.VSSDK.BuildTools\$(VisualStudioBuildToolsVersion)\build\Microsoft.VsSDK.BuildTools.props')" />
   </ImportGroup>
-
-  <Import Project="$(ToolsetCompilerPropsFilePath)" Condition="Exists('$(ToolsetCompilerPropsFilePath)') AND '$(BootstrapBuildPath)' == ''"  />
 
   <!--
       When building WPF projects MSBuild will create a temporary project with an extension of

@@ -1985,6 +1985,36 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Indexer</target>
         <note />
       </trans-unit>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="translated">Nicht eindeutiger Aliastyp "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">
+        <source>Warning: Collection was modified during iteration.</source>
+        <target state="translated">Warnung: Die Sammlung wurde bei der Iteration geändert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
+        <source>Warning: Iteration variable crossed function boundary.</source>
+        <target state="translated">Warnung: Die Iterationsvariable hat die Funktionsgrenze überschritten.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
+        <source>Warning: Collection may be modified during iteration.</source>
+        <target state="translated">Warnung: Die Sammlung wird bei der Iteration möglicherweise geändert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_readonly_modifier">
+        <source>Add readonly modifier</source>
+        <target state="translated">Modifizierer "readonly" hinzufügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_field_readonly">
+        <source>Make field readonly</source>
+        <target state="translated">Schreibschutz für Feld festlegen</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

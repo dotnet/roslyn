@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Notification
@@ -20,9 +21,11 @@ namespace Microsoft.CodeAnalysis.Notification
         private readonly SimpleTaskQueue _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
         private readonly EventMap _eventMap = new EventMap();
 
-        public GlobalOperationNotificationService()
+        private readonly IAsynchronousOperationListener _listener;
+
+        public GlobalOperationNotificationService(IAsynchronousOperationListener listener)
         {
-            // left  blank
+            _listener = listener;
         }
 
         public override GlobalOperationRegistration Start(string operation)
@@ -49,32 +52,38 @@ namespace Microsoft.CodeAnalysis.Notification
 
         protected virtual Task RaiseGlobalOperationStarted()
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
-            if (ev.HasHandlers)
+            using (_listener.BeginAsyncOperation("GlobalOperationStarted"))
             {
-                return _eventQueue.ScheduleTask(() =>
+                var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
+                if (ev.HasHandlers)
                 {
-                    ev.RaiseEvent(handler => handler(this, EventArgs.Empty));
-                });
-            }
+                    return _eventQueue.ScheduleTask(() =>
+                    {
+                        ev.RaiseEvent(handler => handler(this, EventArgs.Empty));
+                    });
+                }
 
-            return SpecializedTasks.EmptyTask;
+                return SpecializedTasks.EmptyTask;
+            }
         }
 
         protected virtual Task RaiseGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
         {
-            var ev = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
-            if (ev.HasHandlers)
+            using (_listener.BeginAsyncOperation("GlobalOperationStopped"))
             {
-                var args = new GlobalOperationEventArgs(operations, cancelled);
-
-                return _eventQueue.ScheduleTask(() =>
+                var ev = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
+                if (ev.HasHandlers)
                 {
-                    ev.RaiseEvent(handler => handler(this, args));
-                });
-            }
+                    var args = new GlobalOperationEventArgs(operations, cancelled);
 
-            return SpecializedTasks.EmptyTask;
+                    return _eventQueue.ScheduleTask(() =>
+                    {
+                        ev.RaiseEvent(handler => handler(this, args));
+                    });
+                }
+
+                return SpecializedTasks.EmptyTask;
+            }
         }
 
         public override event EventHandler Started

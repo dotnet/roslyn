@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Services;
 using Microsoft.CodeAnalysis.Remote.Storage;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
@@ -87,34 +86,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return _host;
-            }, cancellationToken);
-        }
-
-        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(async token =>
-            {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, token))
-                {
-                    var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, token).ConfigureAwait(false);
-                }
-            }, cancellationToken);
-        }
-
-        public Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(async token =>
-            {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, token))
-                {
-                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, token).ConfigureAwait(false);
-
-                    foreach (var asset in assets)
-                    {
-                        AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
-                    }
-                }
             }, cancellationToken);
         }
 
@@ -223,7 +194,8 @@ namespace Microsoft.CodeAnalysis.Remote
             var diagnosticAnalyzerPerformanceTracker = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
             if (diagnosticAnalyzerPerformanceTracker != null)
             {
-                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, s_reportInterval, ShutdownCancellationToken);
+                var globalOperationNotificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>();
+                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, s_reportInterval, ShutdownCancellationToken);
             }
         }
 
@@ -262,15 +234,14 @@ namespace Microsoft.CodeAnalysis.Remote
             return session;
         }
 
-        private static RemotePersistentStorageLocationService GetPersistentStorageService()
+        private RemotePersistentStorageLocationService GetPersistentStorageService()
         {
             return (RemotePersistentStorageLocationService)SolutionService.PrimaryWorkspace.Services.GetService<IPersistentStorageLocationService>();
         }
 
         private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()
         {
-            var workspace = SolutionService.PrimaryWorkspace;
-            var notificationService = workspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
+            var notificationService = SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>() as RemoteGlobalOperationNotificationService;
             return notificationService;
         }
 
@@ -284,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Set LoadLibrary search directory to %VSINSTALLDIR%\Common7\IDE so that the compiler
                 // can P/Invoke to Microsoft.DiaSymReader.Native when emitting Windows PDBs.
                 //
-                // The AppDomain base directory is specified in VisualStudio\Setup.Next\codeAnalysisService.servicehub.service.json
+                // The AppDomain base directory is specified in VisualStudio\Setup\codeAnalysisService.servicehub.service.json
                 // to be the directory where devenv.exe is -- which is exactly the directory we need to add to the search paths:
                 //
                 //   "appBasePath": "%VSAPPIDDIR%"
@@ -305,6 +276,34 @@ namespace Microsoft.CodeAnalysis.Remote
                     Environment.SetEnvironmentVariable("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", loadDir);
                 }
             }
+        }
+
+        public Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async token =>
+            {
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, token))
+                {
+                    var solutionController = (ISolutionController)RoslynServices.SolutionService;
+                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, token).ConfigureAwait(false);
+                }
+            }, cancellationToken);
+        }
+
+        public Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async token =>
+            {
+                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, token))
+                {
+                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, token).ConfigureAwait(false);
+
+                    foreach (var asset in assets)
+                    {
+                        AssetStorage.TryAddGlobalAsset(asset.Item1, asset.Item2);
+                    }
+                }
+            }, cancellationToken);
         }
     }
 }

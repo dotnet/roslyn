@@ -1098,11 +1098,6 @@ Dodatkowe informacje: {1}</target>
         <target state="translated">Zarządzaj specyfikacjami</target>
         <note />
       </trans-unit>
-      <trans-unit id="Manage_styles">
-        <source>Manage styles</source>
-        <target state="translated">Zarządzaj stylami</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reorder">
         <source>Reorder</source>
         <target state="translated">Zmień kolejność</target>
@@ -1493,14 +1488,39 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
         <target state="translated">Ustawienia skonfigurowane w tym miejscu mają zastosowanie tylko do Twojej maszyny. Aby skonfigurować te ustawienia tak, aby były przenoszone z Twoim rozwiązaniem, użyj plików .editorconfig.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sync_Class_View">
-        <source>Sync Class View</source>
-        <target state="new">Sync Class View</target>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="translated">Preferencje pola:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="translated">Preferuj tylko do odczytu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">Analizowanie elementu „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="new">Manage naming styles</target>
         <note />
       </trans-unit>
       <trans-unit id="CantApplyChangesUnexpectedError">
         <source>Can't apply changes -- unexpected error: '{0}'</source>
         <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="new">Sync Class View</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="new">Live code analysis</target>
         <note />
       </trans-unit>
     </body>
