@@ -25,12 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         /// </summary>
         private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
 
+        private readonly Workspace _workspace;
         private readonly ICodingConventionsManager _codingConventionsManager;
         private readonly IErrorLoggerService _errorLogger;
 
-        internal EditorConfigDocumentOptionsProvider(Workspace workspace)
+        internal EditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager)
         {
-            _codingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager();
+            _workspace = workspace;
+
+            _codingConventionsManager = codingConventionsManager;
             _errorLogger = workspace.Services.GetService<IErrorLoggerService>();
 
             workspace.DocumentOpened += Workspace_DocumentOpened;
@@ -47,7 +50,13 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                     // Ensure we dispose the context, which we'll do asynchronously
                     contextTask.ContinueWith(
-                        t => t.Result.Dispose(),
+                        t =>
+                        {
+                            var context = t.Result;
+
+                            context.CodingConventionsChangedAsync -= OnCodingConventionsChangedAsync;
+                            context.Dispose();
+                        },
                         CancellationToken.None,
                         TaskContinuationOptions.OnlyOnRanToCompletion,
                         TaskScheduler.Default);
@@ -119,8 +128,24 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         private Task<ICodingConventionContext> GetConventionContextAsync(string path, CancellationToken cancellationToken)
         {
             return IOUtilities.PerformIOAsync(
-                () => _codingConventionsManager.GetConventionContextAsync(path, cancellationToken),
+                async () =>
+                {
+                    var context = await _codingConventionsManager.GetConventionContextAsync(path, cancellationToken).ConfigureAwait(false);
+                    context.CodingConventionsChangedAsync += OnCodingConventionsChangedAsync;
+
+                    return context;
+                },
                 defaultValue: EmptyCodingConventionContext.Instance);
+        }
+
+        private Task OnCodingConventionsChangedAsync(object sender, CodingConventionsChangedEventArgs arg)
+        {
+            // this is a temporary workaround. once we finish the work to put editorconfig file as a part of roslyn solution snapshot,
+            // that system will automatically pick up option changes and update snapshot. but until then, we need to explicitly
+            // touch workspace to update snapshot
+            _workspace.OnOptionChanged();
+
+            return Task.CompletedTask;
         }
     }
 }

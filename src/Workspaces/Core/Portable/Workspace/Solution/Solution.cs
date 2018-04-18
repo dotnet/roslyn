@@ -1051,5 +1051,17 @@ namespace Microsoft.CodeAnalysis
                 return this.Workspace.Options;
             }
         }
+
+        /// <summary>
+        /// Update current solution as a result of option changes.
+        /// 
+        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
+        /// until then, this will explicitly fork current solution snapshot
+        /// </summary>
+        internal Solution WithOptionChanged()
+        {
+            // just create new snapshot
+            return new Solution(_state);
+        }
     }
 }
