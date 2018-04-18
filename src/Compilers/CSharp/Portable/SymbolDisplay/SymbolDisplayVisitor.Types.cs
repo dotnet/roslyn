@@ -318,12 +318,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If top level tuple uses non-default names, there is no way to preserve them
                 // unless we use tuple syntax for the type. So, we give them priority.
-                if (HasNonDefaultTupleElements(symbol) || CanUseTupleTypeName(symbol))
+                if (!format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseLongHandValueTuple))
                 {
-                    AddTupleTypeName(symbol);
-                    return;
+                    if (HasNonDefaultTupleElements(symbol) || CanUseTupleTypeName(symbol))
+                    {
+                        AddTupleTypeName(symbol);
+                        return;
+                    }
                 }
-
                 // Fall back to displaying the underlying type.
                 symbol = symbol.TupleUnderlyingType;
             }

@@ -61,5 +61,10 @@ namespace Microsoft.CodeAnalysis
         /// PROTOTYPE(NullableReferenceTypes): review design for this option before shipping. See https://github.com/dotnet/roslyn/issues/26198
         /// </summary>
         IncludeNullableTypeModifier = 1 << 7,
+
+        /// <summary>
+        /// Display `System.ValueTuple` instead of tuple syntax `(...)`.
+        /// </summary>
+        UseLongHandValueTuple = 1 << 8,
     }
 }

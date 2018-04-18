@@ -62,16 +62,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (extraAnnotations.IsDefaultOrEmpty)
             {
-                if (!extraAnnotations.IsDefault)
-                {
-                    ExtraAnnotations.AssertTypeNeedsNoAnnotation(metadataType.TypeSymbol);
-                }
+                // If the annotation is empty, then we must have a value type
+                Debug.Assert(!metadataType.TypeSymbol.IsValueType || !extraAnnotations.IsDefault);
+
                 return NullableTypeDecoder.TransformOrEraseNullability(metadataType, targetSymbolToken, containingModule);
             }
             else
             {
                 // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
-                return  NullableTypeDecoder.TransformType(metadataType, extraAnnotations);
+                return NullableTypeDecoder.TransformType(metadataType, extraAnnotations);
             }
         }
     }

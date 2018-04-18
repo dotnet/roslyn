@@ -87,12 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static void Add(TypeSymbol type, StringBuilder builder)
             => builder.Append(
                 type.ToDisplayString(
-                    SymbolDisplayFormat.CSharpErrorMessageFormat.RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
-
-        [Conditional("DEBUG")]
-        internal static void AssertTypeNeedsNoAnnotation(TypeSymbol typeSymbol)
-        {
-            Debug.Assert(!typeSymbol.IsValueType);
-        }
+                    SymbolDisplayFormat.CSharpErrorMessageFormat
+                        .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+                        // displaying tuple syntax causes to load the members of ValueTuple, which can cause a cycle, so we use long-hand format instead
+                        .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier | SymbolDisplayCompilerInternalOptions.UseLongHandValueTuple)));
     }
 }
