@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -13,11 +12,13 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
+    <[UseExportProvider]>
     Public Class SmartIndenterTests
         Private Shared s_htmlMarkup As String = <text>
 &lt;html&gt;
@@ -2952,7 +2953,7 @@ End Class
                             Return p
                         End Function)
 
-                WpfTestCase.RequireWpfFact("Test helper creates mocks of ITextView")
+                WpfTestRunner.RequireWpfFact($"Test helper creates mocks of {NameOf(ITextView)}")
 
                 Dim textView = New Mock(Of ITextView)(MockBehavior.Strict)
                 textView.Setup(Function(x) x.Options).Returns(TestEditorOptions.Instance)

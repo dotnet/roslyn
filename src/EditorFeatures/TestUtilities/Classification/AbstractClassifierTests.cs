@@ -11,12 +11,14 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 {
+    [UseExportProvider]
     public abstract class AbstractClassifierTests
     {
         protected AbstractClassifierTests() { }

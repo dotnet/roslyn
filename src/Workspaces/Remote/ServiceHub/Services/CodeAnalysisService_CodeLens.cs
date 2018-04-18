@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class CodeAnalysisService
+    internal partial class CodeAnalysisService : IRemoteCodeLensReferencesService
     {
         public Task<ReferenceCount> GetReferenceCountAsync(DocumentId documentId, TextSpan textSpan, int maxResultCount, CancellationToken cancellationToken)
         {

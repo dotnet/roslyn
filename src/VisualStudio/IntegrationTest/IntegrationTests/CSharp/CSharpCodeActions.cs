@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -22,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact(Skip="https://github.com/dotnet/roslyn/issues/26204"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WpfFact(Skip="https://github.com/dotnet/roslyn/issues/26204"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public void GenerateMethodInClosedFile()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -60,7 +61,7 @@ public class Foo
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public void FastDoubleInvoke()
         {
             // We want to invoke the first smart tag and then *immediately * try invoking the next.
@@ -95,7 +96,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
         public void InvokeDelegateWithConditionalAccessMultipleTimes()
         {
             var markup = @"
@@ -134,7 +135,7 @@ class C
             VisualStudio.Editor.Verify.TextContains("Second?.");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public void ClassificationInPreviewPane()
         {
             SetUpEditor(@"
@@ -150,7 +151,7 @@ class Program
             Assert.True(classifiedTokens.Any(c => c.Text == "void" && c.Classification == "keyword"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public void AddUsingExactMatchBeforeRenameTracking()
         {
             SetUpEditor(@"
@@ -184,7 +185,7 @@ public class P2 { }");
             VisualStudio.Editor.Verify.TextContains("using System.IO;");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public void GFUFuzzyMatchAfterRenameTracking()
         {
             SetUpEditor(@"
@@ -223,7 +224,7 @@ namespace NS
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public void SuppressionAfterRefactorings()
         {
             SetUpEditor(@"
@@ -257,7 +258,7 @@ class Program
             VisualStudio.Editor.Verify.TextContains("implicit");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public void OrderFixesByCursorProximityLeft()
         {
             SetUpEditor(@"
@@ -281,7 +282,7 @@ public class Program
             VisualStudio.Editor.Verify.TextContains("using System.Runtime.InteropServices");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public void OrderFixesByCursorProximityRight()
         {
             SetUpEditor(@"

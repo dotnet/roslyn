@@ -108,8 +108,7 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly VsixesToInstall As String() = {
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
-        "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
-        "Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix"
+        "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix"
     }
 
     ' Files copied to Maddog machines running integration tests that are produced from our builds.
@@ -144,7 +143,6 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.LanguageServices.dll",
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Roslyn.Compilers.Test.Resources.dll",
         "Roslyn.Hosting.Diagnostics.dll",
         "Roslyn.Test.PdbUtilities.dll"
@@ -289,7 +287,6 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
         "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Moq.dll",
         "csc.exe",
         "csc.exe.config",
@@ -498,8 +495,8 @@ Public Class BuildDevDivInsertionFiles
         Dim result = New Dictionary(Of String, DependencyInfo)
         Dim objDir = Path.Combine(Path.GetDirectoryName(_binDirectory.TrimEnd(Path.DirectorySeparatorChar)), "Obj")
         Dim files = New List(Of String)
-        files.Add(Path.Combine(objDir, "DevDivPackagesRoslyn\project.assets.json"))
-        files.Add(Path.Combine(objDir, "DevDivPackagesDebugger\project.assets.json"))
+        files.Add(Path.Combine(objDir, "CompilerExtension\project.assets.json"))
+        files.Add(Path.Combine(objDir, "VisualStudioSetup.Dependencies\project.assets.json"))
 
         For Each projectLockJson In files
             Dim items = JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson))
@@ -516,6 +513,10 @@ Public Class BuildDevDivInsertionFiles
                 Dim packageVersion = packageNameAndVersion(1)
                 Dim packageObj = DirectCast(targetProperty.Value, JObject)
 
+                If packageObj.Property("type").Value.Value(Of String) = "project" Then
+                    Continue For
+                End If
+
                 Dim contracts = DirectCast(packageObj.Property("compile")?.Value, JObject)
                 Dim runtime = DirectCast(packageObj.Property("runtime")?.Value, JObject)
                 Dim native = DirectCast(packageObj.Property("native")?.Value, JObject)
@@ -523,6 +524,14 @@ Public Class BuildDevDivInsertionFiles
 
                 Dim implementations = If(runtime, native)
                 If implementations Is Nothing Then
+                    Continue For
+                End If
+
+                ' No need to insert Visual Studio packages back into the repository itself
+                If packageName.StartsWith("Microsoft.VisualStudio.") OrElse
+                   packageName = "EnvDTE" OrElse
+                   packageName = "stdole" OrElse
+                   packageName.StartsWith("Microsoft.Build") Then
                     Continue For
                 End If
 
@@ -542,7 +551,7 @@ Public Class BuildDevDivInsertionFiles
 
                         Dim runtimeTarget = Path.GetDirectoryName(assemblyProperty.Name)
 
-                        Dim compileDll = contracts?.Properties().Select(Function(p) p.Name).Where(Function(n) Path.GetFileName(n) = fileName).Single()
+                        Dim compileDll = contracts?.Properties().Select(Function(p) p.Name).Where(Function(n) Path.GetFileName(n) = fileName).SingleOrDefault()
                         Dim compileTarget = If(compileDll IsNot Nothing, Path.GetDirectoryName(compileDll), Nothing)
 
                         result.Add(fileName, New DependencyInfo(compileTarget,
@@ -550,7 +559,7 @@ Public Class BuildDevDivInsertionFiles
                                                                 packageName,
                                                                 packageVersion,
                                                                 isNative:=native IsNot Nothing,
-                                                                isFacade:=frameworkAssemblies IsNot Nothing OrElse packageName = "System.IO.Pipes.AccessControl"))
+                                                                isFacade:=frameworkAssemblies IsNot Nothing AndAlso packageName <> "Microsoft.Build" OrElse packageName = "System.IO.Pipes.AccessControl"))
                     End If
                 Next
             Next
@@ -807,6 +816,7 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\csi\net46\csi.rsp")
         add("Exes\csi\net46\csi.exe.config")
         add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")
+        add("Vsix\VisualStudioSetup\Microsoft.CodeAnalysis.Elfie.dll")
         add("Vsix\VisualStudioSetup\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Convention.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Hosting.dll")
@@ -840,7 +850,6 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.dll")
         add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Native.amd64.dll")
         add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Native.x86.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll")
         add("Vsix\ExpressionEvaluatorPackage\Microsoft.VisualStudio.Debugger.Engine.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
         add("Exes\Toolset\System.AppContext.dll")

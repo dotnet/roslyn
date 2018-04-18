@@ -63,21 +63,38 @@ if (branchName.startsWith("features/")) {
 commitPullList.each { isPr ->
   ['debug', 'release'].each { configuration ->
         ['unit32', 'unit64'].each { buildTarget ->
-      def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
-            def myJob = job(jobName) {
-        description("Windows ${configuration} tests on ${buildTarget}")
+        def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
+        def myJob = job(jobName) {
+            description("Windows ${configuration} tests on ${buildTarget}")
                   steps {
                     batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} ${(buildTarget == 'unit32') ? '-test32' : '-test64'} -testDesktop""")
                   }
-                }
+        }
 
-      def triggerPhraseOnly = false
-      def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
-      Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
-      addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+        def triggerPhraseOnly = false
+        def triggerPhraseExtra = ""
+        Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
+        Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+        addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
   }
+}
+
+// Windows Spanish image
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "windows_debug_spanish_unit32", isPr)
+  def myJob = job(jobName) {
+    description("Windows debug unit tests on unit32 using Spanish language")
+          steps {
+            batchFile(""".\\build\\scripts\\cibuild.cmd -debug -test32 -testDesktop""")
+          }
+  }
+
+  def triggerPhraseOnly = false
+  def triggerPhraseExtra = ""
+  Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS3.ES.Open')
+  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
 // Windows CoreCLR
@@ -222,13 +239,13 @@ commitPullList.each { isPr ->
       def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
         steps {
-          batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testVsi""")
+          batchFile(""".\\build\\scripts\\cibuild.cmd -${configuration} -testVsi""")
         }
       }
 
       def triggerPhraseOnly = false
       def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-dev15-3')
+      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS3.DevEx.Open')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }

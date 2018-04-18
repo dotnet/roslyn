@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -364,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public async Task TestFieldUseInRefArgument1()
+        public async Task TestNotIfFieldUsedInRefArgument1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Class
@@ -387,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public async Task TestFieldUseInRefArgument2()
+        public async Task TestNotIfFieldUsedInRefArgument2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Class
@@ -410,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public async Task TestFieldUseInOutArgument()
+        public async Task TestNotIfFieldUsedInOutArgument()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Class
@@ -425,9 +426,120 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
     }
 
-    void M(out x)
+    void M(out int x)
     {
         M(out i);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestNotIfFieldUsedInInArgument()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    void M(in int x)
+    {
+        M(in i);
+    }
+}");
+        }
+
+        [WorkItem(25429, "https://github.com/dotnet/roslyn/issues/25429")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestNotIfFieldUsedInRefExpression()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    void M()
+    {
+        ref int x = ref i;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestNotIfFieldUsedInRefExpression_AsCandidateSymbol()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    void M()
+    {
+        // because we refer to 'i' statically, it only gets resolved as a candidate symbol
+        // let's be conservative here and disable the analyzer if we're not sure
+        ref int x = ref Class.i;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestIfUnrelatedSymbolUsedInRefExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|int i|];
+    int j;
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    void M()
+    {
+        int i;
+        ref int x = ref i;
+        ref int y = ref j;
+    }
+}",
+@"class Class
+{
+    int j;
+
+    int P { get; }
+
+    void M()
+    {
+        int i;
+        ref int x = ref i;
+        ref int y = ref j;
     }
 }");
         }
@@ -457,6 +569,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 @"class Class
 {
     [|const int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}");
+        }
+
+        [WorkItem(25379, "https://github.com/dotnet/roslyn/issues/25379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestNotWithVolatileField()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|volatile int i|];
 
     int P
     {

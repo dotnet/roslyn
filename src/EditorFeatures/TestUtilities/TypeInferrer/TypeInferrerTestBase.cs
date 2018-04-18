@@ -4,12 +4,14 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
 {
+    [UseExportProvider]
     public abstract class TypeInferrerTestBase<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>, IDisposable
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
 
         public override void Dispose()
         {
-            this.fixture.CloseTextView();
+            this.fixture.DisposeAfterTest();
             base.Dispose();
         }
 
