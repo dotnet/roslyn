@@ -54,8 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol _currentMethodOrLambda;
 
-        private readonly bool _includeNonNullableWarnings;
-
         /// <summary>
         /// Instances being constructed.
         /// </summary>
@@ -72,14 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             MethodSymbol member,
             BoundNode node,
-            Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt,
-            bool includeNonNullableWarnings)
+            Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
             : base(compilation, member, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: false)
         {
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this._currentMethodOrLambda = member;
             _callbackOpt = callbackOpt;
-            _includeNonNullableWarnings = includeNonNullableWarnings;
             // PROTOTYPE(NullableReferenceTypes): Do we really need a Binder?
             // If so, are we interested in an InMethodBinder specifically?
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
@@ -123,8 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 member,
                 node,
-                callbackOpt,
-                includeNonNullableWarnings: (flags & NullableReferenceFlags.AllowNullAsNonNull) == 0);
+                callbackOpt);
 
             try
             {
@@ -3256,10 +3251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            if (_includeNonNullableWarnings)
-            {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullAsNonNullable, value.Syntax);
-            }
+            ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullAsNonNullable, value.Syntax);
             return true;
         }
 
