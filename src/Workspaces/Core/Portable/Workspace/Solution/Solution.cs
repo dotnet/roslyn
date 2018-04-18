@@ -1060,7 +1060,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Solution WithOptionChanged()
         {
-            // just create new snapshot
+            // options are associated with solution snapshot. creating new snapshot
+            // will cause us to retrieve new options
             return new Solution(_state);
         }
     }
