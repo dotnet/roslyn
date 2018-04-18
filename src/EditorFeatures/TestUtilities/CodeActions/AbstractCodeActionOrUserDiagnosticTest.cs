@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -408,7 +407,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return Tuple.Create(oldSolution, newSolution);
             }
 
-
             var document = GetDocumentToVerify(expectedChangedDocumentId, oldSolution, newSolution);
 
             var fixedRoot = await document.GetSyntaxRootAsync();
@@ -451,7 +449,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 {
                     // pick a random document if no document changed
                     document = projectDifferences.NewProject.Documents.FirstOrDefault();
-                    VerifyNoDocumentChangesWhenUpgradeProject(projectDifferences, document);
                 }
                 else
                 {
@@ -465,20 +462,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
             return document;
-        }
-
-        private static void VerifyNoDocumentChangesWhenUpgradeProject(ProjectChanges projectDifferences, Document newDoc)
-        {
-            var newDocState = newDoc.State as DocumentState;
-            if (newDocState.ParseOptions is CSharpParseOptions)
-            {
-                var newParseOptions = newDocState.ParseOptions as CSharpParseOptions;
-                var oldParseOptions = (projectDifferences.OldProject.GetDocument(newDocState.Id).State as DocumentState).ParseOptions as CSharpParseOptions;
-                if (newParseOptions.LanguageVersion != oldParseOptions.LanguageVersion)
-                {
-                    Assert.Equal(0, projectDifferences.GetChangedDocuments().Count());
-                }
-            }
         }
 
         private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution)

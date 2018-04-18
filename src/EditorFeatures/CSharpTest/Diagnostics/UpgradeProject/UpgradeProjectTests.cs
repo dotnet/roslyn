@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UpgradeProject;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
@@ -34,6 +35,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
                 var newSolution = appliedChanges.Item2;
                 Assert.All(newSolution.Projects.Where(p => p.Language == LanguageNames.CSharp),
                     p => Assert.Equal(expected, ((CSharpParseOptions)p.ParseOptions).SpecifiedLanguageVersion));
+
+                // Verify no document changes when upgrade project
+                var changedDocs = SolutionUtilities.GetChangedDocuments(oldSolution, newSolution);
+                Assert.Equal(0, changedDocs.Count());
             }
 
             await TestAsync(initialMarkup, initialMarkup, parseOptions); // no change to markup
@@ -234,7 +239,7 @@ class Program
                 LanguageVersion.CSharp7_3,
                 new CSharpParseOptions(LanguageVersion.CSharp7_2));
         }
-        
+
         [Fact]
         public async Task UpgradeProjectFromCSharp7_2To7_3_DelegateConstraint()
         {

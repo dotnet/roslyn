@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return oldState._treeSource.GetValue() == this._treeSource.GetValue();
+                return oldState._treeSource.GetValue().Version != this._treeSource.GetValue().Version;
             }
         }
 
