@@ -1,0 +1,19 @@
+use vs
+
+package name=Microsoft.VisualStudio.GettingStartedTemplates.Web.Setup
+        version=$(Version)
+
+vs.localizedResources
+  vs.localizedResource language=en-us
+                       title="Get Started Web App"
+                       description="Template to create an app that can be accessed through any web browser."
+
+folder "InstallDir:Common7\IDE\NewFileItems"
+  file source="$(MSBuildProjectDirectory)\..\..\Templates\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.vstemplate"
+  file source="$(MSBuildProjectDirectory)\..\..\Templates\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\EditorconfigIcon.png"
+folder "InstallDir:Common7\IDE\ItemTemplates\CSharp\General\EditorConfig"
+  file source="$(MSBuildProjectDirectory)\..\..\Templates\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.vstemplate"
+  file source="$(MSBuildProjectDirectory)\..\..\Templates\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\EditorconfigIcon.png"
+folder "InstallDir:Common7\IDE\ItemTemplates\CSharp\\VisualBasic\EditorConfig"
+  file source="$(MSBuildProjectDirectory)\..\..\Templates\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.vstemplate"
+  file source="$(MSBuildProjectDirectory)\..\..\Templates\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\EditorconfigIcon.png"
