@@ -116,6 +116,7 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
     "Microsoft.CodeAnalysis.Workspaces.Common",
+    "Microsoft.CodeAnalysis.Workspaces.MSBuild",
     "Microsoft.VisualStudio.LanguageServices",
 };
 
@@ -161,10 +162,7 @@ var PreReleaseOnlyPackages = new HashSet<string>
     
     // C# Interactive on CoreCLR is pre-release
     "Microsoft.Net.CSharp.Interactive.netcore",
-    
-    // Pre-release package, API and structure not finalized
-    "Microsoft.NETCore.Compilers",
-    
+
     "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
@@ -191,6 +189,7 @@ var PackagesNotBuiltOnCore = new HashSet<string>
      "Microsoft.CodeAnalysis.Remote.Workspaces",
      "Microsoft.CodeAnalysis.VisualBasic.Features",
      "Microsoft.CodeAnalysis.Workspaces.Common",
+     "Microsoft.CodeAnalysis.Workspaces.MSBuild",
      "Microsoft.Net.Compilers",
      "Microsoft.VisualStudio.IntegrationTest.Utilities",
      "Microsoft.VisualStudio.LanguageServices",

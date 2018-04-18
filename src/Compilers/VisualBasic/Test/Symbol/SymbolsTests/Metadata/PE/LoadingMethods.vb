@@ -914,7 +914,7 @@ End Class
 </compilation>
 
             Dim longFormRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.LongTypeFormInSignature.AsImmutableOrNull())
-            Dim c = CreateCompilationWithMscorlibAndReferences(source, {longFormRef})
+            Dim c = CreateCompilationWithMscorlib40AndReferences(source, {longFormRef})
             c.AssertTheseDiagnostics(<![CDATA[
 BC30657: 'RT' has a return type that is not supported or parameter types that are not supported.
         Dim s As String = C.RT()
@@ -945,7 +945,7 @@ End Class
 
             Dim references = {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.PublicAndPrivateFlags)}
 
-            Dim comp = CreateCompilationWithMscorlib(source, references:=references)
+            Dim comp = CreateCompilationWithMscorlib40(source, references:=references)
             comp.AssertTheseDiagnostics(
                 <expected><![CDATA[
 BC30390: 'C.Private Overloads Sub M()' is not accessible in this context because it is 'Private'.

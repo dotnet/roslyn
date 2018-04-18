@@ -129,7 +129,7 @@ End Class
             v.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_M" name="MoveNext">
@@ -206,12 +206,12 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             compilation.VerifyPdb("Module1.F",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="F" parameterNames="a">
@@ -225,7 +225,7 @@ End Module
             compilation.VerifyPdb("Module1+VB$StateMachine_1_F.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_1_F" name="MoveNext">
@@ -266,7 +266,7 @@ End Module
             compilation.VerifyPdb("Module1.Test",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="Test">
@@ -280,7 +280,7 @@ End Module
             compilation.VerifyPdb("Module1+VB$StateMachine_2_Test.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_2_Test" name="MoveNext">
@@ -343,7 +343,7 @@ End Module
             compilation.VerifyPdb("Module1.S",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1" name="S">
@@ -357,7 +357,7 @@ End Module
             compilation.VerifyPdb("Module1+VB$StateMachine_3_S.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="Module1+VB$StateMachine_3_S" name="MoveNext">
@@ -418,7 +418,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.DebugDll)
@@ -427,7 +427,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
@@ -499,7 +499,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.ReleaseDll)
@@ -508,7 +508,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
@@ -567,7 +567,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.DebugDll)
@@ -576,7 +576,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_NoLambda" name="MoveNext">
@@ -646,7 +646,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.ReleaseDll)
@@ -655,7 +655,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_NoLambda" name="MoveNext">
@@ -713,14 +713,14 @@ End Class
     </file>
 </compilation>
 
-            Dim c = CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim c = CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             c.AssertNoErrors()
 
             ' NOTE: No <local> for the return variable "M".
             c.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_M" name="MoveNext">
@@ -908,12 +908,12 @@ Public Partial Class C
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CreateEmptyCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
             Dim v = CompileAndVerify(compilation)
             v.VerifyPdb("C.M", "
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""VB"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -982,7 +982,7 @@ End Class"
             v.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="test" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="test" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_M" name="MoveNext">

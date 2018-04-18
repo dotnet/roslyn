@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 
         <Fact>
         Public Sub MetadataNamespaceSymbol01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -60,7 +60,7 @@ End Class
         <WorkItem(530123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123")>
         <Fact>
         Public Sub MetadataTypeSymbolModule01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Module A
@@ -88,7 +88,7 @@ End Module
         <WorkItem(537324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537324")>
         <Fact>
         Public Sub MetadataTypeSymbolClass01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -142,7 +142,7 @@ End Class
 
         <Fact>
         Public Sub MetadataTypeSymbolGenClass02()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -197,7 +197,7 @@ End Class
 
         <Fact>
         Public Sub MetadataTypeSymbolGenInterface01()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -251,7 +251,7 @@ End Class
 
         <Fact>
         Public Sub MetadataTypeSymbolStruct01()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A
@@ -303,7 +303,7 @@ End Class
 
         <Fact>
         Public Sub MetadataArrayTypeSymbol01()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="MT">
     <file name="a.vb">
 Public Class A

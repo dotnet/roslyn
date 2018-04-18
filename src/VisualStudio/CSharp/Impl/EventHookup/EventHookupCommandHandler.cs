@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
@@ -30,13 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     /// Because we are explicitly asking the user to tab, so we should handle the tab command before
     /// Automatic Completion.
     /// </summary>
-    [ExportCommandHandler(PredefinedCommandHandlerNames.EventHookup, ContentTypeNames.CSharpContentType)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(PredefinedCommandHandlerNames.EventHookup)]
     [Order(Before = PredefinedCommandHandlerNames.AutomaticCompletion)]
     internal partial class EventHookupCommandHandler : ForegroundThreadAffinitizedObject
     {
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator _waitIndicator;
 
         internal readonly EventHookupSessionManager EventHookupSessionManager;
 
@@ -49,13 +51,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         [ImportingConstructor]
         public EventHookupCommandHandler(
             IInlineRenameService inlineRenameService,
-            Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator waitIndicator,
+#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
             IQuickInfoBroker quickInfoBroker,
+#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
             [Import(AllowDefault = true)] IHACK_EventHookupDismissalOnBufferChangePreventerService prematureDismissalPreventer,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _inlineRenameService = inlineRenameService;
-            _waitIndicator = waitIndicator;
             _prematureDismissalPreventer = prematureDismissalPreventer;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.EventHookup);
 

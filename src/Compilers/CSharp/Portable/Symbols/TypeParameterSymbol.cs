@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return true;
+                return !this.HasUnmanagedTypeConstraint;
             }
         }
 
@@ -495,6 +495,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool HasReferenceTypeConstraint { get; }
 
         public abstract bool HasValueTypeConstraint { get; }
+
+        public abstract bool HasUnmanagedTypeConstraint { get; }
 
         public abstract VarianceKind Variance { get; }
 

@@ -25,8 +25,9 @@ usage()
 root_path="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 binaries_path="${root_path}"/Binaries
 bootstrap_path="${binaries_path}"/Bootstrap
-bootstrap_framework=netcoreapp2.0
 
+args=
+build_in_docker=false
 build_configuration=Debug
 restore=false
 build=false
@@ -53,74 +54,99 @@ do
     opt="$(echo "$1" | awk '{print tolower($0)}')"
     case "$opt" in
         -h|--help)
-        usage
-        exit 1
-        ;;
+            usage
+            exit 1
+            ;;
+        --docker)
+            build_in_docker=true
+            shift
+            continue
+            ;;
         --debug)
-        build_configuration=Debug
-        shift 1
-        ;;
+            build_configuration=Debug
+            ;;
         --release)
-        build_configuration=Release
-        shift 1
-        ;;
+            build_configuration=Release
+            ;;
         --restore|-r)
-        restore=true
-        shift 1
-        ;;
+            restore=true
+            ;;
         --build|-b)
-        build=true
-        shift 1
-        ;;
+            build=true
+            ;;
         --test|-t)
-        test_=true
-        shift 1
-        ;;
+            test_=true
+            ;;
         --mono)
-        use_mono=true
-        shift 1
-        ;;
+            use_mono=true
+            ;;
         --build-bootstrap)
-        build_bootstrap=true
-        shift 1
-        ;;
+            build_bootstrap=true
+            ;;
         --use-bootstrap)
-        use_bootstrap=true
-        shift 1
-        ;;
+            use_bootstrap=true
+            ;;
         --bootstrap)
-        build_bootstrap=true
-        use_bootstrap=true
-        shift 1
-        ;;
+            build_bootstrap=true
+            use_bootstrap=true
+            ;;
         --stop-vbcscompiler)
-        stop_vbcscompiler=true
-        shift 1
-        ;;
+            stop_vbcscompiler=true
+            ;;
         *)
-        usage
-        exit 1
+            echo "$1"
+            usage
+            exit 1
         ;;
     esac
+    args="$args $1"
+    shift
 done
+
+config_path=${binaries_path}/${build_configuration}
+logs_path=${config_path}/Logs
+mkdir -p ${binaries_path}
+mkdir -p ${config_path}
+mkdir -p ${logs_path}
+
+if [[ "$build_in_docker" = true ]]
+then
+    echo "Docker exec: $args"
+    BUILD_COMMAND=/opt/code/build.sh "$root_path"/build/scripts/dockerrun.sh $args
+    exit
+fi
 
 source "${root_path}"/build/scripts/obtain_dotnet.sh
 
 if [[ "$restore" == true ]]
 then
-    "${root_path}"/build/scripts/restore.sh
+    echo "Restoring RoslynToolset.csproj"
+    dotnet restore "${root_path}/build/ToolsetPackages/RoslynToolset.csproj" /bl:${logs_path}/Restore-RoslynToolset.binlog
+    echo "Restoring Compilers.sln"
+    dotnet restore "${root_path}/Compilers.sln" /bl:${logs_path}/Restore-Compilers.binlog
 fi
 
-build_args="--no-restore -c ${build_configuration} /nologo /maxcpucount:1"
+build_args="--no-restore -c ${build_configuration} /nologo"
 
 if [[ "$build_bootstrap" == true ]]
 then
     echo "Building bootstrap toolset"
     bootstrap_build_args="${build_args} /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP"
-    dotnet publish "${root_path}"/src/Compilers/CSharp/csc -o "${bootstrap_path}/bincore" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BootstrapCsc.binlog"
-    dotnet publish "${root_path}"/src/Compilers/VisualBasic/vbc -o "${bootstrap_path}/bincore" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BootstrapVbc.binlog"
-    dotnet publish "${root_path}"/src/Compilers/Server/VBCSCompiler -o "${bootstrap_path}/bincore" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BootstrapVBCSCompiler.binlog"
-    dotnet publish "${root_path}"/src/Compilers/Core/MSBuildTask -o "${bootstrap_path}" ${bootstrap_build_args} "/bl:${binaries_path}/BoostrapMSBuildTask.binlog"
+    bootstrap_files=( 'src/Compilers/CSharp/csc/csc.csproj' 'src/Compilers/VisualBasic/vbc/vbc.csproj' 'src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj' 'src/Compilers/Core/MSBuildTask/MSBuildTask.csproj')
+    for bootstrap_file in "${bootstrap_files[@]}"
+    do
+        bootstrap_name=$(basename $bootstrap_file)
+        dotnet publish "${bootstrap_file}" --framework netcoreapp2.0 ${bootstrap_build_args} "/bl:${binaries_path}/${bootstrap_name}.binlog"
+    done
+
+    rm -rf ${bootstrap_path}
+    mkdir -p ${bootstrap_path} 
+    dotnet pack src/NuGet/Bootstrap.csproj /p:NuspecBasePath=${binaries_path}/Debug -o ${bootstrap_path}
+    mkdir -p ${bootstrap_path}/microsoft.netcore.compilers
+    unzip ${bootstrap_path}/Microsoft.NETCore.Compilers.42.42.42.42-bootstrap.nupkg -d ${bootstrap_path}/microsoft.netcore.compilers/42.42.42.42
+    chmod -R 755 ${bootstrap_path}/microsoft.netcore.compilers
+
+    dotnet clean Compilers.sln 
 fi
 
 if [[ "${use_bootstrap}" == true ]]
@@ -146,7 +172,7 @@ then
     if [[ "${use_bootstrap}" == true ]]
     then
         echo "Stopping VBCSCompiler"
-        dotnet "${bootstrap_path}"/bincore/VBCSCompiler.dll -shutdown
+        dotnet "${bootstrap_path}"/microsoft.netcore.compilers/42.42.42.42/tools/bincore/VBCSCompiler.dll -shutdown
     else
         echo "--stop-vbcscompiler requires --use-bootstrap. Aborting."
         exit 1

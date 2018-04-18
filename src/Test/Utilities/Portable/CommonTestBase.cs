@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Test.Utilities;
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected abstract CompilationOptions CompilationOptionsReleaseDll { get; }
 
-        internal CompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerifyCommon(
             string source,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             EmitOptions emitOptions = null,
             Verification verify = Verification.Passes)
         {
-            return CompileAndVerify(
+            return CompileAndVerifyCommon(
                 sources: new string[] { source },
                 additionalRefs: additionalRefs,
                 dependencies: dependencies,
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 verify: verify);
         }
 
-        internal CompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerifyCommon(
             IEnumerable<string> sources,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var compilation = GetCompilationForEmit(sources, additionalRefs, options, parseOptions);
 
-            return this.CompileAndVerify(
+            return this.CompileAndVerifyCommon(
                 compilation,
                 null,
                 dependencies,
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 verify);
         }
 
-        internal CompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerifyCommon(
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true)
         {
-            return CompileAndVerify(source, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
+            return CompileAndVerifyCommon(source, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
         }
 
         static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
@@ -499,6 +500,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 minorSubsystemVersion: 0,
                 linkerMajorVersion: 0,
                 linkerMinorVersion: 0);
+        }
+
+        internal void AssertDeclaresType(PEModuleSymbol peModule, WellKnownType type, Accessibility expectedAccessibility)
+        {
+            var name = MetadataTypeName.FromFullName(type.GetMetadataName());
+            Assert.Equal(expectedAccessibility, peModule.LookupTopLevelMetadataType(ref name).DeclaredAccessibility);
         }
 
         #endregion

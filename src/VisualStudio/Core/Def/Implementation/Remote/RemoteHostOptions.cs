@@ -53,6 +53,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(OOP64Bit)));
 
         public static readonly Option<bool> RemoteHostTest = new Option<bool>(nameof(InternalFeatureOnOffOptions), nameof(RemoteHostTest), defaultValue: false);
+
+        public static readonly Option<bool> EnableConnectionPool = new Option<bool>(
+            nameof(InternalFeatureOnOffOptions), nameof(EnableConnectionPool), defaultValue: true,
+            storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(EnableConnectionPool)));
+
+        /// <summary>
+        /// default 15 is chosen which is big enough but not too big for service hub to handle
+        /// </summary>
+        public static readonly Option<int> MaxPoolConnection = new Option<int>(
+            nameof(InternalFeatureOnOffOptions), nameof(MaxPoolConnection), defaultValue: 15,
+            storageLocations: new LocalUserProfileStorageLocation(InternalFeatureOnOffOptions.LocalRegistryPath + nameof(MaxPoolConnection)));
     }
 
     [ExportOptionProvider, Shared]
@@ -64,6 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             RemoteHostOptions.RequestServiceTimeoutInMS,
             RemoteHostOptions.RestartRemoteHostAllowed,
             RemoteHostOptions.OOP64Bit,
-            RemoteHostOptions.RemoteHostTest);
+            RemoteHostOptions.RemoteHostTest,
+            RemoteHostOptions.EnableConnectionPool,
+            RemoteHostOptions.MaxPoolConnection);
     }
 }

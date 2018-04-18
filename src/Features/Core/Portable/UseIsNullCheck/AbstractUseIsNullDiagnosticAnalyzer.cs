@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         : AbstractCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
     {
+
         protected AbstractUseIsNullCheckDiagnosticAnalyzer(LocalizableString title)
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
                    title,
@@ -27,7 +29,8 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             => false;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterCompilationStartAction(compilationContext => {
+            => context.RegisterCompilationStartAction(compilationContext =>
+            {
                 var objectType = compilationContext.Compilation.GetSpecialType(SpecialType.System_Object);
                 if (objectType != null)
                 {
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol referenceEqualsMethod)
         {
             var cancellationToken = context.CancellationToken;
-            
+
             var semanticModel = context.SemanticModel;
             var syntaxTree = semanticModel.SyntaxTree;
             if (!IsLanguageVersionSupported(syntaxTree.Options))
@@ -108,9 +111,29 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return;
             }
 
+            var properties = ImmutableDictionary<string, string>.Empty;
+
+            var genericParameterSymbol = GetGenericParameterSymbol(syntaxFacts, semanticModel, arguments[0], arguments[1], cancellationToken);
+            if (genericParameterSymbol != null)
+            {
+                if (genericParameterSymbol.HasValueTypeConstraint)
+                {
+                    // 'is null' would generate error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
+                    // '== null' would generate error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
+                    // 'Is Nothing' would generate error BC30020: 'Is' operator does not accept operands of type 'T'. Operands must be reference or nullable types.
+                    return;
+                }
+
+                if (!genericParameterSymbol.HasReferenceTypeConstraint)
+                {
+                    // Needs special casing for C# as long as
+                    // https://github.com/dotnet/csharplang/issues/1284
+                    // is not implemented.
+                    properties = properties.Add(AbstractUseIsNullCheckCodeFixProvider.UnconstrainedGeneric, "");
+                }
+            }
 
             var additionalLocations = ImmutableArray.Create(invocation.GetLocation());
-            var properties = ImmutableDictionary<string, string>.Empty;
 
             var negated = syntaxFacts.IsLogicalNotExpression(invocation.Parent);
             if (negated)
@@ -125,7 +148,20 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     additionalLocations, properties));
         }
 
-        private bool MatchesPattern(ISyntaxFactsService syntaxFacts, SyntaxNode node1, SyntaxNode node2)
+        private static ITypeParameterSymbol GetGenericParameterSymbol(ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, SyntaxNode node1, SyntaxNode node2, CancellationToken cancellationToken)
+        {
+            var valueNode = syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(node1)) ? node2 : node1;
+            var argumentExpression = syntaxFacts.GetExpressionOfArgument(valueNode);
+            if (argumentExpression != null)
+            {
+                var parameterType = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type;
+                return parameterType as ITypeParameterSymbol;
+            }
+
+            return default;
+        }
+
+        private static bool MatchesPattern(ISyntaxFactsService syntaxFacts, SyntaxNode node1, SyntaxNode node2)
             => syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(node1)) &&
                !syntaxFacts.IsNullLiteralExpression(syntaxFacts.GetExpressionOfArgument(node2));
     }

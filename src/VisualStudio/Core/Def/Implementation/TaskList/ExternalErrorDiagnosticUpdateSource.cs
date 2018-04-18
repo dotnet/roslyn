@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -515,7 +516,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 var errors = GetErrorSet(map, key);
                 foreach (var diagnostic in diagnostics)
                 {
-                    errors.Add(diagnostic, GetNextIncrement());
+                    AddError(errors, diagnostic);
                 }
             }
 
@@ -530,6 +531,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // add only new errors
                 if (!errors.TryGetValue(diagnostic, out _))
                 {
+                    Logger.Log(FunctionId.ExternalErrorDiagnosticUpdateSource_AddError, d => d.ToString(), diagnostic);
+
                     errors.Add(diagnostic, GetNextIncrement());
                 }
             }

@@ -36,9 +36,6 @@
     <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs">
       <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\Shared\CoreClrShim.cs">
-      <Link>CoreClrShim.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\DesktopAnalyzerAssemblyLoader.cs">
       <Link>DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>
@@ -61,5 +58,4 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
   </ItemGroup>
   <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
-  <Import Project="..\ServerShared\ServerShared.projitems" Label="Shared" />
 </Project>

@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.Members.Count);
             Assert.NotNull(cs.CloseBraceToken);
 
-            CreateStandardCompilation(text).GetDeclarationDiagnostics().Verify(
+            CreateCompilation(text).GetDeclarationDiagnostics().Verify(
                 // (1,9): error CS0080: Constraints are not allowed on non-generic declarations
                 // class a where b : c { }
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 9));
@@ -1146,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = "class a { void M() where b : c { } }";
 
-            CreateStandardCompilation(text).GetDeclarationDiagnostics().Verify(
+            CreateCompilation(text).GetDeclarationDiagnostics().Verify(
                 // (1,20): error CS0080: Constraints are not allowed on non-generic declarations
                 // class a { void M() where b : c { } }
                 Diagnostic(ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, "where").WithLocation(1, 20));
@@ -5453,7 +5453,7 @@ class Class1<T>{
         public void TestNamespaceDeclarationsBadNames1()
         {
             var text = @"namespace A::B { }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (1,11): error CS7000: Unexpected use of an aliased name
                 // namespace A::B { }
                 Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "A::B").WithLocation(1, 11));
@@ -5463,7 +5463,7 @@ class Class1<T>{
         public void TestNamespaceDeclarationsBadNames2()
         {
             var text = @"namespace A<B> { }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (1,11): error CS7002: Unexpected use of a generic name
                 // namespace A<B> { }
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "A<B>").WithLocation(1, 11));
@@ -5473,7 +5473,7 @@ class Class1<T>{
         public void TestNamespaceDeclarationsBadNames3()
         {
             var text = @"namespace A<,> { }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (1,11): error CS7002: Unexpected use of a generic name
                 // namespace A<,> { }
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "A<,>").WithLocation(1, 11));
@@ -5518,7 +5518,7 @@ partial class PartialPartial
 }
 ";
             // These errors aren't great.  Ideally we can improve things in the future.
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (5,13): error CS1525: Invalid expression term 'partial'
                 //     partial partial void PM();
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(5, 13),
@@ -5588,7 +5588,7 @@ class C {
             Assert.NotNull(file);
             Assert.Equal(0, file.Errors().Length);
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (5,28): error CS1065: Default values are not valid in this context.
                 //      F f = delegate (int x = 0) { };
                 Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(5, 28));
@@ -5710,11 +5710,11 @@ class C
    void M(__arglist, int j)  {}
 }";
 
-            CreateStandardCompilation(text1).VerifyDiagnostics(
+            CreateCompilation(text1).VerifyDiagnostics(
                 // (4,11): error CS0231: A params parameter must be the last parameter in a formal parameter list
                 //    void M(params int[] i, int j)  {}
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] i").WithLocation(4, 11));
-            CreateStandardCompilation(text2).VerifyDiagnostics(
+            CreateCompilation(text2).VerifyDiagnostics(
                 // (4,11): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
                 //    void M(__arglist, int j)  {}
                 Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist").WithLocation(4, 11));
@@ -6347,7 +6347,7 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (6,13): error CS0106: The modifier 'ref' is not valid for this item
                 //         ref get => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("ref").WithLocation(6, 13));
@@ -6366,7 +6366,7 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (6,22): error CS0106: The modifier 'abstract' is not valid for this item
                 //         abstract ref get => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("abstract").WithLocation(6, 22),
@@ -6388,7 +6388,7 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (6,13): error CS0106: The modifier 'ref' is not valid for this item
                 //         ref set => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("ref").WithLocation(6, 13));
@@ -6407,7 +6407,7 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (6,22): error CS0106: The modifier 'abstract' is not valid for this item
                 //         abstract ref set => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("abstract").WithLocation(6, 22),
@@ -6430,7 +6430,7 @@ public class Program
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (6,9): error CS1609: Modifiers cannot be placed on event accessor declarations
                 //         ref add => throw null; 
                 Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "ref").WithLocation(6, 9),
@@ -6453,7 +6453,7 @@ public class Program
     }
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (6,9): error CS1609: Modifiers cannot be placed on event accessor declarations
                 //         abstract ref add => throw null; 
                 Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "abstract").WithLocation(6, 9),

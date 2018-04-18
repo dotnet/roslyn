@@ -184,6 +184,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     new EditorConfigStorageLocation<CodeStyleOption<AccessibilityModifiersRequired>>("dotnet_style_require_accessibility_modifiers", s => ParseAccessibilityModifiersRequired(s)),
                     new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RequireAccessibilityModifiers")});
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferReadonly = new PerLanguageOption<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions),
+            nameof(PreferReadonly),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_readonly_field"),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferReadonly") });
+
         private static CodeStyleOption<AccessibilityModifiersRequired> ParseAccessibilityModifiersRequired(string optionString)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(optionString,
@@ -205,6 +213,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                             return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, notificationOpt);
                         case "for_non_interface_members":
                             return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, notificationOpt);
+                        case "omit_if_default":
+                            return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.OmitIfDefault, notificationOpt);
                     }
                 }
             }

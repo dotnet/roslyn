@@ -76,7 +76,6 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference[] LatestVbReferences => s_lazyLatestVbReferences.Value;
 
-
         public static readonly AssemblyName RuntimeCorLibName = CoreClrShim.IsRunningOnCoreClr
             ? new AssemblyName("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
             : new AssemblyName("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
@@ -240,20 +239,20 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MsvbRef_v4_0_30319_17929 => s_msvbRef_v4_0_30319_17929.Value;
 
-        public static MetadataReference CSharpRef => CoreClrShim.IsRunningOnCoreClr ? StandardCSharpRef : DesktopCSharpRef;
+        public static MetadataReference CSharpRef => CSharpDesktopRef;
 
         private static readonly Lazy<MetadataReference> s_desktopCSharpRef = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.v4.0.30319.dll"),
             LazyThreadSafetyMode.PublicationOnly);
-        public static MetadataReference DesktopCSharpRef => s_desktopCSharpRef.Value;
+        public static MetadataReference CSharpDesktopRef => s_desktopCSharpRef.Value;
 
         private static readonly Lazy<MetadataReference> s_stdCSharpRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/Microsoft.CSharp.dll")).GetReference(display: "Microsoft.CSharp.dll (netstandard 1.0 ref)"),
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard10.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.dll (netstandard 1.0 ref)"),
             LazyThreadSafetyMode.PublicationOnly);
-        public static MetadataReference StandardCSharpRef => s_stdCSharpRef.Value;
+        public static MetadataReference CSharpNetStandard10Ref => s_stdCSharpRef.Value;
 
         private static readonly Lazy<MetadataReference> s_systemDynamicRuntimeRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/System.Dynamic.Runtime.dll")).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 1.3 ref)"),
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.netstandard13.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 1.3 ref)"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemDynamicRuntimeRef => s_systemDynamicRuntimeRef.Value;
 

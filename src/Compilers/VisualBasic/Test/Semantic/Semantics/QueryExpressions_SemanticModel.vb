@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub Query1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -238,7 +238,7 @@ End Module
 
         <Fact()>
         Public Sub Query2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -460,7 +460,7 @@ End Module
 
         <Fact()>
         Public Sub Query3()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -680,7 +680,7 @@ End Module
 
         <Fact()>
         Public Sub Query4()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -959,7 +959,7 @@ End Module
 
         <Fact()>
         Public Sub Query5()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1006,7 +1006,7 @@ End Module
 
         <Fact()>
         Public Sub Select1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1227,7 +1227,7 @@ End Module
 
         <Fact()>
         Public Sub ImplicitSelect1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -1335,7 +1335,7 @@ End Namespace
 
         <Fact()>
         Public Sub OrderBy1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1436,7 +1436,7 @@ End Module
 
         <Fact()>
         Public Sub OrderBy2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1498,7 +1498,7 @@ End Module
 
         <Fact()>
         Public Sub Select2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1589,7 +1589,7 @@ End Module
 
         <Fact()>
         Public Sub Let1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1733,7 +1733,7 @@ End Module
 
         <Fact()>
         Public Sub Let2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1830,7 +1830,7 @@ End Module
 
         <Fact()>
         Public Sub BindingMemberAccessInsideQuery()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="BindingMemberAccessInsideQuery">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1857,7 +1857,7 @@ End Module
 
         <Fact()>
         Public Sub BindingMemberAccessInsideQuery2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="BindingMemberAccessInsideQuery2">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1884,7 +1884,7 @@ End Module
 
         <Fact()>
         Public Sub BindingMemberAccessInsideQuery3()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="BindingMemberAccessInsideQuery3">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1911,7 +1911,7 @@ End Module
 
         <Fact()>
         Public Sub BindingMemberAccessInsideQuery4()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="BindingMemberAccessInsideQuery4">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1938,7 +1938,7 @@ End Module
 
         <Fact()>
         Public Sub From1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -2468,7 +2468,7 @@ End Namespace
 
         <Fact()>
         Public Sub Join1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -2577,7 +2577,7 @@ End Module
 
         <Fact()>
         Public Sub GroupBy1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -2832,7 +2832,7 @@ End Module
         <Fact()>
         <CompilerTrait(CompilerFeature.IOperation)>
         Public Sub GroupJoin1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3171,7 +3171,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
 
         <Fact()>
         Public Sub Aggregate1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3378,7 +3378,7 @@ End Module
 
         <Fact()>
         Public Sub Aggregate2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3572,7 +3572,7 @@ End Module
 
         <Fact()>
         Public Sub Aggregate3()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -3725,7 +3725,7 @@ End Module
         <WorkItem(546132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546132")>
         <Fact()>
         Public Sub SymbolInfoForFunctionAggregationSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3758,7 +3758,7 @@ Module AggrArgsInvalidmod
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:={TestReferences.NetFx.v4_0_30319.System_Core})
+</compilation>, references:={TestReferences.NetFx.v4_0_30319.System_Core})
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_QueryOperatorNotFound, "aggr4").WithArguments("aggr4"))
 
@@ -3777,7 +3777,7 @@ End Module
         <WorkItem(542521, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542521")>
         <Fact()>
         Public Sub AddressOfOperatorInQuery()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module CodCov004mod
@@ -3814,7 +3814,7 @@ End Module
         <WorkItem(543084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543084")>
         <Fact()>
         Public Sub MissingIdentifierNameSyntaxInIncompleteLetClause()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3844,7 +3844,7 @@ End Module
         <WorkItem(542914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542914")>
         <Fact()>
         Public Sub Bug10356()
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3876,7 +3876,7 @@ End Module
         <WorkItem(543161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543161")>
         <Fact()>
         Public Sub InaccessibleQueryMethodOnCollectionType()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3935,7 +3935,7 @@ End Module
         <WorkItem(546165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546165")>
         <Fact()>
         Public Sub QueryInsideEnumMemberDecl()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Test

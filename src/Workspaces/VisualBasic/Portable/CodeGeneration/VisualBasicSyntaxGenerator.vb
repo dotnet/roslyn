@@ -341,6 +341,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Throw New NotSupportedException("ThrowExpressions are not supported in Visual Basic")
         End Function
 
+        Public Overrides Function NameExpression(namespaceOrTypeSymbol As INamespaceOrTypeSymbol) As SyntaxNode
+            Return namespaceOrTypeSymbol.GenerateTypeSyntax()
+        End Function
+
         Public Overrides Function TypeExpression(typeSymbol As ITypeSymbol) As SyntaxNode
             Return typeSymbol.GenerateTypeSyntax()
         End Function
@@ -388,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.UsingBlock(
                 SyntaxFactory.UsingStatement(
                     expression:=Nothing,
-                    variables:=SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, identifier, expression))),
+                    variables:=SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, identifier.ToModifiedIdentifier, expression))),
                 GetStatementList(statements))
         End Function
 
@@ -434,10 +438,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overloads Overrides Function LocalDeclarationStatement(type As SyntaxNode, identifier As String, Optional initializer As SyntaxNode = Nothing, Optional isConst As Boolean = False) As SyntaxNode
+            Return LocalDeclarationStatement(type, identifier.ToIdentifierToken, initializer, isConst)
+        End Function
+
+        Friend Overloads Overrides Function LocalDeclarationStatement(type As SyntaxNode, identifier As SyntaxToken, Optional initializer As SyntaxNode = Nothing, Optional isConst As Boolean = False) As SyntaxNode
             Return SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.TokenList(SyntaxFactory.Token(If(isConst, SyntaxKind.ConstKeyword, SyntaxKind.DimKeyword))),
-                SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, identifier, initializer)))
+                SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, SyntaxFactory.ModifiedIdentifier(identifier), initializer)))
         End Function
+
 
         Friend Overrides Function WithInitializer(variableDeclarator As SyntaxNode, initializer As SyntaxNode) As SyntaxNode
             Return DirectCast(variableDeclarator, VariableDeclaratorSyntax).WithInitializer(DirectCast(initializer, EqualsValueSyntax))
@@ -447,9 +456,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.EqualsValue(operatorToken, DirectCast(value, ExpressionSyntax))
         End Function
 
-        Private Function VariableDeclarator(type As SyntaxNode, name As String, Optional expression As SyntaxNode = Nothing) As VariableDeclaratorSyntax
+        Private Function VariableDeclarator(type As SyntaxNode, name As ModifiedIdentifierSyntax, Optional expression As SyntaxNode = Nothing) As VariableDeclaratorSyntax
             Return SyntaxFactory.VariableDeclarator(
-                SyntaxFactory.SingletonSeparatedList(name.ToModifiedIdentifier),
+                SyntaxFactory.SingletonSeparatedList(name),
                 If(type Is Nothing, Nothing, SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax))),
                 If(expression Is Nothing,
                    Nothing,
@@ -725,7 +734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.FieldDeclaration(
                 attributeLists:=Nothing,
                 modifiers:=GetModifierList(accessibility, modifiers And s_fieldModifiers, DeclarationKind.Field),
-                declarators:=SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, name, initializer)))
+                declarators:=SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, name.ToModifiedIdentifier, initializer)))
         End Function
 
         Public Overrides Function MethodDeclaration(
@@ -1498,6 +1507,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function NamespaceImportDeclaration(name As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList(Of ImportsClauseSyntax)(SyntaxFactory.SimpleImportsClause(DirectCast(name, NameSyntax))))
+        End Function
+
+        Public Overrides Function AliasImportDeclaration(aliasIdentifierName As String, name As SyntaxNode) As SyntaxNode
+            If TypeOf name Is NameSyntax Then
+                Return SyntaxFactory.ImportsStatement(SyntaxFactory.SeparatedList(Of ImportsClauseSyntax).Add(
+                                                      SyntaxFactory.SimpleImportsClause(
+                                                      SyntaxFactory.ImportAliasClause(aliasIdentifierName),
+                                                      CType(name, NameSyntax))))
+
+            End If
+            Throw New ArgumentException("name is not a NameSyntax.", NameOf(name))
         End Function
 
         Public Overrides Function NamespaceDeclaration(name As SyntaxNode, nestedDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -2706,6 +2726,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Dim newTokens = GetModifierList(accessibility, mods, GetDeclarationKind(declaration), isDefault)
+            'GetDeclarationKind returns None for Field if the count is > 1
+            'To handle multiple declarations on a field if the Accessibility is NotApplicable, we need to add the Dim
+            If declaration.Kind = SyntaxKind.FieldDeclaration AndAlso accessibility = Accessibility.NotApplicable AndAlso newTokens.Count = 0 Then
+                ' Add the Dim
+                newTokens = newTokens.Add(SyntaxFactory.Token(SyntaxKind.DimKeyword))
+            End If
+
             Return WithModifierTokens(declaration, Merge(tokens, newTokens))
         End Function
 
@@ -2886,7 +2913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Case SyntaxKind.ProtectedKeyword
                         If accessibility = Accessibility.Friend Then
                             accessibility = Accessibility.ProtectedOrFriend
-                        ElseIf accessibility = Accessibility.Private
+                        ElseIf accessibility = Accessibility.Private Then
                             accessibility = Accessibility.ProtectedAndFriend
                         Else
                             accessibility = Accessibility.Protected

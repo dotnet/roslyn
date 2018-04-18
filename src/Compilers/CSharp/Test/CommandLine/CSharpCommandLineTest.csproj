@@ -8,20 +8,15 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.CommandLine.UnitTests</AssemblyName>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\TestUtilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
-    <ProjectReference Include="..\..\csc\csc.csproj" >
-      <Aliases>CscExe</Aliases>
-    </ProjectReference>
+    <ProjectReference Include="..\..\csc\csc.csproj" ReferenceOutputAssembly="false" OutputItemType="RoslynReferenceToDependencyDirectory" />
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Server\VBCSCompiler\VBCSCompiler.csproj">
-      <Aliases>VBCSCompiler</Aliases>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
     <ProjectReference Include="..\..\Portable\CSharpCodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
@@ -38,6 +33,7 @@
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="CommandLineTestResources.Designer.cs">
@@ -45,11 +41,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CommandLineTestResources.resx</DependentUpon>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\csc\csc.rsp">
-      <Link>csc.rsp</Link>
-    </None>
+    <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
+      <_Parameter1>$(CommitHashDisplay)</_Parameter1>
+    </AssemblyVersionAttribute>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
