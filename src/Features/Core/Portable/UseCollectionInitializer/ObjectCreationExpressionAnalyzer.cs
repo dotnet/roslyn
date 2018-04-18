@@ -118,10 +118,22 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
         }
 
-        protected override bool ShouldAnalize()
-            => _semanticModel.GetTypeInfo(_objectCreationExpression, default).Type
-                    .GetMembers(WellKnownMemberNames.CollectionInitializerAddMethodName)
-                    .Any(x => x is IMethodSymbol m && m.DeclaredAccessibility == Accessibility.Public);
+        protected override bool ShouldAnalyze()
+        {
+            var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;
+            if (type == null)
+            {
+                return false;
+            }
+
+            var addMethods = _semanticModel.LookupSymbols(
+                _objectCreationExpression.SpanStart, 
+                container: type, 
+                name: WellKnownMemberNames.CollectionInitializerAddMethodName, 
+                includeReducedExtensionMethods: true);
+
+            return addMethods.Any(m => m is IMethodSymbol methodSymbol && methodSymbol.Parameters.Any());
+        }
 
         private bool TryAnalyzeIndexAssignment(
             TExpressionStatementSyntax statement,

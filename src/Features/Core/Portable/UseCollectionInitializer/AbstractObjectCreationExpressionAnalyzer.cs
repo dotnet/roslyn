@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return null;
             }
 
-            if (!ShouldAnalize())
+            if (!ShouldAnalyze())
             {
                 return null;
             }
@@ -185,6 +185,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             return false;
         }
 
-        protected abstract bool ShouldAnalize();
+        protected abstract bool ShouldAnalyze();
     }
 }
