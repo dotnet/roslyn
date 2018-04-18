@@ -49,7 +49,16 @@ namespace Microsoft.VisualStudio.LanguageServices
                 {
                     var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
 
+                    // Output Window panes have two states; initialized and active. The former is used to indicate that the pane
+                    // can be made active ("selected") by the user, the latter indicates that the pane is currently active.
+                    // There's no way to only initialize a pane without also making it active so we remember the last active pane
+                    // and reactivate it after we've created ourselves to avoid stealing focus away from it.
+                    var lastActivePane = GetActivePane(outputWindow);
+
                     _doNotAccessDirectlyOutputPane = CreateOutputPane(outputWindow);
+
+                    if (lastActivePane != Guid.Empty)
+                        ActivatePane(outputWindow, lastActivePane);
                 }
 
                 return _doNotAccessDirectlyOutputPane;
@@ -69,6 +78,27 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             return null;
+        }
+
+        private static Guid GetActivePane(IVsOutputWindow outputWindow)
+        {
+            if (outputWindow is IVsOutputWindow2 outputWindow2)
+            {
+                if (ErrorHandler.Succeeded(outputWindow2.GetActivePaneGUID(out var activePaneGuid)))
+                {
+                    return activePaneGuid;
+                }
+            }
+
+            return Guid.Empty;
+        }
+
+        public static void ActivatePane(IVsOutputWindow outputWindow, Guid paneGuid)
+        {
+            if (ErrorHandler.Succeeded(outputWindow.GetPane(ref paneGuid, out var pane)))
+            {
+                pane.Activate();
+            }
         }
     }
 }
