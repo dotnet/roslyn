@@ -1605,9 +1605,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ExactPointerInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (source is PointerTypeSymbol sourcePointer && target is PointerTypeSymbol targetPointer)
+            if (source.TypeKind == TypeKind.Pointer && target.TypeKind == TypeKind.Pointer)
             {
-                ExactInference(sourcePointer.PointedAtType, targetPointer.PointedAtType, ref useSiteDiagnostics);
+                ExactInference(((PointerTypeSymbol)source).PointedAtType, ((PointerTypeSymbol)target).PointedAtType, ref useSiteDiagnostics);
                 return true;
             }
 
