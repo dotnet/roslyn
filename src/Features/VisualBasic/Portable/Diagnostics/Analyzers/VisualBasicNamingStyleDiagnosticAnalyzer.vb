@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
         Protected NotOverridable Overrides Sub OnCompilationStartAction(
                 context As CompilationStartAnalysisContext,
                 idToCachedResult As ConcurrentDictionary(Of Guid, ConcurrentDictionary(Of String, String)))
+            ' VB doesn't have local functions, so there's nothing to do here.
         End Sub
     End Class
 End Namespace
