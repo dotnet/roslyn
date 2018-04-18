@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 var codeActions = await GetCodeActionsAsync(workspace, parameters);
                 await TestAddDocument(
-                    workspace, expectedMarkup, index, expectedContainers, 
+                    workspace, expectedMarkup, index, expectedContainers,
                     expectedDocumentName, codeActions);
             }
         }
@@ -346,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters)
         {
             MarkupTestFile.GetSpans(
-                expectedMarkup.NormalizeLineEndings(), 
+                expectedMarkup.NormalizeLineEndings(),
                 out var expected, out IDictionary<string, ImmutableArray<TextSpan>> spanMap);
 
             var conflictSpans = spanMap.GetOrAdd("Conflict", _ => ImmutableArray<TextSpan>.Empty);
@@ -407,6 +408,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return Tuple.Create(oldSolution, newSolution);
             }
 
+
             var document = GetDocumentToVerify(expectedChangedDocumentId, oldSolution, newSolution);
 
             var fixedRoot = await document.GetSyntaxRootAsync();
@@ -439,13 +441,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         private static Document GetDocumentToVerify(DocumentId expectedChangedDocumentId, Solution oldSolution, Solution newSolution)
         {
             Document document;
-            // If the expectedChangedDocumentId is not mentioned then we expect only single document to be changed
+
             if (expectedChangedDocumentId == null)
             {
                 var projectDifferences = SolutionUtilities.GetSingleChangedProjectChanges(oldSolution, newSolution);
+
+                VerifyNoDocumentChangesWhenUpgradeProject(projectDifferences);
+
                 var documentId = projectDifferences.GetChangedDocuments().FirstOrDefault() ?? projectDifferences.GetAddedDocuments().FirstOrDefault();
-                Assert.NotNull(documentId);
-                document = newSolution.GetDocument(documentId);
+                if (documentId == null)
+                {
+                    // pick a random document if no document changed
+                    document = projectDifferences.NewProject.Documents.FirstOrDefault();
+                }
+                else
+                {
+                    document = newSolution.GetDocument(documentId);
+                }
             }
             else
             {
@@ -454,6 +466,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
             return document;
+        }
+
+        private static void VerifyNoDocumentChangesWhenUpgradeProject(ProjectChanges projectDifferences)
+        {
+            var newDocState = projectDifferences.NewProject.Documents.First().State as DocumentState;
+            if (newDocState.ParseOptions is CSharpParseOptions)
+            {
+                var newParseOptions = newDocState.ParseOptions as CSharpParseOptions;
+                var oldParseOptions = (projectDifferences.OldProject.GetDocument(newDocState.Id).State as DocumentState).ParseOptions as CSharpParseOptions;
+                if (newParseOptions.LanguageVersion != oldParseOptions.LanguageVersion)
+                {
+                    Assert.Equal(0, projectDifferences.GetChangedDocuments().Count());
+                }
+            }
         }
 
         private static async Task VerifyAgainstWorkspaceDefinitionAsync(string expectedText, Solution newSolution)
