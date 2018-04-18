@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
             return
 @"class A
 {
+    bool a = true;
+    bool b = true;
+    bool c = true;
+    bool d = true;
+
     void Goo()
     {
 " + initial + @"
@@ -34,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestIdentifier()
+        public async Task TestSingleLine_Identifier()
         {
             await TestFixOneAsync(
 @"[||]if (a) { a(); } else { b(); }",
@@ -42,7 +47,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestNotIdentifier()
+        public async Task TestSingleLine_IdentifierWithTrivia()
+        {
+            await TestFixOneAsync(
+@"[||]if /*0*/(/*1*/a/*2*/)/*3*/ { a(); } else { b(); }",
+@"if /*0*/(/*1*/!a/*2*/)/*3*/ { b(); } else { a(); }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestSingleLine_NotIdentifier()
         {
             await TestFixOneAsync(
 @"[||]if (!a) { a(); } else { b(); }",
@@ -50,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestNotIdentifierWithTrivia()
+        public async Task TestSingleLine_NotIdentifierWithTrivia()
         {
             await TestFixOneAsync(
 @"[||]if /*0*/(/*1*/!/*1b*/a/*2*/)/*3*/ { a(); } else { b(); }",
@@ -58,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestEqualsEquals()
+        public async Task TestSingleLine_EqualsEquals()
         {
             await TestFixOneAsync(
 @"[||]if (a == b) { a(); } else { b(); }",
@@ -66,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestNotEquals()
+        public async Task TestSingleLine_NotEquals()
         {
             await TestFixOneAsync(
 @"[||]if (a != b) { a(); } else { b(); }",
@@ -74,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestGreaterThan()
+        public async Task TestSingleLine_GreaterThan()
         {
             await TestFixOneAsync(
 @"[||]if (a > b) { a(); } else { b(); }",
@@ -82,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestGreaterThanEquals()
+        public async Task TestSingleLine_GreaterThanEquals()
         {
             await TestFixOneAsync(
 @"[||]if (a >= b) { a(); } else { b(); }",
@@ -90,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestLessThan()
+        public async Task TestSingleLine_LessThan()
         {
             await TestFixOneAsync(
 @"[||]if (a < b) { a(); } else { b(); }",
@@ -98,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestLessThanEquals()
+        public async Task TestSingleLine_LessThanEquals()
         {
             await TestFixOneAsync(
 @"[||]if (a <= b) { a(); } else { b(); }",
@@ -106,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestDoubleParentheses()
+        public async Task TestSingleLine_DoubleParentheses()
         {
             await TestFixOneAsync(
 @"[||]if ((a)) { a(); } else { b(); }",
@@ -114,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestIs()
+        public async Task TestSingleLine_Is()
         {
             await TestFixOneAsync(
 @"[||]if (a is Goo) { a(); } else { b(); }",
@@ -122,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestMethodCall()
+        public async Task TestSingleLine_MethodCall()
         {
             await TestFixOneAsync(
 @"[||]if (a.Goo()) { a(); } else { b(); }",
@@ -130,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestOr()
+        public async Task TestSingleLine_Or()
         {
             await TestFixOneAsync(
 @"[||]if (a || b) { a(); } else { b(); }",
@@ -138,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestOr2()
+        public async Task TestSingleLine_Or2()
         {
             await TestFixOneAsync(
 @"[||]if (!a || !b) { a(); } else { b(); }",
@@ -146,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestOr3()
+        public async Task TestSingleLine_Or3()
         {
             await TestFixOneAsync(
 @"[||]if (!a || b) { a(); } else { b(); }",
@@ -154,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestAnd()
+        public async Task TestSingleLine_And()
         {
             await TestFixOneAsync(
 @"[||]if (a && b) { a(); } else { b(); }",
@@ -162,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestAnd2()
+        public async Task TestSingleLine_And2()
         {
             await TestFixOneAsync(
 @"[||]if (!a && !b) { a(); } else { b(); }",
@@ -170,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestAnd3()
+        public async Task TestSingleLine_And3()
         {
             await TestFixOneAsync(
 @"[||]if (!a && b) { a(); } else { b(); }",
@@ -178,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestParenthesizeAndForPrecedence()
+        public async Task TestSingleLine_ParenthesizeAndForPrecedence()
         {
             await TestFixOneAsync(
 @"[||]if (a && b || c) { a(); } else { b(); }",
@@ -186,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestPlus()
+        public async Task TestSingleLine_Plus()
         {
             await TestFixOneAsync(
 @"[||]if (a + b) { a(); } else { b(); }",
@@ -194,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestTrue()
+        public async Task TestSingleLine_True()
         {
             await TestFixOneAsync(
 @"[||]if (true) { a(); } else { b(); }",
@@ -202,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestFalse()
+        public async Task TestSingleLine_False()
         {
             await TestFixOneAsync(
 @"[||]if (false) { a(); } else { b(); }",
@@ -210,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestTrueAndFalse()
+        public async Task TestSingleLine_TrueAndFalse()
         {
             await TestFixOneAsync(
 @"[||]if (true && false) { a(); } else { b(); }",
@@ -218,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestNoCurlyBraces()
+        public async Task TestSingleLine_NoCurlyBraces()
         {
             await TestFixOneAsync(
 @"[||]if (a) a(); else b();",
@@ -226,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestCurlyBracesOnIf()
+        public async Task TestSingleLine_CurlyBracesOnIf()
         {
             await TestFixOneAsync(
 @"[||]if (a) { a(); } else b();",
@@ -234,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestCurlyBracesOnElse()
+        public async Task TestSingleLine_CurlyBracesOnElse()
         {
             await TestFixOneAsync(
 @"[||]if (a) a(); else { b(); }",
@@ -242,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestIfElseIf()
+        public async Task TestSingleLine_IfElseIf()
         {
             await TestFixOneAsync(
 @"[||]if (a) { a(); } else if (b) { b(); }",
@@ -250,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestIfElseIfElse()
+        public async Task TestSingleLine_IfElseIfElse()
         {
             await TestFixOneAsync(
 @"[||]if (a) { a(); } else if (b) { b(); } else { c(); }",
@@ -258,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestCompoundConditional()
+        public async Task TestSingleLine_CompoundConditional()
         {
             await TestFixOneAsync(
 @"[||]if (((a == b) && (c != d)) || ((e < f) && (!g))) { a(); } else { b(); }",
@@ -266,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSingleLineTrivia()
+        public async Task TestSingleLine_Trivia()
         {
             await TestFixOneAsync(
 @"[||]if /*1*/ (a) /*2*/ { /*3*/ a() /*4*/; /*5*/ } /*6*/ else if /*7*/ (b) /*8*/ { /*9*/ b(); /*10*/ } /*11*/ else /*12*/ { /*13*/ c(); /*14*/} /*15*/",
@@ -274,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestKeepTriviaWithinExpression()
+        public async Task TestKeepTriviaWithinExpression_BrokenCode()
         {
             await TestInRegularAndScriptAsync(
 @"class A
@@ -314,7 +327,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestMultiLineIfElseIfElse()
+        public async Task TestKeepTriviaWithinExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"class A
+{
+    void Goo()
+    {
+        bool a = true;
+        bool b = true;
+        bool c = true;
+        bool d = true;
+
+        [||]if (a ||
+        b &&
+        c < // comment
+        d)
+        {
+            a();
+        }
+        else
+        {
+            b();
+        }
+    }
+}",
+@"class A
+{
+    void Goo()
+    {
+        bool a = true;
+        bool b = true;
+        bool c = true;
+        bool d = true;
+
+        if (!a &&
+        (!b ||
+        c >= // comment
+        d))
+        {
+            b();
+        }
+        else
+        {
+            a();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestMultiline_IfElseIfElse()
         {
             await TestInRegularAndScriptAsync(
 @"class A
@@ -359,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestMultiLineTrivia()
+        public async Task TestMultiline_Trivia()
         {
             await TestInRegularAndScriptAsync(
 @"class A
@@ -634,7 +697,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToLengthEqualsZero()
+        public async Task TestSingleLine_SimplifyToLengthEqualsZero()
         {
             await TestFixOneAsync(
 @"string x; [||]if (x.Length > 0) { GreaterThanZero(); } else { EqualsZero(); } } } ",
@@ -642,7 +705,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToLengthEqualsZero2()
+        public async Task TestSingleLine_SimplifyToLengthEqualsZero2()
         {
             await TestFixOneAsync(
 @"string[] x; [||]if (x.Length > 0) { GreaterThanZero(); } else { EqualsZero(); } } } ",
@@ -650,7 +713,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToLengthEqualsZero3()
+        public async Task TestSingleLine_SimplifyToLengthEqualsZero3()
         {
             await TestFixOneAsync(
 @"string x; [||]if (x.Length > 0x0) { a(); } else { b(); } } } ",
@@ -658,7 +721,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToLengthEqualsZero4()
+        public async Task TestSingleLine_SimplifyToLengthEqualsZero4()
         {
             await TestFixOneAsync(
 @"string x; [||]if (0 < x.Length) { a(); } else { b(); } } } ",
@@ -667,7 +730,7 @@ class C
 
         [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToEqualsZero1()
+        public async Task TestSingleLine_SimplifyToEqualsZero1()
         {
             await TestFixOneAsync(
 @"byte x = 1; [||]if (0 < x) { a(); } else { b(); } } } ",
@@ -676,7 +739,7 @@ class C
 
         [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToEqualsZero2()
+        public async Task TestSingleLine_SimplifyToEqualsZero2()
         {
             await TestFixOneAsync(
 @"ushort x = 1; [||]if (0 < x) { a(); } else { b(); } } } ",
@@ -685,7 +748,7 @@ class C
 
         [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToEqualsZero3()
+        public async Task TestSingleLine_SimplifyToEqualsZero3()
         {
             await TestFixOneAsync(
 @"uint x = 1; [||]if (0 < x) { a(); } else { b(); } } } ",
@@ -694,16 +757,16 @@ class C
 
         [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToEqualsZero4()
+        public async Task TestSingleLine_SimplifyToEqualsZero4()
         {
             await TestFixOneAsync(
-@"ulong x = 1; [||]if (0 < x) { a(); } else { b(); } } } ",
-@"ulong x = 1; if (0 == x) { b(); } else { a(); } } } ");
+@"ulong x = 1; [||]if (x > 0) { a(); } else { b(); } } } ",
+@"ulong x = 1; if (x == 0) { b(); } else { a(); } } } ");
         }
 
         [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToNotEqualsZero1()
+        public async Task TestSingleLine_SimplifyToNotEqualsZero1()
         {
             await TestFixOneAsync(
 @"ulong x = 1; [||]if (0 == x) { a(); } else { b(); } } } ",
@@ -712,7 +775,7 @@ class C
 
         [WorkItem(545986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545986")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyToNotEqualsZero2()
+        public async Task TestSingleLine_SimplifyToNotEqualsZero2()
         {
             await TestFixOneAsync(
 @"ulong x = 1; [||]if (x == 0) { a(); } else { b(); } } } ",
@@ -721,7 +784,7 @@ class C
 
         [WorkItem(530505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530505")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestSimplifyLongLengthEqualsZero()
+        public async Task TestSingleLine_SimplifyLongLengthEqualsZero()
         {
             await TestFixOneAsync(
 @"string[] x; [||]if (x.LongLength > 0) { GreaterThanZero(); } else { EqualsZero(); } } } ",
@@ -729,7 +792,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestDoesNotSimplifyToLengthEqualsZero()
+        public async Task TestSingleLine_DoesNotSimplifyToLengthEqualsZero()
         {
             await TestFixOneAsync(
 @"string x; [||]if (x.Length >= 0) { a(); } else { b(); } } } ",
@@ -737,7 +800,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestDoesNotSimplifyToLengthEqualsZero2()
+        public async Task TestSingleLine_DoesNotSimplifyToLengthEqualsZero2()
         {
             await TestFixOneAsync(
 @"string x; [||]if (x.Length > 0.0f) { GreaterThanZero(); } else { EqualsZero(); } } } ",
