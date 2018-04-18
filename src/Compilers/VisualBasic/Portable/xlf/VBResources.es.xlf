@@ -247,11 +247,6 @@
         <target state="translated">Se ignoró la opción /win32manifest</target>
         <note />
       </trans-unit>
-      <trans-unit id="FTL_InputFileNameTooLong">
-        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">El nombre de archivo '{0}' está vacío, contiene caracteres no válidos, tiene una especificación de unidad sin ruta de acceso absoluta o es demasiado largo</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InvalidInNamespace">
         <source>Statement is not valid in a namespace.</source>
         <target state="translated">La instrucción no es válida en un espacio de nombres.</target>
@@ -9084,6 +9079,11 @@
       <trans-unit id="FEATURE_InterpolatedStrings">
         <source>interpolated strings</source>
         <target state="translated">cadenas interpoladas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FTL_InvalidInputFileName">
+        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
+        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
         <note />
       </trans-unit>
     </body>
