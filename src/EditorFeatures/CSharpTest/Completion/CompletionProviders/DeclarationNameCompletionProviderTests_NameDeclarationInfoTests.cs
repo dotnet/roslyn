@@ -497,6 +497,69 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("int")]
+        [InlineData("C")]
+        [InlineData("List<string>")]
+        public async Task ModifierExclusionInsideMethod_AfterConst(string type)
+        {
+            var markup = $@"
+using System.Collections.Generic;
+class C
+{{
+    void M()
+    {{
+        const {type} $$
+    }}
+}}
+";
+            await VerifySymbolKinds(markup,
+                new SymbolKindOrTypeKind(SymbolKind.Local));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("int")]
+        [InlineData("C")]
+        [InlineData("List<string>")]
+        public async Task ModifierExclusionInsideMethod_AfterAsync(string type)
+        {
+            // This only works with a partially written name.
+            // Because async is not a keyword, the syntax tree when the name is missing is completely broken
+            // in that there can be multiple statements full of missing and skipped tokens depending on the type syntax.
+            var markup = $@"
+using System.Collections.Generic;
+class C
+{{
+    void M()
+    {{
+        async {type} F$$
+    }}
+}}
+";
+            await VerifySymbolKinds(markup,
+                new SymbolKindOrTypeKind(MethodKind.LocalFunction));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("int")]
+        [InlineData("C")]
+        [InlineData("List<string>")]
+        public async Task ModifierExclusionInsideMethod_AfterUnsafe(string type)
+        {
+            var markup = $@"
+using System.Collections.Generic;
+class C
+{{
+    void M()
+    {{
+        unsafe {type} $$
+    }}
+}}
+";
+            await VerifySymbolKinds(markup,
+                new SymbolKindOrTypeKind(MethodKind.LocalFunction));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LocalInsideMethod1()
         {
