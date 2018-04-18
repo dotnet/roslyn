@@ -49,26 +49,26 @@ namespace Microsoft.VisualStudio.LanguageServices
                 {
                     var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
 
-                    // Try to get the workspace pane if it has already been registered
-                    var workspacePaneGuid = s_workspacePaneGuid;
-                    var hr = outputWindow.GetPane(ref workspacePaneGuid, out _doNotAccessDirectlyOutputPane);
-
-                    // If the workspace pane has not been registered before, create it
-                    if (_doNotAccessDirectlyOutputPane == null || hr != VSConstants.S_OK)
-                    {
-                        if (ErrorHandler.Failed(outputWindow.CreatePane(ref workspacePaneGuid, ServicesVSResources.IntelliSense, fInitVisible: 1, fClearWithSolution: 1)) ||
-                            ErrorHandler.Failed(outputWindow.GetPane(ref workspacePaneGuid, out _doNotAccessDirectlyOutputPane)))
-                        {
-                            return null;
-                        }
-
-                        // Must activate the workspace pane for it to show up in the output window
-                        _doNotAccessDirectlyOutputPane.Activate();
-                    }
+                    _doNotAccessDirectlyOutputPane = CreateOutputPane(outputWindow);
                 }
 
                 return _doNotAccessDirectlyOutputPane;
             }
+        }
+
+        private IVsOutputWindowPane CreateOutputPane(IVsOutputWindow outputWindow)
+        {
+            // Try to get the workspace pane if it has already been registered
+            var workspacePaneGuid = s_workspacePaneGuid;
+
+            // If the pane has already been created, CreatePane returns it
+            if (ErrorHandler.Succeeded(outputWindow.CreatePane(ref workspacePaneGuid, ServicesVSResources.IntelliSense, fInitVisible: 1, fClearWithSolution: 1)) &&
+                ErrorHandler.Succeeded(outputWindow.GetPane(ref workspacePaneGuid, out var pane)))
+            {
+                return pane;
+            }
+
+            return null;
         }
     }
 }
