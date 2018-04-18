@@ -4648,9 +4648,6 @@ class CL0<T>
                 // (5,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         G(out x, ref y, in z);
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(5, 22),
-                // (5,28): warning CS8620: Nullability of reference types in argument of type 'object' doesn't match target type 'object' for parameter 'z' in 'void C.G(out object? x, ref object? y, in object? z)'.
-                //         G(out x, ref y, in z);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("object", "object", "z", "void C.G(out object? x, ref object? y, in object? z)").WithLocation(5, 28),
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 9),

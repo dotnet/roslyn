@@ -1713,8 +1713,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (refKind)
             {
                 case RefKind.None:
+                case RefKind.In:
                     {
-                        var conversion = GenerateConversion(_conversions, argument, argumentType, parameterType.TypeSymbol);
+                        Conversion conversion = GenerateConversion(_conversions, argument, argumentType, parameterType.TypeSymbol);
                         resultType = InferResultNullability(argument, conversion, parameterType.TypeSymbol, resultType);
                         if (!ReportNullReferenceArgumentIfNecessary(argument, resultType, parameter, parameterType) &&
                             !conversion.Exists)
@@ -1744,18 +1745,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     TrackNullableStateForAssignment(argument, resultType, result.Slot, parameterType, -1);
-                    break;
-                case RefKind.In:
-                    if (!ReportNullReferenceArgumentIfNecessary(argument, resultType, parameter, parameterType))
-                    {
-                        if (IsNullabilityMismatch(resultType, parameterType))
-                        {
-                            // PROTOTYPE(NullReferenceTypes): The warning message does not include top-level nullability.
-                            // If that's the only difference, the message is confusing: "warning CS8620: Nullability of reference
-                            // types in argument of type 'object' doesn't match target type 'object' for parameter ...".
-                            ReportNullabilityMismatchInArgument(argument, argumentType, parameter, parameterType.TypeSymbol);
-                        }
-                    }
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(refKind);

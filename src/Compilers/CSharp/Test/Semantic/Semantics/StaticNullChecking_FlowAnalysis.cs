@@ -1732,15 +1732,9 @@ class C
                 // (8,20): warning CS8620: Nullability of reference types in argument of type 'IIn<object>' doesn't match target type 'IIn<object?>' for parameter 'y' in 'void C.G(in I<object?> x, in IIn<object?> y, in IOut<object?> z)'.
                 //         G(in x, in y, in z);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("IIn<object>", "IIn<object?>", "y", "void C.G(in I<object?> x, in IIn<object?> y, in IOut<object?> z)").WithLocation(8, 20),
-                // (8,26): warning CS8620: Nullability of reference types in argument of type 'IOut<object>' doesn't match target type 'IOut<object?>' for parameter 'z' in 'void C.G(in I<object?> x, in IIn<object?> y, in IOut<object?> z)'.
-                //         G(in x, in y, in z);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("IOut<object>", "IOut<object?>", "z", "void C.G(in I<object?> x, in IIn<object?> y, in IOut<object?> z)").WithLocation(8, 26),
                 // (12,14): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.F(in I<object> x, in IIn<object> y, in IOut<object> z)'.
                 //         F(in x, in y, in z);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<object?>", "I<object>", "x", "void C.F(in I<object> x, in IIn<object> y, in IOut<object> z)").WithLocation(12, 14),
-                // (12,20): warning CS8620: Nullability of reference types in argument of type 'IIn<object?>' doesn't match target type 'IIn<object>' for parameter 'y' in 'void C.F(in I<object> x, in IIn<object> y, in IOut<object> z)'.
-                //         F(in x, in y, in z);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("IIn<object?>", "IIn<object>", "y", "void C.F(in I<object> x, in IIn<object> y, in IOut<object> z)").WithLocation(12, 20),
                 // (12,26): warning CS8620: Nullability of reference types in argument of type 'IOut<object?>' doesn't match target type 'IOut<object>' for parameter 'z' in 'void C.F(in I<object> x, in IIn<object> y, in IOut<object> z)'.
                 //         F(in x, in y, in z);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("IOut<object?>", "IOut<object>", "z", "void C.F(in I<object> x, in IIn<object> y, in IOut<object> z)").WithLocation(12, 26));
