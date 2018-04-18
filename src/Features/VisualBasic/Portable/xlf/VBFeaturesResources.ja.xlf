@@ -1826,11 +1826,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="new">Convert  to 'For'</target>
         <note />
       </trans-unit>
-      <trans-unit id="If_statement_can_be_simplified">
-        <source>'If' statement can be simplified</source>
-        <target state="new">'If' statement can be simplified</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>
