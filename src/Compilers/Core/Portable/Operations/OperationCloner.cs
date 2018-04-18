@@ -121,7 +121,9 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitForEachLoop(IForEachLoopOperation operation, object argument)
         {
-            return new ForEachLoopStatement(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable), Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ForEachLoopStatement(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable), 
+                                            Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), ((BaseForEachLoopStatement)operation).Info,
+                                            ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitLabeled(ILabeledOperation operation, object argument)
@@ -198,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitArgument(IArgumentOperation operation, object argument)
         {
             var baseArgument = (BaseArgument)operation;
-            return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertibleOpt, baseArgument.OutConversionConvertibleOpt, ((Operation)operation).SemanticModel, operation.Syntax, operation.ConstantValue, operation.IsImplicit);
+            return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertibleOpt, baseArgument.OutConversionConvertibleOpt, ((Operation)operation).SemanticModel, operation.Syntax, operation.IsImplicit);
         }
 
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, object argument)

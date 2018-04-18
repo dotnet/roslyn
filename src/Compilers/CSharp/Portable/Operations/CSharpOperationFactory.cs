@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -1483,6 +1484,33 @@ namespace Microsoft.CodeAnalysis.Operations
 
             Lazy<IOperation> collection = new Lazy<IOperation>(() => Create(boundForEachStatement.Expression));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundForEachStatement.Body));
+            ForEachEnumeratorInfo enumeratorInfoOpt = boundForEachStatement.EnumeratorInfoOpt;
+            ForEachLoopOperationInfo info;
+
+            if (enumeratorInfoOpt != null)
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var compilation = (CSharpCompilation)_semanticModel.Compilation;
+
+                info = new ForEachLoopOperationInfo(enumeratorInfoOpt.ElementType,
+                                                    enumeratorInfoOpt.GetEnumeratorMethod,
+                                                    (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol,
+                                                    enumeratorInfoOpt.MoveNextMethod,
+                                                    enumeratorInfoOpt.NeedsDisposeMethod,
+                                                    knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposeMethod && (object)enumeratorInfoOpt.GetEnumeratorMethod != null ?
+                                                                                     compilation.Conversions.
+                                                                                         ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType,
+                                                                                                                            compilation.GetSpecialType(SpecialType.System_IDisposable),
+                                                                                                                            ref useSiteDiagnostics).IsImplicit :
+                                                                                     false,
+                                                    enumeratorInfoOpt.CurrentConversion,
+                                                    boundForEachStatement.ElementConversion);
+            }
+            else
+            {
+                info = default;
+            }
+
             Lazy<ImmutableArray<IOperation>> nextVariables = new Lazy<ImmutableArray<IOperation>>(() => ImmutableArray<IOperation>.Empty);
             ILabelSymbol continueLabel = boundForEachStatement.ContinueLabel;
             ILabelSymbol exitLabel = boundForEachStatement.BreakLabel;
@@ -1490,7 +1518,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundForEachStatement.WasCompilerGenerated;
-            return new LazyForEachLoopStatement(locals, continueLabel, exitLabel, loopControlVariable, collection, nextVariables, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyForEachLoopStatement(locals, continueLabel, exitLabel, loopControlVariable, collection, nextVariables, body, info, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)

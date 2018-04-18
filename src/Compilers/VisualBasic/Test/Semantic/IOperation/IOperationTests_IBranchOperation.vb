@@ -533,7 +533,6 @@ Block[B3] - Exit
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
-
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub BranchFlow_19()
@@ -2477,6 +2476,77 @@ Block[B2] - Block [UnReachable]
     Next (Regular) Block[B1]
 Block[B3] - Exit [UnReachable]
     Predecessors (0)
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub BranchFlow_49()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M() 'BIND:"Sub M"
+        Continue Do
+        Continue While
+        Continue For
+        Exit Do
+        Exit While
+        Exit For
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30782: 'Continue Do' can only appear inside a 'Do' statement.
+        Continue Do
+        ~~~~~~~~~~~
+BC30784: 'Continue While' can only appear inside a 'While' statement.
+        Continue While
+        ~~~~~~~~~~~~~~
+BC30783: 'Continue For' can only appear inside a 'For' statement.
+        Continue For
+        ~~~~~~~~~~~~
+BC30089: 'Exit Do' can only appear inside a 'Do' statement.
+        Exit Do
+        ~~~~~~~
+BC30097: 'Exit While' can only appear inside a 'While' statement.
+        Exit While
+        ~~~~~~~~~~
+BC30096: 'Exit For' can only appear inside a 'For' statement.
+        Exit For
+        ~~~~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (6)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Continue Do')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Continue While')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Continue For')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit Do')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit While')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit For')
+          Children(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 

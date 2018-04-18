@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 s_boxedIdentityConversion,
                 semanticModel: _semanticModel,
                 syntax: argument ?? value.Syntax,
-                constantValue: default,
                 isImplicit: expression.WasCompilerGenerated || argument == null);
         }
 

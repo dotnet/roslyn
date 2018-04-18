@@ -1330,7 +1330,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 var originalArgument = (BaseArgument)args[index];
                 return new ArgumentOperation(visitedArgument, originalArgument.ArgumentKind, originalArgument.Parameter,
                                              originalArgument.InConversionConvertibleOpt, originalArgument.OutConversionConvertibleOpt,
-                                             semanticModel: null, originalArgument.Syntax, originalArgument.ConstantValue, originalArgument.IsImplicit);
+                                             semanticModel: null, originalArgument.Syntax, originalArgument.IsImplicit);
             }
         }
 
@@ -1860,12 +1860,11 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                               outConversionOpt: null,
                                                                                               semanticModel: null,
                                                                                               underlyingValue.Syntax,
-                                                                                              constantValue: null,
                                                                                               isImplicit: true)),
                                                             semanticModel: null,
                                                             underlyingValue.Syntax,
                                                             type,
-                                                            constantValue: null,
+                                                            constantValue: default,
                                                             isImplicit: true);
                     }
                 }
@@ -2287,7 +2286,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
-                    resource = convertToIDisposable(resource);
+                    resource = ConvertToIDisposable(resource, iDisposable);
                 }
 
                 AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
@@ -2347,7 +2346,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
-                    resource = convertToIDisposable(resource);
+                    resource = ConvertToIDisposable(resource, iDisposable);
                     int captureId = _availableCaptureId++;
                     AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
                     resource = new FlowCaptureReference(captureId, resource.Syntax, resource.Type, constantValue: default);
@@ -2365,43 +2364,55 @@ namespace Microsoft.CodeAnalysis.Operations
                 Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.Try);
                 LeaveRegion();
 
-                var endOfFinally = new BasicBlock(BasicBlockKind.Block);
-                endOfFinally.InternalNext.Branch.Kind = BasicBlock.BranchKind.StructuredExceptionHandling;
+                AddDisposingFinally(resource, knownToImplementIDisposable: true, iDisposable, compilation);
 
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Finally));
-                AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
-
-                if (!(resource.Type?.IsValueType == true && !ITypeSymbolHelpers.IsNullableType(resource.Type)))
-                {
-                    IOperation condition = MakeIsNullOperation(OperationCloner.CloneOperation(resource), compilation);
-                    condition = Operation.SetParentOperation(condition, null);
-                    LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: true, RegularBranch(endOfFinally)));
-                    _currentBasicBlock = null;
-                }
-
-                if (!resource.Type.Equals(iDisposable))
-                {
-                    resource = convertToIDisposable(resource);
-                }
-
-                AddStatement(tryDispose(resource) ??
-                             // PROTOTYPE(dataflow): The scenario with missing Dispose is not covered by unit-tests.
-                             MakeInvalidOperation(type: null, resource));
-
-                AppendNewBlock(endOfFinally);
-
-                LeaveRegion();
                 Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
                 LeaveRegion();
 
                 AppendNewBlock(afterTryFinally, linkToPrevious: false);
             }
+        }
 
-            IOperation convertToIDisposable(IOperation operand)
+        private void AddDisposingFinally(IOperation resource, bool knownToImplementIDisposable, ITypeSymbol iDisposable, Compilation compilation)
+        {
+            Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
+
+            var endOfFinally = new BasicBlock(BasicBlockKind.Block);
+            endOfFinally.InternalNext.Branch.Kind = BasicBlock.BranchKind.StructuredExceptionHandling;
+
+            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Finally));
+            AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
+
+            if (!knownToImplementIDisposable)
             {
-                return new ConversionOperation(operand, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                               semanticModel: null, operand.Syntax, iDisposable, constantValue: default, isImplicit: true);
+                Debug.Assert(!isNotNullableValueType(resource.Type));
+                resource = ConvertToIDisposable(resource, iDisposable, isTryCast: true);
+                int captureId = _availableCaptureId++;
+                AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
+                resource = new FlowCaptureReference(captureId, resource.Syntax, iDisposable, constantValue: default);
             }
+
+            if (!knownToImplementIDisposable || !isNotNullableValueType(resource.Type))
+            {
+                IOperation condition = MakeIsNullOperation(OperationCloner.CloneOperation(resource), compilation);
+                condition = Operation.SetParentOperation(condition, null);
+                LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: true, RegularBranch(endOfFinally)));
+                _currentBasicBlock = null;
+            }
+
+            if (!resource.Type.Equals(iDisposable))
+            {
+                resource = ConvertToIDisposable(resource, iDisposable);
+            }
+
+            AddStatement(tryDispose(resource) ??
+                         // PROTOTYPE(dataflow): The scenario with missing Dispose is not covered by unit-tests.
+                         MakeInvalidOperation(type: null, resource));
+
+            AppendNewBlock(endOfFinally);
+
+            LeaveRegion();
+            return;
 
             IOperation tryDispose(IOperation value)
             {
@@ -2417,6 +2428,18 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 return null;
             }
+
+            bool isNotNullableValueType(ITypeSymbol type)
+            {
+                return type?.IsValueType == true && !ITypeSymbolHelpers.IsNullableType(type);
+            }
+        }
+
+        private static IOperation ConvertToIDisposable(IOperation operand, ITypeSymbol iDisposable, bool isTryCast = false)
+        {
+            Debug.Assert(iDisposable.SpecialType == SpecialType.System_IDisposable);
+            return new ConversionOperation(operand, ConvertibleConversion.Instance, isTryCast, isChecked: false,
+                                           semanticModel: null, operand.Syntax, iDisposable, constantValue: default, isImplicit: true);
         }
 
         public override IOperation VisitLock(ILockOperation operation, int? captureIdForResult)
@@ -2494,7 +2517,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                           outConversionOpt: null,
                                                                                           semanticModel: null,
                                                                                           lockedValue.Syntax,
-                                                                                          constantValue: null,
                                                                                           isImplicit: true)),
                                                           semanticModel: null, lockedValue.Syntax,
                                                           enterMethod.ReturnType, constantValue: default, isImplicit: true));
@@ -2520,7 +2542,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                       outConversionOpt: null,
                                                                                       semanticModel: null,
                                                                                       lockedValue.Syntax,
-                                                                                      constantValue: null,
                                                                                       isImplicit: true),
                                                                 new ArgumentOperation(lockTaken,
                                                                                       ArgumentKind.Explicit,
@@ -2529,7 +2550,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                       outConversionOpt: null,
                                                                                       semanticModel: null,
                                                                                       lockedValue.Syntax,
-                                                                                      constantValue: null,
                                                                                       isImplicit: true)),
                                                       semanticModel: null, lockedValue.Syntax,
                                                       enterMethod.ReturnType, constantValue: default, isImplicit: true));
@@ -2577,7 +2597,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                       outConversionOpt: null,
                                                                                       semanticModel: null,
                                                                                       lockedValue.Syntax,
-                                                                                      constantValue: null,
                                                                                       isImplicit: true)),
                                                       semanticModel: null, lockedValue.Syntax,
                                                       exitMethod.ReturnType, constantValue: default, isImplicit: true));
@@ -2592,6 +2611,220 @@ namespace Microsoft.CodeAnalysis.Operations
             AppendNewBlock(afterTryFinally, linkToPrevious: false);
 
             return null;
+        }
+
+        public override IOperation VisitForEachLoop(IForEachLoopOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            ForEachLoopOperationInfo info = ((BaseForEachLoopStatement)operation).Info;
+
+            bool haveLocals = !operation.Locals.IsEmpty;
+            bool createdRegionForCollection = false;
+
+            if (haveLocals && operation.LoopControlVariable.Kind == OperationKind.VariableDeclarator)
+            {
+                // VB has rather interesting scoping rules for control variable.
+                // It is in scope in the collection expression. However, it is considered to be 
+                // "a different" version of that local. Effectively when the code is emitted,
+                // there are two distinct locals, one is used in the collection expression and the 
+                // other is used as a loop control variable. This is done to have proper hoisting 
+                // and lifetime in presence of lambdas.
+                // Rather than introducing a separate local symbol, we will simply add another 
+                // lifetime region for that local around the collection expression. 
+
+                var declarator = (IVariableDeclaratorOperation)operation.LoopControlVariable;
+                ILocalSymbol local = declarator.Symbol;
+
+                foreach (IOperation op in operation.Collection.DescendantsAndSelf())
+                {
+                    if (op is ILocalReferenceOperation l && l.Local.Equals(local))
+                    {
+                        EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: ImmutableArray.Create(local)));
+                        createdRegionForCollection = true;
+                        break;
+                    }
+                }
+            }
+
+            IOperation enumerator = getEnumerator();
+
+            if (createdRegionForCollection)
+            {
+                LeaveRegion();
+            }
+
+            if (info.NeedsDispose)
+            {
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.TryAndFinally));
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try));
+            }
+
+            var @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
+            var @break = GetLabeledOrNewBlock(operation.ExitLabel);
+
+            AppendNewBlock(@continue);
+
+            IOperation condition = Operation.SetParentOperation(getCondition(enumerator), null);
+            LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: false, RegularBranch(@break)));
+            _currentBasicBlock = null;
+
+            if (haveLocals)
+            {
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            }
+
+            AddStatement(getLoopControlVariableAssignment(applyConversion(info.CurrentConversion, getCurrent(OperationCloner.CloneOperation(enumerator)), info.ElementType)));
+            VisitStatement(operation.Body);
+            LinkBlocks(CurrentBasicBlock, @continue);
+
+            if (haveLocals)
+            {
+                LeaveRegion();
+            }
+
+            AppendNewBlock(@break);
+
+            if (info.NeedsDispose)
+            {
+                var afterTryFinally = new BasicBlock(BasicBlockKind.Block);
+                LinkBlocks(CurrentBasicBlock, afterTryFinally);
+
+                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.Try);
+                LeaveRegion();
+
+                Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
+                AddDisposingFinally(OperationCloner.CloneOperation(enumerator),
+                                    info.KnownToImplementIDisposable,
+                                    compilation.GetSpecialType(SpecialType.System_IDisposable),
+                                    compilation);
+
+                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
+                LeaveRegion();
+
+                AppendNewBlock(afterTryFinally, linkToPrevious: false);
+            }
+
+            return null;
+
+            IOperation applyConversion(IConvertibleConversion conversionOpt, IOperation operand, ITypeSymbol targetType)
+            {
+                if (conversionOpt?.ToCommonConversion().IsIdentity == false)
+                {
+                    operand = new ConversionOperation(operand, conversionOpt, isTryCast: false, isChecked: false, semanticModel: null,
+                                                      operand.Syntax, targetType, constantValue: default, isImplicit: true);
+                }
+
+                return operand;
+            }
+
+            IOperation getEnumerator()
+            {
+                if (info.GetEnumeratorMethod != null)
+                {
+                    IOperation invocation = makeInvocation(operation.Collection.Syntax,
+                                                           info.GetEnumeratorMethod,
+                                                           info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection),
+                                                           info.GetEnumeratorArguments);
+
+                    int enumeratorCaptureId = _availableCaptureId++;
+                    AddStatement(new FlowCapture(enumeratorCaptureId, operation.Collection.Syntax, invocation));
+
+                    return new FlowCaptureReference(enumeratorCaptureId, operation.Collection.Syntax, info.GetEnumeratorMethod.ReturnType, constantValue: default);
+                }
+                else
+                {
+                    // This must be an error case
+                    AddStatement(MakeInvalidOperation(type: null, Visit(operation.Collection)));
+                    return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Collection.Syntax, 
+                                                type: null,constantValue: default, isImplicit: true);
+                }
+            }
+
+            IOperation getCondition(IOperation enumeratorRef)
+            {
+                if (info.MoveNextMethod != null)
+                {
+                    return makeInvocationDroppingInstanceForStaticMethods(info.MoveNextMethod, enumeratorRef, info.MoveNextArguments);
+                }
+                else
+                {
+                    // This must be an error case
+                    return MakeInvalidOperation(((Operation)operation).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean), enumeratorRef);
+                }
+            }
+
+            IOperation getCurrent(IOperation enumeratorRef)
+            {
+                if (info.CurrentProperty != null)
+                {
+                    return new PropertyReferenceExpression(info.CurrentProperty,
+                                                           info.CurrentProperty.IsStatic ? null : enumeratorRef,
+                                                           makeArguments(info.CurrentArguments), semanticModel: null,
+                                                           operation.LoopControlVariable.Syntax,
+                                                           info.CurrentProperty.Type, constantValue: default, isImplicit: true);
+                }
+                else
+                {
+                    // This must be an error case
+                    return MakeInvalidOperation(type: null, enumeratorRef);
+                }
+            }
+
+            IOperation getLoopControlVariableAssignment(IOperation current)
+            {
+                switch (operation.LoopControlVariable.Kind)
+                {
+                    case OperationKind.VariableDeclarator:
+                        var declarator = (IVariableDeclaratorOperation)operation.LoopControlVariable;
+                        ILocalSymbol local = declarator.Symbol;
+                        current = applyConversion(info.ElementConversion, current, local.Type);
+
+                        return new SimpleAssignmentExpression(new LocalReferenceExpression(local, isDeclaration: true, semanticModel: null,
+                                                                                           declarator.Syntax, local.Type, constantValue: default, isImplicit: true),
+                                                              isRef: local.RefKind != RefKind.None, current, semanticModel: null, declarator.Syntax, type: null,
+                                                              constantValue: default, isImplicit: true);
+
+                    case OperationKind.Tuple:
+                    case OperationKind.DeclarationExpression:
+                        Debug.Assert(info.ElementConversion?.ToCommonConversion().IsIdentity != false);
+
+                        return new DeconstructionAssignmentExpression(VisitPreservingTupleOperations(operation.LoopControlVariable), 
+                                                                      current, semanticModel: null,
+                                                                      operation.LoopControlVariable.Syntax, operation.LoopControlVariable.Type,
+                                                                      constantValue: default, isImplicit: true);
+                    default:
+                        return new SimpleAssignmentExpression(Visit(operation.LoopControlVariable), 
+                                                              isRef: false, // In C# this is an error case and VB doesn't support ref locals
+                                                              current, semanticModel: null, operation.LoopControlVariable.Syntax,
+                                                              operation.LoopControlVariable.Type,
+                                                              constantValue: default, isImplicit: true);
+                }
+            }
+
+            InvocationExpression makeInvocationDroppingInstanceForStaticMethods(IMethodSymbol method, IOperation instance, Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            {
+                return makeInvocation(instance.Syntax, method, method.IsStatic ? null : instance, arguments);
+            }
+
+            InvocationExpression makeInvocation(SyntaxNode syntax, IMethodSymbol method, IOperation instanceOpt, Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            {
+                Debug.Assert(method.IsStatic == (instanceOpt == null));
+                return new InvocationExpression(method, instanceOpt,
+                                                isVirtual: method.IsVirtual || method.IsAbstract || method.IsOverride,
+                                                makeArguments(arguments), semanticModel: null, syntax,
+                                                method.ReturnType, constantValue: default, isImplicit: true);
+            }
+
+            ImmutableArray<IArgumentOperation> makeArguments(Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            {
+                if (arguments != null)
+                {
+                    return VisitArguments(arguments.Value);
+                }
+
+                return ImmutableArray<IArgumentOperation>.Empty;
+            }
         }
 
         public override IOperation VisitEnd(IEndOperation operation, int? captureIdForResult)
@@ -2771,6 +3004,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             if (operation.Instance != null)
             {
+                // PROTOTYPE(dataflow): drop instance for a static method
                 _evalStack.Push(Visit(operation.Instance));
             }
 
@@ -2798,55 +3032,65 @@ namespace Microsoft.CodeAnalysis.Operations
             // has control flow the individual elements are captured. Then we can recompose the tuple after operation.Value has been visited.
             // We do this to keep the graph sane, so that users don't have to track a tuple captured via flow control when it's not really
             // the tuple that's been captured, it's the operands to the tuple.
-            pushTargetAndUnwrapTupleIfNecessary(operation.Target);
+            PushTargetAndUnwrapTupleIfNecessary(operation.Target);
             IOperation visitedValue = Visit(operation.Value);
-            IOperation visitedTarget = popTargetAndWrapTupleIfNecessary(operation.Target);
+            IOperation visitedTarget = PopTargetAndWrapTupleIfNecessary(operation.Target);
 
             return new DeconstructionAssignmentExpression(visitedTarget, visitedValue, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
 
-            // Recursively push nexted values onto the stack for visiting
-            void pushTargetAndUnwrapTupleIfNecessary(IOperation value)
+        /// <summary>
+        /// Recursively push nexted values onto the stack for visiting
+        /// </summary>
+        private void PushTargetAndUnwrapTupleIfNecessary(IOperation value)
+        {
+            if (value.Kind == OperationKind.Tuple)
             {
-                if (value.Kind == OperationKind.Tuple)
-                {
-                    var tuple = (ITupleOperation)value;
+                var tuple = (ITupleOperation)value;
 
-                    foreach (IOperation element in tuple.Elements)
-                    {
-                        pushTargetAndUnwrapTupleIfNecessary(element);
-                    }
-                }
-                else
+                foreach (IOperation element in tuple.Elements)
                 {
-                    _evalStack.Push(Visit(value));
+                    PushTargetAndUnwrapTupleIfNecessary(element);
                 }
             }
-
-            // Recursively pop nested tuple values off the stack after visiting
-            IOperation popTargetAndWrapTupleIfNecessary(IOperation value)
+            else
             {
-                if (value.Kind == OperationKind.Tuple)
+                _evalStack.Push(Visit(value));
+            }
+        }
+
+        /// <summary>
+        /// Recursively pop nested tuple values off the stack after visiting
+        /// </summary>
+        private IOperation PopTargetAndWrapTupleIfNecessary(IOperation value)
+        {
+            if (value.Kind == OperationKind.Tuple)
+            {
+                var tuple = (ITupleOperation)value;
+                var numElements = tuple.Elements.Length;
+                var elementBuilder = ArrayBuilder<IOperation>.GetInstance(numElements);
+                for (int i = numElements - 1; i >= 0; i--)
                 {
-                    var tuple = (ITupleOperation)value;
-                    var numElements = tuple.Elements.Length;
-                    var elementBuilder = ArrayBuilder<IOperation>.GetInstance(numElements);
-                    for (int i = numElements - 1; i >= 0; i--)
-                    {
-                        elementBuilder.Add(popTargetAndWrapTupleIfNecessary(tuple.Elements[i]));
-                    }
-                    elementBuilder.ReverseContents();
-                    return new TupleExpression(elementBuilder.ToImmutableAndFree(), semanticModel: null, tuple.Syntax, tuple.Type, tuple.NaturalType, tuple.ConstantValue, tuple.IsImplicit);
+                    elementBuilder.Add(PopTargetAndWrapTupleIfNecessary(tuple.Elements[i]));
                 }
-                else
-                {
-                    return _evalStack.Pop();
-                }
+                elementBuilder.ReverseContents();
+                return new TupleExpression(elementBuilder.ToImmutableAndFree(), semanticModel: null, tuple.Syntax, tuple.Type, tuple.NaturalType, tuple.ConstantValue, tuple.IsImplicit);
+            }
+            else
+            {
+                return _evalStack.Pop();
             }
         }
 
         public override IOperation VisitDeclarationExpression(IDeclarationExpressionOperation operation, int? captureIdForResult)
         {
-            return new DeclarationExpression(Visit(operation.Expression), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new DeclarationExpression(VisitPreservingTupleOperations(operation.Expression), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        private IOperation VisitPreservingTupleOperations(IOperation operation)
+        {
+            PushTargetAndUnwrapTupleIfNecessary(operation);
+            return PopTargetAndWrapTupleIfNecessary(operation);
         }
 
         public override IOperation VisitTuple(ITupleOperation operation, int? captureIdForResult)
@@ -2934,7 +3178,7 @@ namespace Microsoft.CodeAnalysis.Operations
             // PROTOTYPE(DATAFLOW): All usages of this should be removed the following line uncommented when support is added for object creation, property reference, and raise events.
             // throw ExceptionUtilities.Unreachable;
             var baseArgument = (BaseArgument)operation;
-            return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertibleOpt, baseArgument.OutConversionConvertibleOpt, semanticModel: null, operation.Syntax, operation.ConstantValue, operation.IsImplicit);
+            return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertibleOpt, baseArgument.OutConversionConvertibleOpt, semanticModel: null, operation.Syntax, operation.IsImplicit);
         }
 
         public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)
@@ -2982,12 +3226,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ForToLoopStatement(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable), Visit(operation.InitialValue), Visit(operation.LimitValue), Visit(operation.StepValue), Visit(operation.Body), VisitArray(operation.NextVariables), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitForEachLoop(IForEachLoopOperation operation, int? captureIdForResult)
-        {
-            // PROTOTYPE(dataflow): note that the loop control variable can be an IVariableDeclarator directly, and this function is expected to handle it without calling Visit(IVariableDeclarator)
-            return new ForEachLoopStatement(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable), Visit(operation.Collection), VisitArray(operation.NextVariables), Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
         internal override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
         {
             return new WithStatement(Visit(operation.Body), Visit(operation.Value), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -3030,16 +3268,19 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitFieldReference(IFieldReferenceOperation operation, int? captureIdForResult)
         {
+            // PROTOTYPE(dataflow): drop instance for a static field
             return new FieldReferenceExpression(operation.Field, operation.IsDeclaration, Visit(operation.Instance), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitMethodReference(IMethodReferenceOperation operation, int? captureIdForResult)
         {
+            // PROTOTYPE(dataflow): drop instance for a static method
             return new MethodReferenceExpression(operation.Method, operation.IsVirtual, Visit(operation.Instance), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitPropertyReference(IPropertyReferenceOperation operation, int? captureIdForResult)
         {
+            // PROTOTYPE(dataflow): drop instance for a static property
             return new PropertyReferenceExpression(operation.Property, Visit(operation.Instance), VisitArray(operation.Arguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 

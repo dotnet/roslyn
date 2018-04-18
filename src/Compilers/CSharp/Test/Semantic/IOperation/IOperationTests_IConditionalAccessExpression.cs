@@ -109,9 +109,9 @@ Block[B2] - Block
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Length')
           Value: 
-            IObjectCreationOperation (Constructor: System.Int32?..ctor(System.Int32 value)) (OperationKind.ObjectCreation, Type: System.Int32?, Constant: null, IsImplicit) (Syntax: '.Length')
+            IObjectCreationOperation (Constructor: System.Int32?..ctor(System.Int32 value)) (OperationKind.ObjectCreation, Type: System.Int32?, IsImplicit) (Syntax: '.Length')
               Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, Constant: null, IsImplicit) (Syntax: '.Length')
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '.Length')
                     IPropertyReferenceOperation: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '.Length')
                       Instance Receiver: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Array, IsImplicit) (Syntax: 'input')
@@ -508,9 +508,9 @@ Block[B3] - Block
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[11]')
           Value: 
-            IObjectCreationOperation (Constructor: P?..ctor(P value)) (OperationKind.ObjectCreation, Type: P?, Constant: null, IsImplicit) (Syntax: '[11]')
+            IObjectCreationOperation (Constructor: P?..ctor(P value)) (OperationKind.ObjectCreation, Type: P?, IsImplicit) (Syntax: '[11]')
               Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, Constant: null, IsImplicit) (Syntax: '[11]')
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[11]')
                     IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: P) (Syntax: '[11]')
                       Array reference: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: P[], IsImplicit) (Syntax: '.Access1()')
@@ -567,9 +567,9 @@ Block[B7] - Block
     Statements (1)
         IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Access2()')
           Value: 
-            IObjectCreationOperation (Constructor: P?..ctor(P value)) (OperationKind.ObjectCreation, Type: P?, Constant: null, IsImplicit) (Syntax: '.Access2()')
+            IObjectCreationOperation (Constructor: P?..ctor(P value)) (OperationKind.ObjectCreation, Type: P?, IsImplicit) (Syntax: '.Access2()')
               Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, Constant: null, IsImplicit) (Syntax: '.Access2()')
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '.Access2()')
                     IInvocationOperation ( P P.Access2()) (OperationKind.Invocation, Type: P) (Syntax: '.Access2()')
                       Instance Receiver: 
                         IInvocationOperation ( P P?.GetValueOrDefault()) (OperationKind.Invocation, Type: P, IsImplicit) (Syntax: '[22]')

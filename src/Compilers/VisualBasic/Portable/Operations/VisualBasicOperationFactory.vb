@@ -1074,6 +1074,46 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim loopControlVariable As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateBoundControlVariableOperation(boundForEachStatement))
             Dim collection As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForEachStatement.Collection))
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForEachStatement.Body))
+            Dim getEnumeratorArguments As ImmutableArray(Of BoundExpression) = Nothing
+            Dim moveNextArguments As ImmutableArray(Of BoundExpression) = Nothing
+            Dim currentArguments As ImmutableArray(Of BoundExpression) = Nothing
+            Dim statementInfo As ForEachStatementInfo = MemberSemanticModel.GetForEachStatementInfo(boundForEachStatement,
+                                                                                                    DirectCast(_semanticModel.Compilation, VisualBasicCompilation),
+                                                                                                    getEnumeratorArguments,
+                                                                                                    moveNextArguments,
+                                                                                                    currentArguments)
+            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim info As New ForEachLoopOperationInfo(statementInfo.ElementType,
+                                                     statementInfo.GetEnumeratorMethod,
+                                                     statementInfo.CurrentProperty,
+                                                     statementInfo.MoveNextMethod,
+                                                     boundForEachStatement.EnumeratorInfo.NeedToDispose,
+                                                     knownToImplementIDisposable:=boundForEachStatement.EnumeratorInfo.NeedToDispose AndAlso
+                                                                                  boundForEachStatement.EnumeratorInfo.IsOrInheritsFromOrImplementsIDisposable,
+                                                     statementInfo.CurrentConversion,
+                                                     statementInfo.ElementConversion,
+                                                     If(getEnumeratorArguments.IsDefaultOrEmpty, Nothing,
+                                                        New Lazy(Of ImmutableArray(Of IArgumentOperation))(
+                                                            Function()
+                                                                Return DeriveArguments(getEnumeratorArguments,
+                                                                                       DirectCast(statementInfo.GetEnumeratorMethod, MethodSymbol).Parameters,
+                                                                                       invocationWasCompilerGenerated:=True)
+                                                            End Function)),
+                                                     If(moveNextArguments.IsDefaultOrEmpty, Nothing,
+                                                        New Lazy(Of ImmutableArray(Of IArgumentOperation))(
+                                                            Function()
+                                                                Return DeriveArguments(moveNextArguments,
+                                                                                       DirectCast(statementInfo.MoveNextMethod, MethodSymbol).Parameters,
+                                                                                       invocationWasCompilerGenerated:=True)
+                                                            End Function)),
+                                                     If(currentArguments.IsDefaultOrEmpty, Nothing,
+                                                        New Lazy(Of ImmutableArray(Of IArgumentOperation))(
+                                                            Function()
+                                                                Return DeriveArguments(currentArguments,
+                                                                                       DirectCast(statementInfo.CurrentProperty, PropertySymbol).Parameters,
+                                                                                       invocationWasCompilerGenerated:=True)
+                                                            End Function)))
+
             Dim nextVariables As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
                     Return If(boundForEachStatement.NextVariablesOpt.IsDefault,
@@ -1084,7 +1124,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundForEachStatement.WasCompilerGenerated
-            Return New LazyForEachLoopStatement(locals, continueLabel, exitLabel, loopControlVariable, collection, nextVariables, body, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyForEachLoopStatement(locals, continueLabel, exitLabel, loopControlVariable, collection, nextVariables, body, info, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundControlVariableOperation(boundForStatement As BoundForStatement) As IOperation
