@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis
                 // https://github.com/dotnet/roslyn/issues/18199
                 if (oldState != null && (
                     newState.Info != oldState.Info ||
+                    newState.SourceCodeKind != oldState.SourceCodeKind ||
                     newState.HasContentChanged(oldState)))
                 {
                     yield return id;

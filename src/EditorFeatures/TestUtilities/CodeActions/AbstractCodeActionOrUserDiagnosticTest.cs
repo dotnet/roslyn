@@ -446,13 +446,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 var projectDifferences = SolutionUtilities.GetSingleChangedProjectChanges(oldSolution, newSolution);
 
-                VerifyNoDocumentChangesWhenUpgradeProject(projectDifferences);
-
                 var documentId = projectDifferences.GetChangedDocuments().FirstOrDefault() ?? projectDifferences.GetAddedDocuments().FirstOrDefault();
                 if (documentId == null)
                 {
                     // pick a random document if no document changed
                     document = projectDifferences.NewProject.Documents.FirstOrDefault();
+                    VerifyNoDocumentChangesWhenUpgradeProject(projectDifferences, document);
                 }
                 else
                 {
@@ -468,9 +467,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return document;
         }
 
-        private static void VerifyNoDocumentChangesWhenUpgradeProject(ProjectChanges projectDifferences)
+        private static void VerifyNoDocumentChangesWhenUpgradeProject(ProjectChanges projectDifferences, Document newDoc)
         {
-            var newDocState = projectDifferences.NewProject.Documents.First().State as DocumentState;
+            var newDocState = newDoc.State as DocumentState;
             if (newDocState.ParseOptions is CSharpParseOptions)
             {
                 var newParseOptions = newDocState.ParseOptions as CSharpParseOptions;
