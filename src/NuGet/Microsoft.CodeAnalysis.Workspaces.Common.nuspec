@@ -22,7 +22,6 @@
         <dependency id="System.ObjectModel" version="$SystemObjectModelVersion$" />
         <dependency id="System.Text.RegularExpressions" version="$SystemTextRegularExpressionsVersion$" />
         <dependency id="System.Threading.Tasks.Parallel" version="$SystemThreadingTasksParallelVersion$" />
-        <dependency id="SQLitePCLRaw.bundle_green" version="$SQLitePCLRawbundle_greenVersion$" />
       </group>
       <group targetFramework="net46">
         <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
