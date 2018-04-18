@@ -5,6 +5,9 @@
     <VisualStudioInsertionComponent>$(MSBuildProjectName)</VisualStudioInsertionComponent>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Templates\Microsoft.VisualStudio.Templates.Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <SwrProperty Include="Version=$(VsixVersion)" />
     <SwrProperty Include="MSBuildProjectDirectory=$(MSBuildProjectDirectory)" />
   </ItemGroup>

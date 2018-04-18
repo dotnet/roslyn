@@ -1,12 +1,12 @@
 use vs
 
-package name=Microsoft.VisualStudio.GettingStartedTemplates.Web.Setup
+package name=Templates.Editorconfig.SolutionFile.Setup
         version=$(Version)
 
 vs.localizedResources
   vs.localizedResource language=en-us
-                       title="Get Started Web App"
-                       description="Template to create an app that can be accessed through any web browser."
+                       title="Editorconfig templates"
+                       description="Template to create an editorconfig file."
 
 folder "InstallDir:Common7\IDE\NewFileItems"
   file source="$(MSBuildProjectDirectory)\..\..\Templates\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.vstemplate"
