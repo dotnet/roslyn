@@ -123,7 +123,12 @@ namespace Microsoft.CodeAnalysis
             {
                 var newState = _newProject.GetDocumentState(id);
                 var oldState = _oldProject.GetDocumentState(id);
-                if (oldState != null && newState.HasContentChanged(oldState))
+                // should not directly compare newState != oldState,
+                // as when ParseOptions changes we should not consider as a document changes
+                // https://github.com/dotnet/roslyn/issues/18199
+                if (oldState != null && (
+                    newState.Info != oldState.Info ||
+                    newState.HasContentChanged(oldState)))
                 {
                     yield return id;
                 }
