@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,7 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             List<string> allTypeNames,
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
-            string languageName)
+            string languageName,
+            ImmutableArray<SyntaxTrivia> fileBanner)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -65,7 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                     includedMembers: includedMembers.AsImmutable(),
                     interfaceName: viewModel.InterfaceName.Trim(),
                     fileName: viewModel.FileName.Trim(),
-                    location: GetLocation(viewModel.Destination));
+                    location: GetLocation(viewModel.Destination),
+                    fileBanner: fileBanner);
             }
             else
             {

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExtractInterface;
@@ -38,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             List<string> conflictingTypeNames,
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
-            string languageName)
+            string languageName,
+            ImmutableArray<SyntaxTrivia> fileBanner)
         {
             this.AllExtractableMembers = extractableMembers;
             this.DefaultInterfaceName = defaultInterfaceName;
@@ -53,7 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     includedMembers: (ChosenMembers ?? AllExtractableMembers).AsImmutable(),
                     interfaceName: ChosenInterfaceName ?? defaultInterfaceName,
                     fileName: ChosenFileName ?? defaultInterfaceName,
-                    location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile);
+                    location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile,
+                    fileBanner: fileBanner);
 
             return Task.FromResult(result);
         }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;..." preserves banner at the top of the file
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
@@ -19,14 +20,16 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public string InterfaceName { get; }
         public string FileName { get; }
         public ExtractLocation Location { get; }
+        public ImmutableArray<SyntaxTrivia> FileBanner { get; }
 
-        public ExtractInterfaceOptionsResult(bool isCancelled, ImmutableArray<ISymbol> includedMembers, string interfaceName, string fileName, ExtractLocation location)
+        public ExtractInterfaceOptionsResult(bool isCancelled, ImmutableArray<ISymbol> includedMembers, string interfaceName, string fileName, ExtractLocation location, ImmutableArray<SyntaxTrivia> fileBanner)
         {
             IsCancelled = isCancelled;
             IncludedMembers = includedMembers;
             InterfaceName = interfaceName;
             Location = location;
             FileName = fileName;
+            FileBanner = fileBanner;
         }
 
         private ExtractInterfaceOptionsResult(bool isCancelled)

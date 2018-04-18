@@ -315,6 +315,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
             var generatedNameTypeParameterSuffix = GetGeneratedNameTypeParameterSuffix(GetTypeParameters(type, extractableMembers), document.Project.Solution.Workspace);
 
+            var fileBanner = syntaxFactsService.GetFileBanner(document.GetSyntaxRootSynchronously(cancellationToken));
+
             var service = document.Project.Solution.Workspace.Services.GetService<IExtractInterfaceOptionsService>();
             return service.GetExtractInterfaceOptionsAsync(
                 syntaxFactsService,
@@ -324,7 +326,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 conflictingTypeNames.ToList(),
                 containingNamespace,
                 generatedNameTypeParameterSuffix,
-                document.Project.Language);
+                document.Project.Language,
+                fileBanner);
         }
 
         private async Task<Document> GetUnformattedInterfaceDocumentAsync(
