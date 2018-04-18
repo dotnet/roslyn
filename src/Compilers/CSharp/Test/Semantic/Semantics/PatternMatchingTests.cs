@@ -4455,24 +4455,9 @@ unsafe public class Typ
                 // (8,22): error CS1525: Invalid expression term 'int'
                 //             if (a is int* b) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(8, 22),
-                // (9,25): error CS1001: Identifier expected
-                //             if (c is var* d) {}
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "*").WithLocation(9, 25),
                 // (13,31): error CS1525: Invalid expression term 'int'
                 //             switch (a) { case int* b: break; }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(13, 31),
-                // (14,34): error CS1001: Identifier expected
-                //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "*").WithLocation(14, 34),
-                // (14,34): error CS1003: Syntax error, ':' expected
-                //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "*").WithArguments(":", "*").WithLocation(14, 34),
-                // (14,37): error CS1002: ; expected
-                //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(14, 37),
-                // (14,37): error CS1513: } expected
-                //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(14, 37),
                 // (5,37): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
                 //     public static void Main(int* a, var* c, Typ* e)
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "var*").WithArguments("var").WithLocation(5, 37),
@@ -4482,9 +4467,9 @@ unsafe public class Typ
                 // (8,27): error CS0103: The name 'b' does not exist in the current context
                 //             if (a is int* b) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(8, 27),
-                // (9,22): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                // (9,22): error CS0119: 'var' is a type, which is not valid in the given context
                 //             if (c is var* d) {}
-                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "var").WithLocation(9, 22),
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "var").WithArguments("var", "type").WithLocation(9, 22),
                 // (9,27): error CS0103: The name 'd' does not exist in the current context
                 //             if (c is var* d) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(9, 27),
@@ -4497,9 +4482,9 @@ unsafe public class Typ
                 // (13,36): error CS0103: The name 'b' does not exist in the current context
                 //             switch (a) { case int* b: break; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(13, 36),
-                // (14,31): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                // (14,31): error CS0119: 'var' is a type, which is not valid in the given context
                 //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "var").WithLocation(14, 31),
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "var").WithArguments("var", "type").WithLocation(14, 31),
                 // (14,36): error CS0103: The name 'd' does not exist in the current context
                 //             switch (c) { case var* d: break; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(14, 36),
