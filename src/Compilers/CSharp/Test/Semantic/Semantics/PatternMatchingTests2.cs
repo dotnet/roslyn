@@ -1911,13 +1911,5 @@ class Blah
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C<T>", "int").WithLocation(5, 21)
                 );
         }
-
-        // PROTOTYPE(patterns2): Need to have tests that exercise:
-        // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
-        // PROTOTYPE(patterns2): Definite assignment for the var-pattern
-        // PROTOTYPE(patterns2): Variable finder for the var-pattern
-        // PROTOTYPE(patterns2): Scope binder contains an approprate scope for the var-pattern
-        // PROTOTYPE(patterns2): Lazily binding types for variables declared in the var-pattern
-        // PROTOTYPE(patterns2): Error when there is a type or constant named var in scope where the var pattern is used
     }
 }
