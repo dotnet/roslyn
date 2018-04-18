@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [StructLayout(LayoutKind.Auto)]
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public struct SyntaxToken : IEquatable<SyntaxToken>
+    public readonly struct SyntaxToken : IEquatable<SyntaxToken>
     {
         private static readonly Func<DiagnosticInfo, Diagnostic> s_createDiagnosticWithoutLocation = Diagnostic.Create;
 
