@@ -822,7 +822,7 @@ class Program
 
         [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ObjectInitializerOfGenericTypeСonstraint()
+        public async Task ObjectInitializerOfGenericTypeСonstraint1()
         {
             var markup = @"
 internal interface IExample
@@ -845,6 +845,26 @@ internal class Example
 
             await VerifyItemExistsAsync(markup, "A");
             await VerifyItemExistsAsync(markup, "B");
+        }
+
+        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObjectInitializerOfGenericTypeСonstraint2()
+        {
+            var markup = @"
+internal class Example
+{
+    public static T Create<T>()
+        where T : new()
+    {
+        return new T
+        {
+            $$
+        };
+    }
+}";
+
+            await VerifyNoItemsExistAsync(markup);
         }
 
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
