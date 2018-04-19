@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If top level tuple uses non-default names, there is no way to preserve them
                 // unless we use tuple syntax for the type. So, we give them priority.
-                if (!format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseLongHandValueTuple))
+                if (!format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseValueTuple))
                 {
                     if (HasNonDefaultTupleElements(symbol) || CanUseTupleTypeName(symbol))
                     {

@@ -90,6 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     SymbolDisplayFormat.CSharpErrorMessageFormat
                         .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
                         // displaying tuple syntax causes to load the members of ValueTuple, which can cause a cycle, so we use long-hand format instead
-                        .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier | SymbolDisplayCompilerInternalOptions.UseLongHandValueTuple)));
+                        .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier | SymbolDisplayCompilerInternalOptions.UseValueTuple)));
     }
 }

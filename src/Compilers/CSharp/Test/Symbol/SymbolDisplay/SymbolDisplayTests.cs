@@ -5938,7 +5938,7 @@ class B
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
             var formatWithLongHandValueTuple = formatWithoutLongHandValueTuple.WithCompilerInternalOptions(
-                SymbolDisplayCompilerInternalOptions.UseLongHandValueTuple);
+                SymbolDisplayCompilerInternalOptions.UseValueTuple);
 
             var method = comp.GetMember<MethodSymbol>("B.F1");
 

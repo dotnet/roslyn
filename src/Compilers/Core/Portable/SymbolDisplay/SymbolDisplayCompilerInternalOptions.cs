@@ -65,6 +65,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Display `System.ValueTuple` instead of tuple syntax `(...)`.
         /// </summary>
-        UseLongHandValueTuple = 1 << 8,
+        UseValueTuple = 1 << 8,
     }
 }
