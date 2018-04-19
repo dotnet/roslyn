@@ -1382,7 +1382,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // update text if changed
-            if (newDoc.HasContentChanged(oldDoc))
+            if (newDoc.HasTextChanged(oldDoc))
             {
                 // What we'd like to do here is figure out what actual text changes occurred and pass them on to the host.
                 // However, since it is likely that the change was done by replacing the syntax tree, getting the actual text changes is non trivial.
