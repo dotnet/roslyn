@@ -101,6 +101,7 @@ namespace RunTests
             var assemblyInfoList = GetAssemblyList(options);
 
             Console.WriteLine($"Data Storage: {testExecutor.DataStorage.Name}");
+            Console.WriteLine($"Proc dump location: {options.ProcDumpDirectory}");
             Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} partitions");
 
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
