@@ -163,6 +163,96 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void UsingVariableDeclaration1()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        using (int i$$
+    }
+}
+";
+            await VerifySymbolKinds(markup, SymbolKind.Local);
+            await VerifyModifiers(markup, new DeclarationModifiers());
+            await VerifyTypeName(markup, "int");
+            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void UsingVariableDeclaration2()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        using (int i1, $$
+    }
+}
+";
+            await VerifySymbolKinds(markup, SymbolKind.Local);
+            await VerifyModifiers(markup, new DeclarationModifiers());
+            await VerifyTypeName(markup, "int");
+            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void ForVariableDeclaration1()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        for (int i$$
+    }
+}
+";
+            await VerifySymbolKinds(markup, SymbolKind.Local);
+            await VerifyModifiers(markup, new DeclarationModifiers());
+            await VerifyTypeName(markup, "int");
+            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void ForVariableDeclaration2()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        for (int i1, $$
+    }
+}
+";
+            await VerifySymbolKinds(markup, SymbolKind.Local);
+            await VerifyModifiers(markup, new DeclarationModifiers());
+            await VerifyTypeName(markup, "int");
+            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void ForEachVariableDeclaration()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        foreach (int $$
+    }
+}
+";
+            await VerifySymbolKinds(markup, SymbolKind.Local);
+            await VerifyModifiers(markup, new DeclarationModifiers());
+            await VerifyTypeName(markup, "int");
+            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void Parameter1()
         {
             var markup = @"
