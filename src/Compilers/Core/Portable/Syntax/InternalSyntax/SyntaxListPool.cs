@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return new SeparatedSyntaxListBuilder<TNode>(this.Allocate());
         }
 
-        internal void Free<TNode>(SeparatedSyntaxListBuilder<TNode> item) where TNode : GreenNode
+        internal void Free<TNode>(in SeparatedSyntaxListBuilder<TNode> item) where TNode : GreenNode
         {
             Free(item.UnderlyingBuilder);
         }

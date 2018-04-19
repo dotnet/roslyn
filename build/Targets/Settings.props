@@ -176,6 +176,12 @@
     <RoslynToolsetPropsFilePath>$(RoslynToolsetDirectory)\build\$(_PackageName).props</RoslynToolsetPropsFilePath>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+    <SkipApplyOptimizations>true</SkipApplyOptimizations>
+    <RoslynPortableTargetFrameworks46>netcoreapp2.0</RoslynPortableTargetFrameworks46>
+    <RoslynPortableTargetFrameworks>netcoreapp2.0</RoslynPortableTargetFrameworks>
+  </PropertyGroup>
+
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
 
