@@ -15,10 +15,22 @@ Repo Root
           | --- SourceFile2.cs
 ```
 
-In this example the subproject's `.editorconfig` will not apply to `LinkedFile.cs` if it only has the specification `[*.cs]`. If the user wants to explicitly map in the linked file such that the subproject's editorconfig applies, the `.editorconfig` file would need to have a new section added that points to the linked file with a relative path specification. For instance,
+In this example the subproject's `.editorconfig` will not apply to `LinkedFile.cs` if it only has the specification `[*.cs]`. If the user wants to explicitly map in the linked file such that the subproject's editorconfig applies, there would need to be a new `.editorconfig` file with a section that points to the linked file with a relative path specification. For instance,
 
 ```
-[../LinkedFile.cs]
+Repo Root
+  | -- .editorconfig
+  | --- LinkedFile.cs
+  | --- Subproject
+          | --- .editorconfig
+          | --- SourceFile1.cs
+          | --- SourceFile2.cs
+```
+
+and the root .editorconfig would contain
+
+```
+[LinkedFile.cs]
 option = value
 ```
 
