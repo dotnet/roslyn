@@ -2817,22 +2817,26 @@ class C
 {
     static object F(C c, I<string> x, I<object> y)
     {
-        return c[y: y, x: x];
+        return c[
+            y: y, // warn 1
+            x: x];
     }
     static object G(C c, I<string?> x, I<object?> y)
     {
-        return c[y: y, x: x];
+        return c[
+            y: y,
+            x: x]; // warn 2
     }
     object this[I<string> x, I<object?> y] => new object();
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,21): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'y' in 'object C.this[I<string> x, I<object?> y]'.
-                //         return c[y: y, x: x];
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object>", "I<object?>", "y", "object C.this[I<string> x, I<object?> y]").WithLocation(6, 21),
-                // (10,27): warning CS8620: Nullability of reference types in argument of type 'I<string?>' doesn't match target type 'I<string>' for parameter 'x' in 'object C.this[I<string> x, I<object?> y]'.
-                //         return c[y: y, x: x];
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<string?>", "I<string>", "x", "object C.this[I<string> x, I<object?> y]").WithLocation(10, 27));
+                // (7,16): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'y' in 'object C.this[I<string> x, I<object?> y]'.
+                //             y: y, // warn 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object>", "I<object?>", "y", "object C.this[I<string> x, I<object?> y]").WithLocation(7, 16),
+                // (14,16): warning CS8620: Nullability of reference types in argument of type 'I<string?>' doesn't match target type 'I<string>' for parameter 'x' in 'object C.this[I<string> x, I<object?> y]'.
+                //             x: x]; // warn 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<string?>", "I<string>", "x", "object C.this[I<string> x, I<object?> y]").WithLocation(14, 16));
         }
 
         [Fact]
@@ -2844,11 +2848,17 @@ class C
 {
     static C F(I<string> x, I<object> y)
     {
-        return new C() { [y: y, x: x] = 1 };
+        return new C() { [
+            y: y, // warn 1
+            x: x]
+            = 1 };
     }
     static object G(C c, I<string?> x, I<object?> y)
     {
-        return new C() { [y: y, x: x] = 2 };
+        return new C() { [
+            y: y,
+            x: x] // warn 2
+            = 2 };
     }
     int this[I<string> x, I<object?> y]
     {
@@ -2858,12 +2868,12 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,30): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'y' in 'int C.this[I<string> x, I<object?> y]'.
-                //         return new C() { [y: y, x: x] = 1 };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object>", "I<object?>", "y", "int C.this[I<string> x, I<object?> y]").WithLocation(6, 30),
-                // (10,36): warning CS8620: Nullability of reference types in argument of type 'I<string?>' doesn't match target type 'I<string>' for parameter 'x' in 'int C.this[I<string> x, I<object?> y]'.
-                //         return new C() { [y: y, x: x] = 2 };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<string?>", "I<string>", "x", "int C.this[I<string> x, I<object?> y]").WithLocation(10, 36));
+                // (7,16): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'y' in 'int C.this[I<string> x, I<object?> y]'.
+                //             y: y, // warn 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object>", "I<object?>", "y", "int C.this[I<string> x, I<object?> y]").WithLocation(7, 16),
+                // (15,16): warning CS8620: Nullability of reference types in argument of type 'I<string?>' doesn't match target type 'I<string>' for parameter 'x' in 'int C.this[I<string> x, I<object?> y]'.
+                //             x: x] // warn 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<string?>", "I<string>", "x", "int C.this[I<string> x, I<object?> y]").WithLocation(15, 16));
         }
     }
 }

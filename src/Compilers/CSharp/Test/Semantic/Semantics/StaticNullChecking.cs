@@ -4067,7 +4067,7 @@ class CL0 : System.Collections.IEnumerable
 @"interface I<T> { }
 class C
 {
-    static void F(I<object> x, I<object?> y, I<object>? z, I<object?>? w)
+    static void F(I<object> x, I<object?> y, I<object>? z, I<object?>? w, I<object?>[]? a)
     {
         G(x);
         G(y);
@@ -4076,7 +4076,6 @@ class C
         G(x, x, y, z, w);
         G(y: x, x: y);
         G(y: y, x: x);
-        I<object?>[]? a = null;
         G(x, a);
         G(x, new I<object?>[0]);
         G(x, new[] { x, x });
@@ -4115,24 +4114,24 @@ class C
                 // (11,20): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(y: x, x: y);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object>", "x", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(11, 20),
-                // (14,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                // (13,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(x, a);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(14, 14),
-                // (16,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(13, 14),
+                // (15,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(x, new[] { x, x });
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, x }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(16, 14),
-                // (18,25): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, x }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(15, 14),
+                // (17,25): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
                 //         G(x, new[] { x, y, z });
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(18, 25),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(17, 25),
+                // (17,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, new[] { x, y, z });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, y, z }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(17, 14),
                 // (18,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
-                //         G(x, new[] { x, y, z });
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, y, z }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(18, 14),
-                // (19,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(y: new[] { x, x }, x: y);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, x }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(19, 14),
-                // (19,33): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, x }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(18, 14),
+                // (18,33): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(y: new[] { x, x }, x: y);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object>", "x", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(19, 33));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object>", "x", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(18, 33));
         }
 
         [Fact]
