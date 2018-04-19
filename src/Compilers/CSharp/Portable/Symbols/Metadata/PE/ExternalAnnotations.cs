@@ -64,15 +64,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         /// <summary>
-        /// All types in a member which can be annotated should be annotated. Value types can be skipped.
+        /// All types in a member which can be annotated should be annotated. Value types and void can be skipped.
         /// </summary>
-        private static readonly ImmutableArray<bool> skip = ImmutableArray<bool>.Empty;
+        private static readonly ImmutableArray<bool> skip = default;
 
         private static ImmutableArray<ImmutableArray<bool>> Parameters(params ImmutableArray<bool>[] values)
             => values.ToImmutableArray();
 
         private static ImmutableArray<bool> Nullable(params bool[] values)
-            => values.ToImmutableArray();
+        {
+            Debug.Assert(values.Length > 0);
+            return values.ToImmutableArray();
+        }
 
         internal static ImmutableArray<ImmutableArray<bool>> GetExtraAnnotations(string key)
         {
