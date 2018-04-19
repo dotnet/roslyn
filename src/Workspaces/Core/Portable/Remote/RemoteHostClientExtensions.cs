@@ -45,14 +45,13 @@ namespace Microsoft.CodeAnalysis.Remote
         public static async Task<SessionWithSolution> TryCreateSessionAsync(
             this RemoteHostClient client, string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
         {
-            var session = await client.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (session == null)
+            var connection = await client.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
                 return null;
             }
 
-            var scope = await GetPinnedScopeAsync(solution, cancellationToken).ConfigureAwait(false);
-            return await SessionWithSolution.CreateAsync(session, scope, cancellationToken).ConfigureAwait(false);
+            return await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
