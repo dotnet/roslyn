@@ -1,0 +1,99 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 
+
+    This project file is used to create the Microsoft.NetCore.Compilers NuPkg on 
+    Unix platforms during our bootstrap phase. This is a very temporary solution. Longer
+    term we are moving all of our packaging code to use `dotnet pack` at which point 
+    this will simply be folded into that work.
+
+    https://github.com/dotnet/roslyn/issues/25439
+    https://github.com/NuGet/Home/issues/4254
+    -->
+  <PropertyGroup>
+    <_Version></_Version>
+    <_Version Condition="'$(NuGetPackageKind)' == 'release'">$(NuGetReleaseVersion)</_Version>
+    <_Version Condition="'$(NuGetPackageKind)' == 'prerelease'">$(NuGetPreReleaseVersion)</_Version>
+    <_Version Condition="'$(NuGetPackageKind)' == 'perbuildprerelease'">$(NuGetPerBuildPreReleaseVersion)</_Version>
+    <_Version Condition="'$(NuGetPackageKind)' == 'bootstrap'">42.42.42.42-bootstrap</_Version>
+
+    <_CommitPathMessage>This an unofficial build from a developer's machine</_CommitPathMessage>
+    <_CommitPathMessage Condition="'$(UseRealCommit)' == 'true'">This package was built from the source at https://github.com/dotnet/roslyn/commit/$(GitHeadSha)</_CommitPathMessage>
+
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
+    <OutputType>Library</OutputType>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NuspecFile></NuspecFile>
+    <NuspecProperties>$(NuspecProperties);version=$(_Version)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);authors=Microsoft</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);licenseUrlRedist=http://go.microsoft.com/fwlink/?LinkId=529443</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);licenseUrlNonRedist=http://go.microsoft.com/fwlink/?LinkId=529444</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);licenseUrlSource=https://github.com/dotnet/roslyn/blob/master/License.txt</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);projectUrl=https://github.com/dotnet/roslyn</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);additionalFilesPath=$(RepoRoot)build/NuGetAdditionalFiles</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);srcDirPath=$(RepoRoot)\src</NuspecProperties>
+    <NuspecProperties Condition="'$(EmptyDir)' != ''">$(NuspecProperties);emptyDirPath=$(EmptyDir)</NuspecProperties>
+    <NuspecProperties Condition="'$(CurrentVersion)' != ''">$(NuspecProperties);currentVersion=$(CurrentVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);commitPathMessage=$(_CommitPathMessage)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);tags=Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</NuspecProperties>
+
+    <!-- The set of NuGet packages whose versions we need in the NuSpec file -->
+    <NuspecProperties>$(NuspecProperties);MicrosoftBuildFixedVersion=$(MicrosoftBuildFixedVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);MicrosoftBuildTasksCoreFixedVersion=$(MicrosoftBuildTasksCoreFixedVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);MicrosoftCSharpVersion=$(MicrosoftCSharpVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);MicrosoftCodeAnalysisAnalyzersVersion=$(MicrosoftCodeAnalysisAnalyzersVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);MicrosoftCodeAnalysisElfieVersion=$(MicrosoftCodeAnalysisElfieVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);MicrosoftVisualBasicVersion=$(MicrosoftVisualBasicVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);MicrosoftVisualStudioSetupConfigurationInteropVersion=$(MicrosoftVisualStudioSetupConfigurationInteropVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemAppContextVersion=$(SystemAppContextVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemCollectionsVersion=$(SystemCollectionsVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemCollectionsConcurrentVersion=$(SystemCollectionsConcurrentVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemCollectionsImmutableVersion=$(SystemCollectionsImmutableVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemCompositionVersion=$(SystemCompositionVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemConsoleVersion=$(SystemConsoleVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemDiagnosticsContractsVersion=$(SystemDiagnosticsContractsVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemDiagnosticsDebugVersion=$(SystemDiagnosticsDebugVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemDiagnosticsFileVersionInfoVersion=$(SystemDiagnosticsFileVersionInfoVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemDiagnosticsProcessVersion=$(SystemDiagnosticsProcessVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemDiagnosticsStackTraceVersion=$(SystemDiagnosticsStackTraceVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemDiagnosticsToolsVersion=$(SystemDiagnosticsToolsVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemDynamicRuntimeVersion=$(SystemDynamicRuntimeVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemGlobalizationVersion=$(SystemGlobalizationVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemIOVersion=$(SystemIOVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemIOCompressionVersion=$(SystemIOCompressionVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemIOFileSystemVersion=$(SystemIOFileSystemVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemIOFileSystemPrimitivesVersion=$(SystemIOFileSystemPrimitivesVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemIOPipesAccessControlVersion=$(SystemIOPipesAccessControlVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemLinqVersion=$(SystemLinqVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemLinqExpressionsVersion=$(SystemLinqExpressionsVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemLinqParallelVersion=$(SystemLinqParallelVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemNetSocketsVersion=$(SystemNetSocketsVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemObjectModelVersion=$(SystemObjectModelVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemReflectionVersion=$(SystemReflectionVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemReflectionExtensionsVersion=$(SystemReflectionExtensionsVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemReflectionMetadataVersion=$(SystemReflectionMetadataVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemResourcesResourceManagerVersion=$(SystemResourcesResourceManagerVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemRuntimeVersion=$(SystemRuntimeVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemRuntimeExtensionsVersion=$(SystemRuntimeExtensionsVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemRuntimeLoaderVersion=$(SystemRuntimeLoaderVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemRuntimeInteropServicesVersion=$(SystemRuntimeInteropServicesVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemRuntimeNumericsVersion=$(SystemRuntimeNumericsVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemSecurityAccessControlVersion=$(SystemSecurityAccessControlVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemSecurityCryptographyAlgorithmsVersion=$(SystemSecurityCryptographyAlgorithmsVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemSecurityCryptographyEncodingVersion=$(SystemSecurityCryptographyEncodingVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemSecurityCryptographyX509CertificatesVersion=$(SystemSecurityCryptographyX509CertificatesVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemTextEncodingVersion=$(SystemTextEncodingVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemTextEncodingCodePagesVersion=$(SystemTextEncodingCodePagesVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemTextEncodingExtensionsVersion=$(SystemTextEncodingExtensionsVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemTextRegularExpressionsVersion=$(SystemTextRegularExpressionsVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemThreadingVersion=$(SystemThreadingVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemThreadingTasksVersion=$(SystemThreadingTasksVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemThreadingTasksParallelVersion=$(SystemThreadingTasksParallelVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemThreadingThreadVersion=$(SystemThreadingThreadVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemValueTupleVersion=$(SystemValueTupleVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemXmlReaderWriterVersion=$(SystemXmlReaderWriterVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemXmlXDocumentVersion=$(SystemXmlXDocumentVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemXmlXmlDocumentVersion=$(SystemXmlXmlDocumentVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemXmlXPathXDocumentVersion=$(SystemXmlXPathXDocumentVersion)</NuspecProperties>
+  </PropertyGroup>
+</Project>
