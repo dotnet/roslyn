@@ -19,7 +19,7 @@ In this example the subproject's `.editorconfig` will not apply to `LinkedFile.c
 
 ```
 Repo Root
-  | -- .editorconfig
+  | --- .editorconfig
   | --- LinkedFile.cs
   | --- Subproject
           | --- .editorconfig
