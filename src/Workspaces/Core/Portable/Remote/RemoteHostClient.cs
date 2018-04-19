@@ -101,6 +101,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             protected Connection()
             {
+#if DEBUG
+                _creationCallStack = Environment.StackTrace;
+#endif
                 _disposed = false;
             }
 
@@ -128,16 +131,22 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
 #if DEBUG
+            private readonly string _creationCallStack;
+#endif
             ~Connection()
             {
                 // this can happen if someone kills OOP. 
                 // when that happen, we don't want to crash VS, so this is debug only check
                 if (!Environment.HasShutdownStarted)
                 {
-                    Contract.Requires(false, $@"Should have been disposed!");
+#if DEBUG
+                    Contract.Fail($"Should have been disposed!\r\n {_creationCallStack}");
+#else
+                    Contract.Fail($"Should have been disposed!");
+#endif
                 }
             }
-#endif
+
         }
     }
 }
