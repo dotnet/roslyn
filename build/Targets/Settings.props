@@ -184,7 +184,7 @@
 
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-    <DeployExtension Condition="'$(VisualStudioVersion)' == '15.0'">false</DeployExtension>
+    <DeployExtension Condition="'$(VisualStudioVersion)' != '15.0'">false</DeployExtension>
     <VisualStudioBuildToolsVersion>$(MicrosoftVSSDKBuildToolsVersion)</VisualStudioBuildToolsVersion>
   </PropertyGroup>
 
