@@ -140,6 +140,10 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        /// <summary>
+        /// Represents a named section of the editorconfig file, which consists of a name followed by a set
+        /// of key-value pairs.
+        /// </summary>
         internal sealed class Section
         {
             public Section(string name, ImmutableDictionary<string, string> properties)
@@ -148,8 +152,15 @@ namespace Microsoft.CodeAnalysis
                 this.Properties = properties;
             }
 
+            /// <summary>
+            /// The name as present directly in the section specification of the editorconfig file.
+            /// </summary>
             public string Name { get; }
 
+            /// <summary>
+            /// Keys and values for this section. All keys and values are lower-cased according to the
+            /// EditorConfig specification and keys are compared case-insensitively.
+            /// </summary>
             public ImmutableDictionary<string, string> Properties { get; }
         }
     }

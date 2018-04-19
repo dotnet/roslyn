@@ -226,5 +226,13 @@ long: this value continues
                 new[] { KeyValuePair.Create("long", "this value continues")},
                 properties);
         }
+
+        [Fact]
+        public void CaseInsensitiveRoot()
+        {
+            var config = ParseConfigFile(@"
+RoOt = TruE");
+            Assert.True(config.IsRoot);
+        }
     }
 }
