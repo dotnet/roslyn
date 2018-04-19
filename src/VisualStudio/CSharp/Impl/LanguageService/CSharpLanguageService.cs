@@ -15,6 +15,12 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
+using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
@@ -81,6 +87,42 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 currentStatementSpan,
                 this.Package.ComponentModel,
                 this.SystemServiceProvider);
+        }
+
+        protected override IVsContainedLanguage CreateContainedLanguage(
+            IVsTextBufferCoordinator bufferCoordinator, AbstractProject project, IVsHierarchy hierarchy, uint itemid)
+        {
+            // this is not important. just plumbing code for prototype
+            return new ContainedLanguage<CSharpPackage, CSharpLanguageService>(
+                bufferCoordinator, this.Package.ComponentModel, project, hierarchy, itemid,
+                this, SourceCodeKind.Regular, new StatementOrMemberBaseIndentationFormattingRule());
+        }
+
+        /// <summary>
+        ///  this will probably mess things up. this is just a prototype to show the intention.
+        ///  probably only work for smart indenter 
+        /// </summary>
+        internal class StatementOrMemberBaseIndentationFormattingRule : AbstractFormattingRule
+        {
+            public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+            {
+                switch (node)
+                {
+                    case StatementSyntax _:
+                    case MemberDeclarationSyntax _:
+                        if (node.Span.Length > 0)
+                        {
+                            var firstToken = node.GetFirstToken(includeZeroWidth: true);
+                            var lastToken = node.GetLastToken(includeZeroWidth: true);
+                            var delta = 0;
+                            list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(firstToken, firstToken.GetNextToken(includeZeroWidth: true), lastToken, delta, IndentBlockOption.RelativePosition));
+                        }
+                        break;
+                }
+
+                // pass along to the next chain
+                base.AddIndentBlockOperations(list, node, optionSet, nextOperation);
+            }
         }
     }
 }
