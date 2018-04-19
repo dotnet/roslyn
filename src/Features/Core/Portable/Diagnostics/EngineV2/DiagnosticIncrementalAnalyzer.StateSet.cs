@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -259,8 +258,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private sealed class AnalyzerTypeData
             {
                 private const string UserDiagnosticsPrefixTableName = "<UserDiagnostics2>";
-                private static readonly ConditionalWeakTable<Type, AnalyzerTypeData> s_analyzerTypeData
-                    = new ConditionalWeakTable<Type, AnalyzerTypeData>();
+                private static readonly ConcurrentDictionary<Type, AnalyzerTypeData> s_analyzerTypeData
+                    = new ConcurrentDictionary<Type, AnalyzerTypeData>();
 
                 private AnalyzerTypeData(Type type)
                 {
@@ -282,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 public static AnalyzerTypeData ForType(Type type)
                 {
-                    return s_analyzerTypeData.GetValue(type, t => new AnalyzerTypeData(t));
+                    return s_analyzerTypeData.GetOrAdd(type, t => new AnalyzerTypeData(t));
                 }
             }
         }
