@@ -38,5 +38,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             syntaxFacts.GetPartsOfAssignmentStatement(statement, out left, out _, out right);
         }
+
+        public static bool IsWhitespaceOrEndOfLineTrivia(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
+        {
+            return syntaxFacts.IsWhitespaceTrivia(trivia) || syntaxFacts.IsEndOfLineTrivia(trivia);
+        }
     }
 }

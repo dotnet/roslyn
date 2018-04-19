@@ -456,7 +456,7 @@ public class C
                 }
 
                 methodsText.AppendLine("\r\n}");
-                CreateStandardCompilation(methodsText.ToString()).VerifyEmitDiagnostics();
+                CreateCompilation(methodsText.ToString()).VerifyEmitDiagnostics();
             });
         }
     }

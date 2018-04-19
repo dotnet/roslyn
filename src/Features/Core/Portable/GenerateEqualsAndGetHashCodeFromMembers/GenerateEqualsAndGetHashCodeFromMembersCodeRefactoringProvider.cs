@@ -19,10 +19,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, 
-        Name = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers), Shared]
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
-                    Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
     internal abstract partial class AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
         public const string GenerateOperatorsId = nameof(GenerateOperatorsId);
@@ -95,7 +91,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             // Find all the possible instance fields/properties.  If there are any, then
             // show a dialog to the user to select the ones they want.
-            var viableMembers = containingType.GetMembers().WhereAsArray(IsViableInstanceFieldOrProperty);
+            var viableMembers = containingType.GetMembers().WhereAsArray(IsReadableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
             {
                 return;
@@ -177,7 +173,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 var info = await this.GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 if (info != null &&
-                    info.SelectedMembers.All(IsViableInstanceFieldOrProperty))
+                    info.SelectedMembers.All(IsReadableInstanceFieldOrProperty))
                 {
                     if (info.ContainingType != null && info.ContainingType.TypeKind != TypeKind.Interface)
                     {

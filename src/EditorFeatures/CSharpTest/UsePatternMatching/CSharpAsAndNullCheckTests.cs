@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -110,6 +111,20 @@ $@"class C
         if (x != null)
         {
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [WorkItem(25237, "https://github.com/dotnet/roslyn/issues/25237")]
+        public async Task TestMissingOnReturnStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|return;|]
     }
 }");
         }
@@ -707,6 +722,62 @@ public static class C
         while ((x = o as string) != null)
         {
         }
+    }
+}");
+        }
+
+        [WorkItem(23504, "https://github.com/dotnet/roslyn/issues/23504")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task DoNotChangeOriginalFormatting1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        object obj = ""test"";
+
+        [|var|] str = obj as string;
+        var title = str != null
+            ? str
+            : "";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        object obj = ""test"";
+
+        var title = obj is string str
+            ? str
+            : "";
+    }
+}");
+        }
+
+        [WorkItem(23504, "https://github.com/dotnet/roslyn/issues/23504")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task DoNotChangeOriginalFormatting2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        object obj = ""test"";
+
+        [|var|] str = obj as string;
+        var title = str != null ? str : "";
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        object obj = ""test"";
+
+        var title = obj is string str ? str : "";
     }
 }");
         }
