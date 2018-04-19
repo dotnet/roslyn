@@ -583,6 +583,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.PointerToInteger:
                 case ConversionKind.IntegerToPointer:
                 case ConversionKind.IntPtr:
+
+                case ConversionKind.ExplicitTupleLiteral:
+                case ConversionKind.ExplicitTuple:
+
+                case ConversionKind.StackAllocToPointerType:
+                case ConversionKind.StackAllocToSpanType:
                     return false;
 
                 // Spec'd in C# 4.
@@ -603,10 +609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitThrow:
                     return true;
-
-                case ConversionKind.ExplicitTupleLiteral:
-                case ConversionKind.ExplicitTuple:
-                    return false;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
