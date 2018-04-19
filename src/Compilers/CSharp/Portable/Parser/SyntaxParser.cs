@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // adds token to end of current token array
-        private void AddToken(BlendedNode tokenResult)
+        private void AddToken(in BlendedNode tokenResult)
         {
             Debug.Assert(tokenResult.Token != null);
             if (_tokenCount >= _blendedTokens.Length)
