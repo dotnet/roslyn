@@ -184,16 +184,8 @@
 
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-
-    <!-- Presently our code can build on machines with Dev14 or Dev15 but only successfully deploy
-         in the Dev15 environment.  -->
-    <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
-    <IsDev15RC Condition="Exists('$(MSBuildBinPath)\..\..\..\..\Common7\IDE\Microsoft.VisualStudio.ExtensionEngine.dll')">true</IsDev15RC>
-    <DeployExtension Condition="'$(IsDev15RC)' != 'true' OR '$(VisualStudioVersion)' != '15.0'">false</DeployExtension>
+    <DeployExtension Condition="'$(VisualStudioVersion)' == '15.0'">false</DeployExtension>
     <VisualStudioBuildToolsVersion>$(MicrosoftVSSDKBuildToolsVersion)</VisualStudioBuildToolsVersion>
-
-    <!-- For the moment our Dev14 VSI suites must continue to use the Dev14 SDK. -->
-    <VisualStudioBuildToolsVersion Condition="'$(IsDev14VsiBuild)' == 'true'">14.3.25420</VisualStudioBuildToolsVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DevEnvDir)' == ''">
