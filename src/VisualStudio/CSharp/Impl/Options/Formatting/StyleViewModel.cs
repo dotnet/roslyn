@@ -691,6 +691,8 @@ class Customer
 }}
 ";
 
+        #region expression and block bodies
+
         private const string s_preferExpressionBodyForMethods = @"
 using System;
 
@@ -876,6 +878,329 @@ class Customer2
 
         #endregion
 
+        #region cast parentheses
+
+        private readonly string s_castParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var x = (int)(-y);
+
+        // {ServicesVSResources.Over_colon}
+        var x = (int)-y;
+//]
+    }}
+}}
+";
+
+        private readonly string s_castParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var x = (int)-y;
+
+        // {ServicesVSResources.Over_colon}
+        var x = (int)(-y);
+//]
+    }}
+}}
+";
+
+        #endregion
+
+        #region arithmetic parentheses
+
+        private readonly string s_arithmeticParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + (b * c);
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + b * c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_arithmeticParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + b * c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + (b * c);
+//]
+    }}
+}}
+";
+
+        #endregion
+
+        #region shift parentheses
+
+        private readonly string s_shiftParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = (a + b) << c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + b << c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_shiftParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + b << c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a + b) << c;
+//]
+    }}
+}}
+";
+
+        #endregion
+
+        #region relational parentheses
+
+        private readonly string s_relationalParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = (a + b) <= c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + b <= c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_relationalParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + b <= c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a + b) <= c;
+//]
+    }}
+}}
+";
+
+        #endregion
+
+        #region equality parentheses
+
+        private readonly string s_equalityParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = (a || b) == (c || d);
+
+        // {ServicesVSResources.Over_colon}
+        var v = a || b == c || d;
+//]
+    }}
+}}
+";
+
+        private readonly string s_equalityParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a || b == c || d;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a || b) == (c || d);
+//]
+    }}
+}}
+";
+
+        #endregion
+
+        #region bitwise parentheses
+
+        private readonly string s_bitwiseParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = (a + b) & c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + b & c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_bitwiseParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + b & c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a + b) & c;
+//]
+    }}
+}}
+";
+
+        #endregion
+
+        #region logical parentheses
+
+        private readonly string s_logicalParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a || (b && c);
+
+        // {ServicesVSResources.Over_colon}
+        var v = a || b && c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_logicalParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a || b && c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = a || (b && c);
+//]
+    }}
+}}
+";
+
+        #endregion
+
+        #region coalesce parentheses
+
+        private readonly string s_coalesceParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = (a + b) ?? c
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + b ?? c
+//]
+    }}
+}}
+";
+
+        private readonly string s_coalesceParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + b ?? c
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a + b) ?? c
+//]
+    }}
+}}
+";
+
+        #endregion
+
+        #region other parentheses
+
+        private readonly string s_otherParenthesesIgnore = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        var v = (a.b).Length;
+//]
+    }}
+}}
+";
+
+        private readonly string s_otherParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a.b.Length;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a.b).Length;
+//]
+    }}
+}}
+";
+
+        #endregion
+
+        #endregion
+
         internal StyleViewModel(OptionSet optionSet, IServiceProvider serviceProvider) : base(optionSet, serviceProvider, LanguageNames.CSharp)
         {
             var collectionView = (ListCollectionView)CollectionViewSource.GetDefaultView(CodeStyleItems);
@@ -925,6 +1250,8 @@ class Customer2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferBraces, ServicesVSResources.Prefer_braces, s_preferBraces, s_preferBraces, this, optionSet, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionSet, codeBlockPreferencesGroupTitle));
 
+            AddParenthesesOptions(Options);
+
             // Expression preferences
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, this, optionSet, expressionPreferencesGroupTitle));
@@ -951,6 +1278,72 @@ class Customer2
 
             // Field preferences.
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, this, optionSet, fieldGroupTitle));
+        }
+
+        private void AddParenthesesOptions(OptionSet optionSet)
+        {
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.ArithmeticOperationParentheses,
+                CSharpVSResources.In_arithmetic_expressions,
+                new[] { s_arithmeticParenthesesRequireForPrecedenceClarity, s_arithmeticParenthesesRemoveIfUnnecessary },
+                isOther: false,
+                recommended: true);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.ShiftOperationParentheses,
+                CSharpVSResources.In_shift_expressions,
+                new[] { s_shiftParenthesesRequireForPrecedenceClarity, s_shiftParenthesesRemoveIfUnnecessary },
+                isOther: false,
+                recommended: false);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.RelationalOperationParentheses,
+                CSharpVSResources.In_relational_expressions,
+                new[] { s_relationalParenthesesRequireForPrecedenceClarity, s_relationalParenthesesRemoveIfUnnecessary },
+                isOther: false,
+                recommended: true);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.EqualityOperationParentheses,
+                CSharpVSResources.In_equality_expressions,
+                new[] { s_equalityParenthesesRequireForPrecedenceClarity, s_equalityParenthesesRemoveIfUnnecessary },
+                isOther: false,
+                recommended: true);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.BitwiseOperationParentheses,
+                CSharpVSResources.In_bitwise_expressions,
+                new[] { s_bitwiseParenthesesRequireForPrecedenceClarity, s_bitwiseParenthesesRemoveIfUnnecessary },
+                isOther: false,
+                recommended: false);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.LogicalOperationParentheses,
+                CSharpVSResources.In_logical_expressions,
+                new[] { s_logicalParenthesesRequireForPrecedenceClarity, s_logicalParenthesesRemoveIfUnnecessary },
+                isOther: false,
+                recommended: true);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.CoalesceOperationParentheses,
+                CSharpVSResources.In_coalesce_expression,
+                new[] { s_coalesceParenthesesRequireForPrecedenceClarity, s_coalesceParenthesesRemoveIfUnnecessary },
+                isOther: false,
+                recommended: false);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.CastOperationParentheses,
+                CSharpVSResources.In_cast_expression,
+                new[] { s_castParenthesesRequireForPrecedenceClarity, s_castParenthesesRemoveIfUnnecessary },
+                isOther: false,
+                recommended: true);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.OtherOperationParentheses,
+                ServicesVSResources.Other_operators,
+                new[] { s_otherParenthesesIgnore, s_otherParenthesesRemoveIfUnnecessary },
+                isOther: true,
+                recommended: true);
         }
 
         private void AddExpressionBodyOptions(OptionSet optionSet, string expressionPreferencesGroupTitle)

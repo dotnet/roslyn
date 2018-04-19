@@ -295,6 +295,87 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to In arithmetic expressions:   *   /   %   +   -.
+        /// </summary>
+        internal static string In_arithmetic_expressions {
+            get {
+                return ResourceManager.GetString("In_arithmetic_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In assignment expressions:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=.
+        /// </summary>
+        internal static string In_assignment_expressions {
+            get {
+                return ResourceManager.GetString("In_assignment_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In bitwise expressions:   &amp;   |   ^.
+        /// </summary>
+        internal static string In_bitwise_expressions {
+            get {
+                return ResourceManager.GetString("In_bitwise_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In cast expression:  (type)expression.
+        /// </summary>
+        internal static string In_cast_expression {
+            get {
+                return ResourceManager.GetString("In_cast_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In coalesce expression:   ??.
+        /// </summary>
+        internal static string In_coalesce_expression {
+            get {
+                return ResourceManager.GetString("In_coalesce_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In_equality expressions:   ==   !=.
+        /// </summary>
+        internal static string In_equality_expressions {
+            get {
+                return ResourceManager.GetString("In_equality_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In logical expressions:   &amp;&amp;   ||.
+        /// </summary>
+        internal static string In_logical_expressions {
+            get {
+                return ResourceManager.GetString("In_logical_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In relational expressions:   &lt;   &lt;=   &gt;   &gt;=   is   as.
+        /// </summary>
+        internal static string In_relational_expressions {
+            get {
+                return ResourceManager.GetString("In_relational_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In shift expressions:   &lt;&lt;   &gt;&gt;.
+        /// </summary>
+        internal static string In_shift_expressions {
+            get {
+                return ResourceManager.GetString("In_shift_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Include snippets when ?-Tab is typed after an identifier.
         /// </summary>
         internal static string Include_snippets_when_Tab_is_typed_after_an_identifier {

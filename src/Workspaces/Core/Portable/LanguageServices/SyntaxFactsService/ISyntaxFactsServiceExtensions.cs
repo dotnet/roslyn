@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
@@ -39,9 +38,30 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             syntaxFacts.GetPartsOfAssignmentStatement(statement, out left, out _, out right);
         }
 
-        public static bool IsWhitespaceOrEndOfLineTrivia(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
+        public static SyntaxNode Unparenthesize(
+            this ISyntaxFactsService syntaxFacts, SyntaxNode node)
         {
-            return syntaxFacts.IsWhitespaceTrivia(trivia) || syntaxFacts.IsEndOfLineTrivia(trivia);
+            syntaxFacts.GetPartsOfParenthesizedExpression(node,
+                out var openParenToken, out var expression, out var closeParenToken);
+
+            var leadingTrivia = openParenToken.LeadingTrivia
+                .Concat(openParenToken.TrailingTrivia)
+                .Where(t => !syntaxFacts.IsElastic(t))
+                .Concat(expression.GetLeadingTrivia());
+
+            var trailingTrivia = expression.GetTrailingTrivia()
+                .Concat(closeParenToken.LeadingTrivia)
+                .Where(t => !syntaxFacts.IsElastic(t))
+                .Concat(closeParenToken.TrailingTrivia);
+
+            var resultNode = expression
+                .WithLeadingTrivia(leadingTrivia)
+                .WithTrailingTrivia(trailingTrivia);
+
+            return resultNode;
         }
+
+        public static bool IsWhitespaceOrEndOfLineTrivia(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
+            => syntaxFacts.IsWhitespaceTrivia(trivia) || syntaxFacts.IsEndOfLineTrivia(trivia);
     }
 }

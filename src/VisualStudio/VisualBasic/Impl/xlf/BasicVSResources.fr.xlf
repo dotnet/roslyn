@@ -272,6 +272,31 @@
         <target state="translated">Séparer les groupes de directives import</target>
         <note />
       </trans-unit>
+      <trans-unit id="In_arithmetic_expressions">
+        <source>In arithmetic expressions:   ^   *   /   \   Mod   +   -   &amp;</source>
+        <target state="new">In arithmetic expressions:   ^   *   /   \   Mod   +   -   &amp;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_logical_expressions">
+        <source>In logical expressions:   And   AndAlso   Or   OrElse</source>
+        <target state="new">In logical expressions:   And   AndAlso   Or   OrElse</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_relational_expressions">
+        <source>In relational expressions:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</source>
+        <target state="new">In relational expressions:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_shift_expressions">
+        <source>In shift expressions:   &lt;&lt;   &gt;&gt;</source>
+        <target state="new">In shift expressions:   &lt;&lt;   &gt;&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_assignment_expressions">
+        <source>In assignment expressions:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=</source>
+        <target state="new">In assignment expressions:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
