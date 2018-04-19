@@ -37,7 +37,7 @@ my_prop = my_val
                 properties);
 
             var namedSections = config.NamedSections;
-            Assert.Equal(1, namedSections.Count);
+            Assert.Equal(1, namedSections.Length);
             Assert.Equal("*.cs", namedSections[0].Name);
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("my_prop", "my_val")},
@@ -59,7 +59,20 @@ my_prop = my_val");
                 new[] { KeyValuePair.Create("my_prop", "my_val")},
                 properties);
 
-            Assert.Equal(0, config.NamedSections.Count);
+            Assert.Equal(0, config.NamedSections.Length);
+        }
+
+        [Fact]
+        public void EmptySection()
+        {
+            var config = EditorConfig.Parse(@"
+[]
+my_prop = my_val", "");
+
+            var properties = config.GlobalSection.Properties;
+            Assert.Equal(1, properties.Count);
+            Assert.Equal(new[] { KeyValuePair.Create("my_prop", "my_val")}, properties);
+            Assert.Equal(0, config.NamedSections.Length);
         }
 
         [Fact]
@@ -70,9 +83,9 @@ my_PROP = my_VAL");
             var properties = config.GlobalSection.Properties;
             Assert.Equal(1, properties.Count);
 
-            Assert.True(properties.TryGetValue("my_prop", out var val));
-            Assert.Equal(val, "my_VAL");
-            Assert.Equal("my_PROP", properties.Keys.Single());
+            Assert.True(properties.TryGetValue("my_PrOp", out var val));
+            Assert.Equal(val, "my_val");
+            Assert.Equal("my_prop", properties.Keys.Single());
         }
 
         [Fact]
