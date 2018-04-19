@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var (analyzerId, version) = _analyzer.GetAnalyzerIdAndVersion();
                 _analyzerVersion = version;
                 _analyzerTypeData = AnalyzerTypeData.ForType(_analyzer.GetType());
-                Debug.Assert(_analyzerTypeData.StateName == $"<UserDiagnostics2>_{analyzerId}", "Expected persistence information for analyzer instance to be derived from its type alone.");
+                Debug.Assert(_analyzerTypeData.StateName == $"{AnalyzerTypeData.UserDiagnosticsPrefixTableName}_{analyzerId}", "Expected persistence information for analyzer instance to be derived from its type alone.");
 
                 _activeFileStates = new ConcurrentDictionary<DocumentId, ActiveFileState>(concurrencyLevel: 2, capacity: 10);
                 _projectStates = new ConcurrentDictionary<ProjectId, ProjectState>(concurrencyLevel: 2, capacity: 1);
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private sealed class AnalyzerTypeData
             {
-                private const string UserDiagnosticsPrefixTableName = "<UserDiagnostics2>";
+                internal const string UserDiagnosticsPrefixTableName = "<UserDiagnostics2>";
                 private static readonly ConcurrentDictionary<Type, AnalyzerTypeData> s_analyzerTypeData
                     = new ConcurrentDictionary<Type, AnalyzerTypeData>();
 
