@@ -43,5 +43,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool SpansPreprocessorDirective(this ISyntaxFactsService service, SyntaxNode node)
             => service.SpansPreprocessorDirective(SpecializedCollections.SingletonEnumerable(node));
+
+        public static bool IsWhitespaceOrEndOfLineTrivia(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
+            => syntaxFacts.IsWhitespaceTrivia(trivia) || syntaxFacts.IsEndOfLineTrivia(trivia);
     }
 }
