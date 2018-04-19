@@ -154,6 +154,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 isStatic = false;
                 return;
             }
+            else if (syntaxFacts.IsNameOfSubpatternElement(expression) &&
+                     syntaxFacts.IsPropertySubpattern(expression.Parent.Parent.Parent))
+            {
+                // something like: { [|X|]: int i } or like: Blah { [|X|]: int i }
+                var propertySubpattern = expression.Parent.Parent.Parent;
+                var inferenceService = document.Document.GetLanguageService<ITypeInferenceService>();
+                typeToGenerateIn = inferenceService.InferType(semanticModel, propertySubpattern, objectAsDefault: true, cancellationToken) as INamedTypeSymbol;
+
+                isStatic = false;
+                return;
+            }
 
             // Generating into the containing type.
             typeToGenerateIn = containingType;

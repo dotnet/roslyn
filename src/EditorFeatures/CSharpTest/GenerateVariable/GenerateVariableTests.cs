@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -21,6 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpGenerateVariableCodeFixProvider());
+
+        private static readonly CSharpParseOptions WithPatternsEnabled = 
+            CSharpParseOptions.Default.WithFeatures(
+                new Dictionary<string, string> { { "patterns2", "true" } });
 
         private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
@@ -7608,6 +7613,214 @@ class C
     void Goo(ref bool b) { }
     void Goo(int i) { }
 }");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInIsPattern1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { [|X|]: int i })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { X: int i })
+        {
+        }
+    }
+
+    class Blah
+    {
+        public int X { get; internal set; }
+    }
+}");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInIsPattern2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M2()
+    {
+        Blah o = null;
+        if (o is { [|X|]: int i })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        Blah o = null;
+        if (o is { X: int i })
+        {
+        }
+    }
+
+    class Blah
+    {
+        public int X { get; internal set; }
+    }
+}");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInIsPattern3()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { X: { [|Y|]: int i } })
+        {
+        }
+    }
+
+    class Frob
+    {
+    }
+
+    class Blah
+    {
+        public Frob X;
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { X: { Y: int i } })
+        {
+        }
+    }
+
+    class Frob
+    {
+        public int Y { get; internal set; }
+    }
+
+    class Blah
+    {
+        public Frob X;
+    }
+}");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInCasePattern1()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        switch (o)
+        {
+            case Blah { [|X|]: int i }:
+                break;
+        }
+    }
+
+    class Blah
+    {
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        switch (o)
+        {
+            case Blah { [|X|]: int i }:
+                break;
+        }
+    }
+
+    class Blah
+    {
+        public int X { get; internal set; }
+    }
+}", parseOptions: WithPatternsEnabled);
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInCasePattern2()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M2()
+    {
+        Blah o = null;
+        switch (o)
+        {
+            case { [|X|]: int i }:
+                break;
+        }
+    }
+
+    class Blah
+    {
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        Blah o = null;
+        switch (o)
+        {
+            case { [|X|]: int i }:
+                break;
+        }
+    }
+
+    class Blah
+    {
+        public int X { get; internal set; }
+    }
+}", parseOptions: WithPatternsEnabled);
         }
     }
 }
