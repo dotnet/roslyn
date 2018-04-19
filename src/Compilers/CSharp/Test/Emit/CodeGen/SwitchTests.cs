@@ -8517,40 +8517,38 @@ class Program
                 expectedOutput: "2300");
             compVerifier.VerifyIL("Program.M1<T>",
 @"{
-  // Code size       36 (0x24)
+  // Code size       31 (0x1f)
   .maxstack  1
   .locals init (int V_0) //t
   IL_0000:  ldarg.0
   IL_0001:  box        ""T""
   IL_0006:  isinst     ""int""
-  IL_000b:  brfalse.s  IL_0020
+  IL_000b:  brfalse.s  IL_001b
   IL_000d:  ldarg.0
   IL_000e:  box        ""T""
-  IL_0013:  isinst     ""int""
-  IL_0018:  unbox.any  ""int""
-  IL_001d:  stloc.0
-  IL_001e:  br.s       IL_0022
-  IL_0020:  ldc.i4.0
-  IL_0021:  ret
-  IL_0022:  ldloc.0
-  IL_0023:  ret
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  stloc.0
+  IL_0019:  br.s       IL_001d
+  IL_001b:  ldc.i4.0
+  IL_001c:  ret
+  IL_001d:  ldloc.0
+  IL_001e:  ret
 }"
             );
             compVerifier.VerifyIL("Program.M2<T>",
 @"{
-  // Code size       32 (0x20)
+  // Code size       27 (0x1b)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  box        ""T""
   IL_0006:  isinst     ""int""
-  IL_000b:  brfalse.s  IL_001e
+  IL_000b:  brfalse.s  IL_0019
   IL_000d:  ldarg.0
   IL_000e:  box        ""T""
-  IL_0013:  isinst     ""int""
-  IL_0018:  unbox.any  ""int""
-  IL_001d:  ret
-  IL_001e:  ldc.i4.0
-  IL_001f:  ret
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  ret
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
 }"
             );
             compVerifier = CompileAndVerify(source,
@@ -8559,7 +8557,7 @@ class Program
                 expectedOutput: "2300");
             compVerifier.VerifyIL("Program.M1<T>",
 @"{
-  // Code size       42 (0x2a)
+  // Code size       37 (0x25)
   .maxstack  1
   .locals init (int V_0, //t
                 int V_1)
@@ -8567,25 +8565,24 @@ class Program
   IL_0001:  ldarg.0
   IL_0002:  box        ""T""
   IL_0007:  isinst     ""int""
-  IL_000c:  brfalse.s  IL_0021
+  IL_000c:  brfalse.s  IL_001c
   IL_000e:  ldarg.0
   IL_000f:  box        ""T""
-  IL_0014:  isinst     ""int""
-  IL_0019:  unbox.any  ""int""
-  IL_001e:  stloc.0
-  IL_001f:  br.s       IL_0024
-  IL_0021:  ldc.i4.0
-  IL_0022:  br.s       IL_0025
-  IL_0024:  ldloc.0
-  IL_0025:  stloc.1
-  IL_0026:  br.s       IL_0028
-  IL_0028:  ldloc.1
-  IL_0029:  ret
+  IL_0014:  unbox.any  ""int""
+  IL_0019:  stloc.0
+  IL_001a:  br.s       IL_001f
+  IL_001c:  ldc.i4.0
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.0
+  IL_0020:  stloc.1
+  IL_0021:  br.s       IL_0023
+  IL_0023:  ldloc.1
+  IL_0024:  ret
 }"
             );
             compVerifier.VerifyIL("Program.M2<T>",
 @"{
-  // Code size       49 (0x31)
+  // Code size       44 (0x2c)
   .maxstack  1
   .locals init (int V_0, //t
                 T V_1,
@@ -8599,22 +8596,21 @@ class Program
   IL_0005:  ldloc.1
   IL_0006:  box        ""T""
   IL_000b:  isinst     ""int""
-  IL_0010:  brfalse.s  IL_002b
+  IL_0010:  brfalse.s  IL_0026
   IL_0012:  ldloc.1
   IL_0013:  box        ""T""
-  IL_0018:  isinst     ""int""
-  IL_001d:  unbox.any  ""int""
-  IL_0022:  stloc.0
-  IL_0023:  br.s       IL_0025
-  IL_0025:  br.s       IL_0027
-  IL_0027:  ldloc.0
-  IL_0028:  stloc.3
-  IL_0029:  br.s       IL_002f
-  IL_002b:  ldc.i4.0
-  IL_002c:  stloc.3
-  IL_002d:  br.s       IL_002f
-  IL_002f:  ldloc.3
-  IL_0030:  ret
+  IL_0018:  unbox.any  ""int""
+  IL_001d:  stloc.0
+  IL_001e:  br.s       IL_0020
+  IL_0020:  br.s       IL_0022
+  IL_0022:  ldloc.0
+  IL_0023:  stloc.3
+  IL_0024:  br.s       IL_002a
+  IL_0026:  ldc.i4.0
+  IL_0027:  stloc.3
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.3
+  IL_002b:  ret
 }"
             );
         }

@@ -3,7 +3,6 @@
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
@@ -63,9 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // We permit a type named `_` on the right-hand-side of an is operator, but not inside of a pattern.
             bool typeCannotBePattern = tk == SyntaxKind.IdentifierToken && this.CurrentToken.Text == "_";
             // If it starts with 'nameof(', skip the 'if' and parse as a constant pattern.
-            if (SyntaxFacts.IsPredefinedType(tk) ||
-                (tk == SyntaxKind.IdentifierToken &&
-                  (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)))
+            if (LooksLikeTypeOfPattern(tk))
             {
                 var resetPoint = this.GetResetPoint();
                 try
@@ -99,8 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.Release(ref resetPoint);
                 }
             }
+
             // check to see if it looks like a recursive pattern.
-            else if (!typeCannotBePattern && (tk == SyntaxKind.OpenParenToken || tk == SyntaxKind.OpenBraceToken))
+            if (tk == SyntaxKind.OpenParenToken || tk == SyntaxKind.OpenBraceToken)
             {
                 var resetPoint = this.GetResetPoint();
                 try
@@ -124,6 +122,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // due to both syntactic and semantic ambiguities between tuple types and positional patterns.
             // But it still might be a pattern such as (operand is 3) or (operand is nameof(x))
             return _syntaxFactory.ConstantPattern(this.ParseSubExpressionCore(precedence));
+        }
+
+        /// <summary>
+        /// Given tk, the type of the current token, does this look like the type of a pattern?
+        /// </summary>
+        private bool LooksLikeTypeOfPattern(SyntaxKind tk)
+        {
+            return SyntaxFacts.IsPredefinedType(tk) ||
+                (tk == SyntaxKind.IdentifierToken &&
+                  (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken)) ||
+                LooksLikeTupleArrayType();
         }
 
         //
@@ -343,12 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             try
             {
                 TypeSyntax type = null;
-                if ((SyntaxFacts.IsPredefinedType(tk) || tk == SyntaxKind.IdentifierToken) &&
-                      // If it is a nameof, skip the 'if' and parse as an expression. 
-                      (this.CurrentToken.ContextualKind != SyntaxKind.NameOfKeyword || this.PeekToken(1).Kind != SyntaxKind.OpenParenToken))
+                if (LooksLikeTypeOfPattern(tk))
                 {
                     type = this.ParseType(ParseTypeMode.DefinitePattern);
-                    if (type.IsMissing)
+                    if (type.IsMissing || !CanTokenFollowTypeInPattern())
                     {
                         // either it is not shaped like a type, or it is a constant expression.
                         this.Reset(ref resetPoint);
@@ -368,6 +375,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             finally
             {
                 this.Release(ref resetPoint);
+            }
+        }
+
+        private bool LooksLikeTupleArrayType()
+        {
+            if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
+            {
+                return false;
+            }
+
+            ResetPoint resetPoint = GetResetPoint();
+            try
+            {
+                return ScanType(forPattern: true) != ScanTypeFlags.NotType;
+            }
+            finally
+            {
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+            }
+        }
+
+        /// <summary>
+        /// Is the current token something that could follow a type in a pattern?
+        /// </summary>
+        private bool CanTokenFollowTypeInPattern()
+        {
+            switch (this.CurrentToken.Kind)
+            {
+                case SyntaxKind.OpenParenToken:
+                case SyntaxKind.OpenBraceToken:
+                case SyntaxKind.IdentifierToken:
+                    return true;
+                default:
+                    return false;
             }
         }
 
@@ -410,7 +452,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var typeIdentifier = (IdentifierNameSyntax)type;
                 var typeIdentifierToken = typeIdentifier.Identifier;
-                if (typeIdentifierToken.ContextualKind == SyntaxKind.VarKeyword)
+                if (typeIdentifierToken.ContextualKind == SyntaxKind.VarKeyword &&
+                    CanTokenFollowTypeInPattern() && (!whenIsKeyword || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
                 {
                     // we have a "var" pattern; "var" is not permitted to be a stand-in for a type (or a constant) in a pattern.
                     var varToken = ConvertToKeyword(typeIdentifierToken);

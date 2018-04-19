@@ -383,10 +383,10 @@ public class Point
         var r = 1 switch { _ => 0 };
     }
 }";
-            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
-                // (5,17): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //         var r = 1 switch ( _ => 0 );
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "1 switch { _ => 0 }").WithArguments("recursive patterns", "patterns2").WithLocation(5, 17)
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
+                // (5,17): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         var r = 1 switch { _ => 0 };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _ => 0 }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
                 );
         }
 
@@ -1869,12 +1869,47 @@ class Blah
                 );
         }
 
-        // PROTOTYPE(patterns2): Need to have tests that exercise:
-        // PROTOTYPE(patterns2): Building the decision tree for the var-pattern
-        // PROTOTYPE(patterns2): Definite assignment for the var-pattern
-        // PROTOTYPE(patterns2): Variable finder for the var-pattern
-        // PROTOTYPE(patterns2): Scope binder contains an approprate scope for the var-pattern
-        // PROTOTYPE(patterns2): Lazily binding types for variables declared in the var-pattern
-        // PROTOTYPE(patterns2): Error when there is a type or constant named var in scope where the var pattern is used
+        [Fact]
+        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
+        public void ConstantPatternVsUnconstrainedTypeParameter03()
+        {
+            var source =
+@"class C<T>
+{
+    internal struct S { }
+    static bool Test(S s)
+    {
+        return s is null;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (6,21): error CS0037: Cannot convert null to 'C<T>.S' because it is a non-nullable value type
+                //         return s is null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("C<T>.S").WithLocation(6, 21)
+                );
+        }
+
+        [Fact]
+        [WorkItem(24550, "https://github.com/dotnet/roslyn/issues/24550")]
+        [WorkItem(1284, "https://github.com/dotnet/csharplang/issues/1284")]
+        public void ConstantPatternVsUnconstrainedTypeParameter04()
+        {
+            var source =
+@"class C<T>
+{
+    static bool Test(C<T> x)
+    {
+        return x is 1;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (5,21): error CS8121: An expression of type 'C<T>' cannot be handled by a pattern of type 'int'.
+                //         return x is 1;
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C<T>", "int").WithLocation(5, 21)
+                );
+        }
     }
 }

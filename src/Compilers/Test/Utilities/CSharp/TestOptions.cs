@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular7_1 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_1);
         public static readonly CSharpParseOptions Regular7_2 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_2);
         public static readonly CSharpParseOptions Regular7_3 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_3);
+        public static readonly CSharpParseOptions Regular8 = Regular.WithLanguageVersion(LanguageVersion.CSharp8);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
         public static readonly CSharpParseOptions WithoutImprovedOverloadCandidates = Regular.WithLanguageVersion(MessageID.IDS_FeatureImprovedOverloadCandidates.RequiredVersion() - 1);
 
@@ -24,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions ExperimentalParseOptions =
             new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.Latest).WithFeatures(s_experimentalFeatures);
 
-        public static readonly CSharpParseOptions RegularWithRecursivePatterns = Regular.WithRecursivePatterns();
+        // PROTOTYPE(patterns2): Currently accepting recursive patterns in C# 7.3 until we have a language version 8.0 implemented.
+        public static readonly CSharpParseOptions RegularWithoutRecursivePatterns = Regular7_3;
+        public static readonly CSharpParseOptions RegularWithRecursivePatterns = Regular8;
 
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release);
@@ -78,11 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
         {
             return options;
-        }
-
-        public static CSharpParseOptions WithRecursivePatterns(this CSharpParseOptions options)
-        {
-            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("patterns2", "true") }));
         }
     }
 }

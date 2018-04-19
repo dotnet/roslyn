@@ -3564,12 +3564,6 @@ unsafe struct S
     }
 }";
             var compilation = CreateCompilation(source).VerifyDiagnostics(
-                // (7,29): error CS1525: Invalid expression term ')'
-                //             if (o.Equals is()) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(7, 28),
-                // (8,33): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if (object.Equals is()) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 33),
                 // (7,17): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             if (o.Equals is()) {}
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "o.Equals is()").WithLocation(7, 17),
@@ -3613,12 +3607,6 @@ unsafe struct S
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,24): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if (null is()) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(7, 24),
-                // (8,38): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             if ((1, object.Equals) is()) {}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("recursive patterns", "patterns2").WithLocation(8, 38),
                 // (7,17): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //             if (null is()) {}
                 Diagnostic(ErrorCode.ERR_BadPatternExpression, "null").WithArguments("<null>").WithLocation(7, 17),
@@ -4348,9 +4336,6 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (11,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case _:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(11, 18),
                 // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
                 //         Write($"is _: {i is _}, ");
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29)
@@ -4381,9 +4366,6 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
-                // (12,18): error CS8058: Feature 'recursive patterns' is experimental and unsupported; use '/features:patterns2' to enable.
-                //             case _:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "_").WithArguments("recursive patterns", "patterns2").WithLocation(12, 18),
                 // (9,29): error CS8412: A constant named '_' cannot be used as a pattern.
                 //         Write($"is _: {i is _}, ");
                 Diagnostic(ErrorCode.ERR_ConstantPatternNamedUnderscore, "_").WithLocation(9, 29),
@@ -4473,24 +4455,9 @@ unsafe public class Typ
                 // (8,22): error CS1525: Invalid expression term 'int'
                 //             if (a is int* b) {}
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(8, 22),
-                // (9,25): error CS1001: Identifier expected
-                //             if (c is var* d) {}
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "*").WithLocation(9, 25),
                 // (13,31): error CS1525: Invalid expression term 'int'
                 //             switch (a) { case int* b: break; }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(13, 31),
-                // (14,34): error CS1001: Identifier expected
-                //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "*").WithLocation(14, 34),
-                // (14,34): error CS1003: Syntax error, ':' expected
-                //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "*").WithArguments(":", "*").WithLocation(14, 34),
-                // (14,37): error CS1002: ; expected
-                //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(14, 37),
-                // (14,37): error CS1513: } expected
-                //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(14, 37),
                 // (5,37): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('var')
                 //     public static void Main(int* a, var* c, Typ* e)
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "var*").WithArguments("var").WithLocation(5, 37),
@@ -4500,9 +4467,9 @@ unsafe public class Typ
                 // (8,27): error CS0103: The name 'b' does not exist in the current context
                 //             if (a is int* b) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(8, 27),
-                // (9,22): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                // (9,22): error CS0119: 'var' is a type, which is not valid in the given context
                 //             if (c is var* d) {}
-                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "var").WithLocation(9, 22),
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "var").WithArguments("var", "type").WithLocation(9, 22),
                 // (9,27): error CS0103: The name 'd' does not exist in the current context
                 //             if (c is var* d) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(9, 27),
@@ -4515,9 +4482,9 @@ unsafe public class Typ
                 // (13,36): error CS0103: The name 'b' does not exist in the current context
                 //             switch (a) { case int* b: break; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(13, 36),
-                // (14,31): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                // (14,31): error CS0119: 'var' is a type, which is not valid in the given context
                 //             switch (c) { case var* d: break; }
-                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "var").WithLocation(14, 31),
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "var").WithArguments("var", "type").WithLocation(14, 31),
                 // (14,36): error CS0103: The name 'd' does not exist in the current context
                 //             switch (c) { case var* d: break; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(14, 36),

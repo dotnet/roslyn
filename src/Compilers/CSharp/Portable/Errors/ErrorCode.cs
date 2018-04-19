@@ -1579,6 +1579,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 
+        ERR_FeatureNotAvailableInVersion8_0 = 8399,
+
         #region diagnostics introduced for recursive patterns
         // PROTOTYPE(patterns2): renumber these before committing
         ERR_MissingPattern = 8400,
