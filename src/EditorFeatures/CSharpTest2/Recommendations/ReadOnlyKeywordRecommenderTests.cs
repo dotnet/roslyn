@@ -400,6 +400,12 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNewInClass()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"class C { new $$ }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNestedNew()
         {
             await VerifyKeywordAsync(

@@ -136,6 +136,50 @@ $$");
 using Goo;");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterReadonly()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRef()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefReadonly()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"ref readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterReadonlyRef()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"readonly ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterReadonlyInMethod()
+        {
+            // struct is not useful here, but offered anyways
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"class C { void M() { readonly $$ } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefInMethod()
+        {
+            // struct is not useful here, but offered anyways
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"class C { void M() { ref $$ } }");
+        }
+
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBeforeUsing_Interactive()
         {
