@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
                     p => Assert.Equal(expected, ((CSharpParseOptions)p.ParseOptions).SpecifiedLanguageVersion));
 
                 // Verify no document changes when upgrade project
-                var changedDocs = SolutionUtilities.GetChangedDocuments(oldSolution, newSolution);
+                var changedDocs = SolutionUtilities.GetTextChangedDocuments(oldSolution, newSolution);
                 Assert.Equal(0, changedDocs.Count());
             }
 

@@ -293,6 +293,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool HasContentChanged(DocumentState oldState)
         {
+            return oldState._treeSource != this._treeSource
+                || oldState.sourceTextOpt != this.sourceTextOpt
+                || oldState.textAndVersionSource != this.textAndVersionSource;
+        }
+
+        /// <summary>
+        /// True if the Text has changed
+        /// </summary>
+        public bool HasTextChanged(DocumentState oldState)
+        {
             if (oldState.sourceTextOpt != this.sourceTextOpt
                 || oldState.textAndVersionSource != this.textAndVersionSource)
             {

@@ -123,13 +123,29 @@ namespace Microsoft.CodeAnalysis
             {
                 var newState = _newProject.GetDocumentState(id);
                 var oldState = _oldProject.GetDocumentState(id);
-                // should not directly compare newState != oldState,
-                // as when ParseOptions changes we should not consider as a document changes
-                // https://github.com/dotnet/roslyn/issues/18199
-                if (oldState != null && (
-                    newState.Info != oldState.Info ||
-                    newState.SourceCodeKind != oldState.SourceCodeKind ||
-                    newState.HasContentChanged(oldState)))
+                if (oldState != null && newState != oldState)
+                {
+                    yield return id;
+                }
+            }
+        }
+
+        /// <summary>
+        /// The difference between this GetTextChangedDocuments() and GetChangedDocuments() is:
+        /// GetTextChangedDocuments only returns documents that have text changes
+        /// GetChangedDocuments returns documents that have any changes, i.e. ParseOption, filename, SourceCodeKind ...
+        /// https://github.com/dotnet/roslyn/issues/18199
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<DocumentId> GetTextChangedDocuments()
+        {
+            // if the document states are different then there is a change.
+            foreach (var id in _newProject.DocumentIds)
+            {
+                var newState = _newProject.GetDocumentState(id);
+                var oldState = _oldProject.GetDocumentState(id);
+
+                if (oldState != null && newState.HasTextChanged(oldState))
                 {
                     yield return id;
                 }

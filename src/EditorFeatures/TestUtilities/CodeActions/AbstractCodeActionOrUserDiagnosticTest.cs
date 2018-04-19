@@ -439,21 +439,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         private static Document GetDocumentToVerify(DocumentId expectedChangedDocumentId, Solution oldSolution, Solution newSolution)
         {
             Document document;
-
+            // If the expectedChangedDocumentId is not mentioned then we expect only single document to be changed
             if (expectedChangedDocumentId == null)
             {
                 var projectDifferences = SolutionUtilities.GetSingleChangedProjectChanges(oldSolution, newSolution);
 
                 var documentId = projectDifferences.GetChangedDocuments().FirstOrDefault() ?? projectDifferences.GetAddedDocuments().FirstOrDefault();
-                if (documentId == null)
-                {
-                    // pick a random document if no document changed
-                    document = projectDifferences.NewProject.Documents.FirstOrDefault();
-                }
-                else
-                {
-                    document = newSolution.GetDocument(documentId);
-                }
+                Assert.NotNull(documentId);
+                document = newSolution.GetDocument(documentId);
             }
             else
             {
