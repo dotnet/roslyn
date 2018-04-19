@@ -431,7 +431,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 var annotatedItems = fixedRoot.GetAnnotatedNodesAndTokens(annotationKind).OrderBy(s => s.SpanStart).ToList();
 
-                Assert.Equal(expectedSpans.Length, annotatedItems.Count);
+                Assert.True(expectedSpans.Length == annotatedItems.Count,
+                    $"Annotations of kind '{annotationKind}' didn't match. Expected: {expectedSpans.Length}. Actual: {annotatedItems.Count}.");
 
                 for (var i = 0; i < Math.Min(expectedSpans.Length, annotatedItems.Count); i++)
                 {
