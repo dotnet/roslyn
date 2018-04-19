@@ -19,7 +19,7 @@ namespace Roslyn.Utilities
 
             private static PropertyInfo s_fusionLog = Type?.GetTypeInfo().GetDeclaredProperty("FusionLog");
 
-            internal static string TryGetFusionLog(object obj) => s_fusionLog.GetValue(obj) as string;
+            internal static string TryGetFusionLog(object obj) => s_fusionLog?.GetValue(obj) as string;
         }
     }
 }
