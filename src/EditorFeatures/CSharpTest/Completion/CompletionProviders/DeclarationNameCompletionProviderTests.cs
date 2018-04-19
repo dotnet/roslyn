@@ -830,6 +830,143 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InUsingStatement1()
+        {
+            var markup = @"
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (StreamReader s$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "streamReader");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InUsingStatement2()
+        {
+            var markup = @"
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (StreamReader s1, $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "streamReader");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InUsingStatement_Var()
+        {
+            var markup = @"
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var m$$ = new MemoryStream())
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "memoryStream");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InForStatement1()
+        {
+            var markup = @"
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        for (StreamReader s$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "streamReader");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InForStatement2()
+        {
+            var markup = @"
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        for (StreamReader s1, $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "streamReader");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InForStatement_Var()
+        {
+            var markup = @"
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        for (var m$$ = new MemoryStream();
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "memoryStream");
+        }
+
+        [WorkItem(26021, "https://github.com/dotnet/roslyn/issues/26021")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InForEachStatement()
+        {
+            var markup = @"
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        foreach (StreamReader $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "streamReader");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void InForEachStatement_Var()
+        {
+            var markup = @"
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        foreach (var m$$ in new[] { new MemoryStream() })
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "memoryStream");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void DisabledByOption()
         {
             var workspace = WorkspaceFixture.GetWorkspace();
