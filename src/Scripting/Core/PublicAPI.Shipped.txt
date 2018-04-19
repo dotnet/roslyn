@@ -6,7 +6,6 @@ Microsoft.CodeAnalysis.Scripting.CompilationErrorException.CompilationErrorExcep
 Microsoft.CodeAnalysis.Scripting.CompilationErrorException.Diagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Args.get -> System.Collections.Generic.IList<string>
-Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.CommandLineScriptGlobals(System.IO.TextWriter outputWriter, Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter objectFormatter) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.Print(object value) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.CommandLineScriptGlobals.PrintOptions.get -> Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
 Microsoft.CodeAnalysis.Scripting.Hosting.FileShadowCopy
