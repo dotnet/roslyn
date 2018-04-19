@@ -139,29 +139,43 @@ using Goo;");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterReadonly()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
 @"readonly $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterRef()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
 @"ref $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterRefReadonly()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
 @"ref readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterPublicRefReadonly()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"public ref readonly $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterReadonlyRef()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
 @"readonly ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterInternalReadonlyRef()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"internal readonly ref $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
