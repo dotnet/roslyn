@@ -5383,11 +5383,6 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <target state="translated">Neplatný typ cíle pro parametr /target: Je nutné použít možnost exe, winexe, library nebo module.</target>
         <note />
       </trans-unit>
-      <trans-unit id="FTL_InputFileNameTooLong">
-        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NoConfigNotOnCommandLine">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
         <target state="translated">Přepínač /noconfig se ignoroval, protože byl uvedený v souboru odpovědí.</target>
@@ -8728,6 +8723,16 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="ERR_InvalidObjectCreation">
         <source>Invalid object creation</source>
         <target state="new">Invalid object creation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FTL_InvalidInputFileName">
+        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
+        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CantUseInOrOutInArglist">
+        <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
+        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
         <note />
       </trans-unit>
     </body>
