@@ -2376,7 +2376,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expr.Kind)
             {
                 case BoundKind.Local:
-                case BoundKind.Parameter: // PROTOTYPE(NullableReferenceTypes): Should parameters result in W warnings?
+                case BoundKind.Parameter:
+                    // PROTOTYPE(NullableReferenceTypes): Warnings when assigning to `ref`
+                    // or `out` parameters should be regular warnings. Warnings assigning to
+                    // other parameters should be W warnings.
                     return true;
                 default:
                     return false;
