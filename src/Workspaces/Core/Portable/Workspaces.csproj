@@ -280,6 +280,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.IntegrationTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
@@ -328,7 +329,6 @@
     <PackageReference Include="System.Diagnostics.Contracts" Version="$(SystemDiagnosticsContractsVersion)" />
     <PackageReference Include="System.Linq.Parallel" Version="$(SystemLinqParallelVersion)" />
     <PackageReference Include="System.ObjectModel" Version="$(SystemObjectModelVersion)" />
-    <PackageReference Include="System.Text.RegularExpressions" Version="$(SystemTextRegularExpressionsVersion)" />
     <PackageReference Include="System.Threading.Tasks.Parallel" Version="$(SystemThreadingTasksParallelVersion)" />
     <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
   </ItemGroup>
