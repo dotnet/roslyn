@@ -139,7 +139,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // when that happen, we don't want to crash VS, so this is debug only check
                 if (!Environment.HasShutdownStarted)
                 {
-                    Contract.Requires(false, $"Should have been disposed!\r\n {_creationCallStack}");
+                    Contract.Requires(false, 
+                        $"Unless OOP process (RoslynCodeAnalysisService) is explicitly killed, this should have been disposed!\r\n {_creationCallStack}");
                 }
             }
 #endif
