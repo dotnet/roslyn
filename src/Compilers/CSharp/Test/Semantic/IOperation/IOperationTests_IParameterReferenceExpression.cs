@@ -814,8 +814,9 @@ internal class Class
 ";
             string expectedOperationTree = @"
 ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null) (Syntax: 'case var y  ... break;')
+  Locals: Local_1: System.Int32 y
     Clauses:
-        IPatternCaseClauseOperation (Label Symbol: case var y when (x >= 10):) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case var y  ...  (x >= 10):')
+        IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case var y  ...  (x >= 10):')
           Pattern: 
             IDeclarationPatternOperation (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
           Guard Expression: 
@@ -825,7 +826,7 @@ ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, T
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
     Body:
-        IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
+        IBranchOperation (BranchKind.Break, Label Id: 1) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -853,7 +854,7 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IDefaultCaseClauseOperation (CaseKind.Default) (OperationKind.CaseClause, Type: null) (Syntax: 'default:')
+IDefaultCaseClauseOperation (Label Id: 0) (CaseKind.Default) (OperationKind.CaseClause, Type: null) (Syntax: 'default:')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

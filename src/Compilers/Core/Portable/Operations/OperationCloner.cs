@@ -76,17 +76,17 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitSwitch(ISwitchOperation operation, object argument)
         {
-            return new SwitchStatement(Visit(operation.Value), VisitArray(operation.Cases), operation.ExitLabel, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new SwitchStatement(operation.Locals, Visit(operation.Value), VisitArray(operation.Cases), operation.ExitLabel, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, object argument)
         {
-            return new SwitchCase(VisitArray(operation.Clauses), VisitArray(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new SwitchCase(operation.Locals, VisitArray(operation.Clauses), VisitArray(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, object argument)
         {
-            return new SingleValueCaseClause(Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new SingleValueCaseClause(operation.Label, Visit(operation.Value), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitRelationalCaseClause(IRelationalCaseClauseOperation operation, object argument)
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, object argument)
         {
-            return new DefaultCaseClause(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new DefaultCaseClause(operation.Label, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitWhileLoop(IWhileLoopOperation operation, object argument)
