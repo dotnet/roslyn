@@ -165,17 +165,15 @@ using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterReadonlyInMethod()
+        public async Task TestNotAfterReadonlyInMethod()
         {
-            // struct is not useful here, but offered anyways
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"class C { void M() { readonly $$ } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterRefInMethod()
+        public async Task TestNotAfterRefInMethod()
         {
-            // struct is not useful here, but offered anyways
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"class C { void M() { ref $$ } }");
         }
