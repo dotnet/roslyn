@@ -378,9 +378,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterReadOnly()
+        public async Task TestAfterReadOnly()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"class C {
     readonly $$");
         }
@@ -391,6 +391,24 @@ $$");
             await VerifyAbsenceAsync(
 @"class C {
     volatile $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRef()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRefStruct()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"ref $$ struct { }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInRefStructBeforeRef()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"$$ ref struct { }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
