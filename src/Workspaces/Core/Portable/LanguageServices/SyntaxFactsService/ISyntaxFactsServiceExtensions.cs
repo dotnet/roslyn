@@ -60,5 +60,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             return resultNode;
         }
+
+        public static bool IsWhitespaceOrEndOfLineTrivia(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
+            => syntaxFacts.IsWhitespaceTrivia(trivia) || syntaxFacts.IsEndOfLineTrivia(trivia);
     }
 }
