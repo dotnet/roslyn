@@ -8682,7 +8682,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="new">The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</target>
+        <target state="needs-review-translation">'{2}' 형식은 제네릭 형식 또는 메서드 '{0}'에서 '{1}' 매개 변수로 사용하려면 참조 형식이 아니거나 어느 중첩 수준에서도 참조 형식 필드를 포함하지 않아야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
