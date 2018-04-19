@@ -152,6 +152,51 @@ IL_0000:  newobj     ""C1..ctor()""
 IL_0005:  ret
 }");
                 VerifyResolutionRequests(context, (identityB2, identityB2, 1), (identityA1, identityA1, 1), (identityA2, identityA2, 1));
+
+                // Other EvaluationContext.CreateMethodContext overload.
+                // A1.M with all assemblies.
+                var allBlocks = ImmutableArray.Create(moduleMscorlib, moduleA1, moduleA2, moduleB1, moduleB2, moduleC).SelectAsArray(m => m.MetadataBlock);
+                context = EvaluationContext.CreateMethodContext(
+                    new CSharpMetadataContext(),
+                    allBlocks,
+                    stateA1.SymReader,
+                    stateA1.ModuleVersionId,
+                    stateA1.MethodToken,
+                    methodVersion: 1,
+                    stateA1.ILOffset,
+                    stateA1.LocalSignatureToken);
+                testData = new CompilationTestData();
+                context.CompileExpression("new B1()", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""B1..ctor()""
+IL_0005:  ret
+}");
+
+                // Other EvaluationContext.CreateMethodContext overload.
+                // A1.M with all assemblies, offset outside of IL.
+                context = EvaluationContext.CreateMethodContext(
+                    new CSharpMetadataContext(),
+                    allBlocks,
+                    stateA1.SymReader,
+                    stateA1.ModuleVersionId,
+                    stateA1.MethodToken,
+                    methodVersion: 1,
+                    uint.MaxValue,
+                    stateA1.LocalSignatureToken);
+                testData = new CompilationTestData();
+                context.CompileExpression("new C1()", out error, testData);
+                methodData = testData.GetMethodData("<>x.<>m0");
+                methodData.VerifyIL(
+@"{
+// Code size        6 (0x6)
+.maxstack  1
+IL_0000:  newobj     ""C1..ctor()""
+IL_0005:  ret
+}");
             }
         }
 

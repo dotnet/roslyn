@@ -90,6 +90,42 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// <summary>
         /// Create a context for evaluating expressions within a method scope.
         /// </summary>
+        /// <param name="previous">Previous context, if any, for possible re-use.</param>
+        /// <param name="metadataBlocks">Module metadata</param>
+        /// <param name="symReader"><see cref="ISymUnmanagedReader"/> for PDB associated with <paramref name="moduleVersionId"/></param>
+        /// <param name="moduleVersionId">Module containing method</param>
+        /// <param name="methodToken">Method metadata token</param>
+        /// <param name="methodVersion">Method version.</param>
+        /// <param name="ilOffset">IL offset of instruction pointer in method</param>
+        /// <param name="localSignatureToken">Method local signature token</param>
+        /// <returns>Evaluation context</returns>
+        internal static EvaluationContext CreateMethodContext(
+            CSharpMetadataContext previous,
+            ImmutableArray<MetadataBlock> metadataBlocks,
+            object symReader,
+            Guid moduleVersionId,
+            int methodToken,
+            int methodVersion,
+            uint ilOffset,
+            int localSignatureToken)
+        {
+            var offset = NormalizeILOffset(ilOffset);
+
+            CSharpCompilation compilation = metadataBlocks.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies);
+
+            return CreateMethodContext(
+                compilation,
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                offset,
+                localSignatureToken);
+        }
+
+        /// <summary>
+        /// Create a context for evaluating expressions within a method scope.
+        /// </summary>
         /// <param name="compilation">Compilation.</param>
         /// <param name="symReader"><see cref="ISymUnmanagedReader"/> for PDB associated with <paramref name="moduleVersionId"/></param>
         /// <param name="moduleVersionId">Module containing method</param>

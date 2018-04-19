@@ -180,6 +180,51 @@ End Class"
 }")
                 VerifyResolutionRequests(context, (moduleB2.Identity, moduleB2.Identity, 1), (moduleA1.Identity, moduleA1.Identity, 1), (moduleA2.Identity, moduleA2.Identity, 1))
 
+                ' Other EvaluationContext.CreateMethodContext overload.
+                ' A1.M with all assemblies.
+                Dim allBlocks = ImmutableArray.Create(moduleMscorlib.Module, moduleA1.Module, moduleA2.Module, moduleB1.Module, moduleB2.Module, moduleC.Module).SelectAsArray(Function(m) m.MetadataBlock)
+                context = EvaluationContext.CreateMethodContext(
+                    New VisualBasicMetadataContext(),
+                    allBlocks,
+                    MakeDummyLazyAssemblyReaders(),
+                    stateA1.SymReader,
+                    stateA1.ModuleVersionId,
+                    stateA1.MethodToken,
+                    methodVersion:=1,
+                    stateA1.ILOffset,
+                    stateA1.LocalSignatureToken)
+                testData = New CompilationTestData()
+                context.CompileExpression("New B1()", errorMessage, testData)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""Sub B1..ctor()""
+  IL_0005:  ret
+}")
+
+                ' Other EvaluationContext.CreateMethodContext overload.
+                ' A1.M with all assemblies, offset outside of IL.
+                context = EvaluationContext.CreateMethodContext(
+                    New VisualBasicMetadataContext(),
+                    allBlocks,
+                    MakeDummyLazyAssemblyReaders(),
+                    stateA1.SymReader,
+                    stateA1.ModuleVersionId,
+                    stateA1.MethodToken,
+                    methodVersion:=1,
+                    UInteger.MaxValue,
+                    stateA1.LocalSignatureToken)
+                testData = New CompilationTestData()
+                context.CompileExpression("New C1()", errorMessage, testData)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""Sub C1..ctor()""
+  IL_0005:  ret
+}")
+
             End Using
         End Sub
 
