@@ -160,24 +160,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return false;
             }
         }
-
-        private static bool IsVarDesired(ITypeSymbol type, OptionSet options, bool typeIsApperant)
-        {
-            // If they want it for intrinsics, and this is an intrinsic, then use var.
-            if (type.IsSpecialType() == true)
-            {
-                return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
-            }
-
-            // If they want it only for apperant types, then only use "var" if the caller
-            // says the type was apperant.
-            if (typeIsApperant)
-            {
-                return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Value;
-            }
-
-            // If they want "var" whenever possible, then use "var".
-            return  options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Value;
-        }
     }
 }

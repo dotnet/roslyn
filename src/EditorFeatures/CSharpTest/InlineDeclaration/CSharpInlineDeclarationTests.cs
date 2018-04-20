@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task InlineVariablePreferVar1()
         {
-            await TestInRegularAndScriptAsync(
+             await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(string v)
