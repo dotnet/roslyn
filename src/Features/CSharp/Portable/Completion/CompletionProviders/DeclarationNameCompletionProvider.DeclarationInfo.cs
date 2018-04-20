@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 if (IsParameterDeclaration(token, semanticModel, position, cancellationToken, out var result)
                     || IsTypeParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
+                    || IsForEachVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsIncompleteMemberDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsFieldDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsMethodDeclaration(token, semanticModel, position, cancellationToken, out result)
@@ -251,10 +252,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
                 result = IsFollowingTypeOrComma<VariableDeclarationSyntax>(token, semanticModel,
-                     v => v.Type,
-                     v => v.Parent is LocalDeclarationStatementSyntax l ? l.Modifiers : default(SyntaxTokenList?),
-                     d => ImmutableArray.Create(SymbolKind.Local),
+                     typeSyntaxGetter: v => v.Type,
+                     modifierGetter: v =>
+                        v.Parent is LocalDeclarationStatementSyntax localDeclaration ? localDeclaration.Modifiers :
+                        v.Parent is UsingStatementSyntax ? default(SyntaxTokenList) :
+                        v.Parent is ForStatementSyntax ? default(SyntaxTokenList) :
+                        default(SyntaxTokenList?), // Return null to bail out.
+                     possibleDeclarationComputer: d => ImmutableArray.Create(SymbolKind.Local),
                      cancellationToken);
+                return result.Type != null;
+            }
+
+            private static bool IsForEachVariableDeclaration(SyntaxToken token, SemanticModel semanticModel,
+                int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
+            {
+                // This is parsed as ForEachVariableStatementSyntax:
+                // foreach (int $$
+                result = IsLastTokenOfType<CommonForEachStatementSyntax>(token, semanticModel,
+                    typeSyntaxGetter: f =>
+                        f is ForEachStatementSyntax forEachStatement ? forEachStatement.Type :
+                        f is ForEachVariableStatementSyntax forEachVariableStatement ? forEachVariableStatement.Variable :
+                        null, // Return null to bail out.
+                    modifierGetter: f => default,
+                    possibleDeclarationComputer: d => ImmutableArray.Create(SymbolKind.Local),
+                    cancellationToken);
                 return result.Type != null;
             }
 
