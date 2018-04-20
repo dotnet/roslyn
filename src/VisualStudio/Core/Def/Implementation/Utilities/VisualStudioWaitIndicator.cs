@@ -45,11 +45,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
                     return WaitIndicatorResult.Completed;
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (waitContext.CancellationToken.IsCancellationRequested)
                 {
                     return WaitIndicatorResult.Canceled;
                 }
-                catch (AggregateException aggregate) when (aggregate.InnerExceptions.All(e => e is OperationCanceledException))
+                catch (AggregateException aggregate) when (waitContext.CancellationToken.IsCancellationRequested && aggregate.InnerExceptions.All(e => e is OperationCanceledException))
                 {
                     return WaitIndicatorResult.Canceled;
                 }
