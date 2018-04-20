@@ -18,7 +18,8 @@
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
   </Dependencies>
   <Assets>
-    <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="Editorconfig" />
+    <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="EditorconfigDefault" />
+    <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="EditorconfigDotNet" />
     <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Templates.Editorconfig.Wizard" Path="|Templates.Editorconfig.Wizard|" AssemblyName="|Templates.Editorconfig.Wizard;AssemblyName|" />
   </Assets>
 </PackageManifest>

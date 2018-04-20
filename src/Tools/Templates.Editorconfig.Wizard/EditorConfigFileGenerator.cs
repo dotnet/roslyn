@@ -6,6 +6,7 @@ using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Templates.Editorconfig.Wizard;
+using System.Windows;
 
 namespace Templates.EditorConfig.FileGenerator
 {
@@ -68,7 +69,7 @@ namespace Templates.EditorConfig.FileGenerator
             string fileName = Path.Combine(projectPath, TemplateConstants.FileName);
             if (File.Exists(fileName))
             {
-                // Show Message
+                MessageBox.Show("An .editorconfig file already exist in this location", ".editorconfig item template", MessageBoxButton.OK, MessageBoxImage.Information);
                 return (false, null);
             }
             else

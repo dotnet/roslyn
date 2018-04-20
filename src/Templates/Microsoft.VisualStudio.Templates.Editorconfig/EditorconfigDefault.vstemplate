@@ -2,7 +2,7 @@
   <TemplateData>
     <Name>editorconfig File (default)</Name>
     <Description>Create an editorconfig file to persist your editor and code settings.</Description>
-    <TemplateID>Microsoft.VisualStudio.Templates.Editorconfig</TemplateID>
+    <TemplateID>Microsoft.VisualStudio.Templates.Editorconfig.default</TemplateID>
     <ProjectType>CSharp</ProjectType>
     <Icon>EditorconfigIcon.png</Icon>
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>

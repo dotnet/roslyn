@@ -28,6 +28,6 @@
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
     <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
     <PackageReference Include="VSSDK.TemplateWizardInterface" Version="$(VSSDKTemplateWizardInterfaceVersion)" />
+    <Reference Include="PresentationFramework" />
   </ItemGroup>
-
 </Project>
