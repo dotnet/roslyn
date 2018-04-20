@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExp
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
 
-
         [Fact]
         public async Task TestIntLocalDeclaration()
         {

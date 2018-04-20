@@ -2,26 +2,23 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
-using System.Diagnostics;
-using static Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle.CSharpTypeStyleDiagnosticAnalyzerBase;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseImplicitType), Shared]
     internal partial class UseImplicitTypeCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private static readonly CSharpUseImplicitTypeHelper s_useImplicitTypeHelper = new CSharpUseImplicitTypeHelper();
-
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
@@ -50,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType
 
             Debug.Assert(declaration.IsKind(SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression));
 
-            var declaredType = s_useImplicitTypeHelper.FindAnalyzableType(declaration, semanticModel, cancellationToken);
+            var declaredType = CSharpUseImplicitTypeHelper.Instance.FindAnalyzableType(declaration, semanticModel, cancellationToken);
             if (declaredType == null)
             {
                 return;
@@ -66,17 +63,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType
                 return;
             }
 
-            var state = State.Generate(declaration, semanticModel, optionSet,
-                isVariableDeclarationContext: declaration.IsKind(SyntaxKind.VariableDeclaration), cancellationToken: cancellationToken);
-
-            // UseImplicitType analyzer/fixer already gives an action in this case
-            if (s_useImplicitTypeHelper.IsStylePreferred(semanticModel, optionSet, state, cancellationToken))
+            var typeStyle = CSharpUseImplicitTypeHelper.Instance.AnalyzeTypeName(
+                declaredType, semanticModel, optionSet, cancellationToken);
+            if (typeStyle.IsStylePreferred && typeStyle.Severity != DiagnosticSeverity.Hidden)
             {
+                // the analyzer would handle this.  So we do not.
                 return;
             }
 
-            Debug.Assert(state != null, "analyzing a declaration and state is null.");
-            if (!s_useImplicitTypeHelper.TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken))
+            if (!typeStyle.CanConvert())
             {
                 return;
             }
@@ -99,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
-            UseImplicitTypeCodeFixProvider.HandleDeclaration(editor, node);
+            UseImplicitTypeCodeFixProvider.HandleDeclaration( editor, node);
 
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
