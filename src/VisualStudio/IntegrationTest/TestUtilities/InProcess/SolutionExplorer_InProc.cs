@@ -723,7 +723,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void OpenFile(string projectName, string relativeFilePath)
         {
             var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
-            VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath, VSConstants.LOGVIEWID.Code_guid, out _, out _, out _);
+            VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath, VSConstants.LOGVIEWID.Code_guid, out _, out _, out _, out var view);
+
+            // Reliably set focus using NavigateToLineAndColumn
+            var textManager = GetGlobalService<SVsTextManager, IVsTextManager>();
+            ErrorHandler.ThrowOnFailure(view.GetBuffer(out var textLines));
+            ErrorHandler.ThrowOnFailure(view.GetCaretPos(out var line, out var column));
+            ErrorHandler.ThrowOnFailure(textManager.NavigateToLineAndColumn(textLines, VSConstants.LOGVIEWID.Code_guid, line, column, line, column));
         }
 
         public void CloseFile(string projectName, string relativeFilePath, bool saveFile)
