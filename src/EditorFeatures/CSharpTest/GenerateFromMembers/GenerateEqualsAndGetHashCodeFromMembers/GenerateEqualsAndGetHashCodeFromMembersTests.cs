@@ -20,13 +20,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
 
     public class GenerateEqualsAndGetHashCodeFromMembersTests : AbstractCSharpCodeActionTest
     {
+        private static readonly CSharpParseOptions CSharp6 = TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6);
+
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsSingleField()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -45,13 +47,14 @@ class Program
         return program != null &&
                a == program.a;
     }
-}");
+}",
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestReferenceIEquatable()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"
 using System;
 using System.Collections.Generic;
@@ -78,13 +81,14 @@ class Program
         return program != null &&
                EqualityComparer<S>.Default.Equals(a, program.a);
     }
-}");
+}",
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestValueIEquatable()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"
 using System;
 using System.Collections.Generic;
@@ -111,13 +115,14 @@ class Program
         return program != null &&
                a.Equals(program.a);
     }
-}");
+}",
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsLongName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class ReallyLongName
@@ -136,13 +141,14 @@ class ReallyLongName
         return name != null &&
                a == name.a;
     }
-}");
+}",
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsKeywordName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class ReallyLongLong
@@ -161,13 +167,14 @@ class ReallyLongLong
         return @long != null &&
                a == @long.a;
     }
-}");
+}",
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsProperty()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class ReallyLongName
@@ -191,13 +198,14 @@ class ReallyLongName
                a == name.a &&
                B == name.B;
     }
-}");
+}",
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsBaseTypeWithNoEquals()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Base
 {
 }
@@ -220,13 +228,14 @@ class Program : Base
         return program != null &&
                i == program.i;
     }
-}");
+}",
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsBaseWithOverriddenEquals()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Base
@@ -266,13 +275,14 @@ class Program : Base
                S == program.S;
     }
 }",
-index: 0);
+index: 0,
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsOverriddenDeepBase()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Base
@@ -319,13 +329,14 @@ class Program : Middle
                i == program.i &&
                S == program.S;
     }
-}");
+}",
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsStruct()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 struct ReallyLongName
@@ -353,7 +364,8 @@ struct ReallyLongName
         return i == name.i &&
                S == name.S;
     }
-}");
+}",
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -382,13 +394,14 @@ class Program<T>
 }
 ";
 
-            await TestInRegularAndScriptAsync(code, expected);
+            await TestAsync(code, expected,
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSingleField1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -413,13 +426,14 @@ class Program
         return 165851236 + i.GetHashCode();
     }
 }",
-index: 1);
+index: 1,
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSingleField2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -444,13 +458,14 @@ class Program
         return 1424088837 + j.GetHashCode();
     }
 }",
-index: 1);
+index: 1,
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeWithBaseHashCode1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Base {
@@ -486,7 +501,8 @@ class Program : Base
         return hashCode;
     }
 }",
-index: 1);
+index: 1,
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -526,13 +542,14 @@ class Program : Base
     }
 }",
 chosenSymbols: new string[] { },
-index: 1);
+index: 1,
+parameters: new TestParameters(parseOptions: CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSingleField_CodeStyle1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -555,13 +572,14 @@ class Program
     public override int GetHashCode() => 165851236 + i.GetHashCode();
 }",
 index: 1,
-options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement));
+options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement),
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeTypeParameter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Program<T>
@@ -586,13 +604,14 @@ class Program<T>
         return 165851236 + EqualityComparer<T>.Default.GetHashCode(i);
     }
 }",
-index: 1);
+index: 1,
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeGenericType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Program<T>
@@ -617,13 +636,14 @@ class Program<T>
         return 165851236 + EqualityComparer<Program<T>>.Default.GetHashCode(i);
     }
 }",
-index: 1);
+index: 1,
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeMultipleMembers()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -656,7 +676,8 @@ class Program
         return hashCode;
     }
 }",
-index: 1);
+index: 1,
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -742,13 +763,13 @@ class C
     }
 }",
 index: 0,
-                parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task Tuples_Equals()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -767,13 +788,14 @@ class C
         return c != null &&
                a.Equals(c.a);
     }
-}");
+}",
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TupleWithNames_Equals()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -792,13 +814,14 @@ class C
         return c != null &&
                a.Equals(c.a);
     }
-}");
+}",
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task Tuple_HashCode()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -823,13 +846,14 @@ class Program
         return 165851236 + i.GetHashCode();
     }
 }",
-index: 1);
+index: 1,
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TupleWithNames_HashCode()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -854,7 +878,8 @@ class Program
         return 165851236 + i.GetHashCode();
     }
 }",
-index: 1);
+index: 1,
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -884,7 +909,8 @@ class Program
                b == program.b;
     }
 }",
-chosenSymbols: new[] { "a", "b" });
+chosenSymbols: new[] { "a", "b" },
+parameters: new TestParameters(parseOptions: CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -916,7 +942,8 @@ class Program
                b == program.b;
     }
 }",
-chosenSymbols: new[] { "c", "b" });
+chosenSymbols: new[] { "c", "b" },
+parameters: new TestParameters(parseOptions: CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -946,7 +973,8 @@ class Program
         return program != null;
     }
 }",
-chosenSymbols: new string[] { });
+chosenSymbols: new string[] { },
+parameters: new TestParameters(parseOptions: CSharp6));
         }
 
         [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
@@ -972,7 +1000,8 @@ class Program
                F == program.F;
     }
 }",
-chosenSymbols: null);
+chosenSymbols: null,
+parameters: new TestParameters(parseOptions: CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1012,7 +1041,8 @@ class Program
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, GenerateOperatorsId));
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+parameters: new TestParameters(parseOptions: CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1047,7 +1077,8 @@ class Program
 chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 parameters: new TestParameters(
-    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement)));
+    options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithNoneEnforcement),
+    parseOptions: CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1081,7 +1112,8 @@ class Program
     public static bool operator ==(Program program1, Program program2) => true;
 }",
 chosenSymbols: null,
-optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)));
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateOperatorsId)),
+parameters: new TestParameters(parseOptions: CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1125,7 +1157,8 @@ struct Program
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, GenerateOperatorsId));
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+parameters: new TestParameters(parseOptions: CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1159,7 +1192,8 @@ struct Program : IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, ImplementIEquatableId));
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+parameters: new TestParameters(parseOptions: CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1194,7 +1228,8 @@ class Program : IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => EnableOption(options, ImplementIEquatableId));
+optionsCallback: options => EnableOption(options, ImplementIEquatableId),
+parameters: new TestParameters(parseOptions: CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1224,7 +1259,8 @@ class Program : System.IEquatable<Program>
     }
 }",
 chosenSymbols: null,
-optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)));
+optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)),
+parameters: new TestParameters(parseOptions: CSharp6));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1233,7 +1269,7 @@ optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == Impl
             await TestWithPickMembersDialogAsync(
 @"
 <Workspace>
-    <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='false'>
+    <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='false' LanguageVersion='CSharp6'>
         <Document FilePath='Test1.cs'>
 public class Class1
 {
@@ -1275,7 +1311,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeInCheckedContext()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Program
@@ -1311,14 +1347,16 @@ class Program
         }
     }
 }",
-index: 1, compilationOptions: new CSharpCompilationOptions(
+index: 1,
+parseOptions: CSharp6,
+compilationOptions: new CSharpCompilationOptions(
     OutputKind.DynamicallyLinkedLibrary, checkOverflow: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeStruct()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 struct S
@@ -1347,13 +1385,14 @@ struct S
         return 1424088837 + j.GetHashCode();
     }
 }",
-index: 1);
+index: 1,
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSystemHashCodeOneMember()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 struct S
@@ -1383,13 +1422,14 @@ struct S
         return HashCode.Combine(j);
     }
 }",
-index: 1);
+index: 1,
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSystemHashCodeEightMembers()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 struct S
@@ -1426,13 +1466,14 @@ struct S
         return HashCode.Combine(j, k, l, m, n, o, p, q);
     }
 }",
-index: 1);
+index: 1,
+parseOptions: CSharp6);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestGetHashCodeSystemHashCodeNineMembers()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 namespace System { public struct HashCode { } }
 struct S
@@ -1480,7 +1521,32 @@ struct S
         return hash.ToHashCode();
     }
 }",
-index: 1);
+index: 1,
+parseOptions: CSharp6);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualsSingleField_Patterns()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|int a;|]
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Program program &&
+               a == program.a;
+    }
+}");
         }
     }
 }
