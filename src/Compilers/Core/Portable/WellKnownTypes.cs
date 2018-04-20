@@ -271,6 +271,8 @@ namespace Microsoft.CodeAnalysis
         System_ObsoleteAttribute,
         System_Span_T,
         System_ReadOnlySpan_T,
+        System_Runtime_InteropServices_UnmanagedType,
+        System_Runtime_CompilerServices_IsUnmanagedAttribute,
 
         System_IAsyncDisposable,
         System_Collections_Generic_IAsyncEnumerable_T,
@@ -541,6 +543,8 @@ namespace Microsoft.CodeAnalysis
             "System.ObsoleteAttribute",
             "System.Span`1",
             "System.ReadOnlySpan`1",
+            "System.Runtime.InteropServices.UnmanagedType",
+            "System.Runtime.CompilerServices.IsUnmanagedAttribute",
             "System.IAsyncDisposable",
             "System.Collections.Generic.IAsyncEnumerable`1",
             "System.Collections.Generic.IAsyncEnumerator`1",

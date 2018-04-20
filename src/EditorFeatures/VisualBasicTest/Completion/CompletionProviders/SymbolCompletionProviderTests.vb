@@ -7073,7 +7073,7 @@ End Class]]>
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            Dim expectedDescription = $"(field) C.x As Integer"
+            Dim expectedDescription = $"({ FeaturesResources.field }) C.x As Integer"
             Await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription)
         End Function
 

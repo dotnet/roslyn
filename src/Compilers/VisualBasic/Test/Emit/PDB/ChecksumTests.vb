@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
         <Fact>
         Public Sub CheckSumDirectiveClashesSameTree()
-            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
@@ -76,7 +76,7 @@ End Class
 
         <Fact>
         Public Sub CheckSumDirectiveClashesDifferentLength()
-            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
@@ -112,7 +112,7 @@ End Class
 
         <Fact>
         Public Sub CheckSumDirectiveClashesDifferentTrees()
-            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
@@ -154,7 +154,7 @@ End Class
 
         <Fact>
         Public Sub CheckSumDirectiveFullWidth()
-            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
@@ -196,7 +196,7 @@ End Class
             comp.VerifyPdb("C.M",
 <symbols>
     <files>
-        <file id="1" name="b:\base\b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="90, B2, 29, 4D,  5, C7, A7, 47, 73,  0, EF, F4, 75, 92, E5, 84, E4, 4A, BB, E4, "/>
+        <file id="1" name="b:\base\b.vb" language="VB" checksumAlgorithm="SHA1" checksum="90-B2-29-4D-05-C7-A7-47-73-00-EF-F4-75-92-E5-84-E4-4A-BB-E4"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -246,8 +246,8 @@ End Class
             comp.VerifyPdb("C.M",
 <symbols>
     <files>
-        <file id="1" name="b:\base\line.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-        <file id="2" name="q:\absolute\line.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="b:\base\line.vb" language="VB"/>
+        <file id="2" name="q:\absolute\line.vb" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -307,11 +307,11 @@ End Class
             comp.VerifyPdb("C.M",
 <symbols>
     <files>
-        <file id="1" name="b:\base\a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a79a" checkSum="AB,  0, 7F, 1D, 23, DA, "/>
-        <file id="2" name="b:\base\b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a79a" checkSum="AB,  0, 7F, 1D, 23, DB, "/>
-        <file id="3" name="b:\base\c.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a79a" checkSum="AB,  0, 7F, 1D, 23, DC, "/>
-        <file id="4" name="b:\base\d.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a79a" checkSum="AB,  0, 7F, 1D, 23, DD, "/>
-        <file id="5" name="b:\base\e.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a79a" checkSum="AB,  0, 7F, 1D, 23, DE, "/>
+        <file id="1" name="b:\base\a.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DA"/>
+        <file id="2" name="b:\base\b.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DB"/>
+        <file id="3" name="b:\base\c.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DC"/>
+        <file id="4" name="b:\base\d.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DD"/>
+        <file id="5" name="b:\base\e.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DE"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -361,9 +361,9 @@ End Class
             comp.VerifyPdb("C.M",
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a79a" checkSum="AB,  0, 7F, 1D, 23, DA, "/>
-        <file id="2" name="./a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-        <file id="3" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DA"/>
+        <file id="2" name="./a.vb" language="VB"/>
+        <file id="3" name="b.vb" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">

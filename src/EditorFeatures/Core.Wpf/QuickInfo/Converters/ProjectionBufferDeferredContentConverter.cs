@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
     [Export(typeof(IDeferredQuickInfoContentToFrameworkElementConverter))]
+    [QuickInfoConverterMetadata(typeof(ProjectionBufferDeferredContent))]
     class ProjectionBufferDeferredContentConverter : IDeferredQuickInfoContentToFrameworkElementConverter
     {
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;

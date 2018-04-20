@@ -346,6 +346,50 @@ namespace Roslyn.Utilities
             }
         }
 
+        public static bool Contains<T>(this IEnumerable<T> sequence, Func<T, bool> predicate)
+        {
+            return sequence.Any(predicate);
+        }
+
+        public static bool Contains(this IEnumerable<string> sequence, string s)
+        {
+            foreach (var item in sequence)
+            {
+                if (item == s)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static IComparer<T> ToComparer<T>(this Comparison<T> comparison)
+        {
+            return Comparer<T>.Create(comparison);
+        }
+    }
+
+    /// <summary>
+    /// Cached versions of commonly used delegates.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    internal static class Functions<T>
+    {
+        public static readonly Func<T, T> Identity = t => t;
+        public static readonly Func<T, bool> True = t => true;
+    }
+}
+
+namespace System.Linq
+{
+    /// <summary>
+    /// Declare the following extension methods in System.Linq namespace to avoid accidental boxing of ImmutableArray{T} that implements IEnumerable{T}.
+    /// The boxing would occur if the methods were defined in Roslyn.Utilities and the file calling these methods has <code>using Roslyn.Utilities</code>
+    /// but not <code>using System.Linq"</code>.
+    /// </summary>
+    internal static class EnumerableExtensions
+    {
         public static bool SequenceEqual<T>(this IEnumerable<T> first, IEnumerable<T> second, Func<T, T, bool> comparer)
         {
             Debug.Assert(comparer != null);
@@ -379,38 +423,5 @@ namespace Roslyn.Utilities
 
             return true;
         }
-
-        public static bool Contains<T>(this IEnumerable<T> sequence, Func<T, bool> predicate)
-        {
-            return sequence.Any(predicate);
-        }
-
-        public static bool Contains(this IEnumerable<string> sequence, string s)
-        {
-            foreach (var item in sequence)
-            {
-                if (item == s)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public static IComparer<T> ToComparer<T>(this Comparison<T> comparison)
-        {
-            return Comparer<T>.Create(comparison);
-        }
-    }
-
-    /// <summary>
-    /// Cached versions of commonly used delegates.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    internal static class Functions<T>
-    {
-        public static readonly Func<T, T> Identity = t => t;
-        public static readonly Func<T, bool> True = t => true;
     }
 }

@@ -844,7 +844,7 @@ End Module
 
     <Fact()>
     Public Sub BC30059ERR_RequiredConstExpr_1()
-        CreateCompilationWithMscorlibAndVBRuntime(
+        CreateCompilationWithMscorlib40AndVBRuntime(
         <compilation name="ArrayInitializerForNonConstDim">
             <file name="a.vb">
             Option Infer On
@@ -1522,7 +1522,7 @@ End Class
     <WorkItem(542238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542238")>
     <Fact()>
     Public Sub BC30201ERR_ExpectedExpression_3()
-        Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+        Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ArrayInitializerForNonConstDim">
     <file name="a.vb">
                         Imports System

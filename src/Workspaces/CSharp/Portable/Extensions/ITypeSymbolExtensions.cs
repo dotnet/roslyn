@@ -26,22 +26,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static NameSyntax GenerateNameSyntax(
-            this INamespaceOrTypeSymbol symbol)
+            this INamespaceOrTypeSymbol symbol, bool allowVar = true)
         {
-            return (NameSyntax)GenerateTypeSyntax(symbol, nameSyntax: true);
+            return (NameSyntax)GenerateTypeSyntax(symbol, nameSyntax: true, allowVar: allowVar);
         }
 
         public static TypeSyntax GenerateTypeSyntax(
-            this INamespaceOrTypeSymbol symbol)
+            this INamespaceOrTypeSymbol symbol, bool allowVar = true)
         {
-            return GenerateTypeSyntax(symbol, nameSyntax: false);
+            return GenerateTypeSyntax(symbol, nameSyntax: false, allowVar: allowVar);
         }
 
         private static TypeSyntax GenerateTypeSyntax(
-            INamespaceOrTypeSymbol symbol, bool nameSyntax)
+            INamespaceOrTypeSymbol symbol, bool nameSyntax, bool allowVar = true)
         {
-            return symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))
-                         .WithAdditionalAnnotations(Simplifier.Annotation);
+            var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))
+                               .WithAdditionalAnnotations(Simplifier.Annotation);
+
+            if (!allowVar)
+            {
+                syntax = syntax.WithAdditionalAnnotations(DoNotAllowVarAnnotation.Annotation);
+            }
+
+            return syntax;
         }
 
         public static TypeSyntax GenerateRefTypeSyntax(

@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add parentheses.
+        /// </summary>
+        internal static string Add_parentheses_around_conditional_expression_in_interpolated_string {
+            get {
+                return ResourceManager.GetString("Add_parentheses_around_conditional_expression_in_interpolated_string", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add &apos;this.&apos;.
         /// </summary>
         internal static string Add_this {
@@ -140,15 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Autoselect_disabled_due_to_possible_tuple_type_element_creation {
             get {
                 return ResourceManager.GetString("Autoselect_disabled_due_to_possible_tuple_type_element_creation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Autoselect disabled due to potential implicit array creation..
-        /// </summary>
-        internal static string Autoselect_disabled_due_to_potential_implicit_array_creation {
-            get {
-                return ResourceManager.GetString("Autoselect_disabled_due_to_potential_implicit_array_creation", resourceCulture);
             }
         }
         
@@ -288,11 +288,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert &apos;if&apos; to &apos;switch&apos;.
+        ///   Looks up a localized string similar to Convert to &apos;for&apos;.
         /// </summary>
-        internal static string Convert_if_to_switch {
+        internal static string Convert_to_for {
             get {
-                return ResourceManager.GetString("Convert_if_to_switch", resourceCulture);
+                return ResourceManager.GetString("Convert_to_for", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to &apos;foreach&apos;.
+        /// </summary>
+        internal static string Convert_to_foreach {
+            get {
+                return ResourceManager.GetString("Convert_to_foreach", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to &apos;switch&apos;.
+        /// </summary>
+        internal static string Convert_to_switch {
+            get {
+                return ResourceManager.GetString("Convert_to_switch", resourceCulture);
             }
         }
         
@@ -468,15 +486,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;implicit array creation&gt;.
-        /// </summary>
-        internal static string implicit_array_creation {
-            get {
-                return ResourceManager.GetString("implicit_array_creation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to indexer.
         /// </summary>
         internal static string indexer {
@@ -545,15 +554,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Invalid_selection {
             get {
                 return ResourceManager.GetString("Invalid_selection", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invert if statement.
-        /// </summary>
-        internal static string Invert_if_statement {
-            get {
-                return ResourceManager.GetString("Invert_if_statement", resourceCulture);
             }
         }
         

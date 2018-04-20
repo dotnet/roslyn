@@ -280,7 +280,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
             // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(expanded, argsToParamsOpt, parameters, argumentRefKinds, rewrittenArguments, actualArguments, refKinds, storesToTemps);
+            BuildStoresToTemps(
+                expanded,
+                argsToParamsOpt,
+                parameters,
+                argumentRefKinds,
+                rewrittenArguments,
+                forceLambdaSpilling: true, // lambdas must produce exactly one delegate so they must be spilled into a temp
+                actualArguments,
+                refKinds,
+                storesToTemps);
 
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
@@ -296,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step three: Now fill in the optional arguments. (Dev11 uses the getter for optional arguments in
             // compound assignments, but for deconstructions we use the setter if the getter is missing.)
             var accessor = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
-            InsertMissingOptionalArguments(syntax, accessor.Parameters, actualArguments);
+            InsertMissingOptionalArguments(syntax, accessor.Parameters, actualArguments, refKinds);
 
             // For a call, step four would be to optimize away some of the temps.  However, we need them all to prevent
             // duplicate side-effects, so we'll skip that step.
@@ -507,29 +516,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ArrayAccess:
-                    if (isDynamicAssignment)
                     {
-                        // In non-dynamic array[index] op= R we emit:
-                        //   T& tmp = &array[index];
-                        //   *tmp = *L op R;
-                        // where T is the type of L.
-                        // 
-                        // If L is an array access, the assignment is dynamic, the compile-time of the array is dynamic[] 
-                        // and the runtime type of the array is not object[] (but e.g. string[]) the pointer approach is broken.
-                        // T is Object in such case and we can't take a read-write pointer of type Object& to an array element of non-object type.
-                        //
-                        // In this case we rewrite the assignment as follows:
-                        //
-                        //   E t_array = array;
-                        //   I t_index = index; (possibly more indices)
-                        //   T value = t_array[t_index];
-                        //   t_array[t_index] = value op R;
-
                         var arrayAccess = (BoundArrayAccess)originalLHS;
-                        var loweredArray = VisitExpression(arrayAccess.Expression);
-                        var loweredIndices = VisitList(arrayAccess.Indices);
+                        if (isDynamicAssignment || !IsInvariantArray(arrayAccess.Expression.Type))
+                        {
+                            // In non-dynamic, invariant array[index] op= R we emit:
+                            //   T& tmp = &array[index];
+                            //   *tmp = *L op R;
+                            // where T is the type of L.
+                            // 
+                            // If L is an array access, the assignment is dynamic, the compile-time of the array is dynamic[] 
+                            // and the runtime type of the array is not object[] (but e.g. string[]) the pointer approach is broken.
+                            // T is Object in such case and we can't take a read-write pointer of type Object& to an array element of non-object type.
+                            //
+                            // In the dynamic case, or when the array may be co-variant, we rewrite the assignment as follows:
+                            //
+                            //   E t_array = array;
+                            //   I t_index = index; (possibly more indices)
+                            //   T value = t_array[t_index];
+                            //   t_array[t_index] = value op R;
+                            var loweredArray = VisitExpression(arrayAccess.Expression);
+                            var loweredIndices = VisitList(arrayAccess.Indices);
 
-                        return SpillArrayElementAccess(loweredArray, loweredIndices, stores, temps);
+                            return SpillArrayElementAccess(loweredArray, loweredIndices, stores, temps);
+                        }
                     }
                     break;
 
@@ -603,6 +613,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return variableTemp;
         }
 
+        private static bool IsInvariantArray(TypeSymbol type)
+        {
+            return (type as ArrayTypeSymbol)?.ElementType.IsSealed == true;
+        }
+
         private BoundExpression BoxReceiver(BoundExpression rewrittenReceiver, NamedTypeSymbol memberContainingType)
         {
             return MakeConversionNode(
@@ -655,11 +670,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///        l += goo(ref l);
         /// 
         /// even though l is a local, we must access it via a temp since "goo(ref l)" may change it
-        /// on between accesses. 
+        /// on between accesses.
+        ///
+        /// Note: In `this.x++`, `this` cannot change between reads. But in `(this, ...) == (..., this.Mutate())` it can.
         /// </summary>
         internal static bool CanChangeValueBetweenReads(
             BoundExpression expression,
-            bool localsMayBeAssignedOrCaptured = true)
+            bool localsMayBeAssignedOrCaptured = true,
+            bool structThisCanChangeValueBetweenReads = false)
         {
             if (expression.IsDefaultValue())
             {
@@ -675,6 +693,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expression.Kind)
             {
                 case BoundKind.ThisReference:
+                    return structThisCanChangeValueBetweenReads && ((BoundThisReference)expression).Type.IsStructType();
+
                 case BoundKind.BaseReference:
                     return false;
 
@@ -721,6 +741,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var conv = (BoundConversion)expression;
                     return conv.ConversionHasSideEffects() ||
                         ReadIsSideeffecting(conv.Operand);
+
+                case BoundKind.PassByCopy:
+                    return ReadIsSideeffecting(((BoundPassByCopy)expression).Expression);
 
                 case BoundKind.ObjectCreationExpression:
                     // common production of lowered conversions to nullable

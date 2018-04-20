@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
     [Export(typeof(IDeferredQuickInfoContentToFrameworkElementConverter))]
+    [QuickInfoConverterMetadata(typeof(QuickInfoDisplayDeferredContent))]
     class QuickInfoDisplayDeferredContentConverter : IDeferredQuickInfoContentToFrameworkElementConverter
     {
         public FrameworkElement CreateFrameworkElement(IDeferredQuickInfoContent deferredContent, DeferredContentFrameworkElementFactory factory)
@@ -35,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                 factory.CreateElement(quickInfoDisplay.TypeParameterMap),
                 factory.CreateElement(quickInfoDisplay.AnonymousTypes),
                 factory.CreateElement(quickInfoDisplay.UsageText),
-                factory.CreateElement(quickInfoDisplay.ExceptionText));
+                factory.CreateElement(quickInfoDisplay.ExceptionText),
+                factory.CreateElement(quickInfoDisplay.CapturesText));
         }
 
         public Type GetApplicableType()

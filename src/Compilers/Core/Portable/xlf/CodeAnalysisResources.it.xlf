@@ -613,7 +613,7 @@
       </trans-unit>
       <trans-unit id="SymWriterOlderVersionThanRequired">
         <source>The version of Windows PDB writer is older than required: '{0}'</source>
-        <target state="translated">La versone del writer PDB di Windows è meno recente di quella richiesta: '{0}'</target>
+        <target state="translated">La versione del writer PDB di Windows è meno recente di quella richiesta: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="SymWriterDoesNotSupportSourceLink">
@@ -825,12 +825,12 @@
       </trans-unit>
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
-        <target state="new">Warning: Could not enable multicore JIT due to exception: {0}.</target>
+        <target state="translated">Avviso: non è stato possibile abilitare JIT multicore a causa dell'eccezione {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerDiagnosticIdReported">
         <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="new">Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</target>
+        <target state="translated">L'ID della diagnostica restituita è '{0}', che deve essere restituito solo da un compilatore.</target>
         <note />
       </trans-unit>
     </body>

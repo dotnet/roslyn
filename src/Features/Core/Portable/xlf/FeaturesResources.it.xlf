@@ -164,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Generate_enum_member_1_0">
         <source>Generate enum member '{1}.{0}'</source>
-        <target state="translated">Genera il membro enum '{1}.{0}'</target>
+        <target state="translated">Genera il membro di enumerazione '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constant_1_0">
@@ -229,12 +229,12 @@
       </trans-unit>
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
-        <target state="translated">Implementa interfaccia</target>
+        <target state="translated">Implementa l'interfaccia</target>
         <note />
       </trans-unit>
       <trans-unit id="Loading_context_from_0">
         <source>Loading context from '{0}'.</source>
-        <target state="translated">caricamento del contesto da '{0}'.</target>
+        <target state="translated">Caricamento del contesto da '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Sharphelp_for_more_information">
@@ -554,7 +554,7 @@
       </trans-unit>
       <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Se si aggiornano la classe base e/o le interfacce di base dell'elemento '{0}', la sessione di debug non potrà continuare.</target>
+        <target state="translated">Se si aggiornano la classe di base e/o le interfacce di base dell'elemento '{0}', la sessione di debug non potrà continuare.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing">
@@ -1983,6 +1983,36 @@ Questa versione è usata {2}</target>
       <trans-unit id="indexer_">
         <source>indexer</source>
         <target state="translated">indicizzatore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="new">Alias ambiguous type '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">
+        <source>Warning: Collection was modified during iteration.</source>
+        <target state="new">Warning: Collection was modified during iteration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
+        <source>Warning: Iteration variable crossed function boundary.</source>
+        <target state="new">Warning: Iteration variable crossed function boundary.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
+        <source>Warning: Collection may be modified during iteration.</source>
+        <target state="new">Warning: Collection may be modified during iteration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_readonly_modifier">
+        <source>Add readonly modifier</source>
+        <target state="new">Add readonly modifier</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_field_readonly">
+        <source>Make field readonly</source>
+        <target state="new">Make field readonly</target>
         <note />
       </trans-unit>
     </body>

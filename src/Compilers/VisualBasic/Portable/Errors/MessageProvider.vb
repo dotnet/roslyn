@@ -153,9 +153,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides ReadOnly Property FTL_InputFileNameTooLong As Integer
+        Public Overrides ReadOnly Property FTL_InvalidInputFileName As Integer
             Get
-                Return ERRID.FTL_InputFileNameTooLong
+                Return ERRID.FTL_InvalidInputFileName
             End Get
         End Property
 
@@ -283,6 +283,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_InvalidSubsystemVersion As Integer
             Get
                 Return ERRID.ERR_InvalidSubsystemVersion
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_InvalidHashAlgorithmName As Integer
+            Get
+                Return ERRID.ERR_InvalidHashAlgorithmName
             End Get
         End Property
 

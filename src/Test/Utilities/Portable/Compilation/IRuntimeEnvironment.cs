@@ -18,24 +18,11 @@ namespace Roslyn.Test.Utilities
 {
     public static class RuntimeEnvironmentFactory
     {
-        private static readonly Lazy<IRuntimeEnvironmentFactory> s_lazyFactory = new Lazy<IRuntimeEnvironmentFactory>(GetFactoryImplementation);
+        private static readonly Lazy<IRuntimeEnvironmentFactory> s_lazyFactory = new Lazy<IRuntimeEnvironmentFactory>(RuntimeUtilities.GetRuntimeEnvironmentFactory);
 
         internal static IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies = null)
         {
             return s_lazyFactory.Value.Create(additionalDependencies);
-        }
-
-        private static IRuntimeEnvironmentFactory GetFactoryImplementation()
-        {
-#if NET461 || NET46
-            return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
-#elif NETCOREAPP2_0
-            return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
-#elif NETSTANDARD1_3
-            throw new NotSupportedException();
-#else
-#error Unsupported configuration
-#endif
         }
 
         public static void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput)
@@ -59,7 +46,7 @@ namespace Roslyn.Test.Utilities
         }
     }
 
-    internal static class RuntimeUtilities
+    internal static class RuntimeEnvironmentUtilities
     {
         private static int s_dumpCount;
 
@@ -348,8 +335,8 @@ namespace Roslyn.Test.Utilities
         ImmutableArray<Diagnostic> GetDiagnostics();
         SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName);
         IList<ModuleData> GetAllModuleData();
-        void PeVerify();
-        string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true);
+        void Verify(Verification verification);
+        string[] VerifyModules(string[] modulesToVerify);
         void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput);
     }
 

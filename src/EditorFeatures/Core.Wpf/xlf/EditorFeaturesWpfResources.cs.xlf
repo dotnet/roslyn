@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="Downloading_index_failed">
         <source>Downloading index failed</source>
-        <target state="new">Downloading index failed</target>
+        <target state="translated">Index se nepodařilo stáhnout.</target>
         <note />
       </trans-unit>
       <trans-unit id="Downloading_index_failed_0">
         <source>Downloading index failed:{0}</source>
-        <target state="new">Downloading index failed:{0}</target>
+        <target state="translated">Index se nepodařilo stáhnout: {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Downloading_IntelliSense_index_for_0">
         <source>Downloading IntelliSense index for {0}</source>
-        <target state="new">Downloading IntelliSense index for {0}</target>
+        <target state="translated">Stahuje se index IntelliSense pro {0}.</target>
         <note />
       </trans-unit>
     </body>

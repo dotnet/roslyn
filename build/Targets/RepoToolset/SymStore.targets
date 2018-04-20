@@ -59,7 +59,7 @@ Update this file only if the change to RepoToolset gets approved and merged.
           Condition="'$(PublishOutputToSymStore)' == 'true' and ('$(DebugType)' == 'portable' or '$(DebugType)' == 'embedded')">
 
     <PropertyGroup>
-      <_PdbConverterPath>$(NuGetPackageRoot)pdb2pdb\$(Pdb2PdbVersion)\tools\Pdb2Pdb.exe</_PdbConverterPath>
+      <_PdbConverterPath>$(NuGetPackageRoot)microsoft.diasymreader.pdb2pdb\$(MicrosoftDiaSymReaderPdb2PdbVersion)\tools\Pdb2Pdb.exe</_PdbConverterPath>
       <_PdbConverterCommandLineArgs>"$(TargetPath)" /out "$(_SymStorePdbPath)" /verbose</_PdbConverterCommandLineArgs>
     </PropertyGroup>
 

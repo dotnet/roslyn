@@ -33,7 +33,7 @@ public readonly struct A
     static int rws {get; set;}
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (11,9): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
                 //     int rw {get; set;}
                 Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "rw").WithLocation(11, 9)
@@ -66,7 +66,7 @@ public readonly struct A
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (11,9): error CS8340: Instance fields of readonly structs must be readonly.
                 //     int x;    
                 Diagnostic(ErrorCode.ERR_FieldsInRoStruct, "x").WithLocation(11, 9),
@@ -138,7 +138,7 @@ interface I1
     event System.Action ei2;
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (7,32): error CS8342: Field-like events are not allowed in readonly structs.
                 //     public event System.Action e;
                 Diagnostic(ErrorCode.ERR_FieldlikeEventsInRoStruct, "e").WithLocation(7, 32),
@@ -218,7 +218,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, ilreadonlyStructWithWriteableFieldIL, options:TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, ilreadonlyStructWithWriteableFieldIL, options:TestOptions.ReleaseExe);
             
             comp.VerifyDiagnostics();
             
@@ -241,7 +241,7 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, ilreadonlyStructWithWriteableFieldIL, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, ilreadonlyStructWithWriteableFieldIL, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
                 // (8,9): error CS1650: Fields of static readonly field 'Program.s' cannot be assigned to (except in a static constructor or a variable initializer)

@@ -35,7 +35,7 @@ End Module]]></file>
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe.WithOverflowChecks(True),
                  expectedOutput:=<![CDATA[
 Lambda(
@@ -730,13 +730,13 @@ Lambda(
 ]]>
 
             CompileAndVerify(source,
-                          additionalRefs:={SystemCoreRef},
+                          references:={SystemCoreRef},
                           options:=TestOptions.ReleaseExe.WithOverflowChecks(True),
                           expectedOutput:=expected
             )
 
             CompileAndVerify(source,
-                        additionalRefs:={SystemCoreRef},
+                        references:={SystemCoreRef},
                         options:=TestOptions.ReleaseExe.WithOverflowChecks(False),
                         expectedOutput:=expected
             )
@@ -1199,7 +1199,7 @@ Lambda(
                          </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics()
@@ -1221,7 +1221,7 @@ Lambda(
                          </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics()
@@ -1446,7 +1446,7 @@ Lambda(
                          </compilation>
 
             CompileAndVerify(source,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics(Diagnostic(ERRID.WRN_ObsoleteIdentityDirectCastForValueType, "x"),
@@ -1801,7 +1801,7 @@ End Structure
                                                      Optional addXmlReferences As Boolean = False)
 
             Dim compilation =
-                CompilationUtils.CreateCompilationWithReferences(
+                CompilationUtils.CreateEmptyCompilationWithReferences(
                     <compilation>
                         <%= sourceFile %>
                         <%= _exprTesting %>
@@ -1829,7 +1829,7 @@ End Structure
                 </compilation>,
                 options:=If(optimize, TestOptions.ReleaseExe, TestOptions.DebugExe).WithOverflowChecks(checked),
                 expectedOutput:=If(result IsNot Nothing, result.Trim, Nothing),
-                additionalRefs:=If(addXmlReferences, XmlReferences, {}),
+                references:=If(addXmlReferences, XmlReferences, {}),
                 useLatestFramework:=latestReferences)
         End Function
 
@@ -1917,7 +1917,7 @@ End Module
             Dim src = source...<file>.Value
 
             CompileAndVerify(source,
-                             additionalRefs:={SystemCoreRef},
+                             references:={SystemCoreRef},
                              options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics(If(diagnostics, {}))
@@ -2010,7 +2010,7 @@ End Module
 ]]></file>
                          </compilation>
 
-            CompileAndVerify(source, additionalRefs:={SystemCoreRef}).VerifyDiagnostics()
+            CompileAndVerify(source, references:={SystemCoreRef}).VerifyDiagnostics()
         End Sub
 
         <Fact, WorkItem(577271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577271")>
@@ -6523,7 +6523,7 @@ End Module
 
         <Fact()>
         Public Sub MissingHelpers()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict On
@@ -6600,7 +6600,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  expectedOutput:=<![CDATA[
 Lambda(
   Parameter(
@@ -6658,7 +6658,7 @@ End Class
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  expectedOutput:=<![CDATA[
 Lambda(
   Parameter(
@@ -6762,7 +6762,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  expectedOutput:=<![CDATA[
 Infer A=System.Decimal
 Infer B=System.String
@@ -6805,7 +6805,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  expectedOutput:=<![CDATA[Where Select]]>).VerifyDiagnostics()
         End Sub
 
@@ -6855,7 +6855,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  expectedOutput:="GroupBy 1;Select;GroupBy 2;Select;").VerifyDiagnostics()
         End Sub
 
@@ -6898,7 +6898,7 @@ End Module]]></file>
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  expectedOutput:="GroupJoin;").VerifyDiagnostics()
         End Sub
 
@@ -6981,7 +6981,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  expectedOutput:=<![CDATA[A1 B2 C1 D2 E1 F2]]>)
         End Sub
 
@@ -7022,7 +7022,7 @@ End Module]]></file>
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  expectedOutput:=<![CDATA[f1 f1 g1]]>)
         End Sub
 
@@ -7049,7 +7049,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  expectedOutput:="() => (value(Form1+_Closure$__0-0).$VB$Local_s1_a ?? Convert(value(Form1+_Closure$__0-0).$VB$Local_s1_b))").VerifyDiagnostics()
         End Sub
 
@@ -7167,7 +7167,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  expectedOutput:="10").VerifyDiagnostics()
         End Sub
 
@@ -7246,7 +7246,7 @@ end class
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  expectedOutput:="m => m").VerifyDiagnostics()
         End Sub
 
@@ -7286,7 +7286,7 @@ End Class
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  expectedOutput:="").VerifyDiagnostics()
         End Sub
 
@@ -7978,7 +7978,7 @@ BC36604: Late binding operations cannot be converted to an expression tree.
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_System_Type__GetTypeFromHandle()
-            Dim compilation = CreateCompilationWithoutReferences(
+            Dim compilation = CreateEmptyCompilation(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Linq.Expressions
@@ -8040,7 +8040,7 @@ BC35000: Requested operation is not available because the runtime library functi
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_FieldInfo__GetFieldFromHandle()
-            Dim compilation = CreateCompilationWithoutReferences(
+            Dim compilation = CreateEmptyCompilation(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Linq.Expressions
@@ -8117,7 +8117,7 @@ BC35000: Requested operation is not available because the runtime library functi
         <WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")>
         <Fact()>
         Public Sub MissingMember_System_Reflection_MethodBase__GetMethodFromHandle()
-            Dim compilation = CreateCompilationWithoutReferences(
+            Dim compilation = CreateEmptyCompilation(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
@@ -8275,7 +8275,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 () => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x == null)
@@ -8334,7 +8334,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 () => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x == null)
@@ -8375,7 +8375,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 () => Concat(value(M+_Closure$__0-0).$VB$Local_str, null)
@@ -8428,7 +8428,7 @@ End Namespace
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 In catch
@@ -8492,7 +8492,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 x => x.set_City(ItIs(s => IsNullOrEmpty(s)))
@@ -8568,7 +8568,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 x => x.set_City(1, ItIs(s => IsNullOrEmpty(s)))
@@ -8634,7 +8634,7 @@ End Module
 
 
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe)
 
             compilation.VerifyDiagnostics(
@@ -8684,7 +8684,7 @@ End Class
 
 
             CompileAndVerify(source,
-                 additionalRefs:={SystemCoreRef},
+                 references:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 42
