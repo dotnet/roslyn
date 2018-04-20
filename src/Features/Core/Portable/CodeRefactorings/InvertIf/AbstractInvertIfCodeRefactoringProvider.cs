@@ -4,6 +4,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -15,7 +17,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         private const string LongLength = "LongLength";
 
         protected abstract SyntaxNode GetIfStatement(TextSpan textSpan, SyntaxToken token, CancellationToken cancellationToken);
-        protected abstract SyntaxNode GetRootWithInvertIfStatement(Workspace workspace, SemanticModel model, SyntaxNode ifStatement, CancellationToken cancellation);
+        protected abstract SyntaxNode Negate(SyntaxNode expression, SyntaxGenerator generator, ISyntaxFactsService syntaxFactsService, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract SyntaxNode GetRootWithInvertIfStatement(Document document, SemanticModel model, SyntaxNode ifStatement, CancellationToken cancellationToken);
+        protected abstract ISyntaxFactsService GetSyntaxFactsService();
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -60,8 +64,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             return document.WithSyntaxRoot(
                 // this returns the root because VB requires changing context around if statement
                 GetRootWithInvertIfStatement(
-                    document.Project.Solution.Workspace, model, ifStatement, cancellationToken));
+                    document, model, ifStatement, cancellationToken));
         }
+
 
         /// <summary>
         /// Returns true if the binaryExpression consists of an expression that can never be negative, 
@@ -148,6 +153,120 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             }
 
             return false;
+        }
+
+        internal SyntaxNode GetNegationOfParenthesizedExpression(SyntaxNode expression, SyntaxGenerator generator, ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            //var parenthesizedExpression = (ParenthesizedExpressionSyntax)expression;
+            //return parenthesizedExpression
+            //    .WithExpression(Negate(parenthesizedExpression.Expression, semanticModel, cancellationToken))
+            //    .WithAdditionalAnnotations(Simplifier.Annotation);
+            return generator.ExpressionStatement(Negate(syntaxFacts.GetExpressionOfParenthesizedExpression(expression), generator, syntaxFacts, semanticModel, cancellationToken));
+        }
+
+        internal static SyntaxNode GetNegationOfFalseLiteralExpression(SyntaxNode expression, SyntaxGenerator generator, ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            return generator.TrueLiteralExpression();
+            //var literalExpression = (LiteralSyntaxNode)expression;
+            //return SyntaxFactory.LiteralExpression(
+            //    SyntaxKind.TrueLiteralExpression,
+            //    SyntaxFactory.Token(
+            //        literalExpression.Token.LeadingTrivia,
+            //        SyntaxKind.TrueKeyword,
+            //        literalExpression.Token.TrailingTrivia));
+        }
+
+        internal static SyntaxNode GetNegationOfTrueLiteralExpression(SyntaxNode expression, SyntaxGenerator generator, ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            return generator.FalseLiteralExpression();
+            //var literalExpression = (LiteralExpressionSyntax)expression;
+            //return SyntaxFactory.LiteralExpression(
+            //    SyntaxKind.FalseLiteralExpression,
+            //    SyntaxFactory.Token(
+            //        literalExpression.Token.LeadingTrivia,
+            //        SyntaxKind.FalseKeyword,
+            //        literalExpression.Token.TrailingTrivia));
+        }
+
+        internal SyntaxNode GetNegationOfLogicalAndExpression(SyntaxNode expression, SyntaxGenerator generator, ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            syntaxFacts.GetPartsOfBinaryExpression(expression, out var leftOperand, out var rightOperand);
+            var result = generator.LogicalOrExpression(
+                Negate(leftOperand, generator, syntaxFacts, semanticModel, cancellationToken), 
+                Negate(rightOperand, generator, syntaxFacts, semanticModel, cancellationToken));
+            return result.WithLeadingTrivia(expression.GetLeadingTrivia()).WithTrailingTrivia(expression.GetTrailingTrivia());
+
+            //var binaryExpression = (BinaryExpressionSyntax)expression;
+            //result = SyntaxFactory.BinaryExpression(
+            //    SyntaxKind.LogicalOrExpression,
+            //    Negate(binaryExpression.Left, generator, semanticModel, cancellationToken),
+            //    SyntaxFactory.Token(
+            //        binaryExpression.OperatorToken.LeadingTrivia,
+            //        SyntaxKind.BarBarToken,
+            //        binaryExpression.OperatorToken.TrailingTrivia),
+            //    Negate(binaryExpression.Right, generator, semanticModel, cancellationToken));
+
+            //return result;
+            //    .Parenthesize()
+            //    .WithLeadingTrivia(binaryExpression.GetLeadingTrivia())
+            //    .WithTrailingTrivia(binaryExpression.GetTrailingTrivia());
+        }
+
+        internal SyntaxNode GetNegationOfLogicalOrExpression(SyntaxNode expression, SyntaxGenerator generator, ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            syntaxFacts.GetPartsOfBinaryExpression(expression, out var leftOperand, out var rightOperand);
+            var result = generator.LogicalAndExpression(
+                Negate(leftOperand, generator, syntaxFacts, semanticModel, cancellationToken),
+                Negate(rightOperand, generator, syntaxFacts, semanticModel, cancellationToken));
+            return result.WithLeadingTrivia(expression.GetLeadingTrivia()).WithTrailingTrivia(expression.GetTrailingTrivia());
+
+            //var binaryExpression = (BinaryExpressionSyntax)expression;
+            //result = SyntaxFactory.BinaryExpression(
+            //    SyntaxKind.LogicalAndExpression,
+            //    Negate(binaryExpression.Left, generator, semanticModel, cancellationToken),
+            //    SyntaxFactory.Token(
+            //        binaryExpression.OperatorToken.LeadingTrivia,
+            //        SyntaxKind.AmpersandAmpersandToken,
+            //        binaryExpression.OperatorToken.TrailingTrivia),
+            //    Negate(binaryExpression.Right, generator, semanticModel, cancellationToken));
+
+            //return result
+            //    .Parenthesize()
+            //    .WithLeadingTrivia(binaryExpression.GetLeadingTrivia())
+            //    .WithTrailingTrivia(binaryExpression.GetTrailingTrivia());
+        }
+
+        internal static SyntaxNode GetNegationOfLogicalNotExpression(SyntaxNode expression, SyntaxGenerator generator, ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var operatorToken = syntaxFacts.GetOperatorTokenOfPrefixUnaryExpression(expression);
+            var operand = syntaxFacts.GetOperandOfPrefixUnaryExpression(expression);
+            // any trivia attached to the ! operator should be moved to the identifier's leading trivia
+            if (syntaxFacts.IsIdentifierName(operand))
+            {
+                return generator.IdentifierName(syntaxFacts.GetIdentifierOfSimpleName(operand).WithPrependedLeadingTrivia(operatorToken.LeadingTrivia).WithPrependedLeadingTrivia(operatorToken.TrailingTrivia));
+            }
+            else
+            {
+                return generator.ExpressionStatement(operand).WithPrependedLeadingTrivia(operatorToken.LeadingTrivia).WithPrependedLeadingTrivia(operatorToken.TrailingTrivia);
+            }
+            //var logicalNotExpression = (PrefixUnaryExpressionSyntax)expression;
+
+            //var notToken = logicalNotExpression.OperatorToken;
+            //var nextToken = logicalNotExpression.Operand.GetFirstToken(
+            //    includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
+
+            //// any trivia attached to the ! operator should be moved to the identifier's leading trivia
+            //var existingTrivia = SyntaxFactory.TriviaList(
+            //    notToken.LeadingTrivia.Concat(
+            //        notToken.TrailingTrivia.Concat(
+            //            nextToken.LeadingTrivia)));
+
+            //var updatedNextToken = nextToken.WithLeadingTrivia(existingTrivia);
+
+            //// Since we're negating a !expr, just remove the existing !
+            //return logicalNotExpression.Operand.ReplaceToken(
+            //    nextToken,
+            //    updatedNextToken);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

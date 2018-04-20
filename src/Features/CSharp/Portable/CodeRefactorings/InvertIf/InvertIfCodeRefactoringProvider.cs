@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -51,11 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         }
 
         protected override SyntaxNode GetRootWithInvertIfStatement(
-            Workspace workspace, 
-            SemanticModel model, 
-            SyntaxNode ifStatement, 
+            Document document,
+            SemanticModel model,
+            SyntaxNode ifStatement,
             CancellationToken cancellationToken)
         {
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var syntaxFacts = GetSyntaxFactsService();
+
             var ifNode = (IfStatementSyntax)ifStatement;
 
             // For single line statment, we swap the TrailingTrivia to preserve the single line
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         ? SyntaxFactory.Block(newIfNodeStatement)
                         : newIfNodeStatement;
 
-            ifNode = ifNode.WithCondition(Negate(ifNode.Condition, model, cancellationToken))
+            ifNode = ifNode.WithCondition((ExpressionSyntax)(Negate(ifNode.Condition, generator, syntaxFacts, model, cancellationToken)))
                 .WithStatement(newIfStatment)
                 .WithElse(newElseStatement);
 
@@ -95,12 +99,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             return model.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifNode);
         }
 
+        private void GetPartsOfIfStatement(SyntaxNode node, out SyntaxNode condition, out SyntaxNode thenStatements, out SyntaxNode elseStatements)
+        {
+            var ifStatement = (IfStatementSyntax)node;
+            condition = ifStatement.Condition;
+            thenStatements = ifStatement.Statement;
+            elseStatements = ifStatement.Else;
+        }
+
         private bool TryNegateBinaryComparisonExpression(
-            ExpressionSyntax expression,
+            SyntaxNode expressionNode,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
             out ExpressionSyntax result)
         {
+            var expression= (ExpressionSyntax)expressionNode;
             if (s_negatedBinaryMap.TryGetValue(expression.Kind(), out var negatedExpressionInfo))
             {
                 var binaryExpression = (BinaryExpressionSyntax)expression;
@@ -139,7 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             return false;
         }
 
-        private ExpressionSyntax Negate(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        protected override ISyntaxFactsService GetSyntaxFactsService()
+           => CSharpSyntaxFactsService.Instance;
+
+        protected override SyntaxNode Negate(SyntaxNode expression, SyntaxGenerator generator, ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (TryNegateBinaryComparisonExpression(expression, semanticModel, cancellationToken, out var result))
             {
@@ -150,128 +166,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             {
                 case SyntaxKind.ParenthesizedExpression:
                     {
-                        return GetNegatedParenthesizedExpression(expression, semanticModel, cancellationToken);
+                        return GetNegationOfParenthesizedExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken);
                     }
 
                 case SyntaxKind.LogicalNotExpression:
                     {
-                        return GetNegatedLogicalNotExpression(expression);
+                        return GetNegationOfLogicalNotExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken);
                     }
 
                 case SyntaxKind.LogicalOrExpression:
                     {
-                        return GetNegatedLogicalOrExpression(expression, semanticModel, out result, cancellationToken);
+                        return GetNegationOfLogicalOrExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken);
                     }
 
                 case SyntaxKind.LogicalAndExpression:
                     {
-                        return GetNegatedLogicalAndExpression(expression, semanticModel, out result, cancellationToken);
+                        return GetNegationOfLogicalAndExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken);
                     }
 
                 case SyntaxKind.TrueLiteralExpression:
                     {
-                        return GetNegatedTrueLiteralExpression(expression);
+                        return GetNegationOfTrueLiteralExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken);
                     }
 
                 case SyntaxKind.FalseLiteralExpression:
                     {
-                        return GetNegatedFalseLiteralExpression(expression);
+                        return GetNegationOfFalseLiteralExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken);
                     }
             }
 
             // Anything else we can just negate by adding a ! in front of the parenthesized expression.
             // Unnecessary parentheses will get removed by the simplification service.
-            return SyntaxFactory.PrefixUnaryExpression(
-                SyntaxKind.LogicalNotExpression,
-                expression.Parenthesize());
-        }
-
-        private static ExpressionSyntax GetNegatedFalseLiteralExpression(ExpressionSyntax expression)
-        {
-            var literalExpression = (LiteralExpressionSyntax)expression;
-            return SyntaxFactory.LiteralExpression(
-                SyntaxKind.TrueLiteralExpression,
-                SyntaxFactory.Token(
-                    literalExpression.Token.LeadingTrivia,
-                    SyntaxKind.TrueKeyword,
-                    literalExpression.Token.TrailingTrivia));
-        }
-
-        private static ExpressionSyntax GetNegatedTrueLiteralExpression(ExpressionSyntax expression)
-        {
-            var literalExpression = (LiteralExpressionSyntax)expression;
-            return SyntaxFactory.LiteralExpression(
-                SyntaxKind.FalseLiteralExpression,
-                SyntaxFactory.Token(
-                    literalExpression.Token.LeadingTrivia,
-                    SyntaxKind.FalseKeyword,
-                    literalExpression.Token.TrailingTrivia));
-        }
-
-        private ExpressionSyntax GetNegatedLogicalAndExpression(ExpressionSyntax expression, SemanticModel semanticModel, out ExpressionSyntax result, CancellationToken cancellationToken)
-        {
-            var binaryExpression = (BinaryExpressionSyntax)expression;
-            result = SyntaxFactory.BinaryExpression(
-                SyntaxKind.LogicalOrExpression,
-                Negate(binaryExpression.Left, semanticModel, cancellationToken),
-                SyntaxFactory.Token(
-                    binaryExpression.OperatorToken.LeadingTrivia,
-                    SyntaxKind.BarBarToken,
-                    binaryExpression.OperatorToken.TrailingTrivia),
-                Negate(binaryExpression.Right, semanticModel, cancellationToken));
-
-            return result
-                .Parenthesize()
-                .WithLeadingTrivia(binaryExpression.GetLeadingTrivia())
-                .WithTrailingTrivia(binaryExpression.GetTrailingTrivia());
-        }
-
-        private ExpressionSyntax GetNegatedLogicalOrExpression(ExpressionSyntax expression, SemanticModel semanticModel, out ExpressionSyntax result, CancellationToken cancellationToken)
-        {
-            var binaryExpression = (BinaryExpressionSyntax)expression;
-            result = SyntaxFactory.BinaryExpression(
-                SyntaxKind.LogicalAndExpression,
-                Negate(binaryExpression.Left, semanticModel, cancellationToken),
-                SyntaxFactory.Token(
-                    binaryExpression.OperatorToken.LeadingTrivia,
-                    SyntaxKind.AmpersandAmpersandToken,
-                    binaryExpression.OperatorToken.TrailingTrivia),
-                Negate(binaryExpression.Right, semanticModel, cancellationToken));
-
-            return result
-                .Parenthesize()
-                .WithLeadingTrivia(binaryExpression.GetLeadingTrivia())
-                .WithTrailingTrivia(binaryExpression.GetTrailingTrivia());
-        }
-
-        private static ExpressionSyntax GetNegatedLogicalNotExpression(ExpressionSyntax expression)
-        {
-            var logicalNotExpression = (PrefixUnaryExpressionSyntax)expression;
-
-            var notToken = logicalNotExpression.OperatorToken;
-            var nextToken = logicalNotExpression.Operand.GetFirstToken(
-                includeZeroWidth: true, includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
-
-            // any trivia attached to the ! operator should be moved to the identifier's leading trivia
-            var existingTrivia = SyntaxFactory.TriviaList(
-                notToken.LeadingTrivia.Concat(
-                    notToken.TrailingTrivia.Concat(
-                        nextToken.LeadingTrivia)));
-
-            var updatedNextToken = nextToken.WithLeadingTrivia(existingTrivia);
-
-            // Since we're negating a !expr, just remove the existing !
-            return logicalNotExpression.Operand.ReplaceToken(
-                nextToken,
-                updatedNextToken);
-        }
-
-        private ExpressionSyntax GetNegatedParenthesizedExpression(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            var parenthesizedExpression = (ParenthesizedExpressionSyntax)expression;
-            return parenthesizedExpression
-                .WithExpression(Negate(parenthesizedExpression.Expression, semanticModel, cancellationToken))
-                .WithAdditionalAnnotations(Simplifier.Annotation);
+            return generator.LogicalNotExpression(expression);
+            //return SyntaxFactory.PrefixUnaryExpression(
+            //    SyntaxKind.LogicalNotExpression,
+            //    expression.Parenthesize());
         }
 
         internal override string GetInvertIfText()

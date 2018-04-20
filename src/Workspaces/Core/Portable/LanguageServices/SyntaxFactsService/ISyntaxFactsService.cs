@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLogicalAndExpression(SyntaxNode node);
         bool IsLogicalNotExpression(SyntaxNode node);
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
+        SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node);
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment(SyntaxNode node);
@@ -155,6 +156,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
         bool IsConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
+
+        bool IsParenthesizedExpression(SyntaxNode node);
+        SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
+
+        bool IsIfStatement(SyntaxNode node);
 
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
