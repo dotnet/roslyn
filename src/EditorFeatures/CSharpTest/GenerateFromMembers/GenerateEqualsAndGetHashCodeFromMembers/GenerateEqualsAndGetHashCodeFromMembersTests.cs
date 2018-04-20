@@ -1575,5 +1575,50 @@ struct Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualsBaseWithOverriddenEquals_Patterns()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+
+class Base
+{
+    public override bool Equals(object o)
+    {
+    }
+}
+
+class Program : Base
+{
+    [|int i;
+
+    string S { get; }|]
+}",
+@"using System.Collections.Generic;
+
+class Base
+{
+    public override bool Equals(object o)
+    {
+    }
+}
+
+class Program : Base
+{
+    int i;
+
+    string S { get; }
+
+    public override bool Equals(object obj)
+    {
+        return obj is Program program &&
+               base.Equals(obj) &&
+               i == program.i &&
+               S == program.S;
+    }
+}",
+index: 0);
+        }
     }
 }
