@@ -2,27 +2,23 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
-using System.Diagnostics;
-using static Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle.CSharpTypeStyleDiagnosticAnalyzerBase;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseExplicitType), Shared]
     internal partial class UseExplicitTypeCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private static readonly CSharpUseExplicitTypeHelper s_useExplicitTypeHelper = new CSharpUseExplicitTypeHelper();
-
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
@@ -51,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
 
             Debug.Assert(declaration.IsKind(SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression));
 
-            var declaredType = s_useExplicitTypeHelper.FindAnalyzableType(declaration, semanticModel, cancellationToken);
+            var declaredType = CSharpUseExplicitTypeHelper.Instance.FindAnalyzableType(declaration, semanticModel, cancellationToken);
             if (declaredType == null)
             {
                 return;
@@ -67,17 +63,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
                 return;
             }
 
-            var state = State.Generate(declaration, semanticModel, optionSet,
-                isVariableDeclarationContext: declaration.IsKind(SyntaxKind.VariableDeclaration), cancellationToken: cancellationToken);
-
-            // UseExplicitType analyzer/fixer already gives an action in this case
-            if (s_useExplicitTypeHelper.IsStylePreferred(semanticModel, optionSet, state, cancellationToken))
+            var typeStyle = CSharpUseExplicitTypeHelper.Instance.AnalyzeTypeName(
+                declaredType, semanticModel, optionSet, cancellationToken);
+            if (typeStyle.IsStylePreferred && typeStyle.Severity != DiagnosticSeverity.Hidden)
             {
+                // the analyzer would handle this.  So we do not.
                 return;
             }
 
-            Debug.Assert(state != null, "analyzing a declaration and state is null.");
-            if (!s_useExplicitTypeHelper.TryAnalyzeVariableDeclaration(declaredType, semanticModel, optionSet, cancellationToken))
+            if (!typeStyle.CanConvert())
             {
                 return;
             }
