@@ -1551,17 +1551,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            // for ( |
-            // foreach ( |
-            // using ( |
             if (token.IsKind(SyntaxKind.OpenParenToken))
             {
+                // for ( |
+                // foreach ( |
+                // using ( |
                 var previous = token.GetPreviousToken(includeSkipped: true);
                 if (previous.IsKind(SyntaxKind.ForKeyword) ||
                     previous.IsKind(SyntaxKind.ForEachKeyword) ||
                     previous.IsKind(SyntaxKind.UsingKeyword))
                 {
                     return true;
+                }
+
+                // foreach await ( |
+                // using await ( |
+                if (previous.IsKind(SyntaxKind.AwaitKeyword))
+                {
+                    var secondPrevious = previous.GetPreviousToken(includeSkipped: true);
+                    if (secondPrevious.IsKind(SyntaxKind.ForEachKeyword, SyntaxKind.UsingKeyword))
+                    {
+                        return true;
+
+                    }
                 }
             }
 
