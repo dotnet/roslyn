@@ -5383,11 +5383,6 @@ Indique al compilador alguna forma de diferenciar los métodos. Por ejemplo, pue
         <target state="translated">Tipo de destino no válido para /target: se debe especificar 'exe', 'winexe', 'library' o 'module'</target>
         <note />
       </trans-unit>
-      <trans-unit id="FTL_InputFileNameTooLong">
-        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">El nombre de archivo '{0}' está vacío, contiene caracteres no válidos, tiene una especificación de unidad sin ruta de acceso absoluta o es demasiado largo</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NoConfigNotOnCommandLine">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
         <target state="translated">Omitiendo la opción /noconfig porque se especificó en un archivo de respuesta</target>
@@ -8728,6 +8723,16 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       <trans-unit id="ERR_InvalidObjectCreation">
         <source>Invalid object creation</source>
         <target state="new">Invalid object creation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FTL_InvalidInputFileName">
+        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
+        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CantUseInOrOutInArglist">
+        <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
+        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
         <note />
       </trans-unit>
     </body>

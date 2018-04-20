@@ -567,15 +567,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invert if statement.
-        /// </summary>
-        internal static string Invert_if_statement {
-            get {
-                return ResourceManager.GetString("Invert_if_statement", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to is pattern.
         /// </summary>
         internal static string is_pattern {

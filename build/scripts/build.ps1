@@ -26,6 +26,7 @@ param (
     [switch]$bootstrap = $false,
     [switch]$sign = $false,
     [switch]$pack = $false,
+    [switch]$packAll = $false,
     [switch]$binaryLog = $false,
     [switch]$noAnalyzers = $false,
     [string]$signType = "",
@@ -109,6 +110,9 @@ function Process-Arguments() {
         Write-Host "Cannot combine special testing with any other action"
         exit 1
     }
+
+    $script:pack = $pack -or $packAll
+    $script:packAll = $packAll -or ($pack -and $official)
 
     if ($buildCoreClr) {
         $script:build = $true
@@ -214,13 +218,7 @@ function Make-BootstrapBuild() {
             Run-MSBuild $projectFilePath "/t:Publish /p:TargetFramework=netcoreapp2.0 $bootstrapArgs" -logFileName $logFileName -useDotnetBuild
         }
 
-        # The csi executable is only supported on desktop (even though we do multi-target it to 
-        # netcoreapp2.). Need to build the desktop version here in order to build our NuGet 
-        # packages below. 
-        Run-MSBuild "src/Interactive/csi/csi.csproj" -logFileName "BootstrapCsi" -useDotnetBuild
-
-        Ensure-NuGet | Out-Null
-        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 42.42.42.42-bootstrap $dir `"<developer build>`" Microsoft.NETCore.Compilers.nuspec"
+        Pack-One "Microsoft.NetCore.Compilers.nuspec" "Bootstrap" $dir
         Unzip-File "$dir\Microsoft.NETCore.Compilers.42.42.42.42-bootstrap.nupkg" "$dir\Microsoft.NETCore.Compilers\42.42.42.42"
 
         Write-Host "Cleaning Bootstrap compiler artifacts"
@@ -232,8 +230,7 @@ function Make-BootstrapBuild() {
         Remove-Item -re $dir -ErrorAction SilentlyContinue
         Create-Directory $dir
 
-        Ensure-NuGet | Out-Null
-        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 42.42.42.42-bootstrap $dir `"<developer build>`" Microsoft.Net.Compilers.nuspec"
+        Pack-One "Microsoft.Net.Compilers.nuspec" "Bootstrap" $dir
         Unzip-File "$dir\Microsoft.Net.Compilers.42.42.42.42-bootstrap.nupkg" "$dir\Microsoft.Net.Compilers\42.42.42.42"
 
         Write-Host "Cleaning Bootstrap compiler artifacts"
@@ -274,7 +271,6 @@ function Build-Artifacts() {
 # finish building these before we can run signing.
 function Build-ExtraSignArtifacts() { 
 
-    Ensure-NuGet | Out-Null
     Push-Location (Join-Path $repoDir "src\Setup")
     try {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
@@ -337,25 +333,86 @@ function Build-InsertionItems() {
             $extraArgs = " /p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
         }
 
-        Run-MSBuild "DevDivPackages\Roslyn.proj" -logFileName "RoslynPackagesProj"
+        $insertionDir = Join-Path $configDir "DevDivInsertionFiles"
+        $vsToolsDir = Join-Path $insertionDir "VS.Tools.Roslyn"
+        $packageOutDir = Join-Path $configDir "DevDivPackages\Roslyn"
+        $packArgs = "/p:NoPackageAnalysis=true"
+        Create-Directory $packageOutDir
+        Pack-One (Join-Path $insertionDir "VS.ExternalAPIs.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir $packArgs 
+        Pack-One (Join-Path $vsToolsDir "VS.Tools.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir $packArgs -basePath $vsToolsDir 
+
+        $netfx20Dir = Join-Path $repoDir "src\Dependencies\Microsoft.NetFX20"
+        Pack-One (Join-Path $netfx20Dir "Microsoft.NetFX20.nuspec") "PerBuildPreRelease" -packageOutDir (Join-Path $configDir "NuGet\NetFX20") -basePath $netfx20Dir -extraArgs "$packArgs /p:CurrentVersion=4.3.0" 
+
         Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj" -buildArgs $extraArgs
         Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" -buildArgs $extraArgs
         Run-MSBuild "DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" -buildArgs "$extraArgs"
-        Run-MSBuild "..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj"
     }
     finally {
         Pop-Location
     }
 }
 
-function Build-NuGetPackages() {
-    $buildArgs = ""
-    if (-not $official) {
-        $buildArgs = '/p:SkipReleaseVersion=true /p:SkipPreReleaseVersion=true'
+function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packageOutDir = "", [string]$extraArgs = "", [string]$basePath = "", [switch]$useConsole = $true) { 
+    $nugetDir = Join-Path $repoDir "src\Nuget"
+    if ($packageOutDir -eq "") {
+        $packageOutDir = Join-Path $configDir "NuGet\$packageKind"
     }
 
-    Ensure-NuGet | Out-Null
-    Run-MSBuild "src\NuGet\NuGet.proj" $buildArgs
+    if ($basePath -eq "") { 
+        $basePath = $configDir
+    }
+    
+    if (-not ([IO.Path]::IsPathRooted($nuspecFilePath))) { 
+        $nuspecFilePath = Join-Path $nugetDir $nuspecFilePath
+    }
+
+    Create-Directory $packageOutDir
+    $nuspecFileName = Split-Path -leaf $nuspecFilePath
+    $projectFilePath = Join-Path $nugetDir "NuGetProjectPackUtil.csproj"
+    $packArgs = "pack -nologo --no-build $projectFilePath $extraArgs /p:NugetPackageKind=$packageKind /p:NuspecFile=$nuspecFilePath /p:NuspecBasePath=$basePath -o $packageOutDir" 
+    if ($useConsole) { 
+        Exec-Console $dotnet $packArgs
+    }
+    else {
+        Exec-Command $dotnet $packArgs
+    }
+}
+
+function Build-NuGetPackages() {
+
+    function Pack-All([string]$packageKind, $extraArgs) {
+
+        Write-Host "Packing for $packageKind"
+        foreach ($item in Get-ChildItem *.nuspec) {
+            $name = Split-Path -leaf $item
+            Pack-One $name $packageKind -extraArgs $extraArgs
+        }
+    }
+
+    Push-Location (Join-Path $repoDir "src\NuGet")
+    try {
+        $extraArgs = ""
+
+        if ($official) {
+            $extraArgs += " /p:UseRealCommit=true"
+        }
+
+        # Empty directory for packing explicit empty items in the nuspec
+        $emptyDir = Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())
+        Create-Directory $emptyDir
+        New-Item -Path (Join-Path $emptyDir "_._") -Type File | Out-Null
+        $extraArgs += " /p:EmptyDir=$emptyDir"
+
+        Pack-All "PreRelease" $extraArgs
+        if ($packAll) {
+            Pack-All "Release" $extraArgs
+            Pack-All "PerBuildPreRelease" $extraArgs
+        }
+    }
+    finally {
+        Pop-Location
+    }
 }
 
 function Build-DeployToSymStore() {
@@ -642,6 +699,7 @@ function Redirect-Temp() {
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\.editorconfig") $temp
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.props") $temp
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.targets") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.rsp") $temp
     ${env:TEMP} = $temp
     ${env:TMP} = $temp
 }
