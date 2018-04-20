@@ -1548,5 +1548,29 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualsSingleFieldInStruct_Patterns()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+struct Program
+{
+    [|int a;|]
+}",
+@"using System.Collections.Generic;
+
+struct Program
+{
+    int a;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Program program &&
+               a == program.a;
+    }
+}");
+        }
     }
 }
