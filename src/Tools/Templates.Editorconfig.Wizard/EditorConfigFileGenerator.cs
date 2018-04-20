@@ -21,13 +21,13 @@ namespace Templates.EditorConfig.FileGenerator
 
         internal (bool success, string fileName) TryGenerateFile(bool isDotnet)
         {
-            var (success, path, selectedItem) = TryGetSelectedItemAndPath();
+            var (success, path, isAtSolutionLevel, selectedItem) = TryGetSelectedItemAndPath();
             if (!success)
             {
                 return (false, null);
             }
 
-            var createFileResult = TryCreateFile(path, isDotnet);
+            var createFileResult = TryCreateFile(path, isDotnet, isAtSolutionLevel);
             if (!createFileResult.success)
             {
                 return (false, null);
@@ -42,7 +42,7 @@ namespace Templates.EditorConfig.FileGenerator
             return (false, null);
         }
 
-        private (bool success, string path, object selectedItem) TryGetSelectedItemAndPath()
+        private (bool success, string path, bool isAtSolutionLevel, object selectedItem) TryGetSelectedItemAndPath()
         {
             var items = (Array)_dte.ToolWindows.SolutionExplorer.SelectedItems;
             object selectedItem = null;
@@ -52,19 +52,19 @@ namespace Templates.EditorConfig.FileGenerator
                 selectedItem = selItem.Object;
                 if (selItem.Object is ProjectItem item && item.Properties != null)
                 {
-                    return (selectedItem != null, item.Properties.Item("FullPath").Value.ToString(), selectedItem);
+                    return (selectedItem != null, item.Properties.Item("FullPath").Value.ToString(), false, selectedItem);
                 }
                 else if (selItem.Object is Project proj && proj.Kind != "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}") // solution folder
                 {
                     (bool success, string rootFolder) = proj.TryGetRootFolder(_dte.Solution.FullName);
-                    return (success && selectedItem != null, rootFolder, selectedItem);
+                    return (success && selectedItem != null, rootFolder, true, selectedItem);
                 }
             }
 
-            return (selectedItem != null, Path.GetDirectoryName(_dte.Solution.FullName), selectedItem);
+            return (selectedItem != null, Path.GetDirectoryName(_dte.Solution.FullName), false, selectedItem);
         }
 
-        private (bool success, string fileName) TryCreateFile(string projectPath, bool isDotnet)
+        private (bool success, string fileName) TryCreateFile(string projectPath, bool isDotnet, bool isAtSolutionLevel)
         {
             string fileName = Path.Combine(projectPath, TemplateConstants.FileName);
             if (File.Exists(fileName))
@@ -74,15 +74,33 @@ namespace Templates.EditorConfig.FileGenerator
             }
             else
             {
+                WriteFile(fileName, isDotnet, isAtSolutionLevel);
+                return (true, fileName);
+            }
+        }
+
+        private void WriteFile(string fileName, bool isDotnet, bool isAtSolutionLevel)
+        {
+            if (isAtSolutionLevel)
+            {
+                if (isDotnet)
+                {
+                    File.WriteAllText(fileName, TemplateConstants.DotNetFileContentIsRoot);
+                }
+                else
+                {
+                    File.WriteAllText(fileName, TemplateConstants.DefaultFileContentIsRoot);
+                }
+            }
+            else
+            {
                 if (isDotnet)
                 {
                     File.WriteAllText(fileName, TemplateConstants.DotNetFileContent);
-                    return (true, fileName);
                 }
                 else
                 {
                     File.WriteAllText(fileName, TemplateConstants.DefaultFileContent);
-                    return (true, fileName);
                 }
             }
         }
