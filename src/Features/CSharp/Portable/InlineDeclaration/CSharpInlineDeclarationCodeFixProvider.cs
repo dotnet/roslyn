@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // it for apparent types
 
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
-            var newType = local.Type.GenerateTypeSyntaxOrVar(options, typeIsApparent: false);
+            var newType = local.Type.GenerateTypeSyntax();
 
             var declarationExpression = GetDeclarationExpression(
                 sourceText, identifier, newType, singleDeclarator ? null : declarator);
@@ -308,21 +308,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
             speculativeModel = null;
             return false;
-        }
-
-        private TypeSyntax GetDeclarationType(
-            TypeSyntax type, bool useVarWhenDeclaringLocals, bool useImplicitTypeForIntrinsicTypes)
-        {
-            if (useVarWhenDeclaringLocals)
-            {
-                if (useImplicitTypeForIntrinsicTypes ||
-                    !TypeStyleHelper.IsPredefinedType(type))
-                {
-                    return SyntaxFactory.IdentifierName("var");
-                }
-            }
-
-            return type;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

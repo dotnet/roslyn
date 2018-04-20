@@ -625,9 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 var options = await SemanticDocument.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var type = variable.GetVariableType(this.SemanticDocument);
-                var typeNode = initialValue == null
-                    ? type.GenerateTypeSyntax()
-                    : type.GenerateTypeSyntaxOrVar(options, typeIsApparent: false);
+                var typeNode = type.GenerateTypeSyntax();
 
                 var equalsValueClause = initialValue == null ? null : SyntaxFactory.EqualsValueClause(value: initialValue);
 

@@ -40,6 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static TypeSyntax GenerateTypeSyntax(
             INamespaceOrTypeSymbol symbol, bool nameSyntax, bool allowVar = true)
         {
+            if (symbol is ITypeSymbol type && type.ContainsAnonymousType())
+            {
+                // something with an anonymous type can only be represented with 'var', regardless
+                // of what the user's preferences might be.
+                return SyntaxFactory.IdentifierName("var");
+            }
+
             var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))
                                .WithAdditionalAnnotations(Simplifier.Annotation);
 
@@ -152,16 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 default:
                     return false;
             }
-        }
-
-        public static TypeSyntax GenerateTypeSyntaxOrVar(
-            this ITypeSymbol symbol, OptionSet options, bool typeIsApparent)
-        {
-            var useVar = IsVarDesired(symbol, options, typeIsApparent);
-
-            return useVar
-                ? SyntaxFactory.IdentifierName("var")
-                : symbol.GenerateTypeSyntax();
         }
 
         private static bool IsVarDesired(ITypeSymbol type, OptionSet options, bool typeIsApperant)
