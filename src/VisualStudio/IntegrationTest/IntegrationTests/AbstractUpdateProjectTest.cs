@@ -3,7 +3,6 @@
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
@@ -21,7 +20,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             // Save the project file.
             VisualStudio.SolutionExplorer.SaveAll();
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudio.WaitForApplicationIdle(cancellationToken: default);
 
             var projectFileContent = VisualStudio.SolutionExplorer.GetFileContents(project, Path.GetFileName(project.RelativePath));
             return XElement.Parse(projectFileContent);
