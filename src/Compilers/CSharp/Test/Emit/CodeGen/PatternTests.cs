@@ -1623,5 +1623,59 @@ False
   IL_001f:  ret
 }");
         }
+
+        [Fact]
+        [WorkItem(26274, "https://github.com/dotnet/roslyn/issues/26274")]
+        public void VariablesInSwitchExpressionArms()
+        {
+            var source =
+@"class C
+{
+    public override bool Equals(object obj) =>
+        obj switch
+        {
+            C x1 when x1 is var x2 => x2 is var x3 && x3 is {},
+            _ => false
+        };
+    public override int GetHashCode() => 1;
+    public static void Main()
+    {
+        C c = new C();
+        System.Console.Write(c.Equals(new C()));
+        System.Console.Write(c.Equals(new object()));
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "TrueFalse");
+            compVerifier.VerifyIL("C.Equals(object)",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (C V_0, //x1
+                C V_1, //x2
+                C V_2, //x3
+                bool V_3)
+  IL_0000:  ldarg.1
+  IL_0001:  isinst     ""C""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0015
+  IL_000a:  ldloc.0
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  stloc.2
+  IL_000e:  ldloc.2
+  IL_000f:  ldnull
+  IL_0010:  cgt.un
+  IL_0012:  stloc.3
+  IL_0013:  br.s       IL_0017
+  IL_0015:  ldc.i4.0
+  IL_0016:  stloc.3
+  IL_0017:  ldloc.3
+  IL_0018:  ret
+}");
+        }
     }
 }
