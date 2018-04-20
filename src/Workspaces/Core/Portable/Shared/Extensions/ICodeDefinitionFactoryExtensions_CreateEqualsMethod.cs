@@ -157,19 +157,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 //
                 //      myType != null
                 expressions.Add(factory.ReferenceNotEqualsExpression(localNameExpression, factory.NullLiteralExpression()));
-            }
-
-            if (!containingType.IsValueType && HasExistingBaseEqualsMethod(containingType, cancellationToken))
-            {
-                // If we're overriding something that also provided an overridden 'Equals',
-                // then ensure the base type thinks it is equals as well.
-                //
-                //      base.Equals(obj)
-                expressions.Add(factory.InvocationExpression(
-                    factory.MemberAccessExpression(
-                        factory.BaseExpression(),
-                        factory.IdentifierName(EqualsName)),
-                    objNameExpression));
+                if (HasExistingBaseEqualsMethod(containingType, cancellationToken))
+                {
+                    // If we're overriding something that also provided an overridden 'Equals',
+                    // then ensure the base type thinks it is equals as well.
+                    //
+                    //      base.Equals(obj)
+                    expressions.Add(factory.InvocationExpression(
+                        factory.MemberAccessExpression(
+                            factory.BaseExpression(),
+                            factory.IdentifierName(EqualsName)),
+                        objNameExpression));
+                }
             }
 
             AddMemberChecks(factory, compilation, members, localNameExpression, expressions);
