@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var strongNameProvider = default(StrongNameProvider);
             var delaySign = default(bool?);
             var checkOverflow = false;
-            bool allowUnsafe = false;
+            var allowUnsafe = false;
 
             if (compilationOptionsElement != null)
             {

@@ -329,7 +329,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var storage = ProjectPropertyStorage.Get(TryGetDTEProject(projectId), DeferredState.ServiceProvider);
+            var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), DeferredState.ServiceProvider);
 
             switch (options)
             {
@@ -354,7 +354,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var storage = ProjectPropertyStorage.Get(TryGetDTEProject(projectId), DeferredState.ServiceProvider);
+            var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), DeferredState.ServiceProvider);
 
             switch (options)
             {

@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private abstract class ProjectPropertyStorage
         {
-            public static ProjectPropertyStorage Get(Project project, IServiceProvider serviceProvider)
+            public static ProjectPropertyStorage Create(Project project, IServiceProvider serviceProvider)
             {
                 var solution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
                 solution.GetProjectOfUniqueName(project.UniqueName, out var hierarchy);
