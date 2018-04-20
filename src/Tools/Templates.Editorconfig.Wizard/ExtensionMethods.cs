@@ -95,13 +95,13 @@ namespace Templates.Editorconfig.Wizard
                 return (true, dte.Solution.FindProjectItem(file));
             }
 
-            var result = project.TryGetRootFolder(dte.Solution.FullName);
-            if (!result.success)
+            var (success, rootFolder) = project.TryGetRootFolder(dte.Solution.FullName);
+            if (!success)
             {
                 return (false, null);
             }
 
-            if (string.IsNullOrEmpty(result.rootFolder) || !file.StartsWith(result.rootFolder, StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(rootFolder) || !file.StartsWith(rootFolder, StringComparison.OrdinalIgnoreCase))
             {
                 return (false, null);
             }

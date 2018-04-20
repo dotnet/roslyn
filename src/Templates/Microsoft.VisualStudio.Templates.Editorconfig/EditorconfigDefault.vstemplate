@@ -1,0 +1,21 @@
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Item">
+  <TemplateData>
+    <Name>editorconfig File (default)</Name>
+    <Description>Create an editorconfig file to persist your editor and code settings.</Description>
+    <TemplateID>Microsoft.VisualStudio.Templates.Editorconfig</TemplateID>
+    <ProjectType>CSharp</ProjectType>
+    <Icon>EditorconfigIcon.png</Icon>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+    <DefaultName>editorconfig</DefaultName>
+    <AppliesTo>ABC | (!ABC)</AppliesTo>
+  </TemplateData>
+  <TemplateContent>
+    <CustomParameters>
+      <CustomParameter Name="$type$" Value="default" />
+    </CustomParameters>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Templates.Editorconfig.Wizard, Version=$(AssemblyVersion), Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
+    <FullClassName>EditorconfigTemplateWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

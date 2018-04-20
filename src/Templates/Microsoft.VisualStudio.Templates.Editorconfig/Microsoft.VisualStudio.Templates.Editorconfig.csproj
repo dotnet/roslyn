@@ -15,7 +15,10 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <VSTemplate Include="Editorconfig.vstemplate">
+    <VSTemplate Include="EditorconfigDefault.vstemplate">
+      <OutputSubPath>General</OutputSubPath>
+    </VSTemplate>
+    <VSTemplate Include="EditorConfigDotNet.vstemplate">
       <OutputSubPath>General</OutputSubPath>
     </VSTemplate>
   </ItemGroup>
