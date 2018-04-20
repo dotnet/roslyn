@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
@@ -39,9 +41,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             syntaxFacts.GetPartsOfAssignmentStatement(statement, out left, out _, out right);
         }
 
+        public static bool SpansPreprocessorDirective(this ISyntaxFactsService service, SyntaxNode node)
+            => service.SpansPreprocessorDirective(SpecializedCollections.SingletonEnumerable(node));
+
         public static bool IsWhitespaceOrEndOfLineTrivia(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
-        {
-            return syntaxFacts.IsWhitespaceTrivia(trivia) || syntaxFacts.IsEndOfLineTrivia(trivia);
-        }
+            => syntaxFacts.IsWhitespaceTrivia(trivia) || syntaxFacts.IsEndOfLineTrivia(trivia);
     }
 }

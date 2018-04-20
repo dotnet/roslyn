@@ -95,6 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             string filePath = monikerObj as string;
 
             _rdt.Value.FindDocument(filePath, out var hierarchy, out var itemId, out var docCookie);
+            if (hierarchy == null)
+            {
+                return;
+            }
 
             AbstractProject project = GetXamlProject(hierarchy);
             if (project == null)
