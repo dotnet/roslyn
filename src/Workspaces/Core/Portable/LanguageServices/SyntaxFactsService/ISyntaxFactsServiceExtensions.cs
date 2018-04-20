@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
@@ -60,6 +61,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             return resultNode;
         }
+
+        public static bool SpansPreprocessorDirective(this ISyntaxFactsService service, SyntaxNode node)
+            => service.SpansPreprocessorDirective(SpecializedCollections.SingletonEnumerable(node));
 
         public static bool IsWhitespaceOrEndOfLineTrivia(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
             => syntaxFacts.IsWhitespaceTrivia(trivia) || syntaxFacts.IsEndOfLineTrivia(trivia);

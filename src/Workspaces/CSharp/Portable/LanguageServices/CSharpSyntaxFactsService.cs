@@ -1860,5 +1860,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+
+        public bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes)
+            => nodes.SpansPreprocessorDirective();
     }
 }
