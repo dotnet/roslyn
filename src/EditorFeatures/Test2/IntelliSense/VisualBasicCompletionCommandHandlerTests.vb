@@ -574,7 +574,7 @@ End Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Sub TestFiltering1()
+        Public Async Function TestFiltering1() As Task
             Using state = TestState.CreateVisualBasicTestState(
                   <document>
 Imports System
@@ -589,7 +589,7 @@ End Class</document>)
                 Assert.True(state.CompletionItemsContainsAll(displayText:={"OperatingSystem", "System"}))
                 Assert.False(state.CompletionItemsContainsAny(displayText:={"Exception", "Activator"}))
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMSCorLibTypes() As Task
