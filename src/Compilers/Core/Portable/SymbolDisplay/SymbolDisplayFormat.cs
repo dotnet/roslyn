@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis
                 parameterOptions:
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
                     SymbolDisplayParameterOptions.IncludeType,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier,
                 // Not showing the name is important because we visit parameters to display their
                 // types.  If we visited their types directly, we wouldn't get ref/out/params.
                 miscellaneousOptions:
@@ -153,6 +154,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
                     SymbolDisplayParameterOptions.IncludeDefaultValue,
                 localOptions: SymbolDisplayLocalOptions.IncludeType,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
@@ -189,7 +191,8 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayCompilerInternalOptions.IncludeScriptType |
                     SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames |
                     SymbolDisplayCompilerInternalOptions.FlagMissingMetadataTypes |
-                    SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers);
+                    SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers |
+                    SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier);
 
         /// <summary>
         /// this.QualifiedNameOnly = containingSymbol.QualifiedNameOnly + "." + this.Name
@@ -217,6 +220,7 @@ namespace Microsoft.CodeAnalysis
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeName,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
@@ -414,13 +418,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions options)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 this.GlobalNamespaceStyle,
                 this.TypeQualificationStyle,
                 this.GenericsOptions,
                 this.MemberOptions,
+                this.ParameterOptions,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                this.ParameterOptions,
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
@@ -462,13 +467,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithGenericsOptions(SymbolDisplayGenericsOptions options)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 this.GlobalNamespaceStyle,
                 this.TypeQualificationStyle,
                 options,
                 this.MemberOptions,
+                this.ParameterOptions,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                this.ParameterOptions,
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
@@ -511,13 +517,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithMemberOptions(SymbolDisplayMemberOptions options)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 this.GlobalNamespaceStyle,
                 this.TypeQualificationStyle,
                 this.GenericsOptions,
                 options,
+                this.ParameterOptions,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                this.ParameterOptions,
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
@@ -564,13 +571,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithKindOptions(SymbolDisplayKindOptions options)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 this.GlobalNamespaceStyle,
                 this.TypeQualificationStyle,
                 this.GenericsOptions,
                 this.MemberOptions,
+                this.ParameterOptions,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                this.ParameterOptions,
                 this.PropertyStyle,
                 this.LocalOptions,
                 options,
@@ -615,13 +623,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithParameterOptions(SymbolDisplayParameterOptions options)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 this.GlobalNamespaceStyle,
                 this.TypeQualificationStyle,
                 this.GenericsOptions,
                 this.MemberOptions,
+                options,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                options,
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
@@ -666,13 +675,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle style)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 style,
                 this.TypeQualificationStyle,
                 this.GenericsOptions,
                 this.MemberOptions,
+                this.ParameterOptions,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                this.ParameterOptions,
                 this.PropertyStyle,
                 this.LocalOptions,
                 this.KindOptions,
@@ -689,13 +699,14 @@ namespace Microsoft.CodeAnalysis
         public SymbolDisplayFormat WithLocalOptions(SymbolDisplayLocalOptions options)
         {
             return new SymbolDisplayFormat(
+                this.CompilerInternalOptions,
                 this.GlobalNamespaceStyle,
                 this.TypeQualificationStyle,
                 this.GenericsOptions,
                 this.MemberOptions,
+                this.ParameterOptions,
                 this.DelegateStyle,
                 this.ExtensionMethodStyle,
-                this.ParameterOptions,
                 this.PropertyStyle,
                 options,
                 this.KindOptions,

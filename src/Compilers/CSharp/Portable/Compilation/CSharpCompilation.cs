@@ -3100,52 +3100,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal TypeSymbolWithAnnotations GetTypeOrReturnTypeWithAdjustedNullableAnnotations(Symbol symbol)
         {
-            Symbol definition = symbol.OriginalDefinition;
-
-            if (!ShouldSuppressNullableAnnotations(definition))
-            {
-                return symbol.Kind == SymbolKind.Parameter ? ((ParameterSymbol)symbol).Type : symbol.GetTypeOrReturnType();
-            }
-
-            // Nullable annotations on definition should be ignored
-            TypeSymbolWithAnnotations definitionType = definition.GetTypeOrReturnType();
-            TypeSymbolWithAnnotations adjustedDefinitionType = definitionType.SetUnknownNullabilityForReferenceTypes();
-
-            if ((object)definition == symbol)
-            {
-                return adjustedDefinitionType;
-            }
-
-            if ((object)definitionType == adjustedDefinitionType)
-            {
-                // Adjustment has no effect
-                return symbol.GetTypeOrReturnType();
-            }
-
-            // The original symbol was substituted, need to re-apply substitution to the adjusted type.   
-            TypeMap typeSubstitution;
-
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Method:
-                    typeSubstitution = ((MethodSymbol)symbol).TypeSubstitution;
-                    break;
-
-                case SymbolKind.Parameter:
-                    if (symbol.ContainingSymbol.Kind == SymbolKind.Method)
-                    {
-                        typeSubstitution = ((MethodSymbol)symbol.ContainingSymbol).TypeSubstitution;
-                        break;
-                    }
-
-                    goto default;
-
-                default:
-                    typeSubstitution = symbol.ContainingType.TypeSubstitution;
-                    break;
-            }
-
-            return adjustedDefinitionType.SubstituteType(typeSubstitution);
+            // PROTOTYPE(NullableReferenceTypes): Review whether method can simply be removed
+            return symbol.GetTypeOrReturnType();
         }
 
         internal bool ShouldSuppressNullableAnnotations(Symbol definition)

@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             // on a separate Compilation instance created with createCompilationLambda.
             if (!skipUsesIsNullable && !IsNullableEnabled(compilation))
             {
-                VerifyNoNullability(compilation.SourceModule.GlobalNamespace);
+                VerifyUsesOfNullability(compilation.SourceModule.GlobalNamespace, expectedUsesOfNullable: ImmutableArray<string>.Empty);
             }
             return compilation;
         }
@@ -542,14 +542,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
         }
 
-        internal static void VerifyNoNullability(Symbol symbol)
+        internal static void VerifyUsesOfNullability(Symbol symbol, ImmutableArray<string> expectedUsesOfNullable)
         {
             var builder = ArrayBuilder<Symbol>.GetInstance();
             UsesIsNullableVisitor.GetUses(builder, symbol);
-            var symbols = builder.ToImmutableAndFree();
-            // Use AssertEx.Equal(Empty, symbols) rather than Assert.True(symbols.IsEmpty)
-            // so  the exception message includes the list of symbols.
-            AssertEx.Equal(ImmutableArray<Symbol>.Empty, symbols);
+
+            var format = SymbolDisplayFormat.TestFormat
+                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier | SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier)
+                .RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeName);
+
+            var symbols = builder.SelectAsArray(s => s.ToDisplayString(format));
+            builder.Free();
+
+            AssertEx.Equal(expectedUsesOfNullable, symbols, itemInspector: s => $"\"{s}\"");
         }
 
         public static CSharpCompilation CreateCompilation(

@@ -1571,7 +1571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                _result = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(method);
+                _result = method.ReturnType;
             }
 
             return null;
@@ -1589,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
             var nameSyntax = Binder.GetNameSyntax(((InvocationExpressionSyntax)syntax).Expression, out var _);
-            if (nameSyntax  == null)
+            if (nameSyntax == null)
             {
                 // Unexpected syntax kind.
                 return false;

@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableArray<bool> nullableTransformFlags;
             containingModule.Module.HasNullableAttribute(targetSymbolToken, out nullableTransformFlags);
 
+            return TransformType(metadataType, nullableTransformFlags);
+        }
+
+        internal static TypeSymbolWithAnnotations TransformType(TypeSymbolWithAnnotations metadataType, ImmutableArray<bool> nullableTransformFlags)
+        {
             int position = 0;
             TypeSymbolWithAnnotations result;
 
@@ -46,6 +51,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return NullableTypeDecoder.TransformType(metadataType, targetSymbolToken, containingModule);
             }
             return metadataType.SetUnknownNullabilityForReferenceTypes();
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
+        internal static TypeSymbolWithAnnotations TransformOrEraseNullability(
+            TypeSymbolWithAnnotations metadataType,
+            EntityHandle targetSymbolToken,
+            PEModuleSymbol containingModule,
+            ImmutableArray<bool> extraAnnotations)
+        {
+            if (extraAnnotations.IsDefault)
+            {
+                return NullableTypeDecoder.TransformOrEraseNullability(metadataType, targetSymbolToken, containingModule);
+            }
+            else
+            {
+                // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
+                return NullableTypeDecoder.TransformType(metadataType, extraAnnotations);
+            }
         }
     }
 }

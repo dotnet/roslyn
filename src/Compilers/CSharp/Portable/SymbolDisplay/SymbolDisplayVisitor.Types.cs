@@ -23,16 +23,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 typeSymbol.Accept(visitor);
+
+                // If we want to display `!`, then we surely also want to display `?`
+                Debug.Assert(format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier)
+                    || !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier));
+
                 switch (isNullable)
                 {
                     case true:
-                        if (!typeSymbol.IsNullableType())
+                        if (!typeSymbol.IsNullableType() && format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier))
                         {
                             AddPunctuation(SyntaxKind.QuestionToken);
                         }
                         break;
                     case false:
-                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
+                        if (!typeSymbol.IsValueType && format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
                         {
                             AddPunctuation(SyntaxKind.ExclamationToken);
                         }
@@ -98,10 +103,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AddArrayRank(arrayType);
 
+                // If we want to display `!`, then we surely also want to display `?`
+                Debug.Assert(format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier)
+                    || !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier));
+
                 switch (isNullable)
                 {
                     case true:
-                        AddPunctuation(SyntaxKind.QuestionToken);
+                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier))
+                        {
+                            AddPunctuation(SyntaxKind.QuestionToken);
+                        }
                         break;
                     case false:
                         if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
@@ -306,12 +318,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If top level tuple uses non-default names, there is no way to preserve them
                 // unless we use tuple syntax for the type. So, we give them priority.
-                if (HasNonDefaultTupleElements(symbol) || CanUseTupleTypeName(symbol))
+                if (!format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseValueTuple))
                 {
-                    AddTupleTypeName(symbol);
-                    return;
+                    if (HasNonDefaultTupleElements(symbol) || CanUseTupleTypeName(symbol))
+                    {
+                        AddTupleTypeName(symbol);
+                        return;
+                    }
                 }
-
                 // Fall back to displaying the underlying type.
                 symbol = symbol.TupleUnderlyingType;
             }
@@ -396,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var namedType = symbol as NamedTypeSymbol;
                         if ((object)namedType != null)
                         {
-                            modifiers = namedType.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(a => a.CustomModifiers) ;
+                            modifiers = namedType.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(a => a.CustomModifiers);
                         }
                     }
 

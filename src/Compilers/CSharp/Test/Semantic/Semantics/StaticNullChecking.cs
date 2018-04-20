@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -176,12 +178,60 @@ class C
         }
 
         [Fact]
-        public void UnannotatedAssemblies_00()
+        public void UnannotatedAssemblies_WithSomeExtraAnnotations()
         {
+            // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
             var comp = CreateStandardCompilation("", parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var systemNamespace = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingNamespace;
-            VerifyNoNullability(systemNamespace);
+
+            var expected = ImmutableArray.Create(
+"System.String! System.String.Concat(System.String?, System.String?)",
+"System.Boolean System.Boolean.Parse(System.String!)",
+"void System.Buffer.BlockCopy(System.Array!, System.Int32, System.Array!, System.Int32, System.Int32)",
+"System.Byte System.Buffer.GetByte(System.Array!, System.Int32)",
+"void System.Buffer.SetByte(System.Array!, System.Int32, System.Byte)",
+"System.Int32 System.Buffer.ByteLength(System.Array!)",
+"System.Byte System.Byte.Parse(System.String!)",
+"System.Byte System.Byte.Parse(System.String!, System.Globalization.NumberStyles)",
+"System.Byte System.Byte.Parse(System.String!, System.IFormatProvider)",
+"System.Byte System.Byte.Parse(System.String!, System.Globalization.NumberStyles, System.IFormatProvider)"
+            );
+
+            VerifyUsesOfNullability(systemNamespace, expected);
+        }
+
+        [Fact]
+        public void AnnotatedAssemblies_WithSomeExtraAnnotations()
+        {
+            // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
+            // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
+            var lib = @"
+namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class Attribute { }
+    public class ValueType { }
+    public struct Boolean { }
+    public class String
+    {
+        public String? Concat(String a, String b) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation(lib, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+
+            var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp2.VerifyDiagnostics();
+
+            var expected = ImmutableArray.Create(
+"System.String! System.String.Concat(System.String?, System.String?)",
+"System.Runtime.CompilerServices.NullableAttribute.NullableAttribute(System.Boolean[]!)"
+            );
+            var systemNamespace = comp2.GetMember<NamedTypeSymbol>("System.String").ContainingNamespace;
+            VerifyUsesOfNullability(systemNamespace, expected);
         }
 
         [Fact]
@@ -12845,7 +12895,10 @@ class F : C<F?>, I1<C<B?>>, I2<C<B>?>
             Assert.Equal("void B.M3(System.String?* x)", b.GetMember("M3").ToTestDisplayString());
             Assert.Equal("System.String? B.this[System.Action? x] { get; set; }", b.GetMember("this[]").ToTestDisplayString());
             Assert.Equal("B.implicit operator B?(int)", b.GetMember("op_Implicit").ToDisplayString());
-            Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1").ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature)));
+
+            Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1")
+                .ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
+                    compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier)));
 
             var f = compilation.GetTypeByMetadataName("F");
             Assert.Equal("C<F?>", f.BaseType().ToTestDisplayString());
@@ -12930,7 +12983,10 @@ public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
                                     Assert.Equal("System.String? B.this[System.Action? x] { get; set; }", b.GetMember("this[]").ToTestDisplayString());
                                     Assert.Equal("B.implicit operator B?(int)", b.GetMember("op_Implicit").ToDisplayString());
                                     Assert.Equal("event System.Action? B.E2", b.GetMember("E2").ToTestDisplayString());
-                                    Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1").ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature)));
+
+                                    Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1")
+                                        .ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
+                                            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier)));
 
                                     var f = ((PEModuleSymbol)m).GlobalNamespace.GetTypeMember("F");
                                     Assert.Equal("C<F?>", f.BaseType().ToTestDisplayString());

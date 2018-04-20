@@ -1556,6 +1556,9 @@ static class E
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         t.y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.y").WithLocation(10, 9),
                 // (11,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         t.x = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 15));

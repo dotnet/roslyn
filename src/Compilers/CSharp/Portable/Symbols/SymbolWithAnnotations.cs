@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
-            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier | SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier);
 
         internal static TypeSymbolWithAnnotations Create(CSharpCompilation compilation, TypeSymbol typeSymbol)
         {
@@ -599,6 +600,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return module.UtilizesNullableReferenceTypes ?
                 this :
                 this.SetUnknownNullabilityForReferenceTypes();
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
+        public TypeSymbolWithAnnotations SetUnknownNullabilityForReferenceTypesIfNecessary(ModuleSymbol module, ImmutableArray<bool> extraAnnotations)
+        {
+            if (extraAnnotations.IsDefault)
+            {
+                return this.SetUnknownNullabilityForReferenceTypesIfNecessary(module);
+            }
+            else
+            {
+                // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
+                return NullableTypeDecoder.TransformType(this, extraAnnotations);
+            }
         }
 
         public TypeSymbolWithAnnotations SetUnknownNullabilityForReferenceTypes()

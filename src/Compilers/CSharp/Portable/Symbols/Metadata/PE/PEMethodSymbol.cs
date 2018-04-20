@@ -576,12 +576,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableArray<ParameterSymbol> @params;
             bool isBadParameter;
 
+            string key = ExtraAnnotations.MakeMethodKey(this, paramInfo);
+            ImmutableArray<ImmutableArray<bool>> extraMethodAnnotations = ExtraAnnotations.GetExtraAnnotations(key);
+
             if (count > 0)
             {
                 var builder = ImmutableArray.CreateBuilder<ParameterSymbol>(count);
                 for (int i = 0; i < count; i++)
                 {
-                    builder.Add(PEParameterSymbol.Create(moduleSymbol, this, i, paramInfo[i + 1], out isBadParameter));
+                    // zero-th annotation is for the return type
+                    ImmutableArray<bool> extraAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[i + 1];
+
+                    builder.Add(PEParameterSymbol.Create(moduleSymbol, this, i, paramInfo[i + 1], extraAnnotations, out isBadParameter));
                     if (isBadParameter)
                     {
                         makeBad = true;
@@ -603,7 +609,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             paramInfo[0].Type = returnType;
 
-            var returnParam = PEParameterSymbol.Create(moduleSymbol, this, 0, paramInfo[0], out isBadParameter);
+            ImmutableArray<bool> extraReturnAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[0];
+            var returnParam = PEParameterSymbol.Create(moduleSymbol, this, ordinal: 0, paramInfo[0], extraReturnAnnotations, out isBadParameter);
 
             if (makeBad || isBadParameter)
             {

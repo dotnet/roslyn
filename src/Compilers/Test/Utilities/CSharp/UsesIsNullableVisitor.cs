@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return AddIfUsesIsNullable(symbol, symbol.TypeParameters) ||
                 AddIfUsesIsNullable(symbol, symbol.ReturnType) ||
-                VisitList(symbol.Parameters);
+                AddIfUsesIsNullable(symbol, symbol.Parameters);
         }
 
         public override bool VisitProperty(PropertySymbol symbol)
         {
             return AddIfUsesIsNullable(symbol, symbol.Type) ||
-                VisitList(symbol.Parameters);
+                AddIfUsesIsNullable(symbol, symbol.Parameters);
         }
 
         public override bool VisitEvent(EventSymbol symbol)
@@ -77,13 +77,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return result;
         }
 
+        private void Add(Symbol symbol)
+            => _builder.Add(symbol);
+
+        /// <summary>
+        /// Check the parameters of a method or property, but report that method/property rather than
+        /// the parameter itself.
+        /// </summary>
+        private bool AddIfUsesIsNullable(Symbol symbol, ImmutableArray<ParameterSymbol> parameters)
+        {
+            foreach (var parameter in parameters)
+            {
+                if (UsesIsNullable(parameter.Type))
+                {
+                    Add(symbol);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private bool AddIfUsesIsNullable(Symbol symbol, ImmutableArray<TypeParameterSymbol> typeParameters)
         {
             foreach (var type in typeParameters)
             {
                 if (UsesIsNullable(type))
                 {
-                    _builder.Add(symbol);
+                    Add(symbol);
                     return true;
                 }
             }
@@ -94,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             if (UsesIsNullable(type))
             {
-                _builder.Add(symbol);
+                Add(symbol);
                 return true;
             }
             return false;
@@ -107,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 return false;
             }
             var typeSymbol = type.TypeSymbol;
-            return (type.IsNullable != null && type.IsReferenceType) ||
+            return (type.IsNullable != null && type.IsReferenceType && !type.IsErrorType()) ||
                 UsesIsNullable(type.TypeSymbol);
         }
 
