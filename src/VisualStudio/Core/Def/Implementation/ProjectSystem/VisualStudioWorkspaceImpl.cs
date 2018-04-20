@@ -51,6 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Lazy<ForegroundThreadAffinitizedObject> _foregroundObject
             = new Lazy<ForegroundThreadAffinitizedObject>(() => new ForegroundThreadAffinitizedObject());
 
+        private readonly Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>> _hierarchyEventSinks = new Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>>();
+
         /// <summary>
         /// The <see cref="DeferredInitializationState"/> that consists of the <see cref="VisualStudioProjectTracker" />
         /// and other UI-initialized types. It will be created as long as a single project has been created.
@@ -979,6 +981,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // This documentId belongs to the new SharedItemContextHierarchy. Update the associated
             // buffer.
             OnDocumentContextUpdated(documentId);
+        }
+
+        internal void ConnectToSharedHierarchyEvents(IVisualStudioHostDocument document)
+        {
+            Contract.ThrowIfFalse(document.IsOpen);
+
+            var project = document.Project;
+            var itemId = document.GetItemId();
+
+            if (itemId != (uint)VSConstants.VSITEMID.Nil)
+            {
+                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
+
+                if (sharedHierarchy != null)
+                {
+                    ProjectTracker.NotifyWorkspace(workspace =>
+                    {
+                        var eventSink = new HierarchyEventsSink((VisualStudioWorkspaceImpl)workspace, sharedHierarchy, document.Id);
+                        if (ErrorHandler.Succeeded(sharedHierarchy.AdviseHierarchyEvents(eventSink, out var cookie)))
+                        {
+                            _hierarchyEventSinks.MultiAdd(document.Id, (sharedHierarchy, cookie));
+                        }
+                    });
+                }
+            }
+        }
+
+        protected override void OnDocumentClosing(DocumentId documentId)
+        {
+            base.OnDocumentClosing(documentId);
+
+            if (_hierarchyEventSinks.TryGetValue(documentId, out var subscribedSinks))
+            {
+                foreach (var subscribedSink in subscribedSinks)
+                {
+                    subscribedSink.hierarchy.UnadviseHierarchyEvents(subscribedSink.cookie);
+                }
+
+                _hierarchyEventSinks.Remove(documentId);
+            }
         }
 
         /// <summary>
