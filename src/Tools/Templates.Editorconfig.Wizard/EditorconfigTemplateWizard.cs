@@ -26,8 +26,16 @@ public partial class EditorconfigTemplateWizard : IWizard
     {
         if (automationObject is DTE2 dte)
         {
+            if(!replacementsDictionary.TryGetValue("$type$", out var result))
+            {
+                return;
+            }
+
             var generator = new EditorConfigFileGenerator(dte);
-            (bool success, string fileName) = generator.TryGenerateFile();
+
+            bool isDotnet = !(StringComparer.OrdinalIgnoreCase.Compare(result, "default") == 0);
+            isDotnet = StringComparer.OrdinalIgnoreCase.Compare(result, "dotnet") == 0;
+            (bool success, string fileName) = generator.TryGenerateFile(isDotnet);
             if (success)
             {
                 generator.OpenFile(fileName);

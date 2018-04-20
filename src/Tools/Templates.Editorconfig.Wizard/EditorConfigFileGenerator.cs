@@ -6,6 +6,7 @@ using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Templates.Editorconfig.Wizard;
+using System.Windows;
 
 namespace Templates.EditorConfig.FileGenerator
 {
@@ -18,21 +19,21 @@ namespace Templates.EditorConfig.FileGenerator
             this._dte = dte;
         }
 
-        internal (bool success, string fileName) TryGenerateFile()
+        internal (bool success, string fileName) TryGenerateFile(bool isDotnet)
         {
-            var itemAndPathResult = TryGetSelectedItemAndPath();
-            if (!itemAndPathResult.success)
+            var (success, path, selectedItem) = TryGetSelectedItemAndPath();
+            if (!success)
             {
                 return (false, null);
             }
 
-            var createFileResult = TryCreateFile(itemAndPathResult.path);
+            var createFileResult = TryCreateFile(path, isDotnet);
             if (!createFileResult.success)
             {
                 return (false, null);
             }
 
-            var fileHierarchyResult = TryAddFileToHierarchy(itemAndPathResult.selectedItem, createFileResult.fileName);
+            var fileHierarchyResult = TryAddFileToHierarchy(selectedItem, createFileResult.fileName);
             if (fileHierarchyResult.success)
             {
                 return (fileHierarchyResult.projectItem != null, createFileResult.fileName);
@@ -63,18 +64,26 @@ namespace Templates.EditorConfig.FileGenerator
             return (selectedItem != null, Path.GetDirectoryName(_dte.Solution.FullName), selectedItem);
         }
 
-        private (bool success, string fileName) TryCreateFile(string projectPath)
+        private (bool success, string fileName) TryCreateFile(string projectPath, bool isDotnet)
         {
             string fileName = Path.Combine(projectPath, TemplateConstants.FileName);
             if (File.Exists(fileName))
             {
-                // Show Message
+                MessageBox.Show("An .editorconfig file already exist in this location", ".editorconfig item template", MessageBoxButton.OK, MessageBoxImage.Information);
                 return (false, null);
             }
             else
             {
-                File.WriteAllText(fileName, TemplateConstants.DefaultFileContent);
-                return (true, fileName);
+                if (isDotnet)
+                {
+                    File.WriteAllText(fileName, TemplateConstants.DotNetFileContent);
+                    return (true, fileName);
+                }
+                else
+                {
+                    File.WriteAllText(fileName, TemplateConstants.DefaultFileContent);
+                    return (true, fileName);
+                }
             }
         }
 
