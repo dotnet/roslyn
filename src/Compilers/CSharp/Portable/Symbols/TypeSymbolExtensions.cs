@@ -858,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public static bool ContainsDynamic(this TypeSymbol type)
         {
-            var result = type.VisitType(s_containsDynamicPredicate, null);
+            var result = type.VisitType(s_containsDynamicPredicate, null, canDigThroughNullable: true);
             return (object)result != null;
         }
 
