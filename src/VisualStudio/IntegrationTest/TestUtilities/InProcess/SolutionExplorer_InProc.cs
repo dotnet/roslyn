@@ -721,12 +721,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void OpenFile(string projectName, string relativeFilePath)
         {
-            var projectItem = GetProjectItem(projectName, relativeFilePath);
-            var window = projectItem.Open(EnvDTE.Constants.vsViewKindPrimary);
-            window.Activate();
+            var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+
+            ExecuteCommand(WellKnownCommandNames.File_OpenFile, filePath);
 
             var dte = GetDTE();
-            while (!dte.ActiveWindow.Caption.Contains(projectItem.Name))
+            while (!dte.ActiveWindow.Caption.Contains(Path.GetFileName(filePath)))
             {
                 Thread.Yield();
             }
