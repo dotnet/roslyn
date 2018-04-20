@@ -101,6 +101,7 @@ namespace RunTests
             var assemblyInfoList = GetAssemblyList(options);
 
             Console.WriteLine($"Data Storage: {testExecutor.DataStorage.Name}");
+            Console.WriteLine($"Proc dump location: {options.ProcDumpDirectory}");
             Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} partitions");
 
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
@@ -128,12 +129,7 @@ namespace RunTests
 
         private static void WriteLogFile(Options options)
         {
-            var logFilePath = options.LogFilePath;
-            if (string.IsNullOrEmpty(logFilePath))
-            {
-                return;
-            }
-
+            var logFilePath = Path.Combine(options.LogsDirectory, "runtests.log");
             try
             {
                 using (var writer = new StreamWriter(logFilePath, append: false))
@@ -160,7 +156,16 @@ namespace RunTests
 
             async Task DumpProcess(Process targetProcess, string dumpFilePath)
             {
-                Console.Write($"Dumping {targetProcess.ProcessName} {targetProcess.Id} to {dumpFilePath} ... ");
+                var name = targetProcess.ProcessName;
+
+                // Our space for saving dump files is limited. Skip dumping for processes that won't contribute
+                // to bug investigations.
+                if (name == "procdump" || name == "conhost")
+                {
+                    return;
+                }
+
+                Console.Write($"Dumping {name} {targetProcess.Id} to {dumpFilePath} ... ");
                 try
                 {
                     var args = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
@@ -212,12 +217,9 @@ namespace RunTests
 
         private static ProcDumpInfo? GetProcDumpInfo(Options options)
         {
-            if (!string.IsNullOrEmpty(options.ProcDumpPath))
+            if (!string.IsNullOrEmpty(options.ProcDumpDirectory))
             {
-                var dumpDir = options.LogFilePath != null
-                    ? Path.GetDirectoryName(options.LogFilePath)
-                    : Directory.GetCurrentDirectory();
-                return new ProcDumpInfo(Path.Combine(options.ProcDumpPath, "procdump.exe"), dumpDir);
+                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.LogsDirectory);
             }
 
             return null;
@@ -325,7 +327,7 @@ namespace RunTests
             var testExecutionOptions = new TestExecutionOptions(
                 xunitPath: options.XunitPath,
                 procDumpInfo: GetProcDumpInfo(options),
-                logFilePath: options.LogFilePath,
+                logsDirectory: options.LogsDirectory,
                 trait: options.Trait,
                 noTrait: options.NoTrait,
                 useHtml: options.UseHtml,

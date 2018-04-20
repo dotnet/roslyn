@@ -447,6 +447,29 @@ public class Test : short { }
         }
 
         [Fact]
+        [WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")]
+        public void Retarget_IsSerializable()
+        {
+            var source = @"
+public class Test { }
+[System.Serializable]
+public class TestS { }
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var retargetingAssembly = new RetargetingAssemblySymbol((SourceAssemblySymbol)comp.Assembly, isLinked: false);
+            var retargetingType = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+            Assert.IsType<RetargetingNamedTypeSymbol>(retargetingType);
+            Assert.False(((INamedTypeSymbol)retargetingType).IsSerializable);
+
+            var retargetingTypeS = retargetingAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("TestS");
+            Assert.IsType<RetargetingNamedTypeSymbol>(retargetingTypeS);
+            Assert.True(((INamedTypeSymbol)retargetingTypeS).IsSerializable);
+        }
+
+        [Fact]
         [WorkItem(604878, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604878")]
         public void RetargetInvalidBaseType_Struct()
         {
@@ -630,6 +653,24 @@ public class C<T> where T : int
             var retargetingTypeParameterConstraint = retargetingTypeParameter.ConstraintTypes().Single();
             Assert.Equal(TypeKind.Error, retargetingTypeParameterConstraint.TypeKind);
             Assert.Equal(SpecialType.System_Int32, retargetingTypeParameterConstraint.SpecialType);
+        }
+
+        [Theory]
+        [InlineData("class Test<T> where T : unmanaged { }", true)]
+        [InlineData("class Test<T> { }", false)]
+        public void RetargetingUnmanagedTypeParameters(string code, bool isUnmanaged)
+        {
+            var compilation = CreateCompilation(code).VerifyDiagnostics();
+            var sourceAssembly = (SourceAssemblySymbol)compilation.Assembly;
+
+            SourceTypeParameterSymbol sourceTypeParameter = (SourceTypeParameterSymbol)sourceAssembly.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+            Assert.Equal(isUnmanaged, sourceTypeParameter.HasUnmanagedTypeConstraint);
+
+            var retargetingAssembly = new RetargetingAssemblySymbol(sourceAssembly, isLinked: false);
+            retargetingAssembly.SetCorLibrary(sourceAssembly.CorLibrary);
+
+            RetargetingTypeParameterSymbol retargetingTypeParameter = (RetargetingTypeParameterSymbol)retargetingAssembly.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+            Assert.Equal(isUnmanaged, retargetingTypeParameter.HasUnmanagedTypeConstraint);
         }
 
         private void CheckTypes(ImmutableArray<TypeSymbol> source, ImmutableArray<TypeSymbol> retargeting)

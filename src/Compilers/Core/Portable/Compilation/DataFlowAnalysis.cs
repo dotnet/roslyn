@@ -65,6 +65,16 @@ namespace Microsoft.CodeAnalysis
         public abstract ImmutableArray<ISymbol> Captured { get; }
 
         /// <summary>
+        /// The set of variables that are captured inside a region.
+        /// </summary>
+        public abstract ImmutableArray<ISymbol> CapturedInside { get; }
+
+        /// <summary>
+        /// The set of variables that are captured outside a region.
+        /// </summary>
+        public abstract ImmutableArray<ISymbol> CapturedOutside { get; }
+
+        /// <summary>
         /// The set of non-constant local variables and parameters that have had their
         /// address (or the address of one of their fields) taken.
         /// </summary>

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -10,15 +8,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty
 {
-    internal abstract class AbstractUseAutoPropertyAnalyzer<TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> :
-        AbstractCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractUseAutoPropertyAnalyzer<
+        TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TExpression> : AbstractCodeStyleDiagnosticAnalyzer
         where TPropertyDeclaration : SyntaxNode
         where TFieldDeclaration : SyntaxNode
         where TVariableDeclarator : SyntaxNode
         where TExpression : SyntaxNode
     {
         private static readonly LocalizableString s_title =
-            new LocalizableResourceString(nameof(FeaturesResources.Use_auto_property), FeaturesResources.ResourceManager, typeof(FeaturesResources));
+            new LocalizableResourceString(nameof(FeaturesResources.Use_auto_property),
+                FeaturesResources.ResourceManager, typeof(FeaturesResources));
 
         protected AbstractUseAutoPropertyAnalyzer()
             : base(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, s_title, s_title)
@@ -75,7 +74,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             Process(analysisResults, ineligibleFields, context);
         }
 
-        protected void AnalyzeProperty(SemanticModelAnalysisContext context, TPropertyDeclaration propertyDeclaration, List<AnalysisResult> analysisResults)
+        protected void AnalyzeProperty(
+            SemanticModelAnalysisContext context, TPropertyDeclaration propertyDeclaration, List<AnalysisResult> analysisResults)
         {
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            // Don't want to remove constants.
-            if (getterField.IsConst)
+            // Don't want to remove constants and volatile fields.
+            if (getterField.IsConst || getterField.IsVolatile)
             {
                 return;
             }
@@ -218,10 +218,18 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
+            if (!CanConvert(property))
+            {
+                return;
+            }
+
             // Looks like a viable property/field to convert into an auto property.
-            analysisResults.Add(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator,
-                property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
+            analysisResults.Add(new AnalysisResult(property, getterField, propertyDeclaration,
+                fieldDeclaration, variableDeclarator, property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
         }
+
+        protected virtual bool CanConvert(IPropertySymbol property)
+            => true;
 
         private IFieldSymbol GetSetterField(
             SemanticModel semanticModel, ISymbol containingType, IMethodSymbol setMethod, CancellationToken cancellationToken)
@@ -229,7 +237,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return CheckFieldAccessExpression(semanticModel, GetSetterExpression(setMethod, semanticModel, cancellationToken));
         }
 
-        private IFieldSymbol GetGetterField(SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
+        private IFieldSymbol GetGetterField(
+            SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
         {
             return CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken));
         }
@@ -336,7 +345,9 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             return UnnecessaryWithSuggestionDescriptor;
         }
 
-        protected virtual bool IsEligibleHeuristic(IFieldSymbol field, TPropertyDeclaration propertyDeclaration, Compilation compilation, CancellationToken cancellationToken)
+        protected virtual bool IsEligibleHeuristic(
+            IFieldSymbol field, TPropertyDeclaration propertyDeclaration,
+            Compilation compilation, CancellationToken cancellationToken)
         {
             return true;
         }

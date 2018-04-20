@@ -355,7 +355,7 @@ End Interface
 
             source.<file>.Single().Value = String.Format(source.<file>.Single().Value, text)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(strict))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(strict))
 
             If errors IsNot Nothing Then
                 CompilationUtils.AssertTheseDiagnostics(compilation, errors)
@@ -391,7 +391,7 @@ End Interface
         <Fact>
         Public Sub TestInvalidIfOperators()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="TestInvalidNumberOfParametersInIfOperator">
     <file name="a.vb">
 Class CX
@@ -524,7 +524,7 @@ BC33104: 'If' operator requires either two or three operands.
 
         Private Sub TestInvalidTernaryIfOperatorsStrict(strict As OptionStrict, errs As XElement)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="TestInvalidIfOperatorsStrict">
     <file name="a.vb">
 Imports System
@@ -674,7 +674,7 @@ BC30311: Value of type 'T1' cannot be converted to 'Boolean'.
 
         Private Sub TestInvalidBinaryIfOperatorsStrict(strict As OptionStrict, errs As XElement)
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="TestInvalidIfOperatorsStrict">
     <file name="a.vb">
 Imports System
@@ -878,7 +878,7 @@ BC33107: First operand in a binary 'If' expression must be nullable or a referen
 
         <Fact, WorkItem(544983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544983")>
         Public Sub Bug13187()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
         <![CDATA[
@@ -927,7 +927,7 @@ Full
 
         <Fact, WorkItem(544983, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544983")>
         Public Sub Bug13187_2()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
         <![CDATA[

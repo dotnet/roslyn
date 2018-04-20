@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub SimpleTest()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="SimpleTest">
     <file name="a.vb">
 Imports System
@@ -39,7 +39,7 @@ End Enum
 
         <Fact>
         Public Sub BadDeclareTest()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="BadDeclareTest">
     <file name="a.vb">
 Imports System
@@ -63,7 +63,7 @@ End Module
         <Fact>
         Public Sub DifferentKindsVarAsIndex()
             ' Use VBRuntime so UBound is defined. Otherwise, replyCounts does not infer its type.
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="DifferentKindsVarAsIndex">
     <file name="a.vb">
 Option Infer On
@@ -116,7 +116,7 @@ End Module
 
         <Fact>
         Public Sub DifferentKindsVarAsIndex_2()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="DifferentKindsVarAsIndex">
     <file name="a.vb">
 Option Infer On
@@ -139,7 +139,7 @@ End Module
 
         <Fact>
         Public Sub DifferentKindsVarAsIndex_3()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="DifferentKindsVarAsIndex">
     <file name="a.vb">
 Imports Microsoft.VisualBasic.Information
@@ -161,7 +161,7 @@ End Class
 
         <Fact>
         Public Sub DifferentKindsVarAsIndex_4()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="DifferentKindsVarAsIndex">
     <file name="a.vb">
 Imports Microsoft.VisualBasic.Information
@@ -182,7 +182,7 @@ End Class
 
         <Fact>
         Public Sub MultiDimensionalInArrayAnonymous()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="MultiDimensionalInArrayAnonymous">
     <file name="a.vb">
 Option Infer On
@@ -224,7 +224,7 @@ End Module
 
         <Fact>
         Public Sub GenericAsArrayType()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="GenericAsArrayType">
     <file name="a.vb">
 Public Class Class1(Of T)
@@ -250,7 +250,7 @@ End Class
 
         <Fact>
         Public Sub MixedArray()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="MixedArray">
     <file name="a.vb">
 Imports System
@@ -273,7 +273,7 @@ End Module
         <WorkItem(542531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542531")>
         <Fact>
         Public Sub AssignMultiDimArrayToArrayWithExplicitBounds()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Explicit Off

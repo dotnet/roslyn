@@ -131,18 +131,18 @@ namespace Microsoft.CodeAnalysis
 
 
         /// <summary>
-        /// <code>true</code> if this Document supports providing data through the
+        /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSyntaxTreeAsync"/> and <see cref="GetSyntaxRootAsync"/> methods.
         /// 
-        /// If <code>false</code> then these methods will return <code>null</code> instead.
+        /// If <see langword="false"/> then these methods will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSyntaxTree => DocumentState.SupportsSyntaxTree;
 
         /// <summary>
-        /// <code>true</code> if this Document supports providing data through the
+        /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSemanticModelAsync"/> method.
         /// 
-        /// If <code>false</code> then this method will return <code>null</code> instead.
+        /// If <see langword="false"/> then this method will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSemanticModel
         {
@@ -276,15 +276,18 @@ namespace Microsoft.CodeAnalysis
                     return result;
                 }
 
-                // it looks like someone has set it. try to reuse same semantic model
-                if (original.TryGetTarget(out semanticModel))
+                // It looks like someone has set it. Try to reuse same semantic model, or assign the new model if that
+                // fails. The lock is required since there is no compare-and-set primitive for WeakReference<T>.
+                lock (original)
                 {
-                    return semanticModel;
-                }
+                    if (original.TryGetTarget(out semanticModel))
+                    {
+                        return semanticModel;
+                    }
 
-                // it looks like cache is gone. reset the cache.
-                original.SetTarget(result);
-                return result;
+                    original.SetTarget(result);
+                    return result;
+                }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -439,7 +442,7 @@ namespace Microsoft.CodeAnalysis
                 workspace.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
-               var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
+                var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
                 return newSolution.GetDocument(this.Id);
             }
             else

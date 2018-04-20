@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <Fact()>
         Public Sub BranchOutOfFinallyInLambda()
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="BranchOutOfFinallyInLambda">
     <file name="a.vb">
 Imports System
@@ -54,7 +54,7 @@ BC30101: Branching out of a 'Finally' is not valid.
         <Fact()>
         Public Sub BranchOutOfFinallyInLambda_1()
 
-            CreateCompilationWithMscorlibAndReferences(
+            CreateCompilationWithMscorlib40AndReferences(
 <compilation name="BranchOutOfFinallyInLambda">
     <file name="a.vb">
 Imports System.Collections.Generic
@@ -79,7 +79,7 @@ BC30201: Expression expected.
 
         <Fact()>
         Public Sub NakedGoto()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NakedGoto">
     <file name="a.vb">
 Module M
@@ -95,7 +95,7 @@ End Module
 
         <Fact()>
         Public Sub GotoInvalidLabel()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GotoInvalidLabel">
     <file name="a.vb">
 Module M
@@ -116,7 +116,7 @@ End Module
 
         <Fact()>
         Public Sub GotoOutOfMethod()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GotoOutOfMethod">
     <file name="a.vb">
 Structure struct
@@ -133,7 +133,7 @@ End Structure
 
         <Fact()>
         Public Sub GotoOutOfMethod_1()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GotoOutOfMethod">
     <file name="a.vb">
 Namespace ns1
@@ -152,7 +152,7 @@ End namespace
 
         <Fact()>
         Public Sub GotoOutOfMethod_2()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GotoOutOfMethod">
     <file name="a.vb">
     goto Labl 
@@ -165,7 +165,7 @@ End namespace
 
         <Fact()>
         Public Sub GotoMultiLabel()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GotoMultiLabel">
     <file name="a.vb">
 Module Program
@@ -186,7 +186,7 @@ End Module
         <WorkItem(543364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543364")>
         <Fact()>
         Public Sub LabelAfterElse()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LabelAfterElse">
     <file name="a.vb">
 Imports System
@@ -208,7 +208,7 @@ End Module
 
         <Fact()>
         Public Sub LabelAfterElse_1()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LabelAfterElse">
     <file name="a.vb">
 Imports System
@@ -231,7 +231,7 @@ End Module
         <WorkItem(543364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543364")>
         <Fact()>
         Public Sub LabelAfterElse_NotNumeric()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LabelAfterElse">
     <file name="a.vb">
 Module Program
@@ -250,7 +250,7 @@ End Module
 
         <Fact()>
         Public Sub LabelBeforeFirstCase()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LabelBeforeFirstCase">
     <file name="a.vb">
 Module M
@@ -271,7 +271,7 @@ End Module
 
         <Fact()>
         Public Sub LabelInDifferentMethod()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LabelInDifferentMethod">
     <file name="a.vb">
 Module M
@@ -289,7 +289,7 @@ End Module
 
         <Fact()>
         Public Sub GotoDeeperScope()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GotoDeeperScope">
     <file name="a.vb">
 Module M
@@ -307,7 +307,7 @@ End Module
 
         <Fact()>
         Public Sub BranchOutFromLambda()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="BranchOutFromLambda">
     <file name="a.vb">
 Delegate Function del(i As Integer) As Integer
@@ -328,7 +328,7 @@ End Module
 
         <Fact()>
         Public Sub SameLabelNameInDifferentLambda()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SameLabelNameInDifferentLambda">
     <file name="a.vb">
 Imports System
@@ -355,7 +355,7 @@ End Module
 
         <Fact()>
         Public Sub SameLabelNameInDifferentScop_Lambda()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SameLabelNameInDifferentScop_Lambda">
     <file name="a.vb">
 Imports System
@@ -378,7 +378,7 @@ End Module
 
         <Fact()>
         Public Sub IllegalLabels()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="IllegalLabels">
     <file name="a.vb">
 Module Program
@@ -447,7 +447,7 @@ End Module
 
         <Fact()>
         Public Sub IllegalLabels_1()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="IllegalLabels">
     <file name="a.vb">
 Module Program

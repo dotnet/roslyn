@@ -8,7 +8,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="Linked Files">

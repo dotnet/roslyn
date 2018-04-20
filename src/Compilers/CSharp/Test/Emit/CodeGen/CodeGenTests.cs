@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -427,7 +426,7 @@ public class C
 ");
         }
         [WorkItem(546412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546412")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestBug15818()
         {
             var source =
@@ -1833,7 +1832,7 @@ public class D
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestAssignIdentity()
         {
             string source = @"
@@ -1879,7 +1878,7 @@ There are no context policies.
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestRefCast()
         {
             string source = @"
@@ -5167,7 +5166,7 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
   IL_0025:  ret
 }
 ");
-            compilation = CompileAndVerify(source, expectedOutput: @"hi",  verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            compilation = CompileAndVerify(source, expectedOutput: @"hi", verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             compilation.VerifyIL("Program.Main(string[])",
 @"
@@ -6602,7 +6601,7 @@ public class D
         }
 
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void InitFromBlob()
         {
             string source = @"
@@ -6641,7 +6640,7 @@ public class D
         System.Console.WriteLine(d[4]);
     }
 }";
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
+            var compilation = CompileAndVerifyWithMscorlib40(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
 3
 -5
 True
@@ -12256,7 +12255,7 @@ struct MyManagedStruct
 }
 ");
 
-            comp = CompileAndVerify(source, expectedOutput: @"42", verify: Verification.Passes, parseOptions:TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CompileAndVerify(source, expectedOutput: @"42", verify: Verification.Passes, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
             comp.VerifyIL("Program.Main",
 @"
@@ -13222,7 +13221,7 @@ expectedOutput: "-100");
             diagnostics.Free();
         }
 
-        [Fact()]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(546957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546957")]
         public void Bug17352_VarArgCtor()
         {
@@ -13293,7 +13292,7 @@ blah");
         }
 
         [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VarargBridgeSource()
         {
 
@@ -13331,8 +13330,68 @@ public static class P
             var compilation = CompileAndVerifyWithMscorlib40(code, expectedOutput: "4");
         }
 
+        [WorkItem(26113, "https://github.com/dotnet/roslyn/issues/26113")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void VarargByRef()
+        {
+            var code = @"
+using System;
+class A
+{
+    static void Test(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        ref int a = ref __refvalue(args.GetNextArg(), int);
+        a = 5;
+    }
+    static void Main()
+    {
+        int a = 0;
+        Test(__arglist(ref a));
+        Console.WriteLine(a);
+    }
+}
+";
+            var comp = CompileAndVerify(code, expectedOutput: "5", options: TestOptions.DebugExe);
+            comp.VerifyIL("A.Main",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (int V_0) //a
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""void A.Test(__arglist) with __arglist( ref int)""
+  IL_000a:  nop
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""void System.Console.WriteLine(int)""
+  IL_0011:  nop
+  IL_0012:  ret
+}
+");
+
+            comp = CompileAndVerify(code, expectedOutput: "5", options: TestOptions.ReleaseExe);
+            comp.VerifyIL("A.Main",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (int V_0) //a
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""void A.Test(__arglist) with __arglist( ref int)""
+  IL_0009:  ldloc.0
+  IL_000a:  call       ""void System.Console.WriteLine(int)""
+  IL_000f:  ret
+}
+");
+        }
+
         [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VarargBridgeMeta()
         {
             var reference = CreateCompilation(@"
@@ -13437,7 +13496,7 @@ public static class P
 }
 ";
 
-            var comp = CreateCompilation(code, references: new[] { reference});
+            var comp = CreateCompilation(code, references: new[] { reference });
             comp.VerifyDiagnostics(
                 // (15,16): error CS0630: 'MyVarArgs2.Invoke(__arglist)' cannot implement interface member 'IVarArgs.Invoke(__arglist)' in type 'MyVarArgs2' because it has an __arglist parameter
                 //     public int Invoke(__arglist) => throw null;
@@ -15531,7 +15590,7 @@ class M
             CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
                 // (6,16): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     object a = Test((dynamic)2);
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test").WithArguments("M.Test(object)").WithLocation(6, 16)
             );
         }
 
@@ -15622,7 +15681,7 @@ class M : B
             CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
                 // (16,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //     public M() : base((object)Test((dynamic)2))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(16, 31)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test").WithArguments("M.Test(object)").WithLocation(16, 31)
             );
         }
 
@@ -15655,7 +15714,7 @@ class M
             CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
                 // (8,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //         Console.Write((object)Test((dynamic)2));
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(8, 31)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Test").WithArguments("M.Test(object)").WithLocation(8, 31)
             );
         }
 
@@ -15683,7 +15742,7 @@ class M
             CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
                 // (4,31): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     static object o = (object)Test((dynamic)2);
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test((dynamic)2)").WithArguments("M.Test(object)").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test").WithArguments("M.Test(object)").WithLocation(4, 31)
             );
         }
 
@@ -15742,22 +15801,22 @@ class M
             CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
                 // (16,29): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
                 // (30,30): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     int instanceField = (int)InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
                 // (21,25): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //             return (int)InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
                 // (26,21): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //         return (int)InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
                 // (31,33): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     public C(int x) : base((int)InstanceMethod((dynamic)x))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)x)").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
                 // (34,28): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     public C() : this((int)InstanceMethod((dynamic)2))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
             );
         }
 
@@ -15821,22 +15880,22 @@ class M
             CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
                 // (16,29): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)C.InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
                 // (30,30): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     int instanceField = (int)C.InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(30, 30),
                 // (21,25): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //             return (int)C.InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(21, 25),
                 // (26,21): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //         return (int)C.InstanceMethod((dynamic)2);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(26, 21),
                 // (31,33): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     public C(int x) : base((int)C.InstanceMethod((dynamic)x))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)x)").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(31, 33),
                 // (34,28): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     public C() : this((int)C.InstanceMethod((dynamic)2))
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod((dynamic)2)").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(34, 28)
             );
         }
 
@@ -16096,16 +16155,11 @@ class Test
 {
   // Code size       49 (0x31)
   .maxstack  2
-  .locals init (System.Span<int> V_0, //x
-                int V_1)
-  IL_0000:  ldc.i4.s   33
-  IL_0002:  stloc.1
-  IL_0003:  ldloc.1
-  IL_0004:  conv.u
-  IL_0005:  ldc.i4.4
-  IL_0006:  mul.ovf.un
-  IL_0007:  localloc
-  IL_0009:  ldloc.1
+  .locals init (System.Span<int> V_0) //x
+  IL_0000:  ldc.i4     0x84
+  IL_0005:  conv.u
+  IL_0006:  localloc
+  IL_0008:  ldc.i4.s   33
   IL_000a:  newobj     ""System.Span<int>..ctor(void*, int)""
   IL_000f:  stloc.0
   IL_0010:  ldloca.s   V_0
@@ -16432,6 +16486,210 @@ unsafe class Test
   IL_000b:  stind.i4
   IL_000c:  ret
 }");
+        }
+
+        [Fact]
+        public void EnumConstraint_NoBoxing()
+        {
+            var code = @"
+enum E1
+{
+    A = 5
+}
+class Test1
+{
+    public static void M<T>(T arg)  where T : struct, System.Enum
+    {
+    }
+}
+class Test2
+{
+    public void M()
+    {
+        Test1.M(E1.A);
+    }
+}";
+
+            CompileAndVerify(code).VerifyIL("Test2.M", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.5
+  IL_0001:  call       ""void Test1.M<E1>(E1)""
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void PartialMethodsWithInParameter_WithBody()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        M(5);
+    }
+    partial void M(in int i);
+}
+partial class C
+{
+    partial void M(in int i)
+    {
+        System.Console.WriteLine(i);
+    }
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}",
+                expectedOutput: "5")
+                .VerifyIL("C.Call", @"
+
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.5
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""void C.M(in int)""
+  IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void PartialMethodsWithInParameter_NoBody()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        M(5);
+    }
+    partial void M(in int i);
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}")
+                .VerifyIL("C.Call", @"
+
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [Fact]
+        public void OverloadingPartialMethods_RefKindInWithNone_ImplementIn()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        int x = 0;
+        M(x);
+        M(in x);
+    }
+    partial void M(in int i);
+    partial void M(int i);
+}
+partial class C
+{
+    partial void M(in int i)
+    {
+        System.Console.WriteLine(""in called"");
+    }
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}",
+                expectedOutput: "in called");
+        }
+
+        [Fact]
+        public void OverloadingPartialMethods_RefKindInWithNone_ImplementNone()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        int x = 0;
+        M(x);
+        M(in x);
+    }
+    partial void M(in int i);
+    partial void M(int i);
+}
+partial class C
+{
+    partial void M(int i)
+    {
+        System.Console.WriteLine(""none called"");
+    }
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}",
+                expectedOutput: "none called");
+        }
+
+        [Fact]
+        public void OverloadingPartialMethods_RefKindInWithNone_ImplementBoth()
+        {
+            CompileAndVerify(@"
+partial class C
+{
+    public void Call()
+    {
+        int x = 0;
+        M(x);
+        M(in x);
+    }
+    partial void M(in int i);
+    partial void M(int i);
+}
+partial class C
+{
+    partial void M(int i)
+    {
+        System.Console.WriteLine(""none called"");
+    }
+    partial void M(in int i)
+    {
+        System.Console.WriteLine(""in called"");
+    }
+}
+static class Program
+{
+    static void Main()
+    {
+        new C().Call();
+    }
+}",
+                expectedOutput: @"
+none called
+in called");
         }
     }
 }

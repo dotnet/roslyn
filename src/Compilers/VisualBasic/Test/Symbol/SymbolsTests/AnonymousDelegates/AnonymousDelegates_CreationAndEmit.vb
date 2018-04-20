@@ -290,7 +290,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
 
@@ -309,6 +309,9 @@ End Module
             Assert.Equal("Function <generated method>.BeginInvoke(ByRef Pp1 As System.Int64, DelegateCallback As System.AsyncCallback, DelegateAsyncState As System.Object) As System.IAsyncResult", x16.GetMember("BeginInvoke").ToTestDisplayString())
             Assert.Equal(MethodKind.Ordinary, x16.GetMember(Of MethodSymbol)("EndInvoke").MethodKind)
             Assert.Equal("Function <generated method>.EndInvoke(ByRef Pp1 As System.Int64, DelegateAsyncResult As System.IAsyncResult) As System.Int64", x16.GetMember("EndInvoke").ToTestDisplayString())
+
+            Assert.IsType(GetType(AnonymousTypeManager.AnonymousDelegatePublicSymbol), x16)
+            Assert.False(DirectCast(x16, INamedTypeSymbol).IsSerializable)
 
             Dim node15 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 15)
             Dim x15 = DirectCast(semanticModel.GetDeclaredSymbol(node15), LocalSymbol).Type
@@ -468,7 +471,7 @@ VB$AnonymousDelegate_6`2[System.Int64,System.Int64]
         <Fact>
         <WorkItem(2928, "https://github.com/dotnet/roslyn/issues/2928")>
         Public Sub ContainingSymbol()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module Test

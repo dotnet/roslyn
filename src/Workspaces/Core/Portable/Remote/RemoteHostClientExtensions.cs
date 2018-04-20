@@ -45,14 +45,13 @@ namespace Microsoft.CodeAnalysis.Remote
         public static async Task<SessionWithSolution> TryCreateSessionAsync(
             this RemoteHostClient client, string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
         {
-            var session = await client.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (session == null)
+            var connection = await client.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
                 return null;
             }
 
-            var scope = await GetPinnedScopeAsync(solution, cancellationToken).ConfigureAwait(false);
-            return await SessionWithSolution.CreateAsync(session, scope, cancellationToken).ConfigureAwait(false);
+            return await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -224,6 +223,14 @@ namespace Microsoft.CodeAnalysis.Remote
         public static Task<T> TryRunCodeAnalysisRemoteAsync<T>(
             this RemoteHostClient client, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken)
             => TryRunRemoteAsync<T>(client, WellKnownServiceHubServices.CodeAnalysisService, solution, targetName, arguments, cancellationToken);
+
+        public static Task<bool> TryRunCodeAnalysisRemoteAsync(
+            this RemoteHostClient client, string targetName, object argument, CancellationToken cancellationToken)
+            => TryRunRemoteAsync(client, WellKnownServiceHubServices.CodeAnalysisService, targetName, new object[] { argument }, cancellationToken);
+
+        public static Task<bool> TryRunCodeAnalysisRemoteAsync(
+            this RemoteHostClient client, string targetName, object[] arguments, CancellationToken cancellationToken)
+            => TryRunRemoteAsync(client, WellKnownServiceHubServices.CodeAnalysisService, targetName, arguments, cancellationToken);
 
         /// <summary>
         /// Synchronize given solution as primary workspace solution in remote host

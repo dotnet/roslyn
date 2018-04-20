@@ -972,6 +972,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 LocalSymbol localSymbol = assignmentLocal.LocalSymbol;
 
+                // If the LHS is a readonly ref and the result is used later we cannot stack
+                // schedule since we may be converting a writeable value on the RHS to a readonly
+                // one on the LHS.
+                if (localSymbol.RefKind == RefKind.RefReadOnly &&
+                    (_context == ExprContext.Address || _context == ExprContext.Value))
+                {
+                    ShouldNotSchedule(localSymbol);
+                }
+
                 // Special Case: If the RHS is a pointer conversion, then the assignment functions as
                 // a conversion (because the RHS will actually be typed as a native u/int in IL), so
                 // we should not optimize away the local (i.e. schedule it on the stack).
@@ -997,9 +1006,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var lhs = node.Left;
 
-            Debug.Assert(!node.IsRef || lhs is BoundLocal local &&
-                         local.LocalSymbol.RefKind != RefKind.None,
-                                "only ref locals can be a target of a ref assignment");
+            Debug.Assert(!node.IsRef || 
+              (lhs is BoundLocal local && local.LocalSymbol.RefKind != RefKind.None) ||
+              (lhs is BoundParameter param && param.ParameterSymbol.RefKind != RefKind.None),
+                                "only ref symbols can be a target of a ref assignment");
             
             switch (lhs.Kind)
             {
@@ -1091,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             MethodSymbol method = node.Method;
-            var rewrittenArguments = VisitArguments(node.Arguments, method.Parameters);
+            var rewrittenArguments = VisitArguments(node.Arguments, method.Parameters, node.ArgumentRefKindsOpt);
 
             return node.Update(receiver, method, rewrittenArguments);
         }
@@ -1124,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return receiver;
         }
 
-        private ImmutableArray<BoundExpression> VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters)
+        private ImmutableArray<BoundExpression> VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt)
         {
             Debug.Assert(!arguments.IsDefault);
             Debug.Assert(!parameters.IsDefault);
@@ -1134,26 +1144,46 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             ArrayBuilder<BoundExpression> rewrittenArguments = null;
             for (int i = 0; i < arguments.Length; i++)
             {
-                var arg = arguments[i];
-                BoundExpression rewrittenArg;
-
-                // Treat the __arglist() as a value parameter.
-                ExprContext context = (i == parameters.Length || parameters[i].RefKind == RefKind.None) ? ExprContext.Value : ExprContext.Address;
-
-                rewrittenArg = VisitExpression(arg, context);
-                if (rewrittenArguments == null && arg != rewrittenArg)
-                {
-                    rewrittenArguments = ArrayBuilder<BoundExpression>.GetInstance();
-                    rewrittenArguments.AddRange(arguments, i);
-                }
-
-                if (rewrittenArguments != null)
-                {
-                    rewrittenArguments.Add(rewrittenArg);
-                }
+                RefKind argRefKind = CodeGenerator.GetArgumentRefKind(arguments, parameters, argRefKindsOpt, i);
+                VisitArgument(arguments, ref rewrittenArguments, i, argRefKind);
             }
 
             return rewrittenArguments != null ? rewrittenArguments.ToImmutableAndFree() : arguments;
+        }
+
+        private void VisitArgument(ImmutableArray<BoundExpression> arguments, ref ArrayBuilder<BoundExpression> rewrittenArguments, int i, RefKind argRefKind)
+        {
+            ExprContext context = (argRefKind == RefKind.None) ? ExprContext.Value : ExprContext.Address;
+
+            var arg = arguments[i];
+            BoundExpression rewrittenArg = VisitExpression(arg, context);
+
+            if (rewrittenArguments == null && arg != rewrittenArg)
+            {
+                rewrittenArguments = ArrayBuilder<BoundExpression>.GetInstance();
+                rewrittenArguments.AddRange(arguments, i);
+            }
+
+            if (rewrittenArguments != null)
+            {
+                rewrittenArguments.Add(rewrittenArg);
+            }
+        }
+
+        public override BoundNode VisitArgListOperator(BoundArgListOperator node)
+        {
+
+            ArrayBuilder<BoundExpression> rewrittenArguments = null;
+            ImmutableArray<BoundExpression> arguments = node.Arguments;
+            ImmutableArray<RefKind> argRefKindsOpt = node.ArgumentRefKindsOpt;
+
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                RefKind refKind = argRefKindsOpt.IsDefaultOrEmpty ? RefKind.None : argRefKindsOpt[i];
+                VisitArgument(arguments, ref rewrittenArguments, i, refKind);
+            }
+
+            return node.Update(rewrittenArguments?.ToImmutableAndFree() ?? arguments, argRefKindsOpt, node.Type);
         }
 
         public override BoundNode VisitMakeRefOperator(BoundMakeRefOperator node)
@@ -1168,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
             var constructor = node.Constructor;
-            var rewrittenArguments = VisitArguments(node.Arguments, constructor.Parameters);
+            var rewrittenArguments = VisitArguments(node.Arguments, constructor.Parameters, node.ArgumentRefKindsOpt);
             Debug.Assert(node.InitializerExpressionOpt == null);
 
             return node.Update(constructor, rewrittenArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt,
@@ -1642,7 +1672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
             BoundExpression visitedOperand = this.VisitExpression(node.Operand, ExprContext.Address);
-            return node.Update(visitedOperand, node.Type);
+            return node.Update(visitedOperand, node.IsManaged, node.Type);
         }
 
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)

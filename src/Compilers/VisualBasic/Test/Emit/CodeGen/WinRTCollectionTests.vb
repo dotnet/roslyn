@@ -44,7 +44,7 @@ Public NotInheritable Class BehaviorCollection
     End Function
 End Class]]></file>
             </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, WinRtRefs)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(source, WinRtRefs)
             comp.AssertNoDiagnostics()
         End Sub
 
@@ -424,7 +424,7 @@ End Class]]>
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, references:=WinRtRefs)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(source, references:=WinRtRefs)
             ' JsonArray implements both IEnumerable and IList, which both have a GetEnumerator
             ' method. We can't know which interface method to call, so we shouldn't emit a
             ' GetEnumerator method at all.
@@ -1294,7 +1294,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:=LegacyRefs)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:=LegacyRefs)
             CompilationUtils.AssertNoDiagnostics(comp)
         End Sub
 
@@ -4869,7 +4869,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:=LegacyRefs)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:=LegacyRefs)
             CompilationUtils.AssertTheseDiagnostics(comp)
         End Sub
 
@@ -6358,7 +6358,7 @@ Public Class Class1
 End Class
 ]]></file>
             </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, WinRtRefs)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(source, WinRtRefs)
             comp.AssertNoDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()

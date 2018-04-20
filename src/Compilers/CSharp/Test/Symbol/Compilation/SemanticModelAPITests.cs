@@ -17,6 +17,91 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class SemanticTests : CSharpTestBase
     {
         [Fact]
+        public void RefReassignSymbolInfo()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    int f = 0; 
+    void M(ref int rx)
+    {
+        (rx = ref f) = 0;
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetCompilationUnitRoot();
+            var assignment = root.DescendantNodes().OfType<ParenthesizedExpressionSyntax>().Single();
+            var model = comp.GetSemanticModel(tree);
+            Assert.Null(model.GetDeclaredSymbol(assignment));
+            var assignmentInfo = model.GetSymbolInfo(assignment);
+            Assert.Null(assignmentInfo.Symbol);
+        }
+
+        [Fact]
+        public void RefForSymbolInfo()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(int x)
+    {
+        for (ref readonly int rx = ref x;;)
+        {
+            if (rx == 0)
+            {
+                return;
+            }
+        }
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetCompilationUnitRoot();
+            var rx = root.DescendantNodes().OfType<IdentifierNameSyntax>().Last();
+            var model = comp.GetSemanticModel(tree);
+            var rxInfo = model.GetSymbolInfo(rx);
+            Assert.NotNull(rxInfo.Symbol);
+            var rxSymbol = Assert.IsAssignableFrom<ILocalSymbol>(rxInfo.Symbol);
+            Assert.True(rxSymbol.IsRef);
+            Assert.Equal(RefKind.RefReadOnly, rxSymbol.RefKind);
+            var rxDecl = root.DescendantNodes().OfType<ForStatementSyntax>().Single().Declaration;
+            Assert.Same(model.GetDeclaredSymbol(rxDecl.Variables.Single()), rxSymbol);
+        }
+
+        [Fact]
+        public void RefForEachSymbolInfo()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+class C
+{
+    void M(Span<int> span)
+    {
+        foreach (ref readonly int rx in span)
+        {
+            if (rx == 0)
+            {
+                return;
+            }
+        }
+    }
+}");
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetCompilationUnitRoot();
+            var rx = root.DescendantNodes().OfType<IdentifierNameSyntax>().Last();
+            var model = comp.GetSemanticModel(tree);
+            var rxInfo = model.GetSymbolInfo(rx);
+            Assert.NotNull(rxInfo.Symbol);
+            var rxSymbol = Assert.IsAssignableFrom<ILocalSymbol>(rxInfo.Symbol);
+            Assert.True(rxSymbol.IsRef);
+            Assert.Equal(RefKind.RefReadOnly, rxSymbol.RefKind);
+            var rxDecl = root.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            Assert.Same(model.GetDeclaredSymbol(rxDecl), rxSymbol);
+        }
+
+        [Fact]
         public void LocalSymbolsAreEquivalentAcrossSemanticModelsFromTheSameCompilation()
         {
             var text = @"public class C { public void M() { int x = 10; } }";

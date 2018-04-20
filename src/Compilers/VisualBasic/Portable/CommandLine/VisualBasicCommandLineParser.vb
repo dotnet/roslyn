@@ -1625,8 +1625,8 @@ lVbRuntimePlus:
                 Return Nothing
             End If
 
-            If fullPath Is Nothing OrElse fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 Then
-                AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, filePath)
+            If fullPath Is Nothing OrElse Not PathUtilities.IsValidFilePath(fileName) Then
+                AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, filePath)
                 Return Nothing
             End If
 
@@ -2054,6 +2054,8 @@ lVbRuntimePlus:
                         Return Platform.AnyCpu32BitPreferred
                     Case "arm"
                         Return Platform.Arm
+                    Case "arm64"
+                        Return Platform.Arm64
                     Case Else
                         AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, name, value)
                 End Select
@@ -2206,7 +2208,7 @@ lVbRuntimePlus:
                     outputFileName = simpleName & kind.GetDefaultExtension()
 
                     If simpleName.Length = 0 AndAlso Not kind.IsNetModule() Then
-                        AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, outputFileName)
+                        AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, outputFileName)
                         simpleName = Nothing
                         outputFileName = Nothing
                     End If
@@ -2233,7 +2235,7 @@ lVbRuntimePlus:
                         ' /out:".exe"
                         ' Dev11 emits assembly with an empty name, we don't
                         If simpleName.Length = 0 Then
-                            AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, outputFileName)
+                            AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, outputFileName)
                             simpleName = Nothing
                             outputFileName = Nothing
                         End If

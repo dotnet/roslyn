@@ -35,7 +35,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             comp.AssertNoDiagnostics()
             CompileAndVerify(source,
      expectedOutput:=<![CDATA[
@@ -63,7 +63,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_DateToDoubleConversion, "#1/1/2001#"))
         End Sub
 
@@ -94,7 +94,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             comp.AssertNoDiagnostics()
             CompileAndVerify(source,
 expectedOutput:=<![CDATA[
@@ -134,7 +134,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OverrideWithDefault2, "s1").WithArguments("Public Overrides Sub s1([i As Integer = 2])", "Public MustOverride Sub s1([i As Integer = 0])"))
         End Sub
 
@@ -160,7 +160,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeMismatch2, "1").WithArguments("Integer", "System.Guid"))
         End Sub
 
@@ -192,7 +192,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             comp.AssertNoDiagnostics()
         End Sub
 
@@ -217,7 +217,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             comp.AssertNoDiagnostics()
         End Sub
 
@@ -240,7 +240,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_RequiredConstConversion2, """12""").WithArguments("String", "Integer"))
         End Sub
 
@@ -267,7 +267,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OptionalIllegal1, "Optional").WithArguments("Event"),
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "RaiseEvent E()").WithArguments("I", "Public Event E(I As Integer)"))
         End Sub
@@ -287,7 +287,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source).VerifyDiagnostics(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ExpectedOptional, "Z"))
         End Sub
 
@@ -306,7 +306,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source).VerifyDiagnostics(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ParamArrayWithOptArgs, "Y"))
         End Sub
 
@@ -325,7 +325,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source).VerifyDiagnostics(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ParamArrayMustBeLast, "Optional z As Integer = 1"))
         End Sub
 
@@ -344,7 +344,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source).VerifyDiagnostics(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_RequiredConstExpr, "String.Empty"))
         End Sub
 
@@ -363,7 +363,7 @@ End Structure
 ]]>
     </file>
 </compilation>
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source).AssertNoDiagnostics()
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source).AssertNoDiagnostics()
         End Sub
 
         <Fact(), WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
@@ -386,7 +386,7 @@ End Structure
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             CompileAndVerify(source,
      expectedOutput:=<![CDATA[
 10
@@ -422,7 +422,7 @@ End Structure
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             CompileAndVerify(source,
      expectedOutput:=<![CDATA[
 False
@@ -443,7 +443,7 @@ False
         <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
         <Fact()>
         Public Sub OptionalParameterValueRefersToContainingFunction1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Module Module1
@@ -469,7 +469,7 @@ End Module
         <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
         <Fact()>
         Public Sub OptionalParameterValueRefersToContainingFunction2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Module Module1
@@ -499,7 +499,7 @@ End Module
         <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
         <Fact()>
         Public Sub OptionalParameterValueRefersToMe()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
 Module Module1
@@ -530,7 +530,7 @@ End Module
         <WorkItem(545416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545416")>
         <Fact()>
         Public Sub OptionalParameterValueWithEnumValue()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="c.vb"><![CDATA[
     Public Enum PropertyPagesDialogAction
@@ -671,7 +671,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource)
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(libSource)
 
             Dim source =
 <compilation>
@@ -695,7 +695,7 @@ End Module
 
             Dim compilationRef As MetadataReference = libComp.ToMetadataReference()
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={compilationRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={compilationRef})
 
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "M2").WithArguments("x", "Public Shared Sub M2(x As Object)"),
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "M4").WithArguments("x", "Public Shared Sub M4(x As Object)"),
@@ -745,7 +745,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource)
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(libSource)
 
             Dim source =
 <compilation>
@@ -820,7 +820,7 @@ End Class
     ]]></file>
             </compilation>
 
-            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource)
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(libSource)
 
             Dim source =
 <compilation>
@@ -918,7 +918,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource)
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(libSource)
 
             Dim source =
 <compilation>
@@ -938,7 +938,7 @@ End Module
 </compilation>
             Dim libRef As MetadataReference = libComp.ToMetadataReference()
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=New MetadataReference() {libRef})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:=New MetadataReference() {libRef})
 
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "Goo1").WithArguments("x", "Public Shared Sub Goo1(x As Object)"),
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "Goo2").WithArguments("x", "Public Shared Sub Goo2(x As String)"),
@@ -989,7 +989,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim libComp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(libSource)
+            Dim libComp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(libSource)
 
             Dim source =
 <compilation>
@@ -1040,7 +1040,7 @@ True
         <WorkItem(545686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545686")>
         <Fact()>
         Public Sub ParameterValueWithGenericSemanticInfo()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
           <compilation>
               <file name="a.vb"><![CDATA[
 Option Strict On
@@ -1109,7 +1109,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseDll)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(comp,
 <expected><![CDATA[
@@ -1366,7 +1366,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef}, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
      expectedOutput:=
@@ -1512,7 +1512,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1682,13 +1682,13 @@ Void add_E3(System.Action) - 88, E3, a.vb
 Void Main() - 10, Main, a.vb
 ]]>
 
-            Dim attributeCompilation = CreateCompilationWithReferences(attributeSource, {MscorlibRef_v4_0_30316_17626}, TestOptions.ReleaseDll)
+            Dim attributeCompilation = CreateEmptyCompilationWithReferences(attributeSource, {MscorlibRef_v4_0_30316_17626}, TestOptions.ReleaseDll)
             CompileAndVerify(attributeCompilation)
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef, New VisualBasicCompilationReference(attributeCompilation)}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef, New VisualBasicCompilationReference(attributeCompilation)}, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput)
 
-            compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef, MetadataReference.CreateFromImage(attributeCompilation.EmitToArray())}, TestOptions.ReleaseExe)
+            compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef, MetadataReference.CreateFromImage(attributeCompilation.EmitToArray())}, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput)
         End Sub
 
@@ -1840,7 +1840,7 @@ Void add_E3(System.Action) - 88, E3, a.vb
 Void Main() - 10, Main, a.vb
 ]]>
 
-            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef}, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput)
         End Sub
 
@@ -1971,7 +1971,7 @@ End Class
                     </file>
                 </compilation>,
                 options:=TestOptions.ReleaseExe,
-                additionalRefs:={reference1})
+                references:={reference1})
             CompileAndVerify(compilation2,
             <![CDATA[
 9
@@ -2022,7 +2022,7 @@ Partial Module A
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilationWithReferences(
+            Dim compilation = CreateEmptyCompilationWithReferences(
                 {
                     SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8),
                     SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d", encoding:=Encoding.UTF8),
@@ -2102,7 +2102,7 @@ End Module
 #End ExternalSource
 "
 
-            Dim compilation = CreateCompilationWithReferences(
+            Dim compilation = CreateEmptyCompilationWithReferences(
                 {
                     SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8),
                     SyntaxFactory.ParseSyntaxTree(source2, path:="a\b\..\c\d.vb", encoding:=Encoding.UTF8),
@@ -2149,7 +2149,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             comp.AssertNoDiagnostics()
             CompileAndVerify(source,
      expectedOutput:=<![CDATA[

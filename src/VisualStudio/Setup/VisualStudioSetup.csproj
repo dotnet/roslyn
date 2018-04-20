@@ -128,6 +128,14 @@
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\MSBuild\Workspaces.MSBuild.csproj">
+      <Name>Workspaces.MSBuild</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
       <Name>CSharpWorkspace</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>

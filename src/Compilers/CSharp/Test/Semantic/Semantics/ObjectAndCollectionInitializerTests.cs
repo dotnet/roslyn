@@ -1572,10 +1572,8 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo() = new ... lizerTest()')
             Left: 
-              IInvocationOperation ( MemberInitializerTest MemberInitializerTest.Goo()) (OperationKind.Invocation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
-                Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'Goo')
-                Arguments(0)
+              IInvalidOperation (OperationKind.Invalid, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
+                Children(0)
             Right: 
               IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... lizerTest()')
                 Arguments(0)
@@ -2071,8 +2069,8 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Test, IsInvalid) (Syntax: '{ 1 }')
       Initializers(1):
-          ICollectionElementInitializerOperation (AddMethod: void Test.Add(System.Int32 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
-            Arguments(1):
+          IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
+            Children(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -2281,10 +2279,8 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             Children(1):
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo() = new ... lizerTest()')
                   Left: 
-                    IInvocationOperation ( MemberInitializerTest MemberInitializerTest.Goo()) (OperationKind.Invocation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
-                      Instance Receiver: 
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'Goo')
-                      Arguments(0)
+                    IInvalidOperation (OperationKind.Invalid, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
+                      Children(0)
                   Right: 
                     IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... lizerTest()')
                       Arguments(0)

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixes.NamingStyles;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
