@@ -54,8 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol _currentMethodOrLambda;
 
-        private readonly bool _includeNonNullableWarnings;
-
         /// <summary>
         /// Instances being constructed.
         /// </summary>
@@ -72,14 +70,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             MethodSymbol member,
             BoundNode node,
-            Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt,
-            bool includeNonNullableWarnings)
+            Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
             : base(compilation, member, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: false)
         {
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this._currentMethodOrLambda = member;
             _callbackOpt = callbackOpt;
-            _includeNonNullableWarnings = includeNonNullableWarnings;
             // PROTOTYPE(NullableReferenceTypes): Do we really need a Binder?
             // If so, are we interested in an InMethodBinder specifically?
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
@@ -123,8 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 member,
                 node,
-                callbackOpt,
-                includeNonNullableWarnings: (flags & NullableReferenceFlags.AllowNullAsNonNull) == 0);
+                callbackOpt);
 
             try
             {
@@ -348,6 +343,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeOpt ?? (object)"<null>";
         }
 
+        private bool ReportNullReferenceAssignmentIfNecessary(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings)
+        {
+            Debug.Assert(value != null);
+            Debug.Assert(!IsConditionalState);
+
+            if (targetType is null || valueType is null)
+            {
+                return false;
+            }
+
+            if (targetType.IsReferenceType && targetType.IsNullable == false && valueType.IsNullable == true)
+            {
+                if (useLegacyWarnings)
+                {
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, value.Syntax);
+                }
+                else if (!ReportNullAsNonNullableReferenceIfNecessary(value))
+                {
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceAssignment, value.Syntax);
+                }
+                return true;
+            }
+
+            return false;
+        }
+
         private void ReportAssignmentWarnings(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings)
         {
             Debug.Assert(value != null);
@@ -360,18 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (targetType.IsReferenceType && targetType.IsNullable == false && valueType.IsNullable == true)
-                {
-                    if (useLegacyWarnings)
-                    {
-                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, value.Syntax);
-                    }
-                    else if (!CheckNullAsNonNullableReference(value))
-                    {
-                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceAssignment, value.Syntax);
-                    }
-                }
-
+                ReportNullReferenceAssignmentIfNecessary(value, targetType, valueType, useLegacyWarnings);
                 ReportNullabilityMismatchInAssignmentIfNecessary(value, valueType.TypeSymbol, targetType.TypeSymbol);
             }
         }
@@ -379,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Update tracked value on assignment.
         /// </summary>
-        private void TrackNullableStateForAssignment(BoundExpression value, TypeSymbolWithAnnotations targetType, int targetSlot, TypeSymbolWithAnnotations valueType, int valueSlot)
+        private void TrackNullableStateForAssignment(BoundExpression value, TypeSymbolWithAnnotations targetType, int targetSlot, TypeSymbolWithAnnotations valueType, int valueSlot = -1)
         {
             Debug.Assert(value != null);
             Debug.Assert(!IsConditionalState);
@@ -695,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool reportedNullable = false;
                 if (returnTypeIsNonNullable || returnTypeIsUnconstrainedTypeParameter)
                 {
-                    reportedNullable = CheckNullAsNonNullableReference(node.ExpressionOpt);
+                    reportedNullable = ReportNullAsNonNullableReferenceIfNecessary(node.ExpressionOpt);
                 }
                 if (!reportedNullable)
                 {
@@ -728,6 +738,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeOpt?.IsUnconstrainedTypeParameter() == true;
         }
 
+        /// <summary>
+        /// Report warning assigning value where nested nullability does not match
+        /// target (e.g.: `object[] a = new[] { maybeNull }`).
+        /// </summary>
         private void ReportNullabilityMismatchInAssignmentIfNecessary(BoundExpression node, TypeSymbol sourceType, TypeSymbol destinationType)
         {
             if ((object)sourceType != null && IsNullabilityMismatch(destinationType, sourceType))
@@ -810,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, node.Constructor, node.ArgsToParamsOpt, node.Expanded);
+            VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, node.Constructor, node.ArgsToParamsOpt, node.Expanded);
             VisitObjectOrDynamicObjectCreation(node, node.InitializerExpressionOpt);
             return null;
         }
@@ -900,8 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var symbol = objectInitializer.MemberSymbol;
                         if (!objectInitializer.Arguments.IsDefaultOrEmpty)
                         {
-                            var method = ((PropertySymbol)symbol).GetOwnOrInheritedSetMethod();
-                            VisitArguments(objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt, method, objectInitializer.ArgsToParamsOpt, objectInitializer.Expanded);
+                            VisitArguments(objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt, (PropertySymbol)symbol, objectInitializer.ArgsToParamsOpt, objectInitializer.Expanded);
                         }
                         if ((object)symbol != null)
                         {
@@ -924,7 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // of omitted call. See PreciseAbstractFlowPass.VisitCollectionElementInitializer.
             }
 
-            VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), node.AddMethod, node.ArgsToParamsOpt, node.Expanded);
+            VisitArguments(node, node.Arguments, default(ImmutableArray<RefKind>), node.AddMethod, node.ArgsToParamsOpt, node.Expanded);
             SetUnknownResultNullability();
         }
 
@@ -967,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argument = arguments[i];
                 Result argumentResult = VisitRvalueWithResult(argument);
                 var parameter = constructor.Parameters[i];
-                WarnOnNullReferenceArgument(argument, argumentResult.Type, parameter, expanded: false);
+                ReportArgumentWarnings(argument, argumentResult.Type, parameter);
 
                 // PROTOTYPE(NullableReferenceTypes): node.Declarations includes
                 // explicitly-named properties only. For now, skip expressions
@@ -1040,6 +1053,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // uses a HashSet<TypeSymbol> to reduce the candidates to the unique types before comparing.
                 // Should do the same here.
                 var bestType = BestTypeInferrer.InferBestType(resultTypes, _conversions, useSiteDiagnostics: ref useSiteDiagnostics);
+                // PROTOTYPE(NullableReferenceType): Report a special ErrorCode.WRN_NoBestNullabilityArrayElements
+                // when InferBestType fails, and avoid reporting conversion warnings for each element in those cases.
+                // (See similar code for conditional expressions: ErrorCode.WRN_NoBestNullabilityConditionalExpression.)
                 if ((object)bestType != null)
                 {
                     elementType = bestType;
@@ -1178,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (warnOnNullReferenceArgument)
                 {
-                    WarnOnNullReferenceArgument(binary.Left, leftType, binary.MethodOpt.Parameters[0], expanded: false);
+                    ReportArgumentWarnings(binary.Left, leftType, binary.MethodOpt.Parameters[0]);
                 }
 
                 VisitRvalue(binary.Right);
@@ -1190,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (warnOnNullReferenceArgument)
                 {
-                    WarnOnNullReferenceArgument(binary.Right, rightType, binary.MethodOpt.Parameters[1], expanded: false);
+                    ReportArgumentWarnings(binary.Right, rightType, binary.MethodOpt.Parameters[1]);
                 }
 
                 Debug.Assert(!IsConditionalState);
@@ -1353,17 +1369,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true);
                 return rightType;
-            }
-        }
-
-        private void ReportNullabilityMismatchIfAny(BoundExpression node, TypeSymbolWithAnnotations expectedType, TypeSymbolWithAnnotations actualType)
-        {
-            if ((object)expectedType != null &&
-                (object)actualType != null &&
-                IsNullabilityMismatch(expectedType.TypeSymbol, actualType.TypeSymbol))
-            {
-                // PROTOTYPE(NullableReferenceTypes): Create a distinct warning rather than using WRN_NullabilityMismatchInAssignment.
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, actualType.TypeSymbol, expectedType.TypeSymbol);
             }
         }
 
@@ -1541,12 +1546,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(NullableReferenceTypes): Update method based on inferred receiver type.
             }
 
-            ImmutableArray<Result> results = VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded);
-            if (method.IsGenericMethod && HasImplicitTypeArguments(node))
+            // PROTOTYPE(NullableReferenceTypes): Can we handle some error cases?
+            // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
+            if (!node.HasErrors)
             {
-                method = InferMethod(node, method, results.SelectAsArray(r => r.Type));
+                ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
+                ImmutableArray<BoundExpression> arguments = RemoveArgumentConversions(node.Arguments, refKindsOpt);
+                ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, node.Expanded);
+                if (method.IsGenericMethod && HasImplicitTypeArguments(node))
+                {
+                    method = InferMethod(node, method, results.SelectAsArray(r => r.Type));
+                }
+                VisitArgumentsWarn(arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt, node.Expanded, results);
             }
-            VisitArgumentsWarn(node.Arguments, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded, results);
 
             UpdateStateForCall(node);
 
@@ -1592,17 +1604,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        private void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, bool expanded)
+        private void VisitArguments(
+            BoundExpression node,
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> refKindsOpt,
+            MethodSymbol method,
+            ImmutableArray<int> argsToParamsOpt,
+            bool expanded)
         {
-            ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, method, argsToParamsOpt, expanded);
-            VisitArgumentsWarn(arguments, refKindsOpt, method, argsToParamsOpt, expanded, results);
+            VisitArguments(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, expanded);
+        }
+
+        private void VisitArguments(
+            BoundExpression node,
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> refKindsOpt,
+            PropertySymbol property,
+            ImmutableArray<int> argsToParamsOpt,
+            bool expanded)
+        {
+            VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, expanded);
+        }
+
+        private void VisitArguments(
+            BoundExpression node,
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> refKindsOpt,
+            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<int> argsToParamsOpt,
+            bool expanded)
+        {
+            Debug.Assert(!arguments.IsDefault);
+            ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, expanded);
+            // PROTOTYPE(NullableReferenceTypes): Can we handle some error cases?
+            // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
+            if (!node.HasErrors && !parameters.IsDefault)
+            {
+                VisitArgumentsWarn(arguments, refKindsOpt, parameters, argsToParamsOpt, expanded, results);
+            }
         }
 
         private ImmutableArray<Result> VisitArgumentsEvaluate(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
-            MethodSymbol method,
-            ImmutableArray<int> argsToParamsOpt,
             bool expanded)
         {
             Debug.Assert(!IsConditionalState);
@@ -1635,49 +1679,128 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitArgumentsWarn(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
-            MethodSymbol method,
+            ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<int> argsToParamsOpt,
             bool expanded,
             ImmutableArray<Result> results)
         {
             for (int i = 0; i < arguments.Length; i++)
             {
-                RefKind refKind = GetRefKind(refKindsOpt, i);
-                var argument = arguments[i];
-                var parameter = GetCorrespondingParameter(i, method, argsToParamsOpt, ref expanded);
-                var result = results[i];
-                if (refKind != RefKind.None)
+                (ParameterSymbol parameter, TypeSymbolWithAnnotations parameterType) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                if (parameter is null)
                 {
-                    var parameterType = parameter?.Type;
-                    ReportAssignmentWarnings(argument, result.Type, parameterType, useLegacyWarnings: false);
-                    TrackNullableStateForAssignment(argument, result.Type, result.Slot, parameterType, -1);
+                    continue;
                 }
-                if (refKind != RefKind.Out && (object)parameter != null)
-                {
-                    WarnOnNullReferenceArgument(argument, result.Type, parameter, expanded);
-                }
+                VisitArgumentWarn(
+                    arguments[i],
+                    GetRefKind(refKindsOpt, i),
+                    parameter,
+                    parameterType,
+                    results[i]);
             }
         }
 
-        private static ParameterSymbol GetCorrespondingParameter(int argumentOrdinal, MethodSymbol method, ImmutableArray<int> argsToParamsOpt, ref bool expanded)
+        /// <summary>
+        /// Report warnings for an argument corresponding to a specific parameter.
+        /// </summary>
+        private void VisitArgumentWarn(
+            BoundExpression argument,
+            RefKind refKind,
+            ParameterSymbol parameter,
+            TypeSymbolWithAnnotations parameterType,
+            Result result)
         {
-            if ((object)method == null)
+            TypeSymbolWithAnnotations resultType = result.Type;
+            var argumentType = resultType?.TypeSymbol;
+            switch (refKind)
             {
-                expanded = false;
-                return null;
+                case RefKind.None:
+                case RefKind.In:
+                    {
+                        Conversion conversion = GenerateConversion(_conversions, argument, argumentType, parameterType.TypeSymbol);
+                        resultType = InferResultNullability(argument, conversion, parameterType.TypeSymbol, resultType);
+                        if (!ReportNullReferenceArgumentIfNecessary(argument, resultType, parameter, parameterType) &&
+                            !conversion.Exists)
+                        {
+                            ReportNullabilityMismatchInArgument(argument, argumentType, parameter, parameterType.TypeSymbol);
+                        }
+                    }
+                    break;
+                case RefKind.Out:
+                    if (!ReportNullReferenceAssignmentIfNecessary(argument, resultType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument)))
+                    {
+                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                        if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.TypeSymbol, argumentType, ref useSiteDiagnostics))
+                        {
+                            ReportNullabilityMismatchInArgument(argument, argumentType, parameter, parameterType.TypeSymbol);
+                        }
+                    }
+                    // Set nullable state of argument to parameter type.
+                    TrackNullableStateForAssignment(argument, resultType, result.Slot, parameterType);
+                    break;
+                case RefKind.Ref:
+                    if (!ReportNullReferenceArgumentIfNecessary(argument, resultType, parameter, parameterType) &&
+                        !ReportNullReferenceAssignmentIfNecessary(argument, resultType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument)))
+                    {
+                        if ((object)argumentType != null && IsNullabilityMismatch(argumentType, parameterType.TypeSymbol))
+                        {
+                            ReportNullabilityMismatchInArgument(argument, argumentType, parameter, parameterType.TypeSymbol);
+                        }
+                    }
+                    // Set nullable state of argument to parameter type.
+                    TrackNullableStateForAssignment(argument, resultType, result.Slot, parameterType);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
             }
+        }
 
+        private static ImmutableArray<BoundExpression> RemoveArgumentConversions(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt)
+        {
+            int n = arguments.Length;
+            if (n > 0)
+            {
+                var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
+                bool includedConversion = false;
+                for (int i = 0; i < n; i++)
+                {
+                    RefKind refKind = GetRefKind(refKindsOpt, i);
+                    var argument = arguments[i];
+                    if (refKind == RefKind.None)
+                    {
+                        argument = RemoveImplicitConversions(argument);
+                        if (argument != arguments[i])
+                        {
+                            includedConversion = true;
+                        }
+                    }
+                    argumentsBuilder.Add(argument);
+                }
+                if (includedConversion)
+                {
+                    arguments = argumentsBuilder.ToImmutable();
+                }
+                argumentsBuilder.Free();
+            }
+            return arguments;
+        }
+
+        private static (ParameterSymbol, TypeSymbolWithAnnotations) GetCorrespondingParameter(int argumentOrdinal, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt, bool expanded)
+        {
+            Debug.Assert(!parameters.IsDefault);
+
+            int n = parameters.Length;
             ParameterSymbol parameter;
 
             if (argsToParamsOpt.IsDefault)
             {
-                if (argumentOrdinal < method.ParameterCount)
+                if (argumentOrdinal < n)
                 {
-                    parameter = method.Parameters[argumentOrdinal];
+                    parameter = parameters[argumentOrdinal];
                 }
                 else if (expanded)
                 {
-                    parameter = method.Parameters[method.ParameterCount - 1];
+                    parameter = parameters[n - 1];
                 }
                 else
                 {
@@ -1688,9 +1811,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 int parameterOrdinal = argsToParamsOpt[argumentOrdinal];
 
-                if (parameterOrdinal < method.ParameterCount)
+                if (parameterOrdinal < n)
                 {
-                    parameter = method.Parameters[parameterOrdinal];
+                    parameter = parameters[parameterOrdinal];
                 }
                 else
                 {
@@ -1699,13 +1822,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert((object)parameter != null || !expanded);
-            if (expanded && (parameter.Ordinal < method.ParameterCount - 1 || !parameter.Type.IsSZArray()))
+            if (parameter is null)
             {
-                expanded = false;
+                Debug.Assert(!expanded);
+                return (null, null);
             }
 
-            return parameter;
+            var type = parameter.Type;
+            if (expanded && parameter.Ordinal == n - 1 && parameter.Type.IsSZArray())
+            {
+                type = ((ArrayTypeSymbol)type.TypeSymbol).ElementType;
+            }
+
+            return (parameter, type);
         }
 
         private MethodSymbol InferMethod(BoundCall node, MethodSymbol method, ImmutableArray<TypeSymbolWithAnnotations> argumentTypes)
@@ -1897,7 +2026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.ImplicitUserDefined:
                         if ((object)node.SymbolOpt != null && node.SymbolOpt.ParameterCount == 1)
                         {
-                            WarnOnNullReferenceArgument(operand, operandType, node.SymbolOpt.Parameters[0], expanded: false);
+                            ReportArgumentWarnings(operand, operandType, node.SymbolOpt.Parameters[0]);
                         }
                         break;
 
@@ -2233,14 +2362,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var leftKind = node.Left.Kind;
-                ReportAssignmentWarnings(node.Right, left.Type, right.Type, useLegacyWarnings: leftKind == BoundKind.Local || leftKind == BoundKind.Parameter);
+                ReportAssignmentWarnings(node.Right, left.Type, right.Type, useLegacyWarnings: UseLegacyWarnings(node.Left));
                 TrackNullableStateForAssignment(node.Right, left.Type, left.Slot, right.Type, right.Slot);
                 // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
                 _result = node.HasErrors ? Result.Create(TypeSymbolWithAnnotations.Create(node.Type)) : left;
             }
 
             return null;
+        }
+
+        private static bool UseLegacyWarnings(BoundExpression expr)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.Local:
+                case BoundKind.Parameter:
+                    // PROTOTYPE(NullableReferenceTypes): Warnings when assigning to `ref`
+                    // or `out` parameters should be regular warnings. Warnings assigning to
+                    // other parameters should be W warnings.
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
@@ -2268,7 +2411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(NullableReferenceTypes): Update conversion method based on operand type.
                 if (node.OperandConversion.IsUserDefined && (object)node.OperandConversion.Method != null && node.OperandConversion.Method.ParameterCount == 1)
                 {
-                    WarnOnNullReferenceArgument(node.Operand, operandResult.Type, node.OperandConversion.Method.Parameters[0], expanded: false);
+                    ReportArgumentWarnings(node.Operand, operandResult.Type, node.OperandConversion.Method.Parameters[0]);
                     targetTypeOfOperandConversion = node.OperandConversion.Method.ReturnType.TypeSymbol;
                 }
                 else if ((object)incrementOperator != null)
@@ -2300,14 +2443,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    WarnOnNullReferenceArgument(node.Operand, resultOfOperandConversionType, incrementOperator.Parameters[0], expanded: false);
+                    ReportArgumentWarnings(node.Operand, resultOfOperandConversionType, incrementOperator.Parameters[0]);
 
                     resultOfIncrementType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(incrementOperator);
                 }
 
                 if (node.ResultConversion.IsUserDefined && (object)node.ResultConversion.Method != null && node.ResultConversion.Method.ParameterCount == 1)
                 {
-                    WarnOnNullReferenceArgument(node, resultOfIncrementType, node.ResultConversion.Method.Parameters[0], expanded: false);
+                    ReportArgumentWarnings(node, resultOfIncrementType, node.ResultConversion.Method.Parameters[0]);
                 }
 
                 resultOfIncrementType = InferResultNullability(node, node.ResultConversion, node.Type, resultOfIncrementType);
@@ -2320,7 +2463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     setResult = true;
 
                     ReportAssignmentWarnings(node, operandResult.Type, valueType: resultOfIncrementType, useLegacyWarnings: false);
-                    TrackNullableStateForAssignment(node, operandResult.Type, operandResult.Slot, valueType: resultOfIncrementType, valueSlot: -1);
+                    TrackNullableStateForAssignment(node, operandResult.Type, operandResult.Slot, valueType: resultOfIncrementType);
                 }
             }
 
@@ -2347,7 +2490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(NullableReferenceTypes): Update conversion method based on inferred operand type.
                 if (node.LeftConversion.IsUserDefined && (object)node.LeftConversion.Method != null && node.LeftConversion.Method.ParameterCount == 1)
                 {
-                    WarnOnNullReferenceArgument(node.Left, leftOnRight.Type, node.LeftConversion.Method.Parameters[0], expanded: false);
+                    ReportArgumentWarnings(node.Left, leftOnRight.Type, node.LeftConversion.Method.Parameters[0]);
                 }
 
                 TypeSymbolWithAnnotations leftOnRightType;
@@ -2369,8 +2512,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (node.Operator.Kind.IsUserDefined() && (object)node.Operator.Method != null && node.Operator.Method.ParameterCount == 2)
                     {
-                        WarnOnNullReferenceArgument(node.Left, leftOnRightType, node.Operator.Method.Parameters[0], expanded: false);
-                        WarnOnNullReferenceArgument(node.Right, rightType, node.Operator.Method.Parameters[1], expanded: false);
+                        ReportArgumentWarnings(node.Left, leftOnRightType, node.Operator.Method.Parameters[0]);
+                        ReportArgumentWarnings(node.Right, rightType, node.Operator.Method.Parameters[1]);
                     }
 
                     resultType = InferResultNullability(node.Operator.Kind, node.Operator.Method, node.Operator.ReturnType, leftOnRightType, rightType);
@@ -2378,7 +2521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(NullableReferenceTypes): Update final conversion based on inferred operand type.
                     if (node.FinalConversion.IsUserDefined && (object)node.FinalConversion.Method != null && node.FinalConversion.Method.ParameterCount == 1)
                     {
-                        WarnOnNullReferenceArgument(node, resultType, node.FinalConversion.Method.Parameters[0], expanded: false);
+                        ReportArgumentWarnings(node, resultType, node.FinalConversion.Method.Parameters[0]);
                     }
 
                     resultType = InferResultNullability(node, node.FinalConversion, node.Type, resultType);
@@ -2389,7 +2532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 ReportAssignmentWarnings(node, left.Type, resultType, useLegacyWarnings: false);
-                TrackNullableStateForAssignment(node, left.Type, left.Slot, resultType, -1);
+                TrackNullableStateForAssignment(node, left.Type, left.Slot, resultType);
                 _result = resultType;
             }
             //else
@@ -2421,31 +2564,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void WarnOnNullReferenceArgument(BoundExpression argument, TypeSymbolWithAnnotations argumentType, ParameterSymbol parameter, bool expanded)
+        /// <summary>
+        /// Report warning passing nullable argument to non-nullable parameter
+        /// (e.g.: calling `void F(string s)` with `F(maybeNull)`).
+        /// </summary>
+        private bool ReportNullReferenceArgumentIfNecessary(BoundExpression argument, TypeSymbolWithAnnotations argumentType, ParameterSymbol parameter, TypeSymbolWithAnnotations paramType)
+        {
+            if (argumentType?.IsNullable == true)
+            {
+                if (paramType.IsReferenceType && paramType.IsNullable == false)
+                {
+                    if (!ReportNullAsNonNullableReferenceIfNecessary(argument))
+                    {
+                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceArgument, argument.Syntax,
+                            new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
+                            new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void ReportArgumentWarnings(BoundExpression argument, TypeSymbolWithAnnotations argumentType, ParameterSymbol parameter)
         {
             var paramType = parameter.Type;
 
-            if (argumentType?.IsNullable == true)
-            {
-                if (expanded)
-                {
-                    paramType = ((ArrayTypeSymbol)parameter.Type.TypeSymbol).ElementType;
-                }
-
-                if (paramType.IsReferenceType && paramType.IsNullable == false && !CheckNullAsNonNullableReference(argument))
-                {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceArgument, argument.Syntax,
-                        new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
-                        new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
-                }
-            }
+            ReportNullReferenceArgumentIfNecessary(argument, argumentType, parameter, paramType);
 
             if ((object)argumentType != null && IsNullabilityMismatch(paramType.TypeSymbol, argumentType.TypeSymbol))
             {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInArgument, argument.Syntax, argumentType.TypeSymbol, paramType.TypeSymbol,
-                        new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
-                        new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                ReportNullabilityMismatchInArgument(argument, argumentType.TypeSymbol, parameter, paramType.TypeSymbol);
             }
+        }
+
+        /// <summary>
+        /// Report warning passing argument where nested nullability does not match
+        /// parameter (e.g.: calling `void F(object[] o)` with `F(new[] { maybeNull })`).
+        /// </summary>
+        private void ReportNullabilityMismatchInArgument(BoundExpression argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType)
+        {
+            ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInArgument, argument.Syntax, argumentType, parameterType,
+                new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
+                new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
         }
 
         // PROTOTYPE(NullableReferenceTypes): If support for [NullableOptOut] or [NullableOptOutForAssembly]
@@ -2501,9 +2662,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(receiverOpt);
             CheckPossibleNullReceiver(receiverOpt);
 
-            // PROTOTYPE(NullableReferenceTypes): Update method based on inferred receiver type.
-            var method = node.Indexer.GetOwnOrInheritedGetMethod();
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method, node.ArgsToParamsOpt, node.Expanded);
+            // PROTOTYPE(NullableReferenceTypes): Update indexer based on inferred receiver type.
+            VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, node.Indexer, node.ArgsToParamsOpt, node.Expanded);
 
             _result = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.Indexer);
             return null;
@@ -2602,7 +2762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
             if (node.OperatorKind.IsUserDefined() && (object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
             {
-                WarnOnNullReferenceArgument(node.Operand, _result.Type, node.MethodOpt.Parameters[0], expanded: false);
+                ReportArgumentWarnings(node.Operand, _result.Type, node.MethodOpt.Parameters[0]);
             }
 
             _result = InferResultNullability(node);
@@ -2729,12 +2889,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)trueFalseOperator != null)
                 {
-                    WarnOnNullReferenceArgument(left, leftType, trueFalseOperator.Parameters[0], expanded: false);
+                    ReportArgumentWarnings(left, leftType, trueFalseOperator.Parameters[0]);
                 }
 
                 if ((object)logicalOperator != null)
                 {
-                    WarnOnNullReferenceArgument(left, leftType, logicalOperator.Parameters[0], expanded: false);
+                    ReportArgumentWarnings(left, leftType, logicalOperator.Parameters[0]);
                 }
 
                 Visit(right);
@@ -2744,7 +2904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)logicalOperator != null)
                 {
-                    WarnOnNullReferenceArgument(right, rightType, logicalOperator.Parameters[1], expanded: false);
+                    ReportArgumentWarnings(right, rightType, logicalOperator.Parameters[1]);
                 }
             }
 
@@ -2889,7 +3049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
         {
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, null, default(ImmutableArray<int>), expanded: false);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, expanded: false);
             Debug.Assert((object)node.Type == null);
             SetResult(node);
             return null;
@@ -2969,7 +3129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
         {
             VisitRvalue(node.Expression);
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, null, default(ImmutableArray<int>), expanded: false);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, expanded: false);
 
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(node.Type.IsReferenceType);
@@ -2997,7 +3157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null, default(ImmutableArray<int>), expanded: false);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, expanded: false);
             VisitObjectOrDynamicObjectCreation(node, node.InitializerExpressionOpt);
             return null;
         }
@@ -3076,7 +3236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiver = node.ReceiverOpt;
             VisitRvalue(receiver);
             CheckPossibleNullReceiver(receiver);
-            VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null, default(ImmutableArray<int>), expanded: false);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, expanded: false);
 
             Debug.Assert(node.Type.IsDynamic());
 
@@ -3105,16 +3265,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool CheckNullAsNonNullableReference(BoundExpression value)
+        /// <summary>
+        /// Report warning converting null literal to non-nullable reference type.
+        /// target (e.g.: `object x = null;` or calling `void F(object y)` with `F(null)`).
+        /// </summary>
+        private bool ReportNullAsNonNullableReferenceIfNecessary(BoundExpression value)
         {
             if (value.ConstantValue?.IsNull != true && !IsDefaultOfUnconstrainedTypeParameter(value))
             {
                 return false;
             }
-            if (_includeNonNullableWarnings)
-            {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullAsNonNullable, value.Syntax);
-            }
+            ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullAsNonNullable, value.Syntax);
             return true;
         }
 

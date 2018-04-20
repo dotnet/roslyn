@@ -3827,9 +3827,9 @@ struct S2
                 // (274,20): warning CS8601: Possible null reference assignment.
                 //         x27[x27] = y27;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y27").WithLocation(274, 20),
-                // (280,13): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1 CL1.this[CL1 x].get'.
+                // (280,13): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1 CL1.this[CL1 x]'.
                 //         x28[y28] = z28;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y28").WithArguments("x", "CL1 CL1.this[CL1 x].get").WithLocation(280, 13),
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y28").WithArguments("x", "CL1 CL1.this[CL1 x]").WithLocation(280, 13),
                 // (286,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z29 = x29[1];
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x29[1]").WithLocation(286, 15),
@@ -3961,12 +3961,12 @@ class CL1
                 // (27,16): error CS0165: Use of unassigned local variable 'x3'
                 //         M2(ref x3);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(27, 16),
-                // (32,16): warning CS8601: Possible null reference assignment.
+                // (32,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         M2(ref x4);
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x4").WithLocation(32, 16),
-                // (40,16): warning CS8601: Possible null reference assignment.
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x4").WithLocation(32, 16),
+                // (40,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         M3(out x5);
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x5").WithLocation(40, 16),
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x5").WithLocation(40, 16),
                 // (48,16): warning CS8604: Possible null reference argument for parameter 'p' in 'void C.M4(ref CL1 p)'.
                 //         M4(ref x6);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x6").WithArguments("p", "void C.M4(ref CL1 p)").WithLocation(48, 16),
@@ -4058,6 +4058,289 @@ class CL0 : System.Collections.IEnumerable
                 // (10,30): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         var y1 = new CL0() { null };
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 30));
+        }
+
+        [Fact]
+        public void PassingParameters_04()
+        {
+            var source =
+@"interface I<T> { }
+class C
+{
+    static void F(I<object> x, I<object?> y, I<object>? z, I<object?>? w, I<object?>[]? a)
+    {
+        G(x);
+        G(y);
+        G(x, x, x);
+        G(x, y, y);
+        G(x, x, y, z, w);
+        G(y: x, x: y);
+        G(y: y, x: x);
+        G(x, a);
+        G(x, new I<object?>[0]);
+        G(x, new[] { x, x });
+        G(x, new[] { y, y });
+        G(x, new[] { x, y, z });
+        G(y: new[] { x, x }, x: y);
+        G(y: new[] { y, y }, x: x);
+    }
+    static void G(I<object> x, params I<object?>[] y)
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,11): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(y);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object>", "x", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(7, 11),
+                // (8,14): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, x, x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<object>", "I<object?>", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(8, 14),
+                // (8,17): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, x, x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<object>", "I<object?>", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(8, 17),
+                // (10,14): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, x, y, z, w);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<object>", "I<object?>", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(10, 14),
+                // (10,20): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, x, y, z, w);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("I<object>", "I<object?>", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(10, 20),
+                // (10,23): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, x, y, z, w);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "w").WithArguments("y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(10, 23),
+                // (11,14): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(y: x, x: y);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<object>", "I<object?>", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(11, 14),
+                // (11,20): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(y: x, x: y);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object>", "x", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(11, 20),
+                // (13,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, a);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(13, 14),
+                // (15,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, new[] { x, x });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, x }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(15, 14),
+                // (17,25): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                //         G(x, new[] { x, y, z });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(17, 25),
+                // (17,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(x, new[] { x, y, z });
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, y, z }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(17, 14),
+                // (18,14): warning CS8620: Nullability of reference types in argument of type 'I<object>[]' doesn't match target type 'I<object?>[]' for parameter 'y' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(y: new[] { x, x }, x: y);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new[] { x, x }").WithArguments("I<object>[]", "I<object?>[]", "y", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(18, 14),
+                // (18,33): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.G(I<object> x, params I<object?>[] y)'.
+                //         G(y: new[] { x, x }, x: y);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object>", "x", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(18, 33));
+        }
+
+        [Fact]
+        public void DuplicateArguments()
+        {
+            var source =
+@"class C
+{
+    static void F(object x, object? y)
+    {
+        // Duplicate x
+        G(x: x, x: y);
+        G(x: y, x: x);
+        G(x: x, x: y, y: y);
+        G(x: y, x: x, y: y);
+        G(y: y, x: x, x: y);
+        G(y: y, x: y, x: x);
+        // Duplicate y
+        G(y: x, y: y);
+        G(y: y, y: x);
+        G(x, y: x, y: y);
+        G(x, y: y, y: x);
+        G(y: x, y: y, x: x);
+        G(y: y, y: x, x: x);
+    }
+    static void G(object x, params object?[] y)
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,17): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         G(x: x, x: y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(6, 17),
+                // (7,17): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         G(x: y, x: x);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(7, 17),
+                // (8,17): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         G(x: x, x: y, y: y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(8, 17),
+                // (9,17): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         G(x: y, x: x, y: y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(9, 17),
+                // (10,23): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         G(y: y, x: x, x: y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(10, 23),
+                // (11,23): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         G(y: y, x: y, x: x);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(11, 23),
+                // (13,17): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         G(y: x, y: y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(13, 17),
+                // (13,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.G(object, params object?[])'
+                //         G(y: x, y: y);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "G").WithArguments("x", "C.G(object, params object?[])").WithLocation(13, 9),
+                // (14,17): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         G(y: y, y: x);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(14, 17),
+                // (14,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.G(object, params object?[])'
+                //         G(y: y, y: x);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "G").WithArguments("x", "C.G(object, params object?[])").WithLocation(14, 9),
+                // (15,20): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         G(x, y: x, y: y);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(15, 20),
+                // (16,20): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         G(x, y: y, y: x);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(16, 20),
+                // (17,17): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         G(y: x, y: y, x: x);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(17, 17),
+                // (18,17): error CS1740: Named argument 'y' cannot be specified multiple times
+                //         G(y: y, y: x, x: x);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(18, 17),
+                // (6,20): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
+                //         G(x: x, x: y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(6, 20),
+                // (7,14): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
+                //         G(x: y, x: x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(7, 14),
+                // (8,20): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
+                //         G(x: x, x: y, y: y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(8, 20),
+                // (9,14): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
+                //         G(x: y, x: x, y: y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(9, 14),
+                // (10,26): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
+                //         G(y: y, x: x, x: y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(10, 26),
+                // (11,20): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
+                //         G(y: y, x: y, x: x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(11, 20));
+        }
+
+        [Fact]
+        public void MissingArguments()
+        {
+            var source =
+@"class C
+{
+    static void F(object? x)
+    {
+        G(y: x);
+    }
+    static void G(object? x = null, object y)
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,45): error CS1737: Optional parameters must appear after all required parameters
+                //     static void G(object? x = null, object y)
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(7, 45),
+                // (5,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(object? x = null, object y)'.
+                //         G(y: x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("y", "void C.G(object? x = null, object y)").WithLocation(5, 14));
+        }
+
+        [Fact]
+        public void ParamsArgument_NotLast()
+        {
+            var source =
+@"class C
+{
+    static void F(object[]? a, object? b)
+    {
+        G(a, b, a);
+    }
+    static void G(params object[] x, params object[] y)
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,19): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //     static void G(params object[] x, params object[] y)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params object[] x").WithLocation(7, 19),
+                // (5,11): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(params object[] x, params object[] y)'.
+                //         G(a, b, a);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("x", "void C.G(params object[] x, params object[] y)").WithLocation(5, 11),
+                // (5,14): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(params object[] x, params object[] y)'.
+                //         G(a, b, a);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("y", "void C.G(params object[] x, params object[] y)").WithLocation(5, 14),
+                // (5,17): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(params object[] x, params object[] y)'.
+                //         G(a, b, a);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a").WithArguments("y", "void C.G(params object[] x, params object[] y)").WithLocation(5, 17));
+        }
+
+        [Fact]
+        public void ParamsArgument_NotArray()
+        {
+            var source =
+@"class C
+{
+    static void F1(object x, object? y)
+    {
+        F2(y);
+        F2(x, y);
+        F3(y, x);
+        F3(x, y, x);
+    }
+    static void F2(params object x)
+    {
+    }
+    static void F3(params object x, params object[] y)
+    {
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,20): error CS0225: The params parameter must be a single dimensional array
+                //     static void F2(params object x)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(10, 20),
+                // (13,20): error CS0225: The params parameter must be a single dimensional array
+                //     static void F3(params object x, params object[] y)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(13, 20),
+                // (13,20): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //     static void F3(params object x, params object[] y)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params object x").WithLocation(13, 20),
+                // (6,9): error CS1501: No overload for method 'F2' takes 2 arguments
+                //         F2(x, y);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "F2").WithArguments("F2", "2").WithLocation(6, 9),
+                // (5,12): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.F2(params object x)'.
+                //         F2(y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.F2(params object x)").WithLocation(5, 12),
+                // (7,12): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.F3(params object x, params object[] y)'.
+                //         F3(y, x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.F3(params object x, params object[] y)").WithLocation(7, 12),
+                // (8,15): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.F3(params object x, params object[] y)'.
+                //         F3(x, y, x);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void C.F3(params object x, params object[] y)").WithLocation(8, 15));
+        }
+
+        [Fact]
+        public void ParamsArgument_BinaryOperator()
+        {
+            var source =
+@"class C
+{
+    public static object operator+(C x, params object?[] y) => x;
+    static object F(C x, object[] y) => x + y;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,41): error CS1670: params is not valid in this context
+                //     public static object operator+(C x, params object?[] y) => x;
+                Diagnostic(ErrorCode.ERR_IllegalParams, "params").WithLocation(3, 41),
+                // (4,45): warning CS8620: Nullability of reference types in argument of type 'object[]' doesn't match target type 'object?[]' for parameter 'y' in 'object C.operator +(C x, params object?[] y)'.
+                //     static object F(C x, object[] y) => x + y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("object[]", "object?[]", "y", "object C.operator +(C x, params object?[] y)").WithLocation(4, 45));
         }
 
         [Fact]
@@ -4295,15 +4578,12 @@ class CL0<T>
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (12,16): warning CS8619: Nullability of reference types in value of type 'CL0<string>' doesn't match target type 'CL0<string?>'.
-                //         M1(ref x1);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("CL0<string>", "CL0<string?>").WithLocation(12, 16),
                 // (12,16): warning CS8620: Nullability of reference types in argument of type 'CL0<string?>' doesn't match target type 'CL0<string>' for parameter 'x' in 'void C.M1(ref CL0<string> x)'.
                 //         M1(ref x1);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("CL0<string?>", "CL0<string>", "x", "void C.M1(ref CL0<string> x)").WithLocation(12, 16),
-                // (19,16): warning CS8619: Nullability of reference types in value of type 'CL0<string?>' doesn't match target type 'CL0<string>'.
+                // (19,16): warning CS8620: Nullability of reference types in argument of type 'CL0<string>' doesn't match target type 'CL0<string?>' for parameter 'x' in 'void C.M2(out CL0<string?> x)'.
                 //         M2(out x2);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("CL0<string?>", "CL0<string>").WithLocation(19, 16),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x2").WithArguments("CL0<string>", "CL0<string?>", "x", "void C.M2(out CL0<string?> x)").WithLocation(19, 16),
                 // (26,12): warning CS8620: Nullability of reference types in argument of type 'CL0<string?>' doesn't match target type 'CL0<string>' for parameter 'x' in 'void C.M3(CL0<string> x)'.
                 //         M3(x3);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x3").WithArguments("CL0<string?>", "CL0<string>", "x", "void C.M3(CL0<string> x)").WithLocation(26, 12)
@@ -4316,22 +4596,63 @@ class CL0<T>
             var source =
 @"class C
 {
-    static void F()
+    static void F(object? x, object? y, object? z)
     {
-        object? x = null;
-        object? y = null;
-        G(out x, ref y);
+        G(out x, ref y, in z);
+        x.ToString();
+        y.ToString();
+        z.ToString();
     }
-    static void G(out object x, ref object y)
+    static void G(out object x, ref object y, in object z)
     {
         x = new object();
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,22): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(out object x, ref object y)'.
-                //         G(out x, ref y);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void C.G(out object x, ref object y)").WithLocation(7, 22));
+                // (5,22): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(out object x, ref object y, in object z)'.
+                //         G(out x, ref y, in z);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("y", "void C.G(out object x, ref object y, in object z)").WithLocation(5, 22),
+                // (5,28): warning CS8604: Possible null reference argument for parameter 'z' in 'void C.G(out object x, ref object y, in object z)'.
+                //         G(out x, ref y, in z);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "z").WithArguments("z", "void C.G(out object x, ref object y, in object z)").WithLocation(5, 28),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(8, 9));
+        }
+
+        [Fact]
+        public void RefOutParameters_06()
+        {
+            var source =
+@"class C
+{
+    static void F(object x, object y, object z)
+    {
+        G(out x, ref y, in z);
+        x.ToString();
+        y.ToString();
+        z.ToString();
+    }
+    static void G(out object? x, ref object? y, in object? z)
+    {
+        x = new object();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         G(out x, ref y, in z);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x").WithLocation(5, 15),
+                // (5,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         G(out x, ref y, in z);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(5, 22),
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 9),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(7, 9));
         }
 
         [Fact]
@@ -15907,26 +16228,6 @@ class Program
 
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
-            comp.VerifyDiagnostics(
-                // (13,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         p.LastName = (string)null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(13, 22),
-                // (15,22): warning CS8601: Possible null reference assignment.
-                //         p.LastName = null as string;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null as string").WithLocation(15, 22),
-                // (16,22): warning CS8601: Possible null reference assignment.
-                //         p.LastName = null as string?;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "null as string?").WithLocation(16, 22),
-                // (19,23): warning CS8601: Possible null reference assignment.
-                //         p.FirstName = p.MiddleName;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p.MiddleName").WithLocation(19, 23),
-                // (20,22): warning CS8601: Possible null reference assignment.
-                //         p.LastName = p.MiddleName ?? null;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p.MiddleName ?? null").WithLocation(20, 22));
-
-            comp = CreateStandardCompilation(
-                source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,22): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -15994,29 +16295,6 @@ static class Extensions
 
             var comp = CreateCompilationWithMscorlib45(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
-            comp.VerifyDiagnostics(
-                // (12,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         ((string)null).F();
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(12, 10),
-                // (14,10): warning CS8604: Possible null reference argument for parameter 's' in 'void Extensions.F(string s)'.
-                //         (null as string).F();
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string").WithArguments("s", "void Extensions.F(string s)").WithLocation(14, 10),
-                // (15,10): warning CS8604: Possible null reference argument for parameter 's' in 'void Extensions.F(string s)'.
-                //         (null as string?).F();
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string?").WithArguments("s", "void Extensions.F(string s)").WithLocation(15, 10),
-                // (17,11): hidden CS8605: Result of the comparison is possibly always true.
-                //         ((p != null) ? p.MiddleName : null).F();
-                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "p != null").WithLocation(17, 11),
-                // (17,10): warning CS8604: Possible null reference argument for parameter 's' in 'void Extensions.F(string s)'.
-                //         ((p != null) ? p.MiddleName : null).F();
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(p != null) ? p.MiddleName : null").WithArguments("s", "void Extensions.F(string s)").WithLocation(17, 10),
-                // (18,10): warning CS8604: Possible null reference argument for parameter 's' in 'void Extensions.F(string s)'.
-                //         (p.MiddleName ?? null).F();
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p.MiddleName ?? null").WithArguments("s", "void Extensions.F(string s)").WithLocation(18, 10));
-
-            comp = CreateCompilationWithMscorlib45(
-                source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -16080,29 +16358,6 @@ class Program
 
             var comp = CreateStandardCompilation(
                 source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
-            comp.VerifyDiagnostics(
-                // (13,11): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         G((string)null);
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(13, 11),
-                // (15,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
-                //         G(null as string);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string").WithArguments("name", "void Program.G(string name)").WithLocation(15, 11),
-                // (16,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
-                //         G(null as string?);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null as string?").WithArguments("name", "void Program.G(string name)").WithLocation(16, 11),
-                // (19,12): hidden CS8605: Result of the comparison is possibly always true.
-                //         G((p != null) ? p.MiddleName : null);
-                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "p != null").WithLocation(19, 12),
-                // (19,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
-                //         G((p != null) ? p.MiddleName : null);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(p != null) ? p.MiddleName : null").WithArguments("name", "void Program.G(string name)").WithLocation(19, 11),
-                // (20,11): warning CS8604: Possible null reference argument for parameter 'name' in 'void Program.G(string name)'.
-                //         G(p.MiddleName ?? null);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p.MiddleName ?? null").WithArguments("name", "void Program.G(string name)").WithLocation(20, 11));
-
-            comp = CreateStandardCompilation(
-                source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,11): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
@@ -16165,29 +16420,6 @@ class Program
 }";
 
             var comp = CreateStandardCompilation(
-                source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
-            comp.VerifyDiagnostics(
-                // (11,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //     static string F2() => (string)null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(11, 27),
-                // (13,27): warning CS8603: Possible null reference return.
-                //     static string F4() => null as string;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null as string").WithLocation(13, 27),
-                // (14,27): warning CS8603: Possible null reference return.
-                //     static string F5() => null as string?;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null as string?").WithLocation(14, 27),
-                // (17,36): hidden CS8605: Result of the comparison is possibly always true.
-                //     static string F8(Person p) => (p != null) ? p.MiddleName : null;
-                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysTrue, "p != null").WithLocation(17, 36),
-                // (17,35): warning CS8603: Possible null reference return.
-                //     static string F8(Person p) => (p != null) ? p.MiddleName : null;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "(p != null) ? p.MiddleName : null").WithLocation(17, 35),
-                // (18,35): warning CS8603: Possible null reference return.
-                //     static string F9(Person p) => p.MiddleName ?? null;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "p.MiddleName ?? null").WithLocation(18, 35));
-
-            comp = CreateStandardCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16623,8 +16855,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(I<object>)y").WithArguments("I<object>", "I<object?>").WithLocation(11, 13));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: Call
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void SuppressNullableWarning_Ref()
         {
             var source =
@@ -16636,7 +16867,7 @@ class C
     static void Main()
     {
         string? s = null;
-        string t = string.Empty;
+        string t = """";
         F(ref s, ref t);
         F(ref s!, ref t!);
     }
@@ -16678,9 +16909,9 @@ class C
                 parseOptions: TestOptions.Regular8,
                 options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (12,22): warning CS8601: Possible null reference assignment.
+                // (12,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         F(out s, out t);
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(12, 22));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "t").WithLocation(12, 22));
         }
 
         // PROTOTYPE(NullableReferenceTypes): 't! = s' should be an error.
@@ -17141,10 +17372,11 @@ End Class";
         }
     }
 }";
-            var comp = CreateStandardCompilation(
-                source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
-            comp.VerifyDiagnostics();
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     object P => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 17));
         }
 
         [Fact]
@@ -17163,9 +17395,7 @@ End Class";
         }
     }
 }";
-            var comp = CreateStandardCompilation(
-                source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -17194,9 +17424,7 @@ class C
         F(new S());
     }
 }";
-            var comp = CreateStandardCompilation(
-                source,
-                parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowNullAsNonNull));
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (15,9): warning CS8602: Possible dereference of a null reference.
                 //         i.F();
@@ -17347,8 +17575,8 @@ class C
                 TestOptions.Regular8.WithFeature("staticNullChecking").GetNullableReferenceFlags());
             Assert.Equal(NullableReferenceFlags.Enabled,
                 TestOptions.Regular8.WithFeature("staticNullChecking", "0").GetNullableReferenceFlags());
-            Assert.Equal(NullableReferenceFlags.Enabled | NullableReferenceFlags.AllowNullAsNonNull | NullableReferenceFlags.InferLocalNullability,
-                TestOptions.Regular8.WithFeature("staticNullChecking", "3").GetNullableReferenceFlags());
+            Assert.Equal(NullableReferenceFlags.Enabled | NullableReferenceFlags.InferLocalNullability,
+                TestOptions.Regular8.WithFeature("staticNullChecking", "2").GetNullableReferenceFlags());
             Assert.Equal(NullableReferenceFlags.Enabled | NullableReferenceFlags.AllowMemberOptOut | NullableReferenceFlags.AllowAssemblyOptOut,
                 TestOptions.Regular8.WithFeature("staticNullChecking", "12").GetNullableReferenceFlags());
             Assert.Equal(NullableReferenceFlags.Enabled | (NullableReferenceFlags)0x123,
@@ -17397,25 +17625,9 @@ class C
                 source,
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking", "1"));
             comp.VerifyDiagnostics(
-                // (4,35): warning CS8603: Possible null reference return.
-                //     static object F(object? o) => o;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
-
-            comp = CreateStandardCompilation(
-                source,
-                parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking", "2"));
-            comp.VerifyDiagnostics(
                 // (3,26): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static object F() => null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 26),
-                // (4,35): warning CS8603: Possible null reference return.
-                //     static object F(object? o) => o;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
-
-            comp = CreateStandardCompilation(
-                source,
-                parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking", "3"));
-            comp.VerifyDiagnostics(
                 // (4,35): warning CS8603: Possible null reference return.
                 //     static object F(object? o) => o;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
@@ -18894,36 +19106,36 @@ class P
                 // (18,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x1 = y;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(18, 14),
-                // (19,15): warning CS8601: Possible null reference assignment.
+                // (19,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         F(out x1);
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(19, 15),
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1").WithLocation(19, 15),
                 // (24,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x2 = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(24, 14),
                 // (25,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x2 = y;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(25, 14),
-                // (26,15): warning CS8601: Possible null reference assignment.
+                // (26,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         F(out x2);
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2").WithLocation(26, 15),
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2").WithLocation(26, 15),
                 // (31,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x3 = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(31, 14),
                 // (32,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x3 = y;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(32, 14),
-                // (33,15): warning CS8601: Possible null reference assignment.
+                // (33,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         F(out x3);
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x3").WithLocation(33, 15),
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(33, 15),
                 // (38,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x4 = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(38, 14),
                 // (39,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x4 = y;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y").WithLocation(39, 14),
-                // (40,15): warning CS8601: Possible null reference assignment.
+                // (40,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         F(out x4);
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x4").WithLocation(40, 15),
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x4").WithLocation(40, 15),
                 // (46,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         c.F = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(46, 15),
