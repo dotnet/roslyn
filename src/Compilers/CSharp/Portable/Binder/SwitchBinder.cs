@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class PatternSwitchBinder : LocalScopeBinder
+    internal partial class SwitchBinder : LocalScopeBinder
     {
         protected readonly SwitchStatementSyntax SwitchSyntax;
 
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression _switchGoverningExpression;
         private DiagnosticBag _switchGoverningDiagnostics;
 
-        private PatternSwitchBinder(Binder next, SwitchStatementSyntax switchSyntax)
+        private SwitchBinder(Binder next, SwitchStatementSyntax switchSyntax)
             : base(next)
         {
             SwitchSyntax = switchSyntax;

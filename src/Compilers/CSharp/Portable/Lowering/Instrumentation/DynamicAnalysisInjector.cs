@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentPatternSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
         {
             return AddDynamicAnalysis(original, base.InstrumentPatternSwitchStatement(original, rewritten));
         }
@@ -554,8 +554,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.LockStatement:
                     syntaxForSpan = ((BoundLockStatement)statement).Argument.Syntax;
                     break;
-                case BoundKind.PatternSwitchStatement:
-                    syntaxForSpan = ((BoundPatternSwitchStatement)statement).Expression.Syntax;
+                case BoundKind.SwitchStatement:
+                    syntaxForSpan = ((BoundSwitchStatement)statement).Expression.Syntax;
                     break;
                 default:
                     syntaxForSpan = statement.Syntax;

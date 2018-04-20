@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalRewriter
     {
-        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
+        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             return PatternSwitchLocalRewriter.Rewrite(this, node);
         }
 
         private class PatternSwitchLocalRewriter : BasePatternSwitchLocalRewriter
         {
-            public static BoundStatement Rewrite(LocalRewriter localRewriter, BoundPatternSwitchStatement node)
+            public static BoundStatement Rewrite(LocalRewriter localRewriter, BoundSwitchStatement node)
             {
                 var rewriter = new PatternSwitchLocalRewriter(node, localRewriter);
                 BoundStatement result = rewriter.LowerPatternSwitchStatement(node);
@@ -62,12 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private PatternSwitchLocalRewriter(BoundPatternSwitchStatement node, LocalRewriter localRewriter)
+            private PatternSwitchLocalRewriter(BoundSwitchStatement node, LocalRewriter localRewriter)
                 : base(node.Syntax, localRewriter, node.SwitchSections.SelectAsArray(section => section.Syntax), isSwitchStatement: true)
             {
             }
 
-            private BoundStatement LowerPatternSwitchStatement(BoundPatternSwitchStatement node)
+            private BoundStatement LowerPatternSwitchStatement(BoundSwitchStatement node)
             {
                 _factory.Syntax = node.Syntax;
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // decision dag, so the code in `result` is unreachable at this point.
 
                 // Lower each switch section.
-                foreach (BoundPatternSwitchSection section in node.SwitchSections)
+                foreach (BoundSwitchSection section in node.SwitchSections)
                 {
                     _factory.Syntax = section.Syntax;
                     var sectionBuilder = ArrayBuilder<BoundStatement>.GetInstance();

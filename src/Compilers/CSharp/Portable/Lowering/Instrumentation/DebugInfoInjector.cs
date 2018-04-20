@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequencePoint(original.Syntax, rewritten);
         }
 
-        public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentPatternSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
         {
             SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)original.Syntax;
             TextSpan switchSequencePointSpan = TextSpan.FromBounds(

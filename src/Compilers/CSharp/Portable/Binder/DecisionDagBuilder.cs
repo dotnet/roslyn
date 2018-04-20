@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <see cref="BoundDecisionDagNode"/> for each of them, containing
     /// the state transitions (including the test to perform at each node and the successor nodes) but
     /// not the state descriptions. A <see cref="BoundDecisionDag"/> containing this
-    /// set of nodes becomes part of the bound nodes (e.g. in <see cref="BoundPatternSwitchStatement"/> and
+    /// set of nodes becomes part of the bound nodes (e.g. in <see cref="BoundSwitchStatement"/> and
     /// <see cref="BoundSwitchExpression"/>) and is used for semantic analysis and lowering.
     /// </para>
     /// </summary>
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             SyntaxNode syntax,
             BoundExpression switchGoverningExpression,
-            ImmutableArray<BoundPatternSwitchSection> switchSections,
+            ImmutableArray<BoundSwitchSection> switchSections,
             LabelSymbol defaultLabel,
             DiagnosticBag diagnostics)
         {
@@ -128,12 +128,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundDecisionDag CreateDecisionDagForSwitchStatement(
             SyntaxNode syntax,
             BoundExpression switchGoverningExpression,
-            ImmutableArray<BoundPatternSwitchSection> switchSections)
+            ImmutableArray<BoundSwitchSection> switchSections)
         {
             var rootIdentifier = new BoundDagTemp(switchGoverningExpression.Syntax, switchGoverningExpression.Type, source: null, index: 0);
             int i = 0;
             var builder = ArrayBuilder<RemainingTestsForCase>.GetInstance(switchSections.Length);
-            foreach (BoundPatternSwitchSection section in switchSections)
+            foreach (BoundSwitchSection section in switchSections)
             {
                 foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
                 {
