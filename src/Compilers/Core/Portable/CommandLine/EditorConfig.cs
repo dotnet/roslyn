@@ -100,10 +100,13 @@ namespace Microsoft.CodeAnalysis
                     {
                         var key = propMatches[0].Groups[1].Value;
                         var value = propMatches[0].Groups[2].Value;
-                        Debug.Assert(!string.IsNullOrEmpty(key));
 
-                        key = CaseInsensitiveComparison.ToLower(key.Trim());
-                        value = CaseInsensitiveComparison.ToLower(value?.Trim());
+                        Debug.Assert(!string.IsNullOrEmpty(key));
+                        Debug.Assert(key == key.Trim());
+                        Debug.Assert(value == value?.Trim());
+
+                        key = CaseInsensitiveComparison.ToLower(key);
+                        value = CaseInsensitiveComparison.ToLower(value);
 
                         activeSectionProperties[key] = value ?? "";
                         continue;

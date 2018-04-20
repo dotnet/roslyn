@@ -30,14 +30,12 @@ my_prop = my_val
 
             Assert.Equal("", config.GlobalSection.Name);
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(2, properties.Count);
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("my_global_prop", "my_global_val"),
                         KeyValuePair.Create("root", "true") },
                 properties);
 
             var namedSections = config.NamedSections;
-            Assert.Equal(1, namedSections.Length);
             Assert.Equal("*.cs", namedSections[0].Name);
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("my_prop", "my_val")},
@@ -54,7 +52,6 @@ my_prop = my_val
 [*.cs
 my_prop = my_val");
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(1, properties.Count);
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("my_prop", "my_val")},
                 properties);
@@ -70,7 +67,6 @@ my_prop = my_val");
 my_prop = my_val", "");
 
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(1, properties.Count);
             Assert.Equal(new[] { KeyValuePair.Create("my_prop", "my_val")}, properties);
             Assert.Equal(0, config.NamedSections.Length);
         }
@@ -81,7 +77,6 @@ my_prop = my_val", "");
             var config = ParseConfigFile(@"
 my_PROP = my_VAL");
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(1, properties.Count);
 
             Assert.True(properties.TryGetValue("my_PrOp", out var val));
             Assert.Equal(val, "my_val");
@@ -96,7 +91,6 @@ my_prop = my_val
 my_prop = my_other_val");
 
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(1, properties.Count);
             Assert.Equal(new[] { KeyValuePair.Create("my_prop", "my_other_val") }, properties);
         }
 
@@ -108,7 +102,6 @@ my_prop = my_val
 my_PROP = my_other_val");
 
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(1, properties.Count);
             Assert.Equal(new[] { KeyValuePair.Create("my_prop", "my_other_val") }, properties);
         }
 
@@ -120,7 +113,6 @@ my_PROP = my_other_val");
 my_prop = my_val2");
 
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(1, properties.Count);
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("my_prop", "my_val2") },
                 properties);
@@ -134,7 +126,6 @@ my_prop1 =
 my_prop2 = my_val");
 
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(2, properties.Count);
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("my_prop1", ""),
                         KeyValuePair.Create("my_prop2", "my_val") },
@@ -149,7 +140,6 @@ my prop1 = my_val1
 my_prop2 = my val2");
 
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(1, properties.Count);
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("my_prop2", "my val2") },
                 properties);
@@ -162,7 +152,6 @@ my_prop2 = my val2");
 my_prop2 = my val2 # Comment");
 
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(1, properties.Count);
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("my_prop2", "my val2") },
                 properties);
@@ -187,7 +176,6 @@ my:key1 = my_val
 my_key2 = my:val");
 
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(2, properties.Count);
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("my", "key1 = my_val"),
                         KeyValuePair.Create("my_key2", "my:val")},
@@ -202,7 +190,6 @@ my@key1 = my_val
 my_key2 = my@val");
 
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(1, properties.Count);
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("my_key2", "my@val")},
                 properties);
@@ -221,7 +208,6 @@ long: this value continues
    in the next line");
 
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(1, properties.Count);
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("long", "this value continues")},
                 properties);
