@@ -40,12 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         // complete.
         protected object cacheGuard = new object();
 
-        private readonly AggregateAsynchronousOperationListener _waiter;
+        private readonly IAsynchronousOperationListener _waiter;
 
         public AbstractSnippetInfoService(
             Shell.SVsServiceProvider serviceProvider,
             Guid languageGuidForSnippets,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             AssertIsForeground();
 
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 if (textManager.GetExpansionManager(out _expansionManager) == VSConstants.S_OK)
                 {
                     ComEventSink.Advise<IVsExpansionEvents>(_expansionManager, this);
-                    _waiter = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Snippets);
+                    _waiter = listenerProvider.GetListener(FeatureAttribute.Snippets);
                     _languageGuidForSnippets = languageGuidForSnippets;
                     PopulateSnippetCaches();
                 }

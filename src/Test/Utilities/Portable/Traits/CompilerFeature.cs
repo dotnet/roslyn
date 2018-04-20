@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         PrivateProtected,
         PEVerifyCompat,
         RefConditionalOperator,
+        TupleEquality,
+        StackAllocInitializer,
         AsyncStreams,
     }
 }

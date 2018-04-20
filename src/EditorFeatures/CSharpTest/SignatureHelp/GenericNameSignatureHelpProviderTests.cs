@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -622,6 +623,33 @@ class C
             expectedOrderedItems.Add(new SignatureHelpTestItem("S C.Goo<S, T>(S s, T t) where T : class, S, IGoo, new()", "GooSummary", "ParamT", currentParameterIndex: 1));
 
             await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestUnmanagedConstraint()
+        {
+            var markup = @"
+
+class C
+{
+    /// <summary>
+    /// summary headline
+    /// </summary>
+    /// <typeparam name=""T"">T documentation</typeparam>
+    void M<T>(T arg) where T : unmanaged
+    {
+    }
+
+    void Bar()
+    {
+        [|M<$$|]>
+    }
+}";
+
+            await TestAsync(markup, new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void C.M<T>(T arg) where T : unmanaged", "summary headline", "T documentation", currentParameterIndex: 0)
+            });
         }
 
         #endregion

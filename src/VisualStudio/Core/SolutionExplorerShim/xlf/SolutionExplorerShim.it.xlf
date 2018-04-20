@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Analyzer_Properties">
         <source>Analyzer Properties</source>
-        <target state="translated">Proprietà analizzatore</target>
+        <target state="translated">Proprietà dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Analyzer">
@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Analyzer_Files">
         <source>Analyzer Files</source>
-        <target state="translated">File analizzatore</target>
+        <target state="translated">File dell'analizzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="Diagnostic_Properties">

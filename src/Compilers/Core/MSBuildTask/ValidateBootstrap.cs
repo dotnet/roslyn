@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public ValidateBootstrap()
         {
 
-
         }
 
         public override bool Execute()
@@ -43,6 +42,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return false;
             }
 
+            var toolsPath = Path.Combine(_bootstrapPath, "tools");
             var dependencies = new[]
             {
                 typeof(ValidateBootstrap).GetTypeInfo().Assembly,
@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 var path = GetDirectory(dependency);
                 path = NormalizePath(path);
-                if (!comparer.Equals(path, _bootstrapPath))
+                if (!comparer.Equals(path, toolsPath))
                 {
-                    Log.LogError($"Bootstrap assembly {dependency.GetName().Name} incorrectly loaded from {path} instead of {_bootstrapPath}");
+                    Log.LogError($"Bootstrap assembly {dependency.GetName().Name} incorrectly loaded from {path} instead of {toolsPath}");
                     allGood = false;
                 }
             }
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return path;
         }
 
-        private string GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.GetLocation(assembly));
+        private string GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.TryGetAssemblyPath(assembly));
 
         internal static void AddFailedLoad(AssemblyName name)
         {

@@ -325,7 +325,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var boundLabel = node.SwitchLabels.Last();
                 Diagnostics.Add(lastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(boundLabel.Syntax), boundLabel.Label.Name);
-                this.State.Reported = true;
             }
 
             return null;
@@ -346,7 +345,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var syntax = node.SwitchLabels.Last().Pattern.Syntax;
                 Diagnostics.Add(isLastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(syntax), syntax.ToString());
-                this.State.Reported = true;
             }
         }
     }

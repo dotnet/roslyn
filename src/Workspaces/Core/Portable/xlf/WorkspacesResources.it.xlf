@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified.</source>
-        <target state="translated">Non è possibile semplificare il nome.</target>
+        <target state="translated">Il nome può essere semplificato.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_identifier">
@@ -554,7 +554,7 @@
       </trans-unit>
       <trans-unit id="Usage_colon">
         <source>Usage:</source>
-        <target state="translated">Sintassi:</target>
+        <target state="translated">Utilizzo:</target>
         <note />
       </trans-unit>
       <trans-unit id="Exceptions_colon">
@@ -795,6 +795,11 @@
       <trans-unit id="Changing_document_property_is_not_supported">
         <source>Changing document properties is not supported</source>
         <target state="translated">La modifica delle proprietà del documento non è supportata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variables_captured_colon">
+        <source>Variables captured:</source>
+        <target state="new">Variables captured:</target>
         <note />
       </trans-unit>
     </body>

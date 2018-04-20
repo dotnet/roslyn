@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        internal override bool IsSerializable
+        public override bool IsSerializable
         {
             get { return false; }
         }

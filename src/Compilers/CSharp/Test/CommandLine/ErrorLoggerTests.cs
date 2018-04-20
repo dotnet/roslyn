@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -268,7 +269,8 @@ public class C
 
             var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
                 "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" },
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
+               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()),
+               loader: new DesktopAnalyzerAssemblyLoader());
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 

@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Security.Cryptography;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(newOpt1.GetHashCode(), newOpt2.GetHashCode());
 
             // test default(T):
-            Assert.NotNull(factory(oldOpt1, default(T)));
+            Assert.NotNull(factory(oldOpt1, default));
         }
 
         [Fact]
@@ -50,6 +52,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestProperty((old, value) => old.WithSubsystemVersion(value), opt => opt.SubsystemVersion, SubsystemVersion.Windows2000);
             TestProperty((old, value) => old.WithRuntimeMetadataVersion(value), opt => opt.RuntimeMetadataVersion, "v12345");
             TestProperty((old, value) => old.WithPdbFilePath(value), opt => opt.PdbFilePath, @"c:\temp\a.pdb");
+            TestProperty((old, value) => old.WithPdbChecksumAlgorithm(value), opt => opt.PdbChecksumAlgorithm, new HashAlgorithmName());
+            TestProperty((old, value) => old.WithPdbChecksumAlgorithm(value), opt => opt.PdbChecksumAlgorithm, HashAlgorithmName.SHA384);
             TestProperty((old, value) => old.WithOutputNameOverride(value), opt => opt.OutputNameOverride, @"x.dll");
             TestProperty((old, value) => old.WithDebugInformationFormat(value), opt => opt.DebugInformationFormat, (DebugInformationFormat)2);
             TestProperty((old, value) => old.WithTolerateErrors(value), opt => opt.TolerateErrors, true);
@@ -77,10 +81,60 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 nameof(EmitOptions.DebugInformationFormat),
                 nameof(EmitOptions.OutputNameOverride),
                 nameof(EmitOptions.PdbFilePath),
+                nameof(EmitOptions.PdbChecksumAlgorithm),
                 nameof(EmitOptions.RuntimeMetadataVersion),
                 nameof(EmitOptions.TolerateErrors),
                 nameof(EmitOptions.IncludePrivateMembers),
                 nameof(EmitOptions.InstrumentationKinds));
+        }
+
+        [Fact]
+        public void TestCtors()
+        {
+            var options1 = new EmitOptions(
+                metadataOnly: true,
+                debugInformationFormat: DebugInformationFormat.Embedded,
+                pdbFilePath: "A",
+                outputNameOverride: "B",
+                fileAlignment: 1,
+                baseAddress: 2,
+                highEntropyVirtualAddressSpace: true,
+                subsystemVersion: SubsystemVersion.Windows2000,
+                runtimeMetadataVersion: "C",
+                tolerateErrors: true,
+                includePrivateMembers: false);
+
+            var options2 = new EmitOptions(
+                metadataOnly: true,
+                debugInformationFormat: DebugInformationFormat.Embedded,
+                pdbFilePath: "A",
+                outputNameOverride: "B",
+                fileAlignment: 1,
+                baseAddress: 2,
+                highEntropyVirtualAddressSpace: true,
+                subsystemVersion: SubsystemVersion.Windows2000,
+                runtimeMetadataVersion: "C",
+                tolerateErrors: true,
+                includePrivateMembers: false,
+                instrumentationKinds: ImmutableArray.Create(InstrumentationKind.TestCoverage));
+
+            var options3 = new EmitOptions(
+                metadataOnly: true,
+                debugInformationFormat: DebugInformationFormat.Embedded,
+                pdbFilePath: "A",
+                outputNameOverride: "B",
+                fileAlignment: 1,
+                baseAddress: 2,
+                highEntropyVirtualAddressSpace: true,
+                subsystemVersion: SubsystemVersion.Windows2000,
+                runtimeMetadataVersion: "C",
+                tolerateErrors: true,
+                includePrivateMembers: false,
+                instrumentationKinds: ImmutableArray.Create(InstrumentationKind.TestCoverage),
+                pdbChecksumAlgorithm: HashAlgorithmName.MD5);
+
+            Assert.Equal(options1, options2.WithInstrumentationKinds(default));
+            Assert.Equal(options2, options3.WithPdbChecksumAlgorithm(HashAlgorithmName.SHA256));
         }
     }
 }

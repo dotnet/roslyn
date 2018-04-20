@@ -16,14 +16,14 @@
       $commitPathMessage$
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="$version$" />
+      <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="[$version$]" />
     </dependencies>
 
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlNonRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>

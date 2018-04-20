@@ -1,18 +1,16 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Linq
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
-Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
-Imports Xunit
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
 
+    <[UseExportProvider]>
     Public Class NameResolverTests
 
         Private Function TestAsync(text As String, searchText As String, ParamArray expectedNames() As String) As Tasks.Task

@@ -703,15 +703,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        // IsBaseClassOfClass determines whether the purported derived type is a class, and if so,
-        // if the purported base type is one of its base classes. 
-        public static bool IsBaseClassOfClass(TypeSymbol baseType, TypeSymbol derivedType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            Debug.Assert((object)baseType != null);
-            Debug.Assert((object)derivedType != null);
-            return derivedType.IsClassType() && IsBaseClass(derivedType, baseType, ref useSiteDiagnostics);
-        }
-
         // IsBaseClass returns true if and only if baseType is a base class of derivedType, period.
         //
         // * interfaces do not have base classes. (Structs, enums and classes other than object do.)
@@ -2084,46 +2075,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
 
-                    if (HasImplicitConversionToInterface(source, destination, ref useSiteDiagnostics))
-                    {
-                        return true;
-                    }
-                    break;
+                    return HasImplicitConversionToInterface(source, destination, ref useSiteDiagnostics);
 
                 case TypeKind.Interface:
                     // SPEC: From any interface-type S to any interface-type T, provided S is derived from T.
                     // NOTE: This handles variance conversions
-                    if (HasImplicitConversionToInterface(source, destination, ref useSiteDiagnostics))
-                    {
-                        return true;
-                    }
-                    break;
+                    return HasImplicitConversionToInterface(source, destination, ref useSiteDiagnostics);
 
                 case TypeKind.Delegate:
                     // SPEC: From any delegate-type to System.Delegate and the interfaces it implements.
                     // NOTE: This handles variance conversions.
-                    if (HasImplicitConversionFromDelegate(source, destination, ref useSiteDiagnostics))
-                    {
-                        return true;
-                    }
-                    break;
+                    return HasImplicitConversionFromDelegate(source, destination, ref useSiteDiagnostics);
 
                 case TypeKind.TypeParameter:
-                    if (HasImplicitReferenceTypeParameterConversion((TypeParameterSymbol)source, destination, ref useSiteDiagnostics))
-                    {
-                        return true;
-                    }
-                    break;
+                    return HasImplicitReferenceTypeParameterConversion((TypeParameterSymbol)source, destination, ref useSiteDiagnostics);
 
                 case TypeKind.Array:
                     // SPEC: From an array-type S ... to an array-type T, provided ...
                     // SPEC: From any array-type to System.Array and the interfaces it implements.
                     // SPEC: From a single-dimensional array type S[] to IList<T>, provided ...
-                    if (HasImplicitConversionFromArray(source, destination, ref useSiteDiagnostics))
-                    {
-                        return true;
-                    }
-                    break;
+                    return HasImplicitConversionFromArray(source, destination, ref useSiteDiagnostics);
             }
 
             // UNDONE: Implicit conversions involving type parameters that are known to be reference types.
@@ -2140,24 +2111,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // * From any class type S to any interface type T provided S implements an interface
             //   convertible to T.
+            if (source.IsClassType())
+            {
+                return HasAnyBaseInterfaceConversion(source, destination, ref useSiteDiagnostics);
+            }
+
             // * From any interface type S to any interface type T provided S implements an interface
             //   convertible to T.
             // * From any interface type S to any interface type T provided S is not T and S is 
             //   an interface convertible to T.
-
-            if (source.IsClassType() && HasAnyBaseInterfaceConversion(source, destination, ref useSiteDiagnostics))
+            if (source.IsInterfaceType())
             {
-                return true;
-            }
+                if (HasAnyBaseInterfaceConversion(source, destination, ref useSiteDiagnostics))
+                {
+                    return true;
+                }
 
-            if (source.IsInterfaceType() && HasAnyBaseInterfaceConversion(source, destination, ref useSiteDiagnostics))
-            {
-                return true;
-            }
-
-            if (source.IsInterfaceType() && source != destination && HasInterfaceVarianceConversion(source, destination, ref useSiteDiagnostics))
-            {
-                return true;
+                if (source != destination && HasInterfaceVarianceConversion(source, destination, ref useSiteDiagnostics))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -2500,19 +2473,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     TypeParameterSymbol typeParameterSymbol = (TypeParameterSymbol)typeParameters[paramIndex];
-                    if (typeParameterSymbol.Variance == VarianceKind.None)
-                    {
-                        return false;
-                    }
 
-                    if (typeParameterSymbol.Variance == VarianceKind.Out && !HasImplicitReferenceConversion(sourceTypeArgument, destinationTypeArgument, ref useSiteDiagnostics))
+                    switch (typeParameterSymbol.Variance)
                     {
-                        return false;
-                    }
+                        case VarianceKind.None:
+                            return false;
 
-                    if (typeParameterSymbol.Variance == VarianceKind.In && !HasImplicitReferenceConversion(destinationTypeArgument, sourceTypeArgument, ref useSiteDiagnostics))
-                    {
-                        return false;
+                        case VarianceKind.Out:
+                            if (!HasImplicitReferenceConversion(sourceTypeArgument, destinationTypeArgument, ref useSiteDiagnostics))
+                            {
+                                return false;
+                            }
+                            break;
+
+                        case VarianceKind.In:
+                            if (!HasImplicitReferenceConversion(destinationTypeArgument, sourceTypeArgument, ref useSiteDiagnostics))
+                            {
+                                return false;
+                            }
+                            break;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(typeParameterSymbol.Variance);
                     }
                 }
             }
@@ -2694,7 +2676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC: From any class-type S to any class-type T, provided S is a base class of T.
-            if (IsBaseClassOfClass(source, destination, ref useSiteDiagnostics))
+            if (destination.IsClassType() && IsBaseClass(destination, source, ref useSiteDiagnostics))
             {
                 return true;
             }

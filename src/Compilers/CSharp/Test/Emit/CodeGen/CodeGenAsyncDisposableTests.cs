@@ -1425,7 +1425,7 @@ public class D
     bool IsCompleted => true;
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var getAwaiter1 = (MethodSymbol)comp.GetMember("C.GetAwaiter");
             var isCompleted1 = (PropertySymbol)comp.GetMember("C.IsCompleted");
             var getResult1 = (MethodSymbol)comp.GetMember("C.GetResult");

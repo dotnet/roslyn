@@ -315,12 +315,12 @@ Long: -24
 Long: -25
 ]]>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             Assert.True(c1.Options.CheckOverflow)
 
             CompileAndVerify(c1, expected)
 
-            c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOverflowChecks(False))
+            c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe.WithOverflowChecks(False))
             Assert.False(c1.Options.CheckOverflow)
 
             CompileAndVerify(c1, expected)
@@ -361,7 +361,7 @@ End Module
     </file>
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(c1,
 <expected>
@@ -508,13 +508,13 @@ BC30439: Constant expression not representable in type 'Long'.
              ~~~~~~~~~~~~~~~
 </expected>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             Assert.True(c1.Options.CheckOverflow)
 
             CompilationUtils.AssertTheseDiagnostics(c1, expected)
 
-            Dim c2 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOverflowChecks(False))
+            Dim c2 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Assert.False(c2.Options.CheckOverflow)
 
@@ -562,7 +562,7 @@ BC42019: Operands of type Object used for operator 'Not'; runtime errors could o
                  ~~
 </expected>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
             Assert.Equal(OptionStrict.Custom, compilation.Options.OptionStrict)
             CompilationUtils.AssertTheseDiagnostics(compilation, expected)
 
@@ -571,7 +571,7 @@ BC42019: Operands of type Object used for operator 'Not'; runtime errors could o
         <WorkItem(544620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544620")>
         <Fact()>
         Public Sub Bug13088()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb"><![CDATA[
 Module Program
@@ -663,7 +663,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll.WithOverflowChecks(True))
+            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll.WithOverflowChecks(True))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -806,7 +806,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, TestOptions.ReleaseDll.WithOverflowChecks(False))
+            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll.WithOverflowChecks(False))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)

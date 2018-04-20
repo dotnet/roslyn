@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -87,50 +87,355 @@ dasd
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIf()
+        public async Task TestNotAfterIf()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            await VerifyAbsenceAsync(AddInsideMethod(
 @"if (true)
-    Console.WriteLine();
 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIfBlock()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterIfStatement(string statement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"if (true)
-{
-    Console.WriteLine();
-}
+$@"if (true)
+    {statement}
 $$"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterElse1()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterIfStatement_BeforeElse(string statement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+$@"if (true)
+    {statement}
+$$
+else"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterIfNestedIfStatement(string statement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+$@"if (true)
+    if (true)
+        {statement}
+    $$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterIfNestedIfStatement_BeforeElse(string statement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+$@"if (true)
+    if (true)
+        {statement}
+    $$
+    else"));
+        }
+
+        [WorkItem(25336, "https://github.com/dotnet/roslyn/issues/25336")]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterIfNestedIfElseStatement(string statement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+$@"if (true)
+    if (true)
+        Console.WriteLine();
+    else
+        {statement}
+$$"));
+        }
+
+        [WorkItem(25336, "https://github.com/dotnet/roslyn/issues/25336")]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterIfNestedIfElseStatement_BeforeElse(string statement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+$@"if (true)
+    if (true)
+        Console.WriteLine();
+    else
+        {statement}
+$$
+else"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestNotAfterIfNestedIfElseElseStatement(string statement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"if (true)
+$@"if (true)
+    if (true)
+        Console.WriteLine();
+    else
+        Console.WriteLine();
+else
+    {statement}
+$$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestNotAfterIfStatementElse(string statement)
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+$@"if (true)
+    {statement}
+else
+    $$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestNotAfterIfElseStatement(string statement)
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+$@"if (true)
     Console.WriteLine();
-else $$"));
+else
+    {statement}
+$$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterIfElseNestedIfStatement(string statement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+$@"if (true)
+    Console.WriteLine();
+else
+    if (true)
+        {statement}
+    $$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterIfElseNestedIfStatement_BeforeElse(string statement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+$@"if (true)
+    Console.WriteLine();
+else
+    if (true)
+        {statement}
+    $$
+    else"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestNotAfterIfElseNestedIfElseStatement(string statement)
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+$@"if (true)
+    Console.WriteLine();
+else
+    if (true)
+        Console.WriteLine();
+    else
+        {statement}
+$$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterWhileIfWhileNestedIfElseStatement(string statement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+$@"while (true)
+    if (true)
+        while (true)
+            if (true)
+                Console.WriteLine();
+            else
+                {statement}
+    $$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterWhileIfWhileNestedIfElseStatement_BeforeElse(string statement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+$@"while (true)
+    if (true)
+        while (true)
+            if (true)
+                Console.WriteLine();
+            else
+                {statement}
+    $$
+    else"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestNotAfterWhileIfWhileNestedIfElseElseStatement(string statement)
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+$@"while (true)
+    if (true)
+        while (true)
+            if (true)
+                Console.WriteLine();
+            else
+                Console.WriteLine();
+    else
+        {statement}
+$$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console")]
+        [InlineData("Console.")]
+        [InlineData("Console.WriteLine(")]
+        [InlineData("Console.WriteLine()")]
+        [InlineData("{")]
+        [InlineData("{ Console.WriteLine();")]
+        [InlineData("while")]
+        [InlineData("while (true)")]
+        [InlineData("while (true) {")]
+        [InlineData("while (true) { { }")]
+        [InlineData("for (int i = 0;")]
+        public async Task TestNotAfterIfIncompleteStatement(string statement)
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+$@"if (true)
+    {statement}
+$$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console")]
+        [InlineData("Console.")]
+        [InlineData("Console.WriteLine(")]
+        [InlineData("Console.WriteLine()")]
+        [InlineData("{")]
+        [InlineData("{ Console.WriteLine();")]
+        [InlineData("while")]
+        [InlineData("while (true)")]
+        [InlineData("while (true) {")]
+        [InlineData("while (true) { { }")]
+        [InlineData("for (int i = 0;")]
+        public async Task TestNotAfterIfNestedIfIncompleteStatement(string statement)
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+$@"if (true)
+    if (true)
+        {statement}
+    $$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console")]
+        [InlineData("Console.")]
+        [InlineData("Console.WriteLine(")]
+        [InlineData("Console.WriteLine()")]
+        [InlineData("{")]
+        [InlineData("{ Console.WriteLine();")]
+        [InlineData("while")]
+        [InlineData("while (true)")]
+        [InlineData("while (true) {")]
+        [InlineData("while (true) { { }")]
+        [InlineData("for (int i = 0;")]
+        public async Task TestNotAfterIfNestedIfElseIncompleteStatement(string statement)
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+$@"if (true)
+    if (true)
+        Console.WriteLine();
+    else
+        {statement}
+$$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterIfNestedIfIncompleteStatementElseStatement(string statement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+$@"if (true)
+    if (true)
+        Console // Incomplete, but that's fine. This is not the if statement we care about.
+    else
+        {statement}
+$$"));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("Console.WriteLine();")]
+        [InlineData("{ }")]
+        [InlineData("while (true) { }")]
+        public async Task TestAfterIfNestedIfIncompleteStatementElseStatement_BeforeElse(string statement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+$@"if (true)
+    if (true)
+        Console // Incomplete, but that's fine. This is not the if statement we care about.
+    else
+        {statement}
+$$
+else"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterElse2()
+        public async Task TestNotInsideStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"if (true)
-{
-    Console.WriteLine();
-}
-else $$"));
+    Console.WriteLine()$$; // Complete statement, but we're not at the end of it.
+"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterMemberAccess()
+        public async Task TestNotAfterSkippedToken()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"if (true)string.$$"));
+@"if (true)
+    Console.WriteLine();,
+$$"));
         }
     }
 }

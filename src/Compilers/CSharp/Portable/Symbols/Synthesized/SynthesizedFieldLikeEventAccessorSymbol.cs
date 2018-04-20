@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
 
         internal SynthesizedFieldLikeEventAccessorSymbol(SourceFieldLikeEventSymbol @event, bool isAdder)
-            : base(@event, null, null, @event.Locations)
+            : base(@event, null, @event.Locations)
         {
             this.MakeFlags(
                 isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,

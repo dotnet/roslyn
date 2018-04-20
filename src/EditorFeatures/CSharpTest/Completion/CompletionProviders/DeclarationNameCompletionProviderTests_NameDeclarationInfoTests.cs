@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Collections.Immutable;
 using static Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationNameCompletionProvider;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DeclarationInfoTests
 {
+    [UseExportProvider]
     public class DeclarationNameCompletion_ContextTests
     {
         protected CSharpTestWorkspaceFixture fixture = new CSharpTestWorkspaceFixture();
@@ -162,6 +158,96 @@ class C
 ";
             await VerifySymbolKinds(markup, SymbolKind.Local);
             await VerifyModifiers(markup, new DeclarationModifiers(isReadOnly: true));
+            await VerifyTypeName(markup, "int");
+            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void UsingVariableDeclaration1()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        using (int i$$
+    }
+}
+";
+            await VerifySymbolKinds(markup, SymbolKind.Local);
+            await VerifyModifiers(markup, new DeclarationModifiers());
+            await VerifyTypeName(markup, "int");
+            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void UsingVariableDeclaration2()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        using (int i1, $$
+    }
+}
+";
+            await VerifySymbolKinds(markup, SymbolKind.Local);
+            await VerifyModifiers(markup, new DeclarationModifiers());
+            await VerifyTypeName(markup, "int");
+            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void ForVariableDeclaration1()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        for (int i$$
+    }
+}
+";
+            await VerifySymbolKinds(markup, SymbolKind.Local);
+            await VerifyModifiers(markup, new DeclarationModifiers());
+            await VerifyTypeName(markup, "int");
+            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void ForVariableDeclaration2()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        for (int i1, $$
+    }
+}
+";
+            await VerifySymbolKinds(markup, SymbolKind.Local);
+            await VerifyModifiers(markup, new DeclarationModifiers());
+            await VerifyTypeName(markup, "int");
+            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void ForEachVariableDeclaration()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        foreach (int $$
+    }
+}
+";
+            await VerifySymbolKinds(markup, SymbolKind.Local);
+            await VerifyModifiers(markup, new DeclarationModifiers());
             await VerifyTypeName(markup, "int");
             await VerifyAccessibility(markup, Accessibility.NotApplicable);
         }

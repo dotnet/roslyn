@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.Equal(
                 null,
                 PathUtilities.GetDirectoryName(@"", isUnixLike: false));
-            
+
             TestGetDirectoryNameAndCompareToDotnet(null, null);
         }
 
@@ -294,6 +294,31 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.Equal(false, PathUtilities.IsSameDirectoryOrChildOf(@"C:\ABCDE", @"C:\ABCD"));
 
             Assert.Equal(false, PathUtilities.IsSameDirectoryOrChildOf(@"C:\A\B\C", @"C:\A\B\C\D"));
+        }
+
+        [Theory]
+        [InlineData("test/data1.txt", true)]
+        [InlineData("test\\data1.txt", true)]
+        [InlineData("data1.txt", true)]
+        [InlineData("data1", true)]
+        [InlineData("data1\\", false)]
+        [InlineData("data1//", false)]
+        [InlineData(null, false)]
+        [InlineData("", false)]
+        [InlineData("  ", false)]
+        [InlineData("path/?.txt", false)]
+        [InlineData("path/*.txt", false)]
+        [InlineData("path/:.txt", false)]
+        [InlineData("path/\".txt", false)]
+        [InlineData(
+            "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" +
+            "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" +
+            "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" +
+            "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII" +
+            "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII.txt", false)]
+        public void IsValidFilePath(string path, bool isValid)
+        {
+            Assert.Equal(isValid, PathUtilities.IsValidFilePath(path));
         }
     }
 }
