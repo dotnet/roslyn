@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             while (index > _builder.Count)
             {
-                _builder.Add(default(T));
+                _builder.Add(default);
             }
 
             if (index == _builder.Count)
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             if (Count == 0)
             {
-                return default(ImmutableArray<T>);
+                return default;
             }
 
             return this.ToImmutable();
@@ -272,7 +272,16 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// </summary>
         public ImmutableArray<T> ToImmutableAndFree()
         {
-            var result = this.ToImmutable();
+            ImmutableArray<T> result;
+            if (_builder.Capacity == Count)
+            {
+                result = _builder.MoveToImmutable();
+            }
+            else
+            {
+                result = ToImmutable();
+            }
+
             this.Free();
             return result;
         }

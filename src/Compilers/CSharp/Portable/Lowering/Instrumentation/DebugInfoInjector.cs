@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -63,11 +64,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddSequencePoint(rewritten);
         }
 
-        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement original, BoundStatement rewritten)
         {
-            rewritten = base.InstrumentExpressionStatement(original, rewritten);
+            rewritten = base.InstrumentFieldOrPropertyInitializer(original, rewritten);
             SyntaxNode syntax = original.Syntax;
 
+            if (rewritten.Kind == BoundKind.Block)
+            {
+                var block = (BoundBlock)rewritten;
+                return block.Update(block.Locals, block.LocalFunctions, ImmutableArray.Create(InstrumentFieldOrPropertyInitializer(block.Statements.Single(), syntax)));
+            }
+
+            return InstrumentFieldOrPropertyInitializer(rewritten, syntax);
+        }
+
+        private static BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement rewritten, SyntaxNode syntax)
+        {
             switch (syntax.Parent.Parent.Kind())
             {
                 case SyntaxKind.VariableDeclarator:
@@ -335,26 +347,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequencePoint(original.Syntax, rewritten);
         }
 
-        public override BoundStatement InstrumentSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
-        {
-            SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)original.Syntax;
-            TextSpan switchSequencePointSpan = TextSpan.FromBounds(
-                switchSyntax.SwitchKeyword.SpanStart,
-                switchSyntax.CloseParenToken.Span.End);
-
-            return new BoundSequencePointWithSpan(
-                syntax: switchSyntax,
-                statementOpt: base.InstrumentSwitchStatement(original, rewritten),
-                span: switchSequencePointSpan,
-                hasErrors: false);
-        }
-
         public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
         {
             SwitchStatementSyntax switchSyntax = (SwitchStatementSyntax)original.Syntax;
             TextSpan switchSequencePointSpan = TextSpan.FromBounds(
                 switchSyntax.SwitchKeyword.SpanStart,
-                switchSyntax.CloseParenToken.Span.End);
+                (switchSyntax.CloseParenToken != default) ? switchSyntax.CloseParenToken.Span.End : switchSyntax.Expression.Span.End);
 
             return new BoundSequencePointWithSpan(
                 syntax: switchSyntax,

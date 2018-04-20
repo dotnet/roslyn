@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private Workspace Workspace
+        private Microsoft.CodeAnalysis.Workspace Workspace
         {
             get
             {

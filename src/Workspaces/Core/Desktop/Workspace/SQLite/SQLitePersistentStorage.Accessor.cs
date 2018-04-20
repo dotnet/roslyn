@@ -60,24 +60,30 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
+                    bool haveDataId;
+                    TDatabaseId dataId;
                     using (var pooledConnection = Storage.GetPooledConnection())
                     {
-                        var connection = pooledConnection.Connection;
-                        if (TryGetDatabaseId(connection, key, out var dataId))
-                        {
-                            // Ensure all pending document writes to this name are flushed to the DB so that 
-                            // we can find them below.
-                            await FlushPendingWritesAsync(connection, key, cancellationToken).ConfigureAwait(false);
+                        haveDataId = TryGetDatabaseId(pooledConnection.Connection, key, out dataId);
+                    }
 
-                            try
+                    if (haveDataId)
+                    {
+                        // Ensure all pending document writes to this name are flushed to the DB so that 
+                        // we can find them below.
+                        await FlushPendingWritesAsync(key, cancellationToken).ConfigureAwait(false);
+
+                        try
+                        {
+                            using (var pooledConnection = Storage.GetPooledConnection())
                             {
                                 // Lookup the row from the DocumentData table corresponding to our dataId.
-                                return ReadBlob(connection, dataId);
+                                return ReadBlob(pooledConnection.Connection, dataId);
                             }
-                            catch (Exception ex)
-                            {
-                                StorageDatabaseLogger.LogException(ex);
-                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            StorageDatabaseLogger.LogException(ex);
                         }
                     }
                 }
@@ -96,33 +102,36 @@ namespace Microsoft.CodeAnalysis.SQLite
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
+                    bool haveDataId;
+                    TDatabaseId dataId;
                     using (var pooledConnection = Storage.GetPooledConnection())
                     {
                         // Determine the appropriate data-id to store this stream at.
-                        if (TryGetDatabaseId(pooledConnection.Connection, key, out var dataId))
+                        haveDataId = TryGetDatabaseId(pooledConnection.Connection, key, out dataId);
+                    }
+
+                    if (haveDataId)
+                    {
+                        var (bytes, length, pooled) = GetBytes(stream);
+
+                        await AddWriteTaskAsync(key, con =>
                         {
-                            var (bytes, length, pooled) = GetBytes(stream);
-
-                            await AddWriteTaskAsync(key, con =>
+                            InsertOrReplaceBlob(con, dataId, bytes, length);
+                            if (pooled)
                             {
-                                InsertOrReplaceBlob(con, dataId, bytes, length);
-                                if (pooled)
-                                {
-                                    ReturnPooledBytes(bytes);
-                                }
-                            }, cancellationToken).ConfigureAwait(false);
+                                ReturnPooledBytes(bytes);
+                            }
+                        }, cancellationToken).ConfigureAwait(false);
 
-                            return true;
-                        }
+                        return true;
                     }
                 }
 
                 return false;
             }
 
-            private Task FlushPendingWritesAsync(SqlConnection connection, TKey key, CancellationToken cancellationToken)
-                => Storage.FlushSpecificWritesAsync(
-                    connection, _writeQueueKeyToWrites, _writeQueueKeyToWriteTask, GetWriteQueueKey(key), cancellationToken);
+            private Task FlushPendingWritesAsync(TKey key, CancellationToken cancellationToken)
+                => Storage.FlushSpecificWritesAsync(_writeQueueKeyToWrites, _writeQueueKeyToWriteTask, GetWriteQueueKey(key), cancellationToken);
 
             private Task AddWriteTaskAsync(TKey key, Action<SqlConnection> action, CancellationToken cancellationToken)
                 => Storage.AddWriteTaskAsync(_writeQueueKeyToWrites, GetWriteQueueKey(key), action, cancellationToken);

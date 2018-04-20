@@ -259,7 +259,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var directives = node.GetDirectives();
             Assert.Equal(1, directives.Count);
             var dt = directives[0];
-            Assert.Equal(expected.PragmaKind, directives[0].Kind());
+            VerifyDirectivePragma(dt, expected);
+        }
+
+        private void VerifyDirectivePragma(DirectiveTriviaSyntax dt, PragmaInfo expected)
+        {
+            Assert.Equal(expected.PragmaKind, dt.Kind());
 
             if (dt is PragmaWarningDirectiveTriviaSyntax)
             {
@@ -446,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Trait("Feature", "Directives")]
         public void TestNegBadDirectiveName()
         {
-            var text = @"#foo";
+            var text = @"#goo";
             var node = Parse(text);
 
             TestRoundTripping(node, text, false);
@@ -2312,13 +2317,13 @@ class A {}";
         [Trait("Feature", "Directives")]
         public void TestNegDefineWithBadTokensAfterName()
         {
-            var text = @"#define FOO(";
+            var text = @"#define GOO(";
             var node = Parse(text);
 
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
             VerifyDirectivesSpecial(node,
-                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "FOO" });
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "GOO" });
         }
 
         [Fact]
@@ -2587,11 +2592,11 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestNegUndefWithBadTokensAfterName()
         {
-            var text = @"#undef FOO(";
+            var text = @"#undef GOO(";
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "FOO" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "GOO" });
         }
 
         [Fact]
@@ -3107,7 +3112,7 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestLineDefaultWithComment()
         {
-            var text = @"#line default // FOO";
+            var text = @"#line default // GOO";
             var node = Parse(text);
             TestRoundTripping(node, text);
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -1 });
@@ -3138,7 +3143,7 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestLineHiddenWithComment()
         {
-            var text = @"#line hidden // FOO";
+            var text = @"#line hidden // GOO";
             var node = Parse(text);
             TestRoundTripping(node, text);
             VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -2 });
@@ -3148,7 +3153,7 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestNegLineWithBadNumber()
         {
-            var text = @"#line Foo";
+            var text = @"#line Goo";
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
@@ -3366,7 +3371,7 @@ public class Test
 		#line 50 ""gopher://test.cs""
 		#line 60 ""telnet://test.cs""
 		#line 70 ""dict://test.cs""
-		#line 80 ""file://foo.aspx""
+		#line 80 ""file://goo.aspx""
 		#line 90 ""ldap://test.cs""
 		#line 100 ""news://test.cs""
 		#line 110 ""\\ddrelqa\logs\whidbey\2003-07-01\BVT64002\fx.Xml.XSLT\TESTPROCESSED20030701082505866.xml"" // parser error
@@ -3427,8 +3432,8 @@ class A
 {
     static void Main(int i)
     {
-#pragma warning disable 1522
-        switch (i) { }
+#pragma warning disable 1633
+#pragma something // warning CS1633: Unrecognized #pragma directive
     }
 }
 ";
@@ -3436,16 +3441,16 @@ class A
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var diagnostic = tree.GetDiagnostics().Single();
             Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
-            Assert.Equal(1522, diagnostic.Code);
+            Assert.Equal(1633, diagnostic.Code);
 
             // verify pragma information
             var node = tree.GetCompilationUnitRoot();
-            VerifyDirectivePragma(node, new PragmaInfo
+            VerifyDirectivePragma(node.GetDirectives().First(), new PragmaInfo
             {
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "1522" }
+                WarningList = new[] { "1633" }
             });
 
             // verify that GetParseDiagnostics filters disabled warning
@@ -3527,7 +3532,7 @@ class A
         [Trait("Feature", "Directives")]
         public void TestNegPragmaWarningWithBadStyle()
         {
-            var text = @"#pragma warning FOO";
+            var text = @"#pragma warning GOO";
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsWarning }); // CS1634
@@ -3543,7 +3548,7 @@ class A
         [Trait("Feature", "Directives")]
         public void TestNegPragmaWarningWithBadStyleAndCodes()
         {
-            var text = @"#pragma warning FOO 114";
+            var text = @"#pragma warning GOO 114";
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsWarning }); // CS1634
@@ -3621,7 +3626,7 @@ class A
         [Trait("Feature", "Directives")]
         public void TestNegPragmaWithBadToken()
         {
-            var text = @"#pragma FOO";
+            var text = @"#pragma GOO";
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPragma);
@@ -3826,7 +3831,7 @@ class A
         [Trait("Feature", "Directives")]
         public void TestReferenceWithComment()
         {
-            var text = @"#r ""bogus"" // FOO";
+            var text = @"#r ""bogus"" // GOO";
             var node = Parse(text, SourceCodeKind.Script);
             TestRoundTripping(node, text);
             VerifyDirectivesSpecial(node, new DirectiveInfo
@@ -3852,7 +3857,7 @@ class A
         [Trait("Feature", "Directives")]
         public void TestReferenceWithoutQuotes()
         {
-            var text = @"#r Foo";
+            var text = @"#r Goo";
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
@@ -3893,7 +3898,7 @@ class A
 #r ""gopher://test.cs""
 #r ""telnet://test.cs""
 #r ""dict://test.cs""
-#r ""file://foo.aspx""
+#r ""file://goo.aspx""
 #r ""ldap://test.cs""
 #r ""news://test.cs""
 #r ""\\ddrelqa\logs\whidbey\2003-07-01\BVT64002\fx.Xml.XSLT\TESTPROCESSED20030701082505866.xml"" // comment

@@ -138,13 +138,13 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 var syntaxFactory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
 
                 var accessorBody = propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties
-                    ? default(ImmutableArray<SyntaxNode>)
+                    ? default
                     : syntaxFactory.CreateThrowNotImplementedStatementBlock(_model.Compilation);
 
                 var getMethod = ShouldGenerateAccessor(property.GetMethod)
                     ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         property.GetMethod,
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: property.GetMethod.ComputeResultantAccessibility(_state.ClassType),
                         statements: accessorBody)
                     : null;
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 var setMethod = ShouldGenerateAccessor(property.SetMethod)
                     ? CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         property.SetMethod,
-                        attributes: default(ImmutableArray<AttributeData>),
+                        attributes: default,
                         accessibility: property.SetMethod.ComputeResultantAccessibility(_state.ClassType),
                         statements: accessorBody)
                     : null;

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (position >= syntaxTree.Length)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             // SyntaxKind = None
-            return default(SyntaxToken);
+            return default;
         }
 
         public static bool OverlapsHiddenPosition(this SyntaxTree tree, TextSpan span, CancellationToken cancellationToken)
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return compilationUnit.EndOfFileToken;
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         internal static SyntaxTrivia FindTriviaAndAdjustForEndOfFile(

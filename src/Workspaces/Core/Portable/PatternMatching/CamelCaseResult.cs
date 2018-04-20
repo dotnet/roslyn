@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             }
         }
 
-        private static PatternMatchKind GetCamelCaseKind(CamelCaseResult result, StringBreaks candidateHumps)
+        private static PatternMatchKind GetCamelCaseKind(CamelCaseResult result, ArrayBuilder<TextSpan> candidateHumps)
         {
-            var toEnd = result.MatchCount == candidateHumps.GetCount();
+            var toEnd = result.MatchCount == candidateHumps.Count;
             if (result.FromStart)
             {
                 if (result.Contiguous)

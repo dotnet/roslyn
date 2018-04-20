@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (ParameterSymbol param in property.Parameters)
             {
-                if (param.RefKind != RefKind.None)
+                if (param.RefKind == RefKind.Ref || param.RefKind == RefKind.Out)
                 {
                     return true;
                 }

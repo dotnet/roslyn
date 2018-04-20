@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -24,43 +20,92 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        private static readonly Func<ArgumentSyntax, SemanticModel, OptionSet, CancellationToken, ArgumentSyntax> s_simplifyTupleName = SimplifyTupleName;
-
-        private static ArgumentSyntax SimplifyTupleName(ArgumentSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+        internal static bool CanSimplifyTupleElementName(ArgumentSyntax node, CSharpParseOptions parseOptions)
         {
             // Tuple elements are arguments in a tuple expression
             if (node.NameColon == null || !node.IsParentKind(SyntaxKind.TupleExpression))
             {
-                return node;
+                return false;
+            }
+
+            if (parseOptions.LanguageVersion < LanguageVersion.CSharp7_1)
+            {
+                return false;
+            }
+
+            if (RemovalCausesAmbiguity(((TupleExpressionSyntax)node.Parent).Arguments, node))
+            {
+                return false;
             }
 
             var inferredName = node.Expression.TryGetInferredMemberName();
-
             if (inferredName == null || inferredName != node.NameColon.Name.Identifier.ValueText)
             {
-                return node;
+                return false;
             }
 
-            return node.WithNameColon(null).WithTriviaFrom(node);
+            return true;
         }
 
-        private static readonly Func<AnonymousObjectMemberDeclaratorSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyAnonymousTypeMemberName = SimplifyAnonymousTypeMemberName;
-
-        private static SyntaxNode SimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken canellationToken)
+        internal static bool CanSimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node)
         {
             if (node.NameEquals == null)
             {
-                return node;
+                return false;
+            }
+
+            if (RemovalCausesAmbiguity(((AnonymousObjectCreationExpressionSyntax)node.Parent).Initializers, node))
+            {
+                return false;
             }
 
             var inferredName = node.Expression.TryGetInferredMemberName();
-
             if (inferredName == null || inferredName != node.NameEquals.Name.Identifier.ValueText)
             {
-                return node;
+                return false;
             }
 
-            return node.WithNameEquals(null).WithTriviaFrom(node);
+            return true;
+        }
+
+        // An explicit name cannot be removed if some other position would produce it as inferred name
+        private static bool RemovalCausesAmbiguity(SeparatedSyntaxList<ArgumentSyntax> arguments, ArgumentSyntax toRemove)
+        {
+            string name = toRemove.NameColon.Name.Identifier.ValueText;
+            foreach (var argument in arguments)
+            {
+                if (argument == toRemove)
+                {
+                    continue;
+                }
+
+                if (argument.NameColon is null && argument.Expression.TryGetInferredMemberName()?.Equals(name) == true)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // An explicit name cannot be removed if some other position would produce it as inferred name
+        private static bool RemovalCausesAmbiguity(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, AnonymousObjectMemberDeclaratorSyntax toRemove)
+        {
+            string name = toRemove.NameEquals.Name.Identifier.ValueText;
+            foreach (var initializer in initializers)
+            {
+                if (initializer == toRemove)
+                {
+                    continue;
+                }
+
+                if (initializer.NameEquals is null && initializer.Expression.TryGetInferredMemberName()?.Equals(name) == true)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

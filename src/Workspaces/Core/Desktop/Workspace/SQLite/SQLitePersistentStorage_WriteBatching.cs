@@ -51,16 +51,15 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         private async Task FlushSpecificWritesAsync<TKey>(
-            SqlConnection connection,
             MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
             Dictionary<TKey, Task> keyToWriteTask,
-            TKey key, CancellationToken cancellationToken)
+            TKey key,
+            CancellationToken cancellationToken)
         {
             var writesToProcess = ArrayBuilder<Action<SqlConnection>>.GetInstance();
             try
             {
-                await FlushSpecificWritesAsync(
-                    connection, keyToWriteActions, keyToWriteTask, key, writesToProcess, cancellationToken).ConfigureAwait(false);
+                await FlushSpecificWritesAsync(keyToWriteActions, keyToWriteTask, key, writesToProcess, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -69,8 +68,9 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         private async Task FlushSpecificWritesAsync<TKey>(
-            SqlConnection connection, MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
-            Dictionary<TKey, Task> keyToWriteTask, TKey key,
+            MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
+            Dictionary<TKey, Task> keyToWriteTask,
+            TKey key,
             ArrayBuilder<Action<SqlConnection>> writesToProcess,
             CancellationToken cancellationToken)
         {
@@ -97,7 +97,10 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // would be losing data.
                 Debug.Assert(taskCompletionSource != null);
 
-                ProcessWriteQueue(connection, writesToProcess);
+                using (var pooledConnection = GetPooledConnection())
+                {
+                    ProcessWriteQueue(pooledConnection.Connection, writesToProcess);
+                }
             }
             catch (OperationCanceledException ex)
             {
@@ -126,8 +129,15 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // performed by FlushAllPendingWritesAsync.
                 using (await _writeQueueGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    // Get the writes we need to process.
-                    writesToProcess.AddRange(keyToWriteActions[key]);
+                    // Get the writes we need to process. 
+                    // Note: explicitly foreach so we operate on the struct enumerator for
+                    // MultiDictionary.ValueSet.
+                    var actions = keyToWriteActions[key];
+                    writesToProcess.EnsureCapacity(writesToProcess.Count + actions.Count);
+                    foreach (var action in actions)
+                    {
+                        writesToProcess.Add(action);
+                    }
 
                     // and clear them from the queues so we don't process things multiple times.
                     keyToWriteActions.Remove(key);

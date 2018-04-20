@@ -13,19 +13,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static class BlockSyntaxExtensions
     {
         public static bool TryConvertToExpressionBody(
-            this BlockSyntax block, ParseOptions options,
-            ExpressionBodyPreference preference,
+            this BlockSyntax block, SyntaxKind declarationKind,
+            ParseOptions options, ExpressionBodyPreference preference,
             out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
             if (preference != ExpressionBodyPreference.Never &&
-                (options as CSharpParseOptions)?.LanguageVersion >= LanguageVersion.CSharp7)
+                block != null && block.Statements.Count == 1)
             {
-                if (block != null && block.Statements.Count == 1)
+                var version = ((CSharpParseOptions)options).LanguageVersion;
+                var acceptableVersion =
+                    version >= LanguageVersion.CSharp7 ||
+                    (version >= LanguageVersion.CSharp6 && IsSupportedInCSharp6(declarationKind));
+
+                if (acceptableVersion)
                 {
                     var firstStatement = block.Statements[0];
 
-                    if (TryGetExpression(firstStatement, out var expression, out semicolonToken) &&
+                    if (TryGetExpression(version, firstStatement, out var expression, out semicolonToken) &&
                         MatchesPreference(expression, preference))
                     {
                         arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
@@ -41,8 +46,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             arrowExpression = null;
-            semicolonToken = default(SyntaxToken);
+            semicolonToken = default;
             return false;
+        }
+
+        private static bool IsSupportedInCSharp6(SyntaxKind declarationKind)
+        {
+            switch (declarationKind)
+            {
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                    return false;
+            }
+
+            return true;
         }
 
         public static bool MatchesPreference(
@@ -58,7 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static bool TryGetExpression(
-            StatementSyntax firstStatement, out ExpressionSyntax expression, out SyntaxToken semicolonToken)
+            LanguageVersion version, StatementSyntax firstStatement,
+            out ExpressionSyntax expression, out SyntaxToken semicolonToken)
         {
             if (firstStatement is ExpressionStatementSyntax exprStatement)
             {
@@ -81,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
             else if (firstStatement is ThrowStatementSyntax throwStatement)
             {
-                if (throwStatement.Expression != null)
+                if (version >= LanguageVersion.CSharp7 && throwStatement.Expression != null)
                 {
                     expression = SyntaxFactory.ThrowExpression(throwStatement.ThrowKeyword, throwStatement.Expression);
                     semicolonToken = throwStatement.SemicolonToken;
@@ -90,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             expression = null;
-            semicolonToken = default(SyntaxToken);
+            semicolonToken = default;
             return false;
         }
     }

@@ -40,20 +40,20 @@ end class")
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
-        Foo(v1.[|Item1|])
+        Goo(v1.[|Item1|])
     end sub
 
-    Sub Foo(i as integer)
+    Sub Goo(i as integer)
     end sub
 end class",
 "
 class C
     Sub M()
         dim v1 as (i as integer, s as string)
-        Foo(v1.i)
+        Goo(v1.i)
     end sub
 
-    Sub Foo(i as integer)
+    Sub Goo(i as integer)
     end sub
 end class")
         End Function

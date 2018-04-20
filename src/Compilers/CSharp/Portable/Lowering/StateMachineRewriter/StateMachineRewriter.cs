@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected FieldSymbol stateField;
         protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies;
         protected int nextFreeHoistedLocalSlot;
-        protected IReadOnlySet<Symbol> hoistedVariables;
+        protected IOrderedReadOnlySet<Symbol> hoistedVariables;
         protected Dictionary<Symbol, CapturedSymbolReplacement> initialParameters;
 
         protected StateMachineRewriter(
@@ -145,14 +146,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (local.RefKind != RefKind.None)
                     {
                         // we'll create proxies for these variables later:
-                        Debug.Assert(synthesizedKind == SynthesizedLocalKind.AwaitSpill);
+                        Debug.Assert(synthesizedKind == SynthesizedLocalKind.Spill);
                         continue;
                     }
 
                     Debug.Assert(local.RefKind == RefKind.None);
                     StateMachineFieldSymbol field = null;
 
-                    if (!local.SynthesizedKind.IsSlotReusable(F.Compilation.Options.OptimizationLevel))
+                    if (ShouldPreallocateNonReusableProxy(local))
                     {
                         // variable needs to be hoisted
                         var fieldType = typeMap.SubstituteType(local.Type).Type;
@@ -174,10 +175,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // map local id to the previous id, if available:
                             int previousSlotIndex;
                             if (mapToPreviousFields && slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
-                                declaratorSyntax, 
-                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics), 
-                                synthesizedKind, 
-                                id, 
+                                declaratorSyntax,
+                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics),
+                                synthesizedKind,
+                                id,
                                 diagnostics,
                                 out previousSlotIndex))
                             {
@@ -239,9 +240,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             proxies = proxiesBuilder;
         }
 
+        private bool ShouldPreallocateNonReusableProxy(LocalSymbol local)
+        {
+            var synthesizedKind = local.SynthesizedKind;
+            var optimizationLevel = F.Compilation.Options.OptimizationLevel;
+
+            // do not preallocate proxiy fields for user defined locals in release
+            // otherwise we will be allocating fields for all locals even when fields can be reused
+            // see https://github.com/dotnet/roslyn/issues/15290
+            if (optimizationLevel == OptimizationLevel.Release && synthesizedKind == SynthesizedLocalKind.UserDefined)
+            {
+                return false;
+            }
+
+            return !synthesizedKind.IsSlotReusable(optimizationLevel);
+        }
+
         private BoundStatement GenerateKickoffMethodBody()
         {
-            F.CurrentMethod = method;
+            F.CurrentFunction = method;
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
             var frameType = method.IsGenericMethod ? stateMachineType.Construct(method.TypeArguments) : stateMachineType;
@@ -286,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = new SynthesizedStateMachineDebuggerHiddenMethod(methodName, methodToImplement, (StateMachineTypeSymbol)F.CurrentType, null, hasMethodBodyDependency);
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result);
-            F.CurrentMethod = result;
+            F.CurrentFunction = result;
             return result;
         }
 
@@ -298,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var getter = prop.GetMethod;
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, getter);
 
-            F.CurrentMethod = getter;
+            F.CurrentFunction = getter;
             return getter;
         }
 
@@ -306,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = new SynthesizedStateMachineMoveNextMethod(methodToImplement, (StateMachineTypeSymbol)F.CurrentType);
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result);
-            F.CurrentMethod = result;
+            F.CurrentFunction = result;
             return result;
         }
     }

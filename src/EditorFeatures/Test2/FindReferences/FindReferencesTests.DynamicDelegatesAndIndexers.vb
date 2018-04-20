@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 class A
 {
 	    delegate void myDelegate(dynamic d);
-	    void Foo()
+	    void Goo()
 	    {	
             dynamic d = 1;
 		    myDelegate {|Definition:del|} = n => { Console.WriteLine(n); };
@@ -39,7 +39,7 @@ class A
 }
 class B
 {
-    public void Foo()
+    public void Goo()
     {
         A a = new A();
         dynamic d = 1;
@@ -67,7 +67,7 @@ class A
 }
 class B
 {
-    public void Foo()
+    public void Goo()
     {
         A a = new A();
         dynamic d = 1;

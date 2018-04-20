@@ -6,6 +6,7 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -100,7 +101,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _modules = moduleBuilder.ToImmutableAndFree()
 
             If Not compilation.Options.CryptoPublicKey.IsEmpty Then
-                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, MessageProvider.Instance)
+                ' Private key Is Not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
+                Dim privateKey As RSAParameters? = Nothing
+                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey, MessageProvider.Instance)
             End If
         End Sub
 

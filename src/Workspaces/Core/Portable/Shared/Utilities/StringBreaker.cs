@@ -3,81 +3,29 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
-    /// <summary>
-    /// Values returned from <see cref="StringBreaker"/> routines.
-    /// Optimized for short strings with a handful of spans.
-    /// Each span is encoded in two bitfields 'gap' and 'length' and these
-    /// bitfields are stored in a 32-bit bitmap.
-    /// Falls back to a <see cref="List{T}"/> if the encoding won't work.
-    /// </summary>
-    internal partial struct StringBreaks : IDisposable
+    internal static class StringBreaker
     {
-        private readonly ArrayBuilder<TextSpan> _spans;
-        private readonly EncodedSpans _encodedSpans;
+        /// <summary>
+        /// Breaks an identifier string into constituent parts.
+        /// </summary>
+        public static ArrayBuilder<TextSpan> GetWordParts(string identifier)
+            => GetParts(identifier, word: true);
 
-        // These two values may be adjusted. The remaining constants are
-        // derived from them. The values are chosen to minimize the number
-        // of fallbacks during normal typing. With 5 total bits per span, we
-        // can encode up to 6 spans, each as long as 15 chars with 0 or 1 char
-        // gap. This is sufficient for the vast majority of framework symbols.
-        private const int BitsForGap = 1;
-        private const int BitsForLength = 4;
+        public static ArrayBuilder<TextSpan> GetCharacterParts(string identifier)
+            => GetParts(identifier, word: false);
 
-        private const int BitsPerEncodedSpan = BitsForGap + BitsForLength;
-        private const int MaxShortSpans = 32 / BitsPerEncodedSpan;
-        private const int MaxGap = (1 << BitsForGap) - 1;
-        private const int MaxLength = (1 << BitsForLength) - 1;
-
-        public static StringBreaks Create(string text, Func<string, int, TextSpan> spanGenerator)
+        public static ArrayBuilder<TextSpan> GetParts(string text, bool word)
         {
-            Debug.Assert(text != null);
-            Debug.Assert(spanGenerator != null);
-            return TryEncodeSpans(text, spanGenerator, out var encodedSpans)
-                ? new StringBreaks(encodedSpans)
-                : new StringBreaks(CreateFallbackList(text, spanGenerator));
-        }
-
-        private static bool TryEncodeSpans(string text, Func<string, int, TextSpan> spanGenerator, out EncodedSpans encodedSpans)
-        {
-            encodedSpans = default(EncodedSpans);
-            for (int start = 0, b = 0; start < text.Length;)
-            {
-                var span = spanGenerator(text, start);
-                if (span.IsEmpty)
-                {
-                    // All done
-                    break;
-                }
-
-                int gap = span.Start - start;
-                Debug.Assert(gap >= 0, "Bad generator.");
-
-                if (b >= MaxShortSpans ||
-                    span.Length > MaxLength ||
-                    gap > MaxGap)
-                {
-                    // Too many spans, or span cannot be encoded.
-                    return false;
-                }
-
-                encodedSpans[b++] = Encode(gap, span.Length);
-                start = span.End;
-            }
-
-            return true;
-        }
-
-        private static ArrayBuilder<TextSpan> CreateFallbackList(string text, Func<string, int, TextSpan> spanGenerator)
-        {
-            var list = ArrayBuilder<TextSpan>.GetInstance();
+            var parts = ArrayBuilder<TextSpan>.GetInstance();
             for (int start = 0; start < text.Length;)
             {
-                var span = spanGenerator(text, start);
+                var span = StringBreaker.GenerateSpan(text, start, word);
                 if (span.IsEmpty)
                 {
                     // All done
@@ -86,227 +34,173 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 Debug.Assert(span.Start >= start, "Bad generator.");
 
-                list.Add(span);
+                parts.Add(span);
                 start = span.End;
             }
 
-            return list;
+            return parts;
         }
-
-        private StringBreaks(EncodedSpans encodedSpans)
-        {
-            _encodedSpans = encodedSpans;
-            _spans = null;
-        }
-
-        private StringBreaks(ArrayBuilder<TextSpan> spans)
-        {
-            _encodedSpans = default(EncodedSpans);
-            _spans = spans;
-        }
-
-        public void Dispose()
-        {
-            _spans?.Free();
-        }
-
-        public int GetCount()
-        {
-            if (_spans != null)
-            {
-                return _spans.Count;
-            }
-
-            int i;
-            for (i = 0; i < MaxShortSpans; i++)
-            {
-                if (_encodedSpans[i] == 0)
-                {
-                    break;
-                }
-            }
-
-            return i;
-        }
-
-        public TextSpan this[int index]
-        {
-            get
-            {
-                if (index < 0)
-                {
-                    throw new IndexOutOfRangeException(nameof(index));
-                }
-
-                if (_spans != null)
-                {
-                    return _spans[index];
-                }
-
-                for (int i = 0, start = 0; i < MaxShortSpans; i++)
-                {
-                    byte b = _encodedSpans[i];
-                    if (b == 0)
-                    {
-                        break;
-                    }
-
-                    start += DecodeGap(b);
-                    int length = DecodeLength(b);
-                    if (i == index)
-                    {
-                        return new TextSpan(start, length);
-                    }
-
-                    start += length;
-                }
-
-                throw new IndexOutOfRangeException(nameof(index));
-            }
-        }
-
-        private static byte Encode(int gap, int length)
-        {
-            Debug.Assert(gap >= 0 && gap <= MaxGap);
-            Debug.Assert(length >= 0 && length <= MaxLength);
-            return unchecked((byte)((gap << BitsForLength) | length));
-        }
-
-        private static int DecodeLength(byte b) => b & MaxLength;
-
-        private static int DecodeGap(byte b) => b >> BitsForLength;
-    }
-
-    internal static class StringBreaker
-    {
-        /// <summary>
-        /// Breaks an identifier string into constituent parts.
-        /// </summary>
-        public static StringBreaks BreakIntoCharacterParts(string identifier) 
-            => StringBreaks.Create(identifier, s_characterPartsGenerator);
-
-        /// <summary>
-        /// Breaks an identifier string into constituent parts.
-        /// </summary>
-        public static StringBreaks BreakIntoWordParts(string identifier) 
-            => StringBreaks.Create(identifier, s_wordPartsGenerator);
-
-        private static readonly Func<string, int, TextSpan> s_characterPartsGenerator = (identifier, start) => GenerateSpan(identifier, start, word: false);
-
-        private static readonly Func<string, int, TextSpan> s_wordPartsGenerator = (identifier, start) => GenerateSpan(identifier, start, word: true);
 
         public static TextSpan GenerateSpan(string identifier, int wordStart, bool word)
         {
-            for (int i = wordStart + 1; i < identifier.Length; i++)
+            int length = identifier.Length;
+            wordStart = SkipPunctuation(identifier, length, wordStart);
+            if (wordStart < length)
             {
-                var lastIsDigit = char.IsDigit(identifier[i - 1]);
-                var currentIsDigit = char.IsDigit(identifier[i]);
-
-                var transitionFromLowerToUpper = TransitionFromLowerToUpper(identifier, word, i);
-                var transitionFromUpperToLower = TransitionFromUpperToLower(identifier, word, i, wordStart);
-
-                if (char.IsPunctuation(identifier[i - 1]) ||
-                    char.IsPunctuation(identifier[i]) ||
-                    lastIsDigit != currentIsDigit ||
-                    transitionFromLowerToUpper ||
-                    transitionFromUpperToLower)
+                var firstChar = identifier[wordStart];
+                if (char.IsUpper(firstChar))
                 {
-                    if (!IsAllPunctuation(identifier, wordStart, i))
+                    if (wordStart + 1 == length)
                     {
-                        return new TextSpan(wordStart, i - wordStart);
+                        return new TextSpan(wordStart, 1);
                     }
 
-                    wordStart = i;
-                }
-            }
-
-            if (!IsAllPunctuation(identifier, wordStart, identifier.Length))
-            {
-                return new TextSpan(wordStart, identifier.Length - wordStart);
-            }
-
-            return default(TextSpan);
-        }
-
-        private static bool IsAllPunctuation(string identifier, int start, int end)
-        {
-            for (int i = start; i < end; i++)
-            {
-                var ch = identifier[i];
-
-                // We don't consider _ as punctuation as there may be things with that name.
-                if (!char.IsPunctuation(ch) || ch == '_')
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private static bool TransitionFromUpperToLower(string identifier, bool word, int index, int wordStart)
-        {
-            if (word)
-            {
-                // Cases this supports:
-                // 1) IDisposable -> I, Disposable
-                // 2) UIElement -> UI, Element
-                // 3) HTMLDocument -> HTML, Document
-                //
-                // etc.
-                if (index != wordStart &&
-                    index + 1 < identifier.Length)
-                {
-                    var currentIsUpper = char.IsUpper(identifier[index]);
-                    var nextIsLower = char.IsLower(identifier[index + 1]);
-                    if (currentIsUpper && nextIsLower)
+                    if (word)
                     {
-                        // We have a transition from an upper to a lower letter here.  But we only
-                        // want to break if all the letters that preceded are uppercase.  i.e. if we
-                        // have "Foo" we don't want to break that into "F, oo".  But if we have
-                        // "IFoo" or "UIFoo", then we want to break that into "I, Foo" and "UI,
-                        // Foo".  i.e. the last uppercase letter belongs to the lowercase letters
-                        // that follows.  Note: this will make the following not split properly:
-                        // "HELLOthere".  However, these sorts of names do not show up in .Net
-                        // programs.
-                        for (int i = wordStart; i < index; i++)
-                        {
-                            if (!char.IsUpper(identifier[i]))
-                            {
-                                return false;
-                            }
-                        }
-
-                        return true;
+                        return ScanWordRun(identifier, length, wordStart);
+                    }
+                    else
+                    {
+                        return ScanCharacterRun(identifier, length, wordStart);
                     }
                 }
+                else if (IsLower(firstChar))
+                {
+                    return ScanLowerCaseRun(identifier, length, wordStart);
+                }
+                else if (firstChar == '_')
+                {
+                    return new TextSpan(wordStart, 1);
+                }
+                else if (char.IsDigit(firstChar))
+                {
+                    return ScanNumber(identifier, length, wordStart);
+                }
             }
 
-            return false;
+            return default;
         }
 
-        private static bool TransitionFromLowerToUpper(string identifier, bool word, int index)
+        private static TextSpan ScanCharacterRun(string identifier, int length, int wordStart)
         {
-            var lastIsUpper = char.IsUpper(identifier[index - 1]);
-            var currentIsUpper = char.IsUpper(identifier[index]);
+            // In a character run, if we have XMLDocument, then we will break that up into
+            // X, M, L, and Document.
+            var current = wordStart + 1;
+            Debug.Assert(current < length);
+            var c = identifier[current];
 
-            // See if the casing indicates we're starting a new word. Note: if we're breaking on
-            // words, then just seeing an upper case character isn't enough.  Instead, it has to
-            // be uppercase and the previous character can't be uppercase. 
-            //
-            // For example, breaking "AddMetadata" on words would make: Add Metadata
-            //
-            // on characters would be: A dd M etadata
-            //
-            // Break "AM" on words would be: AM
-            //
-            // on characters would be: A M
-            //
-            // We break the search string on characters.  But we break the symbol name on words.
-            var transition = word
-                ? (currentIsUpper && !lastIsUpper)
-                : currentIsUpper;
-            return transition;
+            if (IsLower(c))
+            {
+                // "Do"
+                // 
+                // scan the lowercase letters from here on to scna out 'Document'.
+                return ScanLowerCaseRun(identifier, length, wordStart);
+            }
+            else
+            {
+                return new TextSpan(wordStart, 1);
+            }
         }
+
+        private static TextSpan ScanWordRun(string identifier, int length, int wordStart)
+        {
+            // In a word run, if we have XMLDocument, then we will break that up into
+            // XML and Document.
+
+            var current = wordStart + 1;
+            Debug.Assert(current < length);
+            var c = identifier[current];
+
+            if (char.IsUpper(c))
+            {
+                // "XM"
+
+                current++;
+
+                // scan all the upper case letters until we hit one followed by a lower
+                // case letter.
+                while (current < length && char.IsUpper(identifier[current]))
+                {
+                    current++;
+                }
+
+                if (current < length && IsLower(identifier[current]))
+                {
+                    // hit the 'o' in XMLDo.  Return "XML"
+                    Debug.Assert(char.IsUpper(identifier[current - 1]));
+                    var end = current - 1;
+                    return new TextSpan(wordStart, end - wordStart);
+                }
+                else
+                {
+                    // Hit something else (punctuation, end of string, etc.)
+                    // return the entire upper-case section.
+                    return new TextSpan(wordStart, current - wordStart);
+                }
+            }
+            else if (IsLower(c))
+            {
+                // "Do"
+                // 
+                // scan the lowercase letters from here on to scan out 'Document'.
+                return ScanLowerCaseRun(identifier, length, wordStart);
+            }
+            else
+            {
+                return new TextSpan(wordStart, 1);
+            }
+        }
+
+        private static TextSpan ScanLowerCaseRun(string identifier, int length, int wordStart)
+        {
+            var current = wordStart + 1;
+            while (current < length && IsLower(identifier[current]))
+            {
+                current++;
+            }
+
+            return new TextSpan(wordStart, current - wordStart);
+        }
+
+        private static TextSpan ScanNumber(string identifier, int length, int wordStart)
+        {
+            var current = wordStart + 1;
+            while (current < length && char.IsDigit(identifier[current]))
+            {
+                current++;
+            }
+
+            return TextSpan.FromBounds(wordStart, current);
+        }
+
+        private static int SkipPunctuation(string identifier, int length, int wordStart)
+        {
+            while (wordStart < length)
+            {
+                var ch = identifier[wordStart];
+                if (ch != '_' && char.IsPunctuation(ch))
+                {
+                    wordStart++;
+                    continue;
+                }
+
+                break;
+            }
+
+            return wordStart;
+        }
+
+        private static bool IsLower(char c)
+        {
+            if (IsAscii(c))
+            {
+                return c >= 'a' && c <= 'z';
+            }
+
+            return char.IsLower(c);
+        }
+
+        private static bool IsAscii(char v)
+            => v < 0x80;
     }
 }

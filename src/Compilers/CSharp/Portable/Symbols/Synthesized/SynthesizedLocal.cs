@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _refKind);
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get { return _refKind; }
         }
@@ -149,6 +150,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
+        /// <summary>
+        /// Compiler should always be synthesizing locals with correct escape semantics.
+        /// Checking escape scopes is not valid here.
+        /// </summary>
+        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
+
+        /// <summary>
+        /// Compiler should always be synthesizing locals with correct escape semantics.
+        /// Checking escape scopes is not valid here.
+        /// </summary>
+        internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+
         internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
         {
             return null;
@@ -159,10 +172,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<Diagnostic>.Empty;
         }
 
-        private new string GetDebuggerDisplay()
+#if DEBUG
+        private static int _nextSequence = 0;
+        // Produce a token that helps distinguish one variable from another when debugging
+        private int _sequence = System.Threading.Interlocked.Increment(ref _nextSequence);
+
+        internal string DumperString()
         {
             var builder = new StringBuilder();
-            builder.Append((_kind == SynthesizedLocalKind.UserDefined) ? "<temp>" : _kind.ToString());
+            builder.Append(_type.ToDisplayString(SymbolDisplayFormat.TestFormat));
+            builder.Append(' ');
+            builder.Append(_kind.ToString());
+            builder.Append('.');
+            builder.Append(_sequence);
+            return builder.ToString();
+        }
+#endif
+
+        override internal string GetDebuggerDisplay()
+        {
+            var builder = new StringBuilder();
+            builder.Append('<');
+            builder.Append(_kind.ToString());
+            builder.Append('>');
+#if DEBUG
+            builder.Append('.');
+            builder.Append(_sequence);
+#endif
             builder.Append(' ');
             builder.Append(_type.ToDisplayString(SymbolDisplayFormat.TestFormat));
 

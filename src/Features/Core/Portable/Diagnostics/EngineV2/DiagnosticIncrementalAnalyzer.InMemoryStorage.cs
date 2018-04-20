@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 AssertKey(key);
 
-                entry = default(CacheEntry);
+                entry = default;
                 if (!s_map.TryGetValue(analyzer, out var analyzerMap) ||
                     !analyzerMap.TryGetValue(key, out entry))
                 {

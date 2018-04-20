@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests {
         ///using System.Runtime.InteropServices;
         ///public struct Parent{
         ///
-        ///	public int Foo([Optional] int i,  [Optional] long j, [Optional] float f, [Optional]  decimal d){
+        ///	public int Goo([Optional] int i,  [Optional] long j, [Optional] float f, [Optional]  decimal d){
         ///	if(d==0 ) return 0;
         ///	return 1;
         ///	}
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests {
         ///
         ///public class Parent{
         ///
-        ///	public int Foo( int x=2,params object[] array= null){
+        ///	public int Goo( int x=2,params object[] array= null){
         ///	x=2;
         ///	if(x ==2) return 0;
         ///	return 1;

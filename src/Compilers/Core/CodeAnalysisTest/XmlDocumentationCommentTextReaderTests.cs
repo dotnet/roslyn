@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var reader = new XmlDocumentationCommentTextReader();
 
             Assert.Null(reader.ParseInternal("<a>aaa</a>"));
-            Assert.Null(reader.ParseInternal("<a><b x='foo'></b></a>"));
-            Assert.NotNull(reader.ParseInternal("<a><b x='foo'></a>"));
+            Assert.Null(reader.ParseInternal("<a><b x='goo'></b></a>"));
+            Assert.NotNull(reader.ParseInternal("<a><b x='goo'></a>"));
             Assert.NotNull(reader.ParseInternal("<a>/a>"));
             Assert.NotNull(reader.ParseInternal("<a>"));
             Assert.Null(reader.ParseInternal("<a></a>"));

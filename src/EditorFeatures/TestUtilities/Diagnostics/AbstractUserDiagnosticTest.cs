@@ -25,7 +25,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-    public abstract class AbstractUserDiagnosticTest : AbstractCodeActionOrUserDiagnosticTest
+    public abstract partial class AbstractUserDiagnosticTest : AbstractCodeActionOrUserDiagnosticTest
     {
         internal abstract Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(
             TestWorkspace workspace, TestParameters parameters);
@@ -38,6 +38,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             var diagnostics = await GetDiagnosticAndFixAsync(workspace, parameters);
             return (diagnostics?.Item2?.Fixes.Select(f => f.Action).ToImmutableArray()).GetValueOrDefault().NullToEmpty();
+        }
+
+        protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(TestWorkspace workspace, TestParameters parameters)
+        {
+            var diagnosticsAndCodeFixes = await GetDiagnosticAndFixAsync(workspace, parameters);
+            if (diagnosticsAndCodeFixes == null)
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
+
+            return ImmutableArray.Create(diagnosticsAndCodeFixes.Item1);
         }
 
         internal async Task<Tuple<Diagnostic, CodeFixCollection>> GetDiagnosticAndFixAsync(
@@ -140,8 +151,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 // Simple code fix.
                 foreach (var diagnostic in diagnostics)
                 {
+                    // to support diagnostics without fixers
+                    if (fixer == null)
+                    {
+                        result.Add(Tuple.Create(diagnostic, (CodeFixCollection)null));
+                        continue;
+                    }
+
                     var fixes = new List<CodeFix>();
+
                     var context = new CodeFixContext(document, diagnostic, (a, d) => fixes.Add(new CodeFix(document.Project, a, d)), CancellationToken.None);
+                    
 
                     await fixer.RegisterCodeFixesAsync(context);
                     if (fixes.Any())
@@ -199,27 +219,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             var diagnostic = diagnostics.First();
-            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync =
-                async (d, diagIds, c) =>
-                {
-                    var root = await d.GetSyntaxRootAsync();
-                    var diags = await testDriver.GetDocumentDiagnosticsAsync(provider, d, root.FullSpan);
-                    diags = diags.Where(diag => diagIds.Contains(diag.Id));
-                    return diags;
-                };
-
-            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync =
-                async (p, includeAllDocumentDiagnostics, diagIds, c) =>
-                {
-                    var diags = includeAllDocumentDiagnostics
-                        ? await testDriver.GetAllDiagnosticsAsync(provider, p)
-                        : await testDriver.GetProjectDiagnosticsAsync(provider, p);
-                    diags = diags.Where(diag => diagIds.Contains(diag.Id));
-                    return diags;
-                };
-
             var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
-            var fixAllDiagnosticProvider = new FixAllState.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+            var fixAllDiagnosticProvider = new FixAllDiagnosticProvider(provider, testDriver, diagnosticIds);
+
             return diagnostic.Location.IsInSource
                 ? new FixAllState(fixAllProvider, document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider)
                 : new FixAllState(fixAllProvider, document.Project, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider);
@@ -370,7 +372,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         conflictSpans: ImmutableArray<TextSpan>.Empty, 
                         renameSpans: ImmutableArray<TextSpan>.Empty,
                         warningSpans: ImmutableArray<TextSpan>.Empty,
-                        ignoreTrivia: false, expectedChangedDocumentId: testState.ExistingDocument.Id);
+                        navigationSpans: ImmutableArray<TextSpan>.Empty,
+                        expectedChangedDocumentId: testState.ExistingDocument.Id);
                 }
                 else
                 {
@@ -381,8 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         projectName != null,
                         testState.ProjectToBeModified.Id,
                         newFileFolderContainers,
-                        newFileName,
-                        ignoreTrivia: false);
+                        newFileName);
                 }
 
                 if (checkIfUsingsIncluded)
@@ -391,7 +393,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     await TestOperationsAsync(testState.Workspace, expectedTextWithUsings, operations,
                         conflictSpans: ImmutableArray<TextSpan>.Empty,
                         renameSpans: ImmutableArray<TextSpan>.Empty,
-                        warningSpans: ImmutableArray<TextSpan>.Empty, ignoreTrivia: false,
+                        warningSpans: ImmutableArray<TextSpan>.Empty, 
+                        navigationSpans: ImmutableArray<TextSpan>.Empty,
                         expectedChangedDocumentId: testState.InvocationDocument.Id);
                 }
 

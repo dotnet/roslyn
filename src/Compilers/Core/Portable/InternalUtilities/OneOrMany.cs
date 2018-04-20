@@ -22,7 +22,7 @@ namespace Roslyn.Utilities
         public OneOrMany(T one)
         {
             _one = one;
-            _many = default(ImmutableArray<T>);
+            _many = default;
         }
 
         public OneOrMany(ImmutableArray<T> many)
@@ -32,7 +32,7 @@ namespace Roslyn.Utilities
                 throw new ArgumentNullException(nameof(many));
             }
 
-            _one = default(T);
+            _one = default;
             _many = many;
         }
 
@@ -103,7 +103,7 @@ namespace Roslyn.Utilities
         {
             if (_many.IsDefault)
             {
-                return item.Equals(_one) ? default(OneOrMany<T>) : this;
+                return item.Equals(_one) ? default : this;
             }
 
             var builder = ArrayBuilder<T>.GetInstance();
@@ -118,7 +118,7 @@ namespace Roslyn.Utilities
 
             if (builder.Count == 0)
             {
-                return default(OneOrMany<T>);
+                return default;
             }
 
             return builder.Count == Count ? this : new OneOrMany<T>(builder.ToImmutableAndFree());

@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             var functionIds = Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>();
             var functionIdOptions = functionIds.ToDictionary(id => id, id => optionService.GetOption(FunctionIdOptions.GetOption(id)));
 
-            return (functionId) => functionIdOptions[functionId];
+            return functionId => functionIdOptions[functionId];
         }
     }
 }

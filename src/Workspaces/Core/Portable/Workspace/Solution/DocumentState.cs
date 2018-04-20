@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis
         {
             // ** currently, it doesn't do any text based quick check. we can add them later if current logic is not performant enough for typing case.
             var change = newText.GetEncompassingTextChangeRange(oldText);
-            if (change == default(TextChangeRange))
+            if (change == default)
             {
                 // nothing has changed
                 return false;
@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool TryGetSyntaxTree(out SyntaxTree syntaxTree)
         {
-            syntaxTree = default(SyntaxTree);
+            syntaxTree = default;
             if (_treeSource.TryGetValue(out var treeAndVersion) && treeAndVersion != null)
             {
                 syntaxTree = treeAndVersion.Tree;
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                version = default(VersionStamp);
+                version = default;
                 return false;
             }
         }
@@ -693,32 +693,25 @@ namespace Microsoft.CodeAnalysis
             return treeAndVersion.Version;
         }
 
-        private static readonly ReaderWriterLockSlim s_syntaxTreeToIdMapLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =
             new ConditionalWeakTable<SyntaxTree, DocumentId>();
 
         private static void BindSyntaxTreeToId(SyntaxTree tree, DocumentId id)
         {
-            using (s_syntaxTreeToIdMapLock.DisposableWrite())
+            if (!s_syntaxTreeToIdMap.TryGetValue(tree, out var existingId))
             {
-                if (s_syntaxTreeToIdMap.TryGetValue(tree, out var existingId))
-                {
-                    Contract.ThrowIfFalse(existingId == id);
-                }
-                else
-                {
-                    s_syntaxTreeToIdMap.Add(tree, id);
-                }
+                // Avoid closing over parameter 'id' on the method's fast path
+                var localId = id;
+                existingId = s_syntaxTreeToIdMap.GetValue(tree, t => localId);
             }
+
+            Contract.ThrowIfFalse(existingId == id);
         }
 
         public static DocumentId GetDocumentIdForTree(SyntaxTree tree)
         {
-            using (s_syntaxTreeToIdMapLock.DisposableRead())
-            {
-                s_syntaxTreeToIdMap.TryGetValue(tree, out var id);
-                return id;
-            }
+            s_syntaxTreeToIdMap.TryGetValue(tree, out var id);
+            return id;
         }
     }
 }

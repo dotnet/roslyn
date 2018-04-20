@@ -33,7 +33,7 @@ Delegate Sub $$Bar()
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithAttributes() As Task
             Dim code = "
-{|hint:{|textspan:<Foo>
+{|hint:{|textspan:<Goo>
 |}Delegate Sub $$Bar()|}
 "
 
@@ -46,7 +46,7 @@ Delegate Sub $$Bar()
             Dim code = "
 {|hint:{|textspan:' Summary:
 '     This is a summary.
-<Foo>
+<Goo>
 |}Delegate Sub $$Bar()|}
 "
 
@@ -59,7 +59,7 @@ Delegate Sub $$Bar()
             Dim code = "
 {|hint:{|textspan:' Summary:
 '     This is a summary.
-<Foo>
+<Goo>
 |}Public Delegate Sub $$Bar()|}
 "
 

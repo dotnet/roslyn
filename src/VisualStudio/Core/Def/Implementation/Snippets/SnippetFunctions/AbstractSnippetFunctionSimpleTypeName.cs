@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
         private bool TryGetDocumentWithFullyQualifiedTypeName(Document document, out TextSpan updatedTextSpan, out Document documentWithFullyQualifiedTypeName)
         {
             documentWithFullyQualifiedTypeName = null;
-            updatedTextSpan = default(TextSpan);
+            updatedTextSpan = default;
 
             var surfaceBufferFieldSpan = new VsTextSpan[1];
             if (snippetExpansionClient.ExpansionSession.GetFieldSpan(_fieldName, surfaceBufferFieldSpan) != VSConstants.S_OK)

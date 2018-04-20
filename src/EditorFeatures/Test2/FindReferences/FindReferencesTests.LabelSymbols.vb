@@ -12,11 +12,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            void Foo()
+            void Goo()
             {
-            $${|Definition:Foo|}:
-                int Foo;
-                goto [|Foo|];
+            $${|Definition:Goo|}:
+                int Goo;
+                goto [|Goo|];
             }
         }
         </Document>
@@ -33,11 +33,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            void Foo()
+            void Goo()
             {
-            {|Definition:Foo|}:
-                int Foo;
-                goto [|$$Foo|];
+            {|Definition:Goo|}:
+                int Goo;
+                goto [|$$Goo|];
             }
         }
         </Document>

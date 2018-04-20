@@ -499,7 +499,7 @@ namespace Roslyn.Utilities
         private string AddItem(string chars, int start, int len, int hashCode)
         {
             var text = chars.Substring(start, len);
-            AddCore(chars, hashCode);
+            AddCore(text, hashCode);
             return text;
         }
 

@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis
         ///
         /// The first <see cref="DiagnosticDescriptor"/> added with a given <see cref="DiagnosticDescriptor.Id"/>
         /// value is given that value as its unique key. Subsequent adds with the same ID will have .NNN
-        /// apppended to their with an auto-incremented numeric value.
+        /// appended to their with an auto-incremented numeric value.
         /// </summary>
         private sealed class DiagnosticDescriptorSet
         {
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis
                     return key;
                 }
 
-                // Case 2: First time we see a decriptor with a given ID -> use its ID as the key.
+                // Case 2: First time we see a descriptor with a given ID -> use its ID as the key.
                 int counter;
                 if (!_counters.TryGetValue(descriptor.Id, out counter))
                 {
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis
             ///    the log.
             ///
             /// 2. <see cref="DiagnosticDescriptor.CustomTags"/> is *not* part of that built-in
-            ///    equatability, but we do write them out, and so descriptors differening only
+            ///    equatability, but we do write them out, and so descriptors differing only
             ///    by CustomTags (rare) would cause only one set of tags to be reported in the
             ///    log.
             /// </summary>

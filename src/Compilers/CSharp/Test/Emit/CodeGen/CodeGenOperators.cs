@@ -11,9 +11,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenOperatorTests : CSharpTestBase
+    public class CodeGenOperators : CSharpTestBase
     {
-
         [Fact]
         public void TestIsNullPattern()
         {
@@ -81,13 +80,49 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
-                // (7,28): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
-                //         Console.Write(o is null);
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(7, 28),
-                // (8,18): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
-                //         if (o is null)
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(8, 18));
+            var compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.M<T>(T)", @"{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  ldnull
+  IL_0007:  ceq
+  IL_0009:  call       ""void System.Console.Write(bool)""
+  IL_000e:  ldarg.0
+  IL_000f:  box        ""T""
+  IL_0014:  brtrue.s   IL_0020
+  IL_0016:  ldstr      ""Branch taken""
+  IL_001b:  call       ""void System.Console.Write(string)""
+  IL_0020:  ret
+}");
+            // Debug
+            compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.M<T>(T)", @"{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  box        ""T""
+  IL_0007:  ldnull
+  IL_0008:  ceq
+  IL_000a:  call       ""void System.Console.Write(bool)""
+  IL_000f:  nop
+  IL_0010:  ldarg.0
+  IL_0011:  box        ""T""
+  IL_0016:  ldnull
+  IL_0017:  ceq
+  IL_0019:  stloc.0
+  IL_001a:  ldloc.0
+  IL_001b:  brfalse.s  IL_002a
+  IL_001d:  nop
+  IL_001e:  ldstr      ""Branch taken""
+  IL_0023:  call       ""void System.Console.Write(string)""
+  IL_0028:  nop
+  IL_0029:  nop
+  IL_002a:  ret
+}");
         }
 
         [Fact]
@@ -258,40 +293,40 @@ class C
             // Release
             var compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.Main", @"{
-    // Code size       20 (0x14)
-    .maxstack  2
-    IL_0000:  ldnull
-    IL_0001:  ldnull
-    IL_0002:  ceq
-    IL_0004:  call       ""void System.Console.Write(bool)""
-    IL_0009:  ldstr      "" Branch taken""
-    IL_000e:  call       ""void System.Console.Write(string)""
-    IL_0013:  ret
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(bool)""
+  IL_0006:  ldstr      "" Branch taken""
+  IL_000b:  call       ""void System.Console.Write(string)""
+  IL_0010:  ret
 }");
             // Debug
             compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
             compilation.VerifyIL("C.Main", @"{
-    // Code size       33 (0x21)
-    .maxstack  2
-    .locals init (bool V_0)
-    IL_0000:  nop
-    IL_0001:  ldnull
-    IL_0002:  ldnull
-    IL_0003:  ceq
-    IL_0005:  call       ""void System.Console.Write(bool)""
-    IL_000a:  nop
-    IL_000b:  ldnull
-    IL_000c:  ldnull
-    IL_000d:  ceq
-    IL_000f:  stloc.0
-    IL_0010:  ldloc.0
-    IL_0011:  brfalse.s  IL_0020
-    IL_0013:  nop
-    IL_0014:  ldstr      "" Branch taken""
-    IL_0019:  call       ""void System.Console.Write(string)""
-    IL_001e:  nop
-    IL_001f:  nop
-    IL_0020:  ret
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (object V_0,
+                bool V_1,
+                object V_2)
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""void System.Console.Write(bool)""
+  IL_0009:  nop
+  IL_000a:  ldnull
+  IL_000b:  stloc.2
+  IL_000c:  ldc.i4.1
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_001e
+  IL_0011:  nop
+  IL_0012:  ldstr      "" Branch taken""
+  IL_0017:  call       ""void System.Console.Write(string)""
+  IL_001c:  nop
+  IL_001d:  nop
+  IL_001e:  ret
 }");
         }
 
@@ -316,40 +351,40 @@ class C
             // Release
             var compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.Main", @"{
-    // Code size       20 (0x14)
-    .maxstack  2
-    IL_0000:  ldnull
-    IL_0001:  ldnull
-    IL_0002:  ceq
-    IL_0004:  call       ""void System.Console.Write(bool)""
-    IL_0009:  ldstr      "" Branch taken""
-    IL_000e:  call       ""void System.Console.Write(string)""
-    IL_0013:  ret
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(bool)""
+  IL_0006:  ldstr      "" Branch taken""
+  IL_000b:  call       ""void System.Console.Write(string)""
+  IL_0010:  ret
 }");
             // Debug
             compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
             compilation.VerifyIL("C.Main", @"{
-    // Code size       33 (0x21)
-    .maxstack  2
-    .locals init (bool V_0)
-    IL_0000:  nop
-    IL_0001:  ldnull
-    IL_0002:  ldnull
-    IL_0003:  ceq
-    IL_0005:  call       ""void System.Console.Write(bool)""
-    IL_000a:  nop
-    IL_000b:  ldnull
-    IL_000c:  ldnull
-    IL_000d:  ceq
-    IL_000f:  stloc.0
-    IL_0010:  ldloc.0
-    IL_0011:  brfalse.s  IL_0020
-    IL_0013:  nop
-    IL_0014:  ldstr      "" Branch taken""
-    IL_0019:  call       ""void System.Console.Write(string)""
-    IL_001e:  nop
-    IL_001f:  nop
-    IL_0020:  ret
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (string V_0,
+                bool V_1,
+                string V_2)
+  IL_0000:  nop
+  IL_0001:  ldnull
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""void System.Console.Write(bool)""
+  IL_0009:  nop
+  IL_000a:  ldnull
+  IL_000b:  stloc.2
+  IL_000c:  ldc.i4.1
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_001e
+  IL_0011:  nop
+  IL_0012:  ldstr      "" Branch taken""
+  IL_0017:  call       ""void System.Console.Write(string)""
+  IL_001c:  nop
+  IL_001d:  nop
+  IL_001e:  ret
 }");
         }
 
@@ -480,7 +515,7 @@ namespace TestIsOperator
         static void Main()
         {
 
-            string myStr = ""foo"";
+            string myStr = ""goo"";
 
             object o = myStr;
             bool b = o is string;
@@ -842,7 +877,7 @@ namespace TestAsOperator
     {
         static void Main()
         {
-            string myStr = ""foo"";
+            string myStr = ""goo"";
             object o = myStr;
             object b = o as string;            
 
@@ -994,7 +1029,7 @@ public class C
     }
 }";
             var comp = CompileAndVerify(source,
-                additionalRefs: new[] { CSharpRef, SystemCoreRef_v4_0_30319_17929 },
+                references: new[] { CSharpRef },
                 expectedOutput: string.Empty);
             comp.VerifyIL("C.Get",
 @"{
@@ -1374,20 +1409,20 @@ static class Program
     {
     }
  
-    static void Foo<T>(T x)
+    static void Goo<T>(T x)
     {
         var y = default(T) ?? x;
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (10,17): error CS0019: Operator '??' cannot be applied to operands of type 'T' and 'T'
                 //         var y = default(T) ?? x;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) ?? x").WithArguments("??", "T", "T").WithLocation(10, 17)); ;
         }
 
         [Fact]
-        public void TestNullCoalesce_NoDuplicateCallsToFoo()
+        public void TestNullCoalesce_NoDuplicateCallsToGoo()
         {
             var source = @"
 // a ?? b
@@ -1396,12 +1431,12 @@ public class Test
 {
     static void Main()
     {
-        object o = Foo() ?? Bar();
+        object o = Goo() ?? Bar();
     }
 
-    static object Foo()
+    static object Goo()
     {
-        System.Console.Write(""Foo"");
+        System.Console.Write(""Goo"");
         return new object();
     }
 
@@ -1412,12 +1447,12 @@ public class Test
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "Foo");
+            var compilation = CompileAndVerify(source, expectedOutput: "Goo");
             compilation.VerifyIL("Test.Main", @"
 {
   // Code size       14 (0xe)
   .maxstack  1
-  IL_0000:  call       ""object Test.Foo()""
+  IL_0000:  call       ""object Test.Goo()""
   IL_0005:  brtrue.s   IL_000d
   IL_0007:  call       ""object Test.Bar()""
   IL_000c:  pop
@@ -1440,7 +1475,7 @@ public class Test
         a = M ?? a;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,13): error CS0019: Operator '??' cannot be applied to operands of type 'method group' and 'System.Action'
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "M ?? a").WithArguments("??", "method group", "System.Action").WithLocation(7, 13));
         }
@@ -1465,10 +1500,10 @@ public class Test
         List<int> b = new List<int>();
 
         IEnumerable<int> c = a ?? (IEnumerable<int>)b;
-        Foo(c);
+        Goo(c);
     }
 
-    static void Foo<T>(T x)
+    static void Goo<T>(T x)
     {
         System.Console.WriteLine(typeof(T));
     }
@@ -1493,7 +1528,7 @@ public class Test
   IL_000f:  brtrue.s   IL_0013
   IL_0011:  pop
   IL_0012:  ldloc.0
-  IL_0013:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_0013:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
   IL_0018:  ret
 }
 ");
@@ -1513,10 +1548,10 @@ public class Test
         IEnumerable<int> b = new List<int>();
 
         IEnumerable<int> c = b ?? a;
-        Foo(c);
+        Goo(c);
     }
 
-    static void Foo<T>(T x)
+    static void Goo<T>(T x)
     {
         System.Console.WriteLine(typeof(T));
     }
@@ -1540,7 +1575,7 @@ public class Test
   IL_000f:  brtrue.s   IL_0013
   IL_0011:  pop
   IL_0012:  ldloc.0
-  IL_0013:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_0013:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
   IL_0018:  ret
 }");
         }
@@ -1559,11 +1594,11 @@ public class Test
         IEnumerable<int> b;
 
         IEnumerable<int> c = (b = (IEnumerable<int>)new List<int>()) ?? a;
-        Foo(c);
-        Foo(b);
+        Goo(c);
+        Goo(b);
     }
 
-    static void Foo<T>(T x)
+    static void Goo<T>(T x)
     {
         System.Console.Write(typeof(T));
     }
@@ -1588,8 +1623,8 @@ public class Test
   IL_0010:  brtrue.s   IL_0014
   IL_0012:  pop
   IL_0013:  ldloc.0
-  IL_0014:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
-  IL_0019:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_0014:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_0019:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
   IL_001e:  ret
 }");
         }
@@ -1607,10 +1642,10 @@ public class Test
         int[] a = new int[] { };
         IEnumerable<int> b = new List<int>();
 
-        Foo(b, b ?? a);
+        Goo(b, b ?? a);
     }
 
-    static void Foo<T, U>(T x, U y)
+    static void Goo<T, U>(T x, U y)
     {
         System.Console.Write(typeof(T));
     }
@@ -1635,7 +1670,7 @@ public class Test
   IL_0010:  brtrue.s   IL_0014
   IL_0012:  pop
   IL_0013:  ldloc.0
-  IL_0014:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>)""
+  IL_0014:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>)""
   IL_0019:  ret
 }
 ");
@@ -2088,14 +2123,14 @@ using System;
 
 public class Parent
 {
-    public System.Guid Foo(int d = 0, System.Guid g = default(System.Guid)) { return g; }
+    public System.Guid Goo(int d = 0, System.Guid g = default(System.Guid)) { return g; }
 }
 
 public class Test
 {
     public static void Main()
     {
-        var x = new Parent().Foo();
+        var x = new Parent().Goo();
         var ret = x == default(System.Guid); 
         Console.Write(ret);
     }
@@ -2139,7 +2174,7 @@ class P
     }
 }";
             // the grammar does not allow a query on the right-hand-side of &&, but we allow it except in strict mode.
-            CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (23,26): error CS1525: Invalid expression term 'from'
                 //         var b = false && from x in src select x; // WRN CS0429
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "from x in src").WithArguments("from").WithLocation(23, 26),
@@ -2150,7 +2185,7 @@ class P
                 // using System.Linq;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;").WithLocation(3, 1)
                 );
-            CompileAndVerify(source, additionalRefs: new[] { LinqAssemblyRef },
+            CompileAndVerify(source, references: new[] { LinqAssemblyRef },
                 expectedOutput: "0");
         }
 
@@ -2172,7 +2207,7 @@ class P
         return (errCount > 0) ? 1 : 0;
     }
 }";
-            CompileAndVerify(source, additionalRefs: new[] { LinqAssemblyRef },
+            CompileAndVerify(source, references: new[] { LinqAssemblyRef },
                 expectedOutput: "0");
         }
 
@@ -3760,7 +3795,7 @@ False");
 
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestFloatNegativeZero()
         {
             var text = @"
@@ -3796,7 +3831,7 @@ Infinity");
 
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestDoubleNegativeZero()
         {
             var text = @"
@@ -3833,7 +3868,7 @@ Infinity");
         // NOTE: decimal doesn't have infinity, so we convert to double.
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestDecimalNegativeZero()
         {
             var text = @"
@@ -3921,8 +3956,7 @@ public class Test
   // Code size       73 (0x49)
   .maxstack  3
   .locals init (int V_0,
-  T V_1,
-  T V_2)
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T Test.Nop<T>(T)""
   IL_0006:  stloc.1
@@ -3938,8 +3972,8 @@ public class Test
   IL_001f:  callvirt   ""void I.IntPropI.set""
   IL_0024:  ldarg.0
   IL_0025:  call       ""T Test.Nop<T>(T)""
-  IL_002a:  stloc.2
-  IL_002b:  ldloca.s   V_2
+  IL_002a:  stloc.1
+  IL_002b:  ldloca.s   V_1
   IL_002d:  dup
   IL_002e:  constrained. ""T""
   IL_0034:  callvirt   ""int I.IntPropI.get""
@@ -4004,10 +4038,10 @@ public class Test
         IEnumerable<int> b = new List<int>();
 
         IEnumerable<int> c = C()? b : a;
-        Foo(c);
+        Goo(c);
     }
 
-    static void Foo<T>(T x)
+    static void Goo<T>(T x)
     {
         System.Console.WriteLine(typeof(T));
     }
@@ -4034,7 +4068,7 @@ public class Test
   IL_0016:  ldloc.2
   IL_0017:  br.s       IL_001a
   IL_0019:  ldloc.1
-  IL_001a:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_001a:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
   IL_001f:  ret
 }");
         }
@@ -4055,11 +4089,11 @@ public class Test
         IEnumerable<int> b = null;
 
         IEnumerable<int> c = C()? (b = (IEnumerable<int>)new List<int>()) : a;
-        Foo(c);
-        Foo(b);
+        Goo(c);
+        Goo(b);
     }
 
-    static void Foo<T>(T x)
+    static void Goo<T>(T x)
     {
         System.Console.Write(typeof(T));
     }
@@ -4090,9 +4124,9 @@ public class Test
   IL_001b:  stloc.1
   IL_001c:  stloc.2
   IL_001d:  ldloc.2
-  IL_001e:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_001e:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
   IL_0023:  ldloc.1
-  IL_0024:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
+  IL_0024:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>)""
   IL_0029:  ret
 }");
         }
@@ -4110,10 +4144,10 @@ public class Test
         int[] a = new int[] { };
         IEnumerable<int> b = new List<int>();
 
-        Foo(b, b != null ? b : a);
+        Goo(b, b != null ? b : a);
     }
 
-    static void Foo<T, U>(T x, U y)
+    static void Goo<T, U>(T x, U y)
     {
         System.Console.Write(typeof(T));
     }
@@ -4141,7 +4175,7 @@ public class Test
   IL_0013:  ldloc.2
   IL_0014:  br.s       IL_0017
   IL_0016:  ldloc.1
-  IL_0017:  call       ""void Test.Foo<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>)""
+  IL_0017:  call       ""void Test.Goo<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>>(System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>)""
   IL_001c:  ret
 }
 ");
@@ -4413,7 +4447,7 @@ using System.Security;
     }
 ";
 
-            var comp = CompileAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: @"");
+            var comp = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: @"");
             //            var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
@@ -4861,7 +4895,7 @@ class Program
         }
 
         [Fact]
-        public void TestCompoundOnAfieldOfGeneric()
+        public void TestCompoundOnAFieldOfGeneric()
         {
             var source = @"
 class Program
@@ -4893,12 +4927,12 @@ class c0
         set { x = value; }
     }
 
-    public static int Foo(c0 arg)
+    public static int Goo(c0 arg)
     {
         return 1;
     }
 
-    public int Foo()
+    public int Goo()
     {
         return 1;
     }
@@ -4915,8 +4949,8 @@ class test<T> where T : c0
 
     public static void Repro2(T arg)
     {
-        arg.x = c0.Foo(arg);
-        arg.x = arg.Foo();
+        arg.x = c0.Goo(arg);
+        arg.x = arg.Goo();
     }
 }
 ";
@@ -4966,13 +5000,13 @@ class test<T> where T : c0
   IL_0001:  box        ""T""
   IL_0006:  ldarg.0
   IL_0007:  box        ""T""
-  IL_000c:  call       ""int c0.Foo(c0)""
+  IL_000c:  call       ""int c0.Goo(c0)""
   IL_0011:  stfld      ""int c0.x""
   IL_0016:  ldarg.0
   IL_0017:  box        ""T""
   IL_001c:  ldarg.0
   IL_001d:  box        ""T""
-  IL_0022:  callvirt   ""int c0.Foo()""
+  IL_0022:  callvirt   ""int c0.Goo()""
   IL_0027:  stfld      ""int c0.x""
   IL_002c:  ret
 }
@@ -5008,7 +5042,8 @@ class test<T> where T : c0
 ");
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_01()
         {
             var source =
@@ -5067,7 +5102,8 @@ class Test
             return builder.ToString();
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_02()
         {
             var source =
@@ -5095,7 +5131,7 @@ class Test
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
         }
 
-        [Fact]
+        [NoIOperationValidationFact]
         [WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_03()
@@ -5123,7 +5159,7 @@ class Test
 }
 ";
 
-                var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+                var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
                 diagnostics = compilation.GetEmitDiagnostics();
             }
 
@@ -5156,7 +5192,8 @@ class Test
             return builder.ToString();
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_04()
         {
             var source =
@@ -5181,7 +5218,7 @@ class Test
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics(
     // (17,16): error CS8078: An expression is too long or complex to compile
     //         return 1 * f[0] + 2 * f[1] + 3 * f[2] + 4 * f[3] + ...
@@ -5189,7 +5226,8 @@ class Test
                 );
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_05()
         {
             int count = 50;
@@ -5241,7 +5279,8 @@ class Test
 5180801");
         }
 
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        [NoIOperationValidationFact]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_06()
         {
             var source =
@@ -5287,7 +5326,7 @@ struct S1
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics(
     // (10,16): error CS8078: An expression is too long or complex to compile
     //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...

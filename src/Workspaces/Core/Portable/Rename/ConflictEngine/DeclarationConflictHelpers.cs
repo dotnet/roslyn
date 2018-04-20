@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
     internal static class DeclarationConflictHelpers
     {
-        public static IEnumerable<Location> GetMembersWithConflictingSignatures(IMethodSymbol renamedMethod, bool trimOptionalParameters)
+        public static ImmutableArray<Location> GetMembersWithConflictingSignatures(IMethodSymbol renamedMethod, bool trimOptionalParameters)
         {
             var potentiallyConfictingMethods =
                 renamedMethod.ContainingType.GetMembers(renamedMethod.Name)

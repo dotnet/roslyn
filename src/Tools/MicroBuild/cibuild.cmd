@@ -1,1 +1,1 @@
-powershell -noprofile -executionPolicy RemoteSigned -file "%~dp0\cibuild.ps1" %*
+powershell -noprofile -executionPolicy RemoteSigned -file "%~dp0\microbuild.ps1" -restore -cibuild -release

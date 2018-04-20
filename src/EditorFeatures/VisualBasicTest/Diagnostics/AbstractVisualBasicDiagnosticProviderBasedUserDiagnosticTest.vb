@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
     Public MustInherit Class AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
         Inherits AbstractDiagnosticProviderBasedUserDiagnosticTest
 
-        Private ReadOnly _compilationOptions As CompilationOptions =
-            New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True)
+        Private ReadOnly _compilationOptions As VisualBasicCompilationOptions =
+            New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithParseOptions(New VisualBasicParseOptions(LanguageVersion.Latest))
 
         Protected Overrides Function GetScriptOptions() As ParseOptions
             Return TestOptions.Script
@@ -26,13 +26,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
         Friend Overloads Async Function TestAsync(
                 initialMarkup As XElement, expected As XElement, Optional index As Integer = 0,
-                Optional ignoreTrivia As Boolean = True, Optional priority As CodeActionPriority? = Nothing) As Threading.Tasks.Task
+                Optional priority As CodeActionPriority? = Nothing) As Threading.Tasks.Task
             Dim initialMarkupStr = initialMarkup.ConvertTestSourceTag()
             Dim expectedStr = expected.ConvertTestSourceTag()
 
             Await MyBase.TestAsync(initialMarkupStr, expectedStr,
-                                   parseOptions:=Nothing, compilationOptions:=_compilationOptions,
-                                   index:=index, ignoreTrivia:=ignoreTrivia,
+                                   parseOptions:=_compilationOptions.ParseOptions, compilationOptions:=_compilationOptions,
+                                   index:=index,
                                    priority:=priority)
         End Function
 

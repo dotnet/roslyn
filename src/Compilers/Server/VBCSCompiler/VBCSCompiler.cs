@@ -3,7 +3,6 @@
 using Microsoft.CodeAnalysis.CommandLine;
 using System;
 using System.Collections.Specialized;
-using System.Configuration;
 using System.IO;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
@@ -15,7 +14,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             NameValueCollection appSettings;
             try
             {
-                appSettings = ConfigurationManager.AppSettings;
+#if NET46
+                appSettings = System.Configuration.ConfigurationManager.AppSettings;
+#else
+                // Do not use AppSettings on non-desktop platforms
+                appSettings = new NameValueCollection();
+#endif
             }
             catch (Exception ex)
             {

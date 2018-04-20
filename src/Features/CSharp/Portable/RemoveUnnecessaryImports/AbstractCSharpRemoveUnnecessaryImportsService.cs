@@ -61,9 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             {
                 if (diagnostic.Id == "CS8019")
                 {
-                    var node = root.FindNode(diagnostic.Location.SourceSpan) as UsingDirectiveSyntax;
 
-                    if (node != null && predicate(node))
+                    if (root.FindNode(diagnostic.Location.SourceSpan) is UsingDirectiveSyntax node && predicate(node))
                     {
                         unnecessaryImports.Add(node);
                     }

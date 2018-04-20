@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 {
@@ -74,14 +75,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         }
 
         protected override bool IsEndOfLine(SyntaxTrivia trivia)
-        {
-            return trivia.Kind() == SyntaxKind.EndOfLineTrivia;
-        }
+            => trivia.Kind() == SyntaxKind.EndOfLineTrivia;
 
         protected override bool IsEndOfFileToken(SyntaxToken token)
-        {
-            return token.Kind() == SyntaxKind.EndOfFileToken;
-        }
+            => token.Kind() == SyntaxKind.EndOfFileToken;
 
         protected override async Task<SyntaxNode> AddGlobalSuppressMessageAttributeAsync(SyntaxNode newRoot, ISymbol targetSymbol, Diagnostic diagnostic, Workspace workspace, CancellationToken cancellationToken)
         {
@@ -89,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             var isFirst = !compilationRoot.AttributeLists.Any();
             var leadingTriviaForAttributeList = isFirst && !compilationRoot.HasLeadingTrivia ?
                 SyntaxFactory.TriviaList(SyntaxFactory.Comment(GlobalSuppressionsFileHeaderComment)) :
-                default(SyntaxTriviaList);
+                default;
             var attributeList = CreateAttributeList(targetSymbol, diagnostic, leadingTrivia: leadingTriviaForAttributeList, needsLeadingEndOfLine: !isFirst);
             attributeList = (AttributeListSyntax)await Formatter.FormatAsync(attributeList, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
             return compilationRoot.AddAttributeLists(attributeList);
@@ -152,8 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 
         protected override bool IsSingleAttributeInAttributeList(SyntaxNode attribute)
         {
-            var attributeSyntax = attribute as AttributeSyntax;
-            if (attributeSyntax != null)
+            if (attribute is AttributeSyntax attributeSyntax)
             {
                 var attributeList = attributeSyntax.Parent as AttributeListSyntax;
                 return attributeList != null && attributeList.Attributes.Count == 1;
@@ -185,6 +181,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             var toggledToken = SyntaxFactory.Token(currentKeyword.LeadingTrivia, toggledKeywordKind, currentKeyword.TrailingTrivia);
             var newPragmaWarning = pragmaWarning.WithDisableOrRestoreKeyword(toggledToken);
             return SyntaxFactory.Trivia(newPragmaWarning);
+        }
+
+        protected override SyntaxToken GetAdjustedTokenForPragmaRestore(
+            SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
+        {
+            var nextToken = token.GetNextToken();
+            if (nextToken.Kind() == SyntaxKind.SemicolonToken &&
+                nextToken.Parent is StatementSyntax statement &&
+                statement.GetLastToken() == nextToken &&
+                token.Parent.FirstAncestorOrSelf<StatementSyntax>() == statement)
+            {
+                // both the current and next tokens belong to the same statement, and the next token
+                // is the final semicolon in a statement.  Do not put the pragma before that
+                // semicolon.  Place it after the semicolon so the statement stays whole.
+
+                return nextToken;
+            }
+
+            return token;
         }
     }
 }

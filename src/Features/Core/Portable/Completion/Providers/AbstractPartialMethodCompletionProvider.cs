@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 accessibility: Accessibility.NotApplicable,
                 modifiers: MemberInsertionCompletionItem.GetModifiers(item),
                 returnType: semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
-                returnsByRef: method.ReturnsByRef,
+                refKind: method.RefKind,
                 explicitInterfaceImplementations: default,
                 name: member.Name,
                 typeParameters: method.TypeParameters,

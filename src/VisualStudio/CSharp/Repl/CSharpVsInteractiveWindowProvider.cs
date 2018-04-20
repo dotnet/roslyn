@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
                 Commands,
                 contentTypeRegistry,
                 Path.GetDirectoryName(typeof(CSharpVsInteractiveWindowPackage).Assembly.Location),
-                CommonVsUtils.GetWorkingDirectory());
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
         }
 
         protected override FunctionId InteractiveWindowFunctionId

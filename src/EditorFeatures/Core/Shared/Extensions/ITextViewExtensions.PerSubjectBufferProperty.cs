@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     return bufferMap.TryGetValue(key, out value);
                 }
 
-                value = default(TProperty);
+                value = default;
                 return false;
             }
 

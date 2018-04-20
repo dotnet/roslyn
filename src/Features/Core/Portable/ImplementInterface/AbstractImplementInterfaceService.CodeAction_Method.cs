@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(updatedMethod) : default,
                     name: memberName,
                     statements: generateAbstractly
-                        ? default(ImmutableArray<SyntaxNode>)
+                        ? default
                         : ImmutableArray.Create(CreateStatement(compilation, updatedMethod, cancellationToken)));
             }
 

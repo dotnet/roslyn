@@ -68,7 +68,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 receiver = MakeRValue(receiver, diagnostics)
             End If
 
-            Return New BoundLateMemberAccess(node, name, containerType, receiver, boundTypeArguments, LateBoundAccessKind.Unknown, objType)
+            Dim result = New BoundLateMemberAccess(node, name, containerType, receiver, boundTypeArguments, LateBoundAccessKind.Unknown, objType)
+
+            If receiver IsNot Nothing AndAlso Not receiver.WasCompilerGenerated AndAlso result.Syntax Is receiver.Syntax Then
+                result.SetWasCompilerGenerated()
+            End If
+
+            Return result
         End Function
 
         Private Function BindLateBoundInvocation(node As SyntaxNode,
@@ -157,6 +163,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim objectType = GetSpecialType(SpecialType.System_Object, node, diagnostics)
 
             If Not arguments.IsEmpty Then
+                CheckNamedArgumentsForLateboundInvocation(argumentNames, arguments, diagnostics)
+
                 Dim builder As ArrayBuilder(Of BoundExpression) = Nothing
 
                 For i As Integer = 0 To arguments.Length - 1
@@ -219,7 +227,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundLateInvocation(node, receiver, arguments, argumentNames, LateBoundAccessKind.Unknown, groupOpt, objType)
         End Function
 
+        Private Sub CheckNamedArgumentsForLateboundInvocation(argumentNames As ImmutableArray(Of String),
+                                                            arguments As ImmutableArray(Of BoundExpression),
+                                                            diagnostics As DiagnosticBag)
 
+            Debug.Assert(Not arguments.IsDefault)
+
+            If argumentNames.IsDefault OrElse argumentNames.Count = 0 Then
+                Return
+            End If
+
+            If Not Compilation.LanguageVersion.AllowNonTrailingNamedArguments() Then
+                Return
+            End If
+
+            Dim seenName As Boolean = False
+            For i As Integer = 0 To argumentNames.Count - 1
+
+                If argumentNames(i) IsNot Nothing Then
+                    seenName = True
+                ElseIf seenName Then
+                    ReportDiagnostic(diagnostics, arguments(i).Syntax, ERRID.ERR_NamedArgumentSpecificationBeforeFixedArgumentInLateboundInvocation)
+                    Return
+                End If
+            Next
+
+        End Sub
     End Class
 End Namespace
 

@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
         public override ImmutableArray<IParameterSymbol> Parameters { get; }
         public override ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations { get; }
-        public override bool ReturnsByRef { get; }
         public override MethodKind MethodKind { get; }
 
         public CodeGenerationMethodSymbol(
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol returnType,
-            bool returnsByRef,
+            RefKind refKind,
             ImmutableArray<IMethodSymbol> explicitInterfaceImplementations,
             string name,
             ImmutableArray<ITypeParameterSymbol> typeParameters,
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
         {
             this.ReturnType = returnType;
-            this.ReturnsByRef = returnsByRef;
+            this.RefKind = refKind;
             this.TypeParameters = typeParameters.NullToEmpty();
             this.Parameters = parameters.NullToEmpty();
             this.MethodKind = methodKind;
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var result = new CodeGenerationMethodSymbol(this.ContainingType,
                 this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
-                this.ReturnType, this.ReturnsByRef, this.ExplicitInterfaceImplementations,
+                this.ReturnType, this.RefKind, this.ExplicitInterfaceImplementations,
                 this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes());
 
             CodeGenerationMethodInfo.Attach(result,
@@ -62,6 +61,24 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override bool ReturnsVoid
             => this.ReturnType == null || this.ReturnType.SpecialType == SpecialType.System_Void;
+
+        public override bool ReturnsByRef
+        {
+            get
+            {
+                return RefKind == RefKind.Ref;
+            }
+        }
+
+        public override bool ReturnsByRefReadonly
+        {
+            get
+            {
+                return RefKind == RefKind.RefReadOnly;
+            }
+        }
+
+        public override RefKind RefKind { get; }
 
         public override ImmutableArray<ITypeSymbol> TypeArguments
             => this.TypeParameters.As<ITypeSymbol>();

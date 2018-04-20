@@ -14,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
 interface I
 {
-    void {|Definition:F$$oo|}();
+    void {|Definition:G$$oo|}();
 }
  
 class C : I
 {
-    void I.{|Definition:Foo|}() { }
+    void I.{|Definition:Goo|}() { }
 }
         </Document>
     </Project>
@@ -36,12 +36,12 @@ class C : I
         <Document>
 interface I
 {
-    void {|Definition:Foo|}();
+    void {|Definition:Goo|}();
 }
  
 class C : I
 {
-    void I.{|Definition:F$$oo|}() { }
+    void I.{|Definition:G$$oo|}() { }
 }
         </Document>
     </Project>

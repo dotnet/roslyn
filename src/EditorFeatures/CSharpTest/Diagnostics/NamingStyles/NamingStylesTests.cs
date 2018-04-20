@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixes.NamingStyles;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -322,6 +323,7 @@ namespace Microsoft.CodeAnalysis.Host
 ", new TestParameters(options: InterfaceNamesStartWithI));
         }
         
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(16562, "https://github.com/dotnet/roslyn/issues/16562")]
         public async Task TestRefactorNotify()
         {

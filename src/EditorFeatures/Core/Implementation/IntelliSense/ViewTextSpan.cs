@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
                 default:
                     Contract.Fail();
-                    return default(ViewTextSpan);
+                    return default;
             }
         }
 

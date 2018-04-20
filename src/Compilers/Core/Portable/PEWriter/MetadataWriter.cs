@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -91,6 +92,8 @@ namespace Microsoft.Cci
             bool emitTestCoverageData,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(metadata != debugMetadataOpt);
+
             this.module = context.Module;
             _deterministic = deterministic;
             this.MetadataOnly = metadataOnly;
@@ -339,7 +342,7 @@ namespace Microsoft.Cci
         /// if the reference is available in the current generation.
         /// Deltas are not required to return rows from previous generations.
         /// </summary>
-        protected abstract bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle);
+        protected abstract bool TryGetTypeReferenceHandle(ITypeReference reference, out TypeReferenceHandle handle);
 
         /// <summary>
         /// Return full metadata handle of the type reference, adding
@@ -368,7 +371,7 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<ITypeReference> GetTypeSpecs();
 
         /// <summary>
-        /// Returns full metadata handle the stanadlone signature, adding
+        /// Returns full metadata handle the standalone signature, adding
         /// the signature to the index for this generation if missing.
         /// Deltas are not required to return rows from previous generations.
         /// </summary>
@@ -430,12 +433,10 @@ namespace Microsoft.Cci
 
         protected readonly MetadataBuilder metadata;
 
-        // A builder distinct from type-system metadata builder if we are emitting debug information into a separate Portable PDB stream.
-        // Shared builder (reference equals heaps) if we are embedding Portable PDB into the metadata stream.
-        // Null otherwise.
+        // A builder for Portable or Embedded PDB metadata, or null if we are not emitting Portable/Embedded PDB.
         protected readonly MetadataBuilder _debugMetadataOpt;
 
-        internal bool EmitStandaloneDebugMetadata => _debugMetadataOpt != null && metadata != _debugMetadataOpt;
+        internal bool EmitPortableDebugMetadata => _debugMetadataOpt != null;
 
         private readonly DynamicAnalysisDataWriter _dynamicAnalysisDataWriterOpt;
 
@@ -598,7 +599,7 @@ namespace Microsoft.Cci
 
         protected ImmutableArray<IParameterDefinition> GetParametersToEmit(IMethodDefinition methodDef)
         {
-            if (methodDef.ParameterCount == 0 && !(methodDef.ReturnValueIsMarshalledExplicitly || IteratorHelper.EnumerableIsNotEmpty(methodDef.ReturnValueAttributes)))
+            if (methodDef.ParameterCount == 0 && !(methodDef.ReturnValueIsMarshalledExplicitly || IteratorHelper.EnumerableIsNotEmpty(methodDef.GetReturnValueAttributes(Context))))
             {
                 return ImmutableArray<IParameterDefinition>.Empty;
             }
@@ -611,7 +612,7 @@ namespace Microsoft.Cci
             ArrayBuilder<IParameterDefinition> builder = null;
             var parameters = methodDef.Parameters;
 
-            if (methodDef.ReturnValueIsMarshalledExplicitly || IteratorHelper.EnumerableIsNotEmpty(methodDef.ReturnValueAttributes))
+            if (methodDef.ReturnValueIsMarshalledExplicitly || IteratorHelper.EnumerableIsNotEmpty(methodDef.GetReturnValueAttributes(Context)))
             {
                 builder = ArrayBuilder<IParameterDefinition>.GetInstance(parameters.Length + 1);
                 builder.Add(new ReturnValueParameter(methodDef));
@@ -1601,7 +1602,7 @@ namespace Microsoft.Cci
         private TypeReferenceHandle GetTypeReferenceHandle(ITypeReference typeReference)
         {
             TypeReferenceHandle result;
-            if (this.TryGetTypeRefeferenceHandle(typeReference, out result))
+            if (this.TryGetTypeReferenceHandle(typeReference, out result))
             {
                 return result;
             }
@@ -1626,24 +1627,24 @@ namespace Microsoft.Cci
             return this.GetOrAddTypeSpecificationHandle(typeReference);
         }
 
-        internal ITypeDefinition GetTypeDefinition(uint token)
+        internal ITypeDefinition GetTypeDefinition(int token)
         {
             // The token must refer to a TypeDef row since we are
             // only handling indexes into the full metadata (in EnC)
             // for def tables. Other tables contain deltas only.
-            return GetTypeDef(MetadataTokens.TypeDefinitionHandle((int)token));
+            return GetTypeDef(MetadataTokens.TypeDefinitionHandle(token));
         }
 
-        internal IMethodDefinition GetMethodDefinition(uint token)
+        internal IMethodDefinition GetMethodDefinition(int token)
         {
             // Must be a def table. (See comment in GetTypeDefinition.)
-            return GetMethodDef(MetadataTokens.MethodDefinitionHandle((int)token));
+            return GetMethodDef(MetadataTokens.MethodDefinitionHandle(token));
         }
 
-        internal INestedTypeReference GetNestedTypeReference(uint token)
+        internal INestedTypeReference GetNestedTypeReference(int token)
         {
             // Must be a def table. (See comment in GetTypeDefinition.)
-            return GetTypeDef(MetadataTokens.TypeDefinitionHandle((int)token)).AsNestedTypeReference;
+            return GetTypeDef(MetadataTokens.TypeDefinitionHandle(token)).AsNestedTypeReference;
         }
 
         internal BlobHandle GetTypeSpecSignatureIndex(ITypeReference typeReference)
@@ -1784,7 +1785,7 @@ namespace Microsoft.Cci
                 }
                 catch (Exception e) when (!(e is OperationCanceledException))
                 {
-                    throw new PdbWritingException(e);
+                    throw new SymUnmanagedWriterException(e.Message, e);
                 }
             }
         }
@@ -3632,7 +3633,7 @@ namespace Microsoft.Cci
             return pooled.ToStringAndFree();
         }
 
-        private void SerializePermissionSet(IEnumerable<ICustomAttribute> permissionSet, BlobBuilder writer)
+        private void SerializePermissionSet(ImmutableArray<ICustomAttribute> permissionSet, BlobBuilder writer)
         {
             EmitContext context = this.Context;
             foreach (ICustomAttribute customAttribute in permissionSet)

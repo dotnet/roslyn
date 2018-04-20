@@ -573,8 +573,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            var containedLanguageHost = containedDocument.ContainedLanguage.ContainedLanguageHost as IVsContainedLanguageHostInternal;
-            if (containedLanguageHost != null)
+            if (containedDocument.ContainedLanguage.ContainedLanguageHost is IVsContainedLanguageHostInternal containedLanguageHost)
             {
                 foreach (var importClause in memberImportsNamespaces)
                 {
@@ -619,7 +618,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return true;
             }
 
-            subjectBufferSpan = default(SnapshotSpan);
+            subjectBufferSpan = default;
             return false;
         }
 
@@ -634,7 +633,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return true;
             }
 
-            span = default(SnapshotSpan);
+            span = default;
             return false;
         }
     }

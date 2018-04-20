@@ -7,7 +7,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -135,7 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!compilation.Options.CryptoPublicKey.IsEmpty)
             {
-                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, MessageProvider.Instance);
+                // Private key is not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
+                RSAParameters? privateKey = null;
+                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey, MessageProvider.Instance);
             }
         }
 
@@ -1552,6 +1556,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
+        /// <summary>
+        /// This only forces binding of attributes that look like they may be forwarded types attributes (syntactically).
+        /// </summary>
+        internal HashSet<NamedTypeSymbol> GetForwardedTypes()
+        {
+            CustomAttributesBag<CSharpAttributeData> attributesBag = _lazySourceAttributesBag;
+            if (attributesBag?.IsDecodedWellKnownAttributeDataComputed == true)
+            {
+                // Use already decoded attributes
+                return ((CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData)?.ForwardedTypes;
+            }
+
+            attributesBag = null;
+            LoadAndValidateAttributes(OneOrMany.Create(GetAttributeDeclarations()), ref attributesBag, attributeMatchesOpt: this.IsPossibleForwardedTypesAttribute);
+
+            var wellKnownAttributeData = (CommonAssemblyWellKnownAttributeData)attributesBag?.DecodedWellKnownAttributeData;
+            return wellKnownAttributeData?.ForwardedTypes;
+        }
+
+        private bool IsPossibleForwardedTypesAttribute(AttributeSyntax node)
+        {
+            QuickAttributeChecker checker =
+                this.DeclaringCompilation.GetBinderFactory(node.SyntaxTree).GetBinder(node).QuickAttributeChecker;
+
+            return checker.IsPossibleMatch(node, QuickAttributes.TypeForwardedTo);
+        }
+
         private static IEnumerable<Cci.SecurityAttribute> GetSecurityAttributes(CustomAttributesBag<CSharpAttributeData> attributesBag)
         {
             Debug.Assert(attributesBag.IsSealed);
@@ -1705,9 +1736,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             CSharpCompilationOptions options = _compilation.Options;
             bool isBuildingNetModule = options.OutputKind.IsNetModule();
@@ -2158,7 +2189,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: !_compilation.IsEmitDeterministic, version: out version))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
-                    arguments.Diagnostics.Add(ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation);
+                    bool foundBadWildcard = _compilation.IsEmitDeterministic && verString.Contains('*');
+                    arguments.Diagnostics.Add(foundBadWildcard ? ErrorCode.ERR_InvalidVersionFormatDeterministic : ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation);
                 }
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyVersionAttributeSetting = version;
@@ -2551,13 +2583,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_lazyForwardedTypesFromSource == null)
             {
                 IDictionary<string, NamedTypeSymbol> forwardedTypesFromSource;
-                CommonAssemblyWellKnownAttributeData<NamedTypeSymbol> wellKnownAttributeData = GetSourceDecodedWellKnownAttributeData();
+                // Get the TypeForwardedTo attributes with minimal binding to avoid cycle problems
+                HashSet<NamedTypeSymbol> forwardedTypes = GetForwardedTypes();
 
-                if (wellKnownAttributeData != null && wellKnownAttributeData.ForwardedTypes != null)
+                if (forwardedTypes != null)
                 {
                     forwardedTypesFromSource = new Dictionary<string, NamedTypeSymbol>(StringOrdinalComparer.Instance);
 
-                    foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
+                    foreach (NamedTypeSymbol forwardedType in forwardedTypes)
                     {
                         NamedTypeSymbol originalDefinition = forwardedType.OriginalDefinition;
                         Debug.Assert((object)originalDefinition.ContainingType == null, "How did a nested type get forwarded?");

@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public static class BasicCompilationUtils
     {
-        public static MetadataReference CompileToMetadata(string source, string assemblyName = null, IEnumerable<MetadataReference> references = null, bool verify = true)
+        public static MetadataReference CompileToMetadata(string source, string assemblyName = null, IEnumerable<MetadataReference> references = null, Verification verify = Verification.Passes)
         {
             if (references == null)
             {
                 references = new[] { TestBase.MscorlibRef };
             }
             var compilation = CreateCompilationWithMscorlib(source, assemblyName, references);
-            var verifier = Instance.CompileAndVerify(compilation, verify: verify);
+            var verifier = Instance.CompileAndVerifyCommon(compilation, verify: verify);
             return MetadataReference.CreateFromImage(verifier.EmittedAssemblyData);
         }
 

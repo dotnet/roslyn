@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 n => !property.ContainingType.GetMembers(n).Any());
 
             return CodeGenerationSymbolFactory.CreateFieldSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 accessibility: field.DeclaredAccessibility,
                 modifiers: DeclarationModifiers.From(field),
                 type: field.Type,

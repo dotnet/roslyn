@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 {
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 (constant, expression) =
                         IsConstant(expression1) ? (expression1, expression2) :
                         IsConstant(expression2) ? (expression2, expression1) :
-                        default((TExpressionSyntax, TExpressionSyntax));
+                        default;
 
                 return constant != null;
             }
@@ -227,13 +228,21 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 }
 
                 var ifSpan = ifStatement.Span;
-                var @switch = generator.SwitchStatement(_switchExpression, sectionList);
+                var @switch = CreateSwitchStatement(ifStatement, _switchExpression, sectionList);
                 var nodesToRemove = GetSubsequentStatements(ifStatement)
-                    .Skip(1).Take(_numberOfSubsequentIfStatementsToRemove);
+                    .Skip(1).Take(_numberOfSubsequentIfStatementsToRemove).ToList();
                 root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
+
+                var lastNode = nodesToRemove.LastOrDefault() ?? ifStatement;
+                @switch = @switch.WithLeadingTrivia(ifStatement.GetLeadingTrivia())
+                                 .WithTrailingTrivia(lastNode.GetTrailingTrivia())
+                                 .WithAdditionalAnnotations(Formatter.Annotation);
+
                 root = root.ReplaceNode(root.FindNode(ifSpan), @switch);
                 return Task.FromResult(document.WithSyntaxRoot(root));
             }
+
+            protected abstract SyntaxNode CreateSwitchStatement(TIfStatementSyntax ifStatement, TExpressionSyntax expression, List<SyntaxNode> sectionList);
 
             protected abstract TExpressionSyntax UnwrapCast(TExpressionSyntax expression);
 

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
         Public Async Function TestEventSample1_1() As Task
             Await TestAsync(<Text>
 Class C
-{|Cursor:[|Public Event|]|} Foo() [|Implements|] I1.Foo
+{|Cursor:[|Public Event|]|} Goo() [|Implements|] I1.Goo
 End Class</Text>)
         End Function
 
@@ -22,7 +22,7 @@ End Class</Text>)
         Public Async Function TestEventSample1_2() As Task
             Await TestAsync(<Text>
 Class C
-[|Public Event|] Foo() {|Cursor:[|Implements|]|} I1.Foo
+[|Public Event|] Goo() {|Cursor:[|Implements|]|} I1.Goo
 End Class</Text>)
         End Function
     End Class

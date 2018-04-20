@@ -76,6 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledHashSet<Symbol> _capturedVariables = PooledHashSet<Symbol>.GetInstance();
 
+        private readonly PooledHashSet<Symbol> _capturedInside = PooledHashSet<Symbol>.GetInstance();
+        private readonly PooledHashSet<Symbol> _capturedOutside = PooledHashSet<Symbol>.GetInstance();
+
         /// <summary>
         /// The current source assembly.
         /// </summary>
@@ -138,6 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
             _capturedVariables.Free();
+            _capturedInside.Free();
+            _capturedOutside.Free();
             _unsafeAddressTakenVariables.Free();
             _variableSlot.Free();
 
@@ -394,38 +399,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
         private void CheckCaptured(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
         {
-            if (IsCaptured(variable,
-                           currentMethodOrLambda,
-                           rangeVariableUnderlyingParameter))
+            if (IsCaptured(rangeVariableUnderlyingParameter ?? variable, currentMethodOrLambda))
             {
                 NoteCaptured(variable);
             }
         }
 
-        private static bool IsCaptured(Symbol variable,
-                                         MethodSymbol containingMethodOrLambda,
-                                         ParameterSymbol rangeVariableUnderlyingParameter)
+        private static bool IsCaptured(Symbol variable, MethodSymbol containingMethodOrLambda)
         {
             switch (variable.Kind)
             {
-                case SymbolKind.Local:
-                    if (((LocalSymbol)variable).IsConst) break;
-                    goto case SymbolKind.Parameter;
-                case SymbolKind.Parameter:
-                    if (containingMethodOrLambda != variable.ContainingSymbol)
-                    {
-                        return true;
-                    }
-                    break;
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                case SymbolKind.Event:
+                // Range variables are not captured, but their underlying parameters
+                // may be. If this is a range underlying parameter it will be a
+                // ParameterSymbol, not a RangeVariableSymbol.
                 case SymbolKind.RangeVariable:
-                    if (rangeVariableUnderlyingParameter != null &&
-                        containingMethodOrLambda != rangeVariableUnderlyingParameter.ContainingSymbol)
+                    return false;
+
+                case SymbolKind.Local:
+                    if (((LocalSymbol)variable).IsConst)
                     {
-                        return true;
+                        return false;
                     }
                     break;
+
+                case SymbolKind.Parameter:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(variable.Kind);
             }
-            return false;
+
+            // Walk up the containing symbols until we find the target function, in which
+            // case the variable is not captured by the target function, or null, in which 
+            // case it is.
+            for (var currentFunction = variable.ContainingSymbol;
+                 currentFunction != null;
+                 currentFunction = currentFunction.ContainingSymbol)
+            {
+                if (currentFunction == containingMethodOrLambda)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -434,23 +454,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="variable"></param>
         private void NoteCaptured(Symbol variable)
         {
-            if (variable.Kind != SymbolKind.RangeVariable || this.regionPlace == PreciseAbstractFlowPass<LocalState>.RegionPlace.Inside)
+            if (this.regionPlace == RegionPlace.Inside)
             {
+                _capturedInside.Add(variable);
+                _capturedVariables.Add(variable);
+            }
+            else if (variable.Kind != SymbolKind.RangeVariable)
+            {
+                _capturedOutside.Add(variable);
                 _capturedVariables.Add(variable);
             }
         }
 
-        protected IEnumerable<Symbol> GetCaptured()
-        {
-            // do not expose poolable capturedVariables outside of this class
-            return _capturedVariables.ToArray();
-        }
-
-        protected IEnumerable<Symbol> GetUnsafeAddressTaken()
-        {
-            // do not expose poolable unsafeAddressTakenVariables outside of this class
-            return _unsafeAddressTakenVariables.Keys.ToArray();
-        }
+        // do not expose PooledHashSet<T> outside of this class
+        protected IEnumerable<Symbol> GetCapturedInside() => _capturedInside.ToArray();
+        protected IEnumerable<Symbol> GetCapturedOutside() => _capturedOutside.ToArray();
+        protected IEnumerable<Symbol> GetCaptured() => _capturedVariables.ToArray();
+        protected IEnumerable<Symbol> GetUnsafeAddressTaken() => _unsafeAddressTakenVariables.Keys.ToArray();
 
 #region Tracking reads/writes of variables for warnings
 
@@ -1156,9 +1176,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void Assign(BoundNode node, BoundExpression value, RefKind refKind = RefKind.None, bool read = true)
+        protected void Assign(BoundNode node, BoundExpression value, bool isRef = false, bool read = true)
         {
-            AssignImpl(node, value, written: true, refKind: refKind, read: read);
+            AssignImpl(node, value, written: true, isRef: isRef, read: read);
         }
 
         /// <summary>
@@ -1167,15 +1187,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">Node being assigned to.</param>
         /// <param name="value">The value being assigned.</param>
         /// <param name="written">True if target location is considered written to.</param>
-        /// <param name="refKind">Target kind (by-ref or not).</param>
+        /// <param name="isRef">Ref assignment or value assignment.</param>
         /// <param name="read">True if target location is considered read from.</param>
-        protected virtual void AssignImpl(BoundNode node, BoundExpression value, RefKind refKind, bool written, bool read)
+        protected virtual void AssignImpl(BoundNode node, BoundExpression value, bool isRef, bool written, bool read)
         {
             switch (node.Kind)
             {
                 case BoundKind.DeclarationPattern:
                     {
                         var pattern = (BoundDeclarationPattern)node;
+                        var symbol = pattern.Variable as LocalSymbol;
+                        if ((object)symbol != null)
+                        {
+                            // we do not track definite assignment for pattern variables when they are
+                            // promoted to fields for top-level code in scripts and interactive
+                            int slot = GetOrCreateSlot(symbol);
+                            SetSlotState(slot, assigned: written || !this.State.Reachable);
+                        }
+
+                        if (written) NoteWrite(pattern.VariableAccess, value, read);
+                        break;
+                    }
+
+                case BoundKind.RecursivePattern:
+                    {
+                        var pattern = (BoundRecursivePattern)node;
                         var symbol = pattern.Variable as LocalSymbol;
                         if ((object)symbol != null)
                         {
@@ -1203,7 +1239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                     {
                         var local = (BoundLocal)node;
-                        if (local.LocalSymbol.RefKind != refKind)
+                        if (local.LocalSymbol.RefKind != RefKind.None && !isRef)
                         {
                             // Writing through the (reference) value of a reference local
                             // requires us to read the reference itself.
@@ -1219,6 +1255,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.Parameter:
+                    {
+                        var paramExpr = (BoundParameter)node;
+                        var param = paramExpr.ParameterSymbol;
+                        // If we're ref-reassigning an out parameter we're effectively
+                        // leaving the original
+                        if (isRef && param.RefKind == RefKind.Out)
+                        {
+                            LeaveParameter(param, node.Syntax, paramExpr.Syntax.Location);
+                        }
+
+                        int slot = MakeSlot(paramExpr);
+                        SetSlotState(slot, written);
+                        if (written) NoteWrite(paramExpr, value, read);
+                        break;
+                    }
+
                 case BoundKind.ThisReference:
                 case BoundKind.FieldAccess:
                 case BoundKind.EventAccess:
@@ -1232,7 +1284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.RangeVariable:
-                    AssignImpl(((BoundRangeVariable)node).Value, value, refKind, written, read);
+                    AssignImpl(((BoundRangeVariable)node).Value, value, isRef, written, read);
                     break;
 
                 case BoundKind.BadExpression:
@@ -1241,13 +1293,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var bad = (BoundBadExpression)node;
                         if (!bad.ChildBoundNodes.IsDefault && bad.ChildBoundNodes.Length == 1)
                         {
-                            AssignImpl(bad.ChildBoundNodes[0], value, refKind, written, read);
+                            AssignImpl(bad.ChildBoundNodes[0], value, isRef, written, read);
                         }
                         break;
                     }
 
                 case BoundKind.TupleLiteral:
-                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, refKind: refKind), this);
+                    ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, isRef: isRef), this);
                     break;
 
                 default:
@@ -1460,9 +1512,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #region Visitors
 
-        public override void VisitPattern(BoundExpression expression, BoundPattern pattern)
+        public override void VisitPattern(BoundPattern pattern)
         {
-            base.VisitPattern(expression, pattern);
+            base.VisitPattern(pattern);
             var whenFail = StateWhenFalse;
             SetState(StateWhenTrue);
             AssignPatternVariables(pattern);
@@ -1476,10 +1528,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeclarationPattern:
                     {
                         var pat = (BoundDeclarationPattern)pattern;
-                        Assign(pat, null, RefKind.None, false);
+                        Assign(pat, value: null, isRef: false, read: false);
                         break;
                     }
-                case BoundKind.WildcardPattern:
+                case BoundKind.DiscardPattern:
                     break;
                 case BoundKind.ConstantPattern:
                     {
@@ -1487,8 +1539,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.VisitRvalue(pat.Value);
                         break;
                     }
+                case BoundKind.RecursivePattern:
+                    {
+                        var pat = (BoundRecursivePattern)pattern;
+                        if (!pat.Deconstruction.IsDefaultOrEmpty)
+                        {
+                            foreach (var subpat in pat.Deconstruction)
+                            {
+                                AssignPatternVariables(subpat);
+                            }
+                        }
+                        if (!pat.PropertiesOpt.IsDefaultOrEmpty)
+                        {
+                            foreach (var (_, subpat) in pat.PropertiesOpt)
+                            {
+                                AssignPatternVariables(subpat);
+                            }
+                        }
+                        Assign(pat, null, false, false);
+                        break;
+                    }
                 default:
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }
         }
 
@@ -1504,7 +1576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void VisitStatementsWithLocalFunctions(BoundBlock block)
+        private void VisitStatementsWithLocalFunctions(BoundBlock block)
         {
             // Visit the statements in two phases:
             //   1. Local function declarations
@@ -1527,8 +1599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (stmt.Kind == BoundKind.LocalFunctionStatement)
                     {
-                        VisitLocalFunctionStatement(
-                            (BoundLocalFunctionStatement)stmt);
+                        VisitAlways(stmt);
                     }
                 }
             }
@@ -1543,15 +1614,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            DeclareVariables(node.InnerLocals);
-            var result = base.VisitSwitchStatement(node);
-            ReportUnusedVariables(node.InnerLocals);
-            ReportUnusedVariables(node.InnerLocalFunctions);
-            return result;
-        }
-
         public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
         {
             DeclareVariables(node.InnerLocals);
@@ -1561,10 +1623,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
         {
             DeclareVariables(node.Locals);
-            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+            base.VisitPatternSwitchSection(node, isLastSection);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)
@@ -1855,7 +1917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             base.VisitAssignmentOperator(node);
-            Assign(node.Left, node.Right, refKind: node.RefKind);
+            Assign(node.Left, node.Right, isRef: node.IsRef);
             return null;
         }
 

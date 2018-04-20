@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.OrderModifiers);
+            ImmutableArray.Create(IDEDiagnosticIds.OrderModifiersDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

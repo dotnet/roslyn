@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Optional atLineNumber As Integer = -1,
             Optional includeSymbols As Boolean = True) As CompilationTestData
 
-            Dim compilation0 = CreateCompilationWithReferences(
+            Dim compilation0 = CreateEmptyCompilationWithReferences(
                 {Parse(source)},
                 {MscorlibRef_v4_0_30316_17626, SystemRef, MsvbRef},
                 options:=If(outputKind = OutputKind.DynamicallyLinkedLibrary, TestOptions.DebugDll, TestOptions.DebugExe))
@@ -362,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         End Function
 
         Friend Shared Function GetAttributeIfAny(method As IMethodSymbol, typeName As String) As SynthesizedAttributeData
-            Return method.GetSynthesizedAttributes(forReturnType:=True).
+            Return DirectCast(method, MethodSymbol).GetSynthesizedAttributes(forReturnType:=True).
                 Where(Function(a) a.AttributeClass.ToTestDisplayString() = typeName).
                 SingleOrDefault()
         End Function

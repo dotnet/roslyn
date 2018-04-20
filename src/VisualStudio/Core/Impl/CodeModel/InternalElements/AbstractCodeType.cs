@@ -170,8 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
             if (abstractCodeElement == null)
             {
-                var codeElement = element as EnvDTE.CodeElement;
-                if (codeElement != null)
+                if (element is EnvDTE.CodeElement codeElement)
                 {
                     // Is at least an EnvDTE.CodeElement? If so, try to retrieve it from the Members collection by name.
                     // Note: This might throw an ArgumentException if the name isn't found in the collection.

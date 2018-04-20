@@ -1,10 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Roslyn.Test.Utilities
@@ -26,7 +26,7 @@ End Interface
 Structure S
 End Structure
 Enum E
-    Foo
+    Goo
 End Enum
 Delegate Sub D()
 </Code>
@@ -63,9 +63,9 @@ Delegate Sub D()
         Public Sub TestAssemblyLevelAttribute()
             Dim code =
 <Code>
-&lt;Assembly: Foo(0, True, S:="x")&gt;
+&lt;Assembly: Goo(0, True, S:="x")&gt;
 
-Class FooAttribute
+Class GooAttribute
     Inherits System.Attribute
 
     Public Sub New(i As Integer, b As Boolean)
@@ -91,8 +91,8 @@ End Class
                 Assert.NotNull(codeAttribute)
 
                 Assert.Same(workspaceAndFileCodeModel.FileCodeModel, codeAttribute.Parent)
-                Assert.Equal("Foo", codeAttribute.Name)
-                Assert.Equal("FooAttribute", codeAttribute.FullName)
+                Assert.Equal("Goo", codeAttribute.Name)
+                Assert.Equal("GooAttribute", codeAttribute.FullName)
                 Assert.Equal("Assembly", codeAttribute.Target)
                 Assert.Equal("0, True, S:=""x""", codeAttribute.Value)
 
@@ -546,23 +546,23 @@ End Class
             Dim code =
 <Code>
 Class B : End Class
-Interface $$IFoo : End Interface
+Interface $$IGoo : End Interface
 Interface IBar : End Interface
 </Code>
 
             Dim expected =
 <Code>
 Class B : End Class
-Interface IFoo : End Interface
+Interface IGoo : End Interface
 Interface IBar : End Interface
 
 Public Class C
     Inherits B
-    Implements IFoo, IBar
+    Implements IGoo, IBar
 End Class
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "IBar", .Bases = "B", .ImplementedInterfaces = {"IFoo", "IBar"}})
+            Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "IBar", .Bases = "B", .ImplementedInterfaces = {"IGoo", "IBar"}})
         End Function
 
 #End Region
@@ -1009,7 +1009,7 @@ End Class
     </Workspace>
 
             Using originalWorkspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(oldCode))
-                Using changedworkspace = TestWorkspace.Create(changedDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+                Using changedworkspace = TestWorkspace.Create(changedDefinition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
                     Dim originalTree = Await originalDocument.GetSyntaxTreeAsync()

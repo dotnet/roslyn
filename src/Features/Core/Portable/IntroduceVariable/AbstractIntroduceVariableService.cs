@@ -18,12 +18,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax> : IIntroduceVariableService
-        where TService : AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax>
+    internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax> : IIntroduceVariableService
+        where TService : AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
         where TExpressionSyntax : SyntaxNode
         where TTypeSyntax : TExpressionSyntax
         where TTypeDeclarationSyntax : SyntaxNode
         where TQueryExpressionSyntax : TExpressionSyntax
+        where TNameSyntax : TTypeSyntax
     {
         protected abstract bool IsInNonFirstQueryClause(TExpressionSyntax expression);
         protected abstract bool IsInFieldInitializer(TExpressionSyntax expression);
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     }
                 }
 
-                return default(ImmutableArray<CodeAction>);
+                return default;
             }
         }
 
@@ -218,62 +219,18 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             SemanticDocument document,
             TExpressionSyntax expression,
             bool isConstant,
-            SyntaxNode container,
+            SyntaxNode containerOpt,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
-
             var semanticModel = document.SemanticModel;
-            var existingSymbols = GetExistingSymbols(semanticModel, container, cancellationToken);
 
+            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
-            var reservedNames = semanticModel.LookupSymbols(expression.SpanStart)
-                                             .Select(s => s.Name)
-                                             .Concat(existingSymbols.Select(s => s.Name));
 
-            return syntaxFacts.ToIdentifierToken(
-                NameGenerator.EnsureUniqueness(baseName, reservedNames, syntaxFacts.IsCaseSensitive));
+            return semanticFacts.GenerateUniqueLocalName(
+                semanticModel, expression, containerOpt, baseName, cancellationToken);
         }
-
-        private static HashSet<ISymbol> GetExistingSymbols(
-            SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
-        {
-            var symbols = new HashSet<ISymbol>();
-            if (container != null)
-            {
-                GetExistingSymbols(semanticModel, container, symbols, cancellationToken);
-            }
-
-            return symbols;
-        }
-
-        private static void GetExistingSymbols(
-            SemanticModel semanticModel, SyntaxNode node, 
-            HashSet<ISymbol> symbols, CancellationToken cancellationToken)
-        {
-            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-
-            // Ignore an annonymous type property.  It's ok if they have a name that 
-            // matches the name of the local we're introducing.
-            if (symbol != null &&
-                !IsAnonymousTypeProperty(symbol))
-            {
-                symbols.Add(symbol);
-            }
-
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsNode)
-                {
-                    GetExistingSymbols(semanticModel, child.AsNode(), symbols, cancellationToken);
-                }
-            }
-        }
-
-        private static bool IsAnonymousTypeProperty(ISymbol symbol)
-            => symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType;
 
         protected ISet<TExpressionSyntax> FindMatches(
             SemanticDocument originalDocument,
@@ -315,7 +272,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 if (allOccurrences &&
                     this.CanReplace(nodeInCurrent))
                 {
-                    return SemanticEquivalence.AreSemanticallyEquivalent(
+                    return SemanticEquivalence.AreEquivalent(
                         originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent);
                 }
             }

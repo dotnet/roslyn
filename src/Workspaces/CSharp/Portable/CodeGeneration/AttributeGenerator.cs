@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (options.MergeAttributes)
             {
-                var attributeNodes = attributes.OrderBy(a => a.AttributeClass.Name).Select((a) => GenerateAttribute(a, options)).WhereNotNull().ToList();
+                var attributeNodes = attributes.OrderBy(a => a.AttributeClass.Name).Select(a => GenerateAttribute(a, options)).WhereNotNull().ToList();
                 return attributeNodes.Count == 0
-                    ? default(SyntaxList<AttributeListSyntax>)
+                    ? default
                     : SyntaxFactory.SingletonList(SyntaxFactory.AttributeList(
                         target.HasValue ? SyntaxFactory.AttributeTargetSpecifier(target.Value) : null,
                         SyntaxFactory.SeparatedList(attributeNodes)));
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 var attributeDeclarations = attributes.OrderBy(a => a.AttributeClass.Name).Select(a => GenerateAttributeDeclaration(a, target, options)).WhereNotNull().ToList();
                 return attributeDeclarations.Count == 0
-                    ? default(SyntaxList<AttributeListSyntax>)
+                    ? default
                     : SyntaxFactory.List<AttributeListSyntax>(attributeDeclarations);
             }
         }

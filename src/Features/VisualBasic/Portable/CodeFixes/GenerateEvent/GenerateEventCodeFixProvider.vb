@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
     Partial Friend Class GenerateEventCodeFixProvider
         Inherits CodeFixProvider
 
-        Friend Const BC30401 As String = "BC30401" ' error BC30401: 'foo' cannot implement 'E' because there is no matching event on interface 'MyInterface'.
+        Friend Const BC30401 As String = "BC30401" ' error BC30401: 'goo' cannot implement 'E' because there is no matching event on interface 'MyInterface'.
         Friend Const BC30590 As String = "BC30590" ' error BC30590: Event 'MyEvent' cannot be found.
         Friend Const BC30456 As String = "BC30456" ' error BC30456: 'x' is not a member of 'y'.
         Friend Const BC30451 As String = "BC30451" ' error BC30451: 'x' is not declared, it may be inaccessible due to its protection level.
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Dim delegateType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
                 attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
                 returnType:=semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
-                returnsByRef:=False, name:=eventHandlerName,
+                refKind:=RefKind.None, name:=eventHandlerName,
                 parameters:=delegateSymbol.GetParameters())
 
             Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
                 Dim eventHandlerType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
                     eventType.GetAttributes(), eventType.DeclaredAccessibility,
-                    modifiers:=Nothing, returnType:=returnType, returnsByRef:=false,
+                    modifiers:=Nothing, returnType:=returnType, refKind:=RefKind.None,
                     name:=actualEventName + "EventHandler",
                     typeParameters:=eventType.TypeParameters, parameters:=parameters)
 
@@ -376,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             Dim delegateType = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
                 attributes:=Nothing, accessibility:=Accessibility.Public, modifiers:=Nothing,
                 returnType:=semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
-                returnsByRef:=False, name:=actualEventName + "Handler",
+                refKind:=RefKind.None, name:=actualEventName + "Handler",
                 parameters:=boundMethod.GetParameters())
 
             Dim generatedEvent = CodeGenerationSymbolFactory.CreateEventSymbol(

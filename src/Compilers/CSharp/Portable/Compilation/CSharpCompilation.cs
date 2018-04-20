@@ -164,6 +164,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool FeatureStrictEnabled => Feature("strict") != null;
 
         /// <summary>
+        /// True when "peverify-compat" is set
+        /// With this flag we will avoid certain patterns known not be compatible with PEVerify.
+        /// The code may be less efficient and may deviate from spec in corner cases.
+        /// The flag is only to be used if PEVerify pass is extremely important.
+        /// </summary>
+        internal bool FeaturePEVerifyCompatEnabled => Feature("peverify-compat") != null;
+
+        /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
         /// </summary>
         public LanguageVersion LanguageVersion
@@ -565,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // Are there any top-level return statments?
+            // Are there any top-level return statements?
             if (root.DescendantNodes(n => n is GlobalStatementSyntax || n is StatementSyntax || n is CompilationUnitSyntax).Any(n => n.IsKind(SyntaxKind.ReturnStatement)))
             {
                 return true;
@@ -1002,8 +1010,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Return a list of assembly symbols than can be accessed without using an alias.
         /// For example:
         ///   1) /r:A.dll /r:B.dll -> A, B
-        ///   2) /r:Foo=A.dll /r:B.dll -> B
-        ///   3) /r:Foo=A.dll /r:A.dll -> A
+        ///   2) /r:Goo=A.dll /r:B.dll -> B
+        ///   3) /r:Goo=A.dll /r:A.dll -> A
         /// </summary>
         internal void GetUnaliasedReferencedAssemblies(ArrayBuilder<AssemblySymbol> assemblies)
         {
@@ -1334,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal new NamedTypeSymbol GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
-            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false);
+            return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _);
         }
 
         /// <summary>
@@ -1717,8 +1725,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            var cssource = source.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("source");
-            var csdest = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
+            var cssource = source.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(source));
+            var csdest = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(destination));
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             return Conversions.ClassifyConversionFromType(cssource, csdest, ref useSiteDiagnostics);
@@ -1986,13 +1994,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private IEnumerable<Diagnostic> FreezeDeclarationDiagnostics()
-        {
-            _declarationDiagnosticsFrozen = true;
-            var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? Enumerable.Empty<Diagnostic>();
-            return result;
-        }
-
         private DiagnosticBag _lazyDeclarationDiagnostics;
         private bool _declarationDiagnosticsFrozen;
 
@@ -2061,6 +2062,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal ImmutableArray<Diagnostic> GetDiagnostics(CompilationStage stage, bool includeEarlierStages, CancellationToken cancellationToken)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            GetDiagnostics(stage, includeEarlierStages, diagnostics, cancellationToken);
+            return diagnostics.ToReadOnlyAndFree();
+        }
+
+        internal override void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, CancellationToken cancellationToken = default)
         {
             var builder = DiagnosticBag.GetInstance();
 
@@ -2139,9 +2147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
-            var result = DiagnosticBag.GetInstance();
-            FilterAndAppendAndFreeDiagnostics(result, ref builder);
-            return result.ToReadOnlyAndFree<Diagnostic>();
+            FilterAndAppendAndFreeDiagnostics(diagnostics, ref builder);
         }
 
         private static void AppendLoadDirectiveDiagnostics(DiagnosticBag builder, SyntaxAndDeclarationManager syntaxAndDeclarations, SyntaxTree syntaxTree, Func<IEnumerable<Diagnostic>, IEnumerable<Diagnostic>> locationFilterOpt = null)
@@ -2185,15 +2191,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.IsDefinedInSourceTree(tree, span))
             {
                 return true;
-            }
-
-            if (symbol.IsPartialDefinition())
-            {
-                MethodSymbol implementationPart = ((MethodSymbol)symbol).PartialImplementationPart;
-                if ((object)implementationPart != null)
-                {
-                    return implementationPart.IsDefinedInSourceTree(tree, span);
-                }
             }
 
             if (symbol.Kind == SymbolKind.Method && symbol.IsImplicitlyDeclared && ((MethodSymbol)symbol).MethodKind == MethodKind.Constructor)
@@ -2246,7 +2243,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Assembly.ForceComplete(location, cancellationToken);
 
-            var result = this.FreezeDeclarationDiagnostics();
+            if (syntaxTree is null)
+            {
+                // Don't freeze the compilation if we're getting
+                // diagnositcs for a single tree
+                _declarationDiagnosticsFrozen = true;
+
+                // Also freeze generated attribute flags.
+                // Symbols bound after getting the declaration
+                // diagnostics shouldn't need to modify the flags.
+                _needsGeneratedAttributes_IsFrozen = true;
+            }
+
+            var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? Enumerable.Empty<Diagnostic>();
 
             if (locationFilterOpt != null)
             {
@@ -2315,7 +2324,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (stage == CompilationStage.Declare || (stage > CompilationStage.Declare && includeEarlierStages))
             {
                 var declarationDiagnostics = GetSourceDeclarationDiagnostics(syntaxTree, filterSpanWithinTree, FilterDiagnosticsByLocation, cancellationToken);
-                Debug.Assert(declarationDiagnostics.All(d => d.HasIntersectingLocation(syntaxTree, filterSpanWithinTree)));
+                // re-enabling/fixing the below assert is tracked by https://github.com/dotnet/roslyn/issues/21020
+                // Debug.Assert(declarationDiagnostics.All(d => d.HasIntersectingLocation(syntaxTree, filterSpanWithinTree)));
                 builder.AddRange(declarationDiagnostics);
             }
 
@@ -2870,12 +2880,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override IArrayTypeSymbol CommonCreateArrayTypeSymbol(ITypeSymbol elementType, int rank)
         {
-            return CreateArrayTypeSymbol(elementType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("elementType"), rank);
+            return CreateArrayTypeSymbol(elementType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(elementType)), rank);
         }
 
         protected override IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType)
         {
-            return CreatePointerTypeSymbol(elementType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("elementType"));
+            return CreatePointerTypeSymbol(elementType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(elementType)));
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
@@ -2979,6 +2989,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return loc1.SourceSpan.Start - loc2.SourceSpan.Start;
         }
 
+        internal override int CompareSourceLocations(SyntaxReference loc1, SyntaxReference loc2)
+        {
+            var comparison = CompareSyntaxTreeOrdering(loc1.SyntaxTree, loc2.SyntaxTree);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+
+            return loc1.Span.Start - loc2.Span.Start;
+        }
+
         /// <summary>
         /// Return true if there is a source declaration symbol name that meets given predicate.
         /// </summary>
@@ -3073,12 +3094,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sustainedLowLatency = GetWellKnownTypeMember(WellKnownMember.System_Runtime_GCLatencyMode__SustainedLowLatency);
                 return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == Assembly.CorLibrary;
             }
-        }
-
-        internal override bool IsIOperationFeatureEnabled()
-        {
-            var options = (CSharpParseOptions)this.SyntaxTrees.FirstOrDefault()?.Options;
-            return options?.IsFeatureEnabled(MessageID.IDS_FeatureIOperation) ?? false;
         }
 
         private class SymbolSearcher

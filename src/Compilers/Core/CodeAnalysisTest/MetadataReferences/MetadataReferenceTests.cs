@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromAssemblyInternal(null));
             Assert.Throws<ArgumentException>(() => MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly, new MetadataReferenceProperties(MetadataImageKind.Module)));
 
-            var dynamicAssembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName { Name = "Foo" }, System.Reflection.Emit.AssemblyBuilderAccess.Run);
+            var dynamicAssembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName { Name = "Goo" }, System.Reflection.Emit.AssemblyBuilderAccess.Run);
             Assert.Throws<NotSupportedException>(() => MetadataReference.CreateFromAssemblyInternal(dynamicAssembly));
         }
 
@@ -461,18 +461,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var i1 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).GetReference(display: "i1");
             var i2 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).GetReference(display: "i2");
 
-            var m1a = new MyReference(@"c:\a\foo.dll", display: "m1a");
+            var m1a = new MyReference(@"c:\a\goo.dll", display: "m1a");
             Assert.Equal("m1a", m1a.Display);
-            var m1b = new MyReference(@"c:\b\..\a\foo.dll", display: "m1b");
+            var m1b = new MyReference(@"c:\b\..\a\goo.dll", display: "m1b");
             Assert.Equal("m1b", m1b.Display);
-            var m2 = new MyReference(@"c:\b\foo.dll", display: "m2");
+            var m2 = new MyReference(@"c:\b\goo.dll", display: "m2");
             Assert.Equal("m2", m2.Display);
             var m3 = new MyReference(null, display: "m3");
             var m4 = new MyReference(null, display: "m4");
 
-            var c1a = CS.CSharpCompilation.Create("foo").ToMetadataReference();
+            var c1a = CS.CSharpCompilation.Create("goo").ToMetadataReference();
             var c1b = c1a.Compilation.ToMetadataReference();
-            var c2 = CS.CSharpCompilation.Create("foo").ToMetadataReference();
+            var c2 = CS.CSharpCompilation.Create("goo").ToMetadataReference();
 
             var all = new MetadataReference[] { f1, f2, i1, i2, m1a, m1b, m2, c1a, c1b, c2 };
             foreach (var r in all)
@@ -503,9 +503,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var f1 = MscorlibRef;
             var f2 = SystemCoreRef;
 
-            var m1a = new MyReference2(@"c:\a\foo.dll", display: "m1a");
-            Assert.Equal(@"c:\a\foo.dll", m1a.Display);
-            Assert.Equal(@"c:\a\foo.dll", m1a.FilePath);
+            var m1a = new MyReference2(@"c:\a\goo.dll", display: "m1a");
+            Assert.Equal(@"c:\a\goo.dll", m1a.Display);
+            Assert.Equal(@"c:\a\goo.dll", m1a.FilePath);
         }
 
         [Fact]
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var corlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).
                 GetReference(display: "corlib", documentation: docProvider);
 
-            var comp = CS.CSharpCompilation.Create("foo",
+            var comp = CS.CSharpCompilation.Create("goo",
                 syntaxTrees: new[] { CS.SyntaxFactory.ParseSyntaxTree("class C : System.Collections.ArrayList { }") },
                 references: new[] { corlib });
 

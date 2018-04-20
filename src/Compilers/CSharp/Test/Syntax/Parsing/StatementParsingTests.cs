@@ -263,6 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
+        [Fact]
         public void TestLocalDeclarationStatementWithNamedTuple()
         {
             var text = "(T x, (U k, V l, W m) y) a;";
@@ -1659,45 +1660,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "for(ref T a = ref b, c = ref d;;) { }";
             var statement = this.ParseStatement(text);
 
-            Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
-            Assert.Equal(text, statement.ToString());
-            Assert.Equal(0, statement.Errors().Length);
-
-            var fs = (ForStatementSyntax)statement;
-            Assert.NotNull(fs.ForKeyword);
-            Assert.False(fs.ForKeyword.IsMissing);
-            Assert.Equal(SyntaxKind.ForKeyword, fs.ForKeyword.Kind());
-            Assert.NotNull(fs.OpenParenToken);
-
-            Assert.NotNull(fs.Declaration);
-            Assert.NotNull(fs.Declaration.Type);
-            Assert.Equal("ref T", fs.Declaration.Type.ToString());
-            Assert.Equal(2, fs.Declaration.Variables.Count);
-
-            Assert.NotNull(fs.Declaration.Variables[0].Identifier);
-            Assert.Equal("a", fs.Declaration.Variables[0].Identifier.ToString());
-            var initializer = fs.Declaration.Variables[0].Initializer as EqualsValueClauseSyntax;
-            Assert.NotNull(initializer);
-            Assert.NotNull(initializer.EqualsToken);
-            Assert.Equal(SyntaxKind.RefExpression, initializer.Value.Kind());
-            Assert.Equal("ref b", initializer.Value.ToString());
-
-            Assert.NotNull(fs.Declaration.Variables[1].Identifier);
-            Assert.Equal("c", fs.Declaration.Variables[1].Identifier.ToString());
-            initializer = fs.Declaration.Variables[1].Initializer as EqualsValueClauseSyntax;
-            Assert.NotNull(initializer);
-            Assert.NotNull(initializer.EqualsToken);
-            Assert.Equal(SyntaxKind.RefExpression, initializer.Value.Kind());
-            Assert.Equal("ref d", initializer.Value.ToString());
-
-            Assert.Equal(0, fs.Initializers.Count);
-            Assert.NotNull(fs.FirstSemicolonToken);
-            Assert.Null(fs.Condition);
-            Assert.NotNull(fs.SecondSemicolonToken);
-            Assert.Equal(0, fs.Incrementors.Count);
-            Assert.NotNull(fs.CloseParenToken);
-            Assert.NotNull(fs.Statement);
+            UsingNode(statement);
+            N(SyntaxKind.ForStatement);
+            {
+                N(SyntaxKind.ForKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "c");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.RefExpression);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "d");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.SemicolonToken);
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.Block);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
         }
 
         [Fact]
@@ -2067,8 +2085,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
             var diags = statement.ErrorsAndWarnings();
-            Assert.Equal(1, diags.Length);
-            Assert.Equal((int)ErrorCode.WRN_EmptySwitch, diags[0].Code);
+            Assert.Equal(0, diags.Length);
 
             var ss = (SwitchStatementSyntax)statement;
             Assert.NotNull(ss.SwitchKeyword);
@@ -2611,7 +2628,7 @@ class C
             tree.GetDiagnostics(root).Verify(
                 // (7,36): error CS1003: Syntax error, 'when' expected
                 //         catch (System.Exception e) if (true) { }
-                CSharpTestBaseBase.Diagnostic(ErrorCode.ERR_SyntaxError, "if").WithArguments("when", "if").WithLocation(7, 36));
+                CSharpTestBase.Diagnostic(ErrorCode.ERR_SyntaxError, "if").WithArguments("when", "if").WithLocation(7, 36));
 
             var filterClause = root.DescendantNodes().OfType<CatchFilterClauseSyntax>().Single();
             Assert.Equal(SyntaxKind.WhenKeyword, filterClause.WhenKeyword.Kind());
@@ -2720,6 +2737,172 @@ System.Console.WriteLine(true)";
                 // { label: public
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 10)
                 );
+        }
+
+        [Fact]
+        public void ParseSwitch01()
+        {
+            UsingStatement("switch 1+2 {}",
+                // (1,8): error CS8415: Parentheses are required around the switch governing expression.
+                // switch 1+2 {}
+                Diagnostic(ErrorCode.ERR_SwitchGoverningExpressionRequiresParens, "1+2").WithLocation(1, 8)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                M(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseSwitch02()
+        {
+            UsingStatement("switch (a: 0) {}",
+                // (1,13): error CS8124: Tuple must contain at least two elements.
+                // switch (a: 0) {}
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 13)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.TupleExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NameColon);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    M(SyntaxKind.CommaToken);
+                    M(SyntaxKind.Argument);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseSwitch03()
+        {
+            UsingStatement("switch (a: 0, b: 4) {}");
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.TupleExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NameColon);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.NameColon);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.ColonToken);
+                        }
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "4");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ParseSwitch04()
+        {
+            UsingStatement("switch (1) + (2) {}",
+                // (1,8): error CS8415: Parentheses are required around the switch governing expression.
+                // switch (1) + (2) {}
+                Diagnostic(ErrorCode.ERR_SwitchGoverningExpressionRequiresParens, "(1) + (2)").WithLocation(1, 8)
+                );
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                M(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "1");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
         }
 
         private sealed class TokenAndTriviaWalker : CSharpSyntaxWalker

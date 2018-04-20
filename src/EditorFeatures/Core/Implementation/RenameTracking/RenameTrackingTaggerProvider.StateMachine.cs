@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return index;
             }
 
-            public bool CanInvokeRename(out TrackingSession trackingSession, bool isSmartTagCheck = false, bool waitForResult = false, CancellationToken cancellationToken = default(CancellationToken))
+            public bool CanInvokeRename(out TrackingSession trackingSession, bool isSmartTagCheck = false, bool waitForResult = false, CancellationToken cancellationToken = default)
             {
                 // This needs to be able to run on a background thread for the diagnostic.
 

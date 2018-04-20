@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if NETCOREAPP1_1 || NETCOREAPP2_0
+
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Loader;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class CoreClrAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
+    internal class CoreClrAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
         private AssemblyLoadContext _loadContext;
 
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         {
             //.NET Native doesn't support AssemblyLoadContext.GetLoadContext. 
             // Initializing the _loadContext in the .ctor would cause
-            // .NET Native builds to fail beacause the .ctor is called. 
+            // .NET Native builds to fail because the .ctor is called. 
             // However, LoadFromPathImpl is never called in .NET Native, so 
             // we do a lazy initialization here to make .NET Native builds happy.
             if (_loadContext == null)
@@ -35,7 +37,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return _loadContext.LoadFromAssemblyPath(fullPath);
+            return LoadImpl(fullPath);
         }
+
+        protected virtual Assembly LoadImpl(string fullPath) => _loadContext.LoadFromAssemblyPath(fullPath);
     }
 }
+
+#endif

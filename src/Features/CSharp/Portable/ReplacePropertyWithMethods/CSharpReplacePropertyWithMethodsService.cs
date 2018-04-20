@@ -227,7 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             if (methodDeclaration?.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (methodDeclaration.Body.TryConvertToExpressionBody(
-                        parseOptions, expressionBodyPreference, out var arrowExpression, out var semicolonToken))
+                        methodDeclaration.Kind(), parseOptions, expressionBodyPreference,
+                        out var arrowExpression, out var semicolonToken))
                 {
                     return methodDeclaration.WithBody(null)
                                             .WithExpressionBody(arrowExpression)
@@ -241,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                         methodDeclaration.SemicolonToken, createReturnStatementForExpression, out var block))
                 {
                     return methodDeclaration.WithExpressionBody(null)
-                                            .WithSemicolonToken(default(SyntaxToken))
+                                            .WithSemicolonToken(default)
                                             .WithBody(block)
                                             .WithAdditionalAnnotations(Formatter.Annotation);
                 }

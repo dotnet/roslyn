@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LanguageVersion languageVersion,
             DocumentationMode documentationMode,
             SourceCodeKind kind,
-            IEnumerable<string> preprocessorSymbols,
+            ImmutableArray<string> preprocessorSymbols,
             IReadOnlyDictionary<string, string> features)
             : base(kind, documentationMode)
         {

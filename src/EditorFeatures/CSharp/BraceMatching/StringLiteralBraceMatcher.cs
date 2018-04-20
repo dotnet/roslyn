@@ -36,16 +36,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
                 }
                 else if (token.IsKind(SyntaxKind.InterpolatedStringStartToken, SyntaxKind.InterpolatedVerbatimStringStartToken))
                 {
-                    var interpolatedString = token.Parent as InterpolatedStringExpressionSyntax;
-                    if (interpolatedString != null)
+                    if (token.Parent is InterpolatedStringExpressionSyntax interpolatedString)
                     {
                         return new BraceMatchingResult(token.Span, interpolatedString.StringEndToken.Span);
                     }
                 }
                 else if (token.IsKind(SyntaxKind.InterpolatedStringEndToken))
                 {
-                    var interpolatedString = token.Parent as InterpolatedStringExpressionSyntax;
-                    if (interpolatedString != null)
+                    if (token.Parent is InterpolatedStringExpressionSyntax interpolatedString)
                     {
                         return new BraceMatchingResult(interpolatedString.StringStartToken.Span, token.Span);
                     }

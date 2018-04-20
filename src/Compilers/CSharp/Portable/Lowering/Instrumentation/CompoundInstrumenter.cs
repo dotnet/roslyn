@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentExpressionStatement(original, rewritten);
         }
 
-        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement original, BoundStatement rewritten)
         {
             return Previous.InstrumentFieldOrPropertyInitializer(original, rewritten);
         }
@@ -146,11 +146,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentReturnStatement(BoundReturnStatement original, BoundStatement rewritten)
         {
             return Previous.InstrumentReturnStatement(original, rewritten);
-        }
-
-        public override BoundStatement InstrumentSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
-        {
-            return Previous.InstrumentSwitchStatement(original, rewritten);
         }
 
         public override BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)

@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SyntaxToken name,
             CancellationToken cancellationToken)
         {
-            var expression = name.Parent as ExpressionSyntax;
-            if (expression != null)
+            if (name.Parent is ExpressionSyntax expression)
             {
                 var results = semanticModel.LookupName(expression, namespacesAndTypesOnly: true, cancellationToken: cancellationToken);
                 if (results.Length > 0)
@@ -39,8 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool namespacesAndTypesOnly,
             CancellationToken cancellationToken)
         {
-            var expression = name.Parent as ExpressionSyntax;
-            if (expression != null)
+            if (name.Parent is ExpressionSyntax expression)
             {
                 return semanticModel.LookupName(expression, namespacesAndTypesOnly, cancellationToken);
             }
@@ -129,28 +127,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (!CanBindToken(token))
             {
-                return default(SymbolInfo);
+                return default;
             }
 
-            var expression = token.Parent as ExpressionSyntax;
-            if (expression != null)
+            switch (token.Parent)
             {
-                return semanticModel.GetSymbolInfo(expression);
+                case ExpressionSyntax expression:
+                    return semanticModel.GetSymbolInfo(expression);
+                case AttributeSyntax attribute:
+                    return semanticModel.GetSymbolInfo(attribute);
+                case ConstructorInitializerSyntax constructorInitializer:
+                    return semanticModel.GetSymbolInfo(constructorInitializer);
             }
 
-            var attribute = token.Parent as AttributeSyntax;
-            if (attribute != null)
-            {
-                return semanticModel.GetSymbolInfo(attribute);
-            }
-
-            var constructorInitializer = token.Parent as ConstructorInitializerSyntax;
-            if (constructorInitializer != null)
-            {
-                return semanticModel.GetSymbolInfo(constructorInitializer);
-            }
-
-            return default(SymbolInfo);
+            return default;
         }
 
         private static bool CanBindToken(SyntaxToken token)
@@ -278,12 +268,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return argument.NameColon.Name.Identifier.ValueText;
                 }
 
-                var argumentList = argument.Parent as BaseArgumentListSyntax;
-                if (argumentList != null)
+                if (argument.Parent is BaseArgumentListSyntax argumentList)
                 {
                     var index = argumentList.Arguments.IndexOf(argument);
-                    var member = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).Symbol as IMethodSymbol;
-                    if (member != null && index < member.Parameters.Length)
+                    if (semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken).Symbol is IMethodSymbol member && index < member.Parameters.Length)
                     {
                         var parameter = member.Parameters[index];
                         if (parameter.Type.OriginalDefinition.TypeKind != TypeKind.TypeParameter)
@@ -306,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 argumentList.Arguments, reservedNames: null, cancellationToken: cancellationToken);
         }
 
-        public static IList<ParameterName> GenerateParameterNames(
+        public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
             AttributeArgumentListSyntax argumentList,
             CancellationToken cancellationToken)
@@ -340,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                 .Skip(reservedNames.Count).ToImmutableArray();
         }
 
-        public static IList<ParameterName> GenerateParameterNames(
+        public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
             IEnumerable<AttributeArgumentSyntax> arguments,
             IList<string> reservedNames,

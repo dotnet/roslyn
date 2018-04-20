@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     ''' A field in a display class that represents a captured variable:
     ''' either a local, a parameter, or "me".
     ''' </summary>
+    <DebuggerDisplay("{GetDebuggerDisplay(), nq}")>
     Friend NotInheritable Class DisplayClassVariable
 
         Friend ReadOnly Name As String
@@ -72,6 +73,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Function SubstituteFields(otherInstance As DisplayClassInstance, typeMap As TypeSubstitution) As DisplayClassVariable
             Dim otherFields = SubstituteFields(Me.DisplayClassFields, typeMap)
             Return New DisplayClassVariable(Me.Name, Me.Kind, otherInstance, otherFields)
+        End Function
+
+        Private Function GetDebuggerDisplay() As String
+            Return DisplayClassInstance.GetDebuggerDisplay(DisplayClassFields)
         End Function
 
         Private Shared Function SubstituteFields(fields As ConsList(Of FieldSymbol), typeMap As TypeSubstitution) As ConsList(Of FieldSymbol)

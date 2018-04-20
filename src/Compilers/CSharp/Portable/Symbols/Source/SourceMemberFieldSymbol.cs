@@ -49,11 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (type.SpecialType == SpecialType.System_Void)
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax.Location);
+                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax?.Location ?? this.Locations[0]);
             }
-            else if (type.IsRestrictedType())
+            else if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax.Location, type);
+                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax?.Location ?? this.Locations[0], type);
+            }
+            else if (type.IsByRefLikeType && (this.IsStatic || !containingType.IsByRefLikeType))
+            {
+                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax?.Location ?? this.Locations[0], type);
             }
             else if (IsConst && !type.CanBeConst())
             {
@@ -88,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract bool HasInitializer { get; }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             var compilation = this.DeclaringCompilation;
             var value = this.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
@@ -435,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     bool isVar;
-                    type = binder.BindType(typeSyntax, diagnostics, out isVar);
+                    type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
 
                     Debug.Assert((object)type != null || isVar);
 
@@ -454,6 +458,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else if (fieldSyntax.Declaration.Variables.Count > 1)
                         {
                             diagnosticsForFirstDeclarator.Add(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, typeSyntax.Location);
+                        }
+                        else if (this.IsConst && this.ContainingType.IsScriptClass)
+                        {
+                            // For const var in script, we won't try to bind the initializer (case below), as it can lead to an unbound recursion
+                            type = null;
                         }
                         else
                         {

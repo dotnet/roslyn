@@ -16,6 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class ContainedLanguage<TPackage, TLanguageService> : AbstractContainedLanguage
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>

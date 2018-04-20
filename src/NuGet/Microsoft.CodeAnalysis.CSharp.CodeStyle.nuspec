@@ -5,7 +5,13 @@
     <summary>
       .NET Compiler Platform ("Roslyn") code style analyzers for C#.
     </summary>
-    <description>$commitPathMessage$</description>
+    <description>
+      .NET Compiler Platform ("Roslyn") code style analyzers for C#.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
+    </description>
     <dependencies>
     </dependencies>
 

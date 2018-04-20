@@ -34,11 +34,11 @@ public class LargeMethodTest
             this.i = x; ui = y; a = new c1();
         }
 
-        internal int foo(int x)
+        internal int goo(int x)
         {
             return 0;
         }
-        public bool foo(object x)
+        public bool goo(object x)
         {
             return false;
         }
@@ -123,7 +123,7 @@ public class LargeMethodTest
             return null;
         }
 
-        public object foo(object arg)
+        public object goo(object arg)
         {
             return null;
         }
@@ -134,7 +134,7 @@ public class LargeMethodTest
         return null;
     }
 
-    public object foo(object arg)
+    public object goo(object arg)
     {
         return null;
     }
@@ -146,15 +146,15 @@ public class LargeMethodTest
             int i = 2;
             Console.WriteLine(str);
             {
-                c1 a = new c1(i); a.foo(i);
+                c1 a = new c1(i); a.goo(i);
             }
             double d = 1.1;
             {
                 sbyte sb = 1;
                 c1 a = new c1(i + (i + i));
-                a.foo(sb);
+                a.goo(sb);
                 {
-                    a.foo(d);
+                    a.goo(d);
                 }
             }
 
@@ -303,7 +303,7 @@ public class LargeMethodTest
                 byte b1 = 1; long l = i; string s1 = ""; string s = "" ;
                 float f = 1.2f; o = f; l = ui;
                 c4 c = new c4();
-                c.foo(sh); this.bar(sh);
+                c.goo(sh); this.bar(sh);
                 if (b == false)
                 {
                     double d = f; s1 = s;
@@ -316,13 +316,13 @@ public class LargeMethodTest
                     {
                         byte b11 = 1; long l1 = i; string s11 = s1;
                         float f1 = 1.2f; o = f1; l1 = ui1;
-                        c.foo(b);
+                        c.goo(b);
                         b11 = (byte)l1;
 
                         if (!false)
                         {
                             double d1 = f1; s1 = s;
-                            c.foo(b1);
+                            c.goo(b1);
                         }
                         if (i != 1000)
                         {

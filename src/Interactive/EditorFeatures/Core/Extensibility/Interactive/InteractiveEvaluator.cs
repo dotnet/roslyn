@@ -11,7 +11,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
-    internal abstract class InteractiveEvaluator : IInteractiveEvaluator, ICurrentWorkingDirectoryDiscoveryService
+    internal abstract class InteractiveEvaluator : IInteractiveEvaluator
     {
         private const string CommandPrefix = "#";
 
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             _contentType = contentType;
             _responseFilePath = responseFilePath;
-            _workspace = new InteractiveWorkspace(hostServices);
+            _workspace = new InteractiveWorkspace(hostServices, this);
             _contentTypeChangedHandler = new EventHandler<ContentTypeChangedEventArgs>(LanguageBufferContentTypeChanged);
             _classifierAggregator = classifierAggregator;
             _initialWorkingDirectory = initialWorkingDirectory;
@@ -381,7 +380,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             }
 
             subjectBuffer.ContentTypeChanged += _contentTypeChangedHandler;
-            subjectBuffer.Properties[typeof(ICurrentWorkingDirectoryDiscoveryService)] = this;
 
             _currentSubmissionBuffer = subjectBuffer;
         }

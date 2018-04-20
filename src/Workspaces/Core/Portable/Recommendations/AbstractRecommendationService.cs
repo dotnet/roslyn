@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             //
             // In addition, in VB, it will filter out Bar from the sample below...
             //
-            //     Namespace Foo.$$
+            //     Namespace Goo.$$
             //         Namespace Bar
             //         End Namespace
             //     End Namespace
@@ -172,8 +172,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
                     }
                 }
 
-                var namespaceSymbol = symbol as INamespaceSymbol;
-                if (namespaceSymbol != null)
+                if (symbol is INamespaceSymbol namespaceSymbol)
                 {
                     return namespaceSymbol.ContainsAccessibleTypesOrNamespaces(_context.SemanticModel.Compilation.Assembly);
                 }

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 Return Nothing
             End If
 
-            ' a parameterized property can be trivially converted to a method.
+            ' a parameterized property cannot be trivially converted to a method.
             If containingProperty.ParameterList IsNot Nothing Then
                 Return Nothing
             End If
@@ -166,13 +166,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 desiredName As String) As IMethodSymbol
 
             ' We have a property like:
-            '       Public ReadOnly Foo As Integer Implements I.Foo'
+            '       Public ReadOnly Goo As Integer Implements I.Goo'
             '
             ' That property has an implicit getter:
-            '       Public Function get_Foo As Integer Implements I.get_Foo'
+            '       Public Function get_Goo As Integer Implements I.get_Goo'
             '
             ' We want to generate the new explicit function:
-            '       Public Function GetFoo() As Integer Implements I.GetFoo
+            '       Public Function GetGoo() As Integer Implements I.GetGoo
             ' 
             ' To do this we make the new method using the information from the implicit getter 
             ' Function.  However, we need to update the 'explicit interface implementations' 

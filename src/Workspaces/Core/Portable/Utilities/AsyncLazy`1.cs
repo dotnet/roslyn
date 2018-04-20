@@ -171,7 +171,7 @@ namespace Roslyn.Utilities
                 return true;
             }
 
-            result = default(T);
+            result = default;
             return false;
         }
 

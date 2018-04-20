@@ -47,6 +47,13 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "OS default codepage is not Shift-JIS (932).";
     }
 
+    public class HasEnglishDefaultEncoding : ExecutionCondition
+    {
+        public override bool ShouldSkip => Encoding.GetEncoding(0)?.CodePage != 1252;
+
+        public override string SkipReason => "OS default codepage is not Windows-1252.";
+    }
+
     public class IsEnglishLocal : ExecutionCondition
     {
         public override bool ShouldSkip =>
@@ -64,13 +71,13 @@ namespace Roslyn.Test.Utilities
         public override bool ShouldSkip => false;
 #endif
 
-        public override string SkipReason => "Not in release mode.";
+        public override string SkipReason => "Test not supported in DEBUG";
     }
 
     public class WindowsOnly : ExecutionCondition
     {
         public override bool ShouldSkip => Path.DirectorySeparatorChar != '\\';
-        public override string SkipReason => "Test not supported on Mono";
+        public override string SkipReason => "Test not supported on Mac and Linux";
     }
 
     public class UnixLikeOnly : ExecutionCondition
@@ -89,5 +96,17 @@ namespace Roslyn.Test.Utilities
     {
         public override bool ShouldSkip => CoreClrShim.AssemblyLoadContext.Type != null;
         public override string SkipReason => "Test not supported on CoreCLR";
+    }
+
+    public class NoIOperationValidation : ExecutionCondition
+    {
+
+#if TEST_IOPERATION_INTERFACE
+        public override bool ShouldSkip => true;
+#else
+        public override bool ShouldSkip => false;
+#endif
+
+        public override string SkipReason => "Test not supported in TEST_IOPERATION_INTERFACE";
     }
 }

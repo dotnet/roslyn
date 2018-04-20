@@ -222,12 +222,17 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
+        private readonly IEqualityComparer<string> _comparer;
         private readonly Dictionary<string, UniqueSymbolOrArities> _nameMap;
+        internal string FilterName { get; set; }
 
         protected AbstractLookupSymbolsInfo(IEqualityComparer<string> comparer)
         {
+            _comparer = comparer;
             _nameMap = new Dictionary<string, UniqueSymbolOrArities>(comparer);
         }
+
+        public bool CanBeAdded(string name) => FilterName == null || _comparer.Equals(name, FilterName);
 
         public void AddSymbol(TSymbol symbol, string name, int arity)
         {
@@ -273,6 +278,8 @@ namespace Microsoft.CodeAnalysis
             out IArityEnumerable arities,
             out TSymbol uniqueSymbol)
         {
+            Debug.Assert(CanBeAdded(name));
+
             UniqueSymbolOrArities pair;
             if (!_nameMap.TryGetValue(name, out pair))
             {
@@ -287,6 +294,10 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        public void Clear() => _nameMap.Clear();
+        public void Clear()
+        {
+            _nameMap.Clear();
+            FilterName = null;
+        }
     }
 }

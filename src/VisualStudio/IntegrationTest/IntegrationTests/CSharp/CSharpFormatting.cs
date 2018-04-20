@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
@@ -19,10 +20,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void AlignOpenBraceWithMethodDeclaration()
         {
-            SetUpEditor(@"
+            using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
+            {
+                SetUpEditor(@"
 $$class C
 {
     void Main()
@@ -30,23 +33,25 @@ $$class C
     }
 }");
 
-            VisualStudio.Editor.FormatDocument();
-            VisualStudio.Editor.Verify.TextContains(@"
+                VisualStudio.Editor.FormatDocument();
+                VisualStudio.Editor.Verify.TextContains(@"
 class C
 {
     void Main()
     {
     }
 }");
+                telemetry.VerifyFired("vs/ide/vbcs/commandhandler/formatcommand");
+            }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatOnSemicolon()
         {
             SetUpEditor(@"
 public class C
 {
-    void Foo()
+    void Goo()
     {
         var x =        from a             in       new List<int>()
     where x % 2 = 0
@@ -58,7 +63,7 @@ public class C
             VisualStudio.Editor.Verify.TextContains(@"
 public class C
 {
-    void Foo()
+    void Goo()
     {
         var x = from a in new List<int>()
                 where x % 2 = 0
@@ -67,7 +72,7 @@ public class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatSelection()
         {
             SetUpEditor(@"
@@ -86,7 +91,7 @@ public class C {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void PasteCodeWithLambdaBody()
         {
             SetUpEditor(@"
@@ -149,7 +154,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void PasteCodeWithLambdaBody2()
         {
             SetUpEditor(@"
@@ -192,7 +197,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void PasteCodeWithLambdaBody3()
         {
             SetUpEditor(@"
@@ -235,7 +240,7 @@ class Program
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18065"),
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18065"),
          Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ShiftEnterWithIntelliSenseAndBraceMatching()
         {

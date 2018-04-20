@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,8 @@ using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// Free threaded wrapper around the NuGet.VisualStudio STA package installer interfaces.
     /// We want to be able to make queries about packages from any thread.  For example, the
@@ -145,9 +148,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             this.AssertIsForeground();
 
-            PackageSources = _packageServices.GetSources(includeUnOfficial: true, includeDisabled: false)
-                .Select(r => new PackageSource(r.Key, r.Value))
-                .ToImmutableArrayOrEmpty();
+            try
+            {
+                PackageSources = _packageServices.GetSources(includeUnOfficial: true, includeDisabled: false)
+                    .Select(r => new PackageSource(r.Key, r.Value))
+                    .ToImmutableArrayOrEmpty();
+            }
+            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
+            {
+                // These exceptions can happen when the nuget.config file is broken.
+                PackageSources = ImmutableArray<PackageSource>.Empty;
+            }
 
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
         }

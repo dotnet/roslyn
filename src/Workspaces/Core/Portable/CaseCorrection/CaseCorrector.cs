@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// <summary>
         /// Case corrects all names found in the provided document.
         /// </summary>
-        public static async Task<Document> CaseCorrectAsync(Document document, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<Document> CaseCorrectAsync(Document document, CancellationToken cancellationToken = default)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await CaseCorrectAsync(document, root.FullSpan, cancellationToken).ConfigureAwait(false);
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// Case corrects all names found in the spans of any nodes annotated with the provided
         /// annotation.
         /// </summary>
-        public static async Task<Document> CaseCorrectAsync(Document document, SyntaxAnnotation annotation, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<Document> CaseCorrectAsync(Document document, SyntaxAnnotation annotation, CancellationToken cancellationToken = default)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await CaseCorrectAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(n => n.Span).ToImmutableArray(), cancellationToken).ConfigureAwait(false);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// <summary>
         /// Case corrects all names found in the span.
         /// </summary>
-        public static async Task<Document> CaseCorrectAsync(Document document, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<Document> CaseCorrectAsync(Document document, TextSpan span, CancellationToken cancellationToken = default)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return await CaseCorrectAsync(document, ImmutableArray.Create(span), cancellationToken).ConfigureAwait(false);
@@ -47,13 +47,13 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// <summary>
         /// Case corrects all names found in the provided spans.
         /// </summary>
-        public static async Task<Document> CaseCorrectAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<Document> CaseCorrectAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken = default)
             => await document.GetLanguageService<ICaseCorrectionService>().CaseCorrectAsync(document, spans, cancellationToken).ConfigureAwait(false);
 
         /// <summary>
         /// Case correct only things that don't require semantic information
         /// </summary>
-        internal static SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken = default(CancellationToken))
+        internal static SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, Workspace workspace, CancellationToken cancellationToken = default)
             => workspace.Services.GetLanguageServices(root.Language).GetService<ICaseCorrectionService>().CaseCorrect(root, spans, workspace, cancellationToken);
     }
 }

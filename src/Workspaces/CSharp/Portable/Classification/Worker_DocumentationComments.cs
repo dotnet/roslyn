@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             // For example:
             //
             //     /**<summary>
-            //      ********* Foo
+            //      ********* Goo
             //      ******* </summary>*/
 
             // PERFORMANCE:

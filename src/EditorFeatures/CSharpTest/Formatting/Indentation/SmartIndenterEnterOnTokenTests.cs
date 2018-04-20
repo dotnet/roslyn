@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -904,7 +905,7 @@ class What
         public async Task Preprocessor()
         {
             var code = @"
-#line 1 """"Bar""""class Foo : [|IComparable|]#line default#line hidden";
+#line 1 """"Bar""""class Goo : [|IComparable|]#line default#line hidden";
 
             await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
                 code,
@@ -1299,7 +1300,7 @@ Program.number}"";
                 expectedIndentation: 8);
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "PROTOTYPE(patterns2): need to implement indentation for recursive patterns")]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task IndentPatternPropertyFirst()
         {

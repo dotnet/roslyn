@@ -17,10 +17,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public void AddProject(AbstractProject project)
         {
-            var provider = project as IProjectCodeModelProvider;
-            if (provider != null)
+            if (project.ProjectCodeModel is ProjectCodeModel projectCodeModel)
             {
-                var fcms = provider.ProjectCodeModel.GetCachedFileCodeModelInstances();
+                var fcms = projectCodeModel.GetCachedFileCodeModelInstances();
 
                 foreach (var fcm in fcms)
                 {

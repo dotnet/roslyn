@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
     [ExportWorkspaceService(typeof(IProjectTypeLookupService), ServiceLayer.Host), Shared]
     internal class ProjectTypeLookupService : IProjectTypeLookupService
     {
-        public string GetProjectType(Workspace workspace, ProjectId projectId)
+        public string GetProjectType(Microsoft.CodeAnalysis.Workspace workspace, ProjectId projectId)
         {
             if (workspace == null || projectId == null)
             {

@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 // The set of AnalyzerItems hasn't been realized yet. Just signal that HasItems
                 // may have changed.
 
-                NotifyPropertyChanged("HasItems");
+                NotifyPropertyChanged(nameof(HasItems));
                 return;
             }
 
@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 _analyzerItems.EndBulkOperation();
 
-                NotifyPropertyChanged("HasItems");
+                NotifyPropertyChanged(nameof(HasItems));
             }
         }
 
@@ -186,8 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private ImmutableHashSet<string> GetAnalyzersWithLoadErrors()
         {
-            var vsWorkspace = _analyzersFolder.Workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace != null)
+            if (_analyzersFolder.Workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
                 var vsProject = vsWorkspace.DeferredState?.ProjectTracker.GetProject(_analyzersFolder.ProjectId);
                 var vsAnalyzersMap = vsProject?.GetProjectAnalyzersMap();

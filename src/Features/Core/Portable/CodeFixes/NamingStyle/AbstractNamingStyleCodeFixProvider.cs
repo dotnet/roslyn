@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeFixProviderNames.ApplyNamingStyle), Shared]
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal class NamingStyleCodeFixProvider : CodeFixProvider
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.NamingRuleId);

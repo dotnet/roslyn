@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -258,12 +259,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     // ignore invalid imports
                 }
 
-                // VB always expects two import groups (even if they are empty).
-                // TODO: consider doing this for C# as well and handle empty groups in the binder.
-                if (isVisualBasicMethod || importGroupBuilder.Count > 0)
+                // Portable PDBs represent project-level scope as the root of the chain of scopes.
+                // This scope might contain aliases for assembly references, but is not considered 
+                // to be part of imports groups.
+                if (isVisualBasicMethod || !importScope.Parent.IsNil)
                 {
                     importGroupsBuilder.Add(importGroupBuilder.ToImmutable());
                     importGroupBuilder.Clear();
+                }
+                else
+                {
+                    // C# currently doesn't support global imports in PDBs
+                    // https://github.com/dotnet/roslyn/issues/21862
+                    Debug.Assert(importGroupBuilder.Count == 0);
                 }
 
                 handle = importScope.Parent;

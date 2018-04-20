@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateMethod
                 <Document>
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             VBClass v;
                             v.$$Bar();
@@ -71,7 +71,7 @@ end class
                 <Document>
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             VBClass.$$Bar();
                         }
@@ -108,7 +108,7 @@ end class
                 <Document>
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             VBClass v;
                             int i;
@@ -150,7 +150,7 @@ end class
                 <Document>
                     public class CSClass : IVBInterface
                     {
-                        bool IVBInterface.$$Foo(string s)
+                        bool IVBInterface.$$Goo(string s)
                         {
                         }
                     }
@@ -168,7 +168,7 @@ end class
             Dim expected =
                 <text>
                     public interface IVBInterface
-                        Function Foo(s As String) As Boolean
+                        Function Goo(s As String) As Boolean
                     end interface
                 </text>.Value.Trim()
 
@@ -185,7 +185,7 @@ end class
                     using System;
                     public class CSClass
                     {
-                        void Foo()
+                        void Goo()
                         {
                             Bar(VBClass.$$Method)
                         }
@@ -226,7 +226,7 @@ end class
                 <Document>
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             VBClass v;
                             v.$$Bar();
@@ -261,7 +261,7 @@ end class
                 <ProjectReference>CSAssembly1</ProjectReference>
                 <Document>
                     public class VBClass
-                        public sub Foo()
+                        public sub Goo()
                             dim v as CSClass
                             v.$$Bar()
                         end sub
@@ -301,7 +301,7 @@ end class
                 <Document>
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             VBClass.Inner v;
                             v.$$Bar();
@@ -342,7 +342,7 @@ end class
                 <Document><![CDATA[
                     public class CSClass
                     {
-                        public void Foo()
+                        public void Goo()
                         {
                             VBClass<string>.Inner<int> v;
                             v.$$Bar();
@@ -382,7 +382,7 @@ end class
                 <ProjectReference>CSAssembly1</ProjectReference>
                 <Document>
                     public class VBClass
-                        public sub Foo()
+                        public sub Goo()
                             dim v as CSClass.Inner
                             v.$$Bar()
                         end sub
@@ -427,7 +427,7 @@ end class
                 <ProjectReference>CSAssembly1</ProjectReference>
                 <Document>
                     public class VBClass
-                        public sub Foo()
+                        public sub Goo()
                             dim v as CSClass(of Integer).Inner(of String)
                             v.$$Bar()
                         end sub
@@ -475,7 +475,7 @@ end class
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module
                 </Document>
@@ -507,10 +507,10 @@ public struct MyStruct<T>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of String)
+    Private Function goo() As MyStruct(Of String)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -530,7 +530,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module
                 </Document>
@@ -577,10 +577,10 @@ public class CCC : AAA, BBB
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of CCC)
+    Private Function goo() As MyStruct(Of CCC)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -600,7 +600,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module
                 </Document>
@@ -647,10 +647,10 @@ public class CCC : AAA, BBB
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of CCC)
+    Private Function goo() As MyStruct(Of CCC)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -670,7 +670,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module
                 </Document>
@@ -727,10 +727,10 @@ public class derived2 : interface3
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of Object)
+    Private Function goo() As MyStruct(Of Object)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -748,7 +748,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange($$foo())
+        list.AddRange($$goo())
     End Sub
 End Module
                 </Document>
@@ -815,10 +815,10 @@ public class outer
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange(foo())
+        list.AddRange(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of outer.inner.derived3)
+    Private Function goo() As MyStruct(Of outer.inner.derived3)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -838,7 +838,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module
                 </Document>
@@ -900,10 +900,10 @@ public class derived3 : derived1, interface3
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of derived3)
+    Private Function goo() As MyStruct(Of derived3)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -923,7 +923,7 @@ End Module]]>
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module
                 </Document>
@@ -992,10 +992,10 @@ public class outer
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of outer.inner.derived3)
+    Private Function goo() As MyStruct(Of outer.inner.derived3)
         Throw New NotImplementedException()
     End Function
 End Module]]>
@@ -1014,7 +1014,7 @@ End Module]]>
                 <Document>Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1($$foo())
+        list.AddRange1($$goo())
     End Sub
 End Module</Document>
             </Project>
@@ -1065,10 +1065,10 @@ public class FinalType<T> : Base1<T>, inter1 where T : AAA
 Module Program
     Sub Main(args As String())
         Dim list = New List(Of String)
-        list.AddRange1(foo())
+        list.AddRange1(goo())
     End Sub
 
-    Private Function foo() As MyStruct(Of FinalType(Of AAA))
+    Private Function goo() As MyStruct(Of FinalType(Of AAA))
         Throw New NotImplementedException()
     End Function
 End Module]]>

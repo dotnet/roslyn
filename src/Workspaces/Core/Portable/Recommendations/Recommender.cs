@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             int position,
             Workspace workspace,
             OptionSet options = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return GetRecommendedSymbolsAtPositionAsync(semanticModel, position, workspace, options, cancellationToken).WaitAndGetResult(cancellationToken);
         }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             int position,
             Workspace workspace,
             OptionSet options = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return await GetImmutableRecommendedSymbolsAtPositionAsync(
                 semanticModel, position, workspace, options, cancellationToken).ConfigureAwait(false);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             int position,
             Workspace workspace,
             OptionSet options = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             options = options ?? workspace.Options;
             var languageRecommender = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IRecommendationService>();

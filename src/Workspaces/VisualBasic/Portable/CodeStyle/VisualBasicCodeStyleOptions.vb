@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 imports System.Collections.Generic
 imports System.Collections.Immutable
@@ -23,5 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
             New CodeStyleOption(Of String)(String.Join(",", PreferredModifierOrderDefault.Select(AddressOf SyntaxFacts.GetText)), NotificationOption.None),
             EditorConfigStorageLocation.ForStringCodeStyleOption("visual_basic_preferred_modifier_order"),
             New RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{NameOf(PreferredModifierOrder)}"))
+
     End Module
 End Namespace

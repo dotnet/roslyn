@@ -282,7 +282,7 @@ End Class
 Class C
     Shared Public Mid(23) as Integer
     Sub M()
-        dim s1 = "foo"
+        dim s1 = "goo"
         {|Simplify:Mid|}(s1, 1, 1) = "bar"
     End Sub
 End Class
@@ -295,7 +295,7 @@ End Class
 Class C
     Shared Public Mid(23) as Integer
     Sub M()
-        dim s1 = "foo"
+        dim s1 = "goo"
         Mid(s1, 1, 1) = "bar"
     End Sub
 End Class
@@ -610,13 +610,13 @@ End Class
         <Document>
 Option Strict On
 
-Class CFoo
+Class CGoo
     Public Shared [New] As Integer = 23
 End Class
 
-Structure Foo3
+Structure Goo3
     Public Sub Doo()
-        Dim w = CFoo.{|Simplify:[New]|}
+        Dim w = CGoo.{|Simplify:[New]|}
     End Sub
 End Structure
         </Document>
@@ -627,13 +627,13 @@ End Structure
 <code>
 Option Strict On
 
-Class CFoo
+Class CGoo
     Public Shared [New] As Integer = 23
 End Class
 
-Structure Foo3
+Structure Goo3
     Public Sub Doo()
-        Dim w = CFoo.[New]
+        Dim w = CGoo.[New]
     End Sub
 End Structure
 </code>
@@ -650,13 +650,13 @@ End Structure
         <Document>
 Option Strict On
 
-Interface IFoo
+Interface IGoo
     Property [New] As Integer
 End Interface
 
-Structure Foo3
+Structure Goo3
     Public Sub Doo()
-        Dim a as IFoo
+        Dim a as IGoo
         Dim w = a.{|Simplify:[New]|} ' not really needed, but we can't provide a better result at the moment
     End Sub
 End Structure
@@ -668,13 +668,13 @@ End Structure
 <code>
 Option Strict On
 
-Interface IFoo
+Interface IGoo
     Property [New] As Integer
 End Interface
 
-Structure Foo3
+Structure Goo3
     Public Sub Doo()
-        Dim a as IFoo
+        Dim a as IGoo
         Dim w = a.[New] ' not really needed, but we can't provide a better result at the moment
     End Sub
 End Structure
@@ -692,13 +692,13 @@ End Structure
         <Document>
 Option Strict On
 
-Enum EFoo
+Enum EGoo
     [New] = 1
 End Enum
 
-Structure Foo3
+Structure Goo3
     Public Sub Doo()
-        Dim z = EFoo.{|Simplify:[New]|} ' not really needed, but we can't provide a better result at the moment
+        Dim z = EGoo.{|Simplify:[New]|} ' not really needed, but we can't provide a better result at the moment
     End Sub
 End Structure
         </Document>
@@ -709,13 +709,13 @@ End Structure
 <code>
 Option Strict On
 
-Enum EFoo
+Enum EGoo
     [New] = 1
 End Enum
 
-Structure Foo3
+Structure Goo3
     Public Sub Doo()
-        Dim z = EFoo.[New] ' not really needed, but we can't provide a better result at the moment
+        Dim z = EGoo.[New] ' not really needed, but we can't provide a better result at the moment
     End Sub
 End Structure
 </code>
@@ -732,7 +732,7 @@ End Structure
         <Document>
 Option Strict On
 
-Class Foo1
+Class Goo1
     Public Sub New()
     End Sub
 
@@ -748,7 +748,7 @@ End Class
 <code>
 Option Strict On
 
-Class Foo1
+Class Goo1
     Public Sub New()
     End Sub
 
@@ -770,10 +770,10 @@ End Class
         <Document>
 Option Strict On
 
-Class Foo1
+Class Goo1
     Public Sub Main()
         Dim x = From a in ""
-        {|SimplifyParent:Foo1.Take|}()
+        {|SimplifyParent:Goo1.Take|}()
     End Sub
 
     Shared Public Sub Take()
@@ -787,7 +787,7 @@ End Class
 <code>
 Option Strict On
 
-Class Foo1
+Class Goo1
     Public Sub Main()
         Dim x = From a in ""
         [Take]()
@@ -810,11 +810,11 @@ End Class
         <Document>
 Option Strict On
 
-Class Foo1
+Class Goo1
     Public Sub Main()
         Dim x = From a in ""
 
-        {|SimplifyParent:Foo1.Take|}()
+        {|SimplifyParent:Goo1.Take|}()
     End Sub
 
     Shared Public Sub Take()
@@ -828,7 +828,7 @@ End Class
 <code>
 Option Strict On
 
-Class Foo1
+Class Goo1
     Public Sub Main()
         Dim x = From a in ""
 
@@ -901,9 +901,9 @@ End Module
         <Document>
 Option Strict On
 
-Class Foo1
+Class Goo1
     Public Sub Main()
-        Dim x = From a in {|SimplifyParent:Foo1.Take|}()
+        Dim x = From a in {|SimplifyParent:Goo1.Take|}()
     End Sub
 
     Shared Public Function Take() as String
@@ -918,7 +918,7 @@ End Class
 <code>
 Option Strict On
 
-Class Foo1
+Class Goo1
     Public Sub Main()
         Dim x = From a in Take()
     End Sub

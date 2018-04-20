@@ -271,7 +271,7 @@ namespace Microsoft.Cci
 
         protected override int GreatestMethodDefIndex => _methodDefs.NextRowId;
         
-        protected override bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
+        protected override bool TryGetTypeReferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
         {
             int index;
             bool result = _typeRefIndex.TryGetValue(reference, out index);

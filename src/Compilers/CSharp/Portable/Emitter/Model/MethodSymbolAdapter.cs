@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.RefKind == RefKind.Ref;
+                return this.RefKind.IsManagedReference();
             }
         }
 
@@ -571,21 +571,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.ReturnValueAttributes
-        {
-            get
-            {
-                return GetReturnValueCustomAttributesToEmit();
-            }
-        }
-
-        private IEnumerable<CSharpAttributeData> GetReturnValueCustomAttributesToEmit()
+        IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.GetReturnValueAttributes(EmitContext context)
         {
             CheckDefinitionInvariant();
 
             ImmutableArray<CSharpAttributeData> userDefined = this.GetReturnTypeAttributes();
             ArrayBuilder<SynthesizedAttributeData> synthesized = null;
-            this.AddSynthesizedReturnTypeAttributes(ref synthesized);
+            this.AddSynthesizedReturnTypeAttributes((PEModuleBuilder)context.Module, ref synthesized);
 
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             // all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.

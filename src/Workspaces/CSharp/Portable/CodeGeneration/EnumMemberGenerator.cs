@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var member = SyntaxFactory.EnumMemberDeclaration(enumMember.Name.ToIdentifierToken())
                 .WithEqualsValue(value == null ? null : SyntaxFactory.EqualsValueClause(value: value));
 
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(member, enumMember, options));
         }
 

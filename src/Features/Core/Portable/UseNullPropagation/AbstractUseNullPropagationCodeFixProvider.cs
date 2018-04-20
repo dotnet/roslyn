@@ -49,19 +49,21 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             return SpecializedTasks.EmptyTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, 
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             var root = editor.OriginalRoot;
 
             foreach (var diagnostic in diagnostics)
             {
                 var conditionalExpression = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
-                var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
+                var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
+                var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
                 syntaxFacts.GetPartsOfConditionalExpression(
                     conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
 
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         var match = AbstractUseNullPropagationDiagnosticAnalyzer<
                             TSyntaxKind, TExpressionSyntax, TConditionalExpressionSyntax,
                             TBinaryExpressionSyntax, TInvocationExpression, TMemberAccessExpression,
-                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, conditionalPart, currentWhenPartToCheck);
+                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel, conditionalPart, currentWhenPartToCheck);
                         if (match == null)
                         {
                             return c;
@@ -89,8 +91,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         return newNode;
                     });
             }
-
-            return SpecializedTasks.EmptyTask;
         }
 
         private SyntaxNode CreateConditionalAccessExpression(
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         // They're calling ".Value" off of a nullable.  Because we're moving to ?.
                         // we want to remove the .Value as well.  i.e. we should generate:
                         //
-                        //      foo?.Bar()  not   foo?.Value.Bar();
+                        //      goo?.Bar()  not   goo?.Value.Bar();
                         return CreateConditionalAccessExpression(
                             syntaxFacts, generator, whenPart, match,
                             memberAccess.Parent, currentConditional);
@@ -127,8 +127,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, 
             SyntaxNode whenPart, SyntaxNode match, SyntaxNode matchParent, SyntaxNode currentConditional)
         {
-            var memberAccess = matchParent as TMemberAccessExpression;
-            if (memberAccess != null)
+            if (matchParent is TMemberAccessExpression memberAccess)
             {
                 return whenPart.ReplaceNode(memberAccess,
                     generator.ConditionalAccessExpression(
@@ -137,8 +136,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                             syntaxFacts.GetNameOfMemberAccessExpression(memberAccess))));
             }
 
-            var elementAccess = matchParent as TElementAccessExpression;
-            if (elementAccess != null)
+            if (matchParent is TElementAccessExpression elementAccess)
             {
                 return whenPart.ReplaceNode(elementAccess,
                     generator.ConditionalAccessExpression(

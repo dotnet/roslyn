@@ -215,10 +215,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             // start after the last batch of items.  i.e. we want the set of items that
                             // conceptually are closer to where the caret position is.  This way if you have:
                             //
-                            //  Foo(new Bar($$
+                            //  Goo(new Bar($$
                             //
                             // Then invoking sig help will only show the items for "new Bar(" and not also
-                            // the items for "Foo(..."
+                            // the items for "Goo(..."
                             if (IsBetter(bestItems, currentItems.ApplicableSpan))
                             {
                                 bestItems = currentItems;

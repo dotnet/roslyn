@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// True if the method itself is excluded from code covarage instrumentation.
+        /// True if the method itself is excluded from code coverage instrumentation.
         /// True for source methods marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         /// </summary>
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
@@ -173,12 +174,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Indicates whether or not the method returns by reference
         /// </summary>
-        public bool ReturnsByRef { get { return this.RefKind != RefKind.None; } }
+        public bool ReturnsByRef
+        {
+            get
+            {
+                return this.RefKind == RefKind.Ref;
+            }
+        }
+
+        /// <summary>
+        /// Indicates whether or not the method returns by ref readonly
+        /// </summary>
+        public bool ReturnsByRefReadonly
+        {
+            get
+            {
+                Debug.Assert(this.RefKind != RefKind.Out);
+                return this.RefKind == RefKind.RefReadOnly;
+            }
+        }
 
         /// <summary>
         /// Gets the ref kind of the method's return value
         /// </summary>
-        internal abstract RefKind RefKind { get; }
+        public abstract RefKind RefKind { get; }
 
         /// <summary>
         /// Gets the return type of the method
@@ -1062,12 +1081,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ITypeSymbol IMethodSymbol.GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
         {
-            return this.GetTypeInferredDuringReduction(reducedFromTypeParameter.EnsureCSharpSymbolOrNull<ITypeParameterSymbol, TypeParameterSymbol>("reducedFromTypeParameter"));
+            return this.GetTypeInferredDuringReduction(reducedFromTypeParameter.EnsureCSharpSymbolOrNull<ITypeParameterSymbol, TypeParameterSymbol>(nameof(reducedFromTypeParameter)));
         }
 
         IMethodSymbol IMethodSymbol.ReduceExtensionMethod(ITypeSymbol receiverType)
         {
-            return this.ReduceExtensionMethod(receiverType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("receiverType"));
+            return this.ReduceExtensionMethod(receiverType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(receiverType)));
         }
 
         ImmutableArray<IMethodSymbol> IMethodSymbol.ExplicitInterfaceImplementations
@@ -1134,8 +1153,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Build and add synthesized return type attributes for this method symbol.
         /// </summary>
-        internal virtual void AddSynthesizedReturnTypeAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal virtual void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
+            if (this.ReturnsByRefReadonly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+            }
+
+            var compilation = this.DeclaringCompilation;
+            var type = this.ReturnType;
+
+            if (type.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type, this.ReturnTypeCustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
+            }
+
+            if (type.ContainsTupleNames() && compilation.HasTupleNamesAttributes)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(type));
+            }
         }
 
         IMethodSymbol IMethodSymbol.Construct(params ITypeSymbol[] arguments)

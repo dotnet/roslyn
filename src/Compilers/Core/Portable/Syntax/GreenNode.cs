@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis
             var stack = new Stack<(GreenNode node, bool leading, bool trailing)>();
             stack.Push((this, leading, trailing));
 
-            // Separated out stack processing logic so that it does not unintentially refer to 
+            // Separated out stack processing logic so that it does not unintentionally refer to 
             // "this", "leading" or "trailing.
             ProcessStack(writer, stack);
         }
@@ -654,9 +654,9 @@ namespace Microsoft.CodeAnalysis
             while (stack.Count > 0)
             {
                 var current = stack.Pop();
-                var currentNode = current.Item1;
-                var currentLeading = current.Item2;
-                var currentTrailing = current.Item3;
+                var currentNode = current.node;
+                var currentLeading = current.leading;
+                var currentTrailing = current.trailing;
 
                 if (currentNode.IsToken)
                 {

@@ -317,8 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             var displayString = symbol.ToDisplayString(TypeFormat);
 
-            var type = symbol as ITypeSymbol;
-            if (type != null && type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            if (symbol is ITypeSymbol type && type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {
                 return "System.Nullable`1";
             }

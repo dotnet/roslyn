@@ -1,2 +1,1 @@
-static Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript.Create(System.IO.Stream code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Type globalsType = null, Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader assemblyLoader = null) -> Microsoft.CodeAnalysis.Scripting.Script<object>
-static Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScript.Create<T>(System.IO.Stream code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null, System.Type globalsType = null, Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader assemblyLoader = null) -> Microsoft.CodeAnalysis.Scripting.Script<T>
+

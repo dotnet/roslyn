@@ -19,6 +19,8 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ComVisible(true)]
     public class AutomationObject
     {
@@ -620,6 +622,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions.PreferExplicitTupleNames, value); }
         }
 
+        public string Style_PreferInferredTupleNames
+        {
+            get { return GetXmlOption(CodeStyleOptions.PreferInferredTupleNames); }
+            set { SetXmlOption(CodeStyleOptions.PreferInferredTupleNames, value); }
+        }
+
+        public string Style_PreferInferredAnonymousTypeMemberNames
+        {
+            get { return GetXmlOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames); }
+            set { SetXmlOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, value); }
+        }
+
         [Obsolete("Use Style_UseImplicitTypeWherePossible, Style_UseImplicitTypeWhereApparent or Style_UseImplicitTypeForIntrinsicTypes", error: true)]
         public int Style_UseVarWhenDeclaringLocals
         {
@@ -703,6 +717,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferBraces); }
             set { SetXmlOption(CSharpCodeStyleOptions.PreferBraces, value); }
+        }
+
+        public string Style_PreferReadonly
+        {
+            get { return GetXmlOption(CodeStyleOptions.PreferReadonly); }
+            set { SetXmlOption(CodeStyleOptions.PreferReadonly, value); }
         }
 
         public int Wrapping_IgnoreSpacesAroundBinaryOperators

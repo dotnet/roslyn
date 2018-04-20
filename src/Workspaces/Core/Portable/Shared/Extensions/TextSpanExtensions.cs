@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (start > end)
             {
                 // there were no changes.
-                return default(TextSpan);
+                return default;
             }
 
             return TextSpan.FromBounds(start, end);

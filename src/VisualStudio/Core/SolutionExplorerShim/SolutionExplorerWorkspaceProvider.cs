@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _workspace = workspace;
         }
 
-        public Workspace GetWorkspace()
+        public Microsoft.CodeAnalysis.Workspace GetWorkspace()
         {
             return _workspace;
         }

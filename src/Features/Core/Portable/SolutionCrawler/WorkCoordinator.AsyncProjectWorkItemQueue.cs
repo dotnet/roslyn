@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     if (!_projectWorkQueue.TryGetValue(key, out workInfo))
                     {
-                        workInfo = default(WorkItem);
+                        workInfo = default;
                         return false;
                     }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // there must be at least one item in the map when this is called unless host is shutting down.
                     if (_projectWorkQueue.Count == 0)
                     {
-                        workItem = default(WorkItem);
+                        workItem = default;
                         return false;
                     }
 

@@ -290,8 +290,8 @@ public class C
             var source2 = @"
 ";
 
-            var c1 = CreateCompilation(source1, new[] { OldMsCorLib });
-            var c2 = CreateCompilation(source2, new MetadataReference[] { NewMsCorLib, new CSharpCompilationReference(c1) });
+            var c1 = CreateEmptyCompilation(source1, new[] { OldMsCorLib });
+            var c2 = CreateEmptyCompilation(source2, new MetadataReference[] { NewMsCorLib, new CSharpCompilationReference(c1) });
 
             var c = c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.IsType<RetargetingNamedTypeSymbol>(c);

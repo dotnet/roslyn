@@ -78,8 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         return regularType;
                     }
 
-                    var castExpression = node.Parent as CastExpressionSyntax;
-                    if (castExpression != null)
+                    if (node.Parent is CastExpressionSyntax castExpression)
                     {
                         return model.GetTypeInfo(castExpression.Type).Type;
                     }

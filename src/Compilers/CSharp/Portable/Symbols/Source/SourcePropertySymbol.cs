@@ -6,8 +6,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _location = location;
             _containingType = containingType;
             _syntaxRef = syntax.GetReference();
-            syntax.Type.SkipRef(out _refKind);
+            _refKind = syntax.Type.GetRefKind();
 
             SyntaxTokenList modifiers = syntax.Modifiers;
             bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
@@ -179,6 +179,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _isAutoProperty = notRegularProperty && hasGetSyntax;
                 bool isReadOnly = hasGetSyntax && setSyntax == null;
 
+                if (_isAutoProperty && !isReadOnly && !IsStatic && ContainingType.IsReadOnly)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AutoPropsInRoStruct, location);
+                }
+
                 if (_isAutoProperty || hasInitializer)
                 {
                     if (_isAutoProperty)
@@ -272,6 +277,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);
                 }
+            }
+            else if (_refKind == RefKind.RefReadOnly)
+            {
+                var modifierType = bodyBinder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.Type);
+
+                _customModifiers = CustomModifiersTuple.Create(
+                    ImmutableArray<CustomModifier>.Empty,
+                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)));
             }
 
             if (!hasAccessorList)
@@ -380,8 +393,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, location, this);
             }
 
+            if (_isAutoProperty)
+            {
+                CheckForFieldTargetedAttribute(syntax, diagnostics);
+            }
+
             CheckForBlockAndExpressionBody(
                 syntax.AccessorList, syntax.GetExpressionBodySyntax(), syntax, diagnostics);
+        }
+
+        private void CheckForFieldTargetedAttribute(BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
+        {
+            var languageVersion = this.DeclaringCompilation.LanguageVersion;
+            if (languageVersion.AllowAttributesOnBackingFields())
+            {
+                return;
+            }
+
+            foreach (var attribute in syntax.AttributeLists)
+            {
+                if (attribute.Target?.GetAttributeLocation() == AttributeLocation.Field)
+                {
+                    diagnostics.Add(
+                        new CSDiagnosticInfo(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable,
+                            languageVersion.ToDisplayString(),
+                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion())),
+                        attribute.Target.Location);
+                }
+            }
         }
 
         internal bool IsExpressionBodied
@@ -420,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new SourcePropertySymbol(containingType, bodyBinder, syntax, DefaultIndexerName, location, diagnostics);
         }
 
-        internal override RefKind RefKind
+        public override RefKind RefKind
         {
             get
             {
@@ -704,6 +743,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(explicitInterfaceSpecifier != null);
                 _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
             }
+
+            if (_refKind == RefKind.RefReadOnly)
+            {
+                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, CSharpSyntaxNode.Type.Location, modifyCompilationForRefReadOnly: true);
+            }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
 
         private void CheckAccessibility(Location location, DiagnosticBag diagnostics)
@@ -768,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static ImmutableArray<ParameterSymbol> MakeParameters(
-            Binder binder, SourcePropertySymbol owner, BaseParameterListSyntax parameterSyntaxOpt, DiagnosticBag diagnostics)
+            Binder binder, SourcePropertySymbol owner, BaseParameterListSyntax parameterSyntaxOpt, DiagnosticBag diagnostics, bool addRefReadOnlyModifier)
         {
             if (parameterSyntaxOpt == null)
             {
@@ -785,6 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder, owner, parameterSyntaxOpt, out arglistToken,
                 allowRefOrOut: false,
                 allowThis: false,
+                addRefReadOnlyModifier: addRefReadOnlyModifier,
                 diagnostics: diagnostics);
 
             if (arglistToken.Kind() != SyntaxKind.None)
@@ -1006,11 +1053,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
         {
-            get { return AttributeLocation.Property; }
+            get
+            {
+                return _isAutoProperty
+                    ? AttributeLocation.Property | AttributeLocation.Field
+                    : AttributeLocation.Property;
+            }
         }
 
         /// <summary>
-        /// Returns a bag of applied custom attributes and data decoded from well-known attributes. Returns null if there are no attributes applied on the symbol.
+        /// Returns a bag of custom attributes applied on the property and data decoded from well-known attributes. Returns null if there are no attributes.
         /// </summary>
         /// <remarks>
         /// Forces binding and decoding of attributes.
@@ -1022,6 +1074,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return bag;
             }
+
+            // The property is responsible for completion of the backing field
+            _ = _backingField?.GetAttributes();
 
             if (LoadAndValidateAttributes(OneOrMany.Create(this.CSharpSyntaxNode.AttributeLists), ref _lazyCustomAttributesBag))
             {
@@ -1080,9 +1135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (PropertyEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             if (Type.ContainsDynamic())
             {
@@ -1094,6 +1149,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes,
                     DeclaringCompilation.SynthesizeTupleNamesAttribute(Type));
+            }
+
+            if (this.ReturnsByRefReadonly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
         }
 
@@ -1198,6 +1258,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
+            {
+                // IsReadOnlyAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
+            {
+                // IsUnmanagedAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
@@ -1212,12 +1287,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_lazyCustomAttributesBag != null);
             Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
             Debug.Assert(symbolPart == AttributeLocation.None);
-
-            if (this.IsAutoProperty && !this.IsStatic && this.ContainingType.Layout.Kind == LayoutKind.Explicit)
-            {
-                // error CS0842: '<property>': Automatically implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)
-                diagnostics.Add(ErrorCode.ERR_ExplicitLayoutAndAutoImplementedProperty, this.Location, this);
-            }
 
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
@@ -1305,9 +1374,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
                                 this.Type.CheckAllConstraints(conversions, _location, diagnostics);
 
-                                if (this.Type.IsRestrictedType())
+                                var type = this.Type;
+                                if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
                                 {
-                                    diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, this.Type);
+                                    diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, type);
+                                }
+                                else if (this.IsAutoProperty && type.IsByRefLikeType && (this.IsStatic || !this.ContainingType.IsByRefLikeType))
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, this.CSharpSyntaxNode.Type.Location, type);
                                 }
 
                                 this.AddDeclarationDiagnostics(diagnostics);
@@ -1366,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> ComputeParameters(Binder binder, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
             var parameterSyntaxOpt = GetParameterListSyntax(syntax);
-            var parameters = MakeParameters(binder, this, parameterSyntaxOpt, diagnostics);
+            var parameters = MakeParameters(binder, this, parameterSyntaxOpt, diagnostics, addRefReadOnlyModifier: IsVirtual || IsAbstract);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             foreach (ParameterSymbol param in parameters)

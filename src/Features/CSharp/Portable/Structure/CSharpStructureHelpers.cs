@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var lastToken = node.GetLastToken(includeZeroWidth: true);
             if (lastToken.Kind() == SyntaxKind.None)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             // If the next token is a semicolon, and we aren't in the initializer of a for-loop, use that token as the end.
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 var forStatement = nextToken.GetAncestor<ForStatementSyntax>();
                 if (forStatement != null && forStatement.FirstSemicolonToken == nextToken)
                 {
-                    return default(SyntaxToken);
+                    return default;
                 }
 
                 lastToken = nextToken;
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 SyntaxTrivia? startComment = null;
                 SyntaxTrivia? endComment = null;
 
-                Action completeSingleLineCommentGroup = () =>
+                void completeSingleLineCommentGroup()
                 {
                     if (startComment != null)
                     {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                         startComment = null;
                         endComment = null;
                     }
-                };
+                }
 
                 // Iterate through trivia and collect the following:
                 //    1. Groups of contiguous single-line comments that are only separated by whitespace

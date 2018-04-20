@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         [Fact]
         public void TestSequenceEqualWithFunction()
         {
-            Func<int, int, bool> equality = (a, b) => a == b;
+            bool equality(int a, int b) => a == b;
             var seq = new List<int>() { 1, 2, 3 };
 
             // same object reference

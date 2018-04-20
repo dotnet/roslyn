@@ -15,9 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 {
     internal class DocumentationCommentStructureProvider : AbstractSyntaxNodeStructureProvider<DocumentationCommentTriviaSyntax>
     {
-        private static string GetBannerText(DocumentationCommentTriviaSyntax documentationComment, CancellationToken cancellationToken)
-            => CSharpSyntaxFactsService.Instance.GetBannerText(documentationComment, cancellationToken);
-
         protected override void CollectBlockSpans(
             DocumentationCommentTriviaSyntax documentationComment,
             ArrayBuilder<BlockSpan> spans,
@@ -31,11 +28,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 
             var span = TextSpan.FromBounds(startPos, endPos);
 
+            var bannerLength = options.GetOption(BlockStructureOptions.MaximumBannerLength, LanguageNames.CSharp);
+            var bannerText = CSharpSyntaxFactsService.Instance.GetBannerText(
+                documentationComment, bannerLength, cancellationToken);
+
             spans.Add(new BlockSpan(
                 isCollapsible: true,
                 textSpan: span,
                 type: BlockTypes.Comment,
-                bannerText: GetBannerText(documentationComment, cancellationToken),
+                bannerText: bannerText,
                 autoCollapse: true));
         }
     }

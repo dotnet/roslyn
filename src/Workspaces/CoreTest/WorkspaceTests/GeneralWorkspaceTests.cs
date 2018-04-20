@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var originalDoc = ws.AddDocument(projectId, "TestDocument", SourceText.From(""));
                 Assert.Null(originalDoc.FilePath);
 
-                var newPath = @"\foo\TestDocument.cs";
+                var newPath = @"\goo\TestDocument.cs";
                 var changedDoc = originalDoc.WithFilePath(newPath);
                 Assert.Equal(newPath, changedDoc.FilePath);
 

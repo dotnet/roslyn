@@ -241,8 +241,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 if (symbolWithSyntacticParameters.Kind == SymbolKind.Event)
                 {
                     var eventSymbol = symbolWithSyntacticParameters as IEventSymbol;
-                    var type = eventSymbol.Type as INamedTypeSymbol;
-                    if (type != null && type.DelegateInvokeMethod != null)
+                    if (eventSymbol.Type is INamedTypeSymbol type && type.DelegateInvokeMethod != null)
                     {
                         symbolWithSemanticParameters = type.DelegateInvokeMethod;
                     }

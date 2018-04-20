@@ -1556,8 +1556,7 @@ namespace BoundTreeGenerator
         {
             if (typeName == derivedTypeName)
                 return true;
-            string baseType;
-            if (derivedTypeName != null && _typeMap.TryGetValue(derivedTypeName, out baseType))
+            if (derivedTypeName != null && _typeMap.TryGetValue(derivedTypeName, out var baseType))
             {
                 return IsDerivedType(typeName, baseType);
             }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -25,7 +27,8 @@ Module Module1
     End Sub
 End Module";
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19816")]
+        [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughCommand()
         {
             SetUpEditor(TestSource);
@@ -33,12 +36,12 @@ End Module";
             var encapsulateField = VisualStudio.EncapsulateField;
             var dialog = VisualStudio.PreviewChangesDialog;
             encapsulateField.Invoke();
-            dialog.VerifyOpen(encapsulateField.DialogName);
+            dialog.VerifyOpen(encapsulateField.DialogName, timeout: Helper.HangMitigatingTimeout);
             dialog.ClickCancel(encapsulateField.DialogName);
             dialog.VerifyClosed(encapsulateField.DialogName);
             encapsulateField.Invoke();
-            dialog.VerifyOpen(encapsulateField.DialogName);
-            dialog.ClickApply(encapsulateField.DialogName);
+            dialog.VerifyOpen(encapsulateField.DialogName, timeout: Helper.HangMitigatingTimeout);
+            dialog.ClickApplyAndWaitForFeature(encapsulateField.DialogName, FeatureAttribute.EncapsulateField);
             VisualStudio.Editor.Verify.TextContains(@"    Private _name As Integer? = 0
 
     Public Property Name As Integer?
@@ -51,7 +54,7 @@ End Module";
     End Property");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbIncludingReferences()
         {
             SetUpEditor(TestSource);
@@ -76,7 +79,7 @@ Module Module1
 End Module");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbDefinitionsOnly()
         {
             SetUpEditor(TestSource);

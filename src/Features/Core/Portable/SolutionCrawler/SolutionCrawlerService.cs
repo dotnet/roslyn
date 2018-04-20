@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
             {
                 // if solution crawler doesn't exist for the given workspace. don't do anything
-                var registration = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
-                if (registration != null)
+                if (workspace.Services.GetService<ISolutionCrawlerRegistrationService>() is SolutionCrawlerRegistrationService registration)
                 {
                     registration.Reanalyze(workspace, analyzer, projectIds, documentIds, highPriority);
                 }
@@ -31,8 +30,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public ISolutionCrawlerProgressReporter GetProgressReporter(Workspace workspace)
             {
                 // if solution crawler doesn't exist for the given workspace, return null reporter
-                var registration = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
-                if (registration != null)
+                if (workspace.Services.GetService<ISolutionCrawlerRegistrationService>() is SolutionCrawlerRegistrationService registration)
                 {
                     // currently we have only 1 global reporter that are shared by all workspaces.
                     return registration._progressReporter;

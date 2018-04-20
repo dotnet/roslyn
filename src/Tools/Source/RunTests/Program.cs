@@ -128,12 +128,7 @@ namespace RunTests
 
         private static void WriteLogFile(Options options)
         {
-            var logFilePath = options.LogFilePath;
-            if (string.IsNullOrEmpty(logFilePath))
-            {
-                return;
-            }
-
+            var logFilePath = Path.Combine(options.LogsDirectory, "runtests.log");
             try
             {
                 using (var writer = new StreamWriter(logFilePath, append: false))
@@ -156,11 +151,20 @@ namespace RunTests
         /// </summary>
         private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
         {
-            var procDumpFilePath = Path.Combine(options.ProcDumpPath, "procdump.exe");
+            var procDumpFilePath = GetProcDumpInfo(options).Value.ProcDumpFilePath;
 
             async Task DumpProcess(Process targetProcess, string dumpFilePath)
             {
-                Console.Write($"Dumping {targetProcess.ProcessName} {targetProcess.Id} to {dumpFilePath} ... ");
+                var name = targetProcess.ProcessName;
+
+                // Our space for saving dump files is limited. Skip dumping for processes that won't contribute
+                // to bug investigations.
+                if (name == "procdump" || name == "conhost")
+                {
+                    return;
+                }
+
+                Console.Write($"Dumping {name} {targetProcess.Id} to {dumpFilePath} ... ");
                 try
                 {
                     var args = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
@@ -190,13 +194,10 @@ namespace RunTests
             }
 
             Console.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
-            if (!string.IsNullOrEmpty(options.ProcDumpPath))
+            var procDumpInfo = GetProcDumpInfo(options);
+            if (procDumpInfo != null)
             {
-                var dumpDir = options.LogFilePath != null
-                    ? Path.GetDirectoryName(options.LogFilePath)
-                    : Directory.GetCurrentDirectory();
-                Console.WriteLine($"Dump file location is {dumpDir}");
-
+                var dumpDir = procDumpInfo.Value.DumpDirectory;
                 var counter = 0;
                 foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
                 {
@@ -211,6 +212,16 @@ namespace RunTests
             }
 
             WriteLogFile(options);
+        }
+
+        private static ProcDumpInfo? GetProcDumpInfo(Options options)
+        {
+            if (!string.IsNullOrEmpty(options.ProcDumpDirectory))
+            {
+                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.LogsDirectory);
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -314,8 +325,8 @@ namespace RunTests
         {
             var testExecutionOptions = new TestExecutionOptions(
                 xunitPath: options.XunitPath,
-                procDumpPath: options.ProcDumpPath,
-                logFilePath: options.LogFilePath,
+                procDumpInfo: GetProcDumpInfo(options),
+                logsDirectory: options.LogsDirectory,
                 trait: options.Trait,
                 noTrait: options.NoTrait,
                 useHtml: options.UseHtml,

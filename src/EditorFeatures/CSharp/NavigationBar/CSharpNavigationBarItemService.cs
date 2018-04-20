@@ -282,8 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             }
 
             var declaringNode = reference.GetSyntax();
-            var enumMember = declaringNode as EnumMemberDeclarationSyntax;
-            if (enumMember != null)
+            if (declaringNode is EnumMemberDeclarationSyntax enumMember)
             {
                 var enumDeclaration = enumMember.GetAncestor<EnumDeclarationSyntax>();
 

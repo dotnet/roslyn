@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.Text
                 changeRanges.Add(new TextChangeRange(change.Span, newTextLength));
             }
 
-            // no changes actually happend?
+            // no changes actually happened?
             if (position == 0 && segments.Count == 0)
             {
                 changeRanges.Free();

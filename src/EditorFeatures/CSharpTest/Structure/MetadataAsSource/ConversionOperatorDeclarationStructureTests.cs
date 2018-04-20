@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
             const string code = @"
 class C
 {
-    public static explicit operator $$Foo(byte b);
+    public static explicit operator $$Goo(byte b);
 }";
 
             await VerifyNoBlockSpansAsync(code);
@@ -34,7 +34,7 @@ class C
 class C
 {
     {|hint:{|textspan:[Blah]
-    |}public static explicit operator $$Foo(byte b);|}
+    |}public static explicit operator $$Goo(byte b);|}
 }";
 
             await VerifyBlockSpansAsync(code,
@@ -50,7 +50,7 @@ class C
     {|hint:{|textspan:// Summary:
     //     This is a summary.
     [Blah]
-    |}public static explicit operator $$Foo(byte b);|}
+    |}public static explicit operator $$Goo(byte b);|}
 }";
 
             await VerifyBlockSpansAsync(code,

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using Roslyn.Utilities;
+using static System.Linq.ImmutableArrayExtensions;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitGreatestMethodToken()
         {
-            // A magic value indicates that the token value is to be the literal value of the greatest method defnition token.
+            // A magic value indicates that the token value is to be the literal value of the greatest method definition token.
             this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.LiteralGreatestMethodDefinitionToken);
         }
 
@@ -85,6 +86,38 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitToken(field, syntaxNode, diagnostics);      //block
             EmitOpCode(ILOpCode.Call, -2);
             EmitToken(initializeArray, syntaxNode, diagnostics);
+        }
+
+        internal void EmitStackAllocBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, bool emitInitBlock, DiagnosticBag diagnostics)
+        {
+            if (emitInitBlock)
+            {
+                // All bytes are the same, no need for metadata blob
+
+                EmitOpCode(ILOpCode.Dup);
+                EmitIntConstant(data[0]);
+                EmitIntConstant(data.Length);
+                EmitOpCode(ILOpCode.Initblk, -3);
+            }
+            else
+            {
+                var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+
+                EmitOpCode(ILOpCode.Dup);
+                EmitOpCode(ILOpCode.Ldsflda);
+                EmitToken(field, syntaxNode, diagnostics);
+                EmitIntConstant(data.Length);
+                EmitOpCode(ILOpCode.Cpblk, -3);
+            }
+        }
+
+        internal void EmitArrayBlockFieldRef(ImmutableArray<byte> data, ITypeSymbol elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            // map a field to the block (that makes it addressable)
+            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+
+            EmitOpCode(ILOpCode.Ldsflda);       
+            EmitToken(field, syntaxNode, diagnostics);
         }
 
         /// <summary>

@@ -22,12 +22,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             VisualStudio.Editor.SetText(@"
 Module Module1
 
-    Function Food() As P
+    Function Good() As P
         Return Nothing
     End Function
 
     Sub Main()
-        Foo()
+        Goo()
     End Sub
 
 End Module
@@ -43,7 +43,7 @@ End Module
                     column: 24),
                 new ErrorListItem(
                     severity: "Error",
-                    description: "'Foo' is not declared. It may be inaccessible due to its protection level.",
+                    description: "'Goo' is not declared. It may be inaccessible due to its protection level.",
                     project: "TestProj.vbproj",
                     fileName: "Class1.vb",
                     line: 9,

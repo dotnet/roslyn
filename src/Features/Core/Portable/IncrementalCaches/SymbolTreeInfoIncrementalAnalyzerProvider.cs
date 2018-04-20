@@ -157,22 +157,32 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (!document.SupportsSyntaxTree)
                 {
                     // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
-                    return SpecializedTasks.EmptyTask;
+                    return;
                 }
 
                 if (bodyOpt != null)
                 {
-                    // This was a method level edit.  This can't change the symbol tree info
-                    // for this project.  Bail immediately.
-                    return SpecializedTasks.EmptyTask;
+                    // This was a method body edit.  We can reuse the existing SymbolTreeInfo if
+                    // we have one.  We can't just bail out here as the change in the document means
+                    // we'll have a new checksum.  We need to get that new checksum so that our
+                    // cached information is valid.
+                    if (_projectToInfo.TryGetValue(document.Project.Id, out var cachedInfo))
+                    {
+                        var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(
+                            document.Project, cancellationToken).ConfigureAwait(false);
+
+                        var newInfo = cachedInfo.WithChecksum(checksum);
+                        _projectToInfo.AddOrUpdate(document.Project.Id, newInfo, (_1, _2) => newInfo);
+                        return;
+                    }
                 }
 
-                return UpdateSymbolTreeInfoAsync(document.Project, cancellationToken);
+                await UpdateSymbolTreeInfoAsync(document.Project, cancellationToken).ConfigureAwait(false);
             }
 
             public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
@@ -194,10 +204,13 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
 
                 // Produce the indices for the source and metadata symbols in parallel.
-                var projectTask = UpdateSourceSymbolTreeInfoAsync(project, cancellationToken);
-                var referencesTask = UpdateReferencesAync(project, cancellationToken);
+                var tasks = new List<Task>
+                {
+                    GetTask(project, () => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken),
+                    GetTask(project, () => UpdateReferencesAync(project, cancellationToken), cancellationToken)
+                };
 
-                await Task.WhenAll(projectTask, referencesTask).ConfigureAwait(false);
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             private async Task UpdateSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
@@ -218,12 +231,24 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
             }
 
+            private Task GetTask(Project project, Func<Task> func, CancellationToken cancellationToken)
+            {
+                var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
+                return isRemoteWorkspace
+                    ? Task.Run(func, cancellationToken)
+                    : func();
+            }
+
             private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
             {
-                // Process all metadata references in parallel.
-                var tasks = project.MetadataReferences.OfType<PortableExecutableReference>()
-                                   .Select(r => UpdateReferenceAsync(project, r, cancellationToken))
-                                   .ToArray();
+                // Process all metadata references. If it remote workspace, do this in parallel.
+                var tasks = new List<Task>();
+
+                foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
+                {
+                    tasks.Add(
+                        GetTask(project, () => UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken));
+                }
 
                 return Task.WhenAll(tasks);
             }

@@ -12,15 +12,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            private void {|Definition:Foo|}() { }
+            private void {|Definition:Goo|}() { }
 
             void Bar()
             {
-                [|Fo$$o|]();
-                [|Foo|]();
-                B.Foo();
-                new C().[|Foo|]();
-                new C().foo();
+                [|Go$$o|]();
+                [|Goo|]();
+                B.Goo();
+                new C().[|Goo|]();
+                new C().goo();
             }
         }
         </Document>
@@ -36,17 +36,206 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
         class C
-            private sub {|Definition:Foo|}()
+            private sub {|Definition:Goo|}()
             end sub
 
             sub Bar()
-                [|Fo$$o|]()
-                [|Foo|]()
-                B.Foo()
-                Console.WriteLine(new C().[|Foo|]())
-                Console.WriteLine(new C().[|foo|]())
+                [|Go$$o|]()
+                [|Goo|]()
+                B.Goo()
+                Console.WriteLine(new C().[|Goo|]())
+                Console.WriteLine(new C().[|goo|]())
             end sub
         end class
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_Deconstruction() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public void {|Definition:Decons$$truct|}(out int x1, out int x2) { x1 = 1; x2 = 2; }
+    public void M()
+    {
+        [|var (x1, x2)|] = this;
+        foreach ([|var (y1, y2)|] in new[] { this }) { }
+        [|(x1, (x2, _))|] = (1, this);
+        (x1, x2) = (1, 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(24184, "https://github.com/dotnet/roslyn/issues/24184")>
+        Public Async Function FindReferences_DeconstructionInAnotherDocument() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public static class Extensions
+{
+    public void {|Definition:Decons$$truct|}(this C c, out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+        </Document>
+        <Document>
+class C
+{
+    public void M()
+    {
+        [|var (x1, x2)|] = this;
+        foreach ([|var (y1, y2)|] in new[] { this }) { }
+        [|(x1, (x2, _))|] = (1, this);
+        (x1, x2) = (1, 2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_ForEachDeconstructionOnItsOwn() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public static class Extensions
+{
+    public void {|Definition:Decons$$truct|}(this C c, out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+class C
+{
+    public void M()
+    {
+        foreach ([|var (y1, y2)|] in new[] { this }) { }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_NestedDeconstruction() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public static class Extensions
+{
+    public void {|Definition:Decons$$truct|}(this C c, out int x1, out C x2) { x1 = 1; x2 = null; }
+}
+class C
+{
+    public void M()
+    {
+        [|var (y1, (y2, y3))|] = this;
+        [|(y1, (y2, y3))|] = (1, this);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_NestedDeconstruction2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public static class Extensions
+{
+    public void Deconstruct(this int i, out int x1, out C x2) { x1 = 1; x2 = null; }
+    public void {|Definition:Decons$$truct|}(this C c, out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+class C
+{
+    public void M()
+    {
+        [|var (y1, (y2, y3))|] = 1;
+        var (z1, z2) = 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_NestedDeconstruction3() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public static class Extensions
+{
+    public void {|Definition:Decons$$truct|}(this int i, out int x1, out C x2) { x1 = 1; x2 = null; }
+    public void Deconstruct(this C c, out int x1, out int x2) { x1 = 1; x2 = 2; }
+}
+class C
+{
+    public void M()
+    {
+        [|var (y1, (y2, y3))|] = 1;
+        [|var (z1, z2)|] = 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(18963, "https://github.com/dotnet/roslyn/issues/18963")>
+        Public Async Function FindReferences_DeconstructionAcrossLanguage() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
+        <Document><![CDATA[
+Public Class Deconstructable
+    Public Sub {|Definition:Decons$$truct|}(<System.Runtime.InteropServices.Out> ByRef x1 As Integer, <System.Runtime.InteropServices.Out> ByRef x2 As Integer)
+        x1 = 1
+        x2 = 2
+    End Sub
+End Class
+        ]]></Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true">
+        <ProjectReference>VBAssembly</ProjectReference>
+        <Document>
+class C
+{
+    public void M(Deconstructable d)
+    {
+        [|var (x1, x2)|] = d;
+        foreach ([|var (y1, y2)|] in new[] { d }) { }
+        [|(x1, (x2, _))|] = (1, d);
+        (x1, x2) = (1, 2);
+        d.[|Deconstruct|](out var t1, out var t2);
+    }
+}
         </Document>
     </Project>
 </Workspace>
@@ -61,13 +250,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            public virtual void {|Definition:Fo$$o|}() { }
-            void Bar() { [|Foo|](); }
+            public virtual void {|Definition:Go$$o|}() { }
+            void Bar() { [|Goo|](); }
         }
         class D : C
         {
-            public override void {|Definition:Foo|}() { }
-            void Quux() { [|Foo|](); }
+            public override void {|Definition:Goo|}() { }
+            void Quux() { [|Goo|](); }
         }
         </Document>
     </Project>
@@ -83,13 +272,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            public virtual void {|Definition:Foo|}() { }
-            void Bar() { [|Foo|](); }
+            public virtual void {|Definition:Goo|}() { }
+            void Bar() { [|Goo|](); }
         }
         class D : C
         {
-            public override void {|Definition:Fo$$o|}() { }
-            void Quux() { [|Foo|](); }
+            public override void {|Definition:Go$$o|}() { }
+            void Quux() { [|Goo|](); }
         }
         </Document>
     </Project>
@@ -105,18 +294,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         class C
         {
-            public virtual void Foo() { }
-            void Bar() { Foo(); }
+            public virtual void Goo() { }
+            void Bar() { Goo(); }
         }
         class D : C
         {
-            public override void Foo() { }
-            void Quux() { Foo(); }
+            public override void Goo() { }
+            void Quux() { Goo(); }
         }
         class E : D
         {
-            public new void {|Definition:Fo$$o|}() { }
-            void Z() { [|Foo|](); }
+            public new void {|Definition:Go$$o|}() { }
+            void Z() { [|Goo|](); }
         }
         </Document>
     </Project>
@@ -153,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         public class C
         {
-            public virtual void {|Definition:Fo$$o|}() { }
+            public virtual void {|Definition:Go$$o|}() { }
         }
         </Document>
     </Project>
@@ -161,10 +350,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <ProjectReference>CSharpAssembly</ProjectReference>
         <Document>
         class D : Inherits C
-            public overrides sub {|Definition:Foo|}()
+            public overrides sub {|Definition:Goo|}()
             end sub
             private sub Bar()
-                [|Foo|]()
+                [|Goo|]()
             end sub
         sub class
         </Document>
@@ -181,19 +370,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         interface I1
         {
-            void {|Definition:Foo|}();
+            void {|Definition:Goo|}();
         }
 
         class C1 : I1
         {
-            public void {|Definition:Foo|}()
+            public void {|Definition:Goo|}()
             {
             }
         }
 
         interface I2 : I1
         {
-            void {|Definition:Foo|}();
+            void {|Definition:Goo|}();
             void Bar();
         }
 
@@ -201,10 +390,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             public void Bar()
             {
-                [|Foo$$|]();
+                [|Goo$$|]();
             }
 
-            public void {|Definition:Foo|}();
+            public void {|Definition:Goo|}();
             {
             }
         }
@@ -222,19 +411,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
         interface I1
         {
-            void {|Definition:Fo$$o|}();
+            void {|Definition:Go$$o|}();
         }
 
         class C1 : I1
         {
-            public void {|Definition:Foo|}()
+            public void {|Definition:Goo|}()
             {
             }
         }
 
         interface I2 : I1
         {
-            void {|Definition:Foo|}();
+            void {|Definition:Goo|}();
             void Bar();
         }
 
@@ -242,10 +431,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             public void Bar()
             {
-                [|Foo|]();
+                [|Goo|]();
             }
 
-            public void {|Definition:Foo|}();
+            public void {|Definition:Goo|}();
             {
             }
         }
@@ -261,20 +450,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-        interface IFoo
+        interface IGoo
         {
-            void {|Definition:Foo|}();
+            void {|Definition:Goo|}();
         }
         class C
         {
-            public void {|Definition:Fo$$o|}() { }
+            public void {|Definition:Go$$o|}() { }
         }
-        class D : C, IFoo
+        class D : C, IGoo
         {
             void Quux()
             {
-                IFoo f;
-                f.[|Foo|]();
+                IGoo f;
+                f.[|Goo|]();
             }
         }
         </Document>
@@ -290,13 +479,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-        Interface IFoo
+        Interface IGoo
             Sub {|Definition:TestSub|}()
         End Interface
 
-        Class Foo
-            Implements IFoo
-            Public Sub {|Definition:MethodWithADifferentName|}() Implements IFoo.[|$$TestSub|]
+        Class Goo
+            Implements IGoo
+            Public Sub {|Definition:MethodWithADifferentName|}() Implements IGoo.[|$$TestSub|]
             End Function
         End Class
         </Document>
@@ -311,25 +500,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-        interface IFoo
+        interface IGoo
         {
-            void {|Definition:F$$oo|}();
+            void {|Definition:G$$oo|}();
         }
         class C
         {
-            public void {|Definition:Foo|}() { }
+            public void {|Definition:Goo|}() { }
             void Zap()
             {
-                this.[|Foo|]();
-                [|Foo|]();
+                this.[|Goo|]();
+                [|Goo|]();
             }
         }
-        class D : C, IFoo
+        class D : C, IGoo
         {
             void Quux()
             {
-                IFoo f;
-                f.[|Foo|]();
+                IGoo f;
+                f.[|Goo|]();
             }
         }
         </Document>
@@ -348,23 +537,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             void Zap()
             {
-                IFoo foo;
-                foo.[|Fo$$o|]();
+                IGoo goo;
+                goo.[|Go$$o|]();
             }
         }
-        class D : IFoo
+        class D : IGoo
         {
             void Quux()
             {
-                IFoo f;
-                f.[|Foo|]();
+                IGoo f;
+                f.[|Goo|]();
             }
         }
         </Document>
         <Document>
-        interface IFoo
+        interface IGoo
         {
-            void {|Definition:Foo|}();
+            void {|Definition:Goo|}();
         }
         </Document>
     </Project>
@@ -746,7 +935,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }
         class D
         {
-            void Foo()
+            void Goo()
             {
                C.[|M|](1);
             }
@@ -767,7 +956,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
               public MustOverride Sub {|Definition:$$M|} (ByVal i as Integer)
         End Class
         Class D
-              Sub Foo()
+              Sub Goo()
                    C.[|M|](1);
               End Sub
         End Class
@@ -790,7 +979,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }
         class D
         {
-            void Foo()
+            void Goo()
             {
                C.[|M|](1);
             }
@@ -812,7 +1001,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
               End Sub
         End Class
         Class D
-              Sub Foo()
+              Sub Goo()
                    C.[|M|](1)
               End Sub
         End Class
@@ -835,7 +1024,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }
         class D
         {
-            void Foo()
+            void Goo()
             {
                C.[|M|](1);
             }
@@ -857,7 +1046,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
               End Sub
         End Class
         Class D
-              Sub Foo()
+              Sub Goo()
                    C.[|M|](1)
               End Sub
         End Class
@@ -932,7 +1121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }
         class D : C
         {
-            void Foo()
+            void Goo()
             {
                D.[|M|](1);
             }
@@ -955,7 +1144,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         }
         class D : C
         {
-            void Foo()
+            void Goo()
             {
                C.[|M|](1);
             }
@@ -1057,13 +1246,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 Module M
     Sub Main
         Dim x As I
-        x.Foo(1)
+        x.Goo(1)
     End Sub
 End Module
  
 Interface I
-    Sub Foo(x as Integer)
-    Sub {|Definition:F$$oo|}(x as Date)
+    Sub Goo(x as Integer)
+    Sub {|Definition:G$$oo|}(x as Date)
 End Interface
         </Document>
     </Project>
@@ -1209,19 +1398,19 @@ End Interface
             <![CDATA[
 interface I
 {
-  void {|Definition:$$Foo|}();
+  void {|Definition:$$Goo|}();
 }
 
 class C : I
 {
-  public void {|Definition:Foo|}()
+  public void {|Definition:Goo|}()
   {
   }
 }
 
 class D : C
 {
-  public void Foo()
+  public void Goo()
   {
   }
 }
@@ -1242,19 +1431,19 @@ class D : C
             <![CDATA[
 interface I
 {
-  void {|Definition:Foo|}();
+  void {|Definition:Goo|}();
 }
 
 class C : I
 {
-  public void {|Definition:$$Foo|}()
+  public void {|Definition:$$Goo|}()
   {
   }
 }
 
 class D : C
 {
-  public void Foo()
+  public void Goo()
   {
   }
 }
@@ -1275,19 +1464,19 @@ class D : C
             <![CDATA[
 interface I
 {
-  void Foo();
+  void Goo();
 }
 
 class C : I
 {
-  public void Foo()
+  public void Goo()
   {
   }
 }
 
 class D : C
 {
-  public void {|Definition:$$Foo|}()
+  public void {|Definition:$$Goo|}()
   {
   }
 }
@@ -1308,12 +1497,12 @@ class D : C
 using System.Collections.Generic;
 interface I
 {
-  void {|Definition:$$Foo|}<T>(IList<T> list);
+  void {|Definition:$$Goo|}<T>(IList<T> list);
 }
 
 class C : I
 {
-  public void {|Definition:Foo|}<U>(IList<U> list)
+  public void {|Definition:Goo|}<U>(IList<U> list)
   {
   }
 }
@@ -1334,12 +1523,12 @@ class C : I
 using System.Collections.Generic;
 interface I
 {
-  void {|Definition:Foo|}<T>(IList<T> list);
+  void {|Definition:Goo|}<T>(IList<T> list);
 }
 
 class C : I
 {
-  public void {|Definition:$$Foo|}<U>(IList<U> list)
+  public void {|Definition:$$Goo|}<U>(IList<U> list)
   {
   }
 }
@@ -1360,12 +1549,12 @@ class C : I
 using System.Collections.Generic;
 interface I
 {
-  void {|Definition:$$Foo|}<T>(IList<T> list);
+  void {|Definition:$$Goo|}<T>(IList<T> list);
 }
 
 class C<T> : I
 {
-  public void Foo<U>(IList<T> list)
+  public void Goo<U>(IList<T> list)
   {
   }
 }
@@ -1386,12 +1575,12 @@ class C<T> : I
 using System.Collections.Generic;
 interface I
 {
-  void {|Definition:$$Foo|}<T>(IList<T> list);
+  void {|Definition:$$Goo|}<T>(IList<T> list);
 }
 
 class C<T> : I
 {
-  public void Foo(IList<T> list)
+  public void Goo(IList<T> list)
   {
   }
 }
@@ -1412,12 +1601,12 @@ class C<T> : I
 using System.Collections.Generic;
 interface I
 {
-  void {|Definition:$$Foo|}<T>(IList<T> list);
+  void {|Definition:$$Goo|}<T>(IList<T> list);
 }
 
 class C : I
 {
-  public void Foo<T>(IList<int> list)
+  public void Goo<T>(IList<int> list)
   {
   }
 }
@@ -1438,12 +1627,12 @@ class C : I
 using System.Collections.Generic;
 interface I
 {
-  void {|Definition:$$Foo|}(ref int i);
+  void {|Definition:$$Goo|}(ref int i);
 }
 
 class C : I
 {
-  public void {|Definition:Foo|}(ref System.Int32 j)
+  public void {|Definition:Goo|}(ref System.Int32 j)
   {
   }
 }
@@ -1464,16 +1653,16 @@ class C : I
 using System.Collections.Generic;
 interface I
 {
-  void {|Definition:$$Foo|}(ref int i);
+  void {|Definition:$$Goo|}(ref int i);
 }
 
 class C : I
 {
-  public void Foo(out System.Int32 j)
+  public void Goo(out System.Int32 j)
   {
   }
 
-  void I.{|Definition:Foo|}(ref System.Int32 j) 
+  void I.{|Definition:Goo|}(ref System.Int32 j) 
   {
   }
 }
@@ -1496,12 +1685,12 @@ class C : I
 using System.Collections.Generic;
 interface I
 {
-  void {|Definition:$$Foo|}(ref int i);
+  void {|Definition:$$Goo|}(ref int i);
 }
 
 class C : I
 {
-  public void {|Definition:Foo|}(out System.Int32 j)
+  public void {|Definition:Goo|}(out System.Int32 j)
   {
   }
 }
@@ -1692,11 +1881,11 @@ class C
 {
     public delegate int Func(int i);
  
-    public Func Foo()
+    public Func Goo()
     {
-        return [|$$Foo|];
+        return [|$$Goo|];
     }
-    private int {|Definition:Foo|}(int i)
+    private int {|Definition:Goo|}(int i)
     {
         return i;
     }
@@ -1720,11 +1909,11 @@ class C
 {
     public delegate int Func(int i);
  
-    public Func Foo()
+    public Func Goo()
     {
-        return [|Foo|];
+        return [|Goo|];
     }
-    private int {|Definition:$$Foo|}(int i)
+    private int {|Definition:$$Goo|}(int i)
     {
         return i;
     }
@@ -1745,19 +1934,19 @@ class C
         <Document>
             <![CDATA[
 Interface I
-    Sub {|Definition:$$Foo|}()
+    Sub {|Definition:$$Goo|}()
 End Interface
 
 Class A
     Implements I
-    Public Sub {|Definition:Foo|}() Implements I.[|Foo|]
+    Public Sub {|Definition:Goo|}() Implements I.[|Goo|]
     End Sub
 End Class
 
 Class B
     Inherits A
     Implements I
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 ]]>
@@ -1776,19 +1965,19 @@ End Class
         <Document>
             <![CDATA[
 Interface I
-    Sub {|Definition:Foo|}()
+    Sub {|Definition:Goo|}()
 End Interface
 
 Class A
     Implements I
-    Public Sub {|Definition:$$Foo|}() Implements I.[|Foo|]
+    Public Sub {|Definition:$$Goo|}() Implements I.[|Goo|]
     End Sub
 End Class
 
 Class B
     Inherits A
     Implements I
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
 End Class
 ]]>
@@ -1807,19 +1996,19 @@ End Class
         <Document>
             <![CDATA[
 Interface I
-    Sub Foo()
+    Sub Goo()
 End Interface
 
 Class A
     Implements I
-    Public Sub Foo() Implements I.Foo
+    Public Sub Goo() Implements I.Goo
     End Sub
 End Class
 
 Class B
     Inherits A
     Implements I
-    Public Sub {|Definition:$$Foo|}()
+    Public Sub {|Definition:$$Goo|}()
     End Sub
 End Class
 ]]>
@@ -1838,17 +2027,17 @@ End Class
         <Document>
             <![CDATA[
 Interface I1
-    Function {|Definition:$$Foo|}() As Integer
+    Function {|Definition:$$Goo|}() As Integer
 End Interface
 
 Interface I2
     Inherits I1
-    Shadows Function Foo() As Integer
+    Shadows Function Goo() As Integer
 End Interface
 
 Class C
     Implements I1
-    Public Function {|Definition:Foo|}() As Integer Implements I1.[|Foo|]
+    Public Function {|Definition:Goo|}() As Integer Implements I1.[|Goo|]
         Return 1
     End Function
 End Class
@@ -1856,7 +2045,7 @@ End Class
 Class M
     Inherits C
     Implements I2
-    Public Overloads Function Foo() As Integer Implements I2.Foo
+    Public Overloads Function Goo() As Integer Implements I2.Goo
         Return 1
     End Function
 End Class
@@ -1876,17 +2065,17 @@ End Class
         <Document>
             <![CDATA[
 Interface I1
-    Function {|Definition:Foo|}() As Integer
+    Function {|Definition:Goo|}() As Integer
 End Interface
 
 Interface I2
     Inherits I1
-    Shadows Function Foo() As Integer
+    Shadows Function Goo() As Integer
 End Interface
 
 Class C
     Implements I1
-    Public Function {|Definition:$$Foo|}() As Integer Implements I1.[|Foo|]
+    Public Function {|Definition:$$Goo|}() As Integer Implements I1.[|Goo|]
         Return 1
     End Function
 End Class
@@ -1894,7 +2083,7 @@ End Class
 Class M
     Inherits C
     Implements I2
-    Public Overloads Function Foo() As Integer Implements I2.Foo
+    Public Overloads Function Goo() As Integer Implements I2.Goo
         Return 1
     End Function
 End Class
@@ -1914,17 +2103,17 @@ End Class
         <Document>
             <![CDATA[
 Interface I1
-    Function Foo() As Integer
+    Function Goo() As Integer
 End Interface
 
 Interface I2
     Inherits I1
-    Shadows Function {|Definition:$$Foo|}() As Integer
+    Shadows Function {|Definition:$$Goo|}() As Integer
 End Interface
 
 Class C
     Implements I1
-    Public Function Foo() As Integer Implements I1.Foo
+    Public Function Goo() As Integer Implements I1.Goo
         Return 1
     End Function
 End Class
@@ -1932,7 +2121,7 @@ End Class
 Class M
     Inherits C
     Implements I2
-    Public Overloads Function {|Definition:Foo|}() As Integer Implements I2.[|Foo|]
+    Public Overloads Function {|Definition:Goo|}() As Integer Implements I2.[|Goo|]
         Return 1
     End Function
 End Class
@@ -1952,17 +2141,17 @@ End Class
         <Document>
             <![CDATA[
 Interface I1
-    Function Foo() As Integer
+    Function Goo() As Integer
 End Interface
 
 Interface I2
     Inherits I1
-    Shadows Function {|Definition:Foo|}() As Integer
+    Shadows Function {|Definition:Goo|}() As Integer
 End Interface
 
 Class C
     Implements I1
-    Public Function Foo() As Integer Implements I1.Foo
+    Public Function Goo() As Integer Implements I1.Goo
         Return 1
     End Function
 End Class
@@ -1970,7 +2159,7 @@ End Class
 Class M
     Inherits C
     Implements I2
-    Public Overloads Function {|Definition:$$Foo|}() As Integer Implements I2.[|Foo|]
+    Public Overloads Function {|Definition:$$Goo|}() As Integer Implements I2.[|Goo|]
         Return 1
     End Function
 End Class
@@ -1994,13 +2183,13 @@ Imports System
 
 Class C
     Shared Sub Main()
-        Dim a As Action(Of Integer) = AddressOf [|$$Foo|]
+        Dim a As Action(Of Integer) = AddressOf [|$$Goo|]
     End Sub
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 
-    Shared Sub {|Definition:Foo|}(x As Integer)
+    Shared Sub {|Definition:Goo|}(x As Integer)
     End Sub
 End Class]]>
         </Document>
@@ -2022,13 +2211,13 @@ Imports System
 
 Class C
     Shared Sub Main()
-        Dim a As Action(Of Integer) = AddressOf [|Foo|]
+        Dim a As Action(Of Integer) = AddressOf [|Goo|]
     End Sub
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 
-    Shared Sub {|Definition:$$Foo|}(x As Integer)
+    Shared Sub {|Definition:$$Goo|}(x As Integer)
     End Sub
 End Class]]>
         </Document>
@@ -2050,13 +2239,13 @@ Imports System
 
 Class C
     Shared Sub Main()
-        Dim a As Action(Of Integer) = AddressOf Foo
+        Dim a As Action(Of Integer) = AddressOf Goo
     End Sub
 
-    Sub {|Definition:$$Foo|}()
+    Sub {|Definition:$$Goo|}()
     End Sub
 
-    Shared Sub Foo(x As Integer)
+    Shared Sub Goo(x As Integer)
     End Sub
 End Class]]>
         </Document>
@@ -2218,8 +2407,8 @@ class C
         <Document><![CDATA[
 partial class Class1
 {
-    partial void {|Definition:$$foo|}<T, U, V>(T x, U y, V z) where T : class where U : Exception, T where V : U;
-    partial void {|Definition:foo|}<T, U, V>(T x, U y, V z) where T : class where U : Exception, T where V : U
+    partial void {|Definition:$$goo|}<T, U, V>(T x, U y, V z) where T : class where U : Exception, T where V : U;
+    partial void {|Definition:goo|}<T, U, V>(T x, U y, V z) where T : class where U : Exception, T where V : U
     {
     }
 }]]></Document>
@@ -2237,8 +2426,8 @@ partial class Class1
         <Document><![CDATA[
 partial class Class1
 {
-    partial void {|Definition:$$foo|}<T, U, V>(T x, U y, V z) where T : class where U : Exception, T where V : U;
-    partial void {|Definition:foo|}<T, U, V>(T x, U y, V z) where T : class where U : Exception, T where V : U
+    partial void {|Definition:$$goo|}<T, U, V>(T x, U y, V z) where T : class where U : Exception, T where V : U;
+    partial void {|Definition:goo|}<T, U, V>(T x, U y, V z) where T : class where U : Exception, T where V : U
     {
     }
 }]]></Document>
@@ -2255,10 +2444,10 @@ partial class Class1
     <Project Language="Visual Basic" CommonReferences="true">
         <Document><![CDATA[
 Public Module Module1
-    Partial Private Sub {|Definition:$$FOo|}(Of T As Class, U As T, V As {U, Exception})(aa As T, y As U, z As V)
+    Partial Private Sub {|Definition:$$GOo|}(Of T As Class, U As T, V As {U, Exception})(aa As T, y As U, z As V)
     End Sub
-    Private Sub {|Definition:foo|}(Of T As Class, U As T, V As {U, Exception})(aa As T, y As U, z As V)
-        Console.WriteLine("foo")
+    Private Sub {|Definition:goo|}(Of T As Class, U As T, V As {U, Exception})(aa As T, y As U, z As V)
+        Console.WriteLine("goo")
     End Sub
     Sub Main()
     End Sub
@@ -2277,10 +2466,10 @@ End Module
     <Project Language="Visual Basic" CommonReferences="true">
         <Document><![CDATA[
 Public Module Module1
-    Partial Private Sub {|Definition:FOo|}(Of T As Class, U As T, V As {U, Exception})(aa As T, y As U, z As V)
+    Partial Private Sub {|Definition:GOo|}(Of T As Class, U As T, V As {U, Exception})(aa As T, y As U, z As V)
     End Sub
-    Private Sub {|Definition:$$foo|}(Of T As Class, U As T, V As {U, Exception})(aa As T, y As U, z As V)
-        Console.WriteLine("foo")
+    Private Sub {|Definition:$$goo|}(Of T As Class, U As T, V As {U, Exception})(aa As T, y As U, z As V)
+        Console.WriteLine("goo")
     End Sub
     Sub Main()
     End Sub
@@ -2401,7 +2590,7 @@ partial class Program
 partial class Program
 {
     ///  <see cref="Program.[|Main|]"/>
-    void foo() {}
+    void goo() {}
     {
     }
 }
@@ -2431,7 +2620,7 @@ partial class Program
 partial class Program
 {
     ///  <see cref="Program.[|Ma$$in|]"/>
-    void foo() {}
+    void goo() {}
     {
     }
 }
@@ -2451,11 +2640,11 @@ partial class Program
         <MetadataReferenceFromSource Language="Visual Basic" CommonReferences="true">
             <Document FilePath="ReferencedDocument">
                                     Public Interface I
-                                        Sub Foo()
+                                        Sub Goo()
                                     End Interface
 
                                     Friend Class F : Implements I
-                                        Public Sub Foo() Implements I.Foo
+                                        Public Sub Goo() Implements I.Goo
                                         End Sub
                                     End Class
                                 </Document>
@@ -2463,7 +2652,7 @@ partial class Program
         <Document>
 Public Class C
     Sub Bar(i As I)
-        i.$$[|Foo|]()
+        i.$$[|Goo|]()
     End Sub
 End Class
         </Document>
@@ -2483,7 +2672,7 @@ End Class
             <Assembly: Global.System.Runtime.CompilerServices.InternalsVisibleTo("ProjectB")> 
 
             Friend Class A
-                Public Sub {|Definition:$$Foo|}()
+                Public Sub {|Definition:$$Goo|}()
                 End Sub
             End Class]]>
         </Document>
@@ -2494,7 +2683,7 @@ End Class
             <![CDATA[
             Public Class B
                 Public Sub Bar(a as A)
-                    a.[|Foo|]()
+                    a.[|Goo|]()
                 End Sub
             End Class]]>
         </Document>
@@ -2558,7 +2747,7 @@ namespace PortableClassLibrary
     public class Class1
     {
         int x;
-        public void {|Definition:Fo$$o|}(int x) { }
+        public void {|Definition:Go$$o|}(int x) { }
     }
 }]]>
         </Document>
@@ -2571,7 +2760,7 @@ class Class2
     int x;
     public void TestMethod1(PortableClassLibrary.Class1 c)
     {
-        c.[|Foo|](x);
+        c.[|Goo|](x);
     }
 }]]>
         </Document>
@@ -2595,7 +2784,7 @@ namespace PortableClassLibrary
     public class Class1
     {
         Tuple<int> x;
-        public void {|Definition:Fo$$o|}(Tuple<int> x) { }
+        public void {|Definition:Go$$o|}(Tuple<int> x) { }
     }
 }]]>
         </Document>
@@ -2610,7 +2799,7 @@ class Class2
     Tuple<int> x;
     public void TestMethod1(PortableClassLibrary.Class1 c)
     {
-        c.[|Foo|](x);
+        c.[|Goo|](x);
     }
 }]]>
         </Document>
@@ -2634,7 +2823,7 @@ namespace PortableClassLibrary
     public class Class1
     {
         Tuple<int> x;
-        public void {|Definition:Foo|}(Tuple<int> x) { }
+        public void {|Definition:Goo|}(Tuple<int> x) { }
     }
 }]]>
         </Document>
@@ -2649,7 +2838,7 @@ class Class2
     Tuple<int> x;
     public void TestMethod1(PortableClassLibrary.Class1 c)
     {
-        c.[|$$Foo|](x);
+        c.[|$$Goo|](x);
     }
 }]]>
         </Document>
@@ -2673,7 +2862,7 @@ namespace PortableClassLibrary
     public class Class1
     {
         Tuple<int> x;
-        public void {|Definition:$$Foo|}(Tuple<int> x, float y) { }
+        public void {|Definition:$$Goo|}(Tuple<int> x, float y) { }
     }
 }]]>
         </Document>
@@ -2688,7 +2877,7 @@ class Class2
     Tuple<int> x;
     public void TestMethod1(PortableClassLibrary.Class1 c)
     {
-        c.[|Foo|](x, 0.0);
+        c.[|Goo|](x, 0.0);
     }
 }]]>
         </Document>
@@ -2711,7 +2900,7 @@ namespace PortableClassLibrary
 {
     public class Class1
     {
-        public void {|Definition:$$Foo|}(System.Environment.SpecialFolder x) { }
+        public void {|Definition:$$Goo|}(System.Environment.SpecialFolder x) { }
     }
 }]]>
         </Document>
@@ -2726,7 +2915,7 @@ class Class2
     System.Environment.SpecialFolder x;
     public void TestMethod1(PortableClassLibrary.Class1 c)
     {
-        c.[|Foo|](x);
+        c.[|Goo|](x);
     }
 }]]>
         </Document>
@@ -2883,14 +3072,14 @@ End Class
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-    public interface IFoo
+    public interface IGoo
     {
-        void {|Definition:$$Foo|}();
+        void {|Definition:$$Goo|}();
     }
 
-    public struct MyStruct : IFoo
+    public struct MyStruct : IGoo
     {
-        public void {|Definition:Foo|}()
+        public void {|Definition:Goo|}()
         {
             throw new System.NotImplementedException();
         }
@@ -2908,14 +3097,14 @@ End Class
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-    public interface IFoo
+    public interface IGoo
     {
-        void {|Definition:Foo|}();
+        void {|Definition:Goo|}();
     }
 
-    public struct MyStruct : IFoo
+    public struct MyStruct : IGoo
     {
-        public void {|Definition:$$Foo|}()
+        public void {|Definition:$$Goo|}()
         {
             throw new System.NotImplementedException();
         }

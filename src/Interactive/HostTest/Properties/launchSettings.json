@@ -3,6 +3,10 @@
     "xUnit.net Console": {
       "executablePath": "$(XUnitPath)",
       "commandLineArgs": "$(XUnitArguments)"
+    },
+    "xUnit.net WPF Runner": {
+      "executablePath": "$(XUnitWpfPath)",
+      "commandLineArgs": "$(XUnitWpfArguments)"
     }
   }
 }

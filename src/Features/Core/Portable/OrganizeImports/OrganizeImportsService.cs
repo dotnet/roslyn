@@ -8,9 +8,7 @@ namespace Microsoft.CodeAnalysis.OrganizeImports
 {
     internal static partial class OrganizeImportsService
     {
-        public static Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return document.GetLanguageService<IOrganizeImportsService>().OrganizeImportsAsync(document, cancellationToken);
-        }
+        public static Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken)
+            => document.GetLanguageService<IOrganizeImportsService>().OrganizeImportsAsync(document, cancellationToken);
     }
 }

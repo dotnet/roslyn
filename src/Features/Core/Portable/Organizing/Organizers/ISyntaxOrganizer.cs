@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.Organizing.Organizers
         /// <summary>
         /// organize given node
         /// </summary>
-        SyntaxNode OrganizeNode(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken));
+        SyntaxNode OrganizeNode(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken = default);
     }
 }

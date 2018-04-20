@@ -21,7 +21,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructo
 End Class",
 "Class Program
     Private i As Integer
-    Public Sub New(i As Integer)
+
+    Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
 End Class")
@@ -37,7 +38,8 @@ End Class",
 "Class Program
     Private i As Integer
     Private b As String
-    Public Sub New(i As Integer, b As String)
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
         Me.i = i
         Me.b = b
     End Sub
@@ -60,7 +62,8 @@ End Class",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
-    Public Sub New(b As String)
+
+    Public Sub New(b As String{|Navigation:)|}
         Me.b = b
     End Sub
 End Class")
@@ -82,7 +85,8 @@ End Class",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
-    Public Sub New(i As Integer, b As String)
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
         Me.i = i
         Me.b = b
     End Sub
@@ -113,7 +117,8 @@ End Class")
 End Structure",
 "Structure S
     Private i As Integer
-    Public Sub New(i As Integer)
+
+    Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
 End Structure")
@@ -127,7 +132,8 @@ End Structure")
 End Class",
 "Class Program(Of T)
     Private i As Integer
-    Public Sub New(i As Integer)
+
+    Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
 End Class")
@@ -150,7 +156,8 @@ End Class",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
-    Public Sub New(i As Integer, b As String)
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
         Me.New(i)
         Me.b = b
     End Sub
@@ -167,10 +174,11 @@ index:=1)
     Public Property B As String|]
 End Class",
 "Class Z
-    Public Sub New(a As Integer, b As String)
+    Public Sub New(a As Integer, b As String{|Navigation:)|}
         Me.A = a
         Me.B = b
     End Sub
+
     Public Property A As Integer
     Public Property B As String
 End Class")
@@ -185,7 +193,7 @@ End Class")
     ReadOnly Property Number As Integer|]
 End Class",
 "Class Contribution
-    Public Sub New(title As String, number As Integer)
+    Public Sub New(title As String, number As Integer{|Navigation:)|}
         Me.Title = title
         Me.Number = number
     End Sub
@@ -214,7 +222,8 @@ End Class")
 End Class",
 "Class Program
     Private i As Integer
-    Public Sub New(i As Integer)
+
+    Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
 End Class", chosenSymbols:={"i"})
@@ -229,7 +238,8 @@ End Class", chosenSymbols:={"i"})
 End Class",
 "Class Program
     Private i As Integer
-    Public Sub New()
+
+    Public Sub New({|Navigation:)|}
     End Sub
 End Class", chosenSymbols:={})
         End Function
@@ -245,7 +255,8 @@ End Class",
 "Class Program
     Private i As Integer
     Private j As String
-    Public Sub New(j As String, i As Integer)
+
+    Public Sub New(j As String, i As Integer{|Navigation:)|}
         Me.j = j
         Me.i = i
     End Sub
@@ -260,7 +271,8 @@ End Class", chosenSymbols:={"j", "i"})
 End Class",
 "Class Program
     Private i As Integer
-    Public Sub New(i As Integer)
+
+    Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
 End Class", chosenSymbols:={"i"})

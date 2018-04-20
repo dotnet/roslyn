@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Dim text = <File>
 Class C
     ''' $$
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </File>.Value
@@ -36,7 +36,7 @@ End Class
             Dim text = <File>
 Class C
     $$
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
 </File>.Value
@@ -48,7 +48,7 @@ End Class
         Public Async Function TestNotOutsideCref3() As Task
             Dim text = <File>
 Class C
-    Sub Foo()
+    Sub Goo()
         Me.$$
     End Sub
 End Class
@@ -66,7 +66,7 @@ Imports System
 ''' <see cref="$$
 ''' </summary>
 Module Program
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module]]></File>.Value
 
@@ -82,11 +82,11 @@ Imports System
 ''' <see cref="Program.$$"
 ''' </summary>
 Module Program
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module]]></File>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo()")
+            Await VerifyItemExistsAsync(text, "Goo()")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -98,7 +98,7 @@ Imports System
 ''' <see cref="Program(Of $$
 ''' </summary>
 Class Program(Of T)
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class]]></File>.Value
 
@@ -111,15 +111,15 @@ End Class]]></File>.Value
 Imports System
 
 ''' <summary>
-''' <see cref="Program(Of T).Foo($$"
+''' <see cref="Program(Of T).Goo($$"
 ''' </summary>
 Class Program(Of T)
-    Sub Foo(z as Integer)
+    Sub Goo(z as Integer)
     End Sub
 End Class]]></File>.Value
 
             Await VerifyItemExistsAsync(text, "Integer")
-            Await VerifyItemIsAbsentAsync(text, "Foo(Integer")
+            Await VerifyItemIsAbsentAsync(text, "Goo(Integer")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -128,10 +128,10 @@ End Class]]></File>.Value
 Imports System
 
 ''' <summary>
-''' <see cref="Program(Of T).Foo(Integer, $$"
+''' <see cref="Program(Of T).Goo(Integer, $$"
 ''' </summary>
 Class Program(Of T)
-    Sub Foo(z as Integer, q as Integer)
+    Sub Goo(z as Integer, q as Integer)
     End Sub
 End Class]]></File>.Value
 
@@ -144,10 +144,10 @@ End Class]]></File>.Value
 Imports System
 
 ''' <summary>
-''' <see cref="Program(Of T).Foo(Integer, Integer)$$"
+''' <see cref="Program(Of T).Goo(Integer, Integer)$$"
 ''' </summary>
 Class Program(Of T)
-    Sub Foo(z as Integer, q as Integer)
+    Sub Goo(z as Integer, q as Integer)
     End Sub
 End Class]]></File>.Value
 
@@ -159,10 +159,10 @@ End Class]]></File>.Value
 Imports System
 
 ''' <summary>
-''' <see cref="Program(Of T).Foo(Integer, Integer).$$"
+''' <see cref="Program(Of T).Goo(Integer, Integer).$$"
 ''' </summary>
 Class Program(Of T)
-    Sub Foo(z as Integer, q as Integer)
+    Sub Goo(z as Integer, q as Integer)
     End Sub
 End Class]]></File>.Value
 
@@ -176,11 +176,11 @@ End Class]]></File>.Value
 ''' <see cref="Program(Of T).$$"
 ''' </summary>
 Class Program(Of T)
-    Sub Foo(ByRef z As Integer, ByVal x As Integer, ParamArray xx As Integer())
+    Sub Goo(ByRef z As Integer, ByVal x As Integer, ParamArray xx As Integer())
     End Sub
 End Class]]></File>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo(ByRef Integer, Integer, Integer())")
+            Await VerifyItemExistsAsync(text, "Goo(ByRef Integer, Integer, Integer())")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -381,10 +381,10 @@ End Class
 Imports System
 
 ''' <summary>
-''' <see cref="Foo($$
+''' <see cref="Goo($$
 ''' </summary>
 Module Program
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module]]></File>.Value
 
@@ -397,10 +397,10 @@ End Module]]></File>.Value
 Imports System
 
 ''' <summary>
-''' <see cref="Foo(a, $$
+''' <see cref="Goo(a, $$
 ''' </summary>
 Module Program
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module]]></File>.Value
 
@@ -412,7 +412,7 @@ End Module]]></File>.Value
             Dim text = <a><![CDATA[
 Class C
     ''' <see cref="$$
-    Sub foo()
+    Sub goo()
     End Sub
 End Class]]></a>.Value.NormalizeLineEndings()
 
@@ -439,6 +439,19 @@ End Class]]></a>.Value.NormalizeLineEndings()
 
                 Assert.True(called)
             End Using
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNoSuggestionAfterEmptyCref() As Task
+            Dim text = "
+Class C
+    ''' <see cref="""" $$
+    Sub Goo()
+    End Sub
+End Class
+"
+
+            Await VerifyNoItemsExistAsync(text)
         End Function
     End Class
 End Namespace

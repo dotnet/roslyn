@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 RemovePlaceholderReplacement(argument.OutPlaceholder)
 
                 If secondUse.Kind = BoundKind.LateMemberAccess Then
-                    ' Method(ref objExpr.foo)
+                    ' Method(ref objExpr.goo)
 
                     copyBack = LateSet(secondUse.Syntax,
                                        DirectCast(MyBase.VisitLateMemberAccess(DirectCast(secondUse, BoundLateMemberAccess)), BoundLateMemberAccess),
@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim invocation = DirectCast(secondUse, BoundLateInvocation)
 
                     If invocation.Member.Kind = BoundKind.LateMemberAccess Then
-                        ' Method(ref objExpr.foo(args))
+                        ' Method(ref objExpr.goo(args))
                         copyBack = LateSet(invocation.Syntax,
                                            DirectCast(MyBase.VisitLateMemberAccess(DirectCast(invocation.Member, BoundLateMemberAccess)), BoundLateMemberAccess),
                                            copyBackValue,

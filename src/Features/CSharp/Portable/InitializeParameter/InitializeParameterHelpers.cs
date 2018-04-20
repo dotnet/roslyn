@@ -5,7 +5,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         public static bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => compilation.ClassifyConversion(source: source, destination: destination).IsImplicit;
 
-        public static SyntaxNode TryGetLastStatement(IBlockStatement blockStatementOpt)
+        public static SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt)
             => blockStatementOpt?.Syntax is BlockSyntax block
                 ? block.Statements.LastOrDefault()
                 : blockStatementOpt?.Syntax;
@@ -28,28 +28,23 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             SyntaxNode statementToAddAfterOpt,
             StatementSyntax statement)
         {
-            var generator = editor.Generator;
-
             if (methodDeclaration.ExpressionBody != null)
             {
                 // If this is a => method, then we'll have to convert the method to have a block
                 // body.  Add the new statement as the first/last statement of the new block 
                 // depending if we were asked to go after something or not.
+                if (!methodDeclaration.ExpressionBody.TryConvertToStatement(methodDeclaration.SemicolonToken, CreateReturnStatement(methodDeclaration), out var declaration))
+                {
+                    return;
+                }
+
                 if (statementToAddAfterOpt == null)
                 {
-                    editor.SetStatements(
-                        methodDeclaration,
-                        ImmutableArray.Create(
-                            statement,
-                            generator.ExpressionStatement(methodDeclaration.ExpressionBody.Expression)));
+                    editor.SetStatements(methodDeclaration, ImmutableArray.Create(statement, declaration));
                 }
                 else
                 {
-                    editor.SetStatements(
-                        methodDeclaration,
-                        ImmutableArray.Create(
-                            generator.ExpressionStatement(methodDeclaration.ExpressionBody.Expression),
-                            statement));
+                    editor.SetStatements(methodDeclaration, ImmutableArray.Create(declaration, statement));
                 }
             }
             else if (methodDeclaration.Body != null)
@@ -80,9 +75,26 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             {
                 editor.ReplaceNode(
                     methodDeclaration,
-                    methodDeclaration.WithSemicolonToken(default(SyntaxToken))
+                    methodDeclaration.WithSemicolonToken(default)
                                      .WithBody(SyntaxFactory.Block(statement)));
             }
+        }
+
+        private static bool CreateReturnStatement(BaseMethodDeclarationSyntax declarationSyntax)
+        {
+            switch(declarationSyntax)
+            {
+                case MethodDeclarationSyntax method:
+                    return !method.ReturnType.IsVoid();
+                case ConversionOperatorDeclarationSyntax _:
+                case OperatorDeclarationSyntax _:
+                    return true;
+                case DestructorDeclarationSyntax _:
+                case ConstructorDeclarationSyntax _:
+                    return false;
+            }
+
+            return false;
         }
     }
 }

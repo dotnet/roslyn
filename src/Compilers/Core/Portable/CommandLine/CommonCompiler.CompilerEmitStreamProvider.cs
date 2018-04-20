@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                             }
                             else if (e.HResult == eWin32SharingViolation)
                             {
-                                // On Windows File.Delete only marks the file for deletion, but doens't remove it from the directory.
+                                // On Windows File.Delete only marks the file for deletion, but doesn't remove it from the directory.
                                 var newFilePath = Path.Combine(Path.GetDirectoryName(_filePath), Guid.NewGuid().ToString() + "_" + Path.GetFileName(_filePath));
 
                                 // Try to rename the existing file. This fails unless the file is open with FileShare.Delete.

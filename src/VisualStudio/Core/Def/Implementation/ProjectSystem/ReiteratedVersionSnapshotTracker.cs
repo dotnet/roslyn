@@ -66,8 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void OnTextBufferChanged(object sender, TextContentChangedEventArgs e)
         {
-            var buffer = sender as ITextBuffer;
-            if (buffer != null)
+            if (sender is ITextBuffer buffer)
             {
                 var snapshot = _latestReiteratedVersionSnapshot;
                 if (snapshot != null && snapshot.Version != null && e.AfterVersion != null &&

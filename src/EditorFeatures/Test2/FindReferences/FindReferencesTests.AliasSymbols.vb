@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             [|D|] date;
 
-            void Foo()
+            void Goo()
             {
             }
         }
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             [|D|] date;
 
-            void Foo()
+            void Goo()
             {
             }
         }
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 [|D|].C date;
                 [|N|].C date;
 
-                void Foo()
+                void Goo()
                 {
                 }
             }
@@ -83,18 +83,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
-        using FooAttribute = System.[|ObsoleteAttribute|];
+        using GooAttribute = System.[|ObsoleteAttribute|];
 
-        [[|FooAttribute|]]
+        [[|GooAttribute|]]
         class C{ }
 
-        [[|Foo|]]
+        [[|Goo|]]
         class D{ }
 
-        [[|FooAttribute|]()]
+        [[|GooAttribute|]()]
         class B{ }
 
-        [[|$$Foo|]()] // Invoke FAR here on Foo
+        [[|$$Goo|]()] // Invoke FAR here on Goo
         class Program
         {    
             static void Main(string[] args)    
@@ -176,21 +176,21 @@ namespace NS
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document><![CDATA[
-        Imports FooAttribute = System.[|ObsoleteAttribute|];
+        Imports GooAttribute = System.[|ObsoleteAttribute|];
 
-        <[|FooAttribute|]>
+        <[|GooAttribute|]>
         Class C
         End Class
 
-        <[|Foo|]>
+        <[|Goo|]>
         Class D
         End Class
 
-        <[|FooAttribute|]()>
+        <[|GooAttribute|]()>
         Class B
         End Class
 
-        <[|$$Foo|]()> ' Invoke FAR here on Foo
+        <[|$$Goo|]()> ' Invoke FAR here on Goo
         Class Program
             Public Shared Sub Main()    
             End Function

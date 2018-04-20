@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Checksum checksum,
             string filePath,
             string concatenatedNames,
-            Node[] sortedNodes)
+            ImmutableArray<Node> sortedNodes)
         {
             var result = TryLoadOrCreateAsync(
                 solution,
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Couldn't read from the persistence service.  If we've been asked to only load
-                // data and not create new instances in their absense, then there's nothing left
+                // data and not create new instances in their absence, then there's nothing left
                 // to do at this point.
                 if (loadOnly)
                 {
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static SymbolTreeInfo TryReadSymbolTreeInfo(
             ObjectReader reader,
-            Func<string, Node[], Task<SpellChecker>> createSpellCheckerTask)
+            Func<string, ImmutableArray<Node>, Task<SpellChecker>> createSpellCheckerTask)
         {
             try
             {
@@ -161,14 +163,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var concatenatedNames = reader.ReadString();
 
                     var nodeCount = reader.ReadInt32();
-                    var nodes = new Node[nodeCount];
+                    var nodes = ArrayBuilder<Node>.GetInstance(nodeCount);
                     for (var i = 0; i < nodeCount; i++)
                     {
                         var start = reader.ReadInt32();
                         var length = reader.ReadInt32();
                         var parentIndex = reader.ReadInt32();
 
-                        nodes[i] = new Node(new TextSpan(start, length), parentIndex);
+                        nodes.Add(new Node(new TextSpan(start, length), parentIndex));
                     }
 
                     var inheritanceMap = new OrderPreservingMultiDictionary<int, int>();
@@ -185,8 +187,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         }
                     }
 
-                    var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodes);
-                    return new SymbolTreeInfo(checksum, concatenatedNames, nodes, spellCheckerTask, inheritanceMap);
+                    var nodeArray = nodes.ToImmutableAndFree();
+                    var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodeArray);
+                    return new SymbolTreeInfo(checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap);
                 }
             }
             catch

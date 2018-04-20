@@ -39,7 +39,7 @@ try {
     # Verify the state of our various build artifacts
     Write-Host "Running BuildBoss"
     $buildBossPath = Join-Path $configDir "Exes\BuildBoss\BuildBoss.exe"
-    Exec-Console $buildBossPath "Roslyn.sln Compilers.sln src\Samples\Samples.sln CrossPlatform.sln build\Targets $logPath"
+    Exec-Console $buildBossPath "Roslyn.sln Compilers.sln build\Targets $logPath"
     Write-Host ""
 
     # Verify the state of our generated syntax files

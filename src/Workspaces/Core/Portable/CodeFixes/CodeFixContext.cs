@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CancellationToken cancellationToken)
-            : this(document: null, project: project, span: default(TextSpan), diagnostics: diagnostics, registerCodeFix: registerCodeFix, verifyArguments: false, cancellationToken: cancellationToken)
+            : this(document: null, project: project, span: default, diagnostics: diagnostics, registerCodeFix: registerCodeFix, verifyArguments: false, cancellationToken: cancellationToken)
         {
         }
 

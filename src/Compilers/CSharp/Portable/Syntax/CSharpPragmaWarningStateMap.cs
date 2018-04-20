@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 if (d.Kind() == SyntaxKind.PragmaWarningDirectiveTrivia)
                 {
-                    var w = d as PragmaWarningDirectiveTriviaSyntax;
+                    var w = (PragmaWarningDirectiveTriviaSyntax)d;
 
                     // Ignore directives with errors (i.e., Unrecognized #pragma directive) and
                     // directives inside disabled code (by #if and #endif)
@@ -83,12 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         var errorId = string.Empty;
                         if (currentErrorCode.Kind() == SyntaxKind.NumericLiteralExpression)
                         {
-                            var token = (currentErrorCode as LiteralExpressionSyntax).Token;
+                            var token = ((LiteralExpressionSyntax)currentErrorCode).Token;
                             errorId = MessageProvider.Instance.GetIdForErrorCode((int)token.Value);
                         }
                         else if (currentErrorCode.Kind() == SyntaxKind.IdentifierName)
                         {
-                            errorId = (currentErrorCode as IdentifierNameSyntax).Identifier.ValueText;
+                            errorId = ((IdentifierNameSyntax)currentErrorCode).Identifier.ValueText;
                         }
 
                         if (!string.IsNullOrWhiteSpace(errorId))

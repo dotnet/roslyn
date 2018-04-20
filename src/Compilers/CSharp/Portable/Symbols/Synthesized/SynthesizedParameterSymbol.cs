@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -49,15 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _refKind; }
         }
 
-        internal override bool IsMetadataIn
-        {
-            get { return false; }
-        }
+        internal override bool IsMetadataIn => RefKind == RefKind.In;
 
-        internal override bool IsMetadataOut
-        {
-            get { return _refKind == RefKind.Out; }
-        }
+        internal override bool IsMetadataOut => RefKind == RefKind.Out;
 
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
         {
@@ -141,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             // Emit [Dynamic] on synthesized parameter symbols when the original parameter was dynamic 
             // in order to facilitate debugging.  In the case the necessary attributes are missing 
@@ -159,6 +154,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes,
                     compilation.SynthesizeTupleNamesAttribute(Type));
+            }
+
+            if (this.RefKind == RefKind.RefReadOnly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
         }
     }

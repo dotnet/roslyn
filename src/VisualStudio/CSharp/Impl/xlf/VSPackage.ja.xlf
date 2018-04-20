@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ja" original="../VSPackage.resx">
+    <body>
+      <trans-unit id="101">
+        <source>C#</source>
+        <target state="translated">C#</target>
+        <note>Used many places.</note>
+      </trans-unit>
+      <trans-unit id="102">
+        <source>Advanced</source>
+        <target state="translated">詳細</target>
+        <note>"Advanced" node under Tools &gt; Options, Text Editor, C#.</note>
+      </trans-unit>
+      <trans-unit id="103">
+        <source>IntelliSense</source>
+        <target state="translated">IntelliSense</target>
+        <note>"IntelliSense" node under Tools &gt; Options, Text Editor, C#.</note>
+      </trans-unit>
+      <trans-unit id="104">
+        <source>C# Editor</source>
+        <target state="translated">C# エディター</target>
+        <note>"C# Editor" node in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="105">
+        <source>Settings for the C# editor found under the Advanced, Formatting, and IntelliSense nodes in the Tools/Options dialog box.</source>
+        <target state="translated">C# エディターの設定は、[ツール] メニューから [オプション] ダイアログ ボックスを開いた、[詳細設定]、[書式設定]、[IntelliSense] ノードにあります。</target>
+        <note>"C# Editor" node help text in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="106">
+        <source>Settings for general C# options found under the General and Tabs nodes in the Tools/Options dialog box.</source>
+        <target state="translated">一般的な C# オプションの設定は、[ツール] メニューから [オプション] ダイアログ ボックスを開いた、[全般] ノードおよび [タブ] ノードにあります。</target>
+        <note>"C#" node help text in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="306">
+        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</source>
+        <target state="translated">カーソルの下にあるシンボルへの参照をハイライトする;カーソルの下にあるキーワードの関連キーワードをハイライトする;ファイルを開くときにアウトライン モードに入る;プロシージャ行の区切り記号を表示する;XML ドキュメント コメントを生成する;閉じているファイルの診断結果を表示する;名前変更の追跡用プレビューの表示;using を並べ替える際に、'System' ディレクティブを先頭に配置する;カスタム構造体に ref または out を設定しない</target>
+        <note>C# Advanced options page keywords</note>
+      </trans-unit>
+      <trans-unit id="307">
+        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</source>
+        <target state="translated">セミコロンでステートメントをオート フォーマットする;中かっこでブロックをオート フォーマットする;貼り付け時にオート フォーマットする</target>
+        <note>C# Formatting &gt; General options page keywords</note>
+      </trans-unit>
+      <trans-unit id="308">
+        <source>Indent block contents;Indent open and close braces, indent case contents;indent case labels;label indentation</source>
+        <target state="translated">ブロックの内容をインデントする;始めと終わりの中かっこをインデントする、case の内容をインデントする;case ラベルをインデントする;ラベル インデント</target>
+        <note>C# Formatting &gt; Indentation options page keywords</note>
+      </trans-unit>
+      <trans-unit id="309">
+        <source>New line formatting option for braces;New line formatting options for keywords</source>
+        <target state="translated">中かっこの改行書式オプション;キーワードの改行書式オプション</target>
+        <note>C# Formatting &gt; New Lines options page keywords</note>
+      </trans-unit>
+      <trans-unit id="310">
+        <source>Set spacing for method declarations;set spacing for method calls;set other spacing options;set spacing for brackets;set spacing for delimiters;set spacing for operators</source>
+        <target state="translated">メソッド宣言子のスペースを設定する;メソッドの呼び出しのスペースを設定する;他のスペース オプションを設定する;大かっこのスペースを設定する;区切り記号のスペースを設定する;演算子のスペースを設定する</target>
+        <note>C# Formatting &gt; Spacing options page keywords</note>
+      </trans-unit>
+      <trans-unit id="311">
+        <source>Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</source>
+        <target state="translated">折り返しの書式オプションを変更する;ブロックを単一行に配置する;1 行に複数のステートメントとメンバー宣言を表示する</target>
+        <note>C# Formatting &gt; Wrapping options page keywords</note>
+      </trans-unit>
+      <trans-unit id="312">
+        <source>Change completion list settings;Pre-select most recently used member</source>
+        <target state="translated">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する</target>
+        <note>C# IntelliSense options page keywords</note>
+      </trans-unit>
+      <trans-unit id="107">
+        <source>Formatting</source>
+        <target state="translated">書式設定</target>
+        <note>"Formatting" category node under Tools &gt; Options, Text Editor, C#, Code Style (no corresponding keywords)</note>
+      </trans-unit>
+      <trans-unit id="108">
+        <source>General</source>
+        <target state="translated">全般</target>
+        <note>"General" node under Tools &gt; Options, Text Editor, C# (used for Code Style and Formatting)</note>
+      </trans-unit>
+      <trans-unit id="109">
+        <source>Indentation</source>
+        <target state="translated">インデント</target>
+        <note>"Indentation" node under Tools &gt; Options, Text Editor, C#, Formatting.</note>
+      </trans-unit>
+      <trans-unit id="110">
+        <source>Wrapping</source>
+        <target state="translated">折り返し</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="111">
+        <source>New Lines</source>
+        <target state="translated">改行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="112">
+        <source>Spacing</source>
+        <target state="translated">スペース</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="2358">
+        <source>CSharp Editor</source>
+        <target state="translated">CSharp エディター</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="2359">
+        <source>CSharp Editor with Encoding</source>
+        <target state="translated">エンコード付き CSharp エディター</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="113">
+        <source>Microsoft Visual C#</source>
+        <target state="translated">Microsoft Visual C#</target>
+        <note>Used for String in Tools &gt; Options, Text Editor, File Extensions</note>
+      </trans-unit>
+      <trans-unit id="114">
+        <source>Code Style</source>
+        <target state="translated">コード スタイル</target>
+        <note>"Code Style" category node under Tools &gt; Options, Text Editor, C# (no corresponding keywords)</note>
+      </trans-unit>
+      <trans-unit id="313">
+        <source>Style;Qualify;This;Code Style;var;member access;locals;parameters;var preferences;predefined type;framework type;built-in types;when variable type is apparent;elsewhere;qualify field access;qualify property access; qualify method access;qualify event access;</source>
+        <target state="translated">スタイル;修飾;This;コード スタイル;var;メンバー アクセス;ローカル;パラメーター;var の設定;事前定義された型;フレームワーク型;ビルトイン型;変数の型が明確な場合;他の場合;フィールド アクセスの修飾;プロパティ アクセスの修飾; メソッド アクセスの修飾;イベント アクセスの修飾;</target>
+        <note>C# Code Style options page keywords</note>
+      </trans-unit>
+      <trans-unit id="115">
+        <source>Naming</source>
+        <target state="translated">名前指定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="314">
+        <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
+        <target state="translated">名前付けのスタイル;名前のスタイル;名前付け規則;名前付けの規則</target>
+        <note>C# Naming Style options page keywords</note>
+      </trans-unit>
+      <trans-unit id="116">
+        <source>C# Tools</source>
+        <target state="translated">C# ツール</target>
+        <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="117">
+        <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
+        <target state="translated">IDE で使用する C# コンポーネント。プロジェクトの種類や設定に応じて、異なるバージョンのコンパイラを使用できます。</target>
+        <note>Help &gt; About</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

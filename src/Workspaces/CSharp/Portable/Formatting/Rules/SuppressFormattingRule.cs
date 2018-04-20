@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
-            var ifStatementNode = node as IfStatementSyntax;
-            if (ifStatementNode != null)
+            if (node is IfStatementSyntax ifStatementNode)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, ifStatementNode.IfKeyword, ifStatementNode.Statement.GetLastToken(includeZeroWidth: true));
 
@@ -44,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var constructorInitializerNode = node as ConstructorInitializerSyntax;
-            if (constructorInitializerNode != null)
+            if (node is ConstructorInitializerSyntax constructorInitializerNode)
             {
                 var constructorDeclarationNode = constructorInitializerNode.Parent as ConstructorDeclarationSyntax;
                 if (constructorDeclarationNode?.Body != null)
@@ -56,32 +54,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var whileStatementNode = node as DoStatementSyntax;
-            if (whileStatementNode != null)
+            if (node is DoStatementSyntax whileStatementNode)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, whileStatementNode.GetFirstToken(includeZeroWidth: true), whileStatementNode.Statement.GetLastToken(includeZeroWidth: true));
                 return;
             }
 
-            var memberDeclNode = node as MemberDeclarationSyntax;
-            if (memberDeclNode != null)
+            if (node is MemberDeclarationSyntax memberDeclNode)
             {
-                // Attempt to keep the part of a member that follows hte attributes on a single
+                // Attempt to keep the part of a member that follows the attributes on a single
                 // line if that's how it's currently written.
                 var tokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
                 AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
-                
+
+                // Also, If the member is on single line with its attributes on it, then keep 
+                // it on a single line.  This is for code like the following:
+                //
+                //      [Import] public int Field1;
+                //      [Import] public int Field2;
                 var attributes = memberDeclNode.GetAttributes();
-                if (attributes.Count > 0)
+                var endToken = node.GetLastToken(includeZeroWidth: true);
+                for (var i = 0; i < attributes.Count; ++i)
                 {
-                    // Also, If the member is on single line with its attributes on it, then keep 
-                    // it on a single line.  This is for code like the following:
-                    //
-                    //      [Import] public int Field1;
-                    //      [Import] public int Field2;
                     AddSuppressWrappingIfOnSingleLineOperation(list,
-                        node.GetFirstToken(includeZeroWidth: true),
-                        node.GetLastToken(includeZeroWidth: true));
+                        attributes[i].GetFirstToken(includeZeroWidth: true),
+                        endToken);
                 }
 
                 var propertyDeclNode = node as PropertyDeclarationSyntax;
@@ -93,15 +90,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var accessorDeclNode = node as AccessorDeclarationSyntax;
-            if (accessorDeclNode != null)
+            if (node is AccessorDeclarationSyntax accessorDeclNode)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, accessorDeclNode.Keyword, accessorDeclNode.GetLastToken(includeZeroWidth: true));
                 return;
             }
 
-            var switchSection = node as SwitchSectionSyntax;
-            if (switchSection != null)
+            if (node is SwitchSectionSyntax switchSection)
             {
                 if (switchSection.Labels.Count < 2)
                 {
@@ -129,15 +124,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            var anonymousMethod = node as AnonymousMethodExpressionSyntax;
-            if (anonymousMethod != null)
+            if (node is AnonymousFunctionExpressionSyntax ||
+                node is LocalFunctionStatementSyntax)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, anonymousMethod.DelegateKeyword, anonymousMethod.GetLastToken(includeZeroWidth: true));
+                AddSuppressWrappingIfOnSingleLineOperation(list,
+                    node.GetFirstToken(includeZeroWidth: true),
+                    node.GetLastToken(includeZeroWidth: true),
+                    SuppressOption.IgnoreElastic);
                 return;
             }
 
-            var parameterNode = node as ParameterSyntax;
-            if (parameterNode != null)
+            if (node is ParameterSyntax parameterNode)
             {
                 if (parameterNode.AttributeLists.Count != 0)
                 {
@@ -146,8 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            var tryStatement = node as TryStatementSyntax;
-            if (tryStatement != null)
+            if (node is TryStatementSyntax tryStatement)
             {
                 // Add a suppression operation if the try keyword and the block are in the same line
                 if (!tryStatement.TryKeyword.IsMissing && tryStatement.Block != null && !tryStatement.Block.CloseBraceToken.IsMissing)
@@ -156,8 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            var catchClause = node as CatchClauseSyntax;
-            if (catchClause != null)
+            if (node is CatchClauseSyntax catchClause)
             {
                 // Add a suppression operation if the catch keyword and the corresponding block are in the same line
                 if (!catchClause.CatchKeyword.IsMissing && catchClause.Block != null && !catchClause.Block.CloseBraceToken.IsMissing)
@@ -166,8 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            var finallyClause = node as FinallyClauseSyntax;
-            if (finallyClause != null)
+            if (node is FinallyClauseSyntax finallyClause)
             {
                 // Add a suppression operation if the finally keyword and the corresponding block are in the same line
                 if (!finallyClause.FinallyKeyword.IsMissing && finallyClause.Block != null && !finallyClause.Block.CloseBraceToken.IsMissing)
@@ -176,8 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            var interpolatedStringExpression = node as InterpolatedStringExpressionSyntax;
-            if (interpolatedStringExpression != null)
+            if (node is InterpolatedStringExpressionSyntax interpolatedStringExpression)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, interpolatedStringExpression.StringStartToken, interpolatedStringExpression.StringEndToken);
             }
@@ -214,8 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var anonymousCreationNode = node as AnonymousObjectCreationExpressionSyntax;
-            if (anonymousCreationNode != null)
+            if (node is AnonymousObjectCreationExpressionSyntax anonymousCreationNode)
             {
                 AddInitializerSuppressOperations(list, anonymousCreationNode, anonymousCreationNode.Initializers);
                 return;
@@ -242,22 +234,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private InitializerExpressionSyntax GetInitializerNode(SyntaxNode node)
         {
-            var objectCreationNode = node as ObjectCreationExpressionSyntax;
-            if (objectCreationNode != null)
+            switch (node)
             {
-                return objectCreationNode.Initializer;
-            }
-
-            var arrayCreationNode = node as ArrayCreationExpressionSyntax;
-            if (arrayCreationNode != null)
-            {
-                return arrayCreationNode.Initializer;
-            }
-
-            var implicitArrayNode = node as ImplicitArrayCreationExpressionSyntax;
-            if (implicitArrayNode != null)
-            {
-                return implicitArrayNode.Initializer;
+                case ObjectCreationExpressionSyntax objectCreationNode:
+                    return objectCreationNode.Initializer;
+                case ArrayCreationExpressionSyntax arrayCreationNode:
+                    return arrayCreationNode.Initializer;
+                case ImplicitArrayCreationExpressionSyntax implicitArrayNode:
+                    return implicitArrayNode.Initializer;
             }
 
             return null;

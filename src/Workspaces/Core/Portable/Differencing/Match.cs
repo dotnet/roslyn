@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 // Find node2 that matches node1 the best, i.e. has minimal distance.
 
                 double bestDistance = MaxDistance * 2;
-                TNode bestMatch = default(TNode);
+                TNode bestMatch = default;
                 bool matched = false;
                 int i2;
                 for (i2 = firstNonMatch2; i2 < count2; i2++)

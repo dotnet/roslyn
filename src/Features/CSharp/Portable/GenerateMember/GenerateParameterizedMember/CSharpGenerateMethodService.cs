@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 }
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             methodSymbol = null;
             typeToGenerateIn = null;
             return false;
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 }
             }
 
-            identifierToken = default(SyntaxToken);
+            identifierToken = default;
             simpleNameOrMemberAccessExpression = null;
             invocationExpressionOpt = null;
             isInConditionalAccessExpression = false;

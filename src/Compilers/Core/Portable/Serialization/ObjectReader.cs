@@ -31,7 +31,7 @@ namespace Roslyn.Utilities
         /// this version, just change VersionByte2.
         /// </summary>
         internal const byte VersionByte1 = 0b10101010;
-        internal const byte VersionByte2 = 0b00001000;
+        internal const byte VersionByte2 = 0b00001001;
 
         private readonly BinaryReader _reader;
         private readonly CancellationToken _cancellationToken;
@@ -85,7 +85,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public static ObjectReader TryGetReader(
             Stream stream,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (stream == null)
             {
@@ -123,6 +123,17 @@ namespace Roslyn.Utilities
         public ulong ReadUInt64() => _reader.ReadUInt64();
         public ushort ReadUInt16() => _reader.ReadUInt16();
         public string ReadString() => ReadStringValue();
+
+        public Guid ReadGuid()
+        {
+            var accessor = new ObjectWriter.GuidAccessor
+            {
+                Low64 = ReadInt64(),
+                High64 = ReadInt64()
+            };
+
+            return accessor.Guid;
+        }
 
         public object ReadValue()
         {

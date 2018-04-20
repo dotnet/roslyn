@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The span of the document the completion list corresponds to.  It will be set initially to
         /// the result of <see cref="CompletionService.GetDefaultCompletionListSpan"/>, but it can
-        /// be overwritten bduring <see cref="CompletionService.GetCompletionsAsync"/>.  The purpose
+        /// be overwritten during <see cref="CompletionService.GetCompletionsAsync"/>.  The purpose
         /// of the span is to:
         ///     1. Signify where the completions should be presented.
         ///     2. Designate any existing text in the document that should be used for filtering.

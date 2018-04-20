@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
+using PDB::Roslyn.Test.Utilities;
 using PDB::Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
@@ -809,6 +810,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                         metadataOnly: true,
                         isDeterministic: false,
                         emitTestCoverageData: false,
+                        privateKeyOpt: null,
                         cancellationToken: default(CancellationToken));
 
                     peBytes = peStream.ToImmutable();

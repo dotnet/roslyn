@@ -17,14 +17,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Const code = "
 Class C
     Sub M()
-        {|span:With (foo) $$
+        {|span:With (goo) $$
         End With|}
     End Sub
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "With (foo) ...", autoCollapse:=False))
+                Region("span", "With (goo) ...", autoCollapse:=False))
         End Function
     End Class
 End Namespace

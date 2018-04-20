@@ -29,8 +29,7 @@ namespace Roslyn.Test.MetadataUtilities
 
         private TEntity GetValue<TEntity>(Handle handle, Func<MetadataReader, Handle, TEntity> getter)
         {
-            int generation;
-            var genHandle = _aggregator.GetGenerationHandle(handle, out generation);
+            var genHandle = _aggregator.GetGenerationHandle(handle, out var generation);
             return getter(Readers[generation], genHandle);
         }
 

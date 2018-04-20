@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _isThis = isThisParameter;
         }
 
-        public static LambdaCapturedVariable Create(LambdaFrame frame, Symbol captured, ref int uniqueId)
+        public static LambdaCapturedVariable Create(SynthesizedClosureEnvironment frame, Symbol captured, ref int uniqueId)
         {
             Debug.Assert(captured is LocalSymbol || captured is ParameterSymbol);
 
@@ -71,8 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GeneratedNames.MakeSynthesizedInstrumentationPayloadLocalFieldName(uniqueId++);
                 }
 
-                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined && local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection)
+                if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
+                    (local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection ||
+                     local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchExpressionArm))
                 {
+                    // The programmer can use the same identifier for pattern variables in different
+                    // sections of a switch statement, but they are all hoisted into
+                    // the same frame for the enclosing switch statement and must be given
+                    // unique field names.
                     return GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, uniqueId++, local.Name);
                 }
             }
@@ -87,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)local != null)
             {
                 // if we're capturing a generic frame pointer, construct it with the new frame's type parameters
-                var lambdaFrame = local.Type.OriginalDefinition as LambdaFrame;
+                var lambdaFrame = local.Type.OriginalDefinition as SynthesizedClosureEnvironment;
                 if ((object)lambdaFrame != null)
                 {
                     // lambdaFrame may have less generic type parameters than frame, so trim them down (the first N will always match)

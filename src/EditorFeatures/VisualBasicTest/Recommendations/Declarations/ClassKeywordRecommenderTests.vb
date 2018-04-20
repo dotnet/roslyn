@@ -140,7 +140,7 @@ Delegate Sub DelegateType()
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function ClassNotAfterPrivateInNamespaceTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Namespace Foo
+Namespace Goo
     Private |
 End Namespace</File>, "Class")
         End Function
@@ -263,6 +263,12 @@ End Namespace</File>, "Class")
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function AfterAsyncTest() As Task
             Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Async |</ClassDeclaration>, "Class")
+        End Function
+
+        <WorkItem(20837, "https://github.com/dotnet/roslyn/issues/20837")>
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterAttribute() As Task
+            Await VerifyRecommendationsContainAsync(<File>&lt;AttributeApplication&gt; |</File>, "Class")
         End Function
     End Class
 End Namespace

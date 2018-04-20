@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _bindingRedirectionService = bindingRedirectionService;
         }
 
-        public AnalyzerDependencyResults Run(CancellationToken cancellationToken = default(CancellationToken))
+        public AnalyzerDependencyResults Run(CancellationToken cancellationToken = default)
         {
             List<AnalyzerInfo> analyzerInfos = new List<AnalyzerInfo>();
 

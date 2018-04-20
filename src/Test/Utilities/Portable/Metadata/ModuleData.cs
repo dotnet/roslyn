@@ -15,9 +15,9 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Roslyn.Test.Utilities
 {
-    public struct ModuleDataId
+    public readonly struct ModuleDataId
     {
         public string SimpleName { get; }
         public string FullName { get; }

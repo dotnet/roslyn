@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax>
+    internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
     {
         private partial class State
         {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                if (!CanIntroduceVariable(cancellationToken))
+                if (!CanIntroduceVariable(textSpan.IsEmpty, cancellationToken))
                 {
                     return false;
                 }
@@ -186,6 +186,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private TExpressionSyntax GetExpressionUnderSpan(SyntaxTree tree, TextSpan textSpan, CancellationToken cancellationToken)
             {
                 var root = tree.GetRoot(cancellationToken);
+                if (textSpan.Length == 0)
+                {
+                    return root.FindToken(textSpan.Start).Parent as TExpressionSyntax;
+                }
+
                 var startToken = root.FindToken(textSpan.Start);
                 var stopToken = root.FindToken(textSpan.End);
 
@@ -224,6 +229,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             private bool CanIntroduceVariable(
+                bool isSpanEmpty,
                 CancellationToken cancellationToken)
             {
                 if (!_service.CanIntroduceVariableFor(this.Expression))
@@ -231,8 +237,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                if (this.Expression is TTypeSyntax)
+                if (isSpanEmpty && this.Expression is TNameSyntax)
                 {
+                    // to extract a name, you must have a selection (this avoids making the refactoring too noisy)
+                    return false;
+                }
+
+                if (this.Expression is TTypeSyntax && !(this.Expression is TNameSyntax))
+                {
+                    // name syntax can introduce variables, but not other type syntaxes
                     return false;
                 }
 

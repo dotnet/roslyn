@@ -34,7 +34,7 @@ End Class
         Public Async Function WithAttributes() As Task
             Dim code = "
 Class C
-    {|hint:{|textspan:<Foo>
+    {|hint:{|textspan:<Goo>
     |}Dim $$x As Integer|}
 End Class
 "
@@ -49,7 +49,7 @@ End Class
 Class C
     {|hint:{|textspan:' Summary:
     '     This is a summary.
-    <Foo>
+    <Goo>
     |}Dim $$x As Integer|}
 End Class
 "

@@ -74,11 +74,11 @@ Class Derived
     Inherits Base
 End Class
 Module M1
-    Sub foo(d As Derived)
+    Sub goo(d As Derived)
     End Sub
     Sub Main()
         Dim b As Base = Nothing
-        foo([|b|])
+        goo([|b|])
     End Sub
 End Module",
 "Option Strict On
@@ -88,11 +88,11 @@ Class Derived
     Inherits Base
 End Class
 Module M1
-    Sub foo(d As Derived)
+    Sub goo(d As Derived)
     End Sub
     Sub Main()
         Dim b As Base = Nothing
-        foo(CType(b, Derived))
+        goo(CType(b, Derived))
     End Sub
 End Module")
         End Function
@@ -102,19 +102,19 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Option Strict On
 Module M1
-    Sub foo(d As Integer)
+    Sub goo(d As Integer)
     End Sub
     Sub Main()
-        foo([|""10""|])
+        goo([|""10""|])
     End Sub
 End Module",
 "Option Strict On
 Module M1
-    Sub foo(d As Integer)
+    Sub goo(d As Integer)
     End Sub
     Sub Main()
-        foo(CInt(""10"")) 
- End Sub
+        goo(CInt(""10""))
+    End Sub
 End Module")
         End Function
 
@@ -142,15 +142,15 @@ End Module")
             Await TestInRegularAndScriptAsync(
 "Option Strict On
 Module M1
-    Function foo() As Integer
+    Function goo() As Integer
         Return [|""10""|] 
  End Function
 End Module",
 "Option Strict On
 Module M1
-    Function foo() As Integer
-        Return CInt(""10"") 
- End Function
+    Function goo() As Integer
+        Return CInt(""10"")
+    End Function
 End Module")
         End Function
 

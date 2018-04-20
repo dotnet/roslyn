@@ -17,7 +17,7 @@ End Function</ClassDeclaration>, "#Region")
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotInEnumBlockMemberDeclarationTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-                                             Enum foo
+                                             Enum goo
                                                 |
                                             End enum
                                          </File>, "#Region")
@@ -26,7 +26,7 @@ End Function</ClassDeclaration>, "#Region")
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function NotAfterHashEndTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-#Region "foo"
+#Region "goo"
 
 #End |</File>, "#Region")
         End Function

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         // PERM = 3,           /* Access permission denied */
         // ABORT = 4,          /* Callback routine requested an abort */
         BUSY = 5,              /* The database file is locked */
-        // LOCKED = 6,         /* A table in the database is locked */
+        LOCKED = 6,            /* A table in the database is locked */
         NOMEM = 7,             /* A malloc() failed */
         // READONLY = 8,       /* Attempt to write a readonly database */
         // INTERRUPT = 9,      /* Operation terminated by sqlite3_interrupt()*/

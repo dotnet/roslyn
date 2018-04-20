@@ -62,12 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         private static bool CheckPreviousAccessibilityModifiers(CSharpSyntaxContext context)
         {
-            // We can show up after 'internal'.
+            // We can show up after 'internal' and 'private'.
             var precedingModifiers = context.PrecedingModifiers;
             return
                 !precedingModifiers.Contains(SyntaxKind.PublicKeyword) &&
-                !precedingModifiers.Contains(SyntaxKind.ProtectedKeyword) &&
-                !precedingModifiers.Contains(SyntaxKind.PrivateKeyword);
+                !precedingModifiers.Contains(SyntaxKind.ProtectedKeyword);
         }
     }
 }

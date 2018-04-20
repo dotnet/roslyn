@@ -8,7 +8,4 @@
   <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.VisualBasic" RuleNamespace="Roslyn.Diagnostics.Analyzers.VisualBasic">
     <Rule Id="RS0013" Action="Warning" />
   </Rules>
-  <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.VisualBasic" RuleNamespace="Roslyn.Diagnostics.Analyzers.VisualBasic">
-    <Rule Id="RS0018" Action="Error" />
-  </Rules>
 </RuleSet>

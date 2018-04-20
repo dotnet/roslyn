@@ -163,7 +163,7 @@ New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object
 Class C
     Dim n As [|NuGetType|]
 End Class",
-"Use local version '1.0'",
+String.Format(FeaturesResources.Use_local_version_0, "1.0"),
 parameters:=New TestParameters(fixProviderData:=data))
 
             Await TestSmartTagTextAsync(
@@ -171,7 +171,7 @@ parameters:=New TestParameters(fixProviderData:=data))
 Class C
     Dim n As [|NuGetType|]
 End Class",
-"Use local version '2.0'",
+String.Format(FeaturesResources.Use_local_version_0, "2.0"),
 index:=1,
 parameters:=New TestParameters(fixProviderData:=data))
 
@@ -180,7 +180,7 @@ parameters:=New TestParameters(fixProviderData:=data))
 Class C
     Dim n As [|NuGetType|]
 End Class",
-"Find and install latest version",
+FeaturesResources.Find_and_install_latest_version,
 index:=2,
 parameters:=New TestParameters(fixProviderData:=data))
         End Function
@@ -239,7 +239,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             installerServiceMock.Verify()
         End Function
 
-        Private Function CreateSearchResult(packageName As String, typeName As String, nameParts As ImmutableArray(Of String)) As Task(Of ImmutableArray(Of PackageWithTypeResult))
+        Private Function CreateSearchResult(packageName As String, typeName As String, nameParts As ImmutableArray(Of String)) As Task(Of IList(Of PackageWithTypeResult))
             Return CreateSearchResult(New PackageWithTypeResult(
                 packageName:=packageName,
                 typeName:=typeName,
@@ -248,8 +248,8 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
                 containingNamespaceNames:=nameParts))
         End Function
 
-        Private Function CreateSearchResult(ParamArray results As PackageWithTypeResult()) As Task(Of ImmutableArray(Of PackageWithTypeResult))
-            Return Task.FromResult(ImmutableArray.Create(results))
+        Private Function CreateSearchResult(ParamArray results As PackageWithTypeResult()) As Task(Of IList(Of PackageWithTypeResult))
+            Return Task.FromResult(Of IList(Of PackageWithTypeResult))(ImmutableArray.Create(results))
         End Function
 
         Private Function CreateNameParts(ParamArray parts As String()) As ImmutableArray(Of String)

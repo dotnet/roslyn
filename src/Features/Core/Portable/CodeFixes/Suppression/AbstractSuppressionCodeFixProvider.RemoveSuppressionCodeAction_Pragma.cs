@@ -80,11 +80,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         add = true;
                     }
 
-                    Func<SyntaxToken, TextSpan, Task<SyntaxToken>> getNewStartToken = (startToken, currentDiagnosticSpan) => includeStartTokenChange
+                    Task<SyntaxToken> getNewStartToken(SyntaxToken startToken, TextSpan currentDiagnosticSpan) => includeStartTokenChange
                         ? GetNewTokenWithModifiedPragmaAsync(startToken, currentDiagnosticSpan, add, toggle, indexOfLeadingPragmaDisableToRemove, isStartToken: true)
                         : Task.FromResult(startToken);
 
-                    Func<SyntaxToken, TextSpan, Task<SyntaxToken>> getNewEndToken = (endToken, currentDiagnosticSpan) => includeEndTokenChange
+                    Task<SyntaxToken> getNewEndToken(SyntaxToken endToken, TextSpan currentDiagnosticSpan) => includeEndTokenChange
                         ? GetNewTokenWithModifiedPragmaAsync(endToken, currentDiagnosticSpan, add, toggle, indexOfTrailingPragmaEnableToRemove, isStartToken: false)
                         : Task.FromResult(endToken);
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     var triviaList = GetTriviaListForSuppression(token, isStartToken, fixer);
 
                     var diagnosticSpan = diagnostic.Location.SourceSpan;
-                    Func<SyntaxTrivia, bool> shouldIncludeTrivia = t => isStartToken ? t.FullSpan.End <= diagnosticSpan.Start : t.FullSpan.Start >= diagnosticSpan.End;
+                    bool shouldIncludeTrivia(SyntaxTrivia t) => isStartToken ? t.FullSpan.End <= diagnosticSpan.Start : t.FullSpan.Start >= diagnosticSpan.End;
                     var filteredTriviaList = triviaList.Where(shouldIncludeTrivia);
                     if (isStartToken)
                     {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     if (toggle)
                     {
                         var triviaToToggle = triviaList.ElementAt(indexOfTriviaToRemoveOrToggle);
-                        Contract.ThrowIfFalse(triviaToToggle != default(SyntaxTrivia));
+                        Contract.ThrowIfFalse(triviaToToggle != default);
                         var toggledTrivia = fixer.TogglePragmaDirective(triviaToToggle);
                         triviaList = triviaList.Replace(triviaToToggle, toggledTrivia);
                     }

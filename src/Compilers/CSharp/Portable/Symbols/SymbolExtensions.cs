@@ -259,6 +259,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Does the top level type containing this symbol have 'Microsoft.CodeAnalysis.Embedded' attribute?
+        /// </summary>
+        public static bool IsHiddenByCodeAnalysisEmbeddedAttribute(this Symbol symbol)
+        {
+            // Only upper-level types should be checked 
+            var upperLevelType = symbol.Kind == SymbolKind.NamedType ? (NamedTypeSymbol)symbol : symbol.ContainingType;
+            if ((object)upperLevelType == null)
+            {
+                return false;
+            }
+
+            while ((object)upperLevelType.ContainingType != null)
+            {
+                upperLevelType = upperLevelType.ContainingType;
+            }
+
+            return upperLevelType.HasCodeAnalysisEmbeddedAttribute;
+        }
+
         public static bool MustCallMethodsDirectly(this Symbol symbol)
         {
             switch (symbol.Kind)
@@ -379,6 +399,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     LocalSymbol local = (LocalSymbol)symbol;
                     refKind = local.RefKind;
                     returnType = local.Type;
+                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    break;
+                case SymbolKind.Parameter:
+                    ParameterSymbol parameter = (ParameterSymbol)symbol;
+                    refKind = parameter.RefKind;
+                    returnType = parameter.Type;
                     returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     break;

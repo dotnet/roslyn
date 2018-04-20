@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class LocalFunctionSymbol : SourceMethodSymbol
     {
-
         private readonly Binder _binder;
         private readonly LocalFunctionStatementSyntax _syntax;
         private readonly Symbol _containingSymbol;
@@ -41,16 +40,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntax = syntax;
             _containingSymbol = containingSymbol;
 
+            _declarationDiagnostics = new DiagnosticBag();
+
             _declarationModifiers =
                 DeclarationModifiers.Private |
                 DeclarationModifiers.Static |
-                syntax.Modifiers.ToDeclarationModifiers();
+                syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics);
+
+            this.CheckUnsafeModifier(_declarationModifiers, _declarationDiagnostics);
 
             ScopeBinder = binder;
 
             binder = binder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
-
-            _declarationDiagnostics = new DiagnosticBag();
 
             if (_syntax.TypeParameterList != null)
             {
@@ -73,8 +74,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ReportAttributesDisallowed(param.AttributeLists, _declarationDiagnostics);
             }
 
+            if (syntax.ReturnType.Kind() == SyntaxKind.RefType)
+            {
+                var returnType = (RefTypeSyntax)syntax.ReturnType;
+                if (returnType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword)
+                {
+                    _refKind = RefKind.RefReadOnly;
+                }
+                else
+                {
+                    _refKind = RefKind.Ref;
+                }
+            }
+            else
+            {
+                _refKind = RefKind.None;
+            }
+
             _binder = binder;
-            _refKind = (syntax.ReturnType.Kind() == SyntaxKind.RefType) ? RefKind.Ref : RefKind.None;
         }
 
         /// <summary>
@@ -145,7 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 arglistToken: out arglistToken,
                 allowRefOrOut: true,
                 allowThis: true,
+                addRefReadOnlyModifier: false,
                 diagnostics: diagnostics);
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilationForRefReadOnly: false);
 
             var isVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
             if (isVararg)
@@ -181,14 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override RefKind RefKind
-        {
-            get
-            {
-                return _refKind;
-            }
-        }
-
+        public override RefKind RefKind => _refKind;
+        
         internal void ComputeReturnType()
         {
             if (_lazyReturnType != null)
@@ -197,8 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
-            RefKind refKind;
-            TypeSyntax returnTypeSyntax = _syntax.ReturnType.SkipRef(out refKind);
+            TypeSyntax returnTypeSyntax = _syntax.ReturnType.SkipRef();
             TypeSymbol returnType = _binder.BindType(returnTypeSyntax, diagnostics);
             if (IsAsync &&
                 returnType.SpecialType != SpecialType.System_Void &&
@@ -209,7 +222,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
 
-            Debug.Assert(refKind == RefKind.None
+            if (_refKind == RefKind.RefReadOnly)
+            {
+                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, _syntax.ReturnType.Location, modifyCompilationForRefReadOnly: false);
+            }
+
+            Debug.Assert(_refKind == RefKind.None
                 || returnType.SpecialType != SpecialType.System_Void
                 || returnTypeSyntax.HasErrors);
 

@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -97,19 +96,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitBaseReference(node);
         }
 
-        public override BoundNode VisitLockStatement(BoundLockStatement node)
+        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
         {
-            this.Visit(node.Argument);
-            this.Visit(node.Body);
-            return null;
-        }
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, node);
+            }
 
-        public override BoundNode VisitTryStatement(BoundTryStatement node)
-        {
-            this.Visit(node.TryBlock);
-            this.VisitList(node.CatchBlocks);
-            this.Visit(node.FinallyBlockOpt);
-            return null;
+            return base.VisitSwitchExpression(node);
         }
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
@@ -700,6 +694,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitTupleLiteral(node);
+        }
+
+        public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, node);
+            }
+
+            return base.VisitTupleBinaryOperator(node);
         }
 
         public override BoundNode VisitThrowExpression(BoundThrowExpression node)

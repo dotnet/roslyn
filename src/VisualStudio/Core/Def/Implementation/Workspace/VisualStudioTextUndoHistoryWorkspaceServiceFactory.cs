@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
@@ -17,15 +12,17 @@ using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ExportWorkspaceServiceFactory(typeof(ITextUndoHistoryWorkspaceService), ServiceLayer.Host), Shared]
     internal class VisualStudioTextUndoHistoryWorkspaceServiceFactory : IWorkspaceServiceFactory
     {
         private readonly ITextUndoHistoryWorkspaceService _serviceSingleton;
 
         [ImportingConstructor]
-        public VisualStudioTextUndoHistoryWorkspaceServiceFactory()
+        public VisualStudioTextUndoHistoryWorkspaceServiceFactory(ITextUndoHistoryRegistry undoHistoryRegistry)
         {
-            _serviceSingleton = new TextUndoHistoryWorkspaceService();
+            _serviceSingleton = new TextUndoHistoryWorkspaceService(undoHistoryRegistry);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -35,48 +32,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
         {
-            public bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory)
+            private ITextUndoHistoryRegistry _undoHistoryRegistry;
+
+            public TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry undoHistoryRegistry)
             {
-                undoHistory = null;
-
-                if (!(editorWorkspace is VisualStudioWorkspaceImpl) &&
-                    !(editorWorkspace is MiscellaneousFilesWorkspace))
-                {
-                    return false;
-                }
-
-                // TODO: Handle undo if context changes
-                var documentId = editorWorkspace.GetDocumentIdInCurrentContext(textBuffer.AsTextContainer());
-                if (documentId == null)
-                {
-                    return false;
-                }
-
-                var document = GetDocument(editorWorkspace, documentId);
-                if (document == null)
-                {
-                    return false;
-                }
-
-                undoHistory = document.GetTextUndoHistory();
-                return true;
+                _undoHistoryRegistry = undoHistoryRegistry;
             }
 
-            private IVisualStudioHostDocument GetDocument(Workspace workspace, DocumentId id)
+            public bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory)
             {
-                var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
-                if (visualStudioWorkspace != null)
+                switch (editorWorkspace)
                 {
-                    return visualStudioWorkspace.GetHostDocument(id);
+                    case VisualStudioWorkspaceImpl visualStudioWorkspace:
+
+                        // TODO: Handle undo if context changes
+                        var documentId = editorWorkspace.GetDocumentIdInCurrentContext(textBuffer.AsTextContainer());
+                        if (documentId == null)
+                        {
+                            undoHistory = null;
+                            return false;
+                        }
+
+                        // In the Visual Studio case, there might be projection buffers involved for Venus,
+                        // where we associate undo history with the surface buffer and not the subject buffer.
+                        textBuffer = visualStudioWorkspace.GetHostDocument(documentId).GetTextUndoHistoryBuffer();
+
+                        break;
+
+                    case MiscellaneousFilesWorkspace miscellaneousFilesWorkspace:
+
+                        // Nothing to do in this case: textBuffer is correct!
+
+                        break;
+
+                    default:
+
+                        undoHistory = null;
+                        return false;
+
                 }
 
-                var miscWorkspace = workspace as MiscellaneousFilesWorkspace;
-                if (miscWorkspace != null)
-                {
-                    return miscWorkspace.GetDocument(id);
-                }
-
-                return null;
+                undoHistory = _undoHistoryRegistry.GetHistory(textBuffer);
+                return true;
             }
         }
     }

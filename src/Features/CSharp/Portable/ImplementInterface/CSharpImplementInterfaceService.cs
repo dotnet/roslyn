@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         {
             if (!cancellationToken.IsCancellationRequested)
             {
-                var interfaceNode = node as TypeSyntax;
-                if (interfaceNode != null && interfaceNode.Parent is BaseTypeSyntax &&
+                if (node is TypeSyntax interfaceNode && interfaceNode.Parent is BaseTypeSyntax &&
                     interfaceNode.Parent.IsParentKind(SyntaxKind.BaseList) &&
                     ((BaseTypeSyntax)interfaceNode.Parent).Type == interfaceNode)
                 {

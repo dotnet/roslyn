@@ -28,5 +28,31 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                     </Project>
                 </Workspace>)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Async Function VerifyHighlightsWithNonCompilationProject_P2P() As System.Threading.Tasks.Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" Name="CSharpProject">
+                        <Document>
+                            using System;
+                            public class {|Definition:$$C|}
+                            {
+                                void Blah()
+                                {
+                                    Console.WriteLine();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                    <Project Language="NoCompilation">
+                        <ProjectReference>CSharpProject</ProjectReference>
+                        <Document>
+                            class C {
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>)
+        End Function
     End Class
 End Namespace

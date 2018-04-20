@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void NewLines1()
         {
-            var data = Create("foo" + Environment.NewLine + " bar");
+            var data = Create("goo" + Environment.NewLine + " bar");
             Assert.Equal(2, data.Lines.Count);
             Assert.Equal(3, data.Lines[0].Span.Length);
             Assert.Equal(5, data.Lines[1].Span.Start);
@@ -61,12 +61,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void NewLines2()
         {
             var text =
-@"foo
+@"goo
 bar
 baz";
             var data = Create(text);
             Assert.Equal(3, data.Lines.Count);
-            Assert.Equal("foo", data.ToString(data.Lines[0].Span));
+            Assert.Equal("goo", data.ToString(data.Lines[0].Span));
             Assert.Equal("bar", data.ToString(data.Lines[1].Span));
             Assert.Equal("baz", data.ToString(data.Lines[2].Span));
         }
@@ -74,16 +74,16 @@ baz";
         [Fact]
         public void NewLines3()
         {
-            var data = Create("foo\r\nbar");
+            var data = Create("goo\r\nbar");
             Assert.Equal(2, data.Lines.Count);
-            Assert.Equal("foo", data.ToString(data.Lines[0].Span));
+            Assert.Equal("goo", data.ToString(data.Lines[0].Span));
             Assert.Equal("bar", data.ToString(data.Lines[1].Span));
         }
 
         [Fact]
         public void NewLines4()
         {
-            var data = Create("foo\n\rbar");
+            var data = Create("goo\n\rbar");
             Assert.Equal(3, data.Lines.Count);
         }
 
@@ -91,25 +91,25 @@ baz";
         public void LinesGetText1()
         {
             var data = Create(
-@"foo
+@"goo
 bar baz");
             Assert.Equal(2, data.Lines.Count);
-            Assert.Equal("foo", data.Lines[0].ToString());
+            Assert.Equal("goo", data.Lines[0].ToString());
             Assert.Equal("bar baz", data.Lines[1].ToString());
         }
 
         [Fact]
         public void LinesGetText2()
         {
-            var data = Create("foo");
-            Assert.Equal("foo", data.Lines[0].ToString());
+            var data = Create("goo");
+            Assert.Equal("goo", data.Lines[0].ToString());
         }
 
 #if false
         [Fact]
         public void TextLine1()
         {
-            var text = Create("foo" + Environment.NewLine);
+            var text = Create("goo" + Environment.NewLine);
             var span = new TextSpan(0, 3);
             var line = new TextLine(text, 0, 0, text.Length);
             Assert.Equal(span, line.Extent);
@@ -120,7 +120,7 @@ bar baz");
         [Fact]
         public void GetText1()
         {
-            var text = Create("foo");
+            var text = Create("goo");
             var line = new TextLine(text, 0, 0, 2);
             Assert.Equal("fo", line.ToString());
             Assert.Equal(0, line.LineNumber);

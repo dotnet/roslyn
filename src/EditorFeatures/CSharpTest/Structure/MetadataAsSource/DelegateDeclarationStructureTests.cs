@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
@@ -28,7 +28,7 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
         public async Task WithAttributes()
         {
             const string code = @"
-{|hint:{|textspan:[Foo]
+{|hint:{|textspan:[Goo]
 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
             await VerifyBlockSpansAsync(code,
@@ -41,7 +41,7 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
             const string code = @"
 {|hint:{|textspan:// Summary:
 //     This is a summary.
-[Foo]
+[Goo]
 |}delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
             await VerifyBlockSpansAsync(code,
@@ -54,7 +54,7 @@ public delegate TResult $$Blah<in T, out TResult>(T arg);";
             const string code = @"
 {|hint:{|textspan:// Summary:
 //     This is a summary.
-[Foo]
+[Goo]
 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}";
 
             await VerifyBlockSpansAsync(code,

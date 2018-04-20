@@ -15,9 +15,5 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
         Public Sub New(<ImportMany> streamingPresenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)))
             MyBase.New(streamingPresenters)
         End Sub
-
-        Protected Overrides Function FindRelatedExplicitlyDeclaredSymbol(symbol As ISymbol, compilation As Compilation) As ISymbol
-            Return symbol.FindRelatedExplicitlyDeclaredSymbol(compilation)
-        End Function
     End Class
 End Namespace

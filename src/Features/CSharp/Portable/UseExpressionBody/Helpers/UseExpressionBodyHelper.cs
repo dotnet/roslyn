@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public abstract ArrowExpressionClauseSyntax GetExpressionBody(SyntaxNode declaration);
 
         public abstract bool CanOfferUseExpressionBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
-        public abstract bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
+        public abstract (bool canOffer, bool fixesError) CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer);
         public abstract SyntaxNode Update(SyntaxNode declaration, OptionSet options, ParseOptions parseOptions, bool useExpressionBody);
 
         public abstract Location GetDiagnosticLocation(SyntaxNode declaration);

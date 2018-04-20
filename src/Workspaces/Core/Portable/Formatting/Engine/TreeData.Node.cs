@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     currentToken = currentToken.GetPreviousToken(includeZeroWidth: true);
                 }
 
-                return default(SyntaxToken);
+                return default;
             }
 
             public override string GetTextBetween(SyntaxToken token1, SyntaxToken token2)

@@ -593,8 +593,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             out SyntaxToken genericIdentifier,
             out SyntaxToken lessThanToken)
         {
-            genericIdentifier = default(SyntaxToken);
-            lessThanToken = default(SyntaxToken);
+            genericIdentifier = default;
+            lessThanToken = default;
             int index = 0;
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             // ~~~~~~~~~<a,b,...
                             // but we need to know the simple name that precedes the <
                             // it could be
-                            // ~~~~~~foo<a,b,...
+                            // ~~~~~~goo<a,b,...
                             if (token.Kind() == SyntaxKind.IdentifierToken)
                             {
                                 // okay now check whether it is actually partially written

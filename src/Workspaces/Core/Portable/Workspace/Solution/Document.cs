@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool TryGetSyntaxVersion(out VersionStamp version)
         {
-            version = default(VersionStamp);
+            version = default;
             if (!this.TryGetTextVersion(out var textVersion))
             {
                 return false;
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the version of the syntax tree. This is generally the newer of the text version and the project's version.
         /// </summary>
-        public async Task<VersionStamp> GetSyntaxVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<VersionStamp> GetSyntaxVersionAsync(CancellationToken cancellationToken = default)
         {
             var textVersion = await this.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
             var projectVersion = this.Project.Version;
@@ -131,18 +131,18 @@ namespace Microsoft.CodeAnalysis
 
 
         /// <summary>
-        /// <code>true</code> if this Document supports providing data through the
+        /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSyntaxTreeAsync"/> and <see cref="GetSyntaxRootAsync"/> methods.
         /// 
-        /// If <code>false</code> then these methods will return <code>null</code> instead.
+        /// If <see langword="false"/> then these methods will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSyntaxTree => DocumentState.SupportsSyntaxTree;
 
         /// <summary>
-        /// <code>true</code> if this Document supports providing data through the
+        /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSemanticModelAsync"/> method.
         /// 
-        /// If <code>false</code> then this method will return <code>null</code> instead.
+        /// If <see langword="false"/> then this method will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSemanticModel
         {
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the <see cref="SyntaxTree" /> for this document asynchronously.
         /// </summary>
-        public Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<SyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
         {
             // If the language doesn't support getting syntax trees for a document, then bail out immediately.
             if (!this.SupportsSyntaxTree)
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the root node of the syntax tree asynchronously.
         /// </summary>
-        public async Task<SyntaxNode> GetSyntaxRootAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<SyntaxNode> GetSyntaxRootAsync(CancellationToken cancellationToken = default)
         {
             if (!this.SupportsSyntaxTree)
             {
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the semantic model for this document asynchronously.
         /// </summary>
-        public async Task<SemanticModel> GetSemanticModelAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<SemanticModel> GetSemanticModelAsync(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -276,15 +276,18 @@ namespace Microsoft.CodeAnalysis
                     return result;
                 }
 
-                // it looks like someone has set it. try to reuse same semantic model
-                if (original.TryGetTarget(out semanticModel))
+                // It looks like someone has set it. Try to reuse same semantic model, or assign the new model if that
+                // fails. The lock is required since there is no compare-and-set primitive for WeakReference<T>.
+                lock (original)
                 {
-                    return semanticModel;
-                }
+                    if (original.TryGetTarget(out semanticModel))
+                    {
+                        return semanticModel;
+                    }
 
-                // it looks like cache is gone. reset the cache.
-                original.SetTarget(result);
-                return result;
+                    original.SetTarget(result);
+                    return result;
+                }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -345,7 +348,7 @@ namespace Microsoft.CodeAnalysis
         /// Get the text changes between this document and a prior version of the same document.
         /// The changes, when applied to the text of the old document, will produce the text of the current document.
         /// </summary>
-        public async Task<IEnumerable<TextChange>> GetTextChangesAsync(Document oldDocument, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IEnumerable<TextChange>> GetTextChangesAsync(Document oldDocument, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -425,7 +428,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Use this method to gain access to potentially incomplete semantics quickly.
         /// </summary>
-        internal async Task<Document> WithFrozenPartialSemanticsAsync(CancellationToken cancellationToken)
+        internal Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
         {
             var solution = this.Project.Solution;
             var workspace = solution.Workspace;
@@ -439,7 +442,7 @@ namespace Microsoft.CodeAnalysis
                 workspace.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
-                var newSolution = await this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocumentAsync(this.Id, cancellationToken).ConfigureAwait(false);
+                var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
                 return newSolution.GetDocument(this.Id);
             }
             else
@@ -462,11 +465,12 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// This method is async because this may require reading other files. In files that are already open, this is expected to be cheap and complete synchronously.
         /// </remarks>
-        public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<DocumentOptionSet> GetOptionsAsync(CancellationToken cancellationToken = default)
         {
             return GetOptionsAsync(Project.Solution.Options, cancellationToken);
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", AllowCaptures = false)]
         internal Task<DocumentOptionSet> GetOptionsAsync(OptionSet solutionOptions, CancellationToken cancellationToken)
         {
             // TODO: we have this workaround since Solution.Options is not actually snapshot but just return Workspace.Options which violate snapshot model.
@@ -475,17 +479,22 @@ namespace Microsoft.CodeAnalysis
             //       snapshot model. once that is fixed, we can remove this workaround - https://github.com/dotnet/roslyn/issues/19284
             if (_cachedOptions == null)
             {
-                var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
-                {
-                    var optionsService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-                    var documentOptionSet = await optionsService.GetUpdatedOptionSetForDocumentAsync(this, solutionOptions, c).ConfigureAwait(false);
-                    return new DocumentOptionSet(documentOptionSet, Project.Language);
-                }, cacheResult: true);
-
-                Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
+                InitializeCachedOptions(solutionOptions, cancellationToken);
             }
 
             return _cachedOptions.GetValueAsync(cancellationToken);
+        }
+
+        private void InitializeCachedOptions(OptionSet solutionOptions, CancellationToken cancellationToken)
+        {
+            var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
+            {
+                var optionsService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+                var documentOptionSet = await optionsService.GetUpdatedOptionSetForDocumentAsync(this, solutionOptions, c).ConfigureAwait(false);
+                return new DocumentOptionSet(documentOptionSet, Project.Language);
+            }, cacheResult: true);
+
+            Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
         }
     }
 }

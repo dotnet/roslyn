@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public static async Task<IEnumerable<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document,
             TextSpan textSpan,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var semanticModel = await document.GetSemanticModelForSpanAsync(textSpan, cancellationToken).ConfigureAwait(false);
             return GetClassifiedSpans(semanticModel, textSpan, document.Project.Solution.Workspace, cancellationToken);
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification
             SemanticModel semanticModel,
             TextSpan textSpan,
             Workspace workspace,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxClassificationService>();
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Classification
         internal static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
             Document document,
             TextSpan textSpan,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
  
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Classification
  
         internal static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
             SemanticModel semanticModel, TextSpan textSpan, Workspace workspace,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var classifiedSpans = GetClassifiedSpans(semanticModel, textSpan, workspace, cancellationToken);
             var sourceText = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -150,6 +150,16 @@ namespace Microsoft.CodeAnalysis.Classification
                     return SymbolDisplayPartKind.ModuleName;
                 case ClassificationTypeNames.VerbatimStringLiteral:
                     return SymbolDisplayPartKind.StringLiteral;
+                case ClassificationTypeNames.FieldName:
+                case ClassificationTypeNames.EnumMemberName:
+                case ClassificationTypeNames.ConstantName:
+                case ClassificationTypeNames.LocalName:
+                case ClassificationTypeNames.ParameterName:
+                case ClassificationTypeNames.ExtensionMethodName:
+                case ClassificationTypeNames.MethodName:
+                case ClassificationTypeNames.PropertyName:
+                case ClassificationTypeNames.EventName:
+                    return SymbolDisplayPartKind.Text;      // TODO: Add more SymbolDisplayPartKinds 
             }
         }
     }

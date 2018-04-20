@@ -1,16 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
   <PropertyGroup>
     <GeneratedAssemblyInfoFile>$(IntermediateOutputPath)GeneratedAssemblyInfo_$(BuildVersion)$(DefaultLanguageSourceExtension)</GeneratedAssemblyInfoFile>
   </PropertyGroup>
 
   <ItemGroup>
     <AssemblyVersionAttribute Include="System.Reflection.AssemblyCompanyAttribute">
-      <_Parameter1>Microsoft Corporation</_Parameter1>
+      <_Parameter1>$(Company)</_Parameter1>
     </AssemblyVersionAttribute>
     <AssemblyVersionAttribute Include="System.Reflection.AssemblyCopyrightAttribute">
-      <_Parameter1>© Microsoft Corporation. All rights reserved.</_Parameter1>
+      <_Parameter1>$(Copyright)</_Parameter1>
     </AssemblyVersionAttribute>
     <AssemblyVersionAttribute Include="System.Reflection.AssemblyVersionAttribute">
       <_Parameter1>$(AssemblyVersion)</_Parameter1>
@@ -19,7 +24,7 @@
       <_Parameter1>$(BuildVersion)</_Parameter1>
     </AssemblyVersionAttribute>
     <AssemblyVersionAttribute Include="System.Reflection.AssemblyInformationalVersionAttribute">
-      <_Parameter1>$(NuGetPerBuildPreReleaseVersion). Commit Hash: $(GitHeadSha)</_Parameter1>
+      <_Parameter1>$(InformationalVersion)</_Parameter1>
     </AssemblyVersionAttribute>
   </ItemGroup>
 

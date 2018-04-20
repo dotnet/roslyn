@@ -32,8 +32,7 @@ Class C
             .i = 1
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -55,8 +54,7 @@ Class C
             .i = 1
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -80,8 +78,7 @@ Class C
             .i = 1
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -105,8 +102,7 @@ Class C
         }
         c.i = 2
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -136,8 +132,7 @@ Class C
             .j = 2
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -163,8 +158,7 @@ Class C
         }
         c.j += 1
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -224,7 +218,7 @@ Class C
                          End Sub()
         }
     End Sub
-End Class", ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -263,8 +257,7 @@ Class C
             .j = 4
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -276,7 +269,7 @@ Class C
     Dim j As Integer
     Sub M()
         Dim c = [||]New C()
-        c.i = 1 ' Foo
+        c.i = 1 ' Goo
         c.j = 2 ' Bar
     End Sub
 End Class",
@@ -286,12 +279,11 @@ Class C
     Dim j As Integer
     Sub M()
         Dim c = New C With {
-            .i = 1, ' Foo
+            .i = 1, ' Goo
             .j = 2 ' Bar
             }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
@@ -317,8 +309,7 @@ Class C
             .WhitespaceHandling = WhitespaceHandling.All
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
@@ -347,8 +338,7 @@ Class C
             .WhitespaceHandling = WhitespaceHandling.All
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <WorkItem(401322, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401322")>
@@ -378,7 +368,8 @@ Class C
         }
         z.y = 2
     End Sub
-End Class")
+End Class
+")
         End Function
     End Class
 End Namespace

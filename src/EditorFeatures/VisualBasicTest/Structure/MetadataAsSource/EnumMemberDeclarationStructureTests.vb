@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 Enum E
-    $$Foo
+    $$Goo
     Bar
 End Enum
 "
@@ -36,7 +36,7 @@ End Enum
             Dim code = "
 Enum E
     {|hint:{|textspan:<Blah>
-    |}$$Foo|}
+    |}$$Goo|}
     Bar
 End Enum
 "
@@ -52,7 +52,7 @@ Enum E
     {|hint:{|textspan:' Summary:
     '     This is a summary.
     <Blah>
-    |}$$Foo|}
+    |}$$Goo|}
     Bar
 End Enum
 "

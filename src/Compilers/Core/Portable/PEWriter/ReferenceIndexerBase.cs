@@ -147,12 +147,14 @@ namespace Microsoft.Cci
                 IMethodReference unspecializedMethodReference = specializedMethodReference.UnspecializedVersion;
                 this.Visit(unspecializedMethodReference.GetType(Context));
                 this.Visit(unspecializedMethodReference.GetParameters(Context));
+                this.Visit(unspecializedMethodReference.RefCustomModifiers);
                 this.Visit(unspecializedMethodReference.ReturnValueCustomModifiers);
             }
             else
             {
                 this.Visit(methodReference.GetType(Context));
                 this.Visit(methodReference.GetParameters(Context));
+                this.Visit(methodReference.RefCustomModifiers);
                 this.Visit(methodReference.ReturnValueCustomModifiers);
             }
 

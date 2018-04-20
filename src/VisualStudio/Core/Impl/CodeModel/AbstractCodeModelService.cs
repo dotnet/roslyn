@@ -319,7 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract bool IsOptionNode(SyntaxNode node);
         public abstract bool IsImportNode(SyntaxNode node);
 
-        public ISymbol ResolveSymbol(Workspace workspace, ProjectId projectId, SymbolKey symbolId)
+        public ISymbol ResolveSymbol(Microsoft.CodeAnalysis.Workspace workspace, ProjectId projectId, SymbolKey symbolId)
         {
             var project = workspace.CurrentSolution.GetProject(projectId);
 

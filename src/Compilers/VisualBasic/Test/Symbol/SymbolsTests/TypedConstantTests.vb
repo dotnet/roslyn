@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
         Private ReadOnly _arrayType As ArrayTypeSymbol
 
         Public Sub New()
-            _compilation = VisualBasicCompilation.Create("foo")
+            _compilation = VisualBasicCompilation.Create("goo")
             _namedType = _compilation.GetSpecialType(SpecialType.System_Byte)
             _systemType = _compilation.GetWellKnownType(WellKnownType.System_Type)
             _arrayType = _compilation.CreateArrayTypeSymbol(_compilation.GetSpecialType(SpecialType.System_Object))

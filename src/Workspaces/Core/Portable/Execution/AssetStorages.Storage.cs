@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Execution
             // cache to remove lambda allocation
             private readonly static Func<ConcurrentDictionary<Checksum, CustomAsset>> s_additionalAssetsCreator = () => new ConcurrentDictionary<Checksum, CustomAsset>(concurrencyLevel: 2, capacity: 10);
 
-            private readonly Serializer _serializer;
+            private readonly ISerializerService _serializer;
 
             // additional assets that is not part of solution but added explicitly
             private ConcurrentDictionary<Checksum, CustomAsset> _additionalAssets;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 SolutionState = solutionState;
 
-                _serializer = new Serializer(SolutionState.Workspace);
+                _serializer = SolutionState.Workspace.Services.GetService<ISerializerService>();
             }
 
             public SolutionState SolutionState { get; }
@@ -144,22 +144,14 @@ namespace Microsoft.CodeAnalysis.Execution
 
             private static string GetLogInfo<T>(T key)
             {
-                var solutionState = key as SolutionState;
-                if (solutionState != null)
+                switch (key)
                 {
-                    return solutionState.FilePath;
-                }
-
-                var projectState = key as ProjectState;
-                if (projectState != null)
-                {
-                    return projectState.FilePath;
-                }
-
-                var documentState = key as DocumentState;
-                if (documentState != null)
-                {
-                    return documentState.FilePath;
+                    case SolutionState solutionState:
+                        return solutionState.FilePath;
+                    case ProjectState projectState:
+                        return projectState.FilePath;
+                    case DocumentState documentState:
+                        return documentState.FilePath;
                 }
 
                 return "no detail";
@@ -169,10 +161,10 @@ namespace Microsoft.CodeAnalysis.Execution
         private struct SolutionChecksumFinder
         {
             private readonly SolutionState _state;
-            private readonly Serializer _serializer;
+            private readonly ISerializerService _serializer;
             private readonly CancellationToken _cancellationToken;
 
-            public SolutionChecksumFinder(SolutionState state, Serializer serializer, CancellationToken cancellationToken) : this()
+            public SolutionChecksumFinder(SolutionState state, ISerializerService serializer, CancellationToken cancellationToken) : this()
             {
                 _state = state;
                 _serializer = serializer;

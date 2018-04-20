@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
+    <[UseExportProvider]>
     Partial Public Class ExtractMethodTests
         Protected Shared Async Function ExpectExtractMethodToFailAsync(codeWithMarker As XElement, Optional dontPutOutOrRefOnStruct As Boolean = True) As Tasks.Task
             Dim codeWithoutMarker As String = Nothing
@@ -43,8 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Optional temporaryFailing As Boolean = False,
             Optional allowMovingDeclaration As Boolean = True,
             Optional dontPutOutOrRefOnStruct As Boolean = True,
-            Optional metadataReference As String = Nothing,
-            Optional ignoreTrivia As Boolean = False
+            Optional metadataReference As String = Nothing
         ) As Tasks.Task
 
             Dim metadataReferences = If(metadataReference Is Nothing, Array.Empty(Of String)(), New String() {metadataReference})
@@ -65,11 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                 If temporaryFailing Then
                     Assert.NotEqual(expected, subjectBuffer.CurrentSnapshot.GetText())
                 Else
-                    If ignoreTrivia Then
-                        TokenUtilities.AssertTokensEqual(expected, subjectBuffer.CurrentSnapshot.GetText(), LanguageNames.VisualBasic)
-                    Else
-                        Assert.Equal(expected, subjectBuffer.CurrentSnapshot.GetText())
-                    End If
+                    Assert.Equal(expected, subjectBuffer.CurrentSnapshot.GetText())
                 End If
             End Using
         End Function
@@ -80,11 +76,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Optional temporaryFailing As Boolean = False,
             Optional allowMovingDeclaration As Boolean = True,
             Optional dontPutOutOrRefOnStruct As Boolean = True,
-            Optional metadataReference As String = Nothing,
-            Optional ignoreTrivia As Boolean = False
+            Optional metadataReference As String = Nothing
         ) As Tasks.Task
 
-            Await TestExtractMethodAsync(codeWithMarker.NormalizedValue, expected.NormalizedValue, temporaryFailing, allowMovingDeclaration, dontPutOutOrRefOnStruct, metadataReference, ignoreTrivia)
+            Await TestExtractMethodAsync(codeWithMarker.NormalizedValue, expected.NormalizedValue, temporaryFailing, allowMovingDeclaration, dontPutOutOrRefOnStruct, metadataReference)
         End Function
 
         Private Shared Async Function ExtractMethodAsync(workspace As TestWorkspace,

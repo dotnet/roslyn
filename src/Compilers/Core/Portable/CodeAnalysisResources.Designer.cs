@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CodeAnalysisResources {
@@ -406,6 +406,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic has an ID &apos;{0}&apos;, which only a compiler should be reporting..
+        /// </summary>
+        internal static string CompilerDiagnosticIdReported {
+            get {
+                return ResourceManager.GetString("CompilerDiagnosticIdReported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to constructor.
         /// </summary>
         internal static string Constructor {
@@ -460,11 +469,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Embedded texts are only supported when emitting Portable PDB..
+        ///   Looks up a localized string similar to Embedded texts are only supported when emitting a PDB..
         /// </summary>
-        internal static string EmbeddedTextsRequirePortablePdb {
+        internal static string EmbeddedTextsRequirePdb {
             get {
-                return ResourceManager.GetString("EmbeddedTextsRequirePortablePdb", resourceCulture);
+                return ResourceManager.GetString("EmbeddedTextsRequirePdb", resourceCulture);
             }
         }
         
@@ -538,6 +547,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ExceptionContext {
             get {
                 return ResourceManager.GetString("ExceptionContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Could not enable multicore JIT due to exception: {0}..
+        /// </summary>
+        internal static string ExceptionEnablingMulticoreJit {
+            get {
+                return ResourceManager.GetString("ExceptionEnablingMulticoreJit", resourceCulture);
             }
         }
         
@@ -839,15 +857,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Feature &apos;IOperation&apos; is disabled..
-        /// </summary>
-        internal static string IOperationFeatureDisabled {
-            get {
-                return ResourceManager.GetString("IOperationFeatureDisabled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Argument to &apos;/keepalive&apos; option is not a 32-bit integer..
         /// </summary>
         internal static string KeepAliveIsNotAnInteger {
@@ -871,15 +880,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string KeepAliveWithoutShared {
             get {
                 return ResourceManager.GetString("KeepAliveWithoutShared", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A key in the pathMap ends with a path separator..
-        /// </summary>
-        internal static string KeyInPathMapEndsWithSeparator {
-            get {
-                return ResourceManager.GetString("KeyInPathMapEndsWithSeparator", resourceCulture);
             }
         }
         

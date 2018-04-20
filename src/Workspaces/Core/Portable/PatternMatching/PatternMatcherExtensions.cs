@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             var matches = ArrayBuilder<PatternMatch>.GetInstance();
             matcher.AddMatches(candidate, matches);
 
-            var result = matches.FirstOrNullable();
+            var result = matches.Any() ? (PatternMatch?)matches.First() : null;
             matches.Free();
 
             return result;

@@ -72,8 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // check existing metadata
             if (_metadataCache.TryGetSource(key, out var source))
             {
-                var metadata = source as RecoverableMetadataValueSource;
-                if (metadata != null)
+                if (source is RecoverableMetadataValueSource metadata)
                 {
                     return metadata.GetStorages();
                 }
@@ -87,9 +86,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return new VisualStudioMetadataReference.Snapshot(this, properties, filePath);
         }
 
-        public VisualStudioMetadataReference CreateMetadataReference(IVisualStudioHostProject hostProject, string filePath, MetadataReferenceProperties properties)
+        public VisualStudioMetadataReference CreateMetadataReference(string filePath, MetadataReferenceProperties properties)
         {
-            return new VisualStudioMetadataReference(this, hostProject, filePath, properties);
+            return new VisualStudioMetadataReference(this, filePath, properties);
         }
 
         public void ClearCache()
@@ -236,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <exception cref="BadImageFormatException" />
         private bool TryCreateAssemblyMetadataFromMetadataImporter(FileKey fileKey, out AssemblyMetadata metadata)
         {
-            metadata = default(AssemblyMetadata);
+            metadata = default;
 
             var manifestModule = TryCreateModuleMetadataFromMetadataImporter(fileKey);
             if (manifestModule == null)
@@ -285,9 +284,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // it won't be changed in the middle of VS running.
                 var fullPath = fileKey.FullPath;
 
-                info = default(IMetaDataInfo);
-                pImage = default(IntPtr);
-                length = default(long);
+                info = default;
+                pImage = default;
+                length = default;
 
                 if (SmartOpenScopeServiceOpt == null)
                 {

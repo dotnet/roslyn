@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService>
     {
-        internal class VsLanguageDebugInfo : IVsLanguageDebugInfo
+        internal sealed class VsLanguageDebugInfo
         {
             private readonly Guid _languageId;
             private readonly TLanguageService _languageService;
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             public int GetLocationOfName(string pszName, out string pbstrMkDoc, out VsTextSpan pspanLocation)
             {
                 pbstrMkDoc = null;
-                pspanLocation = default(VsTextSpan);
+                pspanLocation = default;
                 return VSConstants.E_NOTIMPL;
             }
 
@@ -278,7 +278,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 if (textBuffer != null)
                 {
                     var snapshot = textBuffer.CurrentSnapshot;
-                    Document document = snapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                    Document document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                     if (document != null)
                     {
                         var point = snapshot.GetPoint(iLine, iCol);
@@ -287,8 +287,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         {
                             // If we have a non-empty span then it means that the debugger is asking us to adjust an
                             // existing span.  In Everett we didn't do this so we had some good and some bad
-                            // behavior.  For example if you had a breakpoint on: "int i;" and you changed it to "int
-                            // i = 4;", then the breakpoint wouldn't adjust.  That was bad.  However, if you had the
+                            // behavior.  For example if you had a breakpoint on: "int i = 1;" and you changed it to "int
+                            // i = 1, j = 2;", then the breakpoint wouldn't adjust.  That was bad.  However, if you had the
                             // breakpoint on an open or close curly brace then it would always "stick" to that brace
                             // which was good.
                             //
@@ -308,7 +308,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                 var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
                                 if (tree.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
                                 {
-                                    return VSConstants.E_FAIL;
+                                    // Keep the span as is.
+                                    return VSConstants.S_OK;
                                 }
                             }
 
@@ -325,7 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         // NOTE(cyrusn): we need to wait here because ValidateBreakpointLocation is
                         // synchronous.  In the future, it would be nice for the debugger to provide
                         // an async entry point for this.
-                        var breakpoint = _breakpointService.ResolveBreakpointAsync(document, new CodeAnalysis.Text.TextSpan(point.Position, length), cancellationToken).WaitAndGetResult(cancellationToken);
+                        var breakpoint = _breakpointService.ResolveBreakpointAsync(document, new TextSpan(point.Position, length), cancellationToken).WaitAndGetResult(cancellationToken);
                         if (breakpoint == null)
                         {
                             // There should *not* be a breakpoint here.  E_FAIL to let the debugger know

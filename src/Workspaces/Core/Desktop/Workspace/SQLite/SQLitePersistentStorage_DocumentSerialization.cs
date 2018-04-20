@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.SQLite
 {
     internal partial class SQLitePersistentStorage
     {
-        public override Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default)
             => _documentAccessor.ReadStreamAsync((document, name), cancellationToken);
 
-        public override Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default)
             => _documentAccessor.WriteStreamAsync((document, name), stream, cancellationToken);
 
         /// <summary>

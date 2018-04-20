@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // If we have no remaining handlers to execute, then we'll execute our last handler
             if (index >= _formattingRules.Count)
             {
-                return default(TResult);
+                return default;
             }
             else
             {

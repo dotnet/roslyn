@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Retrieves a <see cref="SourceText"/> with the contents of this file.
         /// </summary>
-        public override SourceText GetText(CancellationToken cancellationToken = default(CancellationToken))
+        public override SourceText GetText(CancellationToken cancellationToken = default)
         {
             var text = _document.GetTextSynchronously(cancellationToken);
             return text;

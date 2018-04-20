@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// Some error messages are particularly confusing if multiple placeholders are substituted
-    /// with the same string.  For example, "cannot convert from 'Foo' to 'Foo'".  Usually, this
+    /// with the same string.  For example, "cannot convert from 'Goo' to 'Goo'".  Usually, this
     /// occurs because there are two types in different contexts with the same qualified name.
     /// The solution is to provide additional qualification on each symbol - either a source
     /// location, an assembly path, or an assembly identity.
@@ -36,12 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _symbol1 = symbol1;
         }
 
-        public IMessageSerializable First
+        public IFormattable First
         {
             get { return new Description(this, 0); }
         }
 
-        public IMessageSerializable Second
+        public IFormattable Second
         {
             get { return new Description(this, 1); }
         }
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyDescriptions[index];
         }
 
-        private sealed class Description : IMessageSerializable
+        private sealed class Description : IFormattable
         {
             private readonly SymbolDistinguisher _distinguisher;
             private readonly int _index;
@@ -235,6 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override string ToString()
             {
                 return _distinguisher.GetDescription(_index);
+            }
+
+            string IFormattable.ToString(string format, IFormatProvider formatProvider)
+            {
+                return ToString();
             }
         }
     }

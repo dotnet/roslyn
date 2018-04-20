@@ -265,6 +265,15 @@ namespace Microsoft.CodeAnalysis
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute,
 
+        System_Runtime_CompilerServices_IsReadOnlyAttribute,
+        System_Runtime_CompilerServices_IsByRefLikeAttribute,
+        System_Runtime_InteropServices_InAttribute,
+        System_ObsoleteAttribute,
+        System_Span_T,
+        System_ReadOnlySpan_T,
+        System_Runtime_InteropServices_UnmanagedType,
+        System_Runtime_CompilerServices_IsUnmanagedAttribute,
+
         NextAvailable,
     }
 
@@ -522,7 +531,16 @@ namespace Microsoft.CodeAnalysis
 
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 
-            "System.Runtime.CompilerServices.ReferenceAssemblyAttribute"
+            "System.Runtime.CompilerServices.ReferenceAssemblyAttribute",
+
+            "System.Runtime.CompilerServices.IsReadOnlyAttribute",
+            "System.Runtime.CompilerServices.IsByRefLikeAttribute",
+            "System.Runtime.InteropServices.InAttribute",
+            "System.ObsoleteAttribute",
+            "System.Span`1",
+            "System.ReadOnlySpan`1",
+            "System.Runtime.InteropServices.UnmanagedType",
+            "System.Runtime.CompilerServices.IsUnmanagedAttribute",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

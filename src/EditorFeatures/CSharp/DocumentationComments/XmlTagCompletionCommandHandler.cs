@@ -5,23 +5,25 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 {
-    [ExportCommandHandler("XmlTagCompletionCommandHandler", ContentTypeNames.CSharpContentType)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(nameof(XmlTagCompletionCommandHandler))]
     [Order(Before = PredefinedCommandHandlerNames.Completion)]
     internal class XmlTagCompletionCommandHandler : AbstractXmlTagCompletionCommandHandler
     {
         [ImportingConstructor]
-        public XmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory, IWaitIndicator waitIndicator)
-            : base(undoHistory, waitIndicator)
+        public XmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory)
+            : base(undoHistory)
         {
         }
 
@@ -95,8 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
         private bool HasUnmatchedIdenticalParent(XmlElementStartTagSyntax parentStartTag)
         {
-            var grandParentElement = parentStartTag.Parent.Parent as XmlElementSyntax;
-            if (grandParentElement != null)
+            if (parentStartTag.Parent.Parent is XmlElementSyntax grandParentElement)
             {
                 if (grandParentElement.StartTag.Name.LocalName.ValueText == parentStartTag.Name.LocalName.ValueText)
                 {

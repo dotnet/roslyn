@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -21,17 +23,22 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         {
             private readonly bool _includeMatchedSpans;
             private readonly string _candidate;
-            private readonly StringBreaks _candidateHumps;
+            private readonly ArrayBuilder<TextSpan> _candidateHumps;
             private readonly TextChunk _patternChunk;
             private readonly string _patternText;
+            private readonly TextInfo _textInfo;
 
-            public AllLowerCamelCaseMatcher(bool includeMatchedSpans, string candidate, StringBreaks candidateHumps, TextChunk patternChunk)
+            public AllLowerCamelCaseMatcher(
+                bool includeMatchedSpans, string candidate,
+                ArrayBuilder<TextSpan> candidateHumps, TextChunk patternChunk,
+                TextInfo textInfo)
             {
                 _includeMatchedSpans = includeMatchedSpans;
                 _candidate = candidate;
                 _candidateHumps = candidateHumps;
                 _patternChunk = patternChunk;
                 _patternText = _patternChunk.Text;
+                _textInfo = textInfo;
             }
 
             /// <summary>
@@ -78,7 +85,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     // We are contiguous if our contiguous tracker was not set to false.
                     var matchedSpansInReverse = _includeMatchedSpans ? ArrayBuilder<TextSpan>.GetInstance() : null;
                     return new CamelCaseResult(
-                        fromStart: false, 
+                        fromStart: false,
                         contiguous: contiguous != false,
                         matchCount: 0,
                         matchedSpansInReverse: matchedSpansInReverse);
@@ -88,7 +95,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                 // Look for a hump in the candidate that matches the current letter we're on.
                 var patternCharacter = _patternText[patternIndex];
-                for (int humpIndex = candidateHumpIndex, n = _candidateHumps.GetCount(); humpIndex < n; humpIndex++)
+                for (int humpIndex = candidateHumpIndex, n = _candidateHumps.Count; humpIndex < n; humpIndex++)
                 {
                     // If we've been contiguous, but we jumped past a hump, then we're no longer contiguous.
                     if (contiguous.HasValue && contiguous.Value)
@@ -97,7 +104,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     }
 
                     var candidateHump = _candidateHumps[humpIndex];
-                    if (char.ToLower(_candidate[candidateHump.Start]) == patternCharacter)
+                    if (ToLower(_candidate[candidateHump.Start], _textInfo) == patternCharacter)
                     {
                         // Found a hump in the candidate string that matches the current pattern
                         // character we're on.  i.e. we matched the c in cofipro against the C in 
@@ -133,6 +140,21 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                 return bestResult;
             }
+
+            private static char ToLower(char v, TextInfo textInfo)
+            {
+                return IsAscii(v)
+                    ? ToLowerAsciiInvariant(v)
+                    : textInfo.ToLower(v);
+            }
+
+            private static bool IsAscii(char v)
+                => v < 0x80;
+
+            private static char ToLowerAsciiInvariant(char c)
+                => 'A' <= c && c <= 'Z'
+                    ? (char)(c | 0x20)
+                    : c;
 
             private CamelCaseResult? TryConsumePatternOrMatchNextHump(
                 int patternIndex, int humpIndex, bool contiguous)
@@ -240,9 +262,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             private bool LowercaseSubstringsMatch(
                 string s1, int start1, string s2, int start2, int length)
             {
+                var textInfo = _textInfo;
                 for (var i = 0; i < length; i++)
                 {
-                    if (char.ToLower(s1[start1 + i]) != char.ToLower(s2[start2 + i]))
+                    if (ToLower(s1[start1 + i], textInfo) != ToLower(s2[start2 + i], textInfo))
                     {
                         return false;
                     }

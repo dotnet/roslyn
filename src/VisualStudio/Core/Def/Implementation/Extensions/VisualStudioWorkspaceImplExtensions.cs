@@ -49,8 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
 
             if (uiObject != null)
             {
-                var imageListData = Microsoft.Internal.VisualStudio.PlatformUI.Utilities.GetObjectData(uiObject) as IVsUIWin32ImageList;
-                if (imageListData != null)
+                if (Microsoft.Internal.VisualStudio.PlatformUI.Utilities.GetObjectData(uiObject) is IVsUIWin32ImageList imageListData)
                 {
                     if (ErrorHandler.Succeeded(imageListData.GetHIMAGELIST(out var imageListInt)))
                     {
@@ -61,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
                 }
             }
 
-            imageList = default(IntPtr);
+            imageList = default;
             index = 0;
             return false;
         }
@@ -82,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
                 return TryGetImageListAndIndex(hierarchy, imageService, VSConstants.VSITEMID_ROOT, out imageList, out index);
             }
 
-            imageList = default(IntPtr);
+            imageList = default;
             index = 0;
             return false;
         }
@@ -97,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
                 return TryGetImageListAndIndex(hierarchy, imageService, itemId, out imageList, out index);
             }
 
-            imageList = default(IntPtr);
+            imageList = default;
             index = 0;
             return false;
         }

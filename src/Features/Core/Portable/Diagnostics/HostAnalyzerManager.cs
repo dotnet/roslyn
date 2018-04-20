@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>> _descriptorCache;
 
-        public HostAnalyzerManager(IEnumerable<HostDiagnosticAnalyzerPackage> hostAnalyzerPackages, IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
-            this(CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource), hostAnalyzerAssemblyLoader),
+        public HostAnalyzerManager(IEnumerable<HostDiagnosticAnalyzerPackage> hostAnalyzerPackages, IAnalyzerAssemblyLoader hostAnalyzerAssemblyLoader, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, PrimaryWorkspace primaryWorkspace) :
+            this(CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource, primaryWorkspace), hostAnalyzerAssemblyLoader),
                  hostAnalyzerPackages.ToImmutableArrayOrEmpty(), hostDiagnosticUpdateSource)
         {
         }
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var projectId = project.Id;
 
             // Skip telemetry logging for supported diagnostics, as that can cause an infinite loop.
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diagnostic) =>
+            void onAnalyzerException(Exception ex, DiagnosticAnalyzer a, Diagnostic diagnostic) =>
                     AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(ex, a, diagnostic, _hostDiagnosticUpdateSource, projectId);
 
             return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException);
@@ -219,15 +219,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> CreateProjectDiagnosticAnalyzersPerReference(Project project)
         {
             return CreateDiagnosticAnalyzersPerReferenceMap(CreateProjectAnalyzerReferencesMap(project), project.Language);
-        }
-
-        /// <summary>
-        /// Create <see cref="DiagnosticAnalyzer"/>s collection for given <paramref name="project"/>
-        /// </summary>
-        public ImmutableArray<DiagnosticAnalyzer> CreateDiagnosticAnalyzers(Project project)
-        {
-            var analyzersPerReferences = CreateDiagnosticAnalyzersPerReference(project);
-            return analyzersPerReferences.SelectMany(kv => kv.Value).ToImmutableArray();
         }
 
         /// <summary>
@@ -503,10 +494,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private class HostAnalyzerReferenceDiagnosticReporter
         {
             private readonly AbstractHostDiagnosticUpdateSource _hostUpdateSource;
+            private readonly PrimaryWorkspace _primaryWorkspace;
 
-            public HostAnalyzerReferenceDiagnosticReporter(AbstractHostDiagnosticUpdateSource hostUpdateSource)
+            public HostAnalyzerReferenceDiagnosticReporter(AbstractHostDiagnosticUpdateSource hostUpdateSource, PrimaryWorkspace primaryWorkspace)
             {
                 _hostUpdateSource = hostUpdateSource;
+                _primaryWorkspace = primaryWorkspace;
             }
 
             public void OnAnalyzerLoadFailed(object sender, AnalyzerLoadFailureEventArgs e)
@@ -522,7 +515,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // diagnostic from host analyzer can never go away
                 var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     id: Tuple.Create(this, reference.FullPath, e.ErrorCode, e.TypeName),
-                    workspace: PrimaryWorkspace.Workspace,
+                    workspace: _primaryWorkspace.Workspace,
                     solution: null,
                     projectId: null,
                     documentId: null,

@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var internalsVisibleToMap = CreateInternalsVisibleToMap(sourceAssembly);
 
-            SymbolKey? sourceAssemblySymbolKey = null;
+            var sourceAssemblySymbolKey = sourceAssembly.GetSymbolKey();
 
             // TODO(cyrusn): What about error tolerance situations.  Do we maybe want to search
             // transitive dependencies as well?  Even if the code wouldn't compile, they may be
@@ -312,31 +312,40 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (HasReferenceTo(sourceAssembly, sourceProject, project, cancellationToken))
                 {
-                    bool hasInternalsAccess = false;
-                    if (internalsVisibleToMap.Value.Contains(project.AssemblyName))
-                    {
-                        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                        var targetAssembly = compilation.Assembly;
-                        if (sourceAssembly.Language != targetAssembly.Language)
-                        {
-                            sourceAssemblySymbolKey = sourceAssemblySymbolKey ?? sourceAssembly.GetSymbolKey();
-                            var sourceAssemblyInTargetCompilation = sourceAssemblySymbolKey.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol as IAssemblySymbol;
-
-                            if (sourceAssemblyInTargetCompilation != null)
-                            {
-                                hasInternalsAccess = targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssemblyInTargetCompilation);
-                            }
-                        }
-                        else
-                        {
-                            hasInternalsAccess = targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssembly);
-                        }
-                    }
+                    var hasInternalsAccess = await HasInternalsAccessAsync(
+                        sourceAssembly, internalsVisibleToMap, 
+                        sourceAssemblySymbolKey, project, cancellationToken).ConfigureAwait(false);
 
                     dependentProjects.Add(new DependentProject(project.Id, hasInternalsAccess));
                 }
             }
+        }
+
+        private static async Task<bool> HasInternalsAccessAsync(
+            IAssemblySymbol sourceAssembly, Lazy<HashSet<string>> internalsVisibleToMap, 
+            SymbolKey sourceAssemblySymbolKey, Project project, CancellationToken cancellationToken)
+        {
+            if (internalsVisibleToMap.Value.Contains(project.AssemblyName) &&
+                project.SupportsCompilation)
+            {
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                var targetAssembly = compilation.Assembly;
+                if (sourceAssembly.Language != targetAssembly.Language)
+                {
+                    var resolvedSymbol = sourceAssemblySymbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+                    if (resolvedSymbol is IAssemblySymbol sourceAssemblyInTargetCompilation)
+                    {
+                        return targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssemblyInTargetCompilation);
+                    }
+                }
+                else
+                {
+                    return targetAssembly.IsSameAssemblyOrHasFriendAccessTo(sourceAssembly);
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -440,8 +449,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             foreach (var reference in project.MetadataReferences)
             {
-                var symbol = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                if (symbol != null)
+                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol symbol)
                 {
                     var result = predicate(symbol);
                     if (result != null)
@@ -452,55 +460,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Finds projects in this solution that have a reference to an assembly with the 
-        /// identity provided.  Projects will be ordered such that those that have a 
-        /// reference that is <see cref="AssemblyIdentityComparer.ComparisonResult.Equivalent"/>
-        /// will be returned before those that are 
-        /// <see cref="AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion"/>.
-        /// </summary>
-        public static IEnumerable<Project> ProjectsWithReferenceToAssembly(
-            this Solution solution, AssemblyIdentity identity)
-        {
-            var projectMatchesIgnoringVersion = new List<Project>();
-            foreach (var project in solution.Projects)
-            {
-                var referenceType = project.GetAssemblyReferenceType(a =>
-                    {
-                        var result = AssemblyIdentityComparer.Default.Compare(a.Identity, identity);
-
-                        // If the assembly and the identity are NotEquivalent, return null to indicate
-                        // that we need to keep checking the rest of the assemblies.  Otherwise,
-                        // return the result we got which will bubble out into 'referenceType'.
-                        return result == AssemblyIdentityComparer.ComparisonResult.NotEquivalent
-                            ? (AssemblyIdentityComparer.ComparisonResult?)null
-                            : result;
-                    });
-
-                if (referenceType.HasValue)
-                {
-                    if (referenceType.Value == AssemblyIdentityComparer.ComparisonResult.Equivalent)
-                    {
-                        // We found an assembly reference exactly matching the assembly identity.
-                        // Return it immediately.
-                        yield return project;
-                    }
-                    else if (referenceType.Value == AssemblyIdentityComparer.ComparisonResult.EquivalentIgnoringVersion)
-                    {
-                        // We found an assembly reference matching the assembly identity if
-                        // versions were ignored.  Return it after all the exact matches are
-                        // returned.
-                        projectMatchesIgnoringVersion.Add(project);
-                    }
-                }
-            }
-
-            foreach (var project in projectMatchesIgnoringVersion)
-            {
-                yield return project;
-            }
         }
     }
 }

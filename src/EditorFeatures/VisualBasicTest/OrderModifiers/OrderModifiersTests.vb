@@ -21,7 +21,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.OrderModifiers
 end class
 ",
 "protected friend class C
-end class")
+end class
+")
         End Function
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
@@ -30,8 +31,7 @@ end class")
 "[|friend|] protected structure C
 
 end structure",
-"
-protected friend structure C
+"protected friend structure C
 
 end structure")
         End Function
@@ -41,10 +41,8 @@ end structure")
             Await TestInRegularAndScript1Async(
 "[|friend|] protected interface C
 end interface",
-"
-protected friend interface C
-end interface
-")
+"protected friend interface C
+end interface")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
@@ -52,8 +50,7 @@ end interface
             Await TestInRegularAndScript1Async(
 "[|friend|] protected enum C
 end enum",
-"
-protected friend enum C
+"protected friend enum C
 end enum")
         End Function
 
@@ -70,8 +67,7 @@ end enum")
 "class C
     [|mustoverride|] protected sub M()
 end class",
-"
-class C
+"class C
     protected mustoverride sub M()
 end class")
         End Function
@@ -83,8 +79,7 @@ end class")
     [|friend|] protected sub M()
     end sub
 end class",
-"
-class C
+"class C
     protected friend sub M()
     end sub
 end class")
@@ -96,8 +91,7 @@ end class")
 "class C
     [|friend|] protected dim a as integer
 end class",
-"
-class C
+"class C
     protected friend dim a as integer
 end class")
         End Function
@@ -109,8 +103,7 @@ end class")
     [|friend|] protected sub new()
     end sub
 end class",
-"
-class C
+"class C
     protected friend sub new()
     end sub
 end class")
@@ -122,8 +115,7 @@ end class")
 "class C
     [|readonly|] protected property P as integer
 end class",
-"
-class C
+"class C
     protected readonly property P as integer
 end class")
         End Function
@@ -137,8 +129,7 @@ end class")
         end get
     end property
 end class",
-"
-class C
+"class C
     protected readonly property P as integer
         get
         end get
@@ -172,9 +163,8 @@ end class
     [|friend|] protected custom event E as Action 
     end event
 end class",
-"
-class C
-    protected friend custom event E as Action
+"class C
+    protected friend custom event E as Action 
     end event
 end class")
         End Function
@@ -185,8 +175,7 @@ end class")
 "class C
     [|friend|] protected event E as Action
 end class",
-"
-class C
+"class C
     protected friend event E as Action
 end class")
         End Function
@@ -199,11 +188,11 @@ end class")
     end operator
 end class
 ",
-"
-class C
+"class C
     public shared operator +(c1 as integer, c2 as integer) as integer
     end operator
-end class")
+end class
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
@@ -213,8 +202,7 @@ end class")
     [|shared|] public widening operator CType(x as integer) as boolean
     end operator
 end class",
-"
-class C
+"class C
     public shared widening operator CType(x as integer) as boolean
     end operator
 end class")
@@ -227,12 +215,10 @@ end class")
     friend protected class Nested
     end class
 end class",
-"
-protected friend class C
+"protected friend class C
     protected friend class Nested
     end class
-end class
-")
+end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
@@ -243,8 +229,7 @@ end class
     end class
 end class
 ",
-"
-protected friend class C
+"protected friend class C
     protected friend class Nested
     end class
 end class
@@ -263,7 +248,7 @@ end class
 ''' Doc comment
 protected friend class C
 end class
-", ignoreTrivia:=False)
+")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)>
@@ -280,7 +265,7 @@ end class
 protected friend class C
 end class
 #end if
-", ignoreTrivia:=False)
+")
         End Function
     End Class
 End Namespace

@@ -165,5 +165,10 @@ namespace Microsoft.CodeAnalysis
         /// If this type is not a tuple, then returns default.
         /// </summary>
         ImmutableArray<IFieldSymbol> TupleElements { get; }
+
+        /// <summary>
+        /// True if the type is serializable (has Serializable metadata flag).
+        /// </summary>
+        bool IsSerializable { get; }
     }
 }

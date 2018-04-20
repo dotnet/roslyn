@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 declaredAccessibility,
                 modifiers,
                 returnType: toType,
-                returnsByRef: false,
+                refKind: RefKind.None,
                 explicitInterfaceImplementations: default,
                 name: isImplicit ?
                     WellKnownMemberNames.ImplicitConversionName :

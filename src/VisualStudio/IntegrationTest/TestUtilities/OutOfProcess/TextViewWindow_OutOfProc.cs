@@ -95,7 +95,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// Invokes the lightbulb without waiting for diagnostics
         /// Compare to <see cref="InvokeCodeActionList"/>
         /// </summary>
-        /// <param name="test"></param>
         public void InvokeCodeActionListWithoutWaiting()
         {
             ShowLightBulb();

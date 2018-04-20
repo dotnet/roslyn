@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
-    public sealed class StressTests : AbstractInteractiveHostTests, IDisposable
+    public sealed class StressTests : AbstractInteractiveHostTests
     {
         private readonly List<InteractiveHost> _processes = new List<InteractiveHost>();
         private readonly List<Thread> _threads = new List<Thread>();

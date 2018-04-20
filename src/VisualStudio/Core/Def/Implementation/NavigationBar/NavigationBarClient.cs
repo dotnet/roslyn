@@ -50,14 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             _currentTypeItems = SpecializedCollections.EmptyList<NavigationBarItem>();
 
             var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-            if (vsShell != null)
-            {
-                int hresult = vsShell.GetProperty((int)__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out var varImageList);
-                if (ErrorHandler.Succeeded(hresult) && varImageList != null)
-                {
-                    _imageList = (IntPtr)(int)varImageList;
-                }
-            }
+            vsShell?.TryGetPropertyValue(__VSSPROPID.VSSPROPID_ObjectMgrTypesImgList, out _imageList);
 
             _codeWindowEventsSink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
             _editorAdaptersFactoryService = serviceProvider.GetMefService<IVsEditorAdaptersFactoryService>();

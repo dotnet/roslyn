@@ -134,8 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 // if both accessors are on the same line, format the accessor list
                 // { get; set; }
-                var propertyDeclaration = GetEnclosingMember(endToken) as PropertyDeclarationSyntax;
-                if (propertyDeclaration != null &&
+                if (GetEnclosingMember(endToken) is PropertyDeclarationSyntax propertyDeclaration &&
                     AreTwoTokensOnSameLine(propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken))
                 {
                     return ValueTuple.Create(propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken);
@@ -209,8 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 // double initializer case such as
                 // { { }
-                var doubleInitializer = parentOfParent as InitializerExpressionSyntax;
-                if (doubleInitializer != null)
+                if (parentOfParent is InitializerExpressionSyntax doubleInitializer)
                 {
                     // if parent block has a missing brace, and current block is on same line, then
                     // don't try to indent inner block.

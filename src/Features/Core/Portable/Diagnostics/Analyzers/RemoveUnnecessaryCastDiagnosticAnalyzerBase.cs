@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
         public sealed override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+
             context.RegisterSyntaxNodeAction(
                 nodeContext =>
                     {
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            diagnostic = default(Diagnostic);
+            diagnostic = default;
 
             if (!IsUnnecessaryCast(model, node, cancellationToken))
             {

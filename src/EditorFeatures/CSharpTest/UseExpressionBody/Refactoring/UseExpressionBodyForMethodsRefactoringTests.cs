@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         [||]Bar();
     }
@@ -42,14 +42,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    void Foo()
+    void Goo()
     {
         [||]Bar();
     }
 }",
 @"class C
 {
-    void Foo() => Bar();
+    void Goo() => Bar();
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    Action Foo()
+    Action Goo()
     {
         return () => { [||] };
     }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    void Foo() => [||]Bar();
+    void Goo() => [||]Bar();
 }", parameters: new TestParameters(options: UseBlockBody));
         }
 
@@ -82,11 +82,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    void Foo() => [||]Bar();
+    void Goo() => [||]Bar();
 }",
 @"class C
 {
-    void Foo() { Bar(); }
+    void Goo()
+    {
+        Bar();
+    }
 }", parameters: new TestParameters(options: UseExpressionBody));
         }
     }

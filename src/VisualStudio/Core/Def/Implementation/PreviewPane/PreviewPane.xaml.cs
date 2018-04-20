@@ -7,11 +7,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Navigation;
-using EnvDTE;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
+using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
+using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
@@ -24,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private readonly string _id;
         private readonly bool _logIdVerbatimInTelemetry;
-        private readonly DTE _dte;
+        private readonly IVsUIShell _uiShell;
 
         private bool _isExpanded;
         private double _heightForThreeLineTitle;
@@ -39,14 +40,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             string helpLinkToolTipText,
             IReadOnlyList<object> previewContent,
             bool logIdVerbatimInTelemetry,
-            DTE dte,
-            Guid optionPageGuid = default(Guid))
+            IVsUIShell uiShell,
+            Guid optionPageGuid = default)
         {
             InitializeComponent();
 
+            Loaded += PreviewPane_Loaded;
+
             _id = id;
             _logIdVerbatimInTelemetry = logIdVerbatimInTelemetry;
-            _dte = dte;
+            _uiShell = uiShell;
 
             // Initialize header portion.
             if ((severityIcon != null) && !string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(title))
@@ -74,13 +77,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
             _optionPageGuid = optionPageGuid;
 
-            if (optionPageGuid == default(Guid))
+            if (optionPageGuid == default)
             {
                 OptionsButton.Visibility = Visibility.Collapsed;
             }
 
             // Initialize preview (i.e. diff view) portion.
             InitializePreviewElement(previewContent);
+        }
+
+        public FrameworkElement ParentElement
+        {
+            get { return (FrameworkElement)GetValue(ParentElementProperty); }
+            set { SetValue(ParentElementProperty, value); }
+        }
+
+        public static readonly DependencyProperty ParentElementProperty =
+            DependencyProperty.Register("ParentElement", typeof(FrameworkElement), typeof(PreviewPane), new PropertyMetadata(null));
+
+        private void PreviewPane_Loaded(object sender, RoutedEventArgs e)
+        {
+            Loaded -= PreviewPane_Loaded;
+            ParentElement = Parent as FrameworkElement;
         }
 
         public string AutomationName => ServicesVSResources.Preview_pane;
@@ -207,9 +225,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private void InitializeHyperlinks(Uri helpLink, string helpLinkToolTipText)
         {
-            IdHyperlink.SetVSHyperLinkStyle();
-            LearnMoreHyperlink.SetVSHyperLinkStyle();
-
             IdHyperlink.Inlines.Add(_id);
             IdHyperlink.NavigateUri = helpLink;
             IdHyperlink.IsEnabled = true;
@@ -356,9 +371,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private void OptionsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_optionPageGuid != default(Guid))
+            if (_optionPageGuid != default)
             {
-                _dte.ExecuteCommand("Tools.Options", _optionPageGuid.ToString());
+                ErrorHandler.ThrowOnFailure(_uiShell.PostExecCommand(
+                    VSConstants.GUID_VSStandardCommandSet97,
+                    (uint)VSConstants.VSStd97CmdID.ToolsOptions,
+                    (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT,
+                    _optionPageGuid.ToString()));
             }
         }
     }

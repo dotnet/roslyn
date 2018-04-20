@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         where TXmlTextAttributeSyntax : TXmlAttributeSyntax
     {
         public const string Ellipsis = "...";
-        public const int MaxXmlDocCommentBannerLength = 120;
 
         private readonly ISyntaxFactsService _syntaxFacts;
 
@@ -59,7 +58,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return exteriorTrivia != null ? exteriorTrivia.Value.ToString() : string.Empty;
         }
 
-        public string GetBannerText(TDocumentationCommentTriviaSyntax documentationComment, CancellationToken cancellationToken)
+        public string GetBannerText(
+            TDocumentationCommentTriviaSyntax documentationComment, int maxBannerLength, CancellationToken cancellationToken)
         {
             // TODO: Consider unifying code to extract text from an Xml Documentation Comment (https://github.com/dotnet/roslyn/issues/2290)
             var summaryElement =
@@ -87,9 +87,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 text = prefix + " " + line.ToString().Substring(spanStart - line.Start).Trim() + " " + Ellipsis;
             }
 
-            if (text.Length > MaxXmlDocCommentBannerLength)
+            if (text.Length > maxBannerLength)
             {
-                text = text.Substring(0, MaxXmlDocCommentBannerLength) + " " + Ellipsis;
+                text = text.Substring(0, maxBannerLength) + " " + Ellipsis;
             }
 
             return text;
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private static bool HasTrailingWhitespace(string tokenText)
             => tokenText.Length > 0 && char.IsWhiteSpace(tokenText[tokenText.Length - 1]);
 
-        public string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken)
-            => GetBannerText((TDocumentationCommentTriviaSyntax)documentationCommentTriviaSyntax, cancellationToken);
+        public string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken)
+            => GetBannerText((TDocumentationCommentTriviaSyntax)documentationCommentTriviaSyntax, maxBannerLength, cancellationToken);
     }
 }

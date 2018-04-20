@@ -31,8 +31,9 @@ namespace Microsoft.CodeAnalysis.Host
 
         /// <summary>
         /// Gets a workspace specific service provided by the host identified by the service type. 
-        /// If the host does not provide the service, this method returns <see cref="InvalidOperationException"/>.
+        /// If the host does not provide the service, this method throws <see cref="InvalidOperationException"/>.
         /// </summary>
+        /// <exception cref="InvalidOperationException">The host does not provide the service.</exception>
         public TWorkspaceService GetRequiredService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService
         {
             var service = GetService<TWorkspaceService>();

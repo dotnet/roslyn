@@ -11,6 +11,8 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(IRefactorNotifyService))]
     internal sealed class ContainedLanguageRefactorNotifyService : IRefactorNotifyService
     {
@@ -25,13 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
-            var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
-            if (visualStudioWorkspace != null)
+            if (workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
             {
                 foreach (var documentId in changedDocumentIDs)
                 {
-                    var containedDocument = visualStudioWorkspace.GetHostDocument(documentId) as ContainedDocument;
-                    if (containedDocument != null)
+                    if (visualStudioWorkspace.GetHostDocument(documentId) is ContainedDocument containedDocument)
                     {
                         var containedLanguageHost = containedDocument.ContainedLanguage.ContainedLanguageHost;
                         if (containedLanguageHost != null)

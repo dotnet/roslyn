@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             if (symbol != null &&
                 !(symbol is ITypeSymbol) &&
                 !symbol.IsConstructor() &&
-                symbolNavigationService.TrySymbolNavigationNotify(symbol, document.Project.Solution, cancellationToken))
+                symbolNavigationService.TrySymbolNavigationNotify(symbol, document.Project, cancellationToken))
             {
                 return;
             }

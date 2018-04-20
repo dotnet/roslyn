@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var change = (await GetTextChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false))
                 ?? new TextChange(item.Span, item.DisplayText);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             return CommonCompletionItem.Create(
                 displayText: displayText ?? string.Empty,
-                description: description != null ? description.ToSymbolDisplayParts() : default(ImmutableArray<SymbolDisplayPart>),
+                description: description != null ? description.ToSymbolDisplayParts() : default,
                 rules: s_suggestionItemRules);
         }
     }

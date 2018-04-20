@@ -107,6 +107,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
+            if (symbol.Kind == SymbolKind.Label &&
+                symbol.DeclaringSyntaxReferences[0].GetSyntax().Kind() == SyntaxKind.DefaultSwitchLabel)
+            {
+                return symbol.Name;
+            }
+
             return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
         }
     }

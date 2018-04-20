@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         private static bool TryAddLeadingElasticTriviaIfNecessary(SyntaxToken token, SyntaxToken originalToken, out SyntaxToken tokenWithLeadingWhitespace)
         {
-            tokenWithLeadingWhitespace = default(SyntaxToken);
+            tokenWithLeadingWhitespace = default;
 
             if (token.HasLeadingTrivia)
             {
@@ -179,9 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 if (diagnostic.Id == s_CS8019_UnusedUsingDirective)
                 {
-                    var node = root.FindNode(diagnostic.Location.SourceSpan) as UsingDirectiveSyntax;
 
-                    if (node != null)
+                    if (root.FindNode(diagnostic.Location.SourceSpan) is UsingDirectiveSyntax node)
                     {
                         namespaceImports.Add(node);
                     }

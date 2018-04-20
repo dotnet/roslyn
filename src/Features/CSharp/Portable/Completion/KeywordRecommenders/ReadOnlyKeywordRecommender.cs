@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsGlobalStatementContext ||
+                IsRefReadOnlyContext(context) ||
                 context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: s_validMemberModifiers,
@@ -35,5 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }
+
+        private static bool IsRefReadOnlyContext(CSharpSyntaxContext context)
+            => context.TargetToken.IsKind(SyntaxKind.RefKeyword) &&
+               context.TargetToken.Parent.IsKind(SyntaxKind.RefType);
     }
 }

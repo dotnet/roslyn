@@ -346,7 +346,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                         // Some consumers like CodeMap want to show types in an unified way for both C# and VB.
                         // Therefore, populate a common label property using only name and its type parameters.
-                        // For example, VB's "Foo(Of T)" or C#'s "Foo<T>(): T" will be shown as "Foo<T>".
+                        // For example, VB's "Goo(Of T)" or C#'s "Goo<T>(): T" will be shown as "Goo<T>".
                         // This property will be used for drag-and-drop case.
                         var commonLabel = new System.Text.StringBuilder();
                         commonLabel.Append(typeSymbol.Name);
@@ -478,8 +478,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
 
             // Set type-specific properties
-            var typeSymbol = symbol as ITypeSymbol;
-            if (typeSymbol != null && typeSymbol.IsAnonymousType)
+            if (symbol is ITypeSymbol typeSymbol && typeSymbol.IsAnonymousType)
             {
                 node[Properties.IsAnonymous] = true;
             }

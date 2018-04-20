@@ -5,7 +5,4 @@
   <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.CSharp" RuleNamespace="Roslyn.Diagnostics.Analyzers.CSharp">
     <Rule Id="RS0013" Action="Warning" />
   </Rules>
-  <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.CSharp" RuleNamespace="Roslyn.Diagnostics.Analyzers.CSharp">
-    <Rule Id="RS0018" Action="Error" />
-  </Rules>
 </RuleSet>

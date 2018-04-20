@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
         {
             var span = TextSpan.FromBounds(0, 1);
             var hintSpan = TextSpan.FromBounds(2, 3);
-            var bannerText = "Foo";
+            var bannerText = "Goo";
             var autoCollapse = true;
 
             var outliningRegion = new BlockSpan(
@@ -31,28 +31,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
         {
             var span = TextSpan.FromBounds(0, 1);
             var hintSpan = TextSpan.FromBounds(2, 3);
-            var bannerText = "Foo";
+            var bannerText = "Goo";
             var autoCollapse = true;
 
             var outliningRegion = new BlockSpan(
                 isCollapsible: true, textSpan: span, hintSpan: hintSpan,
                 type: BlockTypes.Nonstructural, bannerText: bannerText, autoCollapse: autoCollapse);
 
-            Assert.Equal("{Span=[0..1), HintSpan=[2..3), BannerText=\"Foo\", AutoCollapse=True, IsDefaultCollapsed=False}", outliningRegion.ToString());
+            Assert.Equal("{Span=[0..1), HintSpan=[2..3), BannerText=\"Goo\", AutoCollapse=True, IsDefaultCollapsed=False}", outliningRegion.ToString());
         }
 
         [Fact]
         public void TestToStringWithoutHintSpan()
         {
             var span = TextSpan.FromBounds(0, 1);
-            var bannerText = "Foo";
+            var bannerText = "Goo";
             var autoCollapse = true;
 
             var outliningRegion = new BlockSpan(
                 isCollapsible: true, textSpan: span,
                 type: BlockTypes.Nonstructural, bannerText: bannerText, autoCollapse: autoCollapse);
 
-            Assert.Equal("{Span=[0..1), BannerText=\"Foo\", AutoCollapse=True, IsDefaultCollapsed=False}", outliningRegion.ToString());
+            Assert.Equal("{Span=[0..1), BannerText=\"Goo\", AutoCollapse=True, IsDefaultCollapsed=False}", outliningRegion.ToString());
         }
     }
 }

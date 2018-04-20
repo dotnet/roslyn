@@ -109,6 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return ((BoundDeclarationPattern)node).Variable as LocalSymbol;
                         }
 
+                    case BoundKind.RecursivePattern:
+                        {
+                            return ((BoundRecursivePattern)node).Variable as LocalSymbol;
+                        }
+
                     case BoundKind.FieldAccess:
                         {
                             var fieldAccess = (BoundFieldAccess)node;
@@ -183,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-        protected override void AssignImpl(BoundNode node, BoundExpression value, RefKind refKind, bool written, bool read)
+        protected override void AssignImpl(BoundNode node, BoundExpression value, bool isRef, bool written, bool read)
         {
             if (IsInside)
             {
@@ -209,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            base.AssignImpl(node, value, refKind, written, read);
+            base.AssignImpl(node, value, isRef, written, read);
         }
 
         private bool FlowsOut(ParameterSymbol param)

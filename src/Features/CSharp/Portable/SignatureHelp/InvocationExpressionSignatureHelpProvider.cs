@@ -75,10 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             // try to bind to the actual method
             var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
-            var matchedMethodSymbol = symbolInfo.Symbol as IMethodSymbol;
 
             // if the symbol could be bound, replace that item in the symbol list
-            if (matchedMethodSymbol != null && matchedMethodSymbol.IsGenericMethod)
+            if (symbolInfo.Symbol is IMethodSymbol matchedMethodSymbol && matchedMethodSymbol.IsGenericMethod)
             {
                 methodGroup = methodGroup.SelectAsArray(m => matchedMethodSymbol.OriginalDefinition == m ? matchedMethodSymbol : m);
             }

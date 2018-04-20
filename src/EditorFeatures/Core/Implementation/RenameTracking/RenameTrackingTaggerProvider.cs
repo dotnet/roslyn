@@ -47,14 +47,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             IInlineRenameService inlineRenameService,
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _waitIndicator = waitIndicator;
             _inlineRenameService = inlineRenameService;
             _refactorNotifyServices = refactorNotifyServices;
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
-            _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.RenameTracking);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.RenameTracking);
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
@@ -172,10 +172,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 return isRenamableIdentifierTask.WaitAndGetResult(cancellationToken) != TriggerIdentifierKind.NotRenamable;
             }
-            catch (AggregateException e) when (e.InnerException is OperationCanceledException)
+            catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken || cancellationToken == CancellationToken.None)
             {
                 // We passed in a different cancellationToken, so if there's a race and 
-                // isRenamableIdentifierTask was cancelled, we'll get an AggregateException
+                // isRenamableIdentifierTask was cancelled, we'll get a OperationCanceledException
                 return false;
             }
         }

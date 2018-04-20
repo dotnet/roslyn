@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -34,11 +36,11 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         }
 
         public NamingStyle With(
-          Optional<string> name = default(Optional<string>),
-          Optional<string> prefix = default(Optional<string>),
-          Optional<string> suffix = default(Optional<string>),
-          Optional<string> wordSeparator = default(Optional<string>),
-          Optional<Capitalization> capitalizationScheme = default(Optional<Capitalization>))
+          Optional<string> name = default,
+          Optional<string> prefix = default,
+          Optional<string> suffix = default,
+          Optional<string> wordSeparator = default,
+          Optional<Capitalization> capitalizationScheme = default)
         {
             var newName = name.HasValue ? name.Value : this.Name;
             var newPrefix = prefix.HasValue ? prefix.Value : this.Prefix;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 newName, newPrefix, newSuffix, newWordSeparator, newCapitalizationScheme);
         }
 
-        public string CreateName(IEnumerable<string> words)
+        public string CreateName(ImmutableArray<string> words)
         {
             var wordsWithCasing = ApplyCapitalization(words);
             var combinedWordsWithCasing = string.Join(WordSeparator, wordsWithCasing);
@@ -87,14 +89,38 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 
         private string CapitalizeFirstLetter(string word)
         {
+            if (word.Length == 0)
+            {
+                return word;
+            }
+
+            if (char.IsUpper(word[0]))
+            {
+                return word;
+            }
+
             var chars = word.ToCharArray();
-            return new string(chars.Take(1).Select(c => char.ToUpper(c)).Concat(chars.Skip(1)).ToArray());
+            chars[0] = char.ToUpper(chars[0]);
+
+            return new string(chars);
         }
 
         private string DecapitalizeFirstLetter(string word)
         {
+            if (word.Length == 0)
+            {
+                return word;
+            }
+
+            if (char.IsLower(word[0]))
+            {
+                return word;
+            }
+
             var chars = word.ToCharArray();
-            return new string(chars.Take(1).Select(c => char.ToLower(c)).Concat(chars.Skip(1)).ToArray());
+            chars[0] = char.ToLower(chars[0]);
+
+            return new string(chars);
         }
 
         public bool IsNameCompliant(string name, out string failureReason)
@@ -311,6 +337,18 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             if (!string.IsNullOrEmpty(WordSeparator))
             {
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (words.Count() == 1) // Only Split if words have not been split before 
+                {
+                    bool isWord = true;
+                    var parts = StringBreaker.GetParts(name, isWord);
+                    string[] newWords = new string[parts.Count];
+                    for(int i = 0; i < parts.Count; i++)
+                    {
+                        newWords[i] = name.Substring(parts[i].Start, parts[i].End - parts[i].Start);
+                    }
+                    words = newWords;
+                }
             }
 
             words = ApplyCapitalization(words);

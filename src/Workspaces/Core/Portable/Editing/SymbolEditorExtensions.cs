@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editing
             this SymbolEditor editor,
             ISymbol symbol,
             ITypeSymbol baseOrInterfaceType,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             if (baseOrInterfaceType == null)
             {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editing
             this SymbolEditor editor,
             INamedTypeSymbol symbol,
             Func<SyntaxGenerator, SyntaxNode> getNewBaseType,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var baseType = symbol.BaseType;
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editing
             this SymbolEditor editor,
             INamedTypeSymbol symbol,
             ITypeSymbol newBaseType,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return editor.SetBaseTypeAsync(symbol, g => newBaseType != null ? g.TypeExpression(newBaseType) : null, cancellationToken);
         }

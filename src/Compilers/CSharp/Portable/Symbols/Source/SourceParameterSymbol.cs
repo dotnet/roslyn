@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             bool isParams,
             bool isExtensionMethodThis,
+            bool addRefReadOnlyModifier,
             DiagnosticBag declarationDiagnostics)
         {
             var name = identifier.ValueText;
@@ -44,6 +45,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     WellKnownMember.System_ParamArrayAttribute__ctor,
                     declarationDiagnostics,
                     identifier.Parent.GetLocation());
+            }
+
+            if (addRefReadOnlyModifier && refKind == RefKind.In)
+            {
+                var modifierType = context.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, declarationDiagnostics, syntax);
+
+                return new SourceComplexParameterSymbolWithCustomModifiers(
+                    owner,
+                    ordinal,
+                    parameterType,
+                    refKind,
+                    ImmutableArray<CustomModifier>.Empty,
+                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)),
+                    name,
+                    locations,
+                    syntax.GetReference(),
+                    ConstantValue.Unset,
+                    isParams,
+                    isExtensionMethodThis);
             }
 
             if (!isParams &&
@@ -229,5 +249,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (object)owningMethod != null && owningMethod.IsAccessor();
             }
         }
+
+        internal override bool IsMetadataIn => RefKind == RefKind.In;
+
+        internal override bool IsMetadataOut => RefKind == RefKind.Out;
     }
 }

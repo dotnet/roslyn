@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -684,31 +685,33 @@ index: 1);
         }
 
         [Theory]
-        [InlineData(0, "Task")]
-        [InlineData(1, "void", Skip = "https://github.com/dotnet/roslyn/issues/18396")]
+        [InlineData(0, "void", "Task")]
+        [InlineData(1, "void", "void")]
+        [InlineData(0, "int", "Task<int>")]
+        [InlineData(0, "Task", "Task")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
-        public async Task AddAsyncInLocalFunctionKeepsTrivia(int codeFixIndex, string expectedReturn)
+        public async Task AddAsyncInLocalFunctionKeepsTrivia(int codeFixIndex, string initialReturn, string expectedReturn)
         {
             await TestInRegularAndScriptAsync(
-@"using System.Threading.Tasks;
+$@"using System.Threading.Tasks;
 
 class C
-{
+{{
     public void M1()
-    {
+    {{
         // Leading trivia
-        /*1*/ void /*2*/ M2/*3*/() /*4*/
-        {
+        /*1*/ {initialReturn} /*2*/ M2/*3*/() /*4*/
+        {{
             [|await M3Async();|]
-        }
-    }
+        }}
+    }}
 
     async Task<int> M3Async()
-    {
+    {{
         return 1;
-    }
-}",
+    }}
+}}",
 $@"using System.Threading.Tasks;
 
 class C
@@ -727,13 +730,12 @@ class C
         return 1;
     }}
 }}",
-                index: codeFixIndex,
-                ignoreTrivia: false);
+                index: codeFixIndex);
         }
 
         [Theory]
         [InlineData("", 0, "Task")]
-        [InlineData("", 1, "void", Skip = "https://github.com/dotnet/roslyn/issues/18396")]
+        [InlineData("", 1, "void")]
         [InlineData("public", 0, "Task")]
         [InlineData("public", 1, "void")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
@@ -771,8 +773,7 @@ class C
         return 1;
     }}
 }}",
-                index: codeFixIndex,
-                ignoreTrivia: false);
+                index: codeFixIndex);
         }
     }
 }

@@ -50,20 +50,24 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
             }
 
             private IMethodSymbol CreateConstructorDefinition(
-                IMethodSymbol constructor)
+                IMethodSymbol baseConstructor)
             {
                 var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
-                var baseConstructorArguments = constructor.Parameters.Length != 0
-                    ? syntaxFactory.CreateArguments(constructor.Parameters)
-                    : default(ImmutableArray<SyntaxNode>);
+                var baseConstructorArguments = baseConstructor.Parameters.Length != 0
+                    ? syntaxFactory.CreateArguments(baseConstructor.Parameters)
+                    : default;
 
+                var classType = _state.ClassType;
+                var accessibility = baseConstructor.ContainingType.IsAbstractClass() && !classType.IsAbstractClass()
+                    ? Accessibility.Public
+                    : baseConstructor.DeclaredAccessibility;
                 return CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
-                    accessibility: constructor.DeclaredAccessibility,
+                    attributes: default,
+                    accessibility: accessibility,
                     modifiers: new DeclarationModifiers(),
-                    typeName: _state.ClassType.Name,
-                    parameters: constructor.Parameters,
-                    statements: default(ImmutableArray<SyntaxNode>),
+                    typeName: classType.Name,
+                    parameters: baseConstructor.Parameters,
+                    statements: default,
                     baseConstructorArguments: baseConstructorArguments);
             }
         }

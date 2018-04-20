@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 foreach (var parameter in _typeArguments)
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, null))
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
                     {
                         result.AddSymbol(parameter, parameter.Name, 0);
                     }

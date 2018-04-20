@@ -16,28 +16,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
         private const string s_methodPreview = @"
 class C {
 //[
-    void Foo(){
-        Foo(1);
+    void Goo(){
+        Goo(1);
     }
 
-    void Foo(int x){
-        Foo();
+    void Goo(int x){
+        Goo();
     }
 //]
-    void Foo(int x, int y){
-        Foo();
+    void Goo(int x, int y){
+        Goo();
     }
 }";
 
         private const string s_bracketPreview = @"class C {
-    void Foo(){
+    void Goo(){
 //[
         int[] x = new int[10];
 //]
     }
 }";
         private const string s_forDelimiterPreview = @"class C{
-    void Foo(int x, object y) {
+    void Goo(int x, object y) {
 //[
         for (int i; i < x; i++) {
         }
@@ -46,15 +46,15 @@ class C {
 }";
 
         private const string s_delimiterPreview = @"class C{
-    void Foo(int x, object y) {
+    void Goo(int x, object y) {
 //[
-            this.Foo(x, y);
+            this.Goo(x, y);
 //]
     }
 }";
 
         private const string s_castPreview = @"class C{
-    void Foo(object x) {
+    void Goo(object x) {
 //[
         int y = (int)x;
 //]
@@ -62,7 +62,7 @@ class C {
 }";
 
         private const string s_expressionPreview = @"class C{
-    void Foo(int x, object y) {
+    void Goo(int x, object y) {
 //[
         var x = 3;
         var y = 4;
@@ -73,7 +73,7 @@ class C {
 
         private const string s_expressionSpacingPreview = @"
 class c {
-    int Foo(int x, int y) {
+    int Goo(int x, int y) {
 //[
         return x   *   (x-y);
 //]

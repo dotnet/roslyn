@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         internal Edit(EditKind kind, TreeComparer<TNode> comparer, TNode oldNode, TNode newNode)
         {
-            Debug.Assert((oldNode == null || oldNode.Equals(default(TNode))) == (kind == EditKind.Insert));
-            Debug.Assert((newNode == null || newNode.Equals(default(TNode))) == (kind == EditKind.Delete));
+            Debug.Assert((oldNode == null || oldNode.Equals(default)) == (kind == EditKind.Insert));
+            Debug.Assert((newNode == null || newNode.Equals(default)) == (kind == EditKind.Delete));
 
-            Debug.Assert((oldNode == null || oldNode.Equals(default(TNode))) ||
-                         (newNode == null || newNode.Equals(default(TNode))) ||
+            Debug.Assert((oldNode == null || oldNode.Equals(default)) ||
+                         (newNode == null || newNode.Equals(default)) ||
                          !comparer.TreesEqual(oldNode, newNode));
 
             _comparer = comparer;

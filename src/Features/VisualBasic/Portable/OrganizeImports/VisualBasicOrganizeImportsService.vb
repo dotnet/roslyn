@@ -15,8 +15,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
                                         cancellationToken As CancellationToken) As Task(Of Document) Implements IOrganizeImportsService.OrganizeImportsAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim options = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
+
             Dim placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst)
-            Dim rewriter = New Rewriter(placeSystemNamespaceFirst)
+            Dim separateGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups)
+
+            Dim rewriter = New Rewriter(placeSystemNamespaceFirst, separateGroups)
             Dim newRoot = rewriter.Visit(root)
             Return document.WithSyntaxRoot(newRoot)
         End Function

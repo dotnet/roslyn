@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -91,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
             {
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
+            }
+
+            if (conversion.IsStackAlloc)
+            {
+                return CreateStackAllocConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
             if (conversion.IsTupleLiteralConversion ||
@@ -312,6 +319,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
+        private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(conversion.IsStackAlloc);
+
+            var boundStackAlloc = (BoundStackAllocArrayCreation)source;
+            var elementType = boundStackAlloc.ElementType;
+            TypeSymbol stackAllocType;
+
+            switch (conversion.Kind)
+            {
+                case ConversionKind.StackAllocToPointerType:
+                    ReportUnsafeIfNotAllowed(syntax.Location, diagnostics);
+                    stackAllocType = new PointerTypeSymbol(elementType);
+                    break;
+                case ConversionKind.StackAllocToSpanType:
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructs, diagnostics);
+                    stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
+            }
+
+            var convertedNode = new BoundConvertedStackAllocExpression(syntax, elementType, boundStackAlloc.Count, boundStackAlloc.InitializerOpt, stackAllocType, boundStackAlloc.HasErrors);
+
+            var underlyingConversion = conversion.UnderlyingConversions.Single();
+            return CreateConversion(syntax, convertedNode, underlyingConversion, isCast, destination, diagnostics);
+        }
+
         private BoundExpression CreateTupleLiteralConversion(SyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful tuple conversion; rather than producing a separate conversion node 
@@ -422,8 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            BoundNode receiverOpt = ((BoundMethodGroup)node).ReceiverOpt;
-            return receiverOpt != null && receiverOpt.Kind == BoundKind.TypeOrValueExpression;
+            return Binder.IsTypeOrValueExpression(((BoundMethodGroup)node).ReceiverOpt);
         }
 
         private BoundMethodGroup FixMethodGroupWithTypeOrValue(BoundMethodGroup group, Conversion conversion, DiagnosticBag diagnostics)
@@ -539,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //note that the same assert does not hold for all properties. Some properties and (all indexers) are not referenceable by name, yet
             //their binding brings them through here, perhaps needlessly.
 
-            if (receiverOpt != null && receiverOpt.Kind == BoundKind.TypeOrValueExpression)
+            if (IsTypeOrValueExpression(receiverOpt))
             {
                 // TypeOrValue expression isn't replaced only if the invocation is late bound, in which case it can't be extension method.
                 // None of the checks below apply if the receiver can't be classified as a type or value. 
@@ -551,10 +585,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (invokedAsExtensionMethod)
                 {
-                    if (receiverOpt?.Kind == BoundKind.QueryClause && IsMemberAccessedThroughType(receiverOpt))
+                    if (IsMemberAccessedThroughType(receiverOpt))
                     {
-                        // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
-                        diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
+                        if (receiverOpt.Kind == BoundKind.QueryClause)
+                        {
+                            // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
+                            diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
+                        }
+                        else
+                        {
+                            // An object reference is required for the non-static field, method, or property '{0}'
+                            diagnostics.Add(ErrorCode.ERR_ObjectRequired, node.Location, memberSymbol);
+                        }
                         return true;
                     }
                 }
@@ -637,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !IsMemberAccessedThroughType(receiverOpt);
         }
 
-        private static bool IsMemberAccessedThroughType(BoundExpression receiverOpt)
+        internal static bool IsMemberAccessedThroughType(BoundExpression receiverOpt)
         {
             if (receiverOpt == null)
             {
@@ -655,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Was the receiver expression compiler-generated?
         /// </summary>
-        private static bool WasImplicitReceiver(BoundExpression receiverOpt)
+        internal static bool WasImplicitReceiver(BoundExpression receiverOpt)
         {
             if (receiverOpt == null) return true;
             if (!receiverOpt.WasCompilerGenerated) return false;
@@ -707,10 +749,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numParams; i++)
             {
-                var delegateParameterType = delegateParameters[i].Type;
-                var methodParameterType = methodParameters[isExtensionMethod ? i + 1 : i].Type;
+                var delegateParameter = delegateParameters[i];
+                var methodParameter = methodParameters[isExtensionMethod ? i + 1 : i];
 
-                if (!Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameterType, methodParameterType, ref useSiteDiagnostics))
+                if (delegateParameter.RefKind != methodParameter.RefKind ||
+                    !Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameter.Type, methodParameter.Type, ref useSiteDiagnostics))
                 {
                     // No overload for '{0}' matches delegate '{1}'
                     Error(diagnostics, ErrorCode.ERR_MethDelegateMismatch, errorLocation, method, delegateType);
@@ -719,14 +762,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (delegateMethod.ReturnsByRef != method.ReturnsByRef)
+            if (delegateMethod.RefKind != method.RefKind)
             {
                 Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
                 diagnostics.Add(errorLocation, useSiteDiagnostics);
                 return false;
             }
 
-            bool returnsMatch = delegateMethod.ReturnsByRef?
+            bool returnsMatch = delegateMethod.RefKind != RefKind.None ?
                                     // - Return types identity-convertible
                                     Conversions.HasIdentityConversion(method.ReturnType, delegateMethod.ReturnType):
                                     // - Return types "match"
@@ -766,8 +809,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol selectedMethod = conversion.Method;
 
-            if (MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod) ||
-                !MethodGroupIsCompatibleWithDelegate(receiverOpt, isExtensionMethod, selectedMethod, delegateType, syntax.Location, diagnostics))
+            if (!MethodGroupIsCompatibleWithDelegate(receiverOpt, isExtensionMethod, selectedMethod, delegateType, syntax.Location, diagnostics) ||
+                MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
             {
                 return true;
             }
@@ -822,8 +865,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(delegateMismatchLocation, useSiteDiagnostics);
             if (!conversion.Exists)
             {
-                // No overload for '{0}' matches delegate '{1}'
-                diagnostics.Add(ErrorCode.ERR_MethDelegateMismatch, delegateMismatchLocation, boundMethodGroup.Name, delegateType);
+                if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, boundMethodGroup, delegateType, diagnostics))
+                {
+                    // No overload for '{0}' matches delegate '{1}'
+                    diagnostics.Add(ErrorCode.ERR_MethDelegateMismatch, delegateMismatchLocation, boundMethodGroup.Name, delegateType);
+                }
+
                 return true;
             }
             else

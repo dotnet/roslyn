@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string RootNamespaceAttributeName = "RootNamespace";
         private const string OutputTypeAttributeName = "OutputType";
         private const string ReportDiagnosticAttributeName = "ReportDiagnostic";
+        private const string CryptoKeyFileAttributeName = "CryptoKeyFile";
+        private const string StrongNameProviderAttributeName = "StrongNameProvider";
+        private const string DelaySignAttributeName = "DelaySign";
         private const string ParseOptionsElementName = "ParseOptions";
         private const string LanguageVersionAttributeName = "LanguageVersion";
         private const string FeaturesAttributeName = "Features";
@@ -55,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string AnalyzerFullPathAttributeName = "FullPath";
         private const string AliasAttributeName = "Alias";
         private const string ProjectNameAttribute = "Name";
+        private const string CheckOverflowAttributeName = "CheckOverflow";
 
         /// <summary>
         /// Creates a single buffer in a workspace.

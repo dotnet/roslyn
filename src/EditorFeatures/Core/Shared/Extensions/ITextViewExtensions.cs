@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             return mappedPoint.HasValue
                 ? new VirtualSnapshotPoint(mappedPoint.Value)
-                : default(VirtualSnapshotPoint);
+                : default;
         }
 
         public static ITextBuffer GetBufferContainingCaret(this ITextView textView, string contentType = ContentTypeNames.RoslynContentType)
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return true;
             }
 
-            surfaceBufferSpan = default(VirtualSnapshotSpan);
+            surfaceBufferSpan = default;
             return false;
         }
 

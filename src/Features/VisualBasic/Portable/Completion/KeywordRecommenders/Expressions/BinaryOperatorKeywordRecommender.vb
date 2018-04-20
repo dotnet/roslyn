@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             End If
 
             ' Don't show binary operator keywords in an incomplete Using block
-            ' Using foo |
+            ' Using goo |
             Dim usingStatement = token.GetAncestor(Of UsingStatementSyntax)()
             If usingStatement IsNot Nothing AndAlso usingStatement.Expression IsNot Nothing AndAlso Not usingStatement.Expression.IsMissing Then
                 If usingStatement.Expression Is token.Parent Then

@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
@@ -111,7 +111,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -223,7 +223,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -346,7 +346,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         [Fact]
@@ -468,7 +468,7 @@ class B3 : A1
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, ignoreTrivia: false, fixAllActionEquivalenceKey: fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: fixAllActionId);
         }
 
         #endregion

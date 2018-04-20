@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
@@ -11,6 +12,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal sealed class VisualStudioAnalyzer : IDisposable
     {
         private readonly string _fullPath;
@@ -62,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
                 else
                 {
-                    _analyzerReference = new UnresolvedAnalyzerReference(_fullPath);
+                    _analyzerReference = new VisualStudioUnresolvedAnalyzerReference(_fullPath, this);
                 }
             }
 
@@ -89,8 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void Reset()
         {
-            var analyzerFileReference = _analyzerReference as AnalyzerFileReference;
-            if (analyzerFileReference != null)
+            if (_analyzerReference is AnalyzerFileReference analyzerFileReference)
             {
                 analyzerFileReference.AnalyzerLoadFailed -= OnAnalyzerLoadError;
 
@@ -134,6 +136,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _analyzer._tracker.EnsureSubscription();
                 return _analyzer._loader.LoadFromPath(fullPath);
             }
+        }
+
+        /// <summary>
+        /// This custom <see cref="AnalyzerReference"/>, just wraps an existing <see cref="UnresolvedAnalyzerReference"/>,
+        /// but ensure that we start listening to the file for changes once we've actually observed it, so that if the
+        /// file then gets created on disk, we are notified.
+        /// </summary>
+        private class VisualStudioUnresolvedAnalyzerReference : AnalyzerReference
+        {
+            private readonly UnresolvedAnalyzerReference _underlying;
+            private readonly VisualStudioAnalyzer _visualStudioAnalyzer;
+
+            public VisualStudioUnresolvedAnalyzerReference(string fullPath, VisualStudioAnalyzer visualStudioAnalyzer)
+            {
+                _underlying = new UnresolvedAnalyzerReference(fullPath);
+                _visualStudioAnalyzer = visualStudioAnalyzer;
+            }
+
+            public override string FullPath
+                => _underlying.FullPath;
+
+            public override object Id
+                => _underlying.Id;
+
+            public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
+            {
+                _visualStudioAnalyzer._tracker.EnsureSubscription();
+                return _underlying.GetAnalyzers(language);
+            }
+
+            public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
+                => _underlying.GetAnalyzersForAllLanguages();
         }
     }
 }

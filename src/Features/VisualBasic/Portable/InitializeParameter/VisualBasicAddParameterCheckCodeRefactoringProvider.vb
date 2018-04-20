@@ -4,7 +4,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.InitializeParameter
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
@@ -33,5 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Protected Overrides Sub InsertStatement(editor As SyntaxEditor, methodDeclaration As MethodBlockBaseSyntax, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
             InitializeParameterHelpers.InsertStatement(editor, methodDeclaration, statementToAddAfterOpt, statement)
         End Sub
+
+        Protected Overrides Function CanOffer(body As SyntaxNode) As Boolean
+            Return True
+        End Function
     End Class
 End Namespace

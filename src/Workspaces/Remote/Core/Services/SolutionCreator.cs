@@ -131,8 +131,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // changed project
             foreach (var kv in newMap)
             {
-                ProjectStateChecksums oldProjectChecksums;
-                if (!oldMap.TryGetValue(kv.Key, out oldProjectChecksums))
+                if (!oldMap.TryGetValue(kv.Key, out var oldProjectChecksums))
                 {
                     continue;
                 }
@@ -261,6 +260,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 project = project.Solution.WithProjectOutputFilePath(project.Id, newProjectInfo.OutputFilePath).GetProject(project.Id);
             }
 
+            if (project.State.ProjectInfo.Attributes.OutputRefFilePath != newProjectInfo.OutputRefFilePath)
+            {
+                project = project.Solution.WithProjectOutputRefFilePath(project.Id, newProjectInfo.OutputRefFilePath).GetProject(project.Id);
+            }
+
             if (project.State.ProjectInfo.Attributes.HasAllInformation != newProjectInfo.HasAllInformation)
             {
                 project = project.Solution.WithHasAllInformation(project.Id, newProjectInfo.HasAllInformation).GetProject(project.Id);
@@ -303,8 +307,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // changed document
             foreach (var kv in newMap)
             {
-                DocumentStateChecksums oldDocumentChecksums;
-                if (!oldMap.TryGetValue(kv.Key, out oldDocumentChecksums))
+                if (!oldMap.TryGetValue(kv.Key, out var oldDocumentChecksums))
                 {
                     continue;
                 }
@@ -415,17 +418,17 @@ namespace Microsoft.CodeAnalysis.Remote
             return GetDocumentMapAsync(project, project.State.DocumentStates, documents);
         }
 
-        private async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync<T>(Project project, ImmutableDictionary<DocumentId, T> states, HashSet<Checksum> documents)
+        private async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync<T>(Project project, IImmutableDictionary<DocumentId, T> states, HashSet<Checksum> documents)
             where T : TextDocumentState
         {
             var map = new Dictionary<DocumentId, DocumentStateChecksums>();
 
             foreach (var kv in states)
             {
-                var doucmentChecksums = await kv.Value.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
-                if (documents.Contains(doucmentChecksums.Checksum))
+                var documentChecksums = await kv.Value.GetStateChecksumsAsync(_cancellationToken).ConfigureAwait(false);
+                if (documents.Contains(documentChecksums.Checksum))
                 {
-                    map.Add(kv.Key, doucmentChecksums);
+                    map.Add(kv.Key, documentChecksums);
                 }
             }
 

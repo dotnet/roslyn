@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -14,13 +16,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.Other
     {
         private const string FileInLibraryProject1 = @"Public Class Class1
     Inherits System.Windows.Forms.Form
-    Public Sub foo()
+    Public Sub goo()
 
     End Sub
 End Class
 
 Public Class class2
-    Public Sub foo(ByVal x As System.Windows.Forms.Form)
+    Public Sub goo(ByVal x As System.Windows.Forms.Form)
 
     End Sub
 
@@ -53,7 +55,7 @@ End Class
     Sub New()
         MyBase.New(Nothing, Nothing, Nothing, Nothing)
     End Sub
-    Sub foo()
+    Sub goo()
 
     End Sub
     Public bar As ClassLibrary3.Class1
@@ -65,7 +67,7 @@ End Class
         E2
     End Enum
 
-    Public Function Foo() As ADODB.Recordset
+    Public Function Goo() As ADODB.Recordset
         Dim x As ADODB.Recordset = Nothing
         Return x
     End Function
@@ -79,7 +81,7 @@ class Program
     static void Main(string[] args)
     {
         var y = new ClassLibrary1.class2();
-        y.foo(null);
+        y.goo(null);
 
         y.ee += (_, __) => { };
 
@@ -103,6 +105,11 @@ class Program
         public CSharpAddMissingReference(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
             VisualStudio.SolutionExplorer.CreateSolution("ReferenceErrors", solutionElement: XElement.Parse(
                 "<Solution>" +
                $"   <Project ProjectName=\"{ClassLibrary1Name}\" ProjectTemplate=\"{WellKnownProjectTemplates.WinFormsApplication}\" Language=\"{LanguageNames.VisualBasic}\">" +
@@ -132,12 +139,12 @@ class Program
                 "</Solution>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
         public void VerifyAvailableCodeActions()
         {
             var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
             VisualStudio.SolutionExplorer.OpenFile( consoleProject, "Program.cs");
-            VisualStudio.Editor.PlaceCaret("y.foo", charsOffset: 1);
+            VisualStudio.Editor.PlaceCaret("y.goo", charsOffset: 1);
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
             VisualStudio.Editor.PlaceCaret("y.ee", charsOffset: 1);
@@ -148,12 +155,12 @@ class Program
             VisualStudio.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
         public void InvokeSomeFixesInCSharpThenVerifyReferences()
         {
             var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
             VisualStudio.SolutionExplorer.OpenFile(consoleProject, "Program.cs");
-            VisualStudio.Editor.PlaceCaret("y.foo", charsOffset: 1);
+            VisualStudio.Editor.PlaceCaret("y.goo", charsOffset: 1);
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);
             VisualStudio.SolutionExplorer.Verify.AssemblyReferencePresent(

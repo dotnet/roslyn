@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return true;
             }
 
-            severity = default(DiagnosticSeverity);
+            severity = default;
             return false;
         }
 

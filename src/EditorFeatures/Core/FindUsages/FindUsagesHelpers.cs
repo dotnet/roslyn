@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 symbol, project, cancellationToken).ConfigureAwait(false);
 
             var filteredSymbols = implementations.WhereAsArray(
-                s => !s.IsAbstract && s.Locations.Any(l => l.IsInSource));
+                s => s.Locations.Any(l => l.IsInSource));
 
             return filteredSymbols.Length == 0
                 ? (symbol, project, filteredSymbols, EditorFeaturesResources.The_symbol_has_no_implementations)

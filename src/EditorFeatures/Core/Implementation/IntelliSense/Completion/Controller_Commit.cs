@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -18,8 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     {
         private CompletionProvider GetCompletionProvider(CompletionItem item)
         {
-            var completionService = this.GetCompletionService() as CompletionServiceWithProviders;
-            if (completionService != null)
+            if (this.GetCompletionService() is CompletionServiceWithProviders completionService)
             {
                 return completionService.GetProvider(item);
             }
@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // We want to merge with any of our other programmatic edits (e.g. automatic brace completion)
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
 
-                var provider = GetCompletionProvider(item) as ICustomCommitCompletionProvider;
-                if (provider != null)
+                if (GetCompletionProvider(item) is ICustomCommitCompletionProvider provider)
                 {
                     provider.Commit(item, this.TextView, this.SubjectBuffer, model.TriggerSnapshot, commitChar);
                 }
@@ -149,6 +148,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     if (characterWasSentIntoBuffer && !completionChange.IncludesCommitCharacter)
                     {
                         nextHandler();
+                    }
+
+                    if (item.Rules.FormatOnCommit)
+                    {
+                        var spanToFormat = triggerSnapshotSpan.TranslateTo(
+                            this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+                        var document = this.GetDocument();
+                        var formattingService = document?.GetLanguageService<IEditorFormattingService>();
+
+                        if (formattingService != null)
+                        {
+                            var changes = formattingService.GetFormattingChangesAsync(
+                                document, spanToFormat.Span.ToTextSpan(), CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                            document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, CancellationToken.None);
+                        }
                     }
 
                     // If the insertion is long enough, the caret will scroll out of the visible area.

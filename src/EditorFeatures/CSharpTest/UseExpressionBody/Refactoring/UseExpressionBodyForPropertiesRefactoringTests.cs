@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get 
         {
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get 
         {
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo
+    int Goo
     {
         get => Bar();
     }
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo => Bar();
+    int Goo => Bar();
 }", parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
         }
 
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Foo
+    int Goo
     {
         get
         {
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 }",
 @"class C
 {
-    int Foo => Bar();
+    int Goo => Bar();
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
         }
 
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    Action Foo
+    Action Goo
     {
         get 
         {
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Foo => [||]Bar();
+    int Goo => [||]Bar();
 }", parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
         }
 
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestMissingAsync(
 @"class C
 {
-    int Foo => [||]Bar();
+    int Goo => [||]Bar();
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
         }
 
@@ -160,11 +161,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Foo => [||]Bar();
+    int Goo => [||]Bar();
 }",
 @"class C
 {
-    int Foo { get { return Bar(); } }
+    int Goo
+    {
+        get
+        {
+            return Bar();
+        }
+    }
 }", parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
         }
 
@@ -174,11 +181,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestInRegularAndScript1Async(
 @"class C
 {
-    int Foo => [||]Bar();
+    int Goo => [||]Bar();
 }",
 @"class C
 {
-    int Foo { get { return Bar(); } }
+    int Goo
+    {
+        get
+        {
+            return Bar();
+        }
+    }
 }", parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
         }
 
@@ -189,11 +202,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             await TestAsync(
 @"class C
 {
-    int Foo => [||]Bar();
+    int Goo => [||]Bar();
 }",
 @"class C
 {
-    int Foo { get { return Bar(); } }
+    int Goo
+    {
+        get
+        {
+            return Bar();
+        }
+    }
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
     options: UseExpressionBodyForAccessors_ExpressionBodyForProperties);
         }

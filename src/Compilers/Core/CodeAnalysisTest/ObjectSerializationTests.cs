@@ -1033,6 +1033,24 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TestRoundTripGuid()
+        {
+            TestRoundTripGuid(Guid.Empty);
+            TestRoundTripGuid(new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
+            TestRoundTripGuid(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1));
+            TestRoundTripGuid(new Guid(0b10000000000000000000000000000000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+            for (int i = 0; i < 10; i++)
+            {
+                TestRoundTripGuid(Guid.NewGuid());
+            }
+        }
+
+        private void TestRoundTripGuid(Guid guid)
+        {
+            TestRoundTrip(guid, (w, v) => w.WriteGuid(v), r => r.ReadGuid());
+        }
+
+        [Fact]
         public void TestRoundTripStringCharacters()
         {
             // round trip all possible characters as a string

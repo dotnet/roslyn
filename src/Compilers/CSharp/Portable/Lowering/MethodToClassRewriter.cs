@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -148,15 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var newValue = (BoundExpression)this.Visit(node.Value);
             var newType = this.VisitType(node.Type);
             return node.Update(newLocals, newSideEffects, newValue, newType);
-        }
-
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
-            var newInnerLocals = RewriteLocals(node.InnerLocals);
-            BoundExpression boundExpression = (BoundExpression)this.Visit(node.Expression);
-            ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-            return node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, newInnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)
@@ -384,11 +376,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BoundExpression originalRight = node.Right;
 
             if (leftLocal.LocalSymbol.RefKind != RefKind.None &&
-                node.RefKind != RefKind.None &&
+                node.IsRef &&
                 NeedsProxy(leftLocal.LocalSymbol))
             {
                 Debug.Assert(!proxies.ContainsKey(leftLocal.LocalSymbol));
-                Debug.Assert(!IsStackAlloc(originalRight));
+                Debug.Assert(originalRight.Kind != BoundKind.ConvertedStackAllocExpression);
                 //spilling ref local variables
                 throw ExceptionUtilities.Unreachable;
             }
@@ -410,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If the receiver of the field is on the stack when the stackalloc happens,
             // popping it will free the memory (?) or otherwise cause verification issues.
             // DevDiv Bugs 59454
-            if (rewrittenLeft.Kind != BoundKind.Local && IsStackAlloc(originalRight))
+            if (rewrittenLeft.Kind != BoundKind.Local && originalRight.Kind == BoundKind.ConvertedStackAllocExpression)
             {
                 // From ILGENREC::genAssign:
                 // DevDiv Bugs 59454: Handle hoisted local initialized with a stackalloc
@@ -421,8 +413,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 BoundAssignmentOperator tempAssignment;
                 BoundLocal tempLocal = factory.StoreToTemp(rewrittenRight, out tempAssignment);
 
-                Debug.Assert(node.RefKind == RefKind.None);
-                BoundAssignmentOperator rewrittenAssignment = node.Update(rewrittenLeft, tempLocal, node.RefKind, rewrittenType);
+                Debug.Assert(!node.IsRef);
+                BoundAssignmentOperator rewrittenAssignment = node.Update(rewrittenLeft, tempLocal, node.IsRef, rewrittenType);
 
                 return new BoundSequence(
                     node.Syntax,
@@ -432,14 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     rewrittenType);
             }
 
-            return node.Update(rewrittenLeft, rewrittenRight, node.RefKind, rewrittenType);
-        }
-
-        private static bool IsStackAlloc(BoundExpression expr)
-        {
-            return
-                expr.Kind == BoundKind.StackAllocArrayCreation ||
-                expr.Kind == BoundKind.Conversion && ((BoundConversion)expr).Operand.Kind == BoundKind.StackAllocArrayCreation;
+            return node.Update(rewrittenLeft, rewrittenRight, node.IsRef, rewrittenType);
         }
 
         public override BoundNode VisitFieldInfo(BoundFieldInfo node)
@@ -620,6 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
+            TypeSymbol receiverType = this.VisitType(node.ReceiverType);
 
             var member = node.MemberSymbol;
 
@@ -633,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, type);
+            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, receiverType, node.BinderOpt, type);
         }
 
         private static bool BaseReferenceInReceiverWasRewritten(BoundExpression originalReceiver, BoundExpression rewrittenReceiver)
@@ -649,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
         {
             internal BaseMethodWrapperSymbol(NamedTypeSymbol containingType, MethodSymbol methodBeingWrapped, SyntaxNode syntax, string name)
-                : base(containingType, methodBeingWrapped, syntax.SyntaxTree.GetReference(syntax), null, syntax.GetLocation(), name, DeclarationModifiers.Private)
+                : base(containingType, methodBeingWrapped, syntax.SyntaxTree.GetReference(syntax), syntax.GetLocation(), name, DeclarationModifiers.Private)
             {
                 Debug.Assert(containingType.ContainingModule is SourceModuleSymbol);
                 Debug.Assert(ReferenceEquals(methodBeingWrapped, methodBeingWrapped.ConstructedFrom));
@@ -673,9 +659,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AssignTypeMapAndTypeParameters(typeMap, typeParameters);
             }
 
-            internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
             {
-                base.AddSynthesizedAttributes(compilationState, ref attributes);
+                base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
                 AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
             }

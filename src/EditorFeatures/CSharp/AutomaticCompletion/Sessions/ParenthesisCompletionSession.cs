@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
 
             // if pair is on the same line, then the closing parenthesis must belong to other tracker.
             // let it through
-            if (snapshot.GetLineNumberFromPosition(pair.Item1.SpanStart) == snapshot.GetLineNumberFromPosition(pair.Item2.Span.End))
+            if (snapshot.GetLineNumberFromPosition(pair.openBrace.SpanStart) == snapshot.GetLineNumberFromPosition(pair.closeBrace.Span.End))
             {
                 return true;
             }
 
-            return (int)pair.Item2.Kind() != ClosingTokenKind || pair.Item2.Span.Length == 0;
+            return (int)pair.closeBrace.Kind() != ClosingTokenKind || pair.closeBrace.Span.Length == 0;
         }
     }
 }

@@ -262,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             Marshal.ThrowExceptionForHR(lines.GetLastLineIndex(out var piLIne, out var piLineIndex));
             Marshal.ThrowExceptionForHR(lines.GetLengthOfLine(piLineIndex, out var piLineLength));
 
-            Microsoft.VisualStudio.TextManager.Interop.TextSpan[] changes = default(Microsoft.VisualStudio.TextManager.Interop.TextSpan[]);
+            Microsoft.VisualStudio.TextManager.Interop.TextSpan[] changes = default;
 
             piLineLength = piLineLength > 0 ? piLineLength - 1 : 0;
 

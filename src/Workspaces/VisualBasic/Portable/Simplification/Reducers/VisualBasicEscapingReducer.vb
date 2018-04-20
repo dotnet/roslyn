@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             ' REM should always be escaped
             ' e.g.
             ' Dim [Rem] = 23
-            ' Call Foo.[Rem]()
+            ' Call Goo.[Rem]()
             If SyntaxFacts.GetKeywordKind(unescapedIdentifier) = SyntaxKind.REMKeyword Then
                 Return identifier
             End If

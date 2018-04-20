@@ -79,7 +79,6 @@ End Class]]>
                 initialMarkup:=input,
                 expectedMarkup:=expected,
                 options:=[Option](CodeStyleOptions.QualifyPropertyAccess, True, NotificationOption.Suggestion),
-                ignoreTrivia:=False,
                 fixAllActionEquivalenceKey:=VBFeaturesResources.Add_Me)
         End Function
     End Class

@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expressions
     ''' <summary>
-    ''' Recommends the "With" keyword when used in a New syntax (such as New foo With)
+    ''' Recommends the "With" keyword when used in a New syntax (such as New goo With)
     ''' </summary>
     Friend Class WithKeywordRecommender
         Inherits AbstractKeywordRecommender

@@ -156,10 +156,10 @@ End Class
             Dim markup = <Text><![CDATA[
 Module Program
     Sub Main(args As String())
-        Dim z = New Foo() With {.z$$ }
+        Dim z = New Goo() With {.z$$ }
     End Sub
 
-    Class Foo
+    Class Goo
         Property A As Integer
             Get
 
@@ -300,14 +300,14 @@ End Class
             Dim markup = <Text><![CDATA[
 ''' <completionlist cref="Program"/>
 Class Program
-    Public Shared Foo As Integer
+    Public Shared Goo As Integer
 
     Sub Main(args As String())
         Dim p As Program = New $$
     End Sub
 End Class
 ]]></Text>.Value
-            Await VerifyItemIsAbsentAsync(markup, "Program.Foo")
+            Await VerifyItemIsAbsentAsync(markup, "Program.Goo")
         End Function
 
         <WorkItem(954694, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954694")>

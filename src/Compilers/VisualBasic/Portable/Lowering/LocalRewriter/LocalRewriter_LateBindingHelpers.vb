@@ -412,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           convertedValue As BoundExpression) As BoundExpression
 
             If assignmentTarget.Kind = BoundKind.LateMemberAccess Then
-                ' objExpr.foo = bar
+                ' objExpr.goo = bar
                 Dim memberAccess = DirectCast(assignmentTarget, BoundLateMemberAccess)
                 Return LateSet(syntax,
                                memberAccess,
@@ -426,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If invocation.Member.Kind = BoundKind.LateMemberAccess Then
                     Dim memberAccess = DirectCast(invocation.Member, BoundLateMemberAccess)
-                    ' objExpr.foo(args) = bar
+                    ' objExpr.goo(args) = bar
                     Return LateSet(syntax,
                                memberAccess,
                                convertedValue,
@@ -468,7 +468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim syntax = node.Syntax
 
-            ' expr = o.Foo<TypeParam>
+            ' expr = o.Goo<TypeParam>
             ' emit as:
             '     LateGet(invocation.Member, 
             '         invocation.Arguments, 

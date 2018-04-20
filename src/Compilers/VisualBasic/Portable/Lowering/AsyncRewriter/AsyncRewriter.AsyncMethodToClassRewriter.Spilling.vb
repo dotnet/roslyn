@@ -108,14 +108,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' 
             ''' Example:
             ''' 
-            '''     (1 + 2, await t1, Foo(), await t2, 3 + 4)
+            '''     (1 + 2, await t1, Goo(), await t2, 3 + 4)
             ''' 
             '''     becomes:
             ''' 
             '''     Spill(
             '''         spill1 = 1 + 2,
             '''         spill2 = await t1,
-            '''         spill3 = Foo(),
+            '''         spill3 = Goo(),
             '''         (spill1, spill2, spill3, await t2, 3 + 4))
             ''' 
             ''' NOTE: Consider nested array initializers:

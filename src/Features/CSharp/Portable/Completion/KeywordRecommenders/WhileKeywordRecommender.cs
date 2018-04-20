@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // Note: the case of
             //   do 
-            //     Foo();
+            //     Goo();
             //   |
             // is taken care of in the IsStatementContext case.
 

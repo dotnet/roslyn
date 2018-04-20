@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                      && IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStylePreference, cancellationToken);
 
                 IsInIntrinsicTypeContext =
-                        IsPredefinedTypeInDeclaration(declaration)
+                        IsPredefinedTypeInDeclaration(declaration, semanticModel)
                      || IsInferredPredefinedType(declaration, semanticModel, cancellationToken);
             }
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 var initializer = variableDeclaration.Variables.Single().Initializer;
                 var initializerExpression = GetInitializerExpression(initializer.Value);
                 var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
-                return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel,cancellationToken, declaredTypeSymbol);
+                return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel, cancellationToken, declaredTypeSymbol);
             }
 
             /// <summary>
@@ -89,10 +89,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             /// to var. <see cref="SyntaxFacts.IsPredefinedType(SyntaxKind)"/> considers string
             /// and object but the compiler's implementation of IsIntrinsicType does not.
             /// </remarks>
-            private bool IsPredefinedTypeInDeclaration(SyntaxNode declarationStatement)
+            private bool IsPredefinedTypeInDeclaration(SyntaxNode declarationStatement, SemanticModel semanticModel)
             {
-                return TypeStyleHelper.IsPredefinedType(
-                    GetTypeSyntaxFromDeclaration(declarationStatement));
+                var typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
+
+                return typeSyntax != null
+                    ? IsMadeOfSpecialTypes(semanticModel.GetTypeInfo(typeSyntax).Type)
+                    : false;
+            }
+
+            /// <summary>
+            /// Returns true for type that are arrays/nullable/pointer types of special types
+            /// </summary>
+            private bool IsMadeOfSpecialTypes(ITypeSymbol type)
+            {
+                if (type == null)
+                {
+                    return false;
+                }
+
+                while (true)
+                {
+                    type = type.RemoveNullableIfPresent();
+
+                    if (type.IsArrayType())
+                    {
+                        type = ((IArrayTypeSymbol)type).ElementType;
+                        continue;
+                    }
+
+                    if (type.IsPointerType())
+                    {
+                        type = ((IPointerTypeSymbol)type).PointedAtType;
+                        continue;
+                    }
+
+                    return type.IsSpecialType();
+                }
             }
 
             private bool IsInferredPredefinedType(SyntaxNode declarationStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -106,13 +139,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             private TypeSyntax GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)
             {
-                if (declarationStatement is VariableDeclarationSyntax varDecl)
+                switch (declarationStatement)
                 {
-                    return varDecl.Type;
-                }
-                else if (declarationStatement is ForEachStatementSyntax forEach)
-                {
-                    return forEach.Type;
+                    case VariableDeclarationSyntax varDecl:
+                        return varDecl.Type;
+                    case ForEachStatementSyntax forEach:
+                        return forEach.Type;
+                    case DeclarationExpressionSyntax declExpr:
+                        return declExpr.Type;
                 }
 
                 return null;

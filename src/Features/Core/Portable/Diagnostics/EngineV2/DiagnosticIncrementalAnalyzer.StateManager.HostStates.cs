@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -36,12 +37,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return GetAnalyzerMap(language).GetStateSets();
                 }
 
-                public IEnumerable<DiagnosticAnalyzer> GetAnalyzers(string language)
-                {
-                    var map = GetAnalyzerMap(language);
-                    return map.GetAnalyzers();
-                }
-
                 public StateSet GetOrCreateStateSet(string language, DiagnosticAnalyzer analyzer)
                 {
                     return GetAnalyzerMap(language).GetStateSet(analyzer);
@@ -64,73 +59,68 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 private class DiagnosticAnalyzerMap
                 {
-                    private readonly DiagnosticAnalyzer _compilerAnalyzer;
+                    private const int BuiltInCompilerPriority = -2;
+                    private const int RegularDiagnosticAnalyzerPriority = -1;
+
                     private readonly StateSet _compilerStateSet;
 
+                    private readonly ImmutableArray<StateSet> _orderedSet;
                     private readonly ImmutableDictionary<DiagnosticAnalyzer, StateSet> _map;
 
                     public DiagnosticAnalyzerMap(HostAnalyzerManager analyzerManager, string language, ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
                     {
-                        // hold directly on to compiler analyzer
-                        _compilerAnalyzer = analyzerManager.GetCompilerDiagnosticAnalyzer(language);
+                        _map = analyzerMap;
+
+                        var compilerAnalyzer = analyzerManager.GetCompilerDiagnosticAnalyzer(language);
 
                         // in test case, we might not have the compiler analyzer.
-                        if (_compilerAnalyzer == null)
+                        if (compilerAnalyzer != null)
                         {
-                            _map = analyzerMap;
-                            return;
+                            // hold onto stateSet for compiler analyzer
+                            _compilerStateSet = analyzerMap[compilerAnalyzer];
                         }
 
-                        _compilerStateSet = analyzerMap[_compilerAnalyzer];
-
-                        // hold rest of analyzers
-                        _map = analyzerMap.Remove(_compilerAnalyzer);
+                        // order statesets
+                        // order will be in this order
+                        // BuiltIn Compiler Analyzer (C#/VB) < Regular DiagnosticAnalyzers < Document/ProjectDiagnosticAnalyzers
+                        _orderedSet = _map.Values.OrderBy(PriorityComparison).ToImmutableArray();
                     }
 
-                    public IEnumerable<DiagnosticAnalyzer> GetAnalyzers()
-                    {
-                        // always return compiler one first if it exists.
-                        // it might not exist in test environment.
-                        if (_compilerAnalyzer != null)
-                        {
-                            yield return _compilerAnalyzer;
-                        }
-
-                        foreach (var (analyzer, _) in _map)
-                        {
-                            yield return analyzer;
-                        }
-                    }
-
-                    public IEnumerable<StateSet> GetStateSets()
-                    {
-                        // always return compiler one first if it exists.
-                        // it might not exist in test environment.
-                        if (_compilerAnalyzer != null)
-                        {
-                            yield return _compilerStateSet;
-                        }
-
-                        // TODO: for now, this is static, but in future, we might consider making this a dynamic so that we process cheaper analyzer first.
-                        foreach (var (_, set) in _map)
-                        {
-                            yield return set;
-                        }
-                    }
+                    public ImmutableArray<StateSet> GetStateSets() => _orderedSet;
 
                     public StateSet GetStateSet(DiagnosticAnalyzer analyzer)
                     {
-                        if (_compilerAnalyzer == analyzer)
+                        if (_map.TryGetValue(analyzer, out var stateSet))
                         {
-                            return _compilerStateSet;
-                        }
-
-                        if (_map.TryGetValue(analyzer, out var set))
-                        {
-                            return set;
+                            return stateSet;
                         }
 
                         return null;
+                    }
+
+                    private int PriorityComparison(StateSet state1, StateSet state2)
+                    {
+                        return GetPriority(state1) - GetPriority(state2);
+                    }
+
+                    private int GetPriority(StateSet state)
+                    {
+                        // compiler gets highest priority
+                        if (state == _compilerStateSet)
+                        {
+                            return BuiltInCompilerPriority;
+                        }
+
+                        switch (state.Analyzer)
+                        {
+                            case DocumentDiagnosticAnalyzer analyzer:
+                                return Math.Max(0, analyzer.Priority);
+                            case ProjectDiagnosticAnalyzer analyzer:
+                                return Math.Max(0, analyzer.Priority);
+                            default:
+                                // regular analyzer get next priority after compiler analyzer
+                                return RegularDiagnosticAnalyzerPriority;
+                        }
                     }
                 }
             }

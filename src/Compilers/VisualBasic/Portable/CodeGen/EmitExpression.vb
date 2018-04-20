@@ -1034,7 +1034,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     ' if the receiver is actually a value type it would need to be boxed.
                     ' let .constrained sort this out. 
 
-                    callKind = If(receiverType.IsReferenceType AndAlso Not AllowedToTakeRef(receiver, AddressKind.ReadOnly),
+                    Debug.Assert(Not receiverType.IsReferenceType OrElse receiver.Kind <> BoundKind.ComplexConditionalAccessReceiver)
+                    callKind = If(receiverType.IsReferenceType AndAlso
+                                   (receiver.Kind = BoundKind.ConditionalAccessReceiverPlaceholder OrElse Not AllowedToTakeRef(receiver, AddressKind.ReadOnly)),
                                     CallKind.CallVirt,
                                     CallKind.ConstrainedCallVirt)
 
@@ -1511,7 +1513,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             If (used) Then
                 Dim temp = Me.AllocateTemp(type, syntaxNode)
                 _builder.EmitLocalAddress(temp)                  '  ldloca temp
-                _builder.EmitOpCode(ILOpCode.Initobj)            '  intitobj  <MyStruct>
+                _builder.EmitOpCode(ILOpCode.Initobj)            '  initobj  <MyStruct>
                 EmitSymbolToken(type, syntaxNode)
                 _builder.EmitLocalLoad(temp)                     '  ldloc temp
                 FreeTemp(temp)
@@ -1740,7 +1742,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim temp = Me.EmitAddress(target, AddressKind.Writeable)
             Debug.Assert(temp Is Nothing, "temp is not expected when in-place assigning")
 
-            Me._builder.EmitOpCode(ILOpCode.Initobj)    '  intitobj  <MyStruct>
+            Me._builder.EmitOpCode(ILOpCode.Initobj)    '  initobj  <MyStruct>
             Me.EmitSymbolToken(target.Type, target.Syntax)
 
             If used Then

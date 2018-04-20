@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
             public virtual void Dispose()
             {
                 Data = null;
-                CancellationToken = default(CancellationToken);
+                CancellationToken = default;
             }
 
             protected char Eat(SymbolKeyType type)
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis
                 if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
                 {
                     Eat(SymbolKeyType.Null);
-                    return default(ImmutableArray<T>);
+                    return default;
                 }
 
                 EatOpenParen();
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis
                 if (type == SymbolKeyType.Null)
                 {
                     Eat(type);
-                    return default(SymbolKeyResolution);
+                    return default;
                 }
 
                 EatOpenParen();

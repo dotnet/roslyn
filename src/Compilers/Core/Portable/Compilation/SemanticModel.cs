@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -71,16 +72,6 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public IOperation GetOperation(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (!this.Compilation.IsIOperationFeatureEnabled())
-            {
-                throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
-            }
-
-            return GetOperationInternal(node, cancellationToken);
-        }
-
-        internal IOperation GetOperationInternal(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
-        {
             try
             {
                 return GetOperationCore(node, cancellationToken);
@@ -88,13 +79,20 @@ namespace Microsoft.CodeAnalysis
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
                 // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
-                Debug.Assert(false);
+                Debug.Assert(false, "\n" + e.ToString());
             }
 
             return null;
         }
 
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Deep Clone given IOperation
+        /// </summary>
+        internal T CloneOperation<T>(T operation) where T : IOperation => (T)CloneOperationCore(operation);
+
+        internal abstract IOperation CloneOperationCore(IOperation operation);
 
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
@@ -447,10 +445,10 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The "position" is used to determine what variables are visible and accessible. Even if "container" is
         /// specified, the "position" location is significant for determining which members of "containing" are
-        /// accessible. 
-        /// 
+        /// accessible.
+        ///
         /// Labels are not considered (see <see cref="LookupLabels"/>).
-        /// 
+        ///
         /// Non-reduced extension methods are considered regardless of the value of <paramref name="includeReducedExtensionMethods"/>.
         /// </remarks>
         public ImmutableArray<ISymbol> LookupSymbols(
@@ -476,14 +474,14 @@ namespace Microsoft.CodeAnalysis
         /// calling <see cref="LookupSymbols"/> with the container set to the immediate base type of
         /// the type in which <paramref name="position"/> occurs.  However, the accessibility rules
         /// are different: protected members of the base type will be visible.
-        /// 
+        ///
         /// Consider the following example:
-        /// 
+        ///
         ///   public class Base
         ///   {
         ///       protected void M() { }
         ///   }
-        ///   
+        ///
         ///   public class Derived : Base
         ///   {
         ///       void Test(Base b)
@@ -492,7 +490,7 @@ namespace Microsoft.CodeAnalysis
         ///           base.M();
         ///       }
         ///   }
-        /// 
+        ///
         /// Protected members of an instance of another type are only accessible if the instance is known
         /// to be "this" instance (as indicated by the "base" keyword).
         /// </summary>
@@ -503,7 +501,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A list of symbols that were found. If no symbols were found, an empty list is returned.</returns>
         /// <remarks>
         /// The "position" is used to determine what variables are visible and accessible.
-        /// 
+        ///
         /// Non-reduced extension methods are considered, but reduced extension methods are not.
         /// </remarks>
         public ImmutableArray<ISymbol> LookupBaseMembers(
@@ -523,7 +521,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the available named static member symbols in the context of the specified location and optional container.
         /// Only members that are accessible and visible from the given location are returned.
-        /// 
+        ///
         /// Non-reduced extension methods are considered, since they are static methods.
         /// </summary>
         /// <param name="position">The character position for determining the enclosing declaration scope and
@@ -536,8 +534,8 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The "position" is used to determine what variables are visible and accessible. Even if "container" is
         /// specified, the "position" location is significant for determining which members of "containing" are
-        /// accessible. 
-        /// 
+        /// accessible.
+        ///
         /// Essentially the same as filtering instance members out of the results of an analogous <see cref="LookupSymbols"/> call.
         /// </remarks>
         public ImmutableArray<ISymbol> LookupStaticMembers(
@@ -570,8 +568,8 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The "position" is used to determine what variables are visible and accessible. Even if "container" is
         /// specified, the "position" location is significant for determining which members of "containing" are
-        /// accessible. 
-        /// 
+        /// accessible.
+        ///
         /// Does not return INamespaceOrTypeSymbol, because there could be aliases.
         /// </remarks>
         public ImmutableArray<ISymbol> LookupNamespacesAndTypes(
@@ -602,7 +600,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The "position" is used to determine what variables are visible and accessible. Even if "container" is
         /// specified, the "position" location is significant for determining which members of "containing" are
-        /// accessible. 
+        /// accessible.
         /// </remarks>
         public ImmutableArray<ISymbol> LookupLabels(
             int position,
@@ -619,7 +617,7 @@ namespace Microsoft.CodeAnalysis
             string name);
 
         /// <summary>
-        /// Analyze control-flow within a part of a method body. 
+        /// Analyze control-flow within a part of a method body.
         /// </summary>
         /// <param name="firstStatement">The first node to be included within the analysis.</param>
         /// <param name="lastStatement">The last node to be included within the analysis.</param>
@@ -635,7 +633,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Analyze control-flow within a part of a method body. 
+        /// Analyze control-flow within a part of a method body.
         /// </summary>
         /// <param name="firstStatement">The first node to be included within the analysis.</param>
         /// <param name="lastStatement">The last node to be included within the analysis.</param>
@@ -648,7 +646,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract ControlFlowAnalysis AnalyzeControlFlowCore(SyntaxNode firstStatement, SyntaxNode lastStatement);
 
         /// <summary>
-        /// Analyze control-flow within a part of a method body. 
+        /// Analyze control-flow within a part of a method body.
         /// </summary>
         /// <param name="statement">The statement to be analyzed.</param>
         /// <returns>An object that can be used to obtain the result of the control flow analysis.</returns>
@@ -663,7 +661,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Analyze control-flow within a part of a method body. 
+        /// Analyze control-flow within a part of a method body.
         /// </summary>
         /// <param name="statement">The statement to be analyzed.</param>
         /// <returns>An object that can be used to obtain the result of the control flow analysis.</returns>
@@ -675,7 +673,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract ControlFlowAnalysis AnalyzeControlFlowCore(SyntaxNode statement);
 
         /// <summary>
-        /// Analyze data-flow within a part of a method body. 
+        /// Analyze data-flow within a part of a method body.
         /// </summary>
         /// <param name="firstStatement">The first node to be included within the analysis.</param>
         /// <param name="lastStatement">The last node to be included within the analysis.</param>
@@ -691,7 +689,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Analyze data-flow within a part of a method body. 
+        /// Analyze data-flow within a part of a method body.
         /// </summary>
         /// <param name="firstStatement">The first node to be included within the analysis.</param>
         /// <param name="lastStatement">The last node to be included within the analysis.</param>
@@ -704,7 +702,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract DataFlowAnalysis AnalyzeDataFlowCore(SyntaxNode firstStatement, SyntaxNode lastStatement);
 
         /// <summary>
-        /// Analyze data-flow within a part of a method body. 
+        /// Analyze data-flow within a part of a method body.
         /// </summary>
         /// <param name="statementOrExpression">The statement or expression to be analyzed.</param>
         /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
@@ -719,7 +717,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Analyze data-flow within a part of a method body. 
+        /// Analyze data-flow within a part of a method body.
         /// </summary>
         /// <param name="statementOrExpression">The statement or expression to be analyzed.</param>
         /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
@@ -780,7 +778,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract ISymbol GetEnclosingSymbolCore(int position, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Determines if the symbol is accessible from the specified location. 
+        /// Determines if the symbol is accessible from the specified location.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and
         /// accessibility. This character position must be within the FullSpan of the Root syntax
@@ -800,7 +798,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Determines if the symbol is accessible from the specified location. 
+        /// Determines if the symbol is accessible from the specified location.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and
         /// accessibility. This character position must be within the FullSpan of the Root syntax
@@ -862,12 +860,12 @@ namespace Microsoft.CodeAnalysis
         /// If false, then <see cref="DeclarationInfo.DeclaredSymbol"/> is always null.</param>
         /// <param name="builder">Builder to add declarations.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        internal abstract void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken);
+        internal abstract void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken);
 
         /// <summary>
         /// Takes a node and returns a set of declarations that overlap the node's span.
         /// </summary>
-        internal abstract void ComputeDeclarationsInNode(SyntaxNode node, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null);
+        internal abstract void ComputeDeclarationsInNode(SyntaxNode node, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null);
 
         /// <summary>
         /// Takes a Symbol and syntax for one of its declaring syntax reference and returns the topmost syntax node to be used by syntax analyzer.
@@ -876,5 +874,15 @@ namespace Microsoft.CodeAnalysis
         {
             return declaringSyntax;
         }
+
+        /// <summary>
+        /// Root of this semantic model
+        /// </summary>
+        internal SyntaxNode Root => RootCore;
+
+        /// <summary>
+        /// Root of this semantic model
+        /// </summary>
+        protected abstract SyntaxNode RootCore { get; }
     }
 }
