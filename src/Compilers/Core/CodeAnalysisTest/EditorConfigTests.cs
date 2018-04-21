@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -79,8 +80,18 @@ my_PROP = my_VAL");
             var properties = config.GlobalSection.Properties;
 
             Assert.True(properties.TryGetValue("my_PrOp", out var val));
-            Assert.Equal(val, "my_val");
+            Assert.Equal(val, "my_VAL");
             Assert.Equal("my_prop", properties.Keys.Single());
+        }
+
+        [Fact]
+        public void NonReservedKeyPreservedCaseVal()
+        {
+            var config = ParseConfigFile(string.Join(Environment.NewLine,
+                EditorConfig.ReservedKeys.Select(k => "MY_" + k + " = MY_VAL")));
+            AssertEx.SetEqual(
+                EditorConfig.ReservedKeys.Select(k => KeyValuePair.Create("my_" + k, "MY_VAL")).ToList(),
+                config.GlobalSection.Properties);
         }
 
         [Fact]
@@ -219,6 +230,28 @@ long: this value continues
             var config = ParseConfigFile(@"
 RoOt = TruE");
             Assert.True(config.IsRoot);
+        }
+
+        [Fact]
+        public void ReservedValues()
+        {
+            int index = 0;
+            var config = ParseConfigFile(string.Join(Environment.NewLine,
+                EditorConfig.ReservedValues.Select(v => "MY_KEY" + (index++) + " = " + v.ToUpperInvariant())));
+            index = 0;
+            AssertEx.SetEqual(
+                EditorConfig.ReservedValues.Select(v => KeyValuePair.Create("my_key" + (index++), v)).ToList(),
+                config.GlobalSection.Properties);
+        }
+
+        [Fact]
+        public void ReservedKeys()
+        {
+            var config = ParseConfigFile(string.Join(Environment.NewLine,
+                EditorConfig.ReservedKeys.Select(k => k + " = MY_VAL")));
+            AssertEx.SetEqual(
+                EditorConfig.ReservedKeys.Select(k => KeyValuePair.Create(k, "my_val")).ToList(),
+                config.GlobalSection.Properties);
         }
     }
 }
