@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../WizardResource.resx">
+    <body>
+      <trans-unit id="AlreadyExists">
+        <source>An .editorconfig file already exist in this location</source>
+        <target state="new">Bu konumda bir .editorconfig dosyası zaten var</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MoreAbout">
+        <source>To learn more about .editorconfig see</source>
+        <target state="new">.editorconfig hakkında daha fazla bilgi edinmek için bkz.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
