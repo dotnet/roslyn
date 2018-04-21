@@ -826,5 +826,83 @@ class MyClass
     }
 }");
         }
+
+        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInMethod_InDeconstruction()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    [|int i;|]
+    int j;
+
+    void M()
+    {
+        (i, j) = (1, 2);
+    }
+}");
+        }
+
+        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInMethod_InDeconstruction_InParens()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    [|int i;|]
+    int j;
+
+    void M()
+    {
+        ((i, j), j) = ((1, 2), 3);
+    }
+}");
+        }
+
+        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInMethod_InDeconstruction_WithThis_InParens()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    [|int i;|]
+    int j;
+
+    void M()
+    {
+        ((this.i, j), j) = (1, 2);
+    }
+}");
+        }
+
+        [WorkItem(26264, "https://github.com/dotnet/roslyn/issues/26264")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldUsedInTupleExpressionOnRight()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    [|int i;|]
+    int j;
+
+    void M()
+    {
+        (j, j) = (i, i);
+    }
+}",
+@"class C
+{
+    readonly int i;
+    int j;
+
+    void M()
+    {
+        (j, j) = (i, i);
+    }
+}");
+        }
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -360,9 +361,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         return true;
                     }
                 }
+
+                if (IsExpressionOfArgumentInDeconstruction(expression))
+                {
+                    return true;
+                }
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// If this declaration or identifier is part of a deconstruction, find the deconstruction.
+        /// If found, returns either an assignment expression or a foreach variable statement.
+        /// Returns null otherwise.
+        /// 
+        /// copied from SyntaxExtensions.GetContainingDeconstruction
+        /// </summary>
+        private static bool IsExpressionOfArgumentInDeconstruction(ExpressionSyntax expr)
+        {
+            if (!expr.IsParentKind(SyntaxKind.Argument))
+            {
+                return false;
+            }
+
+            while (true)
+            {
+                var parent = expr.Parent;
+                if (parent == null)
+                {
+                    return false;
+                }
+
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.Argument:
+                        if (parent.Parent?.Kind() == SyntaxKind.TupleExpression)
+                        {
+                            expr = (TupleExpressionSyntax)parent.Parent;
+                            continue;
+                        }
+
+                        return false;
+                    case SyntaxKind.SimpleAssignmentExpression:
+                        if (((AssignmentExpressionSyntax)parent).Left == expr)
+                        {
+                            return true;
+                        }
+
+                        return false;
+                    case SyntaxKind.ForEachVariableStatement:
+                        if (((ForEachVariableStatementSyntax)parent).Variable == expr)
+                        {
+                            return true;
+                        }
+
+                        return false;
+
+                    default:
+                        return false;
+                }
+            }
         }
 
         public static bool IsWrittenTo(this ExpressionSyntax expression)
