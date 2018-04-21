@@ -362,8 +362,8 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
-        <WorkItem(13356, "https://github.com/dotnet/roslyn/issues/13356")>
-        Public Async Function TestTaskPlacement() As Task
+        <WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")>
+        Public Async Function TestTaskPlacementOnEntryPoint() As Task
             Dim initial =
 <File>
 Imports System
@@ -381,7 +381,7 @@ Imports System
 Imports System.Threading.Tasks
 
 Module Module1
-    Async Function MainAsync() As Task
+    Async Function Main() As Task
         Await Task.Run(Sub() Console.WriteLine())
     End Function
 End Module

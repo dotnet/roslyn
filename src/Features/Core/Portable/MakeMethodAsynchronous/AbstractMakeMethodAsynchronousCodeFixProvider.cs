@@ -130,8 +130,13 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             // Store the path to this node.  That way we can find it post rename.
             var syntaxPath = new SyntaxPath(node);
 
-            // Rename the method to add the 'Async' suffix, then add the 'async' keyword.
-            var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
+            // Rename the method to add the 'Async' suffix (except if it's the entry point), then add the 'async' keyword.
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var entryPoint = compilation.GetEntryPoint(cancellationToken);
+            var newSolution = methodSymbol.Equals(entryPoint)
+                ? solution
+                : await Renamer.RenameSymbolAsync(solution, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
+
             var newDocument = newSolution.GetDocument(document.Id);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxPath.TryResolve(newRoot, out SyntaxNode newNode))
