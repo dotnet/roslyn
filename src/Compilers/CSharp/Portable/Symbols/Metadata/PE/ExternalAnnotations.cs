@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
     // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
+    //  If we choose to stick with an ad-hoc key (rather than annotations as source or as PE/ref assembly),
+    //  we should consider the assembly qualified name format used in metadata (with backticks and such).
     internal static class ExtraAnnotations
     {
         // APIs that are useful to annotate:
@@ -93,6 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     SymbolDisplayFormat.CSharpErrorMessageFormat
                         .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
                         // displaying tuple syntax causes to load the members of ValueTuple, which can cause a cycle, so we use long-hand format instead
-                        .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier | SymbolDisplayCompilerInternalOptions.UseValueTuple)));
+                        .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayCompilerInternalOptions.UseValueTuple)));
     }
 }

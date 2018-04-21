@@ -5797,11 +5797,11 @@ class B
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
             var formatWithNonNullableModifier = formatWithoutNonNullableModifier.WithCompilerInternalOptions(
-                SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier | SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier);
+                SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier | SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier);
 
             var method = comp.GetMember<MethodSymbol>("B.F1");
             Verify(
@@ -5873,7 +5873,7 @@ class B
 
             var formatWithNullableModifier = formatWithoutNullableModifier
                 .WithCompilerInternalOptions(
-                SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier);
+                SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier);
 
             var method = comp.GetMember<MethodSymbol>("B.F1");
             Verify(

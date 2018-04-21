@@ -1533,6 +1533,7 @@ static class E
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(14, 13));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Deconstruction declaration ignores nullability.
         [Fact]
         public void DeconstructionTypeInference_04()
         {
