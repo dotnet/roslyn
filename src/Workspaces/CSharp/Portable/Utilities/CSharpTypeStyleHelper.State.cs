@@ -10,11 +10,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
+namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
-    internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase
+    internal partial class CSharpTypeStyleHelper
     {
-        internal class State
+        protected class State
         {
             private readonly Dictionary<TypeStylePreference, DiagnosticSeverity> _styleToSeverityMap;
 
@@ -23,14 +23,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             public bool IsTypeApparentInContext { get; private set; }
             public bool IsInVariableDeclarationContext { get; }
 
-            public State(bool isVariableDeclarationContext)
+            private State(bool isVariableDeclarationContext)
             {
                 this.IsInVariableDeclarationContext = isVariableDeclarationContext;
                 _styleToSeverityMap = new Dictionary<TypeStylePreference, DiagnosticSeverity>();
             }
 
-            public static State Generate(SyntaxNode declaration, SemanticModel semanticModel, OptionSet optionSet, bool isVariableDeclarationContext, CancellationToken cancellationToken)
+            public static State Generate(
+                SyntaxNode declaration, SemanticModel semanticModel,
+                OptionSet optionSet, CancellationToken cancellationToken)
             {
+                var isVariableDeclarationContext = declaration.IsKind(SyntaxKind.VariableDeclaration);
                 var state = new State(isVariableDeclarationContext);
                 state.Initialize(declaration, semanticModel, optionSet, cancellationToken);
                 return state;
@@ -52,9 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 }
             }
 
-            public bool ShouldNotify() =>
-                GetDiagnosticSeverityPreference() != DiagnosticSeverity.Hidden;
-
             private void Initialize(SyntaxNode declaration, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
             {
                 this.TypeStylePreference = GetCurrentTypeStylePreferences(optionSet);
@@ -74,8 +74,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             /// </summary>
             private bool IsTypeApparentInDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, TypeStylePreference stylePreferences, CancellationToken cancellationToken)
             {
-                var initializer = variableDeclaration.Variables.Single().Initializer;
-                var initializerExpression = GetInitializerExpression(initializer.Value);
+                if (variableDeclaration.Variables.Count != 1)
+                {
+                    return false;
+                }
+
+                var initializer = variableDeclaration.Variables[0].Initializer;
+                if (initializer == null)
+                {
+                    return false;
+                }
+
+                var initializerExpression = CSharpUseImplicitTypeHelper.GetInitializerExpression(initializer.Value);
                 var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
                 return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel, cancellationToken, declaredTypeSymbol);
             }
