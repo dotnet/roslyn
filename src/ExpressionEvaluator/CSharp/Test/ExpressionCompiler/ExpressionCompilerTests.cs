@@ -2111,19 +2111,14 @@ class C<T>
         public void GenericWithInterfaceConstraint()
         {
             var source =
-@"public interface IFoo
+@"public interface I
 {
     string Key { get; set; }
 }
 
-public class Foo : IFoo
-{
-    public string Key { get; set; }
-}
-
 class C
 {
-    public static void M<T>(T foo) where T : IFoo
+    public static void M<T>(T t) where T : I
     {
     }
 }";
@@ -2134,7 +2129,7 @@ class C
                 string error;
                 var testData = new CompilationTestData();
                 context.CompileExpression(
-                    expr: "foo.Key",
+                    expr: "t.Key",
                     error: out error,
                     testData: testData);
 
@@ -2143,7 +2138,7 @@ class C
                 Assert.Equal(1, method.Parameters.Length);
                 var eeTypeParameterSymbol = (EETypeParameterSymbol)method.Parameters[0].Type;
                 Assert.Equal(1, eeTypeParameterSymbol.AllEffectiveInterfacesNoUseSiteDiagnostics.Length);
-                Assert.Equal("IFoo", eeTypeParameterSymbol.AllEffectiveInterfacesNoUseSiteDiagnostics[0].Name);
+                Assert.Equal("I", eeTypeParameterSymbol.AllEffectiveInterfacesNoUseSiteDiagnostics[0].Name);
 
                 methodData.VerifyIL(
 @"{
@@ -2151,7 +2146,7 @@ class C
   .maxstack  1
   IL_0000:  ldarga.s   V_0
   IL_0002:  constrained. ""T""
-  IL_0008:  callvirt   ""string IFoo.Key.get""
+  IL_0008:  callvirt   ""string I.Key.get""
   IL_000d:  ret
 }");
             });
