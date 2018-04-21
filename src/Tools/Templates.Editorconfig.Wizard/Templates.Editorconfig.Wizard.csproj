@@ -30,4 +30,17 @@
     <PackageReference Include="VSSDK.TemplateWizardInterface" Version="$(VSSDKTemplateWizardInterfaceVersion)" />
     <Reference Include="PresentationFramework" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Update="WizardResource.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>WizardResource.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="WizardResource.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>WizardResource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

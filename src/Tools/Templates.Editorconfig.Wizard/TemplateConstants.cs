@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Templates.Editorconfig.Wizard;
+
 namespace Templates.EditorConfig.FileGenerator
 {
     internal static class TemplateConstants
     {
         public const string FileName = ".editorconfig";
-        public const string DotNetFileContentIsRoot = @"# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
+        public static readonly string DotNetFileContentIsRoot = $@"# {WizardResource.MoreAbout} https://aka.ms/editorconfigdocs
 root = true
 
 # All files
@@ -13,7 +15,7 @@ root = true
 indent_style = space
 
 # Code files
-[*.{cs,csx,vb,vbx}]
+[*.{{cs,csx,vb,vbx}}]
 indent_size = 4
 end_of_line = crlf
 
@@ -22,7 +24,7 @@ end_of_line = crlf
 indent_size = 2
 
 # Dotnet code style
-[*.{cs,vb}]
+[*.{{cs,vb}}]
 # Organize usings
 dotnet_sort_system_directives_first = true
 
@@ -45,14 +47,14 @@ dotnet_naming_rule.general_naming.style                     = pascal_case_style
 dotnet_naming_symbols.general.applicable_kinds              = class,struct,enum,property,method,event,namespace,delegate
 dotnet_naming_symbols.general.applicable_accessibilities    = *
 ";
-        public const string DotNetFileContent = @"# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
+        public static readonly string DotNetFileContent = $@"# {WizardResource.MoreAbout} https://aka.ms/editorconfigdocs
 
 # All files
 [*]
 indent_style = space
 
 # Code files
-[*.{cs,csx,vb,vbx}]
+[*.{{cs,csx,vb,vbx}}]
 indent_size = 4
 end_of_line = crlf
 
@@ -61,7 +63,7 @@ end_of_line = crlf
 indent_size = 2
 
 # Dotnet code style
-[*.{cs,vb}]
+[*.{{cs,vb}}]
 # Organize usings
 dotnet_sort_system_directives_first = true
 
@@ -84,7 +86,7 @@ dotnet_naming_rule.general_naming.style                     = pascal_case_style
 dotnet_naming_symbols.general.applicable_kinds              = class,struct,enum,property,method,event,namespace,delegate
 dotnet_naming_symbols.general.applicable_accessibilities    = *
 ";
-        public const string DefaultFileContentIsRoot = @"# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
+        public static readonly string DefaultFileContentIsRoot = $@"# {WizardResource.MoreAbout} https://aka.ms/editorconfigdocs
 root = true
 
 # All files
@@ -95,7 +97,7 @@ indent_style = space
 [*.xml]
 indent_size = 2
 ";
-        public const string DefaultFileContent = @"# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
+        public static readonly string DefaultFileContent = $@"# {WizardResource.MoreAbout} https://aka.ms/editorconfigdocs
 
 # All files
 [*]

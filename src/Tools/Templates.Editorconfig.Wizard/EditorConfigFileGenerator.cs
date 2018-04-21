@@ -69,7 +69,8 @@ namespace Templates.EditorConfig.FileGenerator
             string fileName = Path.Combine(projectPath, TemplateConstants.FileName);
             if (File.Exists(fileName))
             {
-                MessageBox.Show("An .editorconfig file already exist in this location", ".editorconfig item template", MessageBoxButton.OK, MessageBoxImage.Information);
+                
+                MessageBox.Show(WizardResource.AlreadyExists, ".editorconfig item template", MessageBoxButton.OK, MessageBoxImage.Information);
                 return (false, null);
             }
             else
