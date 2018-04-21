@@ -3,6 +3,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -10,7 +11,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicUseConditionalExpressionForReturnCodeRefactoringProvider
         Inherits AbstractUseConditionalExpressionForReturnCodeFixProvider(Of
-            StatementSyntax, MultiLineIfBlockSyntax, TernaryConditionalExpressionSyntax)
+            StatementSyntax, MultiLineIfBlockSyntax, ExpressionSyntax, TernaryConditionalExpressionSyntax)
+
+        Protected Overrides Function IsRef(returnOperation As IReturnOperation) As Boolean
+            ' VB does not have ref returns.
+            Return False
+        End Function
 
         Protected Overrides Function GetMultiLineFormattingRule() As IFormattingRule
             Return MultiLineConditionalExpressionFormattingRule.Instance

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         TVariableDeclaratorSyntax,
         TExpressionSyntax,
         TConditionalExpressionSyntax>
-        : AbstractUseConditionalExpressionCodeFixProvider<TStatementSyntax, TIfStatementSyntax, TConditionalExpressionSyntax>
+        : AbstractUseConditionalExpressionCodeFixProvider<TStatementSyntax, TIfStatementSyntax, TExpressionSyntax, TConditionalExpressionSyntax>
         where TStatementSyntax : SyntaxNode
         where TIfStatementSyntax : TStatementSyntax
         where TLocalDeclarationStatementSyntax : TStatementSyntax
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation, trueAssignment.Parent, falseAssignment.Parent,
                 trueAssignment.Value, falseAssignment.Value, 
-                cancellationToken).ConfigureAwait(false);
+                trueAssignment.IsRef, cancellationToken).ConfigureAwait(false);
 
             // See if we're assigning to a variable declared directly above the if statement. If so,
             // try to inline the conditional directly into the initializer for that variable.

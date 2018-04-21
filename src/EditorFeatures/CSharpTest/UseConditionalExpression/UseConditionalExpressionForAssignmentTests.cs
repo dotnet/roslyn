@@ -926,5 +926,36 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestRefAssignment1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(ref int i, ref int j)
+    {
+        ref int x = ref i;
+        [||]if (true)
+        {
+            x = ref i;
+        }
+        else
+        {
+            x = ref j
+        }
+    }
+}",
+@"
+class C
+{
+    void M(ref int i, ref int j)
+    {
+        ref int x = ref i;
+        x = ref true ? ref i : ref j;
+    }
+}");
+        }
     }
 }

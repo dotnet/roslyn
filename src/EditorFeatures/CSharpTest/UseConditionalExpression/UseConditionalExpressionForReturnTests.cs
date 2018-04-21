@@ -1,15 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -525,6 +520,35 @@ class C
     {
         if (true) return 2;
         else return false ? 1 : 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestRefReturns1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    ref int M(ref int i, ref int j)
+    {
+        [||]if (true)
+        {
+            return ref i;
+        }
+        else
+        {
+            return ref j;
+        }
+    }
+}",
+@"
+class C
+{
+    ref int M(ref int i, ref int j)
+    {
+        return ref true ? ref i : ref j;
     }
 }");
         }

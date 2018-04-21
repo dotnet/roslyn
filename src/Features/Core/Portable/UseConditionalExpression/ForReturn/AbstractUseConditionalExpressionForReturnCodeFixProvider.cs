@@ -21,14 +21,18 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
     internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider<
         TStatementSyntax,
         TIfStatementSyntax,
+        TExpressionSyntax,
         TConditionalExpressionSyntax>
-        : AbstractUseConditionalExpressionCodeFixProvider<TStatementSyntax, TIfStatementSyntax, TConditionalExpressionSyntax>
+        : AbstractUseConditionalExpressionCodeFixProvider<TStatementSyntax, TIfStatementSyntax, TExpressionSyntax, TConditionalExpressionSyntax>
         where TStatementSyntax : SyntaxNode
         where TIfStatementSyntax : TStatementSyntax
-        where TConditionalExpressionSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
+        where TConditionalExpressionSyntax : TExpressionSyntax
     {
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId);
+
+        protected abstract bool IsRef(IReturnOperation returnOperation);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -58,8 +62,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var conditionalExpression = await CreateConditionalExpressionAsync(
                 document, ifOperation, trueReturn, falseReturn,
                 trueReturn.ReturnedValue, falseReturn.ReturnedValue,
-                cancellationToken).ConfigureAwait(false);
-
+                IsRef(trueReturn), cancellationToken).ConfigureAwait(false);
+            
             var returnStatement = (TStatementSyntax)editor.Generator.ReturnStatement(conditionalExpression)
                                                                     .WithTriviaFrom(ifStatement);
             editor.ReplaceNode(

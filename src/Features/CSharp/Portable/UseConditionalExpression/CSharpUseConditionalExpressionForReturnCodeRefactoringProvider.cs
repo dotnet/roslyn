@@ -5,14 +5,19 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.UseConditionalExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpUseConditionalExpressionForReturnCodeRefactoringProvider
-        : AbstractUseConditionalExpressionForReturnCodeFixProvider<StatementSyntax, IfStatementSyntax, ConditionalExpressionSyntax>
+        : AbstractUseConditionalExpressionForReturnCodeFixProvider<StatementSyntax, IfStatementSyntax, ExpressionSyntax, ConditionalExpressionSyntax>
     {
+        protected override bool IsRef(IReturnOperation returnOperation)
+            => returnOperation.Syntax is ReturnStatementSyntax statement &&
+               statement.Expression is RefExpressionSyntax;
+
         protected override IFormattingRule GetMultiLineFormattingRule()
             => MultiLineConditionalExpressionFormattingRule.Instance;
 

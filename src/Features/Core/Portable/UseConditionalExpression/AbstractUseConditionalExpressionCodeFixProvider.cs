@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -19,10 +20,12 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
     internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         TStatementSyntax,
         TIfStatementSyntax,
+        TExpressionSyntax,
         TConditionalExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
         where TStatementSyntax : SyntaxNode
         where TIfStatementSyntax : TStatementSyntax
-        where TConditionalExpressionSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
+        where TConditionalExpressionSyntax : TExpressionSyntax
     {
         protected abstract IFormattingRule GetMultiLineFormattingRule();
         protected abstract TStatementSyntax WrapWithBlockIfAppropriate(TIfStatementSyntax ifStatement, TStatementSyntax statement);
@@ -71,10 +74,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         /// annotations and casts to ensure that the conditional expression preserves semantics, but
         /// is also properly simplified and formatted.
         /// </summary>
-        protected async Task<TConditionalExpressionSyntax> CreateConditionalExpressionAsync(
+        protected async Task<TExpressionSyntax> CreateConditionalExpressionAsync(
             Document document, IConditionalOperation ifOperation,
             IOperation trueStatement, IOperation falseStatement,
-            IOperation trueValue, IOperation falseValue, CancellationToken cancellationToken)
+            IOperation trueValue, IOperation falseValue,
+            bool isRef, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
 
@@ -83,8 +87,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var condition = ifOperation.Condition.Syntax;
             var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
                 condition.WithoutTrivia(),
-                CastValueIfNecessary(generator, trueValue),
-                CastValueIfNecessary(generator, falseValue));
+                MakeRef(generator, isRef, CastValueIfNecessary(generator, trueValue)),
+                MakeRef(generator, isRef, CastValueIfNecessary(generator, falseValue)));
 
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
             var makeMultiLine = await MakeMultiLineAsync(
@@ -96,8 +100,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                     SpecializedFormattingAnnotation);
             }
 
-            return conditionalExpression;
+            return MakeRef(generator, isRef, conditionalExpression);
         }
+
+        private TExpressionSyntax MakeRef(SyntaxGenerator generator, bool isRef, TExpressionSyntax syntaxNode)
+            => isRef ? (TExpressionSyntax)generator.RefExpression(syntaxNode) : syntaxNode;
 
         /// <summary>
         /// Checks if we should wrap the conditional expression over multiple lines.
@@ -124,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return false;
         }
 
-        private static SyntaxNode CastValueIfNecessary(
+        private static TExpressionSyntax CastValueIfNecessary(
             SyntaxGenerator generator, IOperation value)
         {
             var sourceSyntax = value.Syntax.WithoutTrivia();
@@ -143,11 +150,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 // non-error type itself.  We don't want to insert lots of casts in error code.
                 if (conversion.Operand.Type == null || conversion.Operand.Type.TypeKind != TypeKind.Error)
                 {
-                    return generator.CastExpression(conversion.Type, sourceSyntax);
+                    return (TExpressionSyntax)generator.CastExpression(conversion.Type, sourceSyntax);
                 }
             }
 
-            return sourceSyntax;
+            return (TExpressionSyntax)sourceSyntax;
         }
     }
 }
