@@ -136,14 +136,14 @@ End Class";
                 var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
                 var source = new CancellationTokenSource();
-                var connection = new InvokeThrowsCancellationConnection(source);
+                var connection = new OwnedDisposable<RemoteHostClient.Connection>(new InvokeThrowsCancellationConnection(source)).Box();
                 var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => SessionWithSolution.CreateAsync(connection, solution, source.Token));
                 Assert.Equal(exception.CancellationToken, source.Token);
 
                 // make sure things that should have been cleaned up are cleaned up
                 var service = (RemotableDataServiceFactory.Service)solution.Workspace.Services.GetService<IRemotableDataService>();
                 Assert.Null(service.GetRemotableData_TestOnly(solutionChecksum, CancellationToken.None));
-                Assert.True(connection.Disposed);
+                Assert.False(((InvokeThrowsCancellationConnection)connection.Target).Disposed);
             }
         }
 

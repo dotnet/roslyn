@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class SessionWithSolution : IDisposable
     {
-        private readonly RemoteHostClient.Connection _connection;
+        private readonly OwnedDisposable<RemoteHostClient.Connection> _connection;
         private readonly PinnedRemotableDataScope _scope;
 
-        public static async Task<SessionWithSolution> CreateAsync(RemoteHostClient.Connection connection, Solution solution, CancellationToken cancellationToken)
+        public static async Task<SessionWithSolution> CreateAsync(OwnedDisposable<RemoteHostClient.Connection>.Boxed connection, Solution solution, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(connection);
+            Contract.ThrowIfNull(connection.Target);
             Contract.ThrowIfNull(solution);
 
             PinnedRemotableDataScope scope = null;
@@ -31,18 +31,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // set connection state for this session.
                 // we might remove this in future. see https://github.com/dotnet/roslyn/issues/24836
-                await connection.InvokeAsync(
+                await connection.Target.InvokeAsync(
                     WellKnownServiceHubServices.ServiceHubServiceBase_Initialize,
                     new object[] { scope.SolutionInfo },
                     cancellationToken).ConfigureAwait(false);
 
-                return new SessionWithSolution(connection, scope);
+                return new SessionWithSolution(ref connection.Resource, scope);
             }
             catch
             {
-                // make sure disposable objects are disposed when
-                // exceptions are thrown
-                connection.Dispose();
                 scope?.Dispose();
 
                 // we only expect this to happen on cancellation. otherwise, rethrow
@@ -51,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private SessionWithSolution(RemoteHostClient.Connection connection, PinnedRemotableDataScope scope)
+        private SessionWithSolution(ref OwnedDisposable<RemoteHostClient.Connection> connection, PinnedRemotableDataScope scope)
         {
             _connection = connection;
             _scope = scope;
@@ -69,13 +66,13 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => _connection.InvokeAsync(targetName, arguments, cancellationToken);
+            => _connection.Target.InvokeAsync(targetName, arguments, cancellationToken);
         public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => _connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
+            => _connection.Target.InvokeAsync<T>(targetName, arguments, cancellationToken);
         public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-            => _connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+            => _connection.Target.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
         public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-            => _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+            => _connection.Target.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
     }
 
     /// <summary>
@@ -95,11 +92,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private RemoteHostClient _client;
         private ReferenceCountedDisposable<RemoteHostClient.Connection> _connectionDoNotAccessDirectly;
 
-        public KeepAliveSession(RemoteHostClient client, RemoteHostClient.Connection connection, string serviceName, object callbackTarget)
+        public KeepAliveSession(RemoteHostClient client, ref OwnedDisposable<RemoteHostClient.Connection> connection, string serviceName, object callbackTarget)
         {
             _gate = new object();
 
-            Initialize(client, connection);
+            Initialize(client, ref connection);
 
             _remoteHostClientService = client.Workspace.Services.GetService<IRemoteHostClientService>();
             _serviceName = serviceName;
@@ -273,12 +270,19 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             var connection = await client.TryCreateConnectionAsync(_serviceName, _callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (connection == null)
+            try
             {
-                return null;
-            }
+                if (connection == null)
+                {
+                    return null;
+                }
 
-            Initialize(client, connection);
+                Initialize(client, ref connection);
+            }
+            finally
+            {
+                connection.Dispose();
+            }
 
             return await TryGetConnectionAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -293,27 +297,23 @@ namespace Microsoft.CodeAnalysis.Remote
             Shutdown();
         }
 
-        private void Initialize(RemoteHostClient client, RemoteHostClient.Connection connection)
+        private void Initialize(RemoteHostClient client, ref OwnedDisposable<RemoteHostClient.Connection> connection)
         {
             Contract.ThrowIfNull(client);
-            Contract.ThrowIfNull(connection);
+            Contract.ThrowIfNull(connection.Target);
 
             lock (_gate)
             {
                 if (_client != null)
                 {
                     Contract.ThrowIfNull(_connectionDoNotAccessDirectly);
-
-                    // someone else beat us and set the connection. 
-                    // let this connection closed.
-                    connection.Dispose();
                     return;
                 }
 
                 _client = client;
                 _client.StatusChanged += OnStatusChanged;
 
-                _connectionDoNotAccessDirectly = new ReferenceCountedDisposable<RemoteHostClient.Connection>(connection);
+                _connectionDoNotAccessDirectly = new ReferenceCountedDisposable<RemoteHostClient.Connection>(connection.Claim());
             }
         }
     }

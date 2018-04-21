@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating connection could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static Task<RemoteHostClient.Connection> TryCreateConnectionAsync(
+        public static Task<OwnedDisposable<RemoteHostClient.Connection>> TryCreateConnectionAsync(
             this RemoteHostClient client, string serviceName, CancellationToken cancellationToken)
             => client.TryCreateConnectionAsync(serviceName, callbackTarget: null, cancellationToken: cancellationToken);
 
@@ -46,12 +46,22 @@ namespace Microsoft.CodeAnalysis.Remote
             this RemoteHostClient client, string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
         {
             var connection = await client.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (connection == null)
+            try
             {
-                return null;
-            }
+                if (connection == null)
+                {
+                    return null;
+                }
 
-            return await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
+                using (var boxed = connection.Box())
+                {
+                    return await SessionWithSolution.CreateAsync(boxed, solution, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                connection.Dispose();
+            }
         }
 
         /// <summary>
@@ -76,12 +86,19 @@ namespace Microsoft.CodeAnalysis.Remote
             this RemoteHostClient client, string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
             var connection = await client.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (connection == null)
+            try
             {
-                return null;
-            }
+                if (connection == null)
+                {
+                    return null;
+                }
 
-            return new KeepAliveSession(client, connection, serviceName, callbackTarget);
+                return new KeepAliveSession(client, ref connection, serviceName, callbackTarget);
+            }
+            finally
+            {
+                connection.Dispose();
+            }
         }
 
         public static Task<SessionWithSolution> TryCreateCodeAnalysisSessionAsync(
@@ -179,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     return false;
                 }
 
-                await connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                await connection.Target.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
                 return true;
             }
         }
