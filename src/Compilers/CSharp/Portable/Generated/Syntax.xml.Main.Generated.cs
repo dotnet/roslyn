@@ -4651,6 +4651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.PreDecrementExpression:
         case SyntaxKind.AddressOfExpression:
         case SyntaxKind.PointerIndirectionExpression:
+        case SyntaxKind.IndexExpression:
           break;
         default:
           throw new ArgumentException("kind");
@@ -4665,6 +4666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.MinusMinusToken:
         case SyntaxKind.AmpersandToken:
         case SyntaxKind.AsteriskToken:
+        case SyntaxKind.CaretToken:
           break;
         default:
           throw new ArgumentException("operatorToken");
@@ -4701,6 +4703,8 @@ namespace Microsoft.CodeAnalysis.CSharp
           return SyntaxKind.AmpersandToken;
         case SyntaxKind.PointerIndirectionExpression:
           return SyntaxKind.AsteriskToken;
+        case SyntaxKind.IndexExpression:
+          return SyntaxKind.CaretToken;
         default:
           throw new ArgumentOutOfRangeException();
       }

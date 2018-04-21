@@ -3785,5 +3785,39 @@ select t";
             }
             EOF();
         }
+
+        [Fact]
+        public void IndexExpression_PositiveNumber()
+        {
+            UsingExpression("^1");
+            N(SyntaxKind.IndexExpression);
+            {
+                N(SyntaxKind.CaretToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void IndexExpression_NegativeNumber()
+        {
+            UsingExpression("^-1");
+            N(SyntaxKind.IndexExpression);
+            {
+                N(SyntaxKind.CaretToken);
+                N(SyntaxKind.UnaryMinusExpression);
+                {
+                    N(SyntaxKind.MinusToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+            }
+            EOF();
+        }
     }
 }

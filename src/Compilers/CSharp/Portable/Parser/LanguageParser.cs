@@ -8808,6 +8808,7 @@ tryAgain:
                 case SyntaxKind.RefValueExpression:
                 case SyntaxKind.RefTypeExpression:
                 case SyntaxKind.AwaitExpression:
+                case SyntaxKind.IndexExpression:
                     return Precedence.Unary;
                 case SyntaxKind.CastExpression:
                     return Precedence.Cast;

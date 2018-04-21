@@ -387,6 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         PostIncrementExpression = 8738,
         PostDecrementExpression = 8739,
         AwaitExpression = 8740,
+        IndexExpression = 8741,
 
         // primary expression
         ThisExpression = 8746,

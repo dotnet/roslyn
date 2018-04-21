@@ -388,6 +388,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.AddressOfExpression;
                 case SyntaxKind.AsteriskToken:
                     return SyntaxKind.PointerIndirectionExpression;
+                case SyntaxKind.CaretToken:
+                    return SyntaxKind.IndexExpression;
                 default:
                     return SyntaxKind.None;
             }

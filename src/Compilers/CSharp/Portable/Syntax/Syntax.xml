@@ -376,6 +376,7 @@
     <Kind Name="PreDecrementExpression"/>
     <Kind Name="AddressOfExpression"/>
     <Kind Name="PointerIndirectionExpression"/>
+    <Kind Name="IndexExpression"/>
     <Field Name="OperatorToken" Type="SyntaxToken">
       <Kind Name="PlusToken"/>
       <Kind Name="MinusToken"/>
@@ -385,6 +386,7 @@
       <Kind Name="MinusMinusToken"/>
       <Kind Name="AmpersandToken"/>
       <Kind Name="AsteriskToken"/>
+      <Kind Name="CaretToken"/>"
       <PropertyComment>
         <summary>SyntaxToken representing the kind of the operator of the prefix unary expression.</summary>
       </PropertyComment>
