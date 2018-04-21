@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewritten;
         }
 
-        public virtual BoundStatement InstrumentPatternSwitchStatement(BoundPatternSwitchStatement original, BoundStatement rewritten)
+        public virtual BoundStatement InstrumentPatternSwitchStatement(BoundSwitchStatement original, BoundStatement rewritten)
         {
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.SwitchStatement);
             return InstrumentStatement(original, rewritten);
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public virtual BoundExpression InstrumentSwitchStatementExpression(BoundStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
         {
-            Debug.Assert(original.Kind == BoundKind.PatternSwitchStatement);
+            Debug.Assert(original.Kind == BoundKind.SwitchStatement);
             Debug.Assert(!original.WasCompilerGenerated);
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.SwitchStatement);
             Debug.Assert(factory != null);
