@@ -600,7 +600,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-        public async Task TestConversionWithUseVarForAll_CannotUseVarBecauseTypeWouldChange()
+        public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame()
         {
             await TestInRegularAndScriptAsync(
 @"
@@ -608,7 +608,7 @@ class C
 {
     void M()
     {
-        // keep object even though both values are strings
+        // cast will be necessary, otherwise 'var' would get the type 'string'.
         object o;
         [||]if (true)
         {
@@ -625,8 +625,8 @@ class C
 {
     void M()
     {
-        // keep object even though both values are strings
-        object o = true ? ""a"" : ""b"";
+        // cast will be necessary, otherwise 'var' would get the type 'string'.
+        var o = true ? ""a"" : (object)""b"";
     }
 }", options: s_preferImplicitTypeAlways);
         }
