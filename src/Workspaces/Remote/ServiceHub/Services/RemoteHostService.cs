@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -328,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return;
                     }
 
-                    var newText = text.WithChanges(textChanges);
+                    var newText = new WrappedText(text.WithChanges(textChanges));
                     var newChecksum = service.CreateChecksum(newText, token);
 
                     // save new text in the cache so that when asked, the data is most likely already there
@@ -373,6 +375,37 @@ namespace Microsoft.CodeAnalysis.Remote
                     return await document.GetTextAsync(token).ConfigureAwait(false);
                 }
             }, cancellationToken);
+        }
+
+        /// <summary>
+        /// workaround until (https://github.com/dotnet/roslyn/issues/26305) is fixed.
+        /// 
+        /// this will always return whole file as changed.
+        /// </summary>
+        private class WrappedText : SourceText
+        {
+            private readonly SourceText _text;
+
+            public WrappedText(SourceText text)
+            {
+                _text = text;
+            }
+
+            public override char this[int position] => _text[position];
+            public override Encoding Encoding => _text.Encoding;
+            public override int Length => _text.Length;
+            public override SourceText GetSubText(TextSpan span) => _text.GetSubText(span);
+            public override SourceText WithChanges(IEnumerable<TextChange> changes) => _text.WithChanges(changes);
+            public override void Write(TextWriter writer, TextSpan span, CancellationToken cancellationToken = default)
+                => _text.Write(writer, span, cancellationToken);
+            public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
+                => _text.CopyTo(sourceIndex, destination, destinationIndex, count);
+            public override IReadOnlyList<TextChangeRange> GetChangeRanges(SourceText oldText)
+                => ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldText.Length), _text.Length));
+            public override int GetHashCode() => _text.GetHashCode();
+            public override bool Equals(object obj) => _text.Equals(obj);
+            public override string ToString() => _text.ToString();
+            public override string ToString(TextSpan span) => _text.ToString(span);
         }
     }
 }
