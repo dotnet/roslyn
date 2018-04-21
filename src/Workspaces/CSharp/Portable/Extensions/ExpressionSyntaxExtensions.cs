@@ -326,10 +326,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static ExpressionSyntax GetExpressionToAnalyzeForWrites(ExpressionSyntax expression)
         {
-            while (expression.IsRightSideOfDotOrArrow() || expression.IsParentKind(SyntaxKind.ParenthesizedExpression))
+            if (expression.IsRightSideOfDotOrArrow())
             {
                 expression = expression.Parent as ExpressionSyntax;
             }
+
+            expression = expression.WalkUpParentheses();
 
             return expression;
         }
