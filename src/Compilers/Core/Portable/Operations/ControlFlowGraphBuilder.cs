@@ -1128,10 +1128,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
             }
 
-            foreach (var statement in operation.Operations)
-            {
-                VisitStatement(statement);
-            }
+            VisitStatements(operation.Operations);
 
             if (haveLocals)
             {
@@ -1139,6 +1136,14 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             return null;
+        }
+
+        private void VisitStatements(ImmutableArray<IOperation> statements)
+        {
+            foreach (var statement in statements)
+            {
+                VisitStatement(statement);
+            }
         }
 
         public override IOperation VisitConditional(IConditionalOperation operation, int? captureIdForResult)
@@ -2839,6 +2844,86 @@ namespace Microsoft.CodeAnalysis.Operations
             return null;
         }
 
+        public override IOperation VisitForLoop(IForLoopOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            // for (initializer; condition; increment)
+            //   body;
+            //
+            // becomes the following (with block added for locals)
+            //
+            // {
+            //   initializer;
+            // start:
+            //   {
+            //     GotoIfFalse condition break;
+            //     body;
+            // continue:
+            //     increment;
+            //     goto start;
+            //   }
+            // }
+            // break:
+
+            bool haveLocals = !operation.Locals.IsEmpty;
+
+            if (haveLocals)
+            {
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            }
+
+            ImmutableArray<IOperation> initialization = operation.Before;
+            
+            if (initialization.Length == 1 && initialization[0].Kind == OperationKind.VariableDeclarationGroup)
+            {
+                HandleVariableDeclarations((VariableDeclarationGroupOperation)initialization.Single());
+            }
+            else
+            {
+                VisitStatements(initialization);
+            }
+
+            var start = new BasicBlock(BasicBlockKind.Block); 
+            AppendNewBlock(start);
+
+
+            bool haveConditionLocals = !operation.ConditionLocals.IsEmpty;
+            if (haveConditionLocals)
+            {
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.ConditionLocals));
+            }
+
+            var @break = GetLabeledOrNewBlock(operation.ExitLabel);
+            if (operation.Condition != null)
+            {
+                VisitConditionalBranch(operation.Condition, ref @break, sense: false);
+            }
+
+            VisitStatement(operation.Body);
+
+            var @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
+            AppendNewBlock(@continue);
+
+            VisitStatements(operation.AtLoopBottom);
+
+            LinkBlocks(CurrentBasicBlock, start);
+
+            if (haveConditionLocals)
+            {
+                LeaveRegion();
+            }
+
+            if (haveLocals)
+            {
+                LeaveRegion();
+            }
+
+            AppendNewBlock(@break);
+
+            return null;
+        }
+
         internal override IOperation VisitFixed(IFixedOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
@@ -3214,11 +3299,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, int? captureIdForResult)
         {
             return new DefaultCaseClause(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitForLoop(IForLoopOperation operation, int? captureIdForResult)
-        {
-            return new ForLoopStatement(VisitArray(operation.Before), Visit(operation.Condition), VisitArray(operation.AtLoopBottom), operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForToLoop(IForToLoopOperation operation, int? captureIdForResult)

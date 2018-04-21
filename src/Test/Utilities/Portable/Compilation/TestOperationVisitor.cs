@@ -221,7 +221,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.Loop, operation.Kind);
             Assert.Equal(LoopKind.For, operation.LoopKind);
-            VisitLocals(operation);
+            VisitLocals(operation.Locals);
+            VisitLocals(operation.ConditionLocals);
 
             IEnumerable<IOperation> children = operation.Before;
 
