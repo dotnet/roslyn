@@ -3163,7 +3163,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<MergedNamespaceOrTypeDeclaration> spine, MergedNamespaceOrTypeDeclaration current,
                 HashSet<ISymbol> set)
             {
-
                 if (current.Kind == DeclarationKind.Namespace)
                 {
                     if (_includeNamespace && Matches(current.Name))
@@ -3250,7 +3249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return symbol;
                 }
 
-                var current = _compilation.GlobalNamespace as NamespaceOrTypeSymbol;
+                NamespaceOrTypeSymbol current = _compilation.GlobalNamespace;
                 for (var i = 1; i < spine.Count; i++)
                 {
                     current = GetSymbol(current, spine[i]);
@@ -3260,15 +3259,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private NamespaceOrTypeSymbol GetCachedSymbol(MergedNamespaceOrTypeDeclaration declaration)
-            {
-                NamespaceOrTypeSymbol symbol;
-                if (_cache.TryGetValue(declaration, out symbol))
-                {
-                    return symbol;
-                }
-
-                return null;
-            }
+                => _cache.TryGetValue(declaration, out NamespaceOrTypeSymbol symbol)
+                        ? symbol
+                        : null;
 
             private NamespaceOrTypeSymbol GetSymbol(NamespaceOrTypeSymbol container, MergedNamespaceOrTypeDeclaration declaration)
             {
