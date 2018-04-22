@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -45,9 +46,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var symbolsWithName = compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken)
-                                                 .Select(s => new SymbolAndProjectId(s, project.Id))
-                                                 .ToImmutableArray();
+
+                // If this is an exact query, we can speed things up by just calling into the
+                // compilation entrypoint that takes a string directly.
+                var symbols = query.Kind == SearchKind.Exact
+                    ? compilation.GetSymbolsWithName(query.Name, filter, cancellationToken)
+                    : compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken);
+
+                var symbolsWithName = symbols.Select(s => new SymbolAndProjectId(s, project.Id)) .ToImmutableArray();
 
                 if (startingCompilation != null && startingAssembly != null && compilation.Assembly != startingAssembly)
                 {

@@ -2729,7 +2729,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New PredicateSymbolSearcher(Me, filter, predicate, cancellationToken).GetSymbolsWithName()
         End Function
 
-        Friend Overrides Function GetSymbolsWithName(name As String, Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of ISymbol)
+#Disable Warning RS0026 ' Do not add multiple public overloads with optional parameters
+        ''' <summary>
+        ''' Return source declaration symbols whose name matches the provdied name
+        ''' </summary>
+        Public Overrides Function GetSymbolsWithName(name As String, Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of ISymbol)
+#Enable Warning RS0026 ' Do not add multiple public overloads with optional parameters
             If name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
