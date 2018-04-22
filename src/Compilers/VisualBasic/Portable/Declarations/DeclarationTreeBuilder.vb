@@ -549,15 +549,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return children.ToImmutableAndFree()
         End Function
 
-        Private Shared s_memberNamesPool As New ObjectPool(Of HashSet(Of String))(
-            Function() New HashSet(Of String)(IdentifierComparison.Comparer))
-
         Private Function GetNonTypeMemberNames(members As SyntaxList(Of StatementSyntax), ByRef declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As String()
             Dim anyMethodHadExtensionSyntax = False
             Dim anyMemberHasAttributes = False
             Dim anyNonTypeMembers = False
 
-            Dim results = s_memberNamesPool.Allocate()
+            Dim results = PooledHashSet(Of String).GetInstance()
 
             For Each statement In members
                 Select Case statement.Kind
@@ -652,9 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 results.CopyTo(result)
             End If
 
-            results.Clear()
-            s_memberNamesPool.Free(results)
-
+            results.Free()
             Return result
         End Function
 
@@ -687,7 +682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return results.ToArray
         End Function
 
-        Private Sub AddMemberNames(methodDecl As MethodBaseSyntax, results As HashSet(Of String))
+        Private Sub AddMemberNames(methodDecl As MethodBaseSyntax, results As PooledHashSet(Of String))
             Dim name = SourceMethodSymbol.GetMemberNameFromSyntax(methodDecl)
             results.Add(name)
         End Sub
