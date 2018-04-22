@@ -2,10 +2,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -23,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Private Sub New(entryPointCandidates As ArrayBuilder(Of MethodSymbol),
-                           visitNestedTypes As Boolean,
-                           cancellationToken As CancellationToken)
+                            visitNestedTypes As Boolean,
+                            cancellationToken As CancellationToken)
 
                 Me._entryPointCandidates = entryPointCandidates
                 Me._visitNestedTypes = visitNestedTypes
@@ -64,8 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ElseIf member.Kind = SymbolKind.Method Then
 
                         Dim method = DirectCast(member, MethodSymbol)
-                        ' check if this is an entry point
-                        If Not method.IsSubmissionConstructor AndAlso _entryPointCandidates IsNot Nothing AndAlso Not method.IsImplicitlyDeclared AndAlso method.IsEntryPointCandidate Then
+                        If _entryPointCandidates IsNot Nothing AndAlso method.IsEntryPointCandidate Then
                             _entryPointCandidates.Add(method)
                         End If
                     End If
