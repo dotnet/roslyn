@@ -3038,7 +3038,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return source declaration symbols whose name matches the provided name
+        /// Return true if there is a source declaration symbol name that matches the provided name.
+        /// This will be faster than <see cref="ContainsSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
+        /// when predicate is just a simple string check.
+        /// </summary>
+        internal override bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (filter == SymbolFilter.None)
+            {
+                throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
+            }
+
+            return DeclarationTable.ContainsName(this.MergedRootDeclaration, name, filter, cancellationToken);
+        }
+
+        /// <summary>
+        /// Return source declaration symbols whose name matches the provided name.  This will be
+        /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
+        /// when predicate is just a simple string check.
         /// </summary>
         internal override IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
         {

@@ -2729,6 +2729,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New PredicateSymbolSearcher(Me, filter, predicate, cancellationToken).GetSymbolsWithName()
         End Function
 
+        Friend Overrides Function ContainsSymbolsWithName(name As String, Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+            If name Is Nothing Then
+                Throw New ArgumentNullException(NameOf(name))
+            End If
+
+            If filter = SymbolFilter.None Then
+                Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf(filter))
+            End If
+
+            Return DeclarationTable.ContainsName(MergedRootDeclaration, name, filter, cancellationToken)
+        End Function
+
         Friend Overrides Function GetSymbolsWithName(name As String, Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of ISymbol)
             If name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
