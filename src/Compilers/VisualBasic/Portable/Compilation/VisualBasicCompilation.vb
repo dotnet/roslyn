@@ -2729,6 +2729,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New PredicateSymbolSearcher(Me, filter, predicate, cancellationToken).GetSymbolsWithName()
         End Function
 
+        ''' <summary>
+        ''' Return true if there Is a source declaration symbol name that matches the provided name.
+        ''' This may be faster than <see cref="ContainsSymbolsWithName(Func(Of String, Boolean), SymbolFilter, CancellationToken)"/>
+        ''' when predicate Is just a simple string check.
+        ''' </summary>
         Friend Overrides Function ContainsSymbolsWithName(name As String, Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As Boolean
             If name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))

@@ -285,7 +285,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             filter As SymbolFilter,
             cancellationToken As CancellationToken) As Boolean
 
-            Return ContainsName(mergedRoot, Function(n) IdentifierComparison.Equals(n, name), filter, cancellationToken)
+            ' note: because we want to do case-insensitive lookup, and because our decl tables
+            ' do not store members in a way that can lookup in a case-insensitive manner, we have
+            ' to defer to just calling the normal predicate version.
+            Return ContainsName(
+                mergedRoot, Function(n) IdentifierComparison.Equals(n, name), filter, cancellationToken)
         End Function
 
         Public Shared Function ContainsName(
