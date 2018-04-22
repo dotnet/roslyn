@@ -2907,6 +2907,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
 
+        /// <summary>
+        /// Return source declaration symbols whose name matches the provided name
+        /// </summary>
+        internal abstract IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
+
         #endregion
 
         internal void MakeMemberMissing(WellKnownMember member)

@@ -61,15 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.Method:
                         {
-                            MethodSymbol method = (MethodSymbol)member;
-                            if (method.IsPartialDefinition())
-                            {
-                                if ((object)method.PartialImplementationPart == null)
-                                {
-                                    continue;
-                                }
-                            }
-
+                            var method = (MethodSymbol)member;
                             if (method.IsEntryPointCandidate)
                             {
                                 _entryPointCandidates.Add(method);

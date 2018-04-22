@@ -1447,8 +1447,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     mainType = null;
-
-                    EntryPointCandidateFinder.FindCandidatesInNamespace(globalNamespace, entryPointCandidates, cancellationToken);
+                    var candidates = this.GetSymbolsWithName(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken)
+                                         .OfType<MethodSymbol>()
+                                         .Where(m => m.IsEntryPointCandidate);
+                    entryPointCandidates.AddRange(candidates);
 
                     // Global code is the entry point, ignore all other Mains.
                     var scriptClass = this.ScriptClass;
@@ -3033,7 +3035,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
             }
 
-            return new SymbolSearcher(this).GetSymbolsWithName(predicate, filter, cancellationToken);
+            return new PredicateSymbolSearcher(this, filter, predicate, cancellationToken).GetSymbolsWithName();
+        }
+
+        /// <summary>
+        /// Return source declaration symbols whose name matches the provided name
+        /// </summary>
+        internal override IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (filter == SymbolFilter.None)
+            {
+                throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
+            }
+
+            return new NameSymbolSearcher(this, filter, name, cancellationToken).GetSymbolsWithName();
         }
 
         #endregion
@@ -3096,38 +3116,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private class SymbolSearcher
+        private abstract class AbstractSymbolSearcher
         {
+            private static readonly ObjectPool<Dictionary<Declaration, NamespaceOrTypeSymbol>> s_cachePool =
+                new ObjectPool<Dictionary<Declaration, NamespaceOrTypeSymbol>>(() => new Dictionary<Declaration, NamespaceOrTypeSymbol>());
+
             private readonly Dictionary<Declaration, NamespaceOrTypeSymbol> _cache;
             private readonly CSharpCompilation _compilation;
+            private readonly bool _includeNamespace;
+            private readonly bool _includeType;
+            private readonly bool _includeMember;
+            private readonly CancellationToken _cancellationToken;
 
-            public SymbolSearcher(CSharpCompilation compilation)
+            protected AbstractSymbolSearcher(
+                CSharpCompilation compilation, SymbolFilter filter, CancellationToken cancellationToken)
             {
-                _cache = new Dictionary<Declaration, NamespaceOrTypeSymbol>();
+                _cache = s_cachePool.Allocate();
+
                 _compilation = compilation;
+
+                _includeNamespace = (filter & SymbolFilter.Namespace) == SymbolFilter.Namespace;
+                _includeType = (filter & SymbolFilter.Type) == SymbolFilter.Type;
+                _includeMember = (filter & SymbolFilter.Member) == SymbolFilter.Member;
+
+                _cancellationToken = cancellationToken;
             }
 
-            public IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+            protected abstract bool Matches(string name);
+            protected abstract bool ShouldCheckTypeForMembers(MergedTypeDeclaration current);
+
+            public IEnumerable<ISymbol> GetSymbolsWithName()
             {
                 var result = new HashSet<ISymbol>();
-                var spine = new List<MergedNamespaceOrTypeDeclaration>();
+                var spine = ArrayBuilder<MergedNamespaceOrTypeDeclaration>.GetInstance();
 
-                AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, predicate, filter, result, cancellationToken);
+                AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, result);
 
+                spine.Free();
+
+                _cache.Clear();
+                s_cachePool.Free(_cache);
                 return result;
             }
 
             private void AppendSymbolsWithName(
-                List<MergedNamespaceOrTypeDeclaration> spine, MergedNamespaceOrTypeDeclaration current,
-                Func<string, bool> predicate, SymbolFilter filter, HashSet<ISymbol> set, CancellationToken cancellationToken)
+                ArrayBuilder<MergedNamespaceOrTypeDeclaration> spine, MergedNamespaceOrTypeDeclaration current,
+                HashSet<ISymbol> set)
             {
-                var includeNamespace = (filter & SymbolFilter.Namespace) == SymbolFilter.Namespace;
-                var includeType = (filter & SymbolFilter.Type) == SymbolFilter.Type;
-                var includeMember = (filter & SymbolFilter.Member) == SymbolFilter.Member;
 
                 if (current.Kind == DeclarationKind.Namespace)
                 {
-                    if (includeNamespace && predicate(current.Name))
+                    if (_includeNamespace && Matches(current.Name))
                     {
                         var container = GetSpineSymbol(spine);
                         var symbol = GetSymbol(container, current);
@@ -3139,7 +3178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (includeType && predicate(current.Name))
+                    if (_includeType && Matches(current.Name))
                     {
                         var container = GetSpineSymbol(spine);
                         var symbol = GetSymbol(container, current);
@@ -3149,25 +3188,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    if (includeMember)
+                    if (_includeMember)
                     {
-                        AppendMemberSymbolsWithName(spine, current, predicate, set, cancellationToken);
+                        var typeDeclaration = (MergedTypeDeclaration)current;
+                        if (ShouldCheckTypeForMembers(typeDeclaration))
+                        {
+                            AppendMemberSymbolsWithName(spine, typeDeclaration, set);
+                        }
                     }
                 }
 
                 spine.Add(current);
 
-                foreach (var child in current.Children.OfType<MergedNamespaceOrTypeDeclaration>())
+                foreach (var child in current.Children)
                 {
-                    if (includeMember || includeType)
+                    if (child is MergedNamespaceOrTypeDeclaration mergedNamespaceOrType)
                     {
-                        AppendSymbolsWithName(spine, child, predicate, filter, set, cancellationToken);
-                        continue;
-                    }
-
-                    if (child.Kind == DeclarationKind.Namespace)
-                    {
-                        AppendSymbolsWithName(spine, child, predicate, filter, set, cancellationToken);
+                        if (_includeMember || _includeType || child.Kind == DeclarationKind.Namespace)
+                        {
+                            AppendSymbolsWithName(spine, mergedNamespaceOrType, set);
+                        }
                     }
                 }
 
@@ -3176,8 +3216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private void AppendMemberSymbolsWithName(
-                List<MergedNamespaceOrTypeDeclaration> spine, MergedNamespaceOrTypeDeclaration current,
-                Func<string, bool> predicate, HashSet<ISymbol> set, CancellationToken cancellationToken)
+                ArrayBuilder<MergedNamespaceOrTypeDeclaration> spine, MergedTypeDeclaration current, HashSet<ISymbol> set)
             {
                 spine.Add(current);
 
@@ -3188,7 +3227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!member.IsTypeOrTypeAlias() &&
                             (member.CanBeReferencedByName || member.IsExplicitInterfaceImplementation() || member.IsIndexer()) &&
-                            predicate(member.Name))
+                            Matches(member.Name))
                         {
                             set.Add(member);
                         }
@@ -3198,7 +3237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 spine.RemoveAt(spine.Count - 1);
             }
 
-            private NamespaceOrTypeSymbol GetSpineSymbol(List<MergedNamespaceOrTypeDeclaration> spine)
+            protected NamespaceOrTypeSymbol GetSpineSymbol(ArrayBuilder<MergedNamespaceOrTypeDeclaration> spine)
             {
                 if (spine.Count == 0)
                 {
@@ -3275,6 +3314,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private class PredicateSymbolSearcher : AbstractSymbolSearcher
+        {
+            private readonly Func<string, bool> _predicate;
+
+            public PredicateSymbolSearcher(
+                CSharpCompilation compilation, SymbolFilter filter, Func<string, bool> predicate, CancellationToken cancellationToken) 
+                : base(compilation, filter, cancellationToken)
+            {
+                _predicate = predicate;
+            }
+
+            protected override bool ShouldCheckTypeForMembers(MergedTypeDeclaration current)
+            {
+                // Note: this preserves the behavior the compiler has always had when a predicate
+                // is passed in.  We could potentially be smarter by checking the predicate
+                // against the list of member names in the type declaration first.
+                return true;
+            }
+
+            protected override bool Matches(string name)
+                => _predicate(name);
+        }
+
+        private class NameSymbolSearcher : AbstractSymbolSearcher
+        {
+            private readonly string _name;
+
+            public NameSymbolSearcher(
+                CSharpCompilation compilation, SymbolFilter filter, string name, CancellationToken cancellationToken)
+                : base(compilation, filter, cancellationToken)
+            {
+                _name = name;
+            }
+
+            protected override bool ShouldCheckTypeForMembers(MergedTypeDeclaration current)
+            {
+                foreach (var typeDecl in current.Declarations)
+                {
+                    if (typeDecl.MemberNames.Contains(_name))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            protected override bool Matches(string name)
+                => _name == name;
         }
     }
 }
