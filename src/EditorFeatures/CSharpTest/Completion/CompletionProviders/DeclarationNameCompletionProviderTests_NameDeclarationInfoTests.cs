@@ -501,7 +501,7 @@ class C
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
-        public async Task ModifierExclusionInsideMethod_AfterConst(string type)
+        public async Task ModifierExclusionInsideMethod_Const(string type)
         {
             var markup = $@"
 using System.Collections.Generic;
@@ -521,7 +521,49 @@ class C
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
-        public async Task ModifierExclusionInsideMethod_AfterAsync(string type)
+        public async Task ModifierExclusionInsideMethod_ConstLocalDeclaration(string type)
+        {
+            var markup = $@"
+using System.Collections.Generic;
+class C
+{{
+    void M()
+    {{
+        const {type} v$$ = default;
+    }}
+}}
+";
+            await VerifySymbolKinds(markup,
+                new SymbolKindOrTypeKind(SymbolKind.Local));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("int")]
+        [InlineData("C")]
+        [InlineData("List<string>")]
+        public async Task ModifierExclusionInsideMethod_ConstLocalFunction(string type)
+        {
+            var markup = $@"
+using System.Collections.Generic;
+class C
+{{
+    void M()
+    {{
+        const {type} v$$()
+        {{
+        }}
+    }}
+}}
+";
+            await VerifySymbolKinds(markup,
+                new SymbolKindOrTypeKind(SymbolKind.Local));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("int")]
+        [InlineData("C")]
+        [InlineData("List<string>")]
+        public async Task ModifierExclusionInsideMethod_Async(string type)
         {
             // This only works with a partially written name.
             // Because async is not a keyword, the syntax tree when the name is missing is completely broken
@@ -532,7 +574,7 @@ class C
 {{
     void M()
     {{
-        async {type} F$$
+        async {type} v$$
     }}
 }}
 ";
@@ -544,7 +586,49 @@ class C
         [InlineData("int")]
         [InlineData("C")]
         [InlineData("List<string>")]
-        public async Task ModifierExclusionInsideMethod_AfterUnsafe(string type)
+        public async Task ModifierExclusionInsideMethod_AsyncLocalDeclaration(string type)
+        {
+            var markup = $@"
+using System.Collections.Generic;
+class C
+{{
+    void M()
+    {{
+        async {type} v$$ = default;
+    }}
+}}
+";
+            await VerifySymbolKinds(markup,
+                new SymbolKindOrTypeKind(MethodKind.LocalFunction));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("int")]
+        [InlineData("C")]
+        [InlineData("List<string>")]
+        public async Task ModifierExclusionInsideMethod_AsyncLocalFunction(string type)
+        {
+            var markup = $@"
+using System.Collections.Generic;
+class C
+{{
+    void M()
+    {{
+        async {type} v$$()
+        {{
+        }}
+    }}
+}}
+";
+            await VerifySymbolKinds(markup,
+                new SymbolKindOrTypeKind(MethodKind.LocalFunction));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("int")]
+        [InlineData("C")]
+        [InlineData("List<string>")]
+        public async Task ModifierExclusionInsideMethod_Unsafe(string type)
         {
             var markup = $@"
 using System.Collections.Generic;
@@ -553,6 +637,48 @@ class C
     void M()
     {{
         unsafe {type} $$
+    }}
+}}
+";
+            await VerifySymbolKinds(markup,
+                new SymbolKindOrTypeKind(MethodKind.LocalFunction));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("int")]
+        [InlineData("C")]
+        [InlineData("List<string>")]
+        public async Task ModifierExclusionInsideMethod_UnsafeLocalDeclaration(string type)
+        {
+            var markup = $@"
+using System.Collections.Generic;
+class C
+{{
+    void M()
+    {{
+        unsafe {type} v$$ = default;
+    }}
+}}
+";
+            await VerifySymbolKinds(markup,
+                new SymbolKindOrTypeKind(MethodKind.LocalFunction));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("int")]
+        [InlineData("C")]
+        [InlineData("List<string>")]
+        public async Task ModifierExclusionInsideMethod_UnsafeLocalFunction(string type)
+        {
+            var markup = $@"
+using System.Collections.Generic;
+class C
+{{
+    void M()
+    {{
+        unsafe {type} v$$()
+        {{
+        }}
     }}
 }}
 ";

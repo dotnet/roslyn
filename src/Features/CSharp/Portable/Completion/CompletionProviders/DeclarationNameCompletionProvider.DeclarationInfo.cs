@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (IsParameterDeclaration(token, semanticModel, position, cancellationToken, out var result)
                     || IsTypeParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
+                    || IsLocalFunctionDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsLocalVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsEmbeddedVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsForEachVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
@@ -253,38 +254,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return result.Type != null;
             }
 
+            private static bool IsLocalFunctionDeclaration(SyntaxToken token, SemanticModel semanticModel,
+                int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
+            {
+                result = IsLastTokenOfType<LocalFunctionStatementSyntax>(token, semanticModel,
+                    typeSyntaxGetter: f => f.ReturnType,
+                    modifierGetter: f => f.Modifiers,
+                    possibleDeclarationComputer: GetPossibleLocalDeclarations,
+                    cancellationToken);
+                return result.Type != null;
+            }
+
             private static bool IsLocalVariableDeclaration(SyntaxToken token, SemanticModel semanticModel,
                 int position, CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
+                // If we only have a type, this can still end up being a local function (depending on the modifiers).
+                var possibleDeclarationComputer = token.IsKind(SyntaxKind.CommaToken)
+                    ? (Func<DeclarationModifiers, ImmutableArray<SymbolKindOrTypeKind>>)
+                        (_ => ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)))
+                    : GetPossibleLocalDeclarations;
+
                 result = IsFollowingTypeOrComma<VariableDeclarationSyntax>(token, semanticModel,
                      typeSyntaxGetter: v => v.Type,
                      modifierGetter: v => v.Parent is LocalDeclarationStatementSyntax localDeclaration
                         ? localDeclaration.Modifiers
                         : default(SyntaxTokenList?), // Return null to bail out.
-                     possibleDeclarationComputer: GetPossibleKinds,
+                     possibleDeclarationComputer,
                      cancellationToken);
                 return result.Type != null;
-
-                // Local functions
-
-                ImmutableArray<SymbolKindOrTypeKind> GetPossibleKinds(DeclarationModifiers modifiers)
-                {
-                    if (token.IsKind(SyntaxKind.CommaToken))
-                    {
-                        return ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local));
-                    }
-
-                    // If we only have a type, this can still end up being a local function (depending on the modifiers).
-
-                    return
-                        modifiers.IsConst
-                            ? ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)) :
-                        modifiers.IsAsync || modifiers.IsUnsafe
-                            ? ImmutableArray.Create(new SymbolKindOrTypeKind(MethodKind.LocalFunction)) :
-                        ImmutableArray.Create(
-                            new SymbolKindOrTypeKind(SymbolKind.Local),
-                            new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-                }
             }
 
             private static bool IsEmbeddedVariableDeclaration(SyntaxToken token, SemanticModel semanticModel,
@@ -415,6 +412,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 return possibleTypes;
+            }
+
+            private static ImmutableArray<SymbolKindOrTypeKind> GetPossibleLocalDeclarations(DeclarationModifiers modifiers)
+            {
+                return
+                    modifiers.IsConst
+                        ? ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)) :
+                    modifiers.IsAsync || modifiers.IsUnsafe
+                        ? ImmutableArray.Create(new SymbolKindOrTypeKind(MethodKind.LocalFunction)) :
+                    ImmutableArray.Create(
+                        new SymbolKindOrTypeKind(SymbolKind.Local),
+                        new SymbolKindOrTypeKind(MethodKind.LocalFunction));
             }
 
             private static DeclarationModifiers GetDeclarationModifiers(SyntaxTokenList modifiers)
