@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentNullException>(() =>
             {
                 var compilation = GetTestCompilation();
-                compilation.ContainsSymbolsWithName(null);
+                compilation.ContainsSymbolsWithName(predicate: null);
             });
 
             Assert.Throws<ArgumentNullException>(() =>
@@ -51,6 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNameNull()
         {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var compilation = GetTestCompilation();
+                compilation.ContainsSymbolsWithName(name: null);
+            });
+
             Assert.Throws<ArgumentNullException>(() =>
             {
                 var compilation = GetTestCompilation();
@@ -226,6 +232,7 @@ enum Enum
             filter = includeType ? filter | SymbolFilter.Type : filter;
             filter = includeMember ? filter | SymbolFilter.Member : filter;
 
+            Assert.Equal(count > 0, compilation.ContainsSymbolsWithName(name, filter));
             Assert.Equal(count, compilation.GetSymbolsWithName(name, filter).Count());
         }
 

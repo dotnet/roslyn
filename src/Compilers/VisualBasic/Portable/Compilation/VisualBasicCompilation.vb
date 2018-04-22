@@ -2731,10 +2731,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Disable Warning RS0026 ' Do not add multiple public overloads with optional parameters
         ''' <summary>
-        ''' Return source declaration symbols whose name matches the provdied name
+        ''' Return true if there Is a source declaration symbol name that matches the provided name.
+        ''' This may be faster than <see cref="ContainsSymbolsWithName(Func(Of String, Boolean), SymbolFilter, CancellationToken)"/>
+        ''' when predicate Is just a simple string check.
         ''' </summary>
+        Public Overrides Function ContainsSymbolsWithName(name As String, Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+            If name Is Nothing Then
+                Throw New ArgumentNullException(NameOf(name))
+            End If
+
+            If filter = SymbolFilter.None Then
+                Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf(filter))
+            End If
+
+            Return DeclarationTable.ContainsName(MergedRootDeclaration, name, filter, cancellationToken)
+        End Function
+
         Public Overrides Function GetSymbolsWithName(name As String, Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of ISymbol)
-#Enable Warning RS0026 ' Do not add multiple public overloads with optional parameters
             If name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -2745,6 +2758,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return New NameSymbolSearcher(Me, filter, name, cancellationToken).GetSymbolsWithName()
         End Function
+#Enable Warning RS0026 ' Do not add multiple public overloads with optional parameters
 
         Friend Overrides Function IsUnreferencedAssemblyIdentityDiagnosticCode(code As Integer) As Boolean
             Select Case code
@@ -2760,10 +2774,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End Region
 
         Private MustInherit Class AbstractSymbolSearcher
-            Private Shared ReadOnly s_cachePool As New ObjectPool(Of Dictionary(Of Declaration, NamespaceOrTypeSymbol))(
-                Function() New Dictionary(Of Declaration, NamespaceOrTypeSymbol)())
-
-            Private ReadOnly _cache As Dictionary(Of Declaration, NamespaceOrTypeSymbol)
+            Private ReadOnly _cache As PooledDictionary(Of Declaration, NamespaceOrTypeSymbol)
             Private ReadOnly _compilation As VisualBasicCompilation
             Private ReadOnly _includeNamespace As Boolean
             Private ReadOnly _includeType As Boolean
@@ -2771,7 +2782,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _cancellationToken As CancellationToken
 
             Public Sub New(compilation As VisualBasicCompilation, filter As SymbolFilter, cancellationToken As CancellationToken)
-                _cache = s_cachePool.Allocate()
+                _cache = PooledDictionary(Of Declaration, NamespaceOrTypeSymbol).GetInstance()
                 _compilation = compilation
 
                 _includeNamespace = (filter And SymbolFilter.Namespace) = SymbolFilter.Namespace
@@ -2790,10 +2801,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, result)
 
-                spine.Clear()
-
-                _cache.Clear()
-                s_cachePool.Free(_cache)
+                spine.Free()
+                _cache.Free()
 
                 Return result
             End Function
@@ -2961,9 +2970,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Protected Overrides Function ShouldCheckTypeForMembers(current As MergedTypeDeclaration) As Boolean
                 For Each typeDecl In current.Declarations
-                    If typeDecl.MemberNames.Contains(_name) Then
-                        Return True
-                    End If
+                    For Each name In typeDecl.MemberNames
+                        If IdentifierComparison.Equals(name, _name) Then
+                            Return True
+                        End If
+                    Next
                 Next
 
                 Return False

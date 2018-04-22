@@ -3039,10 +3039,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
-        /// Return source declaration symbols whose name matches the provided name
+        /// Return true if there is a source declaration symbol name that matches the provided name.
+        /// This will be faster than <see cref="ContainsSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
+        /// when predicate is just a simple string check.
+        /// </summary>
+        public override bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (filter == SymbolFilter.None)
+            {
+                throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
+            }
+
+            return DeclarationTable.ContainsName(this.MergedRootDeclaration, name, filter, cancellationToken);
+        }
+
+        /// <summary>
+        /// Return source declaration symbols whose name matches the provided name.  This will be
+        /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
+        /// when predicate is just a simple string check.
         /// </summary>
         public override IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             if (name == null)
             {
@@ -3056,6 +3077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new NameSymbolSearcher(this, filter, name, cancellationToken).GetSymbolsWithName();
         }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         #endregion
 
@@ -3119,10 +3141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private abstract class AbstractSymbolSearcher
         {
-            private static readonly ObjectPool<Dictionary<Declaration, NamespaceOrTypeSymbol>> s_cachePool =
-                new ObjectPool<Dictionary<Declaration, NamespaceOrTypeSymbol>>(() => new Dictionary<Declaration, NamespaceOrTypeSymbol>());
-
-            private readonly Dictionary<Declaration, NamespaceOrTypeSymbol> _cache;
+            private readonly PooledDictionary<Declaration, NamespaceOrTypeSymbol> _cache;
             private readonly CSharpCompilation _compilation;
             private readonly bool _includeNamespace;
             private readonly bool _includeType;
@@ -3132,7 +3151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected AbstractSymbolSearcher(
                 CSharpCompilation compilation, SymbolFilter filter, CancellationToken cancellationToken)
             {
-                _cache = s_cachePool.Allocate();
+                _cache = PooledDictionary<Declaration, NamespaceOrTypeSymbol>.GetInstance();
 
                 _compilation = compilation;
 
@@ -3154,9 +3173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, result);
 
                 spine.Free();
-
-                _cache.Clear();
-                s_cachePool.Free(_cache);
+                _cache.Free();
                 return result;
             }
 

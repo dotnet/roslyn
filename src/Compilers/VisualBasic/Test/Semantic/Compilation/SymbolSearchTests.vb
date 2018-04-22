@@ -26,12 +26,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub TestPredicateNull()
             Assert.Throws(Of ArgumentNullException)(Sub()
                                                         Dim compilation = GetTestCompilation()
-                                                        compilation.ContainsSymbolsWithName(Nothing)
+                                                        compilation.ContainsSymbolsWithName(predicate:=Nothing)
                                                     End Sub)
 
             Assert.Throws(Of ArgumentNullException)(Sub()
                                                         Dim compilation = GetTestCompilation()
-                                                        compilation.GetSymbolsWithName(DirectCast(Nothing, Func(Of String, Boolean)))
+                                                        compilation.GetSymbolsWithName(predicate:=Nothing)
                                                     End Sub)
         End Sub
 
@@ -39,7 +39,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub TestStringNull()
             Assert.Throws(Of ArgumentNullException)(Sub()
                                                         Dim compilation = GetTestCompilation()
-                                                        compilation.GetSymbolsWithName(DirectCast(Nothing, String))
+                                                        compilation.ContainsSymbolsWithName(name:=Nothing)
+                                                    End Sub)
+
+            Assert.Throws(Of ArgumentNullException)(Sub()
+                                                        Dim compilation = GetTestCompilation()
+                                                        compilation.GetSymbolsWithName(name:=Nothing)
                                                     End Sub)
         End Sub
 
@@ -50,6 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestNameAndPredicate(compilation, "System", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
             TestNameAndPredicate(compilation, "System", includeNamespace:=True, includeType:=False, includeMember:=True, count:=1)
             TestNameAndPredicate(compilation, "System", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "system", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
             TestNameAndPredicate(compilation, "System", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
             TestNameAndPredicate(compilation, "System", includeNamespace:=False, includeType:=True, includeMember:=False, count:=0)
@@ -63,6 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
             TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=True, includeType:=False, includeMember:=True, count:=1)
             TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "mynamespace", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
             TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
             TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=False, includeType:=True, includeMember:=False, count:=0)
@@ -76,6 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestNameAndPredicate(compilation, "Test", includeNamespace:=False, includeType:=True, includeMember:=True, count:=1)
             TestNameAndPredicate(compilation, "Test", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
             TestNameAndPredicate(compilation, "Test", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "test", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
             TestNameAndPredicate(compilation, "Test", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
             TestNameAndPredicate(compilation, "Test", includeNamespace:=True, includeType:=False, includeMember:=False, count:=0)
@@ -89,6 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestNameAndPredicate(compilation, "Test1", includeNamespace:=False, includeType:=True, includeMember:=True, count:=1)
             TestNameAndPredicate(compilation, "Test1", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
             TestNameAndPredicate(compilation, "Test1", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "test1", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
             TestNameAndPredicate(compilation, "Test1", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
             TestNameAndPredicate(compilation, "Test1", includeNamespace:=True, includeType:=False, includeMember:=False, count:=0)
@@ -102,6 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestNameAndPredicate(compilation, "myField", includeNamespace:=False, includeType:=True, includeMember:=True, count:=1)
             TestNameAndPredicate(compilation, "myField", includeNamespace:=True, includeType:=False, includeMember:=True, count:=1)
             TestNameAndPredicate(compilation, "myField", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestNameAndPredicate(compilation, "myfield", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
             TestNameAndPredicate(compilation, "myField", includeNamespace:=False, includeType:=True, includeMember:=False, count:=0)
             TestNameAndPredicate(compilation, "myField", includeNamespace:=True, includeType:=False, includeMember:=False, count:=0)
@@ -174,6 +184,7 @@ End Enum
             filter = If(includeType, filter Or SymbolFilter.Type, filter)
             filter = If(includeMember, filter Or SymbolFilter.Member, filter)
 
+            Assert.Equal(count > 0, compilation.ContainsSymbolsWithName(name, filter))
             Assert.Equal(count, compilation.GetSymbolsWithName(name, filter).Count())
         End Sub
 
