@@ -50,29 +50,19 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var entryPoint = compilation.GetEntryPoint(cancellationToken);
             bool isEntryPoint = entryPoint?.Equals(symbol) == true;
 
-            // If it's a void returning method, offer to keep the void return type, or convert to 
-            // a Task return type.
-            bool isOrdinaryOrLocalFunction = symbol.IsOrdinaryMethodOrLocalFunction();
-            if (isOrdinaryOrLocalFunction && symbol.ReturnsVoid)
-            {
-                context.RegisterCodeFix(
-                    new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
-                        context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c)),
-                    context.Diagnostics);
+            // Offer to convert to a Task return type.
+            context.RegisterCodeFix(
+                new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
+                    context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c)),
+                context.Diagnostics);
 
-                if (!isEntryPoint)
-                {
-                    context.RegisterCodeFix(
-                        new MyCodeAction(GetMakeAsyncVoidFunctionResource(), c => FixNodeAsync(
-                            context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c)),
-                        context.Diagnostics);
-                }
-            }
-            else
+            // If it's a void returning method (and not an entry point), also offer to keep the void return type
+            bool isOrdinaryOrLocalFunction = symbol.IsOrdinaryMethodOrLocalFunction();
+            if (isOrdinaryOrLocalFunction && symbol.ReturnsVoid && !isEntryPoint)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
-                        context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c)),
+                    new MyCodeAction(GetMakeAsyncVoidFunctionResource(), c => FixNodeAsync(
+                        context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c)),
                     context.Diagnostics);
             }
         }
