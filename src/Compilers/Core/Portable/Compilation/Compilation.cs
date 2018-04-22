@@ -2909,13 +2909,13 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Return true if there is a source declaration symbol name that matches the provided name.
-        /// This will be faster than <see cref="ContainsSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
+        /// This may be faster than <see cref="ContainsSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
         /// when predicate is just a simple string check.
         /// </summary>
         internal abstract bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Return source declaration symbols whose name matches the provided name.  This will be
+        /// Return source declaration symbols whose name matches the provided name.  This may be
         /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
         /// when predicate is just a simple string check.
         /// </summary>
