@@ -47,7 +47,7 @@ class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         [WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")]
-        public async Task AwaitInVoidMainMethodWithModifiers()
+        public async Task AwaitInTaskMainMethodWithModifiers()
         {
             var initial =
 @"using System;
@@ -67,13 +67,16 @@ using System.Threading.Tasks;
 
 class Program
 {
-    public static async void Main()
+    public static async Task Main()
     {
         await Task.Delay(1);
     }
 }";
-            await TestAsync(initial, expected, index: 1, parseOptions: CSharpParseOptions.Default,
+            await TestAsync(initial, expected, parseOptions: CSharpParseOptions.Default,
                 compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+
+            // no option offered to keep void
+            await TestActionCountAsync(initial, count: 1, new TestParameters(compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]

@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
 
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
+            var entryPoint = compilation.GetEntryPoint(cancellationToken);
+            bool isEntryPoint = entryPoint?.Equals(symbol) == true;
 
             // If it's a void returning method, offer to keep the void return type, or convert to 
             // a Task return type.
@@ -55,19 +57,22 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
-                        context.Document, diagnostic, keepVoid: false, cancellationToken: c)),
+                        context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c)),
                     context.Diagnostics);
 
-                context.RegisterCodeFix(
-                    new MyCodeAction(GetMakeAsyncVoidFunctionResource(), c => FixNodeAsync(
-                        context.Document, diagnostic, keepVoid: true, cancellationToken: c)),
-                    context.Diagnostics);
+                if (!isEntryPoint)
+                {
+                    context.RegisterCodeFix(
+                        new MyCodeAction(GetMakeAsyncVoidFunctionResource(), c => FixNodeAsync(
+                            context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c)),
+                        context.Diagnostics);
+                }
             }
             else
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(GetMakeAsyncTaskFunctionResource(), c => FixNodeAsync(
-                        context.Document, diagnostic, keepVoid: false, cancellationToken: c)),
+                        context.Document, diagnostic, keepVoid: false, isEntryPoint, cancellationToken: c)),
                     context.Diagnostics);
             }
         }
@@ -89,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
         private async Task<Solution> FixNodeAsync(
             Document document, Diagnostic diagnostic,
-            bool keepVoid, CancellationToken cancellationToken)
+            bool keepVoid, bool isEntryPoint, CancellationToken cancellationToken)
         {
             var node = GetContainingFunction(diagnostic, cancellationToken);
 
@@ -103,7 +108,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             if (isOrdinaryOrLocalFunction && !methodSymbolOpt.Name.EndsWith(AsyncSuffix))
             {
                 return await RenameThenAddAsyncTokenAsync(
-                    keepVoid, document, node, methodSymbolOpt, cancellationToken).ConfigureAwait(false);
+                    keepVoid, isEntryPoint, document, node, methodSymbolOpt, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -120,7 +125,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         }
 
         private async Task<Solution> RenameThenAddAsyncTokenAsync(
-            bool keepVoid, Document document, SyntaxNode node,
+            bool keepVoid, bool isEntryPoint, Document document, SyntaxNode node,
             IMethodSymbol methodSymbol, CancellationToken cancellationToken)
         {
             var name = methodSymbol.Name;
@@ -131,9 +136,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var syntaxPath = new SyntaxPath(node);
 
             // Rename the method to add the 'Async' suffix (except if it's the entry point), then add the 'async' keyword.
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var entryPoint = compilation.GetEntryPoint(cancellationToken);
-            var newSolution = methodSymbol.Equals(entryPoint)
+            var newSolution = isEntryPoint
                 ? solution
                 : await Renamer.RenameSymbolAsync(solution, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
 
