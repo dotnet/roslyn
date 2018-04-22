@@ -867,6 +867,46 @@ internal class Example
             await VerifyNoItemsExistAsync(markup);
         }
 
+        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObjectInitializerOfGenericTypeСonstraint3()
+        {
+            var markup = @"
+internal class Example
+{
+    public static T Create<T>()
+        where T : System.Delegate, new()
+    {
+        return new T
+        {
+            $$
+        };
+    }
+}";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(24612, "https://github.com/dotnet/roslyn/issues/24612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObjectInitializerOfGenericTypeСonstraint4()
+        {
+            var markup = @"
+internal class Example
+{
+    public static T Create<T>()
+        where T : unmanaged
+    {
+        return new T
+        {
+            $$
+        };
+    }
+}";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
             using (var workspace = TestWorkspace.CreateCSharp(markup))
