@@ -43,6 +43,7 @@ class {|target:C|}
             End Using
         End Function
 
+        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
         Public Async Function TestCharpLiteral() As Task
             Dim markup = "int x = 1$$23;"
@@ -56,6 +57,7 @@ class {|target:C|}
             End Using
         End Function
 
+        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
         Public Async Function TestCharpStringLiteral() As Task
             Dim markup = "string x = ""w$$ow"";"
