@@ -3139,10 +3139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private abstract class AbstractSymbolSearcher
         {
-            private static readonly ObjectPool<Dictionary<Declaration, NamespaceOrTypeSymbol>> s_cachePool =
-                new ObjectPool<Dictionary<Declaration, NamespaceOrTypeSymbol>>(() => new Dictionary<Declaration, NamespaceOrTypeSymbol>());
-
-            private readonly Dictionary<Declaration, NamespaceOrTypeSymbol> _cache;
+            private readonly PooledDictionary<Declaration, NamespaceOrTypeSymbol> _cache;
             private readonly CSharpCompilation _compilation;
             private readonly bool _includeNamespace;
             private readonly bool _includeType;
@@ -3152,7 +3149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected AbstractSymbolSearcher(
                 CSharpCompilation compilation, SymbolFilter filter, CancellationToken cancellationToken)
             {
-                _cache = s_cachePool.Allocate();
+                _cache = PooledDictionary<Declaration, NamespaceOrTypeSymbol>.GetInstance();
 
                 _compilation = compilation;
 
@@ -3174,9 +3171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, result);
 
                 spine.Free();
-
-                _cache.Clear();
-                s_cachePool.Free(_cache);
+                _cache.Free();
                 return result;
             }
 

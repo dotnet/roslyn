@@ -2772,10 +2772,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End Region
 
         Private MustInherit Class AbstractSymbolSearcher
-            Private Shared ReadOnly s_cachePool As New ObjectPool(Of Dictionary(Of Declaration, NamespaceOrTypeSymbol))(
-                Function() New Dictionary(Of Declaration, NamespaceOrTypeSymbol)())
-
-            Private ReadOnly _cache As Dictionary(Of Declaration, NamespaceOrTypeSymbol)
+            Private ReadOnly _cache As PooledDictionary(Of Declaration, NamespaceOrTypeSymbol)
             Private ReadOnly _compilation As VisualBasicCompilation
             Private ReadOnly _includeNamespace As Boolean
             Private ReadOnly _includeType As Boolean
@@ -2783,7 +2780,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _cancellationToken As CancellationToken
 
             Public Sub New(compilation As VisualBasicCompilation, filter As SymbolFilter, cancellationToken As CancellationToken)
-                _cache = s_cachePool.Allocate()
+                _cache = PooledDictionary(Of Declaration, NamespaceOrTypeSymbol).GetInstance()
                 _compilation = compilation
 
                 _includeNamespace = (filter And SymbolFilter.Namespace) = SymbolFilter.Namespace
@@ -2802,10 +2799,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, result)
 
-                spine.Clear()
-
-                _cache.Clear()
-                s_cachePool.Free(_cache)
+                spine.Free()
+                _cache.Free()
 
                 Return result
             End Function
