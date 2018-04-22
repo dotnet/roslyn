@@ -16,6 +16,11 @@ namespace Roslyn.Utilities
             _resource = resource;
         }
 
+        public OwnedDisposable(Func<T> resource)
+        {
+            _resource = resource();
+        }
+
         public T Target => _resource;
 
         public T Claim()

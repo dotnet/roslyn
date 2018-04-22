@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 {
                     try
                     {
-                        return new OwnedDisposable<Connection>(new PooledConnection(this, serviceName, ref connection));
+                        return new OwnedDisposable<Connection>(() => new PooledConnection(this, serviceName, ref connection));
                     }
                     finally
                     {
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         return default;
                     }
 
-                    return new OwnedDisposable<Connection>(new PooledConnection(this, serviceName, ref newConnection));
+                    return new OwnedDisposable<Connection>(() => new PooledConnection(this, serviceName, ref newConnection));
                 }
                 finally
                 {
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // this is what consumer actually use to communicate information
                 var serviceStream = await Connections.RequestServiceAsync(dataRpc.Target.Workspace, _hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
-                return new OwnedDisposable<Connection>(new JsonRpcConnection(_hubClient.Logger, callbackTarget, serviceStream, dataRpc));
+                return new OwnedDisposable<Connection>(() => new JsonRpcConnection(_hubClient.Logger, callbackTarget, serviceStream, dataRpc));
             }
 
             private void Free(string serviceName, ref OwnedDisposable<Connection> connection)
