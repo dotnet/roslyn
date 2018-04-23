@@ -1164,7 +1164,6 @@ namespace CSharpSyntaxGenerator
 
                 this.WriteRedAcceptMethods(nd);
                 this.WriteRedUpdateMethod(nd);
-                // this.WriteRedWithMethod(nd);
                 this.WriteRedWithMethods(nd);
                 this.WriteRedListHelperMethods(nd);
 
