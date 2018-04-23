@@ -14,8 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal abstract class NamingStyleDiagnosticAnalyzerBase :
-        AbstractCodeStyleDiagnosticAnalyzer
+    internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum> :
+        AbstractCodeStyleDiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableTitleNamingStyle = new LocalizableResourceString(nameof(FeaturesResources.Naming_Styles), FeaturesResources.ResourceManager, typeof(FeaturesResources));
@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             SymbolKind.Property,
             SymbolKind.Parameter);
 
+        // HACK: RegisterSymbolAction doesn't work with locals & local functions
+        protected abstract ImmutableArray<TLanguageKindEnum> SupportedSyntaxKinds { get; }
+
         public override bool OpenFileOnly(Workspace workspace) => true;
 
         protected override void InitializeWorker(AnalysisContext context)
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 concurrencyLevel: 2, capacity: 0);
 
             context.RegisterSymbolAction(SymbolAction, _symbolKinds);
-            OnCompilationStartAction(context, idToCachedResult);
+            context.RegisterSyntaxNodeAction(SyntaxNodeAction, SupportedSyntaxKinds);
             return;
 
             // Local functions
@@ -68,33 +71,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     symbolContext.ReportDiagnostic(diagnostic);
                 }
             }
-        }
 
-        protected static void SyntaxNodeAction(
-            SyntaxNodeAnalysisContext syntaxContext,
-            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult)
-        {
-            var diagnostic = TryGetDiagnostic(
-                syntaxContext.Compilation,
-                syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.Node, syntaxContext.CancellationToken),
-                syntaxContext.Options,
-                idToCachedResult,
-                syntaxContext.CancellationToken);
-
-            if (diagnostic != null)
+            void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
             {
-                syntaxContext.ReportDiagnostic(diagnostic);
+                var diagnostic = TryGetDiagnostic(
+                    syntaxContext.Compilation,
+                    syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.Node, syntaxContext.CancellationToken),
+                    syntaxContext.Options,
+                    idToCachedResult,
+                    syntaxContext.CancellationToken);
+
+                if (diagnostic != null)
+                {
+                    syntaxContext.ReportDiagnostic(diagnostic);
+                }
             }
         }
-
-        protected abstract void OnCompilationStartAction(
-            CompilationStartAnalysisContext context,
-            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult);
 
         private static readonly Func<Guid, ConcurrentDictionary<string, string>> s_createCache =
             _ => new ConcurrentDictionary<string, string>(concurrencyLevel: 2, capacity: 0);
 
-        protected static Diagnostic TryGetDiagnostic(
+        private static Diagnostic TryGetDiagnostic(
             Compilation compilation,
             ISymbol symbol,
             AnalyzerOptions options,
