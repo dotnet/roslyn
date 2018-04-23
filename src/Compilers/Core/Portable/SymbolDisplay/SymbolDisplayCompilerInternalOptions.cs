@@ -57,10 +57,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Append '?' to nullable reference types.
-        /// Cannot be used in conjunction with <see cref="IncludeNonNullableTypeModifier"/>.
         /// PROTOTYPE(NullableReferenceTypes): review design for this option before shipping. See https://github.com/dotnet/roslyn/issues/26198
         /// </summary>
-        IncludeNullableTypeModifier = 1 << 7,
+        IncludeNullableReferenceTypeModifier = 1 << 7,
 
         /// <summary>
         /// Display `System.ValueTuple` instead of tuple syntax `(...)`.

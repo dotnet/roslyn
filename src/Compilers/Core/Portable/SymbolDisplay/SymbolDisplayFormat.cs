@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
+
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis
                 parameterOptions:
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
                     SymbolDisplayParameterOptions.IncludeType,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier,
                 // Not showing the name is important because we visit parameters to display their
                 // types.  If we visited their types directly, we wouldn't get ref/out/params.
                 miscellaneousOptions:
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
                     SymbolDisplayParameterOptions.IncludeDefaultValue,
                 localOptions: SymbolDisplayLocalOptions.IncludeType,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
@@ -192,7 +194,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames |
                     SymbolDisplayCompilerInternalOptions.FlagMissingMetadataTypes |
                     SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers |
-                    SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier);
+                    SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier);
 
         /// <summary>
         /// this.QualifiedNameOnly = containingSymbol.QualifiedNameOnly + "." + this.Name
@@ -220,7 +222,7 @@ namespace Microsoft.CodeAnalysis
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeName,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
@@ -394,6 +396,10 @@ namespace Microsoft.CodeAnalysis
             SymbolDisplayKindOptions kindOptions = default(SymbolDisplayKindOptions),
             SymbolDisplayMiscellaneousOptions miscellaneousOptions = default(SymbolDisplayMiscellaneousOptions))
         {
+            // If we want to display `!`, then we surely also want to display `?`
+            Debug.Assert(compilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier)
+                || !compilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier));
+
             this.GlobalNamespaceStyle = globalNamespaceStyle;
             this.TypeQualificationStyle = typeQualificationStyle;
             this.GenericsOptions = genericsOptions;

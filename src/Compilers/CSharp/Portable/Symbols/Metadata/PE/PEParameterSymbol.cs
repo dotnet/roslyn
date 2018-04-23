@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     TypeSymbolWithAnnotations.Create(tuple) :
                     type;
 
-                type = type.SetUnknownNullabilityForReferenceTypesIfNecessary(moduleSymbol, extraAnnotations);
+                type = SetNullabilityForReferenceTypesOrResetToUnknownIfNecessary(type, moduleSymbol, extraAnnotations);
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
                 _lazyHiddenAttributes = ImmutableArray<CSharpAttributeData>.Empty;
@@ -262,6 +262,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             Debug.Assert(refKind == this.RefKind);
             Debug.Assert(hasNameInMetadata == this.HasNameInMetadata);
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
+        private static TypeSymbolWithAnnotations SetNullabilityForReferenceTypesOrResetToUnknownIfNecessary(TypeSymbolWithAnnotations type, ModuleSymbol module, ImmutableArray<bool> externalNullableAnnotations)
+        {
+            if (externalNullableAnnotations.IsDefault)
+            {
+                return type.SetUnknownNullabilityForReferenceTypesIfNecessary(module);
+            }
+            else
+            {
+                // PROTOTYPE(NullableReferenceTypes): Extra annotations always win (even if we're loading a modern assembly)
+                return NullableTypeDecoder.TransformType(type, externalNullableAnnotations);
+            }
         }
 
         private bool HasNameInMetadata

@@ -24,14 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 typeSymbol.Accept(visitor);
 
-                // If we want to display `!`, then we surely also want to display `?`
-                Debug.Assert(format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier)
-                    || !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier));
-
                 switch (isNullable)
                 {
                     case true:
-                        if (!typeSymbol.IsNullableType() && format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier))
+                        if (!typeSymbol.IsNullableType() && format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier))
                         {
                             AddPunctuation(SyntaxKind.QuestionToken);
                         }
@@ -103,14 +99,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AddArrayRank(arrayType);
 
-                // If we want to display `!`, then we surely also want to display `?`
-                Debug.Assert(format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier)
-                    || !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier));
-
                 switch (isNullable)
                 {
                     case true:
-                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier))
+                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier))
                         {
                             AddPunctuation(SyntaxKind.QuestionToken);
                         }

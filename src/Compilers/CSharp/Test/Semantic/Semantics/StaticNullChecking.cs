@@ -12899,7 +12899,7 @@ class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 
             Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1")
                 .ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
-                    compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier)));
+                    compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier)));
 
             var f = compilation.GetTypeByMetadataName("F");
             Assert.Equal("C<F?>", f.BaseType().ToTestDisplayString());
@@ -12987,7 +12987,7 @@ public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 
                                     Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1")
                                         .ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
-                                            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableTypeModifier)));
+                                            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier)));
 
                                     var f = ((PEModuleSymbol)m).GlobalNamespace.GetTypeMember("F");
                                     Assert.Equal("C<F?>", f.BaseType().ToTestDisplayString());
