@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private SessionWithSolution(ref OwnedDisposable<RemoteHostClient.Connection> connection, PinnedRemotableDataScope scope)
         {
-            _connection = connection;
+            _connection = connection.Move();
             _scope = scope;
         }
 
