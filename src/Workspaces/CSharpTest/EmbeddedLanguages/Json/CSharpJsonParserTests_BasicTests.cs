@@ -1208,10 +1208,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             <EndOfLineTrivia>
 </EndOfLineTrivia>
           </Trivia>{<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></OpenBraceToken>
+</EndOfLineTrivia></Trivia></OpenBraceToken>
         <Sequence>
           <Property>
-            <StringToken>""description""</StringToken>
+            <StringToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>""description""</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
             <Literal>
               <StringToken>""A person""</StringToken>
@@ -1219,10 +1222,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           </Property>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Property>
-            <StringToken>""type""</StringToken>
+            <StringToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>""type""</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
             <Literal>
               <StringToken>""object""</StringToken>
@@ -1230,18 +1236,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           </Property>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Property>
-            <StringToken>""properties""</StringToken>
+            <StringToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>""properties""</StringToken>
             <ColonToken>:<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></ColonToken>
+</EndOfLineTrivia></Trivia></ColonToken>
             <Object>
-              <OpenBraceToken>{<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>    </WhitespaceTrivia></Trivia></OpenBraceToken>
+              <OpenBraceToken>
+                <Trivia>
+                  <WhitespaceTrivia>  </WhitespaceTrivia>
+                </Trivia>{<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia></Trivia></OpenBraceToken>
               <Sequence>
                 <Literal>
-                  <StringToken>""name""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+                  <StringToken>
+                    <Trivia>
+                      <WhitespaceTrivia>    </WhitespaceTrivia>
+                    </Trivia>""name""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
                 </Literal>
                 <Object>
                   <OpenBraceToken>{</OpenBraceToken>
@@ -1258,17 +1273,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 </Object>
                 <EmptyValue>
                   <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>    </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
                 </EmptyValue>
                 <Property>
-                  <StringToken>""hobbies""</StringToken>
+                  <StringToken>
+                    <Trivia>
+                      <WhitespaceTrivia>    </WhitespaceTrivia>
+                    </Trivia>""hobbies""</StringToken>
                   <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
                   <Object>
                     <OpenBraceToken>{<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>      </WhitespaceTrivia></Trivia></OpenBraceToken>
+</EndOfLineTrivia></Trivia></OpenBraceToken>
                     <Sequence>
                       <Property>
-                        <StringToken>""type""</StringToken>
+                        <StringToken>
+                          <Trivia>
+                            <WhitespaceTrivia>      </WhitespaceTrivia>
+                          </Trivia>""type""</StringToken>
                         <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
                         <Literal>
                           <StringToken>""array""</StringToken>
@@ -1276,10 +1297,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                       </Property>
                       <EmptyValue>
                         <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>      </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
                       </EmptyValue>
                       <Property>
-                        <StringToken>""items""</StringToken>
+                        <StringToken>
+                          <Trivia>
+                            <WhitespaceTrivia>      </WhitespaceTrivia>
+                          </Trivia>""items""</StringToken>
                         <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
                         <Object>
                           <OpenBraceToken>{</OpenBraceToken>
@@ -1293,16 +1317,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                             </Property>
                           </Sequence>
                           <CloseBraceToken>}<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>    </WhitespaceTrivia></Trivia></CloseBraceToken>
+</EndOfLineTrivia></Trivia></CloseBraceToken>
                         </Object>
                       </Property>
                     </Sequence>
-                    <CloseBraceToken>}<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CloseBraceToken>
+                    <CloseBraceToken>
+                      <Trivia>
+                        <WhitespaceTrivia>    </WhitespaceTrivia>
+                      </Trivia>}<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia></Trivia></CloseBraceToken>
                   </Object>
                 </Property>
               </Sequence>
-              <CloseBraceToken>}<Trivia><EndOfLineTrivia>
+              <CloseBraceToken>
+                <Trivia>
+                  <WhitespaceTrivia>  </WhitespaceTrivia>
+                </Trivia>}<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CloseBraceToken>
             </Object>
           </Property>
