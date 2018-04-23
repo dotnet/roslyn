@@ -55,7 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestNameAndPredicate(compilation, "System", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
             TestNameAndPredicate(compilation, "System", includeNamespace:=True, includeType:=False, includeMember:=True, count:=1)
             TestNameAndPredicate(compilation, "System", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
-            TestNameAndPredicate(compilation, "system", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
             TestNameAndPredicate(compilation, "System", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
             TestNameAndPredicate(compilation, "System", includeNamespace:=False, includeType:=True, includeMember:=False, count:=0)
@@ -69,7 +68,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
             TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=True, includeType:=False, includeMember:=True, count:=1)
             TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
-            TestNameAndPredicate(compilation, "mynamespace", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
             TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
             TestNameAndPredicate(compilation, "MyNamespace", includeNamespace:=False, includeType:=True, includeMember:=False, count:=0)
@@ -83,7 +81,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestNameAndPredicate(compilation, "Test", includeNamespace:=False, includeType:=True, includeMember:=True, count:=1)
             TestNameAndPredicate(compilation, "Test", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
             TestNameAndPredicate(compilation, "Test", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
-            TestNameAndPredicate(compilation, "test", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
             TestNameAndPredicate(compilation, "Test", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
             TestNameAndPredicate(compilation, "Test", includeNamespace:=True, includeType:=False, includeMember:=False, count:=0)
@@ -97,7 +94,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestNameAndPredicate(compilation, "Test1", includeNamespace:=False, includeType:=True, includeMember:=True, count:=1)
             TestNameAndPredicate(compilation, "Test1", includeNamespace:=True, includeType:=True, includeMember:=False, count:=1)
             TestNameAndPredicate(compilation, "Test1", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
-            TestNameAndPredicate(compilation, "test1", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
             TestNameAndPredicate(compilation, "Test1", includeNamespace:=False, includeType:=False, includeMember:=True, count:=0)
             TestNameAndPredicate(compilation, "Test1", includeNamespace:=True, includeType:=False, includeMember:=False, count:=0)
@@ -111,7 +107,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestNameAndPredicate(compilation, "myField", includeNamespace:=False, includeType:=True, includeMember:=True, count:=1)
             TestNameAndPredicate(compilation, "myField", includeNamespace:=True, includeType:=False, includeMember:=True, count:=1)
             TestNameAndPredicate(compilation, "myField", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
-            TestNameAndPredicate(compilation, "myfield", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
 
             TestNameAndPredicate(compilation, "myField", includeNamespace:=False, includeType:=True, includeMember:=False, count:=0)
             TestNameAndPredicate(compilation, "myField", includeNamespace:=True, includeType:=False, includeMember:=False, count:=0)
@@ -119,17 +114,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         <Fact>
+        Public Sub TestCaseInsensitivity()
+            Dim compilation = GetTestCompilation()
+            TestName(compilation, "system", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestName(Compilation, "mynamespace", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestName(Compilation, "test", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestName(Compilation, "test1", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+            TestName(Compilation, "myfield", includeNamespace:=True, includeType:=True, includeMember:=True, count:=1)
+        End Sub
+
+        <Fact>
         Public Sub TestPartialSearch()
             Dim compilation = GetTestCompilation()
 
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=False, includeType:=False, includeMember:=True, count:=4)
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=False, includeType:=True, includeMember:=False, count:=4)
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=False, includeType:=True, includeMember:=True, count:=8)
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=False, includeMember:=False, count:=1)
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=False, includeMember:=True, count:=5)
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=True, includeMember:=False, count:=5)
-            Test(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=True, includeMember:=True, count:=9)
-            Test(compilation, Function(n) n.IndexOf("enum", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=True, includeMember:=True, count:=2)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=False, includeType:=False, includeMember:=True, count:=4)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=False, includeType:=True, includeMember:=False, count:=4)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=False, includeType:=True, includeMember:=True, count:=8)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=False, includeMember:=False, count:=1)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=False, includeMember:=True, count:=5)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=True, includeMember:=False, count:=5)
+            TestPredicate(compilation, Function(n) n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=True, includeMember:=True, count:=9)
+            TestPredicate(compilation, Function(n) n.IndexOf("enum", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace:=True, includeType:=True, includeMember:=True, count:=2)
         End Sub
 
         Private Shared Function GetTestCompilation() As VisualBasicCompilation
@@ -174,11 +179,11 @@ End Enum
         End Function
 
         Private Shared Sub TestNameAndPredicate(compilation As VisualBasicCompilation, name As String, includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean, count As Integer)
-            Test(compilation, name, includeNamespace, includeType, includeMember, count)
-            Test(compilation, Function(n) n = name, includeNamespace, includeType, includeMember, count)
+            TestName(compilation, name, includeNamespace, includeType, includeMember, count)
+            TestPredicate(compilation, Function(n) n = name, includeNamespace, includeType, includeMember, count)
         End Sub
 
-        Private Shared Sub Test(compilation As VisualBasicCompilation, name As String, includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean, count As Integer)
+        Private Shared Sub TestName(compilation As VisualBasicCompilation, name As String, includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean, count As Integer)
             Dim filter = SymbolFilter.None
             filter = If(includeNamespace, filter Or SymbolFilter.Namespace, filter)
             filter = If(includeType, filter Or SymbolFilter.Type, filter)
@@ -188,7 +193,7 @@ End Enum
             Assert.Equal(count, compilation.GetSymbolsWithName(name, filter).Count())
         End Sub
 
-        Private Shared Sub Test(compilation As VisualBasicCompilation, predicate As Func(Of String, Boolean), includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean, count As Integer)
+        Private Shared Sub TestPredicate(compilation As VisualBasicCompilation, predicate As Func(Of String, Boolean), includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean, count As Integer)
             Dim filter = SymbolFilter.None
             filter = If(includeNamespace, filter Or SymbolFilter.Namespace, filter)
             filter = If(includeType, filter Or SymbolFilter.Type, filter)

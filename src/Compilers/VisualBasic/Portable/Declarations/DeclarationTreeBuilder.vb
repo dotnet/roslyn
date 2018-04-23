@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return directives.ToImmutableAndFree()
         End Function
 
-        Private Function CreateImplicitClass(parent As VisualBasicSyntaxNode, memberNames As String(), children As ImmutableArray(Of SingleTypeDeclaration), declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As SingleNamespaceOrTypeDeclaration
+        Private Function CreateImplicitClass(parent As VisualBasicSyntaxNode, memberNames As ImmutableHashSet(Of String), children As ImmutableArray(Of SingleTypeDeclaration), declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As SingleNamespaceOrTypeDeclaration
             Dim parentReference = _syntaxTree.GetReference(parent)
 
             Return New SingleTypeDeclaration(
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 children:=children)
         End Function
 
-        Private Function CreateScriptClass(parent As VisualBasicSyntaxNode, children As ImmutableArray(Of SingleTypeDeclaration), memberNames As String(), declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As SingleNamespaceOrTypeDeclaration
+        Private Function CreateScriptClass(parent As VisualBasicSyntaxNode, children As ImmutableArray(Of SingleTypeDeclaration), memberNames As ImmutableHashSet(Of String), declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As SingleNamespaceOrTypeDeclaration
             Debug.Assert(parent.Kind = SyntaxKind.CompilationUnit AndAlso _syntaxTree.Options.Kind <> SourceCodeKind.Regular)
 
             ' script class is represented by the parent node:
@@ -519,7 +519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations
             End If
 
-            Dim memberNames As String() = GetMemberNames(enumBlockSyntax, declFlags)
+            Dim memberNames = GetMemberNames(enumBlockSyntax, declFlags)
 
             Return New SingleTypeDeclaration(
                 kind:=GetKind(declarationSyntax.Kind),
@@ -549,12 +549,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return children.ToImmutableAndFree()
         End Function
 
-        Private Function GetNonTypeMemberNames(members As SyntaxList(Of StatementSyntax), ByRef declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As String()
+        Private Shared ReadOnly s_memberNameBuilderPool As New ObjectPool(Of ImmutableHashSet(Of String).Builder)(
+            Function() ImmutableHashSet.CreateBuilder(Of String)(IdentifierComparison.Comparer))
+
+        Private Shared Function ToImmutableAndFree(builder As ImmutableHashSet(Of String).Builder) As ImmutableHashSet(Of String)
+            Dim result = builder.ToImmutable()
+            builder.Clear()
+            s_memberNameBuilderPool.Free(builder)
+            Return result
+        End Function
+
+        Private Function GetNonTypeMemberNames(members As SyntaxList(Of StatementSyntax), ByRef declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As ImmutableHashSet(Of String)
             Dim anyMethodHadExtensionSyntax = False
             Dim anyMemberHasAttributes = False
             Dim anyNonTypeMembers = False
 
-            Dim results = PooledHashSet(Of String).GetInstance()
+            Dim results = s_memberNameBuilderPool.Allocate()
 
             For Each statement In members
                 Select Case statement.Kind
@@ -639,28 +649,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers
             End If
 
-            ' PERF: The member names collection tends to be long-lived. Use a string array since
-            ' that uses less memory than a HashSet.
-            Dim result As String()
-            If results.Count = 0 Then
-                result = Array.Empty(Of String)
-            Else
-                ReDim result(results.Count - 1)
-                results.CopyTo(result)
-            End If
-
-            results.Free()
-            Return result
+            Return ToImmutableAndFree(results)
         End Function
 
-        Private Function GetMemberNames(enumBlockSyntax As EnumBlockSyntax, ByRef declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As String()
+        Private Function GetMemberNames(enumBlockSyntax As EnumBlockSyntax, ByRef declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As ImmutableHashSet(Of String)
             Dim members = enumBlockSyntax.Members
 
             If (members.Count <> 0) Then
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers
             End If
 
-            Dim results As New List(Of String)()
+            Dim results = s_memberNameBuilderPool.Allocate()
             Dim anyMemberHasAttributes As Boolean = False
 
             For Each member In enumBlockSyntax.Members
@@ -679,10 +678,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes
             End If
 
-            Return results.ToArray
+            Return ToImmutableAndFree(results)
         End Function
 
-        Private Sub AddMemberNames(methodDecl As MethodBaseSyntax, results As PooledHashSet(Of String))
+        Private Sub AddMemberNames(methodDecl As MethodBaseSyntax, results As ImmutableHashSet(Of String).Builder)
             Dim name = SourceMethodSymbol.GetMemberNameFromSyntax(methodDecl)
             results.Add(name)
         End Sub
@@ -702,7 +701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 declFlags:=declFlags,
                 syntaxReference:=_syntaxTree.GetReference(node),
                 nameLocation:=_syntaxTree.GetLocation(node.Identifier.Span),
-                memberNames:=SpecializedCollections.EmptySet(Of String),
+                memberNames:=ImmutableHashSet(Of String).Empty,
                 children:=ImmutableArray(Of SingleTypeDeclaration).Empty)
         End Function
 
@@ -726,7 +725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 declFlags:=declFlags,
                 syntaxReference:=_syntaxTree.GetReference(node),
                 nameLocation:=_syntaxTree.GetLocation(node.Identifier.Span),
-                memberNames:=SpecializedCollections.EmptySet(Of String),
+                memberNames:=ImmutableHashSet(Of String).Empty,
                 children:=ImmutableArray(Of SingleTypeDeclaration).Empty)
         End Function
 

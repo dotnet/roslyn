@@ -2970,11 +2970,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Protected Overrides Function ShouldCheckTypeForMembers(current As MergedTypeDeclaration) As Boolean
                 For Each typeDecl In current.Declarations
-                    For Each name In typeDecl.MemberNames
-                        If IdentifierComparison.Equals(name, _name) Then
-                            Return True
-                        End If
-                    Next
+                    If typeDecl.MemberNames.Contains(_name) Then
+                        Return True
+                    End If
                 Next
 
                 Return False
