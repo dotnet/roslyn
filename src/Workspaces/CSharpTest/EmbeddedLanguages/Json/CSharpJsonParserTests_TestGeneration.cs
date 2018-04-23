@@ -82,10 +82,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 
         private void Process(string path)
         {
-            foreach (var file in Directory.EnumerateFiles(path, "*.json"))
+            foreach (var entry in Directory.EnumerateFiles(path, "*.json"))
             {
+                try
+                {
+                    var contents = "@\"" + File.ReadAllText(entry).Replace("\"", "\"\"") + "\"";
+                    if (contents.Contains((char)0))
+                    {
+                        continue;
+                    }
 
+                    var fileName = Massage(new FileInfo(entry).Name);
+
+                    var test = GenerateTests(contents, true, true, fileName);
+                    nameToTest.Add(fileName, test);
+                }
+                catch (ArgumentException)
+                {
+                }
             }
+        }
+
+        private static readonly Regex _regex = new Regex("[^0-9a-zA-Z_]");
+        private string Massage(string name)
+        {
+            return _regex.Replace(name, "_");
         }
 
         //private void Test(string stringText, string expected, bool runJsonNetCheck = true, bool runJsonNetSubTreeTests = true, [CallerMemberName]string name = "")
@@ -108,16 +129,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 
             var token = GetStringToken(val);
             var allChars = _service.TryConvertToVirtualChars(token);
-            var tree = JsonParser.TryParse(allChars, strict: false);
+            var looseTree = JsonParser.TryParse(allChars, strict: false);
+            if (looseTree == null)
+            {
+                throw new ArgumentException();
+            }
 
             builder.Append(", " + '@' + '"');
-            builder.Append(TreeToText(tree).Replace("\"", "\"\""));
+            builder.Append(TreeToText(looseTree).Replace("\"", "\"\""));
 
             builder.AppendLine("" + '"' + ',');
             builder.Append("" + '@' + '"');
-            builder.Append(DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\""));
+            builder.Append(DiagnosticsToText(looseTree.Diagnostics).Replace("\"", "\"\""));
             builder.AppendLine("" + '"' + ',');
-            builder.Append("" + '@' + '"' + '"');
+
+
+            var strictTree = JsonParser.TryParse(allChars, strict: true);
+            builder.Append("" + '@' + '"');
+            builder.Append(DiagnosticsToText(strictTree.Diagnostics).Replace("\"", "\"\""));
+            builder.Append('"');
 
             if (!runJsonNetCheck)
             {

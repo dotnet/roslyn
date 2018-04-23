@@ -255,14 +255,14 @@ $",
                         literalToken.GetSpan());
                 }
 
-                if (!double.TryParse(literalText, out var val) ||
-                    double.IsNaN(val) ||
-                    double.IsInfinity(val))
-                {
-                    return new EmbeddedDiagnostic(
-                        WorkspacesResources.Invalid_number,
-                        literalToken.GetSpan());
-                }
+                //if (!double.TryParse(literalText, out var val) ||
+                //    double.IsNaN(val) ||
+                //    double.IsInfinity(val))
+                //{
+                //    return new EmbeddedDiagnostic(
+                //        WorkspacesResources.Invalid_number,
+                //        literalToken.GetSpan());
+                //}
 
                 return CheckToken(literalToken);
             }

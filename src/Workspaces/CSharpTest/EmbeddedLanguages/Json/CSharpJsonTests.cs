@@ -59,6 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             bool runTreeCheck, bool runSubTreeChecks)
         {
             var tree = TryParseTree(stringText, strict, runTreeCheck, conversionFailureOk: false);
+            if (tree == null)
+            {
+                return;
+            }
 
             // Tests are allowed to not run the subtree tests.  This is because some
             // subtrees can cause the native regex parser to exhibit very bad behavior
