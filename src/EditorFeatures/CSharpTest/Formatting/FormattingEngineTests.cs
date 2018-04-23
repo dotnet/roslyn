@@ -26,27 +26,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatDocumentRemoveUsings()
         {
-            var code = @"
+            var code = @"using System;
 using System.Collections.Generic;
-using System.Linq;
 class Program
 {
     static void Main(string[] args)
     {
-        int x;$$
+        Console.WriteLine();$$
     }
 }
 ";
 
-            var expected = @"class Program
+            var expected = @"using System;
+class Program
 {
     static void Main(string[] args)
     {
-        int x;$$
+        Console.WriteLine();$$
+    }
+}
+";
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatDocumentSortUsings()
+        {
+            var code = @"using System.Collections.Generic;
+using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var list = new List<int>();$$
+        Console.WriteLine(list.Count);
     }
 }
 ";
 
+            var expected = @"using System;
+using System.Collections.Generic;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var list = new List<int>();$$
+        Console.WriteLine(list.Count);
+    }
+}
+";
             AssertFormatWithView(expected, code);
         }
 

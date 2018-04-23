@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 Format(args.TextView, document, null, context.WaitContext.UserCancellationToken);
             }
 
-            // remove usings
+            // remove and sort usings
             var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
             if (removeUsingsService == null)
             {
@@ -56,12 +57,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
             {
-                var newDoc = removeUsingsService.RemoveUnnecessaryImportsAsync(document, context.WaitContext.UserCancellationToken).Result;
-                var changes = newDoc.GetTextChangesAsync(document, context.WaitContext.UserCancellationToken).Result.ToList();
+                var cancellationToken = context.WaitContext.UserCancellationToken;
+                var newDoc = removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).Result;
+                // sort usings
+                newDoc = OrganizeImportsService.OrganizeImportsAsync(newDoc, cancellationToken).Result;
+                var changes = newDoc.GetTextChangesAsync(document, cancellationToken).Result.ToList();
 
                 if (changes.Count() > 0)
                 {
-                    ApplyChanges(document, changes, null, context.WaitContext.UserCancellationToken);
+                    ApplyChanges(document, changes, null, cancellationToken);
                 }
             }
 
