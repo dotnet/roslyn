@@ -16,20 +16,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
             context.RegisterSyntaxNodeAction(Sub(syntaxContext) SyntaxNodeAction(syntaxContext, idToCachedResult),
                 SyntaxKind.ModifiedIdentifier)
         End Sub
-
-        Private Shared Sub SyntaxNodeAction(
-                syntaxContext As SyntaxNodeAnalysisContext,
-                idToCachedResult As ConcurrentDictionary(Of Guid, ConcurrentDictionary(Of String, String)))
-            Dim diagnostic = TryGetDiagnostic(
-                    syntaxContext.Compilation,
-                    syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.Node, syntaxContext.CancellationToken),
-                    syntaxContext.Options,
-                    idToCachedResult,
-                    syntaxContext.CancellationToken)
-
-            If diagnostic IsNot Nothing Then
-                syntaxContext.ReportDiagnostic(diagnostic)
-            End If
-        End Sub
     End Class
 End Namespace

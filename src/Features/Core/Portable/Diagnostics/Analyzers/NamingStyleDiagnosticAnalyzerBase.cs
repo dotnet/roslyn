@@ -70,6 +70,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
         }
 
+        protected static void SyntaxNodeAction(
+            SyntaxNodeAnalysisContext syntaxContext,
+            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult)
+        {
+            var diagnostic = TryGetDiagnostic(
+                syntaxContext.Compilation,
+                syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.Node, syntaxContext.CancellationToken),
+                syntaxContext.Options,
+                idToCachedResult,
+                syntaxContext.CancellationToken);
+
+            if (diagnostic != null)
+            {
+                syntaxContext.ReportDiagnostic(diagnostic);
+            }
+        }
+
         protected abstract void OnCompilationStartAction(
             CompilationStartAnalysisContext context,
             ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult);

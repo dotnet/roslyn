@@ -15,29 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
             ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult)
         {
             // HACK: RegisterSymbolAction doesn't work with locals & local functions
-            context.RegisterSyntaxNodeAction(SyntaxNodeAction,
+            context.RegisterSyntaxNodeAction(syntaxContext => SyntaxNodeAction(syntaxContext, idToCachedResult),
                 SyntaxKind.VariableDeclarator,
                 SyntaxKind.ForEachStatement,
                 SyntaxKind.SingleVariableDesignation,
                 SyntaxKind.LocalFunctionStatement);
-            return;
-
-            // Local functions
-
-            void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
-            {
-                var diagnostic = TryGetDiagnostic(
-                    syntaxContext.Compilation,
-                    syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.Node, syntaxContext.CancellationToken),
-                    syntaxContext.Options,
-                    idToCachedResult,
-                    syntaxContext.CancellationToken);
-
-                if (diagnostic != null)
-                {
-                    syntaxContext.ReportDiagnostic(diagnostic);
-                }
-            }
         }
     }
 }
