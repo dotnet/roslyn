@@ -1,4 +1,5 @@
 ## Welcome to the .NET Compiler Platform ("Roslyn")
+** DO NOT MERGE **
 
 [//]: # (Begin current test results)
 
