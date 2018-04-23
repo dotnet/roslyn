@@ -460,12 +460,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSwitch(ISwitchOperation operation)
         {
             var caseCountStr = $"{operation.Cases.Length} cases";
-            var exitLabelStr = operation.ExitLabel != null ? $", Exit Label Id: {GetLabelId(operation.ExitLabel)}" :
-                                                             string.Empty;
+            var exitLabelStr = $", Exit Label Id: {GetLabelId(operation.ExitLabel)}";
             LogString($"{nameof(ISwitchOperation)} ({caseCountStr}{exitLabelStr})");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Value, header: "Switch expression");
+            LogLocals(operation.Locals);
+
+            foreach (ISwitchCaseOperation section in operation.Cases)
+            {
+                foreach (ICaseClauseOperation c in section.Clauses)
+                {
+                    if (c.Label != null)
+                    {
+                        GetLabelId(c.Label);
+                    }
+                }
+            }
+
             VisitArray(operation.Cases, "Sections", logElementCount: false);
         }
 
@@ -475,6 +487,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var statementCountStr = $"{operation.Body.Length} statements";
             LogString($"{nameof(ISwitchCaseOperation)} ({caseClauseCountStr}, {statementCountStr})");
             LogCommonPropertiesAndNewLine(operation);
+            LogLocals(operation.Locals);
 
             Indent();
             VisitArray(operation.Clauses, "Clauses", logElementCount: false);
@@ -544,17 +557,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void LogLoopStatementHeader(ILoopOperation operation)
         {
+            Assert.Equal(OperationKind.Loop, operation.Kind);
             var propertyStringBuilder = new StringBuilder();
             propertyStringBuilder.Append(" (");
             propertyStringBuilder.Append($"{nameof(LoopKind)}.{operation.LoopKind}");
-            if (operation.ContinueLabel != null)
-            {
-                propertyStringBuilder.Append($", Continue Label Id: {GetLabelId(operation.ContinueLabel)}");
-            }
-            if (operation.ExitLabel != null)
-            {
-                propertyStringBuilder.Append($", Exit Label Id: {GetLabelId(operation.ExitLabel)}");
-            }
+            propertyStringBuilder.Append($", Continue Label Id: {GetLabelId(operation.ContinueLabel)}");
+            propertyStringBuilder.Append($", Exit Label Id: {GetLabelId(operation.ExitLabel)}");
             propertyStringBuilder.Append(")");
             LogString(propertyStringBuilder.ToString());
             LogCommonPropertiesAndNewLine(operation);
@@ -1549,6 +1557,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void LogCaseClauseCommon(ICaseClauseOperation operation)
         {
+            Assert.Equal(OperationKind.CaseClause, operation.Kind);
+
+            if (operation.Label != null)
+            {
+                LogString($" (Label Id: {GetLabelId(operation.Label)})");
+            }
+
             var kindStr = $"{nameof(CaseKind)}.{operation.CaseKind}";
             LogString($" ({kindStr})");
             LogCommonPropertiesAndNewLine(operation);
@@ -1653,9 +1668,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitPatternCaseClause(IPatternCaseClauseOperation operation)
         {
             LogString(nameof(IPatternCaseClauseOperation));
-            LogSymbol(operation.Label, " (Label Symbol");
-            LogString(")");
             LogCaseClauseCommon(operation);
+            Assert.Same(((ICaseClauseOperation)operation).Label, operation.Label);
 
             Visit(operation.Pattern, "Pattern");
             Visit(operation.Guard, "Guard Expression");

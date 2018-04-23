@@ -930,7 +930,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundSelectStatement.WasCompilerGenerated
-            Return New LazySwitchStatement(value, cases, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazySwitchStatement(ImmutableArray(Of ILocalSymbol).Empty, value, cases, exitLabel, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundCaseBlockOperation(boundCaseBlock As BoundCaseBlock) As ISwitchCaseOperation
@@ -942,6 +942,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
                         Return ImmutableArray.Create(Of ICaseClauseOperation)(
                             New DefaultCaseClause(
+                                label:=Nothing,
                                 _semanticModel,
                                 caseStatement.Syntax,
                                 type:=Nothing,
@@ -956,7 +957,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundCaseBlock.WasCompilerGenerated
-            Return New LazySwitchCase(clauses, body, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazySwitchCase(ImmutableArray(Of ILocalSymbol).Empty, clauses, body, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundSimpleCaseClauseOperation(boundSimpleCaseClause As BoundSimpleCaseClause) As ISingleValueCaseClauseOperation
@@ -966,7 +967,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundSimpleCaseClause.WasCompilerGenerated
-            Return New LazySingleValueCaseClause(value, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazySingleValueCaseClause(label:=Nothing, value, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundRangeCaseClauseOperation(boundRangeCaseClause As BoundRangeCaseClause) As IRangeCaseClauseOperation

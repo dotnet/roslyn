@@ -30,6 +30,10 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Exit label for the switch statement.
         /// </summary>
         ILabelSymbol ExitLabel { get; }
+        /// <summary>
+        /// Locals declared within the switch operation with scope spanning across all <see cref="Cases"/>.
+        /// </summary>
+        ImmutableArray<ILocalSymbol> Locals { get; }
     }
 }
 

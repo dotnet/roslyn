@@ -121,18 +121,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitSwitch(ISwitchOperation operation)
         {
             Assert.Equal(OperationKind.Switch, operation.Kind);
+            VisitLocals(operation.Locals);
+            Assert.NotNull(operation.ExitLabel);
             AssertEx.Equal(new [] { operation.Value}.Concat(operation.Cases), operation.Children);
         }
 
         public override void VisitSwitchCase(ISwitchCaseOperation operation)
         {
             Assert.Equal(OperationKind.SwitchCase, operation.Kind);
+            VisitLocals(operation.Locals);
             AssertEx.Equal(operation.Clauses.Concat(operation.Body), operation.Children);
         }
 
         public override void VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation)
         {
-            Assert.Equal(OperationKind.CaseClause, operation.Kind);
+            VisitCaseClauseOperation(operation);
             Assert.Equal(CaseKind.SingleValue, operation.CaseKind);
 
             // It is unexpected to have null operation.Value. The conditional logic is added
@@ -149,9 +152,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public override void VisitRelationalCaseClause(IRelationalCaseClauseOperation operation)
+        private static void VisitCaseClauseOperation(ICaseClauseOperation operation)
         {
             Assert.Equal(OperationKind.CaseClause, operation.Kind);
+            _ = operation.Label;
+        }
+
+        public override void VisitRelationalCaseClause(IRelationalCaseClauseOperation operation)
+        {
+            VisitCaseClauseOperation(operation);
             Assert.Equal(CaseKind.Relational, operation.CaseKind);
             var relation = operation.Relation;
 
@@ -160,17 +169,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitDefaultCaseClause(IDefaultCaseClauseOperation operation)
         {
-            Assert.Equal(OperationKind.CaseClause, operation.Kind);
+            VisitCaseClauseOperation(operation);
             Assert.Equal(CaseKind.Default, operation.CaseKind);
             Assert.Empty(operation.Children);
         }
 
-        private void VisitLocals(ILoopOperation operation)
-        {
-            VisitLocals(operation.Locals);
-        }
-
-        private void VisitLocals(ImmutableArray<ILocalSymbol> locals)
+        private static void VisitLocals(ImmutableArray<ILocalSymbol> locals)
         {
             foreach (var local in locals)
             {
@@ -180,9 +184,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitWhileLoop(IWhileLoopOperation operation)
         {
-            Assert.Equal(OperationKind.Loop, operation.Kind);
+            VisitLoop(operation);
             Assert.Equal(LoopKind.While, operation.LoopKind);
-            VisitLocals(operation);
 
             var conditionIsTop = operation.ConditionIsTop;
             var conditionIsUntil = operation.ConditionIsUntil;
@@ -219,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitForLoop(IForLoopOperation operation)
         {
-            Assert.Equal(OperationKind.Loop, operation.Kind);
+            VisitLoop(operation);
             Assert.Equal(LoopKind.For, operation.LoopKind);
             VisitLocals(operation.Locals);
             VisitLocals(operation.ConditionLocals);
@@ -239,9 +242,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitForToLoop(IForToLoopOperation operation)
         {
-            Assert.Equal(OperationKind.Loop, operation.Kind);
+            VisitLoop(operation);
             Assert.Equal(LoopKind.ForTo, operation.LoopKind);
-            VisitLocals(operation);
 
             IEnumerable<IOperation> children;
 
@@ -260,12 +262,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitForEachLoop(IForEachLoopOperation operation)
         {
-            Assert.Equal(OperationKind.Loop, operation.Kind);
+            VisitLoop(operation);
             Assert.Equal(LoopKind.ForEach, operation.LoopKind);
-            VisitLocals(operation);
 
             IEnumerable<IOperation> children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body }.Concat(operation.NextVariables);
             AssertEx.Equal(children, operation.Children);
+        }
+
+        private static void VisitLoop(ILoopOperation operation)
+        {
+            Assert.Equal(OperationKind.Loop, operation.Kind);
+            VisitLocals(operation.Locals);
+            Assert.NotNull(operation.ContinueLabel);
+            Assert.NotNull(operation.ExitLabel);
         }
 
         public override void VisitLabeled(ILabeledOperation operation)
@@ -286,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitBranch(IBranchOperation operation)
         {
             Assert.Equal(OperationKind.Branch, operation.Kind);
-            var target = operation.Target;
+            Assert.NotNull(operation.Target);
 
             switch (operation.BranchKind)
             {
@@ -332,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.Try, operation.Kind);
             IEnumerable<IOperation> children = new[] { operation.Body };
-
+            _ = operation.ExitLabel;
             children = children.Concat(operation.Catches);
             if (operation.Finally != null)
             {
@@ -1069,9 +1078,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitPatternCaseClause(IPatternCaseClauseOperation operation)
         {
-            Assert.Equal(OperationKind.CaseClause, operation.Kind);
+            VisitCaseClauseOperation(operation);
             Assert.Equal(CaseKind.Pattern, operation.CaseKind);
-            Assert.NotNull(operation.Label);
+            Assert.Same(((ICaseClauseOperation)operation).Label, operation.Label);
 
             if (operation.Guard != null)
             {
@@ -1115,7 +1124,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitRangeCaseClause(IRangeCaseClauseOperation operation)
         {
-            Assert.Equal(OperationKind.CaseClause, operation.Kind);
+            VisitCaseClauseOperation(operation);
             Assert.Equal(CaseKind.Range, operation.CaseKind);
             // operation.MinimumValue and operation.MaximumValue shouldn't be null. The following conditional logic is
             // a work around for https://github.com/dotnet/roslyn/issues/23818 and should 

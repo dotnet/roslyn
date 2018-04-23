@@ -1096,6 +1096,19 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Kind of the clause.
         /// </summary>
         public CaseKind CaseKind { get; }
+
+        public abstract ILabelSymbol Label { get; }
+    }
+
+    internal abstract class CaseClauseWithLabel : CaseClause
+    {
+        protected CaseClauseWithLabel(ILabelSymbol label, CaseKind caseKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(caseKind, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Label = label;
+        }
+
+        public sealed override ILabelSymbol Label { get; }
     }
 
     /// <summary>
@@ -4304,6 +4317,9 @@ namespace Microsoft.CodeAnalysis.Operations
             base(CaseKind.Range, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
+
+        public sealed override ILabelSymbol Label => null;
+
         public override IEnumerable<IOperation> Children
         {
             get
@@ -4382,6 +4398,8 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Relation = relation;
         }
+
+        public sealed override ILabelSymbol Label => null;
 
         /// <summary>
         /// Relational operator used to compare the switch value with the case value.
@@ -4512,10 +4530,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents case x in C# or Case x in VB.
     /// </summary>
-    internal abstract partial class BaseSingleValueCaseClause : CaseClause, ISingleValueCaseClauseOperation
+    internal abstract partial class BaseSingleValueCaseClause : CaseClauseWithLabel, ISingleValueCaseClauseOperation
     {
-        public BaseSingleValueCaseClause(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(CaseKind.SingleValue, semanticModel, syntax, type, constantValue, isImplicit)
+        public BaseSingleValueCaseClause(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(label, CaseKind.SingleValue, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
 
@@ -4549,8 +4567,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class SingleValueCaseClause : BaseSingleValueCaseClause, ISingleValueCaseClauseOperation
     {
-        public SingleValueCaseClause(IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public SingleValueCaseClause(ILabelSymbol label, IOperation value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Value = SetParentOperation(value, this);
         }
@@ -4565,8 +4583,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazySingleValueCaseClause(Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazySingleValueCaseClause(ILabelSymbol label, Lazy<IOperation> value, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(label, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
@@ -4577,10 +4595,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents default case in C# or Case Else in VB.
     /// </summary>
-    internal sealed partial class DefaultCaseClause : CaseClause, IDefaultCaseClauseOperation
+    internal sealed partial class DefaultCaseClause : CaseClauseWithLabel, IDefaultCaseClauseOperation
     {
-        public DefaultCaseClause(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(CaseKind.Default, semanticModel, syntax, type, constantValue, isImplicit)
+        public DefaultCaseClause(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(label, CaseKind.Default, semanticModel, syntax, type, constantValue, isImplicit)
         {
         }
         public override IEnumerable<IOperation> Children
@@ -4662,10 +4680,13 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseSwitchCase : Operation, ISwitchCaseOperation
     {
-        protected BaseSwitchCase(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseSwitchCase(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.SwitchCase, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            Locals = locals;
         }
+
+        public ImmutableArray<ILocalSymbol> Locals { get; }
 
         public override IEnumerable<IOperation> Children
         {
@@ -4710,8 +4731,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class SwitchCase : BaseSwitchCase, ISwitchCaseOperation
     {
-        public SwitchCase(ImmutableArray<ICaseClauseOperation> clauses, ImmutableArray<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public SwitchCase(ImmutableArray<ILocalSymbol> locals, ImmutableArray<ICaseClauseOperation> clauses, ImmutableArray<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Clauses = SetParentOperation(clauses, this);
             Body = SetParentOperation(body, this);
@@ -4729,8 +4750,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<ImmutableArray<ICaseClauseOperation>> _lazyClauses;
         private readonly Lazy<ImmutableArray<IOperation>> _lazyBody;
 
-        public LazySwitchCase(Lazy<ImmutableArray<ICaseClauseOperation>> clauses, Lazy<ImmutableArray<IOperation>> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazySwitchCase(ImmutableArray<ILocalSymbol> locals, Lazy<ImmutableArray<ICaseClauseOperation>> clauses, Lazy<ImmutableArray<IOperation>> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyClauses = clauses;
             _lazyBody = body;
@@ -4745,11 +4766,14 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseSwitchStatement : Operation, ISwitchOperation
     {
-        protected BaseSwitchStatement(ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseSwitchStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.Switch, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            Locals = locals;
             ExitLabel = exitLabel;
         }
+
+        public ImmutableArray<ILocalSymbol> Locals { get; }
 
         public override IEnumerable<IOperation> Children
         {
@@ -4792,8 +4816,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class SwitchStatement : BaseSwitchStatement, ISwitchOperation
     {
-        public SwitchStatement(IOperation value, ImmutableArray<ISwitchCaseOperation> cases, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+        public SwitchStatement(ImmutableArray<ILocalSymbol> locals, IOperation value, ImmutableArray<ISwitchCaseOperation> cases, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Value = SetParentOperation(value, this);
             Cases = SetParentOperation(cases, this);
@@ -4811,8 +4835,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<IOperation> _lazyValue;
         private readonly Lazy<ImmutableArray<ISwitchCaseOperation>> _lazyCases;
 
-        public LazySwitchStatement(Lazy<IOperation> value, Lazy<ImmutableArray<ISwitchCaseOperation>> cases, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazySwitchStatement(ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> value, Lazy<ImmutableArray<ISwitchCaseOperation>> cases, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
             _lazyCases = cases;
@@ -6096,17 +6120,13 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a C# pattern case clause.
     /// </summary>
-    internal abstract partial class BasePatternCaseClause : CaseClause, IPatternCaseClauseOperation
+    internal abstract partial class BasePatternCaseClause : CaseClauseWithLabel, IPatternCaseClauseOperation
     {
         protected BasePatternCaseClause(ILabelSymbol label, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(CaseKind.Pattern, semanticModel, syntax, type, constantValue, isImplicit)
+            base(label, CaseKind.Pattern, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            Label = label;
         }
-        /// <summary>
-        /// Label associated with the case clause.
-        /// </summary>
-        public ILabelSymbol Label { get; }
+
         public override IEnumerable<IOperation> Children
         {
             get
