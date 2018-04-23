@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
 
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
-            var entryPoint = compilation.GetEntryPoint(cancellationToken);
-            bool isEntryPoint = entryPoint?.Equals(symbol) == true;
+            bool isEntryPoint = symbol != null && symbol.IsStatic && string.Equals(symbol.Name, "Main", StringComparison.Ordinal);
 
             // Offer to convert to a Task return type.
             context.RegisterCodeFix(
@@ -95,10 +94,10 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
 
             bool isOrdinaryOrLocalFunction = methodSymbolOpt.IsOrdinaryMethodOrLocalFunction();
-            if (isOrdinaryOrLocalFunction && !methodSymbolOpt.Name.EndsWith(AsyncSuffix))
+            if (isOrdinaryOrLocalFunction && !methodSymbolOpt.Name.EndsWith(AsyncSuffix) && !isEntryPoint)
             {
                 return await RenameThenAddAsyncTokenAsync(
-                    keepVoid, isEntryPoint, document, node, methodSymbolOpt, cancellationToken).ConfigureAwait(false);
+                    keepVoid, document, node, methodSymbolOpt, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         }
 
         private async Task<Solution> RenameThenAddAsyncTokenAsync(
-            bool keepVoid, bool isEntryPoint, Document document, SyntaxNode node,
+            bool keepVoid, Document document, SyntaxNode node,
             IMethodSymbol methodSymbol, CancellationToken cancellationToken)
         {
             var name = methodSymbol.Name;
@@ -126,9 +125,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var syntaxPath = new SyntaxPath(node);
 
             // Rename the method to add the 'Async' suffix (except if it's the entry point), then add the 'async' keyword.
-            var newSolution = isEntryPoint
-                ? solution
-                : await Renamer.RenameSymbolAsync(solution, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
+            var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
 
             var newDocument = newSolution.GetDocument(document.Id);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
