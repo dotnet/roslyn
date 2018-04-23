@@ -1451,6 +1451,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<IOperation> condition = new Lazy<IOperation>(() => Create(boundForStatement.Condition));
             Lazy<ImmutableArray<IOperation>> atLoopBottom = new Lazy<ImmutableArray<IOperation>>(() => ToStatements(boundForStatement.Increment));
             ImmutableArray<ILocalSymbol> locals = boundForStatement.OuterLocals.As<ILocalSymbol>();
+            ImmutableArray<ILocalSymbol> conditionLocals = boundForStatement.InnerLocals.As<ILocalSymbol>();
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundForStatement.Body));
             ILabelSymbol continueLabel = boundForStatement.ContinueLabel;
             ILabelSymbol exitLabel = boundForStatement.BreakLabel;
@@ -1458,7 +1459,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundForStatement.WasCompilerGenerated;
-            return new LazyForLoopStatement(before, condition, atLoopBottom, locals, continueLabel, exitLabel, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyForLoopStatement(before, condition, atLoopBottom, locals, conditionLocals, continueLabel, exitLabel, body, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IForEachLoopOperation CreateBoundForEachStatementOperation(BoundForEachStatement boundForEachStatement)

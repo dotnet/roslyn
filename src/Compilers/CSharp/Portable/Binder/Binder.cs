@@ -670,6 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundStatement WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundStatement statement)
         {
+            Debug.Assert(statement.Kind != BoundKind.StatementList);
             var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
             if (locals.IsEmpty)
             {
