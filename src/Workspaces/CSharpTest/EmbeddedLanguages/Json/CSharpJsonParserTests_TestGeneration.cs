@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if false
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
 using Xunit;
 
@@ -51,7 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 #endif
 #endif
             var tests =
-                CSharpJsonParserTests.nameToTest.Values;
+                CSharpJsonParserTests.nameToTest.Where(
+                    kvp => kvp.Key.StartsWith("i_") ||
+                           kvp.Key.StartsWith("n_") ||
+                           kvp.Key.StartsWith("y_")).Select(kvp => kvp.Value);
             var val = string.Join("\r\n", tests);
         }
     }
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             builder.AppendLine("[Fact]");
             builder.AppendLine("public void " + testName + "()");
             builder.AppendLine("{");
-            builder.Append(@"    Test(");
+            builder.Append(@"    TestNST(");
 
             var escaped = val.Replace("\"", "\"\"");
             var quoted = "" + '@' + '"' + escaped + '"';
@@ -142,7 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             builder.Append("" + '@' + '"');
             builder.Append(DiagnosticsToText(looseTree.Diagnostics).Replace("\"", "\"\""));
             builder.AppendLine("" + '"' + ',');
-
 
             var strictTree = JsonParser.TryParse(allChars, strict: true);
             builder.Append("" + '@' + '"');
@@ -166,3 +167,4 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         }
     }
 }
+#endif

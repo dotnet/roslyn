@@ -145,14 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 return null;
             }
 
-            //JavaScriptSerializer x = new JavaScriptSerializer();
-            //x.DeserializeObject("{ x: 1 }");
-            //var r = JsonReaderWriterFactory.CreateJsonReader(Encoding.UTF8.GetBytes("{ \"x\": 1 } "),
-            //    XmlDictionaryReaderQuotas.Max);
-            //var v1 = r.Read();
-            //var v2 = r.Read();
-            //var d = new DataContractJsonSerializer(typeof(object));
-            //var o = d.ReadObject(new MemoryStream(Encoding.UTF8.GetBytes("{ \"x\": 1 } ")));
             CheckInvariants(tree, allChars);
 
             if (runTreeCheck)
@@ -319,6 +311,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             }
 
             position += virtualChars.Length;
+        }
+
+        private void TestNST(
+            string stringText, string expected, string looseDiagnostics, string strictDiagnostics, [CallerMemberName]string caller = "")
+        {
+            var (token, tree, allChars) = JustParseTree(stringText, strict: true, conversionFailureOk: false);
+
+            var actualTree = TreeToText(tree).Replace("\"", "\"\"");
+            Assert.Equal(expected.Replace("\"", "\"\""), actualTree);
+
+            var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
+            Assert.Equal(strictDiagnostics.Replace("\"", "\"\""), actualDiagnostics);
+
+            CheckInvariants(tree, allChars);
+
+            if (caller.StartsWith("y_"))
+            {
+                // y_ tests must produce no diagnostics.
+                Assert.Empty(strictDiagnostics);
+            }
+            else if (caller.StartsWith("n_"))
+            {
+                // n_ tests must always produce diagnostics.
+                Assert.NotEmpty(strictDiagnostics);
+            }
         }
 
         [Fact]
