@@ -1360,7 +1360,7 @@ namespace CSharpSyntaxGenerator
                 var isNew = false;
                 if (IsOverride(field))
                 {
-                    var baseType = GetBaseTypeWithField(node, field.Name);
+                    var baseType = GetHighestBaseTypeWithField(node, field.Name);
                     if (baseType != null)
                     {
                         WriteLine($"    internal override {baseType.Name} With{field.Name}Core({type} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)});");
@@ -1394,7 +1394,7 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private TreeType GetBaseTypeWithField(TreeType node, string name)
+        private TreeType GetHighestBaseTypeWithField(TreeType node, string name)
         {
             TreeType bestType = null;
             for (var current = node; current != null; current = TryGetBaseType(current))
