@@ -3146,110 +3146,161 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
     <Sequence>
       <Array>
         <OpenBracketToken>[<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></OpenBracketToken>
+</EndOfLineTrivia></Trivia></OpenBracketToken>
         <Sequence>
           <Literal>
-            <NumberToken>1</NumberToken>
+            <NumberToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>1</NumberToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <NumberToken>0</NumberToken>
+            <NumberToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>0</NumberToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <NumberToken>1.1</NumberToken>
+            <NumberToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>1.1</NumberToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <NumberToken>0.0</NumberToken>
+            <NumberToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>0.0</NumberToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <NumberToken>0.000000000001</NumberToken>
+            <NumberToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>0.000000000001</NumberToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <NumberToken>9999999999</NumberToken>
+            <NumberToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>9999999999</NumberToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <NumberToken>-9999999999</NumberToken>
+            <NumberToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>-9999999999</NumberToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <NumberToken>9999999999999999999999999999999999999999999999999999999999999999999999</NumberToken>
+            <NumberToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>9999999999999999999999999999999999999999999999999999999999999999999999</NumberToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <NumberToken>-9999999999999999999999999999999999999999999999999999999999999999999999</NumberToken>
+            <NumberToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>-9999999999999999999999999999999999999999999999999999999999999999999999</NumberToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <StringToken>'true'</StringToken>
+            <StringToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>'true'</StringToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <StringToken>'TRUE'</StringToken>
+            <StringToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>'TRUE'</StringToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <StringToken>'false'</StringToken>
+            <StringToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>'false'</StringToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <StringToken>'FALSE'</StringToken>
+            <StringToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>'FALSE'</StringToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia><SingleLineCommentTrivia>// comment!</SingleLineCommentTrivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia><MultiLineCommentTrivia>/* comment! */</MultiLineCommentTrivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <StringToken>''</StringToken>
+            <StringToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+                <SingleLineCommentTrivia>// comment!</SingleLineCommentTrivia>
+                <EndOfLineTrivia>
+</EndOfLineTrivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+                <MultiLineCommentTrivia>/* comment! */</MultiLineCommentTrivia>
+                <EndOfLineTrivia>
+</EndOfLineTrivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>''</StringToken>
           </Literal>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>  </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Literal>
-            <NullLiteralToken>null<Trivia><EndOfLineTrivia>
+            <NullLiteralToken>
+              <Trivia>
+                <WhitespaceTrivia>  </WhitespaceTrivia>
+              </Trivia>null<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></NullLiteralToken>
           </Literal>
         </Sequence>
