@@ -1052,7 +1052,7 @@ BC33037: Cannot copy the value of 'ByRef' parameter 'a' back to the matching arg
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
-        Public Sub GettingInOutConversionFromVBArgumentWithPredicate()
+        Public Sub GettingInOutConversionFromVBArgument()
             Dim source = <![CDATA[
 Class C
     Public Shared Widening Operator CType(ByVal c As C) As Integer
@@ -1089,54 +1089,6 @@ End Class]]>.Value
             Dim expectedOutMethod = compilation.GetSymbolsWithName(Function(name As String)
                                                                        Return name = "op_Explicit"
                                                                    End Function, SymbolFilter.Member).Single()
-
-            Dim invocation = CType(result.operation, IInvocationOperation)
-            Dim argument = invocation.Arguments(0)
-
-            Dim inConversion = argument.GetInConversion()
-            Assert.Same(expectedInMethod, inConversion.MethodSymbol)
-            Assert.Equal(expectedInKind, inConversion.Kind)
-
-            Dim outConversion = argument.GetOutConversion()
-            Assert.Same(expectedOutMethod, outConversion.MethodSymbol)
-            Assert.Equal(expectedOutKind, outConversion.Kind)
-        End Sub
-
-        <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact>
-        Public Sub GettingInOutConversionFromVBArgument_WithName()
-            Dim source = <![CDATA[
-Class C
-    Public Shared Widening Operator CType(ByVal c As C) As Integer
-        Return 0
-    End Operator
-
-    Public Shared Narrowing Operator CType(ByVal i As Integer) As C
-        Return New C()
-    End Operator
-End Class
-
-Class Program
-    Sub M1()
-        Dim x = New C()
-        M2(x)'BIND:"M2(x)"
-    End Sub
-
-    Sub M2(ByRef a As Integer)
-    End Sub
-End Class]]>.Value
-
-            Dim fileName = "a.vb"
-            Dim syntaxTree = Parse(source, fileName, options:=Nothing)
-
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
-            Dim result = GetOperationAndSyntaxForTest(Of InvocationExpressionSyntax)(compilation, fileName)
-
-            Dim expectedInKind = ConversionKind.Widening Or ConversionKind.UserDefined
-            Dim expectedInMethod = compilation.GetSymbolsWithName("op_Implicit", SymbolFilter.Member).Single()
-
-            Dim expectedOutKind = ConversionKind.Narrowing Or ConversionKind.UserDefined
-            Dim expectedOutMethod = compilation.GetSymbolsWithName("op_Explicit", SymbolFilter.Member).Single()
 
             Dim invocation = CType(result.operation, IInvocationOperation)
             Dim argument = invocation.Arguments(0)
