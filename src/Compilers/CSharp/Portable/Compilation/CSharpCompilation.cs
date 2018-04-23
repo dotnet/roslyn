@@ -1441,19 +1441,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return null;
                     }
 
-                    EntryPointCandidateFinder.FindCandidatesInSingleType(mainType, entryPointCandidates, cancellationToken);
+                    AddEntryPointCandidates(entryPointCandidates, mainType.GetMembersUnordered());
                 }
                 else
                 {
                     mainType = null;
-                    foreach (var candidate in this.GetSymbolsWithName(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken))
-                    {
-                        if (candidate is MethodSymbol method &&
-                            method.IsEntryPointCandidate)
-                        {
-                            entryPointCandidates.Add(method);
-                        }
-                    }
+
+                    AddEntryPointCandidates(
+                        entryPointCandidates,
+                        this.GetSymbolsWithName(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken));
 
                     // Global code is the entry point, ignore all other Mains.
                     var scriptClass = this.ScriptClass;
@@ -1599,6 +1595,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 entryPointCandidates.Free();
                 sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
+            }
+        }
+
+        private static void AddEntryPointCandidates(
+            ArrayBuilder<MethodSymbol> entryPointCandidates, IEnumerable<ISymbol> members)
+        {
+            foreach (var member in members)
+            {
+                if (member is MethodSymbol method &&
+                    method.IsEntryPointCandidate)
+                {
+                    entryPointCandidates.Add(method);
+                }
             }
         }
 
