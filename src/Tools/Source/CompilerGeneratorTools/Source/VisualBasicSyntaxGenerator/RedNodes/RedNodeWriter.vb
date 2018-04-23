@@ -313,13 +313,32 @@ Friend Class RedNodeWriter
     End Sub
 
     Private Sub GenerateChildListAccessor(nodeStructure As ParseNodeStructure, child As ParseNodeChild)
-        If Not _parseTree.IsAbstract(nodeStructure) Then
-            Dim kindType = KindTypeStructure(child.ChildKind)
-            Dim itemType = If(kindType.IsToken, "SyntaxToken", kindType.Name)
+        Dim kindType = KindTypeStructure(child.ChildKind)
+        Dim itemType = If(kindType.IsToken, "SyntaxToken", kindType.Name)
+
+        If _parseTree.IsAbstract(nodeStructure) Then
+
+            If nodeStructure.Children.Contains(child) Then
+                _writer.WriteLine("        Public Shadows Function Add{0}(ParamArray items As {1}()) As {2}", child.Name, itemType, nodeStructure.Name)
+                _writer.WriteLine("            Return Add{0}Core(items)", child.Name)
+                _writer.WriteLine("        End Function")
+                _writer.WriteLine("        Friend MustOverride Function Add{0}Core(ParamArray items As {1}()) As {2}", child.Name, itemType, nodeStructure.Name)
+            End If
+
+        Else
             _writer.WriteLine("        Public Shadows Function Add{0}(ParamArray items As {1}()) As {2}", child.Name, itemType, nodeStructure.Name)
             _writer.WriteLine("            Return Me.With{0}(Me.{0}.AddRange(items))", child.Name)
             _writer.WriteLine("        End Function")
             _writer.WriteLine()
+
+            If Not nodeStructure.Children.Contains(child) AndAlso
+                   nodeStructure.ParentStructure.Children.Contains(child) Then
+
+                _writer.WriteLine("        Friend Overrides Function Add{0}Core(ParamArray items As {1}()) As {2}", child.Name, itemType, nodeStructure.ParentStructure.Name)
+                _writer.WriteLine("            Return Add{0}(items)", child.Name)
+                _writer.WriteLine("        End Function")
+                _writer.WriteLine()
+            End If
         End If
     End Sub
 
@@ -351,17 +370,37 @@ Friend Class RedNodeWriter
     End Function
 
     Private Sub GeneratedNestedChildListAccessor(nodeStructure As ParseNodeStructure, child As ParseNodeChild)
-        If Not _parseTree.IsAbstract(nodeStructure) Then
-            Dim childStructure = KindTypeStructure(child.ChildKind)
-            If Not _parseTree.IsAbstract(childStructure) Then
+        Dim childStructure = KindTypeStructure(child.ChildKind)
+        If _parseTree.IsAbstract(childStructure) Then
+            Return
+        End If
 
-                Dim nestedList = GetNestedList(nodeStructure, child)
-                Dim nestedListStructure = KindTypeStructure(nestedList.ChildKind)
-                Dim itemType = If(nestedListStructure.IsToken, "SyntaxToken", nestedListStructure.Name)
+        Dim nestedList = GetNestedList(nodeStructure, child)
+        Dim nestedListStructure = KindTypeStructure(nestedList.ChildKind)
+        Dim itemType = If(nestedListStructure.IsToken, "SyntaxToken", nestedListStructure.Name)
+
+        If _parseTree.IsAbstract(nodeStructure) Then
+            If nodeStructure.Children.Contains(child) Then
 
                 _writer.WriteLine("        Public Shadows Function Add{0}{1}(ParamArray items As {2}()) As {3}", child.Name, nestedList.Name, itemType, nodeStructure.Name)
-                _writer.WriteLine("            Dim _child = If (Me.{0} IsNot Nothing, Me.{0}, SyntaxFactory.{1}())", child.Name, FactoryName(childStructure))
-                _writer.WriteLine("            Return Me.With{0}(_child.Add{1}(items))", child.Name, nestedList.Name)
+                _writer.WriteLine("            Return Add{0}{1}Core(items)", child.Name, nestedList.Name)
+                _writer.WriteLine("        End Function")
+                _writer.WriteLine("        Friend MustOverride Function Add{0}{1}Core(ParamArray items As {2}()) As {3}", child.Name, nestedList.Name, itemType, nodeStructure.Name)
+                _writer.WriteLine()
+            End If
+        Else
+
+            _writer.WriteLine("        Public Shadows Function Add{0}{1}(ParamArray items As {2}()) As {3}", child.Name, nestedList.Name, itemType, nodeStructure.Name)
+            _writer.WriteLine("            Dim _child = If (Me.{0} IsNot Nothing, Me.{0}, SyntaxFactory.{1}())", child.Name, FactoryName(childStructure))
+            _writer.WriteLine("            Return Me.With{0}(_child.Add{1}(items))", child.Name, nestedList.Name)
+            _writer.WriteLine("        End Function")
+            _writer.WriteLine()
+
+            If Not nodeStructure.Children.Contains(child) AndAlso
+                   nodeStructure.ParentStructure.Children.Contains(child) Then
+
+                _writer.WriteLine("        Friend Overrides Function Add{0}{1}Core(ParamArray items As {2}()) As {3}", child.Name, nestedList.Name, itemType, nodeStructure.ParentStructure.Name)
+                _writer.WriteLine("            Return Add{0}{1}(items)", child.Name, nestedList.Name)
                 _writer.WriteLine("        End Function")
                 _writer.WriteLine()
             End If

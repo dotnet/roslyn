@@ -1449,6 +1449,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
         Friend MustOverride Function WithInheritsCore([inherits] As SyntaxList(Of InheritsStatementSyntax)) As TypeBlockSyntax
 
+        Public Shadows Function AddInherits(ParamArray items As InheritsStatementSyntax()) As TypeBlockSyntax
+            Return AddInheritsCore(items)
+        End Function
+        Friend MustOverride Function AddInheritsCore(ParamArray items As InheritsStatementSyntax()) As TypeBlockSyntax
         ''' <summary>
         ''' A list of the Implements declarations for the type.
         ''' </summary>
@@ -1476,6 +1480,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
         Friend MustOverride Function WithImplementsCore([implements] As SyntaxList(Of ImplementsStatementSyntax)) As TypeBlockSyntax
 
+        Public Shadows Function AddImplements(ParamArray items As ImplementsStatementSyntax()) As TypeBlockSyntax
+            Return AddImplementsCore(items)
+        End Function
+        Friend MustOverride Function AddImplementsCore(ParamArray items As ImplementsStatementSyntax()) As TypeBlockSyntax
         ''' <summary>
         ''' The declarations contained in the type or module.
         ''' </summary>
@@ -1503,6 +1511,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
         Friend MustOverride Function WithMembersCore(members As SyntaxList(Of StatementSyntax)) As TypeBlockSyntax
 
+        Public Shadows Function AddMembers(ParamArray items As StatementSyntax()) As TypeBlockSyntax
+            Return AddMembersCore(items)
+        End Function
+        Friend MustOverride Function AddMembersCore(ParamArray items As StatementSyntax()) As TypeBlockSyntax
     End Class
 
     ''' <summary>
@@ -1577,6 +1589,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithInherits(Me.Inherits.AddRange(items))
         End Function
 
+        Friend Overrides Function AddInheritsCore(ParamArray items As InheritsStatementSyntax()) As TypeBlockSyntax
+            Return AddInherits(items)
+        End Function
+
         ''' <summary>
         ''' A list of the Implements declarations for the type.
         ''' </summary>
@@ -1611,6 +1627,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithImplements(Me.Implements.AddRange(items))
         End Function
 
+        Friend Overrides Function AddImplementsCore(ParamArray items As ImplementsStatementSyntax()) As TypeBlockSyntax
+            Return AddImplements(items)
+        End Function
+
         ''' <summary>
         ''' The declarations contained in the type or module.
         ''' </summary>
@@ -1643,6 +1663,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddMembers(ParamArray items As StatementSyntax()) As ModuleBlockSyntax
             Return Me.WithMembers(Me.Members.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddMembersCore(ParamArray items As StatementSyntax()) As TypeBlockSyntax
+            Return AddMembers(items)
         End Function
 
         ''' <summary>
@@ -1811,6 +1835,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithInherits(Me.Inherits.AddRange(items))
         End Function
 
+        Friend Overrides Function AddInheritsCore(ParamArray items As InheritsStatementSyntax()) As TypeBlockSyntax
+            Return AddInherits(items)
+        End Function
+
         ''' <summary>
         ''' A list of the Implements declarations for the type.
         ''' </summary>
@@ -1845,6 +1873,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithImplements(Me.Implements.AddRange(items))
         End Function
 
+        Friend Overrides Function AddImplementsCore(ParamArray items As ImplementsStatementSyntax()) As TypeBlockSyntax
+            Return AddImplements(items)
+        End Function
+
         ''' <summary>
         ''' The declarations contained in the type or module.
         ''' </summary>
@@ -1877,6 +1909,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddMembers(ParamArray items As StatementSyntax()) As StructureBlockSyntax
             Return Me.WithMembers(Me.Members.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddMembersCore(ParamArray items As StatementSyntax()) As TypeBlockSyntax
+            Return AddMembers(items)
         End Function
 
         ''' <summary>
@@ -2045,6 +2081,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithInherits(Me.Inherits.AddRange(items))
         End Function
 
+        Friend Overrides Function AddInheritsCore(ParamArray items As InheritsStatementSyntax()) As TypeBlockSyntax
+            Return AddInherits(items)
+        End Function
+
         ''' <summary>
         ''' A list of the Implements declarations for the type.
         ''' </summary>
@@ -2079,6 +2119,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithImplements(Me.Implements.AddRange(items))
         End Function
 
+        Friend Overrides Function AddImplementsCore(ParamArray items As ImplementsStatementSyntax()) As TypeBlockSyntax
+            Return AddImplements(items)
+        End Function
+
         ''' <summary>
         ''' The declarations contained in the type or module.
         ''' </summary>
@@ -2111,6 +2155,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddMembers(ParamArray items As StatementSyntax()) As InterfaceBlockSyntax
             Return Me.WithMembers(Me.Members.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddMembersCore(ParamArray items As StatementSyntax()) As TypeBlockSyntax
+            Return AddMembers(items)
         End Function
 
         ''' <summary>
@@ -2279,6 +2327,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithInherits(Me.Inherits.AddRange(items))
         End Function
 
+        Friend Overrides Function AddInheritsCore(ParamArray items As InheritsStatementSyntax()) As TypeBlockSyntax
+            Return AddInherits(items)
+        End Function
+
         ''' <summary>
         ''' A list of the Implements declarations for the type.
         ''' </summary>
@@ -2313,6 +2365,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithImplements(Me.Implements.AddRange(items))
         End Function
 
+        Friend Overrides Function AddImplementsCore(ParamArray items As ImplementsStatementSyntax()) As TypeBlockSyntax
+            Return AddImplements(items)
+        End Function
+
         ''' <summary>
         ''' The declarations contained in the type or module.
         ''' </summary>
@@ -2345,6 +2401,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddMembers(ParamArray items As StatementSyntax()) As ClassBlockSyntax
             Return Me.WithMembers(Me.Members.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddMembersCore(ParamArray items As StatementSyntax()) As TypeBlockSyntax
+            Return AddMembers(items)
         End Function
 
         ''' <summary>
@@ -2872,6 +2932,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
         Friend MustOverride Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As TypeStatementSyntax
 
+        Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As TypeStatementSyntax
+            Return AddAttributeListsCore(items)
+        End Function
+        Friend MustOverride Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As TypeStatementSyntax
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned.
@@ -2903,6 +2967,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
         Friend MustOverride Function WithModifiersCore(modifiers As SyntaxTokenList) As TypeStatementSyntax
 
+        Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As TypeStatementSyntax
+            Return AddModifiersCore(items)
+        End Function
+        Friend MustOverride Function AddModifiersCore(ParamArray items As SyntaxToken()) As TypeStatementSyntax
         ''' <summary>
         ''' The name of the type being declared.
         ''' </summary>
@@ -2952,6 +3020,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return WithTypeParameterListCore(typeParameterList)
         End Function
         Friend MustOverride Function WithTypeParameterListCore(typeParameterList As TypeParameterListSyntax) As TypeStatementSyntax
+
+        Public Shadows Function AddTypeParameterListParameters(ParamArray items As TypeParameterSyntax()) As TypeStatementSyntax
+            Return AddTypeParameterListParametersCore(items)
+        End Function
+        Friend MustOverride Function AddTypeParameterListParametersCore(ParamArray items As TypeParameterSyntax()) As TypeStatementSyntax
 
     End Class
 
@@ -3008,6 +3081,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As TypeStatementSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned.
@@ -3044,6 +3121,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As ModuleStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As TypeStatementSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -3123,6 +3204,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddTypeParameterListParameters(ParamArray items As TypeParameterSyntax()) As ModuleStatementSyntax
             Dim _child = If (Me.TypeParameterList IsNot Nothing, Me.TypeParameterList, SyntaxFactory.TypeParameterList())
             Return Me.WithTypeParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddTypeParameterListParametersCore(ParamArray items As TypeParameterSyntax()) As TypeStatementSyntax
+            Return AddTypeParameterListParameters(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -3242,6 +3327,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As TypeStatementSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned.
@@ -3278,6 +3367,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As StructureStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As TypeStatementSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -3357,6 +3450,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddTypeParameterListParameters(ParamArray items As TypeParameterSyntax()) As StructureStatementSyntax
             Dim _child = If (Me.TypeParameterList IsNot Nothing, Me.TypeParameterList, SyntaxFactory.TypeParameterList())
             Return Me.WithTypeParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddTypeParameterListParametersCore(ParamArray items As TypeParameterSyntax()) As TypeStatementSyntax
+            Return AddTypeParameterListParameters(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -3476,6 +3573,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As TypeStatementSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned.
@@ -3512,6 +3613,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As InterfaceStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As TypeStatementSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -3591,6 +3696,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddTypeParameterListParameters(ParamArray items As TypeParameterSyntax()) As InterfaceStatementSyntax
             Dim _child = If (Me.TypeParameterList IsNot Nothing, Me.TypeParameterList, SyntaxFactory.TypeParameterList())
             Return Me.WithTypeParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddTypeParameterListParametersCore(ParamArray items As TypeParameterSyntax()) As TypeStatementSyntax
+            Return AddTypeParameterListParameters(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -3710,6 +3819,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As TypeStatementSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned.
@@ -3746,6 +3859,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As ClassStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As TypeStatementSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -3825,6 +3942,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddTypeParameterListParameters(ParamArray items As TypeParameterSyntax()) As ClassStatementSyntax
             Dim _child = If (Me.TypeParameterList IsNot Nothing, Me.TypeParameterList, SyntaxFactory.TypeParameterList())
             Return Me.WithTypeParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddTypeParameterListParametersCore(ParamArray items As TypeParameterSyntax()) As TypeStatementSyntax
+            Return AddTypeParameterListParameters(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -5025,6 +5146,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
         Friend MustOverride Function WithStatementsCore(statements As SyntaxList(Of StatementSyntax)) As MethodBlockBaseSyntax
 
+        Public Shadows Function AddStatements(ParamArray items As StatementSyntax()) As MethodBlockBaseSyntax
+            Return AddStatementsCore(items)
+        End Function
+        Friend MustOverride Function AddStatementsCore(ParamArray items As StatementSyntax()) As MethodBlockBaseSyntax
     End Class
 
     ''' <summary>
@@ -5097,6 +5222,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddStatements(ParamArray items As StatementSyntax()) As MethodBlockSyntax
             Return Me.WithStatements(Me.Statements.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddStatementsCore(ParamArray items As StatementSyntax()) As MethodBlockBaseSyntax
+            Return AddStatements(items)
         End Function
 
         ''' <summary>
@@ -5254,6 +5383,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithStatements(Me.Statements.AddRange(items))
         End Function
 
+        Friend Overrides Function AddStatementsCore(ParamArray items As StatementSyntax()) As MethodBlockBaseSyntax
+            Return AddStatements(items)
+        End Function
+
         ''' <summary>
         ''' The "End Sub" statement that ends the block declaration.
         ''' </summary>
@@ -5404,6 +5537,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddStatements(ParamArray items As StatementSyntax()) As OperatorBlockSyntax
             Return Me.WithStatements(Me.Statements.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddStatementsCore(ParamArray items As StatementSyntax()) As MethodBlockBaseSyntax
+            Return AddStatements(items)
         End Function
 
         ''' <summary>
@@ -5558,6 +5695,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddStatements(ParamArray items As StatementSyntax()) As AccessorBlockSyntax
             Return Me.WithStatements(Me.Statements.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddStatementsCore(ParamArray items As StatementSyntax()) As MethodBlockBaseSyntax
+            Return AddStatements(items)
         End Function
 
         ''' <summary>
@@ -5976,6 +6117,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
         Friend MustOverride Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As MethodBaseSyntax
 
+        Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeListsCore(items)
+        End Function
+        Friend MustOverride Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned. A bitfield version of all
@@ -6009,6 +6154,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
         Friend MustOverride Function WithModifiersCore(modifiers As SyntaxTokenList) As MethodBaseSyntax
 
+        Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiersCore(items)
+        End Function
+        Friend MustOverride Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
         ''' <summary>
         ''' The method's parameter list including the parentheses. If no parameter list was
         ''' present, Nothing is returned.
@@ -6035,6 +6184,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return WithParameterListCore(parameterList)
         End Function
         Friend MustOverride Function WithParameterListCore(parameterList As ParameterListSyntax) As MethodBaseSyntax
+
+        Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParametersCore(items)
+        End Function
+        Friend MustOverride Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
 
     End Class
 
@@ -6236,6 +6390,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned. A bitfield version of all
@@ -6274,6 +6432,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As MethodStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -6372,6 +6534,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As MethodStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         ''' <summary>
@@ -6598,6 +6764,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned. A bitfield version of all
@@ -6636,6 +6806,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As SubNewStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -6707,6 +6881,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As SubNewStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -6828,6 +7006,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned. A bitfield version of all
@@ -6866,6 +7048,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As DeclareStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -7065,6 +7251,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithParameterList(_child.AddParameters(items))
         End Function
 
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
+        End Function
+
         ''' <summary>
         ''' The "As" clause that describes the return type. If no As clause was present,
         ''' Nothing is returned.
@@ -7241,6 +7431,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned. A bitfield version of all
@@ -7279,6 +7473,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As DelegateStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -7395,6 +7593,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As DelegateStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         ''' <summary>
@@ -7559,6 +7761,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned. A bitfield version of all
@@ -7597,6 +7803,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As EventStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -7693,6 +7903,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As EventStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         ''' <summary>
@@ -7881,6 +8095,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned. A bitfield version of all
@@ -7919,6 +8137,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As OperatorStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -7990,6 +8212,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As OperatorStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         ''' <summary>
@@ -8143,6 +8369,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned. A bitfield version of all
@@ -8181,6 +8411,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As PropertyStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -8252,6 +8486,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As PropertyStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         ''' <summary>
@@ -8465,6 +8703,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned. A bitfield version of all
@@ -8503,6 +8745,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As AccessorStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -8557,6 +8803,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As AccessorStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -17606,6 +17856,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
         Friend MustOverride Function WithStatementsCore(statements As SyntaxList(Of StatementSyntax)) As ForOrForEachBlockSyntax
 
+        Public Shadows Function AddStatements(ParamArray items As StatementSyntax()) As ForOrForEachBlockSyntax
+            Return AddStatementsCore(items)
+        End Function
+        Friend MustOverride Function AddStatementsCore(ParamArray items As StatementSyntax()) As ForOrForEachBlockSyntax
         ''' <summary>
         ''' The Next statement that ends the block. If two For or For Each statements are
         ''' ended by a single Next statement, the inner For will not have a Next statement.
@@ -17632,6 +17886,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return WithNextStatementCore(nextStatement)
         End Function
         Friend MustOverride Function WithNextStatementCore(nextStatement As NextStatementSyntax) As ForOrForEachBlockSyntax
+
+        Public Shadows Function AddNextStatementControlVariables(ParamArray items As ExpressionSyntax()) As ForOrForEachBlockSyntax
+            Return AddNextStatementControlVariablesCore(items)
+        End Function
+        Friend MustOverride Function AddNextStatementControlVariablesCore(ParamArray items As ExpressionSyntax()) As ForOrForEachBlockSyntax
 
     End Class
 
@@ -17708,6 +17967,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithStatements(Me.Statements.AddRange(items))
         End Function
 
+        Friend Overrides Function AddStatementsCore(ParamArray items As StatementSyntax()) As ForOrForEachBlockSyntax
+            Return AddStatements(items)
+        End Function
+
         ''' <summary>
         ''' The Next statement that ends the block. If two For or For Each statements are
         ''' ended by a single Next statement, the inner For will not have a Next statement.
@@ -17741,6 +18004,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddNextStatementControlVariables(ParamArray items As ExpressionSyntax()) As ForBlockSyntax
             Dim _child = If (Me.NextStatement IsNot Nothing, Me.NextStatement, SyntaxFactory.NextStatement())
             Return Me.WithNextStatement(_child.AddControlVariables(items))
+        End Function
+
+        Friend Overrides Function AddNextStatementControlVariablesCore(ParamArray items As ExpressionSyntax()) As ForOrForEachBlockSyntax
+            Return AddNextStatementControlVariables(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -17878,6 +18145,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithStatements(Me.Statements.AddRange(items))
         End Function
 
+        Friend Overrides Function AddStatementsCore(ParamArray items As StatementSyntax()) As ForOrForEachBlockSyntax
+            Return AddStatements(items)
+        End Function
+
         ''' <summary>
         ''' The Next statement that ends the block. If two For or For Each statements are
         ''' ended by a single Next statement, the inner For will not have a Next statement.
@@ -17911,6 +18182,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddNextStatementControlVariables(ParamArray items As ExpressionSyntax()) As ForEachBlockSyntax
             Dim _child = If (Me.NextStatement IsNot Nothing, Me.NextStatement, SyntaxFactory.NextStatement())
             Return Me.WithNextStatement(_child.AddControlVariables(items))
+        End Function
+
+        Friend Overrides Function AddNextStatementControlVariablesCore(ParamArray items As ExpressionSyntax()) As ForOrForEachBlockSyntax
+            Return AddNextStatementControlVariables(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -22055,6 +22330,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
         Friend MustOverride Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As NewExpressionSyntax
 
+        Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As NewExpressionSyntax
+            Return AddAttributeListsCore(items)
+        End Function
+        Friend MustOverride Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As NewExpressionSyntax
     End Class
 
     ''' <summary>
@@ -22137,6 +22416,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As ObjectCreationExpressionSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As NewExpressionSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -22355,6 +22638,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As NewExpressionSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' The With clause to initialize the new object.
         ''' </summary>
@@ -22516,6 +22803,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As ArrayCreationExpressionSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As NewExpressionSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -24887,6 +25178,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
+        End Function
+
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned. A bitfield version of all
@@ -24925,6 +25220,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As LambdaHeaderSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -24978,6 +25277,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As LambdaHeaderSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         ''' <summary>
@@ -27680,6 +27983,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
         Friend MustOverride Function WithJoinedVariablesCore(joinedVariables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax)) As JoinClauseSyntax
 
+        Public Shadows Function AddJoinedVariables(ParamArray items As CollectionRangeVariableSyntax()) As JoinClauseSyntax
+            Return AddJoinedVariablesCore(items)
+        End Function
+        Friend MustOverride Function AddJoinedVariablesCore(ParamArray items As CollectionRangeVariableSyntax()) As JoinClauseSyntax
         ''' <summary>
         ''' An additional Join or Group Join query operator.
         ''' </summary>
@@ -27707,6 +28014,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
         Friend MustOverride Function WithAdditionalJoinsCore(additionalJoins As SyntaxList(Of JoinClauseSyntax)) As JoinClauseSyntax
 
+        Public Shadows Function AddAdditionalJoins(ParamArray items As JoinClauseSyntax()) As JoinClauseSyntax
+            Return AddAdditionalJoinsCore(items)
+        End Function
+        Friend MustOverride Function AddAdditionalJoinsCore(ParamArray items As JoinClauseSyntax()) As JoinClauseSyntax
         ''' <summary>
         ''' The "On" keyword.
         ''' </summary>
@@ -27754,6 +28065,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
         Friend MustOverride Function WithJoinConditionsCore(joinConditions As SeparatedSyntaxList(Of JoinConditionSyntax)) As JoinClauseSyntax
 
+        Public Shadows Function AddJoinConditions(ParamArray items As JoinConditionSyntax()) As JoinClauseSyntax
+            Return AddJoinConditionsCore(items)
+        End Function
+        Friend MustOverride Function AddJoinConditionsCore(ParamArray items As JoinConditionSyntax()) As JoinClauseSyntax
     End Class
 
     ''' <summary>
@@ -27958,6 +28273,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithJoinedVariables(Me.JoinedVariables.AddRange(items))
         End Function
 
+        Friend Overrides Function AddJoinedVariablesCore(ParamArray items As CollectionRangeVariableSyntax()) As JoinClauseSyntax
+            Return AddJoinedVariables(items)
+        End Function
+
         ''' <summary>
         ''' An additional Join or Group Join query operator.
         ''' </summary>
@@ -27990,6 +28309,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAdditionalJoins(ParamArray items As JoinClauseSyntax()) As SimpleJoinClauseSyntax
             Return Me.WithAdditionalJoins(Me.AdditionalJoins.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAdditionalJoinsCore(ParamArray items As JoinClauseSyntax()) As JoinClauseSyntax
+            Return AddAdditionalJoins(items)
         End Function
 
         ''' <summary>
@@ -28047,6 +28370,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddJoinConditions(ParamArray items As JoinConditionSyntax()) As SimpleJoinClauseSyntax
             Return Me.WithJoinConditions(Me.JoinConditions.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddJoinConditionsCore(ParamArray items As JoinConditionSyntax()) As JoinClauseSyntax
+            Return AddJoinConditions(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -28209,6 +28536,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithJoinedVariables(Me.JoinedVariables.AddRange(items))
         End Function
 
+        Friend Overrides Function AddJoinedVariablesCore(ParamArray items As CollectionRangeVariableSyntax()) As JoinClauseSyntax
+            Return AddJoinedVariables(items)
+        End Function
+
         ''' <summary>
         ''' An additional Join or Group Join query operator.
         ''' </summary>
@@ -28241,6 +28572,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAdditionalJoins(ParamArray items As JoinClauseSyntax()) As GroupJoinClauseSyntax
             Return Me.WithAdditionalJoins(Me.AdditionalJoins.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAdditionalJoinsCore(ParamArray items As JoinClauseSyntax()) As JoinClauseSyntax
+            Return AddAdditionalJoins(items)
         End Function
 
         ''' <summary>
@@ -28298,6 +28633,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddJoinConditions(ParamArray items As JoinConditionSyntax()) As GroupJoinClauseSyntax
             Return Me.WithJoinConditions(Me.JoinConditions.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddJoinConditionsCore(ParamArray items As JoinConditionSyntax()) As JoinClauseSyntax
+            Return AddJoinConditions(items)
         End Function
 
         ''' <summary>

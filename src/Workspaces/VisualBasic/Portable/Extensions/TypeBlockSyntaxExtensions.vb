@@ -8,22 +8,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module TypeBlockSyntaxExtensions
         <Extension>
-        Public Function AddMembers(node As TypeBlockSyntax, ParamArray members As StatementSyntax()) As TypeBlockSyntax
-            Select Case node.Kind
-                Case SyntaxKind.ModuleBlock
-                    Return DirectCast(node, ModuleBlockSyntax).AddMembers(members)
-                Case SyntaxKind.InterfaceBlock
-                    Return DirectCast(node, InterfaceBlockSyntax).AddMembers(members)
-                Case SyntaxKind.StructureBlock
-                    Return DirectCast(node, StructureBlockSyntax).AddMembers(members)
-                Case SyntaxKind.ClassBlock
-                    Return DirectCast(node, ClassBlockSyntax).AddMembers(members)
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
-            End Select
-        End Function
-
-        <Extension>
         Public Function GetInsertionIndices(destination As TypeBlockSyntax,
                                             cancellationToken As CancellationToken) As IList(Of Boolean)
             Dim members = destination.Members
