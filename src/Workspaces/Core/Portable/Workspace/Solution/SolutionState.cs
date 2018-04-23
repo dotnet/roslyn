@@ -1780,6 +1780,25 @@ namespace Microsoft.CodeAnalysis
             return state.GetPartialMetadataReference(this, fromProject, projectReference, cancellationToken);
         }
 
+        public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, string name, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            var result = GetCompilationTracker(id).ContainsSymbolsWithNameFromDeclarationOnlyCompilation(name, filter, cancellationToken);
+            if (result.HasValue)
+            {
+                return result.Value;
+            }
+
+            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
+            var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
+            if (compilation == null)
+            {
+                // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
+                return false;
+            }
+
+            return compilation.ContainsSymbolsWithName(name, filter, cancellationToken);
+        }
+
         public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
             var result = GetCompilationTracker(id).ContainsSymbolsWithNameFromDeclarationOnlyCompilation(predicate, filter, cancellationToken);

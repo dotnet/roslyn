@@ -224,6 +224,12 @@ namespace Microsoft.CodeAnalysis
             return _projectState.GetAdditionalDocumentState(documentId);
         }
 
+        internal async Task<bool> ContainsSymbolsWithNameAsync(string name, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            return this.SupportsCompilation &&
+                   await _solution.State.ContainsSymbolsWithNameAsync(Id, name, filter, cancellationToken).ConfigureAwait(false);
+        }
+
         internal async Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
             return this.SupportsCompilation &&

@@ -40,16 +40,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_AddDeclarationsAsync, cancellationToken))
             {
-                if (!await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false))
+                var isExactNameSearch = query.Kind == SearchKind.Exact;
+
+                // If this is an exact query, we can speed things up by just calling into the
+                // compilation entrypoints that take a string directly.
+
+                // Note: we first call through the project.  This has an optimization where it will
+                // use the DeclarationOnlyCompilation if we have one, avoiding needing to build the
+                // full compilation if we don't have that.
+                var containsSymbol = isExactNameSearch
+                    ? await project.ContainsSymbolsWithNameAsync(query.Name, filter, cancellationToken).ConfigureAwait(false)
+                    : await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false);
+
+                if (!containsSymbol)
                 {
                     return;
                 }
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                // If this is an exact query, we can speed things up by just calling into the
-                // compilation entrypoint that takes a string directly.
-                var symbols = query.Kind == SearchKind.Exact
+                var symbols = isExactNameSearch
                     ? compilation.GetSymbolsWithName(query.Name, filter, cancellationToken)
                     : compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken);
 
