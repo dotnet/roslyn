@@ -250,8 +250,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that is a bit too far
             // we need to pin the underlying field, and only then take the address.
             initializerExpr = ((BoundAddressOfOperator)initializerExpr).Operand;
- 
+
             TypeSymbol initializerType = initializerExpr.Type;
+
+            // If this is a fixed buffer, the type is a pointer, but we need
+            // the underlying type, since we're turning a pointer into a managed ref
+            if (initializerExpr is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixed)
+            {
+                initializerType = ((PointerTypeSymbol)initializerType).PointedAtType;
+                initializerExpr = fieldAccess.Update(
+                    fieldAccess.ReceiverOpt,
+                    fieldAccess.FieldSymbol,
+                    fieldAccess.ConstantValueOpt,
+                    fieldAccess.ResultKind,
+                    initializerType);
+            }
 
             // intervening parens may have been skipped by the binder; find the declarator
             VariableDeclaratorSyntax declarator = fixedInitializer.Syntax.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
