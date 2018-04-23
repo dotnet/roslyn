@@ -3352,10 +3352,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             <MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia>
             <WhitespaceTrivia> </WhitespaceTrivia>
           </Trivia>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>        </WhitespaceTrivia></Trivia></OpenBraceToken>
+</EndOfLineTrivia></Trivia></OpenBraceToken>
         <Sequence>
           <Property>
-            <StringToken>'Name'</StringToken>
+            <StringToken>
+              <Trivia>
+                <WhitespaceTrivia>        </WhitespaceTrivia>
+              </Trivia>'Name'</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
             <Literal>
               <StringToken>'Apple'<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia></Trivia></StringToken>
@@ -3363,10 +3366,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           </Property>
           <EmptyValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>        </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Property>
-            <StringToken>'ExpiryDate'</StringToken>
+            <StringToken>
+              <Trivia>
+                <WhitespaceTrivia>        </WhitespaceTrivia>
+              </Trivia>'ExpiryDate'</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
             <Literal>
               <StringToken>'1'</StringToken>
@@ -3374,10 +3380,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           </Property>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>        </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Property>
-            <StringToken>'Price'</StringToken>
+            <StringToken>
+              <Trivia>
+                <WhitespaceTrivia>        </WhitespaceTrivia>
+              </Trivia>'Price'</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
             <Literal>
               <NumberToken>3.99</NumberToken>
@@ -3385,40 +3394,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           </Property>
           <EmptyValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>        </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
           </EmptyValue>
           <Property>
-            <StringToken>'Sizes'</StringToken>
+            <StringToken>
+              <Trivia>
+                <WhitespaceTrivia>        </WhitespaceTrivia>
+              </Trivia>'Sizes'</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
             <Array>
               <OpenBracketToken>[<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>          </WhitespaceTrivia></Trivia></OpenBracketToken>
+</EndOfLineTrivia></Trivia></OpenBracketToken>
               <Sequence>
                 <Literal>
-                  <StringToken>'Small'</StringToken>
+                  <StringToken>
+                    <Trivia>
+                      <WhitespaceTrivia>          </WhitespaceTrivia>
+                    </Trivia>'Small'</StringToken>
                 </Literal>
                 <EmptyValue>
                   <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>          </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
                 </EmptyValue>
                 <Literal>
-                  <StringToken>'Medium'<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia></Trivia></StringToken>
+                  <StringToken>
+                    <Trivia>
+                      <WhitespaceTrivia>          </WhitespaceTrivia>
+                    </Trivia>'Medium'<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia></Trivia></StringToken>
                 </Literal>
                 <EmptyValue>
                   <CommaToken>,<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>          </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
+</EndOfLineTrivia></Trivia></CommaToken>
                 </EmptyValue>
                 <Literal>
-                  <StringToken>'Large'<Trivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>        </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
+                  <StringToken>
+                    <Trivia>
+                      <WhitespaceTrivia>          </WhitespaceTrivia>
+                      <MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia>
+                      <WhitespaceTrivia> </WhitespaceTrivia>
+                    </Trivia>'Large'<Trivia><EndOfLineTrivia>
+</EndOfLineTrivia></Trivia></StringToken>
                 </Literal>
               </Sequence>
-              <CloseBracketToken>]<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><EndOfLineTrivia>
-</EndOfLineTrivia><WhitespaceTrivia>      </WhitespaceTrivia></Trivia></CloseBracketToken>
+              <CloseBracketToken>
+                <Trivia>
+                  <WhitespaceTrivia>        </WhitespaceTrivia>
+                  <MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia>
+                  <WhitespaceTrivia> </WhitespaceTrivia>
+                </Trivia>]<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><EndOfLineTrivia>
+</EndOfLineTrivia></Trivia></CloseBracketToken>
             </Array>
           </Property>
         </Sequence>
-        <CloseBraceToken>}<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia></Trivia></CloseBraceToken>
+        <CloseBraceToken>
+          <Trivia>
+            <WhitespaceTrivia>      </WhitespaceTrivia>
+          </Trivia>}<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia></Trivia></CloseBraceToken>
       </Object>
     </Sequence>
     <EndOfFile />

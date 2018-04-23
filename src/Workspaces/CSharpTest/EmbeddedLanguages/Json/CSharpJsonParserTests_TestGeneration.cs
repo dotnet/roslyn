@@ -1,122 +1,138 @@
-﻿//// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-//using System;
-//using System.Collections.Generic;
-//using System.IO;
-//using System.Linq;
-//using System.Runtime.CompilerServices;
-//using System.Text;
-//using System.Text.RegularExpressions;
-//using Microsoft.CodeAnalysis.CSharp.Syntax;
-//using Microsoft.CodeAnalysis.Json;
-//using Xunit;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Json;
+using Xunit;
 
-//namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
-//{
-//    public class Fixture : IDisposable
-//    {
-//        public void Dispose()
-//        {
-//            var other = new Dictionary<string, string>();
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
+{
+    public class Fixture : IDisposable
+    {
+        public void Dispose()
+        {
+#if false
+            var other = new Dictionary<string, string>();
 
-//            var tree = SyntaxFactory.ParseSyntaxTree(
-//                File.ReadAllText(@"C:\GitHub\roslyn-internal\Open\src\Workspaces\CSharpTest\Json\CSharpJsonParserTests_BasicTests.cs"));
+            var tree = SyntaxFactory.ParseSyntaxTree(
+                File.ReadAllText(@"C:\GitHub\roslyn-internal\Open\src\Workspaces\CSharpTest\Json\CSharpJsonParserTests_BasicTests.cs"));
 
-//            var methodNames = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Select(m => m.Identifier.ValueText);
-//            var nameToIndex = new Dictionary<string, int>();
+            var methodNames = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Select(m => m.Identifier.ValueText);
+            var nameToIndex = new Dictionary<string, int>();
 
-//            var index = 0;
-//            foreach (var name in methodNames)
-//            {
-//                nameToIndex[name] = index;
-//                index++;
-//            }
+            var index = 0;
+            foreach (var name in methodNames)
+            {
+                nameToIndex[name] = index;
+                index++;
+            }
 
-//#if true
-//            var tests =
-//                CSharpJsonParserTests.nameToTest.Where(kvp => !kvp.Key.StartsWith("NegativeTest") && !kvp.Key.StartsWith("Reference"))
-//                     .OrderBy(kvp => nameToIndex[kvp.Key])
-//                     .Select(kvp => kvp.Value);
-//#elif false
-//            var tests =
-//                CSharpRegexParserTests.nameToTest.Where(kvp => kvp.Key.StartsWith("NegativeTest"))
-//                     .OrderBy(kvp => kvp.Key, LogicalStringComparer.Instance)
-//                     .Select(kvp => kvp.Value);
-//#else
-//            var tests =
-//                CSharpRegexParserTests.nameToTest.Where(kvp => kvp.Key.StartsWith("Reference"))
-//                     .OrderBy(kvp => kvp.Key, LogicalStringComparer.Instance)
-//                     .Select(kvp => kvp.Value);
-//#endif
+#if true
+            var tests =
+                CSharpJsonParserTests.nameToTest.Where(kvp => !kvp.Key.StartsWith("NegativeTest") && !kvp.Key.StartsWith("Reference"))
+                     .OrderBy(kvp => nameToIndex[kvp.Key])
+                     .Select(kvp => kvp.Value);
+#elif false
+            var tests =
+                CSharpRegexParserTests.nameToTest.Where(kvp => kvp.Key.StartsWith("NegativeTest"))
+                     .OrderBy(kvp => kvp.Key, LogicalStringComparer.Instance)
+                     .Select(kvp => kvp.Value);
+#else
+            var tests =
+                CSharpRegexParserTests.nameToTest.Where(kvp => kvp.Key.StartsWith("Reference"))
+                     .OrderBy(kvp => kvp.Key, LogicalStringComparer.Instance)
+                     .Select(kvp => kvp.Value);
+#endif
+#endif
+            var tests =
+                CSharpJsonParserTests.nameToTest.Values;
+            var val = string.Join("\r\n", tests);
+        }
+    }
 
+    [CollectionDefinition(nameof(MyCollection))]
+    public class MyCollection : ICollectionFixture<Fixture>
+    {
+    }
 
-//            var val = string.Join("\r\n", tests);
-//        }
-//    }
+    [Collection(nameof(MyCollection))]
+    public partial class CSharpJsonParserTests
+    {
+        private readonly Fixture _fixture;
 
-//    [CollectionDefinition(nameof(MyCollection))]
-//    public class MyCollection : ICollectionFixture<Fixture>
-//    {
-//    }
+        public CSharpJsonParserTests(Fixture fixture)
+        {
+            _fixture = fixture;
+        }
 
-//    [Collection(nameof(MyCollection))]
-//    public partial class CSharpJsonParserTests
-//    {
-//        private readonly Fixture _fixture;
+        public static Dictionary<string, string> nameToTest = new Dictionary<string, string>();
 
-//        public CSharpJsonParserTests(Fixture fixture)
-//        {
-//            _fixture = fixture;
-//        }
+        [Fact]
+        private void GenerateTestSuiteTests()
+        {
+            Process(@"C:\GitHub\JSONTestSuite\test_parsing");
+            Process(@"C:\GitHub\JSONTestSuite\test_transform");
+        }
 
+        private void Process(string path)
+        {
+            foreach (var file in Directory.EnumerateFiles(path, "*.json"))
+            {
 
-//        public static Dictionary<string, string> nameToTest = new Dictionary<string, string>();
-        
-//        private void Test(string stringText, string expected, bool runJsonNetCheck = true, bool runJsonNetSubTreeTests = true, [CallerMemberName]string name = "")
-//        {
-//            var test = GenerateTests(stringText, runJsonNetCheck, runJsonNetSubTreeTests, name);
-//            nameToTest.Add(name, test);
-//        }
+            }
+        }
 
-//        private string GenerateTests(string val, bool runJsonNetCheck, bool runJsonNetSubTreeTests, string testName)
-//        {
-//            var builder = new StringBuilder();
-//            builder.AppendLine("[Fact]");
-//            builder.AppendLine("public void " + testName + "()");
-//            builder.AppendLine("{");
-//            builder.Append(@"    Test(");
+        //private void Test(string stringText, string expected, bool runJsonNetCheck = true, bool runJsonNetSubTreeTests = true, [CallerMemberName]string name = "")
+        //{
+        //    var test = GenerateTests(stringText, runJsonNetCheck, runJsonNetSubTreeTests, name);
+        //    nameToTest.Add(name, test);
+        //}
 
-//            var escaped = val.Replace("\"", "\"\"");
-//            var quoted = "" + '@' + '"' + escaped + '"';
-//            builder.Append(quoted);
+        private string GenerateTests(string val, bool runJsonNetCheck, bool runJsonNetSubTreeTests, string testName)
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine("[Fact]");
+            builder.AppendLine("public void " + testName + "()");
+            builder.AppendLine("{");
+            builder.Append(@"    Test(");
 
-//            var token = GetStringToken(val);
-//            var allChars = _service.TryConvertToVirtualChars(token);
-//            var tree = JsonParser.TryParse(allChars, strict: false);
+            var escaped = val.Replace("\"", "\"\"");
+            var quoted = "" + '@' + '"' + escaped + '"';
+            builder.Append(quoted);
 
-//            builder.Append(", " + '@' + '"');
-//            builder.Append(TreeToText(tree).Replace("\"", "\"\""));
+            var token = GetStringToken(val);
+            var allChars = _service.TryConvertToVirtualChars(token);
+            var tree = JsonParser.TryParse(allChars, strict: false);
 
-//            builder.AppendLine("" + '"' + ',');
-//            builder.Append("" + '@' + '"');
-//            builder.Append(DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\""));
-//            builder.AppendLine("" + '"' + ',');
-//            builder.Append("" + '@' + '"' + '"');
+            builder.Append(", " + '@' + '"');
+            builder.Append(TreeToText(tree).Replace("\"", "\"\""));
 
-//            if (!runJsonNetCheck)
-//            {
-//                builder.Append(", runLooseTreeCheck: false");
-//            }
+            builder.AppendLine("" + '"' + ',');
+            builder.Append("" + '@' + '"');
+            builder.Append(DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\""));
+            builder.AppendLine("" + '"' + ',');
+            builder.Append("" + '@' + '"' + '"');
 
-//            if (!runJsonNetSubTreeTests)
-//            {
-//                builder.Append(", runLooseSubTreeCheck: false");
-//            }
+            if (!runJsonNetCheck)
+            {
+                builder.Append(", runLooseTreeCheck: false");
+            }
 
-//            builder.AppendLine(");");
-//            builder.AppendLine("}");
+            if (!runJsonNetSubTreeTests)
+            {
+                builder.Append(", runLooseSubTreeCheck: false");
+            }
 
-//            return builder.ToString();
-//        }
-//    }
-//}
+            builder.AppendLine(");");
+            builder.AppendLine("}");
+
+            return builder.ToString();
+        }
+    }
+}
