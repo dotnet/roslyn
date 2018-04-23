@@ -10,6 +10,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Naming
     Partial Public Class NamingStylesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
+        Private ReadOnly Property ParameterNamesAreCamelCase As IDictionary(Of OptionKey, Object)
+            Get
+                Return Options(New OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.VisualBasic), ParameterNamesAreCamelCaseOption())
+            End Get
+        End Property
+
         Private ReadOnly Property LocalNamesAreCamelCase As IDictionary(Of OptionKey, Object)
             Get
                 Return Options(New OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.VisualBasic), LocalNamesAreCamelCaseOption())
@@ -27,6 +33,37 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Naming
             {
                 {[option], value}
             }
+        End Function
+
+        Private Shared Function ParameterNamesAreCamelCaseOption() As NamingStylePreferences
+            Dim _symbolSpecification = New SymbolSpecification(
+                Nothing,
+                "Name",
+                ImmutableArray.Create(New SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                ImmutableArray(Of Accessibility).Empty,
+                ImmutableArray(Of SymbolSpecification.ModifierKind).Empty)
+
+            Dim namingStyle = New NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme:=Capitalization.CamelCase,
+                name:="Name",
+                prefix:="",
+                suffix:="",
+                wordSeparator:="")
+
+            Dim namingRule = New SerializableNamingRule() With
+            {
+                .SymbolSpecificationID = _symbolSpecification.ID,
+                .NamingStyleID = namingStyle.ID,
+                .EnforcementLevel = DiagnosticSeverity.Error
+            }
+
+            Dim info = New NamingStylePreferences(
+                ImmutableArray.Create(_symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule))
+
+            Return info
         End Function
 
         Private Shared Function LocalNamesAreCamelCaseOption() As NamingStylePreferences

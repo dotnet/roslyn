@@ -16,6 +16,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Naming
         ' TODO: everything else apart from locals
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestCamelCaseParameters() As Task
+            Await TestInRegularAndScriptAsync(
+"module C
+    sub M([|X|] as integer)
+    end sub
+end module",
+"module C
+    sub M(x as integer)
+    end sub
+end module",
+                options:=ParameterNamesAreCamelCase)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Async Function TestCamelCaseLocals_LocalDeclaration1() As Task
             Await TestInRegularAndScriptAsync(
 "module C
