@@ -1530,7 +1530,7 @@ namespace CSharpSyntaxGenerator
             }
 
             WriteLine();
-            WriteLine($"    public {(isNew ? "new " : " ")}{node.Name} Add{field.Name}(params {argType}[] items)");
+            WriteLine($"    public{(isNew ? " new " : " ")}{node.Name} Add{field.Name}(params {argType}[] items)");
             WriteLine("    {");
             WriteLine("        return this.With{0}(this.{1}.AddRange(items));", StripPost(field.Name, "Opt"), field.Name);
             WriteLine("    }");
@@ -1553,7 +1553,7 @@ namespace CSharpSyntaxGenerator
 
             // AddBaseListTypes
             WriteLine();
-            WriteLine($"    public {(isNew ? "new " : " ")}{node.Name} Add{StripPost(field.Name, "Opt")}{referencedNodeField.Name}(params {argType}[] items)");
+            WriteLine($"    public{(isNew ? " new " : " ")}{node.Name} Add{StripPost(field.Name, "Opt")}{referencedNodeField.Name}(params {argType}[] items)");
             WriteLine("    {");
 
             if (IsOptional(field))

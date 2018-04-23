@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Identifier, typeArgumentList);
     }
 
-    public  GenericNameSyntax AddTypeArgumentListArguments(params TypeSyntax[] items)
+    public GenericNameSyntax AddTypeArgumentListArguments(params TypeSyntax[] items)
     {
         return this.WithTypeArgumentList(this.TypeArgumentList.WithArguments(this.TypeArgumentList.Arguments.AddRange(items)));
     }
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.LessThanToken, this.Arguments, greaterThanToken);
     }
 
-    public  TypeArgumentListSyntax AddArguments(params TypeSyntax[] items)
+    public TypeArgumentListSyntax AddArguments(params TypeSyntax[] items)
     {
         return this.WithArguments(this.Arguments.AddRange(items));
     }
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.ElementType, rankSpecifiers);
     }
 
-    public  ArrayTypeSyntax AddRankSpecifiers(params ArrayRankSpecifierSyntax[] items)
+    public ArrayTypeSyntax AddRankSpecifiers(params ArrayRankSpecifierSyntax[] items)
     {
         return this.WithRankSpecifiers(this.RankSpecifiers.AddRange(items));
     }
@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.OpenBracketToken, this.Sizes, closeBracketToken);
     }
 
-    public  ArrayRankSpecifierSyntax AddSizes(params ExpressionSyntax[] items)
+    public ArrayRankSpecifierSyntax AddSizes(params ExpressionSyntax[] items)
     {
         return this.WithSizes(this.Sizes.AddRange(items));
     }
@@ -955,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.OpenParenToken, this.Elements, closeParenToken);
     }
 
-    public  TupleTypeSyntax AddElements(params TupleElementSyntax[] items)
+    public TupleTypeSyntax AddElements(params TupleElementSyntax[] items)
     {
         return this.WithElements(this.Elements.AddRange(items));
     }
@@ -1385,7 +1385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.OpenParenToken, this.Arguments, closeParenToken);
     }
 
-    public  TupleExpressionSyntax AddArguments(params ArgumentSyntax[] items)
+    public TupleExpressionSyntax AddArguments(params ArgumentSyntax[] items)
     {
         return this.WithArguments(this.Arguments.AddRange(items));
     }
@@ -1952,7 +1952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(argumentList);
     }
 
-    public  ElementBindingExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
+    public ElementBindingExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
     {
         return this.WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
     }
@@ -2023,7 +2023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(argumentList);
     }
 
-    public  ImplicitElementAccessSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
+    public ImplicitElementAccessSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
     {
         return this.WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
     }
@@ -3328,7 +3328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Expression, argumentList);
     }
 
-    public  InvocationExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
+    public InvocationExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
     {
         return this.WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
     }
@@ -3416,7 +3416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Expression, argumentList);
     }
 
-    public  ElementAccessExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
+    public ElementAccessExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
     {
         return this.WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
     }
@@ -4134,7 +4134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, body);
     }
 
-    public  AnonymousMethodExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items)
+    public AnonymousMethodExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         var parameterList = this.ParameterList ?? SyntaxFactory.ParameterList();
         return this.WithParameterList(parameterList.WithParameters(parameterList.Parameters.AddRange(items)));
@@ -4272,12 +4272,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AsyncKeyword, this.Parameter, this.ArrowToken, body);
     }
 
-    public  SimpleLambdaExpressionSyntax AddParameterAttributeLists(params AttributeListSyntax[] items)
+    public SimpleLambdaExpressionSyntax AddParameterAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithParameter(this.Parameter.WithAttributeLists(this.Parameter.AttributeLists.AddRange(items)));
     }
 
-    public  SimpleLambdaExpressionSyntax AddParameterModifiers(params SyntaxToken[] items)
+    public SimpleLambdaExpressionSyntax AddParameterModifiers(params SyntaxToken[] items)
     {
         return this.WithParameter(this.Parameter.WithModifiers(this.Parameter.Modifiers.AddRange(items)));
     }
@@ -4471,7 +4471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AsyncKeyword, this.ParameterList, this.ArrowToken, body);
     }
 
-    public  ParenthesizedLambdaExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items)
+    public ParenthesizedLambdaExpressionSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
     }
@@ -4568,7 +4568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.OpenBraceToken, this.Expressions, closeBraceToken);
     }
 
-    public  InitializerExpressionSyntax AddExpressions(params ExpressionSyntax[] items)
+    public InitializerExpressionSyntax AddExpressions(params ExpressionSyntax[] items)
     {
         return this.WithExpressions(this.Expressions.AddRange(items));
     }
@@ -4684,7 +4684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.NewKeyword, this.Type, this.ArgumentList, initializer);
     }
 
-    public  ObjectCreationExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
+    public ObjectCreationExpressionSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
     {
         var argumentList = this.ArgumentList ?? SyntaxFactory.ArgumentList();
         return this.WithArgumentList(argumentList.WithArguments(argumentList.Arguments.AddRange(items)));
@@ -4875,7 +4875,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.NewKeyword, this.OpenBraceToken, this.Initializers, closeBraceToken);
     }
 
-    public  AnonymousObjectCreationExpressionSyntax AddInitializers(params AnonymousObjectMemberDeclaratorSyntax[] items)
+    public AnonymousObjectCreationExpressionSyntax AddInitializers(params AnonymousObjectMemberDeclaratorSyntax[] items)
     {
         return this.WithInitializers(this.Initializers.AddRange(items));
     }
@@ -4974,7 +4974,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.NewKeyword, this.Type, initializer);
     }
 
-    public  ArrayCreationExpressionSyntax AddTypeRankSpecifiers(params ArrayRankSpecifierSyntax[] items)
+    public ArrayCreationExpressionSyntax AddTypeRankSpecifiers(params ArrayRankSpecifierSyntax[] items)
     {
         return this.WithType(this.Type.WithRankSpecifiers(this.Type.RankSpecifiers.AddRange(items)));
     }
@@ -5096,12 +5096,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.NewKeyword, this.OpenBracketToken, this.Commas, this.CloseBracketToken, initializer);
     }
 
-    public  ImplicitArrayCreationExpressionSyntax AddCommas(params SyntaxToken[] items)
+    public ImplicitArrayCreationExpressionSyntax AddCommas(params SyntaxToken[] items)
     {
         return this.WithCommas(this.Commas.AddRange(items));
     }
 
-    public  ImplicitArrayCreationExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items)
+    public ImplicitArrayCreationExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items)
     {
         return this.WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
     }
@@ -5299,7 +5299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.StackAllocKeyword, this.OpenBracketToken, this.CloseBracketToken, initializer);
     }
 
-    public  ImplicitStackAllocArrayCreationExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items)
+    public ImplicitStackAllocArrayCreationExpressionSyntax AddInitializerExpressions(params ExpressionSyntax[] items)
     {
         return this.WithInitializer(this.Initializer.WithExpressions(this.Initializer.Expressions.AddRange(items)));
     }
@@ -5400,7 +5400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.FromClause, body);
     }
 
-    public  QueryExpressionSyntax AddBodyClauses(params QueryClauseSyntax[] items)
+    public QueryExpressionSyntax AddBodyClauses(params QueryClauseSyntax[] items)
     {
         return this.WithBody(this.Body.WithClauses(this.Body.Clauses.AddRange(items)));
     }
@@ -5501,7 +5501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Clauses, this.SelectOrGroup, continuation);
     }
 
-    public  QueryBodySyntax AddClauses(params QueryClauseSyntax[] items)
+    public QueryBodySyntax AddClauses(params QueryClauseSyntax[] items)
     {
         return this.WithClauses(this.Clauses.AddRange(items));
     }
@@ -6111,7 +6111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.OrderByKeyword, orderings);
     }
 
-    public  OrderByClauseSyntax AddOrderings(params OrderingSyntax[] items)
+    public OrderByClauseSyntax AddOrderings(params OrderingSyntax[] items)
     {
         return this.WithOrderings(this.Orderings.AddRange(items));
     }
@@ -6456,7 +6456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.IntoKeyword, this.Identifier, body);
     }
 
-    public  QueryContinuationSyntax AddBodyClauses(params QueryClauseSyntax[] items)
+    public QueryContinuationSyntax AddBodyClauses(params QueryClauseSyntax[] items)
     {
         return this.WithBody(this.Body.WithClauses(this.Body.Clauses.AddRange(items)));
     }
@@ -6607,7 +6607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.StringStartToken, this.Contents, stringEndToken);
     }
 
-    public  InterpolatedStringExpressionSyntax AddContents(params InterpolatedStringContentSyntax[] items)
+    public InterpolatedStringExpressionSyntax AddContents(params InterpolatedStringContentSyntax[] items)
     {
         return this.WithContents(this.Contents.AddRange(items));
     }
@@ -7487,7 +7487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.OpenBraceToken, this.Statements, closeBraceToken);
     }
 
-    public  BlockSyntax AddStatements(params StatementSyntax[] items)
+    public BlockSyntax AddStatements(params StatementSyntax[] items)
     {
         return this.WithStatements(this.Statements.AddRange(items));
     }
@@ -7682,28 +7682,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Modifiers, this.ReturnType, this.Identifier, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.Body, this.ExpressionBody, semicolonToken);
     }
 
-    public  LocalFunctionStatementSyntax AddModifiers(params SyntaxToken[] items)
+    public LocalFunctionStatementSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
 
-    public  LocalFunctionStatementSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
+    public LocalFunctionStatementSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
     {
         var typeParameterList = this.TypeParameterList ?? SyntaxFactory.TypeParameterList();
         return this.WithTypeParameterList(typeParameterList.WithParameters(typeParameterList.Parameters.AddRange(items)));
     }
 
-    public  LocalFunctionStatementSyntax AddParameterListParameters(params ParameterSyntax[] items)
+    public LocalFunctionStatementSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
     }
 
-    public  LocalFunctionStatementSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items)
+    public LocalFunctionStatementSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items)
     {
         return this.WithConstraintClauses(this.ConstraintClauses.AddRange(items));
     }
 
-    public  LocalFunctionStatementSyntax AddBodyStatements(params StatementSyntax[] items)
+    public LocalFunctionStatementSyntax AddBodyStatements(params StatementSyntax[] items)
     {
         var body = this.Body ?? SyntaxFactory.Block();
         return this.WithBody(body.WithStatements(body.Statements.AddRange(items)));
@@ -7801,12 +7801,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Modifiers, this.Declaration, semicolonToken);
     }
 
-    public  LocalDeclarationStatementSyntax AddModifiers(params SyntaxToken[] items)
+    public LocalDeclarationStatementSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
 
-    public  LocalDeclarationStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
+    public LocalDeclarationStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
     {
         return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
@@ -7895,7 +7895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Type, variables);
     }
 
-    public  VariableDeclarationSyntax AddVariables(params VariableDeclaratorSyntax[] items)
+    public VariableDeclarationSyntax AddVariables(params VariableDeclaratorSyntax[] items)
     {
         return this.WithVariables(this.Variables.AddRange(items));
     }
@@ -7991,7 +7991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Identifier, this.ArgumentList, initializer);
     }
 
-    public  VariableDeclaratorSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
+    public VariableDeclaratorSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
     {
         var argumentList = this.ArgumentList ?? SyntaxFactory.BracketedArgumentList();
         return this.WithArgumentList(argumentList.WithArguments(argumentList.Arguments.AddRange(items)));
@@ -8281,7 +8281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.OpenParenToken, this.Variables, closeParenToken);
     }
 
-    public  ParenthesizedVariableDesignationSyntax AddVariables(params VariableDesignationSyntax[] items)
+    public ParenthesizedVariableDesignationSyntax AddVariables(params VariableDesignationSyntax[] items)
     {
         return this.WithVariables(this.Variables.AddRange(items));
     }
@@ -9442,12 +9442,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.ForKeyword, this.OpenParenToken, this.Declaration, this.Initializers, this.FirstSemicolonToken, this.Condition, this.SecondSemicolonToken, this.Incrementors, this.CloseParenToken, statement);
     }
 
-    public  ForStatementSyntax AddInitializers(params ExpressionSyntax[] items)
+    public ForStatementSyntax AddInitializers(params ExpressionSyntax[] items)
     {
         return this.WithInitializers(this.Initializers.AddRange(items));
     }
 
-    public  ForStatementSyntax AddIncrementors(params ExpressionSyntax[] items)
+    public ForStatementSyntax AddIncrementors(params ExpressionSyntax[] items)
     {
         return this.WithIncrementors(this.Incrementors.AddRange(items));
     }
@@ -10021,7 +10021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.FixedKeyword, this.OpenParenToken, this.Declaration, this.CloseParenToken, statement);
     }
 
-    public  FixedStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
+    public FixedStatementSyntax AddDeclarationVariables(params VariableDeclaratorSyntax[] items)
     {
         return this.WithDeclaration(this.Declaration.WithVariables(this.Declaration.Variables.AddRange(items)));
     }
@@ -10100,7 +10100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Keyword, block);
     }
 
-    public  CheckedStatementSyntax AddBlockStatements(params StatementSyntax[] items)
+    public CheckedStatementSyntax AddBlockStatements(params StatementSyntax[] items)
     {
         return this.WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
@@ -10179,7 +10179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.UnsafeKeyword, block);
     }
 
-    public  UnsafeStatementSyntax AddBlockStatements(params StatementSyntax[] items)
+    public UnsafeStatementSyntax AddBlockStatements(params StatementSyntax[] items)
     {
         return this.WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
@@ -10671,7 +10671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.SwitchKeyword, this.OpenParenToken, this.Expression, this.CloseParenToken, this.OpenBraceToken, this.Sections, closeBraceToken);
     }
 
-    public  SwitchStatementSyntax AddSections(params SwitchSectionSyntax[] items)
+    public SwitchStatementSyntax AddSections(params SwitchSectionSyntax[] items)
     {
         return this.WithSections(this.Sections.AddRange(items));
     }
@@ -10763,12 +10763,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Labels, statements);
     }
 
-    public  SwitchSectionSyntax AddLabels(params SwitchLabelSyntax[] items)
+    public SwitchSectionSyntax AddLabels(params SwitchLabelSyntax[] items)
     {
         return this.WithLabels(this.Labels.AddRange(items));
     }
 
-    public  SwitchSectionSyntax AddStatements(params StatementSyntax[] items)
+    public SwitchSectionSyntax AddStatements(params StatementSyntax[] items)
     {
         return this.WithStatements(this.Statements.AddRange(items));
     }
@@ -11171,12 +11171,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.TryKeyword, this.Block, this.Catches, @finally);
     }
 
-    public  TryStatementSyntax AddBlockStatements(params StatementSyntax[] items)
+    public TryStatementSyntax AddBlockStatements(params StatementSyntax[] items)
     {
         return this.WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
 
-    public  TryStatementSyntax AddCatches(params CatchClauseSyntax[] items)
+    public TryStatementSyntax AddCatches(params CatchClauseSyntax[] items)
     {
         return this.WithCatches(this.Catches.AddRange(items));
     }
@@ -11287,7 +11287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.CatchKeyword, this.Declaration, this.Filter, block);
     }
 
-    public  CatchClauseSyntax AddBlockStatements(params StatementSyntax[] items)
+    public CatchClauseSyntax AddBlockStatements(params StatementSyntax[] items)
     {
         return this.WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
@@ -11561,7 +11561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.FinallyKeyword, block);
     }
 
-    public  FinallyClauseSyntax AddBlockStatements(params StatementSyntax[] items)
+    public FinallyClauseSyntax AddBlockStatements(params StatementSyntax[] items)
     {
         return this.WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
     }
@@ -11689,22 +11689,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Externs, this.Usings, this.AttributeLists, this.Members, endOfFileToken);
     }
 
-    public  CompilationUnitSyntax AddExterns(params ExternAliasDirectiveSyntax[] items)
+    public CompilationUnitSyntax AddExterns(params ExternAliasDirectiveSyntax[] items)
     {
         return this.WithExterns(this.Externs.AddRange(items));
     }
 
-    public  CompilationUnitSyntax AddUsings(params UsingDirectiveSyntax[] items)
+    public CompilationUnitSyntax AddUsings(params UsingDirectiveSyntax[] items)
     {
         return this.WithUsings(this.Usings.AddRange(items));
     }
 
-    public  CompilationUnitSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public CompilationUnitSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
-    public  CompilationUnitSyntax AddMembers(params MemberDeclarationSyntax[] items)
+    public CompilationUnitSyntax AddMembers(params MemberDeclarationSyntax[] items)
     {
         return this.WithMembers(this.Members.AddRange(items));
     }
@@ -12089,17 +12089,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.NamespaceKeyword, this.Name, this.OpenBraceToken, this.Externs, this.Usings, this.Members, this.CloseBraceToken, semicolonToken);
     }
 
-    public  NamespaceDeclarationSyntax AddExterns(params ExternAliasDirectiveSyntax[] items)
+    public NamespaceDeclarationSyntax AddExterns(params ExternAliasDirectiveSyntax[] items)
     {
         return this.WithExterns(this.Externs.AddRange(items));
     }
 
-    public  NamespaceDeclarationSyntax AddUsings(params UsingDirectiveSyntax[] items)
+    public NamespaceDeclarationSyntax AddUsings(params UsingDirectiveSyntax[] items)
     {
         return this.WithUsings(this.Usings.AddRange(items));
     }
 
-    public  NamespaceDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items)
+    public NamespaceDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items)
     {
         return this.WithMembers(this.Members.AddRange(items));
     }
@@ -12213,7 +12213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.OpenBracketToken, this.Target, this.Attributes, closeBracketToken);
     }
 
-    public  AttributeListSyntax AddAttributes(params AttributeSyntax[] items)
+    public AttributeListSyntax AddAttributes(params AttributeSyntax[] items)
     {
         return this.WithAttributes(this.Attributes.AddRange(items));
     }
@@ -12370,7 +12370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Name, argumentList);
     }
 
-    public  AttributeSyntax AddArgumentListArguments(params AttributeArgumentSyntax[] items)
+    public AttributeSyntax AddArgumentListArguments(params AttributeArgumentSyntax[] items)
     {
         var argumentList = this.ArgumentList ?? SyntaxFactory.AttributeArgumentList();
         return this.WithArgumentList(argumentList.WithArguments(argumentList.Arguments.AddRange(items)));
@@ -12468,7 +12468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.OpenParenToken, this.Arguments, closeParenToken);
     }
 
-    public  AttributeArgumentListSyntax AddArguments(params AttributeArgumentSyntax[] items)
+    public AttributeArgumentListSyntax AddArguments(params AttributeArgumentSyntax[] items)
     {
         return this.WithArguments(this.Arguments.AddRange(items));
     }
@@ -12739,7 +12739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.LessThanToken, this.Parameters, greaterThanToken);
     }
 
-    public  TypeParameterListSyntax AddParameters(params TypeParameterSyntax[] items)
+    public TypeParameterListSyntax AddParameters(params TypeParameterSyntax[] items)
     {
         return this.WithParameters(this.Parameters.AddRange(items));
     }
@@ -12838,7 +12838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.VarianceKeyword, identifier);
     }
 
-    public  TypeParameterSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public TypeParameterSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
@@ -13910,7 +13910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.WithBaseList(baseList.WithTypes(baseList.Types.AddRange(items)));
     }
 
-    public  EnumDeclarationSyntax AddMembers(params EnumMemberDeclarationSyntax[] items)
+    public EnumDeclarationSyntax AddMembers(params EnumMemberDeclarationSyntax[] items)
     {
         return this.WithMembers(this.Members.AddRange(items));
     }
@@ -14099,28 +14099,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, this.DelegateKeyword, this.ReturnType, this.Identifier, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, semicolonToken);
     }
 
-    public  DelegateDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public DelegateDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
-    public  DelegateDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public DelegateDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
 
-    public  DelegateDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
+    public DelegateDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
     {
         var typeParameterList = this.TypeParameterList ?? SyntaxFactory.TypeParameterList();
         return this.WithTypeParameterList(typeParameterList.WithParameters(typeParameterList.Parameters.AddRange(items)));
     }
 
-    public  DelegateDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
+    public DelegateDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
     }
 
-    public  DelegateDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items)
+    public DelegateDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items)
     {
         return this.WithConstraintClauses(this.ConstraintClauses.AddRange(items));
     }
@@ -14217,7 +14217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Identifier, equalsValue);
     }
 
-    public  EnumMemberDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public EnumMemberDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
@@ -14303,7 +14303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.ColonToken, types);
     }
 
-    public  BaseListSyntax AddTypes(params BaseTypeSyntax[] items)
+    public BaseListSyntax AddTypes(params BaseTypeSyntax[] items)
     {
         return this.WithTypes(this.Types.AddRange(items));
     }
@@ -14494,7 +14494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.WhereKeyword, this.Name, this.ColonToken, constraints);
     }
 
-    public  TypeParameterConstraintClauseSyntax AddConstraints(params TypeParameterConstraintSyntax[] items)
+    public TypeParameterConstraintClauseSyntax AddConstraints(params TypeParameterConstraintSyntax[] items)
     {
         return this.WithConstraints(this.Constraints.AddRange(items));
     }
@@ -15387,7 +15387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
 
-    public  MethodDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
+    public MethodDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
     {
         var typeParameterList = this.TypeParameterList ?? SyntaxFactory.TypeParameterList();
         return this.WithTypeParameterList(typeParameterList.WithParameters(typeParameterList.Parameters.AddRange(items)));
@@ -15399,7 +15399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
     }
 
-    public  MethodDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items)
+    public MethodDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items)
     {
         return this.WithConstraintClauses(this.ConstraintClauses.AddRange(items));
     }
@@ -16139,7 +16139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.ColonToken, this.ThisOrBaseKeyword, argumentList);
     }
 
-    public  ConstructorInitializerSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
+    public ConstructorInitializerSyntax AddArgumentListArguments(params ArgumentSyntax[] items)
     {
         return this.WithArgumentList(this.ArgumentList.WithArguments(this.ArgumentList.Arguments.AddRange(items)));
     }
@@ -17054,7 +17054,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
 
-    public  IndexerDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
+    public IndexerDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         return this.WithParameterList(this.ParameterList.WithParameters(this.ParameterList.Parameters.AddRange(items)));
     }
@@ -17150,7 +17150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.OpenBraceToken, this.Accessors, closeBraceToken);
     }
 
-    public  AccessorListSyntax AddAccessors(params AccessorDeclarationSyntax[] items)
+    public AccessorListSyntax AddAccessors(params AccessorDeclarationSyntax[] items)
     {
         return this.WithAccessors(this.Accessors.AddRange(items));
     }
@@ -17301,17 +17301,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, this.Keyword, this.Body, this.ExpressionBody, semicolonToken);
     }
 
-    public  AccessorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public AccessorDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
-    public  AccessorDeclarationSyntax AddModifiers(params SyntaxToken[] items)
+    public AccessorDeclarationSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
 
-    public  AccessorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
+    public AccessorDeclarationSyntax AddBodyStatements(params StatementSyntax[] items)
     {
         var body = this.Body ?? SyntaxFactory.Block();
         return this.WithBody(body.WithStatements(body.Statements.AddRange(items)));
@@ -17657,12 +17657,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, @default);
     }
 
-    public  ParameterSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public ParameterSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
-    public  ParameterSyntax AddModifiers(params SyntaxToken[] items)
+    public ParameterSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
@@ -17766,12 +17766,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.AttributeLists, this.Modifiers, type);
     }
 
-    public  IncompleteMemberSyntax AddAttributeLists(params AttributeListSyntax[] items)
+    public IncompleteMemberSyntax AddAttributeLists(params AttributeListSyntax[] items)
     {
         return this.WithAttributeLists(this.AttributeLists.AddRange(items));
     }
 
-    public  IncompleteMemberSyntax AddModifiers(params SyntaxToken[] items)
+    public IncompleteMemberSyntax AddModifiers(params SyntaxToken[] items)
     {
         return this.WithModifiers(this.Modifiers.AddRange(items));
     }
@@ -17840,7 +17840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(tokens);
     }
 
-    public  SkippedTokensTriviaSyntax AddTokens(params SyntaxToken[] items)
+    public SkippedTokensTriviaSyntax AddTokens(params SyntaxToken[] items)
     {
         return this.WithTokens(this.Tokens.AddRange(items));
     }
@@ -17919,7 +17919,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Content, endOfComment);
     }
 
-    public  DocumentationCommentTriviaSyntax AddContent(params XmlNodeSyntax[] items)
+    public DocumentationCommentTriviaSyntax AddContent(params XmlNodeSyntax[] items)
     {
         return this.WithContent(this.Content.AddRange(items));
     }
@@ -18205,7 +18205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Name, parameters);
     }
 
-    public  NameMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
+    public NameMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
     {
         var parameters = this.Parameters ?? SyntaxFactory.CrefParameterList();
         return this.WithParameters(parameters.WithParameters(parameters.Parameters.AddRange(items)));
@@ -18289,7 +18289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.ThisKeyword, parameters);
     }
 
-    public  IndexerMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
+    public IndexerMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
     {
         var parameters = this.Parameters ?? SyntaxFactory.CrefBracketedParameterList();
         return this.WithParameters(parameters.WithParameters(parameters.Parameters.AddRange(items)));
@@ -18385,7 +18385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.OperatorKeyword, this.OperatorToken, parameters);
     }
 
-    public  OperatorMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
+    public OperatorMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
     {
         var parameters = this.Parameters ?? SyntaxFactory.CrefParameterList();
         return this.WithParameters(parameters.WithParameters(parameters.Parameters.AddRange(items)));
@@ -18495,7 +18495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.ImplicitOrExplicitKeyword, this.OperatorKeyword, this.Type, parameters);
     }
 
-    public  ConversionOperatorMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
+    public ConversionOperatorMemberCrefSyntax AddParametersParameters(params CrefParameterSyntax[] items)
     {
         var parameters = this.Parameters ?? SyntaxFactory.CrefParameterList();
         return this.WithParameters(parameters.WithParameters(parameters.Parameters.AddRange(items)));
@@ -18911,12 +18911,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.StartTag, this.Content, endTag);
     }
 
-    public  XmlElementSyntax AddStartTagAttributes(params XmlAttributeSyntax[] items)
+    public XmlElementSyntax AddStartTagAttributes(params XmlAttributeSyntax[] items)
     {
         return this.WithStartTag(this.StartTag.WithAttributes(this.StartTag.Attributes.AddRange(items)));
     }
 
-    public  XmlElementSyntax AddContent(params XmlNodeSyntax[] items)
+    public XmlElementSyntax AddContent(params XmlNodeSyntax[] items)
     {
         return this.WithContent(this.Content.AddRange(items));
     }
@@ -19021,7 +19021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.LessThanToken, this.Name, this.Attributes, greaterThanToken);
     }
 
-    public  XmlElementStartTagSyntax AddAttributes(params XmlAttributeSyntax[] items)
+    public XmlElementStartTagSyntax AddAttributes(params XmlAttributeSyntax[] items)
     {
         return this.WithAttributes(this.Attributes.AddRange(items));
     }
@@ -19210,7 +19210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.LessThanToken, this.Name, this.Attributes, slashGreaterThanToken);
     }
 
-    public  XmlEmptyElementSyntax AddAttributes(params XmlAttributeSyntax[] items)
+    public XmlEmptyElementSyntax AddAttributes(params XmlAttributeSyntax[] items)
     {
         return this.WithAttributes(this.Attributes.AddRange(items));
     }
@@ -19495,7 +19495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.Name, this.EqualsToken, this.StartQuoteToken, this.TextTokens, endQuoteToken);
     }
 
-    public  XmlTextAttributeSyntax AddTextTokens(params SyntaxToken[] items)
+    public XmlTextAttributeSyntax AddTextTokens(params SyntaxToken[] items)
     {
         return this.WithTextTokens(this.TextTokens.AddRange(items));
     }
@@ -19792,7 +19792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(textTokens);
     }
 
-    public  XmlTextSyntax AddTextTokens(params SyntaxToken[] items)
+    public XmlTextSyntax AddTextTokens(params SyntaxToken[] items)
     {
         return this.WithTextTokens(this.TextTokens.AddRange(items));
     }
@@ -19881,7 +19881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.StartCDataToken, this.TextTokens, endCDataToken);
     }
 
-    public  XmlCDataSectionSyntax AddTextTokens(params SyntaxToken[] items)
+    public XmlCDataSectionSyntax AddTextTokens(params SyntaxToken[] items)
     {
         return this.WithTextTokens(this.TextTokens.AddRange(items));
     }
@@ -19987,7 +19987,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.StartProcessingInstructionToken, this.Name, this.TextTokens, endProcessingInstructionToken);
     }
 
-    public  XmlProcessingInstructionSyntax AddTextTokens(params SyntaxToken[] items)
+    public XmlProcessingInstructionSyntax AddTextTokens(params SyntaxToken[] items)
     {
         return this.WithTextTokens(this.TextTokens.AddRange(items));
     }
@@ -20076,7 +20076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.LessThanExclamationMinusMinusToken, this.TextTokens, minusMinusGreaterThanToken);
     }
 
-    public  XmlCommentSyntax AddTextTokens(params SyntaxToken[] items)
+    public XmlCommentSyntax AddTextTokens(params SyntaxToken[] items)
     {
         return this.WithTextTokens(this.TextTokens.AddRange(items));
     }
@@ -21403,7 +21403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(this.HashToken, this.PragmaKeyword, this.WarningKeyword, this.DisableOrRestoreKeyword, this.ErrorCodes, this.EndOfDirectiveToken, isActive);
     }
 
-    public  PragmaWarningDirectiveTriviaSyntax AddErrorCodes(params ExpressionSyntax[] items)
+    public PragmaWarningDirectiveTriviaSyntax AddErrorCodes(params ExpressionSyntax[] items)
     {
         return this.WithErrorCodes(this.ErrorCodes.AddRange(items));
     }
