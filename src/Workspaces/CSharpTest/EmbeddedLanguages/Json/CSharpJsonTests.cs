@@ -331,10 +331,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 // y_ tests must produce no diagnostics.
                 Assert.Empty(strictDiagnostics);
             }
+            else if (caller.StartsWith("i_"))
+            {
+                // We don't want to have diagnostics for i_ tests even though we're allowed to.
+                // That's because we want our parser to be permissive when possible so we don't
+                // error on json that is legal under some other parser.
+                Assert.Empty(strictDiagnostics);
+            }
             else if (caller.StartsWith("n_"))
             {
                 // n_ tests must always produce diagnostics.
                 Assert.NotEmpty(strictDiagnostics);
+            }
+            else
+            {
+                Assert.False(true, "Unexpected test name.");
             }
         }
 
