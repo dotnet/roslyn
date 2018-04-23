@@ -23,6 +23,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
     public class FormattingEngineTests : FormattingEngineTestBase
     {
         [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatDocumentRemoveUsings()
+        {
+            var code = @"
+using System.Collections.Generic;
+using System.Linq;
+class Program
+{
+    static void Main(string[] args)
+    {
+        int x;$$
+    }
+}
+";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        int x;$$
+    }
+}
+";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
         [WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatDocumentCommandHandler()
@@ -1203,7 +1231,7 @@ class C : Attribute
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void KeepTabsInCommentsWhenFormattingIsOff()
         {
-            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should
             // not remove these as we are explicitly testing tab behavior.
             var code =
 @"class Program
@@ -1235,7 +1263,7 @@ class C : Attribute
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void DoNotKeepTabsInCommentsWhenFormattingIsOn()
         {
-            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should
             // not remove these as we are explicitly testing tab behavior.
             var code = @"class Program
 {

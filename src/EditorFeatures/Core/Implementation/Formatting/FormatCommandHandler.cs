@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -56,28 +57,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             using (var transaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Formatting, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
                 var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
+                if (changes.Count > 0)
+                {
+                    ApplyChanges(document, changes, selectionOpt, cancellationToken);
+                    transaction.Complete();
+                }
+            }
+        }
+
+        private void ApplyChanges(Document document, IList<TextChange> changes, TextSpan? selectionOpt, CancellationToken cancellationToken)
+        {
+            if (selectionOpt.HasValue)
+            {
+                var ruleFactory = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+
+                changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
                 if (changes.Count == 0)
                 {
                     return;
                 }
+            }
 
-                if (selectionOpt.HasValue)
-                {
-                    var ruleFactory = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-
-                    changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
-                    if (changes.Count == 0)
-                    {
-                        return;
-                    }
-                }
-
-                using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
-                {
-                    document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
-                }
-
-                transaction.Complete();
+            using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
+            {
+                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
             }
         }
 
