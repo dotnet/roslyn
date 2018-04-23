@@ -19,8 +19,7 @@ steps:
 
 - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
   inputs:
-    signType: test
-    legacySigning: true
+    signType: real
   condition: and(succeeded(), in(variables['PB_SignType'], 'test', 'real'))
 
 - task: ms-vseng.MicroBuildTasks.32f78468-e895-4f47-962c-58a699361df8.MicroBuildSwixPlugin@1
@@ -41,7 +40,23 @@ steps:
   inputs:
     solution: 'src/Tools/MicroBuild/Build.proj'
     vsVersion: 15.0
-    msbuildArgs: '/p:TreatWarningsAsErrors=true /p:DeployExtension=false /p:TrackFileAccess=false /p:OfficialBuild=true /p:VisualStudioVersion=14.0 /flp1:Summary;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.log /flp2:WarningsOnly;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.wrn /flp3:ErrorsOnly;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.err /p:RoslynMyGetApiKey=$(Roslyn.MyGetApiKey) /p:RoslynNuGetApiKey=$(Roslyn.NuGetApiKey) /p:RoslynGitHubEmail=$(Roslyn.GitHubEmail) /p:RoslynGitHubToken=$(Roslyn.GitHubToken) /p:RoslynGitHubUserName=$(Roslyn.GitHubUserName) /p:PB_PublishBlobFeedKey=$(PB_PublishBlobFeedKey) /p:PublishStableVersions=false /p:VersionStampToPublish=prerelease'
+    msbuildArgs: >- 
+        /p:TreatWarningsAsErrors=true 
+        /p:DeployExtension=false 
+        /p:TrackFileAccess=false
+        /p:OfficialBuild=true 
+        /p:VisualStudioVersion=14.0 
+        /flp1:Summary;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.log 
+        /flp2:WarningsOnly;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.wrn 
+        /flp3:ErrorsOnly;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.err 
+        /p:RoslynMyGetApiKey=$(Roslyn.MyGetApiKey) 
+        /p:RoslynNuGetApiKey=$(Roslyn.NuGetApiKey) 
+        /p:RoslynGitHubEmail=$(Roslyn.GitHubEmail) 
+        /p:RoslynGitHubToken=$(Roslyn.GitHubToken) 
+        /p:RoslynGitHubUserName=$(Roslyn.GitHubUserName) 
+        /p:PB_PublishBlobFeedKey=$(PB_PublishBlobFeedKey) 
+        /p:PublishStableVersions=false 
+        /p:VersionStampToPublish=prerelease'
     platform: '$(BuildPlatform)'
     configuration: '$(BuildConfiguration)'
     maximumCpuCount: true
