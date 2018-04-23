@@ -1363,7 +1363,6 @@ namespace CSharpSyntaxGenerator
                     var baseType = GetBaseTypeWithField(node, field.Name);
                     if (baseType != null)
                     {
-                        // Console.WriteLine($"Could not find base type for {node.Name}.{field.Name}");
                         WriteLine($"    internal override {baseType.Name} With{field.Name}Core({type} {CamelCase(field.Name)}) => With{field.Name}({CamelCase(field.Name)});");
                         isNew = true;
                     }
