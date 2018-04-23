@@ -1446,10 +1446,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     mainType = null;
-                    var candidates = this.GetSymbolsWithName(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken)
-                                         .OfType<MethodSymbol>()
-                                         .Where(m => m.IsEntryPointCandidate);
-                    entryPointCandidates.AddRange(candidates);
+                    foreach (var candidate in this.GetSymbolsWithName(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken))
+                    {
+                        if (candidate is MethodSymbol method &&
+                            method.IsEntryPointCandidate)
+                        {
+                            entryPointCandidates.Add(method);
+                        }
+                    }
 
                     // Global code is the entry point, ignore all other Mains.
                     var scriptClass = this.ScriptClass;

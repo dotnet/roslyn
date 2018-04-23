@@ -1468,10 +1468,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     mainType = Nothing
 
                     errorTarget = Me.AssemblyName
-                    entryPointCandidates.AddRange(
-                        Me.GetSymbolsWithName(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken).
-                           OfType(Of MethodSymbol).
-                           Where(Function(m) m.IsEntryPointCandidate))
+                    For Each candidate In Me.GetSymbolsWithName(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken)
+                        Dim method = TryCast(candidate, MethodSymbol)
+                        If method?.IsEntryPointCandidate = True Then
+                            entryPointCandidates.Add(method)
+                        End If
+                    Next
 
                     ' Global code is the entry point, ignore all other Mains.
                     If ScriptClass IsNot Nothing Then
