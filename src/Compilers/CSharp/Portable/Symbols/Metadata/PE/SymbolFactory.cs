@@ -69,10 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return elementType;
             }
 
-            // PROTOTYPE(NullableReferenceTypes):
-            // We should make sure we're setting nullability correctly
-            // See DynamicEncodingDecoding_01 and TestOverrideGenericMethodWithTypeParamDiffNameWithCustomModifiers
-
             return ArrayTypeSymbol.CreateSZArray(moduleSymbol.ContainingAssembly, TypeSymbolWithAnnotations.Create(elementType, CSharpCustomModifier.Convert(customModifiers)));
         }
 
