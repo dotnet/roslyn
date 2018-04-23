@@ -441,8 +441,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbolWithoutSuffix;
             bool resultWithoutSuffixIsViable = IsSingleViableAttributeType(result, out symbolWithoutSuffix);
 
-            // Generic types are not allowed.
-            Debug.Assert(arity == 0 || !result.IsMultiViable);
+            if (qualifierOpt.DeclaringCompilation.LanguageVersion < LanguageVersion.Latest)
+            {
+                // Generic types are not allowed.
+                Debug.Assert(arity == 0 || !result.IsMultiViable);
+            }
 
             // Result with 'Attribute' suffix added.
             LookupResult resultWithSuffix = null;
@@ -454,8 +457,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.LookupSymbolsOrMembersInternal(resultWithSuffix, qualifierOpt, name + "Attribute", arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
                 resultWithSuffixIsViable = IsSingleViableAttributeType(resultWithSuffix, out symbolWithSuffix);
 
-                // Generic types are not allowed.
-                Debug.Assert(arity == 0 || !result.IsMultiViable);
+                if (qualifierOpt.DeclaringCompilation.LanguageVersion < LanguageVersion.Latest)
+                {
+                    // Generic types are not allowed.
+                    Debug.Assert(arity == 0 || !result.IsMultiViable);
+                }
             }
 
             if (resultWithoutSuffixIsViable && resultWithSuffixIsViable)
@@ -617,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.Kind == SymbolKind.NamedType)
             {
                 var namedType = (NamedTypeSymbol)symbol;
-                if (namedType.IsGenericType)
+                if (namedType.IsGenericType && symbol.DeclaringCompilation.LanguageVersion < LanguageVersion.Latest)
                 {
                     // Attribute classes cannot be generic.
                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, symbol) : null;
