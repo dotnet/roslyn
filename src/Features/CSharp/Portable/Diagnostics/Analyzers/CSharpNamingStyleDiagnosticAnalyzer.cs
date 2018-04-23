@@ -14,8 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
             CompilationStartAnalysisContext context,
             ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult)
         {
-            // HACK: RegisterSymbolAction doesn't work with local functions
-            context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.LocalFunctionStatement);
+            // HACK: RegisterSymbolAction doesn't work with locals & local functions
+            context.RegisterSyntaxNodeAction(SyntaxNodeAction,
+                SyntaxKind.VariableDeclarator,
+                SyntaxKind.ForEachStatement,
+                SyntaxKind.SingleVariableDesignation,
+                SyntaxKind.LocalFunctionStatement);
             return;
 
             // Local functions

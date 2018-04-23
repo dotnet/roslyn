@@ -127,7 +127,362 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
 }",
                 options: ParameterNamesAreCamelCase);
 		}
-		
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_LocalDeclaration1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [|X|];
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x;
+    }
+}",
+                options: LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_LocalDeclaration2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int X, [|Y|] = 0;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int X, y = 0;
+    }
+}",
+                options: LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_UsingVariable1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        using (object [|A|] = null)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        using (object a = null)
+        {
+        }
+    }
+}",
+                options: LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_UsingVariable2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        using (object A = null, [|B|] = null)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        using (object A = null, b = null)
+        {
+        }
+    }
+}",
+                options: LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_ForVariable1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        for (int [|I|] = 0, J = 0; I < J; ++I)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        for (int i = 0, J = 0; i < J; ++i)
+        {
+        }
+    }
+}",
+                options: LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_ForVariable2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        for (int I = 0, [|J|] = 0; I < J; ++J)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        for (int I = 0, j = 0; I < j; ++j)
+        {
+        }
+    }
+}",
+                options: LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_ForEachVariable()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        foreach (var [|X|] in new string[] { })
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        foreach (var x in new string[] { })
+        {
+        }
+    }
+}",
+                options: LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_Deconstruction1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        (int A, (string [|B|], var C)) = (0, (string.Empty, string.Empty));
+        System.Console.WriteLine(A + B + C);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        (int A, (string b, var C)) = (0, (string.Empty, string.Empty));
+        System.Console.WriteLine(A + b + C);
+    }
+}",
+                options: LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_Deconstruction2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        var (A, (B, [|C|])) = (0, (string.Empty, string.Empty));
+        System.Console.WriteLine(A + B + C);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        var (A, (B, [|c|])) = (0, (string.Empty, string.Empty));
+        System.Console.WriteLine(A + B + c);
+    }
+}",
+                options: LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_ForEachDeconstruction1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        foreach ((int A, (string [|B|], var C)) in new[] { (0, (string.Empty, string.Empty)) })
+            System.Console.WriteLine(A + B + C);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        foreach ((int A, (string b, var C)) in new[] { (0, (string.Empty, string.Empty)) })
+            System.Console.WriteLine(A + b + C);
+    }
+}",
+                options: LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_ForEachDeconstruction2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        foreach (var (A, (B, [|C|])) in new[] { (0, (string.Empty, string.Empty)) })
+            System.Console.WriteLine(A + B + C);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        foreach (var (A, (B, c)) in new[] { (0, (string.Empty, string.Empty)) })
+            System.Console.WriteLine(A + B + c);
+    }
+}",
+                options: LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_OutVariable()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        if (int.TryParse(string.Empty, out var [|Value|]))
+            System.Console.WriteLine(Value);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (int.TryParse(string.Empty, out var value))
+            System.Console.WriteLine(value);
+    }
+}",
+                options: LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_PatternVariable()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        if (new object() is int [|Value|])
+            System.Console.WriteLine(Value);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (new object() is int value)
+            System.Console.WriteLine(value);
+    }
+}",
+                options: LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_QueryFromClauseIgnored()
+        {
+            // This is an IRangeVariableSymbol, not ILocalSymbol
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Linq;
+
+class C
+{
+    void M()
+    {
+        var squares =
+            from [|STRING|] in new string[] { }
+            let Number = int.Parse(STRING)
+            select Number * Number;
+    }
+}", new TestParameters(options: LocalNamesAreCamelCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_QueryLetClauseIgnored()
+        {
+            // This is an IRangeVariableSymbol, not ILocalSymbol
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Linq;
+
+class C
+{
+    void M()
+    {
+        var squares =
+            from STRING in new string[] { }
+            let [|Number|] = int.Parse(STRING)
+            select Number * Number;
+    }
+}", new TestParameters(options: LocalNamesAreCamelCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_ParameterIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(int [|X|])
+    {
+    }
+}", new TestParameters(options: LocalNamesAreCamelCase));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_InInterfaceWithImplicitImplementation()
         {
