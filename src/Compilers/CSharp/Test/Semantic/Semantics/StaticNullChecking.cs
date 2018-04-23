@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -19812,6 +19813,24 @@ class C3<T3> where T3 : new()
                 // (8,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.F(object o)'.
                 //         F((object)t1);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(object)t1").WithArguments("o", "void C.F(object o)").WithLocation(8, 11));
+        }
+
+        [WorkItem(26294, "https://github.com/dotnet/roslyn/issues/26294")]
+        [Fact]
+        public void NullableTInConstraint()
+        {
+            var source =
+@"interface I<T> { }
+class C
+{
+    static void F1<T>() where T : class, I<T?> { }
+    static void F2<T>() where T : I<dynamic?> { }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,35): error CS1968: Constraint cannot be a dynamic type 'I<dynamic>'
+                //     static void F2<T>() where T : I<dynamic?> { }
+                Diagnostic(ErrorCode.ERR_ConstructedDynamicTypeAsBound, "I<dynamic?>").WithArguments("I<dynamic?>").WithLocation(5, 35));
         }
     }
 }
