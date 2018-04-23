@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -3418,6 +3418,50 @@ IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: C C.op_UnaryNegation(
 ";
 
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyIndexOperator_Int()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M(int arg)
+    {
+        var x = /*<bind>*/^arg/*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IUnaryOperation (UnaryOperatorKind.Index) (OperationKind.UnaryOperator, Type: System.Index) (Syntax: '^arg')
+  Operand: 
+    IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'arg')
+";
+
+            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void VerifyIndexOperator_NullableInt()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M(int? arg)
+    {
+        var x = /*<bind>*/^arg/*</bind>*/;
+    }
+}").VerifyDiagnostics();
+
+            string expectedOperationTree = @"
+IUnaryOperation (UnaryOperatorKind.Index, IsLifted) (OperationKind.UnaryOperator, Type: System.Index?) (Syntax: '^arg')
+  Operand: 
+    IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'arg')
+";
+
+            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
         }
     }
 }

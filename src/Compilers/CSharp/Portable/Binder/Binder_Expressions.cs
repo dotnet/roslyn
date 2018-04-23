@@ -449,6 +449,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BitwiseNotExpression:
                     return BindUnaryOperator((PrefixUnaryExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.IndexExpression:
+                    Binder.CheckFeatureAvailability(node, MessageID.IDS_FeatureIndexOperator, diagnostics);
+                    return BindUnaryOperator((PrefixUnaryExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.AddressOfExpression:
                     return BindAddressOfExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
 
