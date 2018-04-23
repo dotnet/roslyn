@@ -724,42 +724,42 @@ Friend Class RedNodeWriter
 
                 ' XML comment
                 GenerateWithXmlComment(_writer, withChild, 8)
-                    _writer.WriteLine("        Public Shadows Function {0}({1} as {2}) As {3}", ChildWithFunctionName(withChild), ChildParamName(withChild), ChildPropertyTypeRef(nodeStructure, withChild), StructureTypeName(nodeStructure))
-                    _writer.Write("            return Update(")
+                _writer.WriteLine("        Public Shadows Function {0}({1} as {2}) As {3}", ChildWithFunctionName(withChild), ChildParamName(withChild), ChildPropertyTypeRef(nodeStructure, withChild), StructureTypeName(nodeStructure))
+                _writer.Write("            return Update(")
 
-                    If nodeStructure.NodeKinds.Count >= 2 Then
-                        _writer.Write("Me.Kind")
-                        hasPrevious = True
-                    End If
+                If nodeStructure.NodeKinds.Count >= 2 Then
+                    _writer.Write("Me.Kind")
+                    hasPrevious = True
+                End If
 
-                    Dim allFields = GetAllFieldsOfStructure(nodeStructure)
-                    If allFields.Count > 0 Then
-                        For i = 0 To allFields.Count - 1
-                            If hasPrevious Then
-                                _writer.Write(", ")
-                            End If
-                            _writer.Write("{0}", FieldParamName(allFields(i)))
-                            hasPrevious = True
-                        Next
-                    End If
-
-                    For Each child In GetAllChildrenOfStructure(nodeStructure)
+                Dim allFields = GetAllFieldsOfStructure(nodeStructure)
+                If allFields.Count > 0 Then
+                    For i = 0 To allFields.Count - 1
                         If hasPrevious Then
                             _writer.Write(", ")
                         End If
-                        If child Is withChild Then
-                            _writer.Write("{0}", ChildParamName(child))
-                        Else
-                            _writer.Write("Me.{0}", UpperFirstCharacter(child.Name))
-                        End If
+                        _writer.Write("{0}", FieldParamName(allFields(i)))
                         hasPrevious = True
                     Next
-
-                    _writer.WriteLine(")")
-                    _writer.WriteLine("        End Function")
                 End If
 
-                _writer.WriteLine("")
+                For Each child In GetAllChildrenOfStructure(nodeStructure)
+                    If hasPrevious Then
+                        _writer.Write(", ")
+                    End If
+                    If child Is withChild Then
+                        _writer.Write("{0}", ChildParamName(child))
+                    Else
+                        _writer.Write("Me.{0}", UpperFirstCharacter(child.Name))
+                    End If
+                    hasPrevious = True
+                Next
+
+                _writer.WriteLine(")")
+                _writer.WriteLine("        End Function")
+            End If
+
+            _writer.WriteLine("")
         End If
     End Sub
 
