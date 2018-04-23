@@ -973,10 +973,9 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
-                            Node referencedNode = TryGetNodeForNestedList(field);
+                            var referencedNode = TryGetNodeForNestedList(field);
                             if (referencedNode != null)
                             {
-                                // look for list members...
                                 for (int rf = 0; rf < referencedNode.Fields.Count; rf++)
                                 {
                                     var referencedNodeField = referencedNode.Fields[rf];
@@ -1026,7 +1025,7 @@ namespace CSharpSyntaxGenerator
                         }
                         else
                         {
-                            Node referencedNode = TryGetNodeForNestedList(baseField);
+                            var referencedNode = TryGetNodeForNestedList(baseField);
                             if (referencedNode != null)
                             {
                                 // look for list members...
@@ -1487,7 +1486,7 @@ namespace CSharpSyntaxGenerator
                 }
                 else
                 {
-                    Node referencedNode = TryGetNodeForNestedList(field);
+                    var referencedNode = TryGetNodeForNestedList(field);
                     if (referencedNode != null)
                     {
                         // look for list members...
