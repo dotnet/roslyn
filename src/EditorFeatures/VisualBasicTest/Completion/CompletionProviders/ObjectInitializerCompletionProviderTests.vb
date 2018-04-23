@@ -171,7 +171,7 @@ End Class
         Public Async Function TestObjectInitializerOfGenericTypeСonstraint3() As Task
             Dim text = <a>Class C
     Public Function testSub(Of T As {Structure})()
-        Return New T With {.
+        Return New T With {.$$
     End Function
 End Class
 </a>.Value
