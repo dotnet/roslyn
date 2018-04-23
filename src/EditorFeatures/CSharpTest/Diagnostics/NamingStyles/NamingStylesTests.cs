@@ -484,6 +484,65 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestUpperCaseConstants_ConstField()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    const int [|field|] = 0;
+}",
+@"class C
+{
+    const int FIELD = 0;
+}",
+                options: ConstantsAreUpperCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestUpperCaseConstants_ConstLocal()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        const int local1 = 0, [|local2|] = 0;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        const int local1 = 0, LOCAL2 = 0;
+    }
+}",
+                options: ConstantsAreUpperCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestUpperCaseConstants_NonConstFieldIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    readonly int [|field|] = 0;
+}", new TestParameters(options: ConstantsAreUpperCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestUpperCaseConstants_NonConstLocalIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int local1 = 0, [|local2|] = 0;
+    }
+}", new TestParameters(options: ConstantsAreUpperCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_InInterfaceWithImplicitImplementation()
         {
             await TestInRegularAndScriptAsync(

@@ -308,5 +308,51 @@ end module", New TestParameters(options:=LocalNamesAreCamelCase))
 end module", New TestParameters(options:=LocalNamesAreCamelCase))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestUpperCaseConstants_ConstField() As Task
+            Await TestInRegularAndScriptAsync(
+"module C
+    const [|field|] = 0
+end module",
+"module C
+    const FIELD = 0
+end module",
+                options:=ConstantsAreUpperCase)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestUpperCaseConstants_ConstLocal() As Task
+            Await TestInRegularAndScriptAsync(
+"module C
+    sub M()
+        const local1 = 0, [|local2|] as integer = 0
+    end sub
+end module",
+"module C
+    sub M()
+        const local1 = 0, LOCAL2 as integer = 0
+    end sub
+end module",
+                options:=ConstantsAreUpperCase)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestUpperCaseConstants_NonConstFieldIgnored() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"module C
+    readonly [|field|] = 0
+end module", New TestParameters(options:=ConstantsAreUpperCase))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestUpperCaseConstants_NonConstLocalIgnored() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"module C
+    sub M()
+        dim local1 = 0, [|local2|] as integer = 0
+    end sub
+end module", New TestParameters(options:=ConstantsAreUpperCase))
+        End Function
+
     End Class
 End Namespace

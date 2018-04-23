@@ -16,6 +16,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Naming
             End Get
         End Property
 
+        Private ReadOnly Property ConstantsAreUpperCase As IDictionary(Of OptionKey, Object)
+            Get
+                Return Options(New OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.VisualBasic), ConstantsAreUpperCaseOption())
+            End Get
+        End Property
+
         Private Shared Function Options([option] As OptionKey, value As Object) As IDictionary(Of OptionKey, Object)
             Return New Dictionary(Of OptionKey, Object) From
             {
@@ -24,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Naming
         End Function
 
         Private Shared Function LocalNamesAreCamelCaseOption() As NamingStylePreferences
-            Dim symbolSpecification = New SymbolSpecification(
+            Dim _symbolSpecification = New SymbolSpecification(
                 Nothing,
                 "Name",
                 ImmutableArray.Create(New SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
@@ -41,13 +47,46 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Naming
 
             Dim namingRule = New SerializableNamingRule() With
             {
-                .SymbolSpecificationID = symbolSpecification.ID,
+                .SymbolSpecificationID = _symbolSpecification.ID,
                 .NamingStyleID = namingStyle.ID,
                 .EnforcementLevel = DiagnosticSeverity.Error
             }
 
             Dim info = New NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(_symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule))
+
+            Return info
+        End Function
+
+        Private Shared Function ConstantsAreUpperCaseOption() As NamingStylePreferences
+            Dim _symbolSpecification = New SymbolSpecification(
+                Nothing,
+                "Name",
+                ImmutableArray.Create(
+                    New SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
+                    New SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
+                ImmutableArray(Of Accessibility).Empty,
+                ImmutableArray.Create(New SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsConst)))
+
+            Dim namingStyle = New NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme:=Capitalization.AllUpper,
+                name:="Name",
+                prefix:="",
+                suffix:="",
+                wordSeparator:="")
+
+            Dim namingRule = New SerializableNamingRule() With
+            {
+                .SymbolSpecificationID = _symbolSpecification.ID,
+                .NamingStyleID = namingStyle.ID,
+                .EnforcementLevel = DiagnosticSeverity.Error
+            }
+
+            Dim info = New NamingStylePreferences(
+                ImmutableArray.Create(_symbolSpecification),
                 ImmutableArray.Create(namingStyle),
                 ImmutableArray.Create(namingRule))
 
