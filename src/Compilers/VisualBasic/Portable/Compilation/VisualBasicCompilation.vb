@@ -2847,12 +2847,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Private Sub AppendMemberSymbolsWithName(
-                spine As ArrayBuilder(Of MergedNamespaceOrTypeDeclaration), current As MergedNamespaceOrTypeDeclaration, [set] As HashSet(Of ISymbol))
+                spine As ArrayBuilder(Of MergedNamespaceOrTypeDeclaration), mergedType As MergedTypeDeclaration, [set] As HashSet(Of ISymbol))
 
-                spine.Add(current)
+                _cancellationToken.ThrowIfCancellationRequested()
+                spine.Add(mergedType)
 
                 Dim container As NamespaceOrTypeSymbol = Nothing
-                Dim mergedType = DirectCast(current, MergedTypeDeclaration)
                 For Each name In mergedType.MemberNames
                     If Matches(name) Then
                         container = If(container, GetSpineSymbol(spine))

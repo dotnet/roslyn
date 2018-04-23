@@ -3233,6 +3233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private void AppendMemberSymbolsWithName(
                 ArrayBuilder<MergedNamespaceOrTypeDeclaration> spine, MergedTypeDeclaration current, HashSet<ISymbol> set)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
                 spine.Add(current);
 
                 var container = GetSpineSymbol(spine);
