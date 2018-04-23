@@ -8,38 +8,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module TypeBlockSyntaxExtensions
         <Extension>
-        Public Function WithInherits(node As TypeBlockSyntax, list As SyntaxList(Of InheritsStatementSyntax)) As TypeBlockSyntax
-            Select Case node.Kind
-                Case SyntaxKind.ModuleBlock
-                    Return DirectCast(node, ModuleBlockSyntax).WithInherits(list)
-                Case SyntaxKind.InterfaceBlock
-                    Return DirectCast(node, InterfaceBlockSyntax).WithInherits(list)
-                Case SyntaxKind.StructureBlock
-                    Return DirectCast(node, StructureBlockSyntax).WithInherits(list)
-                Case SyntaxKind.ClassBlock
-                    Return DirectCast(node, ClassBlockSyntax).WithInherits(list)
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
-            End Select
-        End Function
-
-        <Extension>
-        Public Function WithImplements(node As TypeBlockSyntax, list As SyntaxList(Of ImplementsStatementSyntax)) As TypeBlockSyntax
-            Select Case node.Kind
-                Case SyntaxKind.ModuleBlock
-                    Return DirectCast(node, ModuleBlockSyntax).WithImplements(list)
-                Case SyntaxKind.InterfaceBlock
-                    Return DirectCast(node, InterfaceBlockSyntax).WithImplements(list)
-                Case SyntaxKind.StructureBlock
-                    Return DirectCast(node, StructureBlockSyntax).WithImplements(list)
-                Case SyntaxKind.ClassBlock
-                    Return DirectCast(node, ClassBlockSyntax).WithImplements(list)
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
-            End Select
-        End Function
-
-        <Extension>
         Public Function AddMembers(node As TypeBlockSyntax, ParamArray members As StatementSyntax()) As TypeBlockSyntax
             Select Case node.Kind
                 Case SyntaxKind.ModuleBlock
@@ -50,54 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return DirectCast(node, StructureBlockSyntax).AddMembers(members)
                 Case SyntaxKind.ClassBlock
                     Return DirectCast(node, ClassBlockSyntax).AddMembers(members)
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
-            End Select
-        End Function
-
-        <Extension>
-        Public Function WithMembers(node As TypeBlockSyntax, members As SyntaxList(Of StatementSyntax)) As TypeBlockSyntax
-            Select Case node.Kind
-                Case SyntaxKind.ModuleBlock
-                    Return DirectCast(node, ModuleBlockSyntax).WithMembers(members)
-                Case SyntaxKind.InterfaceBlock
-                    Return DirectCast(node, InterfaceBlockSyntax).WithMembers(members)
-                Case SyntaxKind.StructureBlock
-                    Return DirectCast(node, StructureBlockSyntax).WithMembers(members)
-                Case SyntaxKind.ClassBlock
-                    Return DirectCast(node, ClassBlockSyntax).WithMembers(members)
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
-            End Select
-        End Function
-
-        <Extension>
-        Public Function WithBegin(node As TypeBlockSyntax, [begin] As TypeStatementSyntax) As TypeBlockSyntax
-            Select Case node.Kind
-                Case SyntaxKind.ModuleBlock
-                    Return DirectCast(node, ModuleBlockSyntax).WithBlockStatement(DirectCast([begin], ModuleStatementSyntax))
-                Case SyntaxKind.InterfaceBlock
-                    Return DirectCast(node, InterfaceBlockSyntax).WithBlockStatement(DirectCast([begin], InterfaceStatementSyntax))
-                Case SyntaxKind.StructureBlock
-                    Return DirectCast(node, StructureBlockSyntax).WithBlockStatement(DirectCast([begin], StructureStatementSyntax))
-                Case SyntaxKind.ClassBlock
-                    Return DirectCast(node, ClassBlockSyntax).WithBlockStatement(DirectCast([begin], ClassStatementSyntax))
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
-            End Select
-        End Function
-
-        <Extension>
-        Public Function WithEnd(node As TypeBlockSyntax, [end] As EndBlockStatementSyntax) As TypeBlockSyntax
-            Select Case node.Kind
-                Case SyntaxKind.ModuleBlock
-                    Return DirectCast(node, ModuleBlockSyntax).WithEndBlockStatement([end])
-                Case SyntaxKind.InterfaceBlock
-                    Return DirectCast(node, InterfaceBlockSyntax).WithEndBlockStatement([end])
-                Case SyntaxKind.StructureBlock
-                    Return DirectCast(node, StructureBlockSyntax).WithEndBlockStatement([end])
-                Case SyntaxKind.ClassBlock
-                    Return DirectCast(node, ClassBlockSyntax).WithEndBlockStatement([end])
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(node.Kind)
             End Select

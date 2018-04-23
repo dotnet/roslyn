@@ -258,7 +258,8 @@ Friend Class RedNodeWriter
         GenerateNodeStructureConstructor(nodeStructure)
 
         ' Create the IsTerminal property
-        If nodeStructure.ParentStructure IsNot Nothing AndAlso nodeStructure.IsTerminal <> nodeStructure.ParentStructure.IsTerminal Then
+        Dim parentStructure = nodeStructure.ParentStructure
+        If parentStructure IsNot Nothing AndAlso nodeStructure.IsTerminal <> parentStructure.IsTerminal Then
             GenerateIsTerminal(nodeStructure)
         End If
 
@@ -660,45 +661,66 @@ Friend Class RedNodeWriter
 
             Dim isAbstract As Boolean = _parseTree.IsAbstract(nodeStructure)
 
-            If Not isAbstract Then
-                ' XML comment
-                GenerateWithXmlComment(_writer, withChild, 8)
-                _writer.WriteLine("        Public Shadows Function {0}({1} as {2}) As {3}", ChildWithFunctionName(withChild), ChildParamName(withChild), ChildPropertyTypeRef(nodeStructure, withChild), StructureTypeName(nodeStructure))
-                _writer.Write("            return Update(")
+            If isAbstract Then
+                If nodeStructure.Children.Contains(withChild) Then
+                    ' +WriteLine($"    public {node.Name} With{field.Name}({fieldType} {CamelCase(field.Name)}) => With{field.Name}Core({CamelCase(field.Name)});");
+                    '+ WriteLine($"    internal abstract {node.Name} With{field.Name}Core({fieldType} {CamelCase(field.Name)});");
+                    GenerateWithXmlComment(_writer, withChild, 8)
 
-                If nodeStructure.NodeKinds.Count >= 2 Then
-                    _writer.Write("Me.Kind")
-                    hasPrevious = True
+                    _writer.WriteLine($"        Public Function {ChildWithFunctionName(withChild)}({ChildParamName(withChild)} As {ChildPropertyTypeRef(nodeStructure, withChild)}) As {StructureTypeName(nodeStructure)}")
+                    _writer.WriteLine($"            Return {ChildWithFunctionName(withChild)}Core({ChildParamName(withChild)})")
+                    _writer.WriteLine($"        End Function")
+
+                    _writer.WriteLine($"        Friend MustOverride Function {ChildWithFunctionName(withChild)}Core({ChildParamName(withChild)} As {ChildPropertyTypeRef(nodeStructure, withChild)}) As {StructureTypeName(nodeStructure)}")
+                End If
+            Else
+                If Not nodeStructure.Children.Contains(withChild) AndAlso
+                       nodeStructure.ParentStructure.Children.Contains(withChild) Then
+
+                    _writer.WriteLine($"        Friend Overrides Function {ChildWithFunctionName(withChild)}Core({ChildParamName(withChild)} As {ChildPropertyTypeRef(nodeStructure, withChild)}) As {StructureTypeName(nodeStructure.ParentStructure)}")
+                    _writer.WriteLine($"            Return {ChildWithFunctionName(withChild)}({ChildParamName(withChild)})")
+                    _writer.WriteLine($"        End Function")
+                    _writer.WriteLine()
                 End If
 
-                Dim allFields = GetAllFieldsOfStructure(nodeStructure)
-                If allFields.Count > 0 Then
-                    For i = 0 To allFields.Count - 1
+                ' XML comment
+                GenerateWithXmlComment(_writer, withChild, 8)
+                    _writer.WriteLine("        Public Shadows Function {0}({1} as {2}) As {3}", ChildWithFunctionName(withChild), ChildParamName(withChild), ChildPropertyTypeRef(nodeStructure, withChild), StructureTypeName(nodeStructure))
+                    _writer.Write("            return Update(")
+
+                    If nodeStructure.NodeKinds.Count >= 2 Then
+                        _writer.Write("Me.Kind")
+                        hasPrevious = True
+                    End If
+
+                    Dim allFields = GetAllFieldsOfStructure(nodeStructure)
+                    If allFields.Count > 0 Then
+                        For i = 0 To allFields.Count - 1
+                            If hasPrevious Then
+                                _writer.Write(", ")
+                            End If
+                            _writer.Write("{0}", FieldParamName(allFields(i)))
+                            hasPrevious = True
+                        Next
+                    End If
+
+                    For Each child In GetAllChildrenOfStructure(nodeStructure)
                         If hasPrevious Then
                             _writer.Write(", ")
                         End If
-                        _writer.Write("{0}", FieldParamName(allFields(i)))
+                        If child Is withChild Then
+                            _writer.Write("{0}", ChildParamName(child))
+                        Else
+                            _writer.Write("Me.{0}", UpperFirstCharacter(child.Name))
+                        End If
                         hasPrevious = True
                     Next
+
+                    _writer.WriteLine(")")
+                    _writer.WriteLine("        End Function")
                 End If
 
-                For Each child In GetAllChildrenOfStructure(nodeStructure)
-                    If hasPrevious Then
-                        _writer.Write(", ")
-                    End If
-                    If child Is withChild Then
-                        _writer.Write("{0}", ChildParamName(child))
-                    Else
-                        _writer.Write("Me.{0}", UpperFirstCharacter(child.Name))
-                    End If
-                    hasPrevious = True
-                Next
-
-                _writer.WriteLine(")")
-                _writer.WriteLine("        End Function")
-            End If
-
-            _writer.WriteLine("")
+                _writer.WriteLine("")
         End If
     End Sub
 
