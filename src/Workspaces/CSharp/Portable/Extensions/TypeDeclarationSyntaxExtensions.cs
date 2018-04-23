@@ -15,22 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class TypeDeclarationSyntaxExtensions
     {
-        public static TypeDeclarationSyntax AddMembers(
-            this TypeDeclarationSyntax node, params MemberDeclarationSyntax[] members)
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.ClassDeclaration:
-                    return ((ClassDeclarationSyntax)node).AddMembers(members);
-                case SyntaxKind.InterfaceDeclaration:
-                    return ((InterfaceDeclarationSyntax)node).AddMembers(members);
-                case SyntaxKind.StructDeclaration:
-                    return ((StructDeclarationSyntax)node).AddMembers(members);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
-            }
-        }
-
         public static IList<bool> GetInsertionIndices(this TypeDeclarationSyntax destination, CancellationToken cancellationToken)
         {
             var members = destination.Members;

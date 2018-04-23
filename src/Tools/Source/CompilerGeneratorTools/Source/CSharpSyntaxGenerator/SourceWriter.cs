@@ -963,6 +963,34 @@ namespace CSharpSyntaxGenerator
                         WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), fieldType, field.Name);
                         WriteLine($"    public {node.Name} With{field.Name}({fieldType} {CamelCase(field.Name)}) => With{field.Name}Core({CamelCase(field.Name)});");
                         WriteLine($"    internal abstract {node.Name} With{field.Name}Core({fieldType} {CamelCase(field.Name)});");
+
+                        if (IsAnyList(field.Type))
+                        {
+                            var argType = GetElementType(field.Type);
+                            WriteLine();
+                            WriteLine("    public {0} Add{1}(params {2}[] items) => Add{1}Core(items);", node.Name, field.Name, argType);
+                            WriteLine("    internal abstract {0} Add{1}Core(params {2}[] items);", node.Name, field.Name, argType);
+                        }
+                        else
+                        {
+                            Node referencedNode = TryGetNodeForNestedList(field);
+                            if (referencedNode != null)
+                            {
+                                // look for list members...
+                                for (int rf = 0; rf < referencedNode.Fields.Count; rf++)
+                                {
+                                    var referencedNodeField = referencedNode.Fields[rf];
+                                    if (IsAnyList(referencedNodeField.Type))
+                                    {
+                                        var argType = GetElementType(referencedNodeField.Type);
+
+                                        WriteLine();
+                                        WriteLine("    public {0} Add{1}{2}(params {3}[] items) => Add{1}{2}Core(items);", node.Name, StripPost(field.Name, "Opt"), referencedNodeField.Name, argType);
+                                        WriteLine("    internal abstract {0} Add{1}{2}Core(params {3}[] items);", node.Name, StripPost(field.Name, "Opt"), referencedNodeField.Name, argType);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -986,6 +1014,35 @@ namespace CSharpSyntaxGenerator
                     foreach (var baseField in baseNodeFields)
                     {
                         WriteLine($"    public new {node.Name} With{baseField.Name}({GetRedFieldType(baseField)} {CamelCase(baseField.Name)}) => ({node.Name})With{baseField.Name}Core({CamelCase(baseField.Name)});");
+                    }
+
+                    foreach (var baseField in baseNodeFields)
+                    {
+                        if (IsAnyList(baseField.Type))
+                        {
+                            var argType = GetElementType(baseField.Type);
+                            WriteLine();
+                            WriteLine("    public new {0} Add{1}(params {2}[] items) => ({0})Add{1}Core(items);", node.Name, baseField.Name, argType);
+                        }
+                        else
+                        {
+                            Node referencedNode = TryGetNodeForNestedList(baseField);
+                            if (referencedNode != null)
+                            {
+                                // look for list members...
+                                for (int rf = 0; rf < referencedNode.Fields.Count; rf++)
+                                {
+                                    var referencedNodeField = referencedNode.Fields[rf];
+                                    if (IsAnyList(referencedNodeField.Type))
+                                    {
+                                        var argType = GetElementType(referencedNodeField.Type);
+
+                                        WriteLine();
+                                        WriteLine("    public new {0} Add{1}{2}(params {3}[] items) => Add{1}{2}Core(items);", baseType.Name, StripPost(baseField.Name, "Opt"), referencedNodeField.Name, argType);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -1422,6 +1479,7 @@ namespace CSharpSyntaxGenerator
             for (int f = 0; f < node.Fields.Count; f++)
             {
                 var field = node.Fields[f];
+
                 if (IsAnyList(field.Type))
                 {
                     // write list helper methods for list properties
@@ -1429,8 +1487,8 @@ namespace CSharpSyntaxGenerator
                 }
                 else
                 {
-                    Node referencedNode = GetNode(field.Type);
-                    if (referencedNode != null && (!IsOptional(field) || RequiredFactoryArgumentCount(referencedNode) == 0))
+                    Node referencedNode = TryGetNodeForNestedList(field);
+                    if (referencedNode != null)
                     {
                         // look for list members...
                         for (int rf = 0; rf < referencedNode.Fields.Count; rf++)
@@ -1446,11 +1504,34 @@ namespace CSharpSyntaxGenerator
             }
         }
 
+        private Node TryGetNodeForNestedList(Field field)
+        {
+            Node referencedNode = GetNode(field.Type);
+            if (referencedNode != null && (!IsOptional(field) || RequiredFactoryArgumentCount(referencedNode) == 0))
+            {
+                return referencedNode;
+            }
+
+            return null;
+        }
+
         private void WriteRedListHelperMethods(Node node, Field field)
         {
             var argType = GetElementType(field.Type);
+
+            var isNew = false;
+            if (IsOverride(field))
+            {
+                var baseType = GetHighestBaseTypeWithField(node, field.Name);
+                if (baseType != null)
+                {
+                    WriteLine("    internal override {0} Add{1}Core(params {2}[] items) => Add{1}(items);", baseType.Name, field.Name, argType);
+                    isNew = true;
+                }
+            }
+
             WriteLine();
-            WriteLine("    public {0} Add{1}(params {2}[] items)", node.Name, field.Name, argType);
+            WriteLine($"    public {(isNew ? "new " : " ")}{node.Name} Add{field.Name}(params {argType}[] items)");
             WriteLine("    {");
             WriteLine("        return this.With{0}(this.{1}.AddRange(items));", StripPost(field.Name, "Opt"), field.Name);
             WriteLine("    }");
@@ -1460,9 +1541,20 @@ namespace CSharpSyntaxGenerator
         {
             var argType = GetElementType(referencedNodeField.Type);
 
+            var isNew = false;
+            if (IsOverride(field))
+            {
+                var baseType = GetHighestBaseTypeWithField(node, field.Name);
+                if (baseType != null)
+                {
+                    WriteLine("    internal override {0} Add{1}{2}Core(params {3}[] items) => Add{1}{2}(items);", baseType.Name, StripPost(field.Name, "Opt"), referencedNodeField.Name, argType);
+                    isNew = true;
+                }
+            }
+
             // AddBaseListTypes
             WriteLine();
-            WriteLine("    public {0} Add{1}{2}(params {3}[] items)", node.Name, StripPost(field.Name, "Opt"), referencedNodeField.Name, argType);
+            WriteLine($"    public {(isNew ? "new " : " ")}{node.Name} Add{StripPost(field.Name, "Opt")}{referencedNodeField.Name}(params {argType}[] items)");
             WriteLine("    {");
 
             if (IsOptional(field))
