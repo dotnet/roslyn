@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     ? compilation.GetSymbolsWithName(query.Name, filter, cancellationToken)
                     : compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken);
 
-                var symbolsWithName = symbols.Select(s => new SymbolAndProjectId(s, project.Id)) .ToImmutableArray();
+                var symbolsWithName = symbols.SelectAsArray(s => new SymbolAndProjectId(s, project.Id));
 
                 if (startingCompilation != null && startingAssembly != null && compilation.Assembly != startingAssembly)
                 {
