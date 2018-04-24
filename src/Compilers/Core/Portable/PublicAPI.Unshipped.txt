@@ -35,6 +35,7 @@ abstract Microsoft.CodeAnalysis.DataFlowAnalysis.CapturedInside.get -> System.Co
 abstract Microsoft.CodeAnalysis.DataFlowAnalysis.CapturedOutside.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DeconstructMethodName = "Deconstruct" -> string
 static Microsoft.CodeAnalysis.Diagnostic.Create(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor, Microsoft.CodeAnalysis.Location location, Microsoft.CodeAnalysis.DiagnosticSeverity effectiveSeverity, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Location> additionalLocations, System.Collections.Immutable.ImmutableDictionary<string, string> properties, params object[] messageArgs) -> Microsoft.CodeAnalysis.Diagnostic
+static Microsoft.CodeAnalysis.ISymbolExtensions.IsAccessibleWithin(this Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.ISymbol within, Microsoft.CodeAnalysis.ITypeSymbol throughTypeOpt = null) -> bool
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitConstructorBodyOperation(Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitDiscardOperation(Microsoft.CodeAnalysis.Operations.IDiscardOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitMethodBodyOperation(Microsoft.CodeAnalysis.Operations.IMethodBodyOperation operation) -> void
