@@ -326,6 +326,36 @@ end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestCamelCaseLocals_TupleTypeElementNameIgnored1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"module C
+    sub M()
+        dim tuple as ([|A|] as integer, B as string)
+    end sub
+end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestCamelCaseLocals_TupleTypeElementNameIgnored2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"module C
+    sub M()
+        dim tuple as (A as integer, ([|B|] as string, C as string)) = (0, (string.Empty, string.Empty))
+    end sub
+end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestCamelCaseLocals_TupleExpressionElementNameIgnored() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"module C
+    sub M()
+        dim tuple = ([|A|]:=0, B:=0)
+    end sub
+end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Async Function TestUpperCaseConstants_ConstField() As Task
             Await TestInRegularAndScriptAsync(
 "module C

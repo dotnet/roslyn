@@ -487,6 +487,45 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_TupleTypeElementNameIgnored1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        (int [|A|], string B) tuple;
+    }
+}", new TestParameters(options: options.LocalNamesAreCamelCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_TupleTypeElementNameIgnored2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        (int A, (string [|B|], string C)) tuple = (0, (string.Empty, string.Empty));
+    }
+}", new TestParameters(options: options.LocalNamesAreCamelCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_TupleExpressionElementNameIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        var tuple = ([|A|]: 0, B: 0);
+    }
+}", new TestParameters(options: options.LocalNamesAreCamelCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestUpperCaseConstants_ConstField()
         {
             await TestInRegularAndScriptAsync(
