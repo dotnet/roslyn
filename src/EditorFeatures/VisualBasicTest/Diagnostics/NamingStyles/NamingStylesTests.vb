@@ -268,6 +268,19 @@ end module",
                 options:=options.LocalNamesAreCamelCase)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestCamelCaseLocals_CatchWithoutDeclarationIgnored() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"imports System
+module C
+    sub M()
+        try
+        [|catch|]
+        end try
+    end sub
+end module", New TestParameters(options:=options.LocalNamesAreCamelCase))
+        End Function
+
         <Fact(Skip:="Implicit declarations cannot be found by syntax. Requires https://github.com/dotnet/roslyn/issues/14061")>
         <Trait(Traits.Feature, Traits.Features.NamingStyle)>
         Public Async Function TestCamelCaseLocals_ImplicitlyDeclaredLocal() As Task

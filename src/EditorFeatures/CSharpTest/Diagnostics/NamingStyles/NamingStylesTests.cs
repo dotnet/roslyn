@@ -332,6 +332,44 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_CatchWithoutVariableIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void M()
+    {
+        try
+        {
+        }
+        catch ([|Exception|])
+        {
+        }
+    }
+}", new TestParameters(options: options.LocalNamesAreCamelCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_CatchWithoutDeclarationIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void M()
+    {
+        try
+        {
+        }
+        [|catch|]
+        {
+        }
+    }
+}", new TestParameters(options: options.LocalNamesAreCamelCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_Deconstruction1()
         {
             await TestInRegularAndScriptAsync(
