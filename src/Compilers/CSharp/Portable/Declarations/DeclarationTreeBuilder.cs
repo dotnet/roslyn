@@ -431,6 +431,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
+        private static readonly ObjectPool<ImmutableHashSet<string>.Builder> s_memberNameBuilderPool =
+            new ObjectPool<ImmutableHashSet<string>.Builder>(() => ImmutableHashSet.CreateBuilder<string>());
+
+        private static ImmutableHashSet<string> ToImmutableAndFree(ImmutableHashSet<string>.Builder builder)
+        {
+            var result = builder.ToImmutable();
+            builder.Clear();
+            s_memberNameBuilderPool.Free(builder);
+            return result;
+        }
+
         private static ImmutableHashSet<string> GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             var cnt = members.Count;
@@ -457,17 +468,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return ToImmutableAndFree(memberNamesBuilder);
-        }
-
-        private static readonly ObjectPool<ImmutableHashSet<string>.Builder> s_memberNameBuilderPool =
-            new ObjectPool<ImmutableHashSet<string>.Builder>(() => ImmutableHashSet.CreateBuilder<string>());
-
-        private static ImmutableHashSet<string> ToImmutableAndFree(ImmutableHashSet<string>.Builder builder)
-        {
-            var result = builder.ToImmutable();
-            builder.Clear();
-            s_memberNameBuilderPool.Free(builder);
-            return result;
         }
 
         private static ImmutableHashSet<string> GetNonTypeMemberNames(

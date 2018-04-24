@@ -2,10 +2,8 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -549,8 +547,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return children.ToImmutableAndFree()
         End Function
 
+        ''' <summary>
+        ''' Pool of builders used to create our member name sets.  Importantly, these use 
+        ''' <see cref="CaseInsensitiveComparison.Comparer"/> so that name lookup happens in an
+        ''' appropriate manner for VB identifiers. This allows fast member name O(log(n)) even if
+        ''' the casing doesn't match.
+        ''' </summary>
         Private Shared ReadOnly s_memberNameBuilderPool As New ObjectPool(Of ImmutableHashSet(Of String).Builder)(
-            Function() ImmutableHashSet.CreateBuilder(Of String)(IdentifierComparison.Comparer))
+            Function() ImmutableHashSet.CreateBuilder(IdentifierComparison.Comparer))
 
         Private Shared Function ToImmutableAndFree(builder As ImmutableHashSet(Of String).Builder) As ImmutableHashSet(Of String)
             Dim result = builder.ToImmutable()
