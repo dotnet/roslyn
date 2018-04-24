@@ -4425,5 +4425,128 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected)
         End Function
 
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function TestRetainComment() As Task
+            Dim code = "
+Class C
+    Sub M()
+        ' comment
+        Dim [||]a = 1, 'a
+            b = 2, 'b
+            c = 3 'c
+        Dim e = a
+        Dim f = b
+        Dim g = c
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Class C
+    Sub M()
+        'a
+        ' comment
+        Dim b = 2, 'b
+            c = 3 'c
+        Dim e = 1
+        Dim f = b
+        Dim g = c
+    End Sub
+End Class
+"
+
+            Await TestAsync(code, expected, compareTokens:=False)
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function TestRetainComment2() As Task
+            Dim code = "
+Class C
+    Sub M()
+        ' comment
+        Dim [||]a = 1, b = 2, 'ab
+            c = 3 'c
+        Dim e = a
+        Dim f = b
+        Dim g = c
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Class C
+    Sub M()
+        ' comment
+        Dim b = 2, 'ab
+            c = 3 'c
+        Dim e = 1
+        Dim f = b
+        Dim g = c
+    End Sub
+End Class
+"
+
+            Await TestAsync(code, expected, compareTokens:=False)
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function TestRetainComment3() As Task
+            Dim code = "
+Class C
+    Sub M()
+        ' comment
+        Dim a = 1, [||]b = 2, c = 3 'abc
+        Dim e = a
+        Dim f = b
+        Dim g = c
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Class C
+    Sub M()
+        ' comment
+        Dim a = 1, c = 3 'abc
+        Dim e = a
+        Dim f = 2
+        Dim g = c
+    End Sub
+End Class
+"
+
+            Await TestAsync(code, expected, compareTokens:=False)
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function TestRetainComment4() As Task
+            Dim code = "
+Class C
+    Sub M()
+        ' comment
+        Dim a = 1, b = 2, [||]c = 3 'abc
+        Dim e = a
+        Dim f = b
+        Dim g = c
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Class C
+    Sub M()
+        'abc
+        ' comment
+        Dim a = 1, b = 2
+        Dim e = a
+        Dim f = b
+        Dim g = 3
+    End Sub
+End Class
+"
+
+            Await TestAsync(code, expected, compareTokens:=False)
+        End Function
+
     End Class
 End Namespace
