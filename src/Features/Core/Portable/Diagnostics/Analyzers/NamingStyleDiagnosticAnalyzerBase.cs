@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             SymbolKind.Property,
             SymbolKind.Parameter);
 
-        // HACK: RegisterSymbolAction doesn't work with locals & local functions
+        // Workaround: RegisterSymbolAction doesn't work with locals & local functions,
+        // see https://github.com/dotnet/roslyn/issues/14061
         protected abstract ImmutableArray<TLanguageKindEnum> SupportedSyntaxKinds { get; }
 
         public override bool OpenFileOnly(Workspace workspace) => true;
