@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.Options;
@@ -73,6 +76,28 @@ class Program
     {
         var list = new List<int>();$$
         Console.WriteLine(list.Count);
+    }
+}
+";
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact(Skip = "skip until figuring out how to get the CodeFixService")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatDocumentRemoveUnusedVariable()
+        {
+            var code = @"class Program
+{
+    void Method($$)
+    {
+        [|int a = 3;|]
+    }
+}
+";
+            var expected = @"class Program
+{
+    void Method($$)
+    {
     }
 }
 ";
@@ -1708,7 +1733,7 @@ class C
             await AssertFormatOnArbitraryNodeAsync(node, expected);
         }
 
-        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
+        private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
@@ -1729,8 +1754,11 @@ class C
                 var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
                 var editorOperations = new Mock<IEditorOperations>();
                 editorOperationsFactory.Setup(x => x.GetEditorOperations(subjectDocument.GetTextView())).Returns(editorOperations.Object);
+                var codeFixService = new Mock<ICodeFixService>();
+                codeFixService.Setup(x => x.GetFixesAsync(It.IsAny<Document>(), new Text.TextSpan(), true, new CancellationToken()))
+                    .Returns(Task.FromResult(new ImmutableArray<CodeFixCollection>()));
 
-                var commandHandler = new FormatCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object);
+                var commandHandler = new FormatCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object, codeFixService.Object);
                 var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
                 commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.TextBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
 

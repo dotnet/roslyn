@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -177,6 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         {
             var editorOperations = new Mock<IEditorOperations>(MockBehavior.Strict);
             var editorOperationsFactoryService = new Mock<IEditorOperationsFactoryService>(MockBehavior.Strict);
+            var codeFixService = new Mock<ICodeFixService>();
 
             editorOperations.Setup(o => o.AddAfterTextBufferChangePrimitive());
             editorOperations.Setup(o => o.AddBeforeTextBufferChangePrimitive());
@@ -193,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 // get original buffer
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
-                var commandHandler = new FormatCommandHandler(workspace.GetService<ITextUndoHistoryRegistry>(), editorOperationsFactoryService.Object);
+                var commandHandler = new FormatCommandHandler(workspace.GetService<ITextUndoHistoryRegistry>(), editorOperationsFactoryService.Object, codeFixService.Object);
 
                 var commandArgs = new FormatDocumentCommandArgs(view, view.TextBuffer);
                 commandHandler.ExecuteCommand(commandArgs, TestCommandExecutionContext.Create());
@@ -223,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
                 if (isPaste)
                 {
-                    var commandHandler = new FormatCommandHandler(null, null);
+                    var commandHandler = new FormatCommandHandler(null, null, null);
                     var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
                     commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
                 }
@@ -234,7 +236,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                     var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
                     var editorOperations = new Mock<IEditorOperations>();
                     editorOperationsFactory.Setup(x => x.GetEditorOperations(testDocument.GetTextView())).Returns(editorOperations.Object);
-                    var commandHandler = new FormatCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object);
+                    var codeFixService = new Mock<ICodeFixService>();
+
+                    var commandHandler = new FormatCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object, codeFixService.Object);
                     var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
                     commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
                 }
@@ -261,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         }
 
         /// <summary>
-        /// Asserts formatting on an arbitrary <see cref="SyntaxNode"/> that is not part of a <see cref="SyntaxTree"/> 
+        /// Asserts formatting on an arbitrary <see cref="SyntaxNode"/> that is not part of a <see cref="SyntaxTree"/>
         /// </summary>
         /// <param name="node">the <see cref="SyntaxNode"/> to format.</param>
         /// <remarks>uses an <see cref="AdhocWorkspace"/> for formatting context, since the <paramref name="node"/> is not associated with a <see cref="SyntaxTree"/> </remarks>

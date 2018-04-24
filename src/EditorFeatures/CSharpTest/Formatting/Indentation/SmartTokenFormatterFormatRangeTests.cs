@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -3288,8 +3289,9 @@ class Program{
                 var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
                 var editorOperations = new Mock<IEditorOperations>();
                 editorOperationsFactory.Setup(x => x.GetEditorOperations(subjectDocument.GetTextView())).Returns(editorOperations.Object);
+                var codeFixService = new Mock<ICodeFixService>();
 
-                var commandHandler = new FormatCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object);
+                var commandHandler = new FormatCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object, codeFixService.Object);
                 var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
                 commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.TextBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
 
