@@ -814,7 +814,7 @@ class C1 : IInterface
     }
 }
 ";
-            CreateStandardCompilation(source)
+            CreateCompilation(source)
                 .VerifyDiagnostics(
                     // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'IBase1.BaseGoo()' and 'IBase2.BaseGoo()'
                     //         ((IInterface)c).BaseGoo();
@@ -2288,10 +2288,10 @@ D.M").VerifyDiagnostics(); // No errors
         /// </summary>
         private static CSharpCompilation CreateCompilationWithMscorlibAndReference(string libSource, string exeSource)
         {
-            var libComp = CreateStandardCompilation(libSource, options: TestOptions.ReleaseDll, assemblyName: "OtherAssembly");
+            var libComp = CreateCompilation(libSource, options: TestOptions.ReleaseDll, assemblyName: "OtherAssembly");
             libComp.VerifyDiagnostics();
 
-            var exeComp = CreateStandardCompilation(exeSource, options: TestOptions.ReleaseExe, references: new[] { new CSharpCompilationReference(libComp) });
+            var exeComp = CreateCompilation(exeSource, options: TestOptions.ReleaseExe, references: new[] { new CSharpCompilationReference(libComp) });
             exeComp.VerifyDiagnostics();
 
             return exeComp;

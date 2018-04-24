@@ -4,7 +4,6 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{18BDB5D5-340B-4834-B4FC-0327729A4A26}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>DevDivPackagesDebugger</RootNamespace>
     <AssemblyName>DevDivPackagesDebugger_DoNotUse</AssemblyName>
@@ -12,6 +11,7 @@
     <RuntimeIdentifiers>win</RuntimeIdentifiers>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

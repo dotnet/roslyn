@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2713,7 +2714,7 @@ class C
 
     static void M()
     {
-        IComparable<long> c = Goo<long>(1, 1);
+        IComparable<long> c = Goo(1, (long)1);
     }
 }
 ");
@@ -3938,7 +3939,7 @@ class C
 {
     public void M()
     {
-        ((1, ""hello"")).ToString();
+        (1, ""hello"").ToString();
     }
 }";
 
@@ -3965,7 +3966,7 @@ class C
 {
     public void M()
     {
-        ((a: 1, b: ""hello"")).ToString();
+        (a: 1, b: ""hello"").ToString();
     }
 }";
 
@@ -3991,7 +3992,7 @@ class C
 {
     public void M()
     {
-        (((int a, string b))((c: 1, d: ""hello""))).a.ToString();
+        (((int a, string b))(c: 1, d: ""hello"")).a.ToString();
     }
 }";
 
@@ -4537,6 +4538,30 @@ class C
     bool M<T>(out T x) 
     {
         return M(out x) || M(out x);
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(24791, "https://github.com/dotnet/roslyn/issues/24791")]
+        public async Task InlineVariableDoesNotAddUnnecessaryCast()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        var [||]o = M();
+        if (!o) throw null;
+        throw null;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        if (!M()) throw null;
+        throw null;
     }
 }");
         }

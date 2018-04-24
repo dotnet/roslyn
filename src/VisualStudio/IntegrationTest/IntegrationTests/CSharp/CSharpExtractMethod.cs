@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -37,7 +38,7 @@ public class Program
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void SimpleExtractMethod()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -78,7 +79,7 @@ public class Program
     }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractViaCodeAction()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -113,7 +114,7 @@ public class Program
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
         }
 
-        [Fact(Skip= "https://github.com/dotnet/roslyn/issues/20382"), Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractViaCodeActionWithMoveLocal()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -131,7 +132,7 @@ public class Program
     public int Method()
     {
         Console.WriteLine(""Hello World"");
-        var result = [|NewMethod|]();
+        int result = [|NewMethod|]();
         return result;
     }
 

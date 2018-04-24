@@ -15,16 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncSpillTests : EmitMetadataTestBase
     {
-        private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
-
         public CodeGenAsyncSpillTests()
         {
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
-            references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: references, options: options);
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, references: references, options: options);
         }
 
         [Fact]
@@ -944,7 +941,7 @@ public class C
     }
 }
 ";
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -959,7 +956,7 @@ public class C
                 }, module.GetFieldNames("C.<F>d__3"));
             });
 
-            CompileAndVerify(source, additionalRefs: s_asyncRefs, verify: Verification.Passes, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompileAndVerify(source, verify: Verification.Passes, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
              {
                  AssertEx.Equal(new[]
                  {
@@ -2419,7 +2416,7 @@ class Driver
             CompileAndVerify(source, expected);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void SpillArglist()
         {
             var source = @"

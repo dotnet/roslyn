@@ -263,6 +263,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzing &apos;{0}&apos;.
+        /// </summary>
+        internal static string Analyzing_0 {
+            get {
+                return ResourceManager.GetString("Analyzing_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Applying remove suppressions fix....
         /// </summary>
         internal static string Applying_remove_suppressions_fix {
@@ -935,6 +944,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Field preferences:.
+        /// </summary>
+        internal static string Field_preferences_colon {
+            get {
+                return ResourceManager.GetString("Field_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File already exists.
         /// </summary>
         internal static string File_already_exists {
@@ -1227,6 +1245,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Live code analysis.
+        /// </summary>
+        internal static string Live_code_analysis {
+            get {
+                return ResourceManager.GetString("Live_code_analysis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Location:.
         /// </summary>
         internal static string Location_colon {
@@ -1236,20 +1263,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Manage naming styles.
+        /// </summary>
+        internal static string Manage_naming_styles {
+            get {
+                return ResourceManager.GetString("Manage_naming_styles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Manage specifications.
         /// </summary>
         internal static string Manage_specifications {
             get {
                 return ResourceManager.GetString("Manage_specifications", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Manage styles.
-        /// </summary>
-        internal static string Manage_styles {
-            get {
-                return ResourceManager.GetString("Manage_styles", resourceCulture);
             }
         }
         
@@ -1786,6 +1813,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer readonly.
+        /// </summary>
+        internal static string Prefer_readonly {
+            get {
+                return ResourceManager.GetString("Prefer_readonly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer simple &apos;default&apos; expression.
         /// </summary>
         internal static string Prefer_simple_default_expression {
@@ -2206,6 +2242,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Snippet Command Handler.
+        /// </summary>
+        internal static string Snippet_Command_Handler {
+            get {
+                return ResourceManager.GetString("Snippet_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Some naming rules are incomplete. Please complete or remove them..
         /// </summary>
         internal static string Some_naming_rules_are_incomplete_Please_complete_or_remove_them {
@@ -2301,6 +2346,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Symbol_Specification_Title_colon {
             get {
                 return ResourceManager.GetString("Symbol_Specification_Title_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sync Class View Command Handler.
+        /// </summary>
+        internal static string Sync_Class_View_Command_Handler {
+            get {
+                return ResourceManager.GetString("Sync_Class_View_Command_Handler", resourceCulture);
             }
         }
         

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact, WorkItem(15925, "DevDiv_Projects/Roslyn")>
         Public Sub Semantic_StaticLocalDeclarationInSub()
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -48,7 +48,7 @@ System.Int32
 
         <Fact, WorkItem(15925, "DevDiv_Projects/Roslyn")>
         Public Sub Semantic_StaticLocalDeclarationInSubModule()
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -83,7 +83,7 @@ System.Int32
         Public Sub Semantic_StaticLocalDeclarationInFunction()
             'Using different Type as well
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -117,7 +117,7 @@ System.Int64
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub Semantic_StaticLocalDeclarationReferenceType()
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -157,7 +157,7 @@ System.String
         Public Sub Semantic_StaticLocalDeclarationUserDefinedClass()
             'With a user defined reference type (class) this should only initialize on initial invocation and then
             'increment each time
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">        
 Imports System
@@ -208,7 +208,7 @@ TestUDClass
         Public Sub Semantic_StaticLocalDeclaration_InGenericType()
             'Can declare in generic type, just not in generic method
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -243,7 +243,7 @@ End Class
         Public Sub Semantic_StaticLocalDeclaration_Keyword_NameClashInType()
             'declare Escaped identifier called static 
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
         <compilation>
             <file name="a.vb">
 Imports System
@@ -275,7 +275,7 @@ End Module
         <Fact()>
         Public Sub Semantic_StaticLocalDeclaration_Keyword_NameClashEscaped()
             'declare identifier and type called static both of which need to be escaped along with static
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -310,7 +310,7 @@ End Class
         <Fact()>
         Public Sub Semantic_StaticLocalDeclaration_Keyword_NameClash_Property_NoEscapingRequired()
             'declare Property called static doesnt need escaping because of preceding .
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -349,7 +349,7 @@ End Class
             Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
             Try
                 'Declare static local which is late bound
-                Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+                Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -398,7 +398,7 @@ After:5.5]]>)
         <Fact()>
         Public Sub Semantic_StaticLocalDeclaration_WithTypeCharacters()
             'Declare static local using type identifier        
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -461,7 +461,7 @@ End Module
         Public Sub Semantic_StaticLocalDeclaration_WithArrayTypes()
             'Declare static local with array types
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -501,7 +501,7 @@ End Module
         Public Sub Semantic_StaticLocalDeclaration_WithCollectionInitializer()
             'Declare static local using collection types / extension methods and the Add would be invoked each time,
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
         Imports System
@@ -541,7 +541,7 @@ End Namespace
         <Fact()>
         Public Sub Semantic_StaticLocalDeclaration_WithDim()
             'Declare static local in conjunction with an Dim keyword 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -603,7 +603,7 @@ End Module
         Public Sub Semantic_StaticLocalInTryCatchBlock()
             'The Use of Static Locals within Try/Catch/Finally Blocks
             'Simple Usage
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -665,7 +665,7 @@ End Module
         <Fact()>
         Public Sub Semantic_StaticLocalExceptionInInitialization()
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -804,7 +804,7 @@ Public Module Module1
 </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -863,7 +863,7 @@ End Module
 </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 2
 1
@@ -904,7 +904,7 @@ End Module
 </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             CompileAndVerify(compilationDef, expectedOutput:=<![CDATA[1
 2
 2]]>)
@@ -952,7 +952,7 @@ End Module
         Public Sub Semantic_SameNameInDifferentOverloads()
             'The Use of Static Locals within shared methods with same name as static local in each method
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -991,7 +991,7 @@ End Module
         Public Sub Semantic_SharedMethods()
             'The Use of Static Locals within shared methods with same name as static local in each method
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -1034,7 +1034,7 @@ End Class
         Public Sub Semantic_OverriddenMethod()
             'The Use of Static Locals in both a base and derived class with overridden method
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -1085,7 +1085,7 @@ End Class
         Public Sub Semantic_InheritenceConstructor()
             'The Use of Static Locals in both a base and derived class constructor - instance method
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 
@@ -1128,7 +1128,7 @@ End Class
         Public Sub Semantic_WithFields()
             'The Use of Static Locals within shared methods with same name as static local in each method
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 
@@ -1215,7 +1215,7 @@ End Module
         Public Sub Semantic_WithProperty()
             'The Use of Static Locals within shared methods with same name as static local in each method
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 
@@ -1302,7 +1302,7 @@ End Module
         Public Sub Semantic_InPropertySetter()
             'The Use of Static Locals within shared methods with same name as static local in each method
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 
@@ -1353,7 +1353,7 @@ End Module
         Public Sub Semantic_InConstructor()
             'The Use of Static Locals within Constructor
 
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 
@@ -1387,7 +1387,7 @@ End Module
         <Fact()>
         Public Sub Semantic_InSharedConstructor()
             'The Use of Static Locals within Shared Constructor - Only called Once
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -1417,7 +1417,7 @@ End Module
         <Fact()>
         Public Sub Semantic_InFinalizer()
             'The Use of Static Locals within Finalizer - No Problems
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 
@@ -1452,7 +1452,7 @@ End Class
         Public Sub Semantic_MaximumLength_StaticLocalIdentifier()
             'The Use of Static Locals with an identifier at maxmimum length to ensure functionality
             'works and generated backing field is correctly supported.
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 
@@ -1484,7 +1484,7 @@ End Module
         <Fact()>
         Public Sub Semantic_StaticLocalPartialClasses()
             'Ensure that the code generated field is correctly generated in Partial Class / Partial Private scenarios
-            Dim compilationDef = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilationDef = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -1550,7 +1550,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim treeModel = compilation.GetSemanticModel(tree)
@@ -1586,7 +1586,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim treeModel = compilation.GetSemanticModel(tree)
@@ -1618,7 +1618,7 @@ End Module
     </file>
     </compilation>
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             tree = compilation.SyntaxTrees(0)
             treeModel = compilation.GetSemanticModel(tree)
@@ -1654,7 +1654,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim treeModel = compilation.GetSemanticModel(tree)

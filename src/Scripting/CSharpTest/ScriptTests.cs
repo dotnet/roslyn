@@ -2,18 +2,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using System.IO;
-using System.Globalization;
-using System.Text;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.Scripting.Test;
 using KeyValuePair = Roslyn.Utilities.KeyValuePair;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
@@ -66,6 +66,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             var state = await CSharpScript.RunAsync("1 + 2", globals: new ScriptTests());
             var compilation = state.Script.GetCompilation();
             Assert.Equal(state.Script.SourceText, compilation.SyntaxTrees.First().GetText());
+        }
+
+        [Fact]
+        public void TestEmit_PortablePdb() => TestEmit(DebugInformationFormat.PortablePdb);
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void TestEmit_WindowsPdb() => TestEmit(DebugInformationFormat.Pdb);
+
+        private void TestEmit(DebugInformationFormat format)
+        {
+            var script = CSharpScript.Create("1 + 2", options: ScriptOptions.Default.WithEmitDebugInformation(true));
+            var compilation = script.GetCompilation();
+            var emitOptions = ScriptBuilder.GetEmitOptions(emitDebugInformation: true).WithDebugInformationFormat(format);
+
+            var peStream = new MemoryStream();
+            var pdbStream = new MemoryStream();
+            var emitResult = ScriptBuilder.Emit(peStream, pdbStream, compilation, emitOptions, cancellationToken: default);
+
+            peStream.Position = 0;
+            pdbStream.Position = 0;
+
+            PdbValidation.ValidateDebugDirectory(
+                peStream, 
+                portablePdbStreamOpt: (format == DebugInformationFormat.PortablePdb) ? pdbStream : null, 
+                pdbPath: compilation.AssemblyName + ".pdb", 
+                hashAlgorithm: default, 
+                hasEmbeddedPdb: false, 
+                isDeterministic: false);
         }
 
         [Fact]

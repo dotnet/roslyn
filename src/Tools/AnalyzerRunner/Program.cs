@@ -66,7 +66,7 @@ namespace AnalyzerRunner
             };
             using (MSBuildWorkspace workspace = MSBuildWorkspace.Create(properties))
             {
-                Solution solution = await workspace.OpenSolutionAsync(options.SolutionPath, cancellationToken).ConfigureAwait(false);
+                Solution solution = await workspace.OpenSolutionAsync(options.SolutionPath, cancellationToken: cancellationToken).ConfigureAwait(false);
                 var projectIds = solution.ProjectIds;
 
                 foreach (var projectId in projectIds)
