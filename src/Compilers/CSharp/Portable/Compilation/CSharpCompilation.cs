@@ -3377,7 +3377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override bool ShouldCheckTypeForMembers(MergedTypeDeclaration current)
             {
-                foreach (var typeDecl in current.Declarations)
+                foreach (SingleTypeDeclaration typeDecl in current.Declarations)
                 {
                     if (typeDecl.MemberNames.Contains(_name))
                     {
