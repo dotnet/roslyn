@@ -10,7 +10,7 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpe
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyles
 {
-    public partial class EditorConfigNamingStyleParserTests
+    public class EditorConfigNamingStyleParserTests
     {
         [Fact]
         public static void TestPascalCaseRule()

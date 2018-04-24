@@ -8,30 +8,37 @@ using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyles
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 {
-    public partial class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public sealed class NamingStylesTestOptionSets
     {
-        private IDictionary<OptionKey, object> ClassNamesArePascalCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), ClassNamesArePascalCaseOption());
+        private readonly string languageName;
 
-        private IDictionary<OptionKey, object> MethodNamesArePascalCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), MethodNamesArePascalCaseOption());
+        public NamingStylesTestOptionSets(string languageName)
+        {
+            this.languageName = languageName;
+        }
 
-        private IDictionary<OptionKey, object> ParameterNamesAreCamelCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), ParameterNamesAreCamelCaseOption());
+        public IDictionary<OptionKey, object> ClassNamesArePascalCase =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ClassNamesArePascalCaseOption());
 
-        private IDictionary<OptionKey, object> LocalNamesAreCamelCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), LocalNamesAreCamelCaseOption());
+        public IDictionary<OptionKey, object> MethodNamesArePascalCase =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), MethodNamesArePascalCaseOption());
 
-        private IDictionary<OptionKey, object> PropertyNamesArePascalCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), PropertyNamesArePascalCaseOption());
+        public IDictionary<OptionKey, object> ParameterNamesAreCamelCase =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ParameterNamesAreCamelCaseOption());
 
-        private IDictionary<OptionKey, object> InterfaceNamesStartWithI =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), InterfacesNamesStartWithIOption());
+        public IDictionary<OptionKey, object> LocalNamesAreCamelCase =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), LocalNamesAreCamelCaseOption());
 
-        private IDictionary<OptionKey, object> ConstantsAreUpperCase =>
-            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), ConstantsAreUpperCaseOption());
+        public IDictionary<OptionKey, object> PropertyNamesArePascalCase =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), PropertyNamesArePascalCaseOption());
+
+        public IDictionary<OptionKey, object> InterfaceNamesStartWithI =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), InterfacesNamesStartWithIOption());
+
+        public IDictionary<OptionKey, object> ConstantsAreUpperCase =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ConstantsAreUpperCaseOption());
 
         private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
