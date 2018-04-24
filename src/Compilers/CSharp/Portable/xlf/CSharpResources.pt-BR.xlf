@@ -2,6 +2,111 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../CSharpResources.resx">
     <body>
+      <trans-unit id="ERR_BadPatternExpression">
+        <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
+        <target state="new">Invalid operand for pattern match; value required, but found '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ConstantPatternNamedUnderscore">
+        <source>A constant named '_' cannot be used as a pattern.</source>
+        <target state="new">A constant named '_' cannot be used as a pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DeconstructParameterNameMismatch">
+        <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
+        <target state="new">The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultPattern">
+        <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
+        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
+        <source>An expression tree may not contain a switch expression.</source>
+        <target state="new">An expression tree may not contain a switch expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureIsExperimental">
+        <source>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</source>
+        <target state="new">Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
+        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InferredRecursivePatternType">
+        <source>The type 'var' is not permitted in recursive patterns. If you want the type inferred, just omit it.</source>
+        <target state="new">The type 'var' is not permitted in recursive patterns. If you want the type inferred, just omit it.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IsPatternImpossible">
+        <source>An expression of type '{0}' can never match the provided pattern.</source>
+        <target state="new">An expression of type '{0}' can never match the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MissingPattern">
+        <source>Pattern missing</source>
+        <target state="new">Pattern missing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyPatternNameMissing">
+        <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0}}}'</source>
+        <target state="new">A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0}}}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleElementPositionalPatternRequiresType">
+        <source>A single-element deconstruct pattern requires a type before the open parenthesis.</source>
+        <target state="new">A single-element deconstruct pattern requires a type before the open parenthesis.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchArmSubsumed">
+        <source>The pattern has already been handled by a previous arm of the switch expression.</source>
+        <target state="new">The pattern has already been handled by a previous arm of the switch expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchCaseSubsumed">
+        <source>The switch case has already been handled by a previous case.</source>
+        <target state="new">The switch case has already been handled by a previous case.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchExpressionNoBestType">
+        <source>No best type was found for the switch expression.</source>
+        <target state="new">No best type was found for the switch expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
+        <source>Parentheses are required around the switch governing expression.</source>
+        <target state="new">Parentheses are required around the switch governing expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TupleElementNameMismatch">
+        <source>The name '{0}' does not identify tuple element '{1}'.</source>
+        <target state="new">The name '{0}' does not identify tuple element '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnderscoreDeclaredAndDiscardPattern">
+        <source>The discard pattern '_' cannot be used where '{0}' is in scope.</source>
+        <target state="new">The discard pattern '_' cannot be used where '{0}' is in scope.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_VarMayNotBindToType">
+        <source>The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to '{0}' here.</source>
+        <target state="new">The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to '{0}' here.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_WrongNumberOfSubpatterns">
+        <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
+        <target state="new">Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRecursivePatterns">
+        <source>recursive patterns</source>
+        <target state="new">recursive patterns</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_NULL">
         <source>&lt;null&gt;</source>
         <target state="translated">&lt;nulo&gt;</target>
@@ -370,6 +475,46 @@
       <trans-unit id="IDS_FeatureTypeVariance">
         <source>type variance</source>
         <target state="translated">variação de tipo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
+        <source>The given expression always matches the provided constant.</source>
+        <target state="new">The given expression always matches the provided constant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant_Title">
+        <source>The given expression always matches the provided constant.</source>
+        <target state="new">The given expression always matches the provided constant.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionNeverMatchesPattern">
+        <source>The given expression never matches the provided pattern.</source>
+        <target state="new">The given expression never matches the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GivenExpressionNeverMatchesPattern_Title">
+        <source>The given expression never matches the provided pattern.</source>
+        <target state="new">The given expression never matches the provided pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsTypeNamedUnderscore">
+        <source>The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</source>
+        <target state="new">The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsTypeNamedUnderscore_Title">
+        <source>Do not use '_' to refer to the type in an is-type expression.</source>
+        <target state="new">Do not use '_' to refer to the type in an is-type expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustive">
+        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
+        <target state="new">The switch expression does not handle all possible inputs (it is not exhaustive).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
+        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
+        <target state="new">The switch expression does not handle all possible inputs (it is not exhaustive).</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -5383,11 +5528,6 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
         <target state="translated">Tipo de destino inválido para /target: deve especificar "exe", "winexe", "library" ou "module"</target>
         <note />
       </trans-unit>
-      <trans-unit id="FTL_InputFileNameTooLong">
-        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">Nome do arquivo "{0}" está vazio, contém caracteres inválidos, tem uma especificação de unidade sem um caminho absoluto ou é muito longo</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NoConfigNotOnCommandLine">
         <source>Ignoring /noconfig option because it was specified in a response file</source>
         <target state="translated">Ignorando a opção /noconfig porque ela foi especificada em um arquivo de resposta</target>
@@ -8710,149 +8850,14 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="new">Invalid object creation</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FeatureIsExperimental">
-        <source>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</source>
-        <target state="new">Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</target>
+      <trans-unit id="FTL_InvalidInputFileName">
+        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
+        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadPatternExpression">
-        <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
-        <target state="new">Invalid operand for pattern match; value required, but found '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SwitchCaseSubsumed">
-        <source>The switch case has already been handled by a previous case.</source>
-        <target state="new">The switch case has already been handled by a previous case.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SwitchArmSubsumed">
-        <source>The pattern has already been handled by a previous arm of the switch expression.</source>
-        <target state="new">The pattern has already been handled by a previous arm of the switch expression.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MissingPattern">
-        <source>Pattern missing</source>
-        <target state="new">Pattern missing</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureRecursivePatterns">
-        <source>recursive patterns</source>
-        <target state="new">recursive patterns</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InferredRecursivePatternType">
-        <source>The type 'var' is not permitted in recursive patterns. If you want the type inferred, just omit it.</source>
-        <target state="new">The type 'var' is not permitted in recursive patterns. If you want the type inferred, just omit it.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_WrongNumberOfSubpatterns">
-        <source>Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</source>
-        <target state="new">Matching the tuple type '{0}' requires '{1}' subpatterns, but '{2}' subpatterns are present.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PropertyPatternNameMissing">
-        <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0}}}'</source>
-        <target state="new">A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0}}}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultPattern">
-        <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
-        <target state="new">A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SwitchExpressionNoBestType">
-        <source>No best type was found for the switch expression.</source>
-        <target state="new">No best type was found for the switch expression.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SingleElementPositionalPatternRequiresType">
-        <source>A single-element deconstruct pattern requires a type before the open parenthesis.</source>
-        <target state="new">A single-element deconstruct pattern requires a type before the open parenthesis.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_VarMayNotBindToType">
-        <source>The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to '{0}' here.</source>
-        <target state="new">The syntax 'var' for a pattern is not permitted to bind to a type, but it binds to '{0}' here.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_SwitchExpressionNotExhaustive">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="new">The switch expression does not handle all possible inputs (it is not exhaustive).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
-        <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
-        <target state="new">The switch expression does not handle all possible inputs (it is not exhaustive).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnderscoreDeclaredAndDiscardPattern">
-        <source>The discard pattern '_' cannot be used where '{0}' is in scope.</source>
-        <target state="new">The discard pattern '_' cannot be used where '{0}' is in scope.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ConstantPatternNamedUnderscore">
-        <source>A constant named '_' cannot be used as a pattern.</source>
-        <target state="new">A constant named '_' cannot be used as a pattern.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_IsTypeNamedUnderscore">
-        <source>The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</source>
-        <target state="new">The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_IsTypeNamedUnderscore_Title">
-        <source>Do not use '_' to refer to the type in an is-type expression.</source>
-        <target state="new">Do not use '_' to refer to the type in an is-type expression.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExpressionTreeContainsSwitchExpression">
-        <source>An expression tree may not contain a switch expression.</source>
-        <target state="new">An expression tree may not contain a switch expression.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
-        <source>Parentheses are required around the switch governing expression.</source>
-        <target state="new">Parentheses are required around the switch governing expression.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TupleElementNameMismatch">
-        <source>The name '{0}' does not identify tuple element '{1}'.</source>
-        <target state="new">The name '{0}' does not identify tuple element '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DeconstructParameterNameMismatch">
-        <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
-        <target state="new">The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_IsPatternImpossible">
-        <source>An expression of type '{0}' can never match the provided pattern.</source>
-        <target state="new">An expression of type '{0}' can never match the provided pattern.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_GivenExpressionNeverMatchesPattern">
-        <source>The given expression never matches the provided pattern.</source>
-        <target state="new">The given expression never matches the provided pattern.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_GivenExpressionNeverMatchesPattern_Title">
-        <source>The given expression never matches the provided pattern.</source>
-        <target state="new">The given expression never matches the provided pattern.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
-        <source>The given expression always matches the provided constant.</source>
-        <target state="new">The given expression always matches the provided constant.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant_Title">
-        <source>The given expression always matches the provided constant.</source>
-        <target state="new">The given expression always matches the provided constant.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FeatureNotAvailableInVersion8_0">
-        <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
+      <trans-unit id="ERR_CantUseInOrOutInArglist">
+        <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
+        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
         <note />
       </trans-unit>
     </body>

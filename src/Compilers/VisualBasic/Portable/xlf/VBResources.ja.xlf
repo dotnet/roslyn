@@ -247,11 +247,6 @@
         <target state="translated">オプション /win32manifest が無視されました</target>
         <note />
       </trans-unit>
-      <trans-unit id="FTL_InputFileNameTooLong">
-        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">ファイル名 '{0}' は、空である、無効な文字を含んでいる、絶対パスが指定されていないドライブ指定がある、または長すぎるかのいずれかです。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InvalidInNamespace">
         <source>Statement is not valid in a namespace.</source>
         <target state="translated">名前空間では有効でないステートメントです。</target>
@@ -9084,6 +9079,11 @@
       <trans-unit id="FEATURE_InterpolatedStrings">
         <source>interpolated strings</source>
         <target state="new">interpolated strings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FTL_InvalidInputFileName">
+        <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
+        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
         <note />
       </trans-unit>
     </body>

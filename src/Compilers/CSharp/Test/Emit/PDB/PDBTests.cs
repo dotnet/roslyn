@@ -8859,7 +8859,7 @@ class Program
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS2021: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                    Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("test\\?.pdb").WithLocation(1, 1));
+                    Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1));
             }
         }
     }
