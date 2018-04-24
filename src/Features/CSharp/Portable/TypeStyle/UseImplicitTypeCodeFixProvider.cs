@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             foreach (var diagnostic in diagnostics)
             {
                 var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                HandleDeclaration(editor, node);
+                ReplaceTypeWithVar(editor, node);
             }
 
             return SpecializedTasks.EmptyTask;
         }
 
-        internal static void HandleDeclaration(SyntaxEditor editor, SyntaxNode node)
+        internal static void ReplaceTypeWithVar(SyntaxEditor editor, SyntaxNode node)
         {
             var implicitType = SyntaxFactory.IdentifierName("var")
                                             .WithTriviaFrom(node);
