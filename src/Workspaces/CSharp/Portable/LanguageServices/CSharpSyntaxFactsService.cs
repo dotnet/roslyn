@@ -109,35 +109,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var csharpTree = syntaxTree as SyntaxTree;
-            if (csharpTree == null)
+            if (syntaxTree == null)
             {
                 return false;
             }
 
-            return csharpTree.IsInInactiveRegion(position, cancellationToken);
+            return syntaxTree.IsInInactiveRegion(position, cancellationToken);
         }
 
         public bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var csharpTree = syntaxTree as SyntaxTree;
-            if (csharpTree == null)
+            if (syntaxTree == null)
             {
                 return false;
             }
 
-            return csharpTree.IsInNonUserCode(position, cancellationToken);
+            return syntaxTree.IsInNonUserCode(position, cancellationToken);
         }
 
         public bool IsEntirelyWithinStringOrCharOrNumericLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var csharpTree = syntaxTree as SyntaxTree;
-            if (csharpTree == null)
+            if (syntaxTree == null)
             {
                 return false;
             }
 
-            return csharpTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken);
+            return syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken);
         }
 
         public bool IsDirective(SyntaxNode node)
