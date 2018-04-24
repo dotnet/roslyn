@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class FixedSizeBufferTests : EmitMetadataTestBase
     {
         [Fact]
+        [WorkItem(26351, "https://github.com/dotnet/roslyn/pull/26351")]
         public void NestedStructFixed()
         {
             var verifier = CompileAndVerify(@"
