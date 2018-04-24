@@ -471,7 +471,7 @@ class C
         }
 
         [WorkItem(25260, "https://github.com/dotnet/roslyn/issues/25260")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26115"), Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestNotWithDefaultLiteralInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
