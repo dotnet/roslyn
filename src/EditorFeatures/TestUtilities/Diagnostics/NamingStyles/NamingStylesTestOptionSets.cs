@@ -40,6 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         public IDictionary<OptionKey, object> ConstantsAreUpperCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), ConstantsAreUpperCaseOption());
 
+        public IDictionary<OptionKey, object> LocalsAreCamelCaseConstantsAreUpperCase =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), LocalsAreCamelCaseConstantsAreUpperCaseOption());
+
         private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
             return new Dictionary<OptionKey, object>
@@ -267,6 +270,60 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 ImmutableArray.Create(symbolSpecification),
                 ImmutableArray.Create(namingStyle),
                 ImmutableArray.Create(namingRule));
+
+            return info;
+        }
+
+        private static NamingStylePreferences LocalsAreCamelCaseConstantsAreUpperCaseOption()
+        {
+            var localsSymbolSpecification = new SymbolSpecification(
+                null,
+                "Locals",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
+                ImmutableArray<Accessibility>.Empty,
+                ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
+
+            var constLocalsSymbolSpecification = new SymbolSpecification(
+                null,
+                "Const Locals",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
+                ImmutableArray<Accessibility>.Empty,
+                ImmutableArray.Create(new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsConst)));
+
+            var camelCaseNamingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.CamelCase,
+                name: "Camel Case",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
+
+            var allUpperNamingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.AllUpper,
+                name: "All Upper",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
+
+            var localsCamelCaseNamingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = localsSymbolSpecification.ID,
+                NamingStyleID = camelCaseNamingStyle.ID,
+                EnforcementLevel = DiagnosticSeverity.Error
+            };
+
+            var constLocalsUpperCaseNamingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = constLocalsSymbolSpecification.ID,
+                NamingStyleID = allUpperNamingStyle.ID,
+                EnforcementLevel = DiagnosticSeverity.Error
+            };
+
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(localsSymbolSpecification, constLocalsSymbolSpecification),
+                ImmutableArray.Create(camelCaseNamingStyle, allUpperNamingStyle),
+                ImmutableArray.Create(constLocalsUpperCaseNamingRule, localsCamelCaseNamingRule));
 
             return info;
         }

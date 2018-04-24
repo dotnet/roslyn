@@ -436,5 +436,37 @@ end module", New TestParameters(options:=options.ConstantsAreUpperCase))
 end module", New TestParameters(options:=options.ConstantsAreUpperCase))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestCamelCaseLocalsUpperCaseConstants_ConstLocal() As Task
+            Await TestInRegularAndScriptAsync(
+"module C
+    sub M()
+        const [|PascalCase|] = 0
+    end sub
+end module",
+"module C
+    sub M()
+        const PASCALCASE = 0
+    end sub
+end module",
+                options:=options.LocalsAreCamelCaseConstantsAreUpperCase)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)>
+        Public Async Function TestCamelCaseLocalsUpperCaseConstants_NonConstLocal() As Task
+            Await TestInRegularAndScriptAsync(
+"module C
+    sub M()
+        dim [|PascalCase|] = 0
+    end sub
+end module",
+"module C
+    sub M()
+        dim pascalCase = 0
+    end sub
+end module",
+                options:=options.LocalsAreCamelCaseConstantsAreUpperCase)
+        End Function
+
     End Class
 End Namespace

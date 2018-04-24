@@ -656,6 +656,48 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocalsUpperCaseConstants_ConstLocal()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        const int [|PascalCase|] = 0;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        const int PASCALCASE = 0;
+    }
+}",
+                options: options.LocalsAreCamelCaseConstantsAreUpperCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocalsUpperCaseConstants_NonConstLocal()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int [|PascalCase|] = 0;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int pascalCase = 0;
+    }
+}",
+                options: options.LocalsAreCamelCaseConstantsAreUpperCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_InInterfaceWithImplicitImplementation()
         {
             await TestInRegularAndScriptAsync(
