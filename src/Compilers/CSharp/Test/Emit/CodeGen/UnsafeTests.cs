@@ -10350,7 +10350,7 @@ unsafe public struct FixedStruct
 {
   // Code size       20 (0x14)
   .maxstack  1
-  .locals init (pinned char*& V_0)
+  .locals init (pinned char& V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""char* FixedStruct.c""
   IL_0006:  ldflda     ""char FixedStruct.<c>e__FixedBuffer.FixedElementField""
@@ -10403,7 +10403,7 @@ unsafe public struct FixedStruct
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  .locals init (pinned char*& V_0)
+  .locals init (pinned char& V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""char* FixedStruct.c""
   IL_0006:  ldflda     ""char FixedStruct.<c>e__FixedBuffer.FixedElementField""
