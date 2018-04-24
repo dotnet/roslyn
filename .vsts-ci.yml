@@ -56,7 +56,7 @@ steps:
         /p:RoslynGitHubUserName=$(Roslyn.GitHubUserName) 
         /p:PB_PublishBlobFeedKey=$(PB_PublishBlobFeedKey) 
         /p:PublishStableVersions=false 
-        /p:VersionStampToPublish=prerelease'
+        /p:VersionStampToPublish=prerelease
     platform: '$(BuildPlatform)'
     configuration: '$(BuildConfiguration)'
     maximumCpuCount: true
