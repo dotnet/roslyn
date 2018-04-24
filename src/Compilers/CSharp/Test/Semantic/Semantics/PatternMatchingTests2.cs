@@ -1911,5 +1911,75 @@ class Blah
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C<T>", "int").WithLocation(5, 21)
                 );
         }
+
+        [Fact]
+        [WorkItem(20724, "https://github.com/dotnet/roslyn/issues/20724")]
+        public void SpeculateWithNameConflict01()
+        {
+            var source =
+@"public class Class1
+    {
+        int i = 1;
+
+        public override int GetHashCode() => 1;
+        public override bool Equals(object obj)
+        {
+            return obj is global::Class1 @class && this.i == @class.i;
+        }
+    }
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
+            var returnStatement = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single();
+            Assert.Equal("return obj is global::Class1 @class && this.i == @class.i;", returnStatement.ToString());
+            var modifiedReturnStatement = (ReturnStatementSyntax)new RemoveAliasQual().Visit(returnStatement);
+            Assert.Equal("return obj is Class1 @class && this.i == @class.i;", modifiedReturnStatement.ToString());
+            var gotModel = model.TryGetSpeculativeSemanticModel(returnStatement.Location.SourceSpan.Start, modifiedReturnStatement, out var speculativeModel);
+            Assert.True(gotModel);
+            Assert.NotNull(speculativeModel);
+            var typeInfo = speculativeModel.GetTypeInfo(modifiedReturnStatement.Expression);
+            Assert.Equal(SpecialType.System_Boolean, typeInfo.Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(20724, "https://github.com/dotnet/roslyn/issues/20724")]
+        public void SpeculateWithNameConflict02()
+        {
+            var source =
+@"public class Class1
+    {
+        public override int GetHashCode() => 1;
+        public override bool Equals(object obj)
+        {
+            return obj is global::Class1 @class;
+        }
+    }
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
+            var returnStatement = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single();
+            Assert.Equal("return obj is global::Class1 @class;", returnStatement.ToString());
+            var modifiedReturnStatement = (ReturnStatementSyntax)new RemoveAliasQual().Visit(returnStatement);
+            Assert.Equal("return obj is Class1 @class;", modifiedReturnStatement.ToString());
+            var gotModel = model.TryGetSpeculativeSemanticModel(returnStatement.Location.SourceSpan.Start, modifiedReturnStatement, out var speculativeModel);
+            Assert.True(gotModel);
+            Assert.NotNull(speculativeModel);
+            var typeInfo = speculativeModel.GetTypeInfo(modifiedReturnStatement.Expression);
+            Assert.Equal(SpecialType.System_Boolean, typeInfo.Type.SpecialType);
+        }
+
+        class RemoveAliasQual : CSharpSyntaxRewriter
+        {
+            public override SyntaxNode VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
+            {
+                return node.Name;
+            }
+        }
     }
 }

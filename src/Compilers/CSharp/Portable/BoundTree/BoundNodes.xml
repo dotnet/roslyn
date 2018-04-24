@@ -779,13 +779,13 @@
     <Field Name="Label" Type="GeneratedLabelSymbol" />
   </Node>
 
-  <Node Name="BoundPatternSwitchStatement" Base="BoundStatement">
+  <Node Name="BoundSwitchStatement" Base="BoundStatement">
     <Field Name="Expression" Type="BoundExpression"/>
 
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
-    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundPatternSwitchSection&gt;"/>
+    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>
     <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="DefaultLabel" Type="BoundPatternSwitchLabel" Null="allow"/>
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
@@ -1178,7 +1178,7 @@
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundPatternSwitchSection" Base="BoundStatementList">
+  <Node Name="BoundSwitchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundPatternSwitchLabel&gt;"/>
   </Node>

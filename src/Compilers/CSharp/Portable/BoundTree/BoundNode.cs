@@ -304,10 +304,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
+            public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
             {
                 AddAll(node.InnerLocals);
-                base.VisitPatternSwitchStatement(node);
+                base.VisitSwitchStatement(node);
                 RemoveAll(node.InnerLocals);
                 return null;
             }
@@ -320,10 +320,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitPatternSwitchSection(BoundPatternSwitchSection node)
+            public override BoundNode VisitSwitchSection(BoundSwitchSection node)
             {
                 AddAll(node.Locals);
-                base.VisitPatternSwitchSection(node);
+                base.VisitSwitchSection(node);
                 RemoveAll(node.Locals);
                 return null;
             }

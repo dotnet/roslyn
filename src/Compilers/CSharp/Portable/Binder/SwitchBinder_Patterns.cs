@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     // We use a subclass of SwitchBinder for the pattern-matching switch statement until we have completed
     // a totally compatible implementation of switch that also accepts pattern-matching constructs.
-    internal partial class PatternSwitchBinder : LocalScopeBinder
+    internal partial class SwitchBinder : LocalScopeBinder
     {
-        internal static PatternSwitchBinder Create(Binder next, SwitchStatementSyntax switchSyntax)
+        internal static SwitchBinder Create(Binder next, SwitchStatementSyntax switchSyntax)
         {
-            return new PatternSwitchBinder(next, switchSyntax);
+            return new SwitchBinder(next, switchSyntax);
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundSwitchGoverningExpression = SwitchGoverningExpression;
             diagnostics.AddRange(SwitchGoverningDiagnostics);
 
-            ImmutableArray<BoundPatternSwitchSection> switchSections = BindPatternSwitchSections(originalBinder, diagnostics, out BoundPatternSwitchLabel defaultLabel);
+            ImmutableArray<BoundSwitchSection> switchSections = BindPatternSwitchSections(originalBinder, diagnostics, out BoundPatternSwitchLabel defaultLabel);
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
             ImmutableArray<LocalFunctionSymbol> functions = GetDeclaredLocalFunctionsForScope(node);
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so that flow analysis will see that some of the cases may be unreachable.
             decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(boundSwitchGoverningExpression);
 
-            return new BoundPatternSwitchStatement(
+            return new BoundSwitchStatement(
                 syntax: node,
                 expression: boundSwitchGoverningExpression,
                 innerLocals: locals,
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckSwitchErrors(
             SwitchStatementSyntax node,
             BoundExpression boundSwitchGoverningExpression,
-            ref ImmutableArray<BoundPatternSwitchSection> switchSections,
+            ref ImmutableArray<BoundSwitchSection> switchSections,
             BoundDecisionDag decisionDag,
             DiagnosticBag diagnostics)
         {
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var sectionBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance(switchSections.Length);
+            var sectionBuilder = ArrayBuilder<BoundSwitchSection>.GetInstance(switchSections.Length);
             foreach (var oldSection in switchSections)
             {
                 var labelBuilder = ArrayBuilder<BoundPatternSwitchLabel>.GetInstance(oldSection.SwitchLabels.Length);
@@ -155,17 +155,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind the pattern switch labels.
         /// </summary>
-        private ImmutableArray<BoundPatternSwitchSection> BindPatternSwitchSections(
+        private ImmutableArray<BoundSwitchSection> BindPatternSwitchSections(
             Binder originalBinder,
             DiagnosticBag diagnostics,
             out BoundPatternSwitchLabel defaultLabel)
         {
             // Bind match sections
-            var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance(SwitchSyntax.Sections.Count);
+            var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundSwitchSection>.GetInstance(SwitchSyntax.Sections.Count);
             defaultLabel = null;
             foreach (SwitchSectionSyntax sectionSyntax in SwitchSyntax.Sections)
             {
-                BoundPatternSwitchSection section = BindPatternSwitchSection(sectionSyntax, originalBinder, ref defaultLabel, diagnostics);
+                BoundSwitchSection section = BindPatternSwitchSection(sectionSyntax, originalBinder, ref defaultLabel, diagnostics);
                 boundPatternSwitchSectionsBuilder.Add(section);
             }
 
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind the pattern switch section.
         /// </summary>
-        private BoundPatternSwitchSection BindPatternSwitchSection(
+        private BoundSwitchSection BindPatternSwitchSection(
             SwitchSectionSyntax node,
             Binder originalBinder,
             ref BoundPatternSwitchLabel defaultLabel,
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatementsBuilder.Add(sectionBinder.BindStatement(statement, diagnostics));
             }
 
-            return new BoundPatternSwitchSection(node, sectionBinder.GetDeclaredLocalsForScope(node), boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
+            return new BoundSwitchSection(node, sectionBinder.GetDeclaredLocalsForScope(node), boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
         }
 
         private BoundPatternSwitchLabel BindPatternSwitchSectionLabel(

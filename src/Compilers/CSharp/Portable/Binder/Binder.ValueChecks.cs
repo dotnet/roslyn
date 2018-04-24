@@ -2725,8 +2725,8 @@ moreArguments:
 //                case BoundKind.BreakStatement:
 //                case BoundKind.LocalFunctionStatement:
 //                case BoundKind.ContinueStatement:
-//                case BoundKind.PatternSwitchStatement:
-//                case BoundKind.PatternSwitchSection:
+//                case BoundKind.SwitchStatement:
+//                case BoundKind.SwitchSection:
 //                case BoundKind.PatternSwitchLabel:
 //                case BoundKind.IfStatement:
 //                case BoundKind.DoStatement:
