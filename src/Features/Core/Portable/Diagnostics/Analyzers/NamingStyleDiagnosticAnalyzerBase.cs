@@ -28,10 +28,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         // Applicable SymbolKind list is limited due to https://github.com/dotnet/roslyn/issues/8753. 
-        // We would prefer to respond to the names of all symbols.
+        // Locals and fields are handled by SupportedSyntaxKinds for now.
         private static readonly ImmutableArray<SymbolKind> _symbolKinds = ImmutableArray.Create(
             SymbolKind.Event,
-            SymbolKind.Field,
             SymbolKind.Method,
             SymbolKind.NamedType,
             SymbolKind.Namespace,
