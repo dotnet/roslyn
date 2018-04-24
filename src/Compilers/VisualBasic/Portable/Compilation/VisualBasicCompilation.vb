@@ -2702,7 +2702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Return true if there Is a source declaration symbol name that meets given predicate.
+        ''' Return true if there is a source declaration symbol name that meets given predicate.
         ''' </summary>
         Public Overrides Function ContainsSymbolsWithName(predicate As Func(Of String, Boolean), Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As Boolean
             If predicate Is Nothing Then
@@ -2732,9 +2732,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Return true if there Is a source declaration symbol name that matches the provided name.
+        ''' Return true if there is a source declaration symbol name that matches the provided name.
         ''' This may be faster than <see cref="ContainsSymbolsWithName(Func(Of String, Boolean), SymbolFilter, CancellationToken)"/>
-        ''' when predicate Is just a simple string check.
+        ''' when predicate is just a simple string check.
         ''' </summary>
         Friend Overrides Function ContainsSymbolsWithName(name As String, Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As Boolean
             If name Is Nothing Then

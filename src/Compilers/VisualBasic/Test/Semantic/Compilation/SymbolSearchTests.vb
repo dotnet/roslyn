@@ -18,6 +18,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Assert.Throws(Of ArgumentException)(Sub()
                                                     Dim compilation = GetTestCompilation()
+                                                    compilation.ContainsSymbolsWithName("", SymbolFilter.None)
+                                                End Sub)
+
+            Assert.Throws(Of ArgumentException)(Sub()
+                                                    Dim compilation = GetTestCompilation()
                                                     compilation.GetSymbolsWithName("", SymbolFilter.None)
                                                 End Sub)
         End Sub
@@ -184,23 +189,25 @@ End Enum
         End Sub
 
         Private Shared Sub TestName(compilation As VisualBasicCompilation, name As String, includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean, count As Integer)
-            Dim filter = SymbolFilter.None
-            filter = If(includeNamespace, filter Or SymbolFilter.Namespace, filter)
-            filter = If(includeType, filter Or SymbolFilter.Type, filter)
-            filter = If(includeMember, filter Or SymbolFilter.Member, filter)
+            Dim filter = ComputeFilter(includeNamespace, includeType, includeMember)
 
             Assert.Equal(count > 0, compilation.ContainsSymbolsWithName(name, filter))
             Assert.Equal(count, compilation.GetSymbolsWithName(name, filter).Count())
         End Sub
 
         Private Shared Sub TestPredicate(compilation As VisualBasicCompilation, predicate As Func(Of String, Boolean), includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean, count As Integer)
-            Dim filter = SymbolFilter.None
-            filter = If(includeNamespace, filter Or SymbolFilter.Namespace, filter)
-            filter = If(includeType, filter Or SymbolFilter.Type, filter)
-            filter = If(includeMember, filter Or SymbolFilter.Member, filter)
+            Dim filter = ComputeFilter(includeNamespace, includeType, includeMember)
 
             Assert.Equal(count > 0, compilation.ContainsSymbolsWithName(predicate, filter))
             Assert.Equal(count, compilation.GetSymbolsWithName(predicate, filter).Count())
         End Sub
+
+        Private Shared Function ComputeFilter(includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean) As SymbolFilter
+            Dim filter = SymbolFilter.None
+            filter = If(includeNamespace, filter Or SymbolFilter.Namespace, filter)
+            filter = If(includeType, filter Or SymbolFilter.Type, filter)
+            filter = If(includeMember, filter Or SymbolFilter.Member, filter)
+            Return filter
+        End Function
     End Class
 End Namespace
