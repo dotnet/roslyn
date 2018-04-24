@@ -199,7 +199,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         Expression: 
           IFieldReferenceOperation: System.String Class.x (OperationKind.FieldReference, Type: System.String) (Syntax: 'x')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'x')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'x')
         Alignment: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
         FormatString: 
@@ -211,7 +211,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         Expression: 
           IFieldReferenceOperation: System.Int32 Class.y (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'y')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'y')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'y')
         Alignment: 
           null
         FormatString: 
@@ -260,7 +260,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         Expression: 
           IFieldReferenceOperation: System.String Class.x (OperationKind.FieldReference, Type: System.String) (Syntax: 'x')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'x')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'x')
         Alignment: 
           IFieldReferenceOperation: System.Int32 Class.y (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'y')
             Instance Receiver: 
@@ -312,7 +312,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         Expression: 
           IInvocationOperation ( System.String Class.M2(System.Int32 z)) (OperationKind.Invocation, Type: System.String) (Syntax: 'M2(y)')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'M2')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'M2')
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: null) (Syntax: 'y')
                   ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'y')
@@ -367,7 +367,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         Expression: 
           IInvocationOperation ( System.Int32 Class.M2(System.String z)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M2($""{y}"")')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'M2')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'M2')
             Arguments(1):
                 IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: null) (Syntax: '$""{y}""')
                   IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{y}""')

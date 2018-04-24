@@ -946,7 +946,7 @@ Block[B1] - Block
           Value: 
             IInvocationOperation ( System.IDisposable P.GetDisposable()) (OperationKind.Invocation, Type: System.IDisposable) (Syntax: 'GetDisposable()')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposable')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposable')
               Arguments(0)
 
     Jump if True (Regular) to Block[B3]
@@ -1067,7 +1067,7 @@ Block[B1] - Block
           Value: 
             IInvocationOperation ( MyDisposable P.GetDisposable()) (OperationKind.Invocation, Type: MyDisposable) (Syntax: 'GetDisposable()')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposable')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposable')
               Arguments(0)
 
     Jump if True (Regular) to Block[B3]
@@ -1198,7 +1198,7 @@ Block[B2] - Block
           Value: 
             IInvocationOperation ( MyDisposable P.GetDisposable()) (OperationKind.Invocation, Type: MyDisposable) (Syntax: 'GetDisposable()')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposable')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposable')
               Arguments(0)
 
     Next (Regular) Block[B4]
@@ -1298,7 +1298,7 @@ Block[B2] - Block
           Value: 
             IInvocationOperation ( MyDisposable P.GetDisposable<MyDisposable>()) (OperationKind.Invocation, Type: MyDisposable) (Syntax: 'GetDisposab ... sposable>()')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposab ... Disposable>')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposab ... Disposable>')
               Arguments(0)
 
     Next (Regular) Block[B4]
@@ -1409,7 +1409,7 @@ Block[B1] - Block
           Value: 
             IInvocationOperation ( MyDisposable? P.GetDisposable()) (OperationKind.Invocation, Type: MyDisposable?) (Syntax: 'GetDisposable()')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposable')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposable')
               Arguments(0)
 
     Jump if True (Regular) to Block[B3]
@@ -1528,7 +1528,7 @@ Block[B1] - Block
           Value: 
             IInvocationOperation ( dynamic P.GetDisposable()) (OperationKind.Invocation, Type: dynamic) (Syntax: 'GetDisposable()')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposable')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposable')
               Arguments(0)
 
     Jump if True (Regular) to Block[B3]
@@ -1651,7 +1651,7 @@ Block[B1] - Block
           Value: 
             IInvocationOperation ( NotDisposable P.GetDisposable()) (OperationKind.Invocation, Type: NotDisposable, IsInvalid) (Syntax: 'GetDisposable()')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'GetDisposable')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'GetDisposable')
               Arguments(0)
 
     Jump if True (Regular) to Block[B3]
@@ -1785,7 +1785,7 @@ Block[B2] - Block
           Value: 
             IInvocationOperation ( MyDisposable P.GetDisposable()) (OperationKind.Invocation, Type: MyDisposable, IsInvalid) (Syntax: 'GetDisposable()')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'GetDisposable')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'GetDisposable')
               Arguments(0)
 
     Next (Regular) Block[B4]
@@ -1889,7 +1889,7 @@ Block[B2] - Block
           Value: 
             IInvocationOperation ( MyDisposable P.GetDisposable<MyDisposable>()) (OperationKind.Invocation, Type: MyDisposable, IsInvalid) (Syntax: 'GetDisposab ... sposable>()')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'GetDisposab ... Disposable>')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'GetDisposab ... Disposable>')
               Arguments(0)
 
     Next (Regular) Block[B4]
@@ -2003,7 +2003,7 @@ Block[B1] - Block
           Value: 
             IInvocationOperation ( MyDisposable? P.GetDisposable()) (OperationKind.Invocation, Type: MyDisposable?, IsInvalid) (Syntax: 'GetDisposable()')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'GetDisposable')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'GetDisposable')
               Arguments(0)
 
     Jump if True (Regular) to Block[B3]
@@ -2136,7 +2136,7 @@ Block[B0] - Entry
               Value: 
                 IInvocationOperation ( MyDisposable P.GetDisposable()) (OperationKind.Invocation, Type: MyDisposable) (Syntax: 'GetDisposable()')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposable')
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'GetDisposable')
                   Arguments(0)
 
         Jump if True (Regular) to Block[B3]

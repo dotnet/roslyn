@@ -1058,7 +1058,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
   LoopControlVariable: 
     IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
   Collection: 
     IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'args')
   Body: 
@@ -1066,7 +1066,7 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
   NextVariables(1):
       IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
         Instance Receiver: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -2065,7 +2065,7 @@ Block[B1] - Block
           Value: 
             IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
               Arguments(0)
 
     Next (Regular) Block[B2]
@@ -2108,7 +2108,7 @@ Block[B5] - Block
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Me')
           Value: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
 
     Next (Regular) Block[B6]
 Block[B6] - Block
@@ -2382,7 +2382,7 @@ Block[B1] - Block
           Value: 
             IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
               Arguments(0)
 
     Next (Regular) Block[B2]
@@ -2489,7 +2489,7 @@ Block[B1] - Block
           Value: 
             IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
               Arguments(0)
 
     Next (Regular) Block[B2]
@@ -2597,7 +2597,7 @@ Block[B1] - Block
           Value: 
             IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
               Arguments(0)
 
     Next (Regular) Block[B2]
@@ -2721,7 +2721,7 @@ Block[B1] - Block
           Value: 
             IInvocationOperation ( Function C.GetEnumerator() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'Me')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'Me')
               Arguments(0)
 
     Next (Regular) Block[B2]
@@ -3043,7 +3043,7 @@ Block[B0] - Entry
                   Instance Receiver: 
                     IInvocationOperation ( Function C.GetC(ByRef x As System.Int32) As C) (OperationKind.Invocation, Type: C) (Syntax: 'GetC(x)')
                       Instance Receiver: 
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetC')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'GetC')
                       Arguments(1):
                           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x')
                             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')

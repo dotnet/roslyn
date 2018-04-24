@@ -2737,7 +2737,7 @@ Block[B0] - Entry
               Right: 
                 IFieldReferenceOperation: System.Int32 C._c (OperationKind.FieldReference, Type: System.Int32) (Syntax: '_c')
                   Instance Receiver: 
-                    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '_c')
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '_c')
 
         Next (Regular) Block[B2]
             Leaving: {R1}

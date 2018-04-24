@@ -687,7 +687,7 @@ IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, 
   Operand: 
     IInvocationOperation ( Function A.Method() As System.SByte) (OperationKind.Invocation, Type: System.SByte) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -712,7 +712,7 @@ IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, 
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Byte) (OperationKind.Invocation, Type: System.Byte) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -737,7 +737,7 @@ IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, 
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Int16) (OperationKind.Invocation, Type: System.Int16) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -762,7 +762,7 @@ IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, 
   Operand: 
     IInvocationOperation ( Function A.Method() As System.UInt16) (OperationKind.Invocation, Type: System.UInt16) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -787,7 +787,7 @@ IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, 
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -812,7 +812,7 @@ IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, 
   Operand: 
     IInvocationOperation ( Function A.Method() As System.UInt32) (OperationKind.Invocation, Type: System.UInt32) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -837,7 +837,7 @@ IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, 
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Int64) (OperationKind.Invocation, Type: System.Int64) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -862,7 +862,7 @@ IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, 
   Operand: 
     IInvocationOperation ( Function A.Method() As System.UInt64) (OperationKind.Invocation, Type: System.UInt64) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -887,7 +887,7 @@ IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, 
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Decimal) (OperationKind.Invocation, Type: System.Decimal) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -912,7 +912,7 @@ IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, 
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Single) (OperationKind.Invocation, Type: System.Single) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -937,7 +937,7 @@ IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, 
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Double) (OperationKind.Invocation, Type: System.Double) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -962,7 +962,7 @@ IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, 
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Object) (OperationKind.Invocation, Type: System.Object) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -987,7 +987,7 @@ IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator,
   Operand: 
     IInvocationOperation ( Function A.Method() As System.SByte) (OperationKind.Invocation, Type: System.SByte) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1012,7 +1012,7 @@ IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator,
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Int16) (OperationKind.Invocation, Type: System.Int16) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1037,7 +1037,7 @@ IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator,
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1062,7 +1062,7 @@ IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator,
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Int64) (OperationKind.Invocation, Type: System.Int64) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1087,7 +1087,7 @@ IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator,
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Decimal) (OperationKind.Invocation, Type: System.Decimal) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1112,7 +1112,7 @@ IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator,
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Single) (OperationKind.Invocation, Type: System.Single) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1137,7 +1137,7 @@ IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator,
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Double) (OperationKind.Invocation, Type: System.Double) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1162,7 +1162,7 @@ IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator,
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Object) (OperationKind.Invocation, Type: System.Object) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1187,7 +1187,7 @@ IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, T
   Operand: 
     IInvocationOperation ( Function A.Method() As System.SByte) (OperationKind.Invocation, Type: System.SByte) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1212,7 +1212,7 @@ IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, T
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Byte) (OperationKind.Invocation, Type: System.Byte) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1237,7 +1237,7 @@ IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, T
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Int16) (OperationKind.Invocation, Type: System.Int16) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1262,7 +1262,7 @@ IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, T
   Operand: 
     IInvocationOperation ( Function A.Method() As System.UInt16) (OperationKind.Invocation, Type: System.UInt16) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1287,7 +1287,7 @@ IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, T
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1312,7 +1312,7 @@ IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, T
   Operand: 
     IInvocationOperation ( Function A.Method() As System.UInt32) (OperationKind.Invocation, Type: System.UInt32) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1337,7 +1337,7 @@ IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, T
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Int64) (OperationKind.Invocation, Type: System.Int64) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1362,7 +1362,7 @@ IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, T
   Operand: 
     IInvocationOperation ( Function A.Method() As System.UInt64) (OperationKind.Invocation, Type: System.UInt64) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1387,7 +1387,7 @@ IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, T
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1412,7 +1412,7 @@ IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, T
   Operand: 
     IInvocationOperation ( Function A.Method() As System.Object) (OperationKind.Invocation, Type: System.Object) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1524,7 +1524,7 @@ IUnaryOperation (UnaryOperatorKind.Plus, Checked) (OperationKind.UnaryOperator, 
       Operand: 
         IInvocationOperation ( Function A.Method() As E) (OperationKind.Invocation, Type: E) (Syntax: 'Method()')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
           Arguments(0)
 ]]>.Value
 
@@ -1555,7 +1555,7 @@ IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator,
       Operand: 
         IInvocationOperation ( Function A.Method() As E) (OperationKind.Invocation, Type: E) (Syntax: 'Method()')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
           Arguments(0)
 ]]>.Value
 
@@ -1583,7 +1583,7 @@ IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, T
   Operand: 
     IInvocationOperation ( Function A.Method() As E) (OperationKind.Invocation, Type: E) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1730,7 +1730,7 @@ IUnaryOperation (UnaryOperatorKind.Plus) (OperatorMethod: Function CustomType.op
   Operand: 
     IInvocationOperation ( Function A.Method() As CustomType) (OperationKind.Invocation, Type: CustomType) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1769,7 +1769,7 @@ IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: Function CustomType.o
   Operand: 
     IInvocationOperation ( Function A.Method() As CustomType) (OperationKind.Invocation, Type: CustomType) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 
@@ -1808,7 +1808,7 @@ IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: Function CustomType.op_
   Operand: 
     IInvocationOperation ( Function A.Method() As CustomType) (OperationKind.Invocation, Type: CustomType) (Syntax: 'Method()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Method')
       Arguments(0)
 ]]>.Value
 

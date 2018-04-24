@@ -6404,7 +6404,7 @@ End Class
         End Sub
 
         <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
-        <Fact()>
+        <Fact(), CompilerTrait(CompilerFeature.IOperation)>
         Public Sub DefaultPropertyTransformation_01()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -6453,7 +6453,7 @@ IPropertyReferenceOperation: Property C1.Item(x As System.String) As System.Stri
   Instance Receiver: 
     IPropertyReferenceOperation: Property C2.ViewData As C1 (OperationKind.PropertyReference, Type: C1) (Syntax: 'ViewData')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C3, IsImplicit) (Syntax: 'ViewData')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C3, IsImplicit) (Syntax: 'ViewData')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '"Title"')
         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Title") (Syntax: '"Title"')
@@ -6463,7 +6463,7 @@ IPropertyReferenceOperation: Property C1.Item(x As System.String) As System.Stri
         End Sub
 
         <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
-        <Fact()>
+        <Fact(), CompilerTrait(CompilerFeature.IOperation)>
         Public Sub DefaultPropertyTransformation_02()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -6522,7 +6522,7 @@ IPropertyReferenceOperation: Property C1.Item(x As System.String) As System.Stri
         End Sub
 
         <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
-        <Fact()>
+        <Fact(), CompilerTrait(CompilerFeature.IOperation)>
         Public Sub DefaultPropertyTransformation_03()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
@@ -6573,7 +6573,7 @@ IPropertyReferenceOperation: Property C1.Item(x As System.String) As System.Stri
   Instance Receiver: 
     IInvocationOperation ( Function C2.ViewData() As C1) (OperationKind.Invocation, Type: C1) (Syntax: 'ViewData')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C3, IsImplicit) (Syntax: 'ViewData')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C3, IsImplicit) (Syntax: 'ViewData')
       Arguments(0)
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '"Title"')
@@ -6584,7 +6584,7 @@ IPropertyReferenceOperation: Property C1.Item(x As System.String) As System.Stri
         End Sub
 
         <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
-        <Fact()>
+        <Fact(), CompilerTrait(CompilerFeature.IOperation)>
         Public Sub DefaultPropertyTransformation_04()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>

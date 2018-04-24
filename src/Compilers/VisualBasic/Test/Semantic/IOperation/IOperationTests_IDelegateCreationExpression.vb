@@ -2534,7 +2534,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
               Children(1):
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Method2')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2578,7 +2578,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
               Children(1):
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Method2')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2662,7 +2662,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
               Children(1):
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Method2')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2788,7 +2788,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
               Children(1):
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Method2')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2883,7 +2883,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2919,7 +2919,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Method2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -2956,7 +2956,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3150,7 +3150,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3187,7 +3187,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3230,7 +3230,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3266,7 +3266,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Method2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3460,7 +3460,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3497,7 +3497,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3540,7 +3540,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3576,7 +3576,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Method2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3736,7 +3736,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
   Target: 
     IMethodReferenceOperation: Sub M1.Method2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf Method2')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1, IsImplicit) (Syntax: 'Method2')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -3765,7 +3765,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
   Target: 
     IMethodReferenceOperation: Sub M1.Method2() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf Me.Method2')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1) (Syntax: 'Me')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1) (Syntax: 'Me')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3809,7 +3809,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                       Children(1):
                           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Method2')
                             Children(1):
-                                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+                                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ]]>.Value
 
@@ -3901,7 +3901,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Method2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3937,7 +3937,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Method2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -3971,7 +3971,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Method2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -4006,7 +4006,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
       Children(1):
           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Method2')
             Children(1):
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: M1, IsInvalid, IsImplicit) (Syntax: 'Method2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -4143,7 +4143,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
           Operand: 
             IMethodReferenceOperation: Sub C.M2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M2')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -4176,7 +4176,7 @@ IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (S
             Target: 
               IMethodReferenceOperation: Sub C.M2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M2')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -4210,7 +4210,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
               Children(1):
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -4246,7 +4246,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(
           Operand: 
             IMethodReferenceOperation: Sub C.M2() (OperationKind.MethodReference, Type: null, IsInvalid) (Syntax: 'AddressOf M2')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -4284,7 +4284,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
               Children(1):
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -4323,7 +4323,7 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
               Children(1):
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -4359,7 +4359,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
           Operand: 
             IMethodReferenceOperation: Sub C.M2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M2')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -4391,7 +4391,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action)
           Operand: 
             IMethodReferenceOperation: Sub C.M2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M2')
               Instance Receiver: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

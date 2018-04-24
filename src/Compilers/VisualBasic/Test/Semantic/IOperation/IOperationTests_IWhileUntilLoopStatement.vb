@@ -87,7 +87,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: True) (LoopKind.Whi
       Left: 
         IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: 
@@ -98,13 +98,13 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: True) (LoopKind.Whi
             Left: 
               IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
             Right: 
               IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'X - 1')
                 Left: 
                   IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
                     Instance Receiver: 
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
+                      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
                 Right: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   IgnoredCondition: 
@@ -1301,7 +1301,7 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   Condition: 
     IInvocationOperation ( Function C.G() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'G()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'G')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'G')
       Arguments(0)
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do While G( ... Loop')
@@ -1346,7 +1346,7 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.W
   Condition: 
     IInvocationOperation ( Function C.G() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'G()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'G')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'G')
       Arguments(0)
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Do'BIND:"Do ... p While G()')
@@ -1387,7 +1387,7 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: True) (LoopKind.Wh
       Left: 
         IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
       Right: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   Body: 
@@ -1398,13 +1398,13 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: True) (LoopKind.Wh
             Left: 
               IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
             Right: 
               IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'X - 1')
                 Left: 
                   IFieldReferenceOperation: C.X As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
                     Instance Receiver: 
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
+                      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'X')
                 Right: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   IgnoredCondition: 

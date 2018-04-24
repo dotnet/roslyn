@@ -405,7 +405,7 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                       Left: 
                         IFieldReferenceOperation: C2.a As System.String (OperationKind.FieldReference, Type: System.String) (Syntax: 'a')
                           Instance Receiver: 
-                            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                            IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C2, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "goo") (Syntax: '"goo"')
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Dim b As Ne ... lo World!"}')
@@ -457,7 +457,7 @@ IBlockOperation (6 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
                       Left: 
                         IFieldReferenceOperation: C2.a As System.String (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'a')
                           Instance Receiver: 
-                            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
+                            IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Wi ... .a = "goo"}')
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "goo", IsInvalid) (Syntax: '"goo"')
   ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
@@ -742,13 +742,13 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
         Children(2):
             IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"Hello World!"')
               Children(1):
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello World!", IsInvalid) (Syntax: '"Hello World!"')
       IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"Errors wil ... er element"')
         Children(2):
             IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"Errors wil ... er element"')
               Children(1):
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C2, IsInvalid, IsImplicit) (Syntax: 'New C2() Fr ... r element"}')
             ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Errors will be shown for each initializer element", IsInvalid) (Syntax: '"Errors wil ... er element"')
 ]]>.Value
 
@@ -1112,19 +1112,19 @@ ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation
             Children(2):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"Hello"')
                   Children(1):
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "Hello", IsInvalid) (Syntax: '"Hello"')
           IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '" "')
             Children(2):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '" "')
                   Children(1):
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " ", IsInvalid) (Syntax: '" "')
           IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '"World!"')
             Children(2):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '"World!"')
                   Children(1):
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'New T() Fro ... , "World!"}')
                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "World!", IsInvalid) (Syntax: '"World!"')
 ]]>.Value
 
@@ -1175,7 +1175,7 @@ IObjectCreationOperation (Constructor: Sub System.Collections.Generic.Dictionary
             Children(2):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '{1}')
                   Children(1):
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid, IsImplicit) (Syntax: 'New Diction ...  From {{1}}')
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: System.Collections.Generic.Dictionary(Of System.String, System.Int32), IsInvalid, IsImplicit) (Syntax: 'New Diction ...  From {{1}}')
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ]]>.Value
 

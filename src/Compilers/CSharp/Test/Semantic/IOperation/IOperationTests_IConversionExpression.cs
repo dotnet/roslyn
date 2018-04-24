@@ -2708,7 +2708,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
       IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: C2 C2.op_Implicit(C1 c1)) (OperationKind.Conversion, Type: C2, IsImplicit) (Syntax: 'this')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C2 C2.op_Implicit(C1 c1))
         Operand: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1) (Syntax: 'this')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1) (Syntax: 'this')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -2799,7 +2799,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
               IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 C1.op_Implicit(C1 c1)) (OperationKind.Conversion, Type: System.Int32) (Syntax: '(int)this')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C1.op_Implicit(C1 c1))
                 Operand: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1) (Syntax: 'this')
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1) (Syntax: 'this')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'i1' is assigned but its value is never used
@@ -2844,7 +2844,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C2, IsInvalid, IsImplicit) (Syntax: 'this')
         Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Operand: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1, IsInvalid) (Syntax: 'this')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1, IsInvalid) (Syntax: 'this')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C1' to 'C2'
@@ -2895,7 +2895,7 @@ IVariableDeclaratorOperation (Symbol: C3 c3) (OperationKind.VariableDeclarator, 
       IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: C3 C3.op_Implicit(C2 c2)) (OperationKind.Conversion, Type: C3, IsImplicit) (Syntax: 'this')
         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C3 C3.op_Implicit(C2 c2))
         Operand: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2) (Syntax: 'this')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C2) (Syntax: 'this')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

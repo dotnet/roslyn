@@ -69,7 +69,7 @@ IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null, I
       Expression: 
         IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: ': base()')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: ': base()')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: ': base()')
           Arguments(0)
   BlockBody: 
     null
@@ -103,7 +103,7 @@ IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null) (
       Expression: 
         IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base()')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: System.Object, IsImplicit) (Syntax: ': base()')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object, IsImplicit) (Syntax: ': base()')
           Arguments(0)
   BlockBody: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ throw null; }')
@@ -139,7 +139,7 @@ IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null) (
       Expression: 
         IInvocationOperation ( System.Object..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base()')
           Instance Receiver: 
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: System.Object, IsImplicit) (Syntax: ': base()')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object, IsImplicit) (Syntax: ': base()')
           Arguments(0)
   BlockBody: 
     null

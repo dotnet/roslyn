@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -79,7 +79,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
   Array reference: 
     IInvocationOperation ( System.String[] C.F2()) (OperationKind.Invocation, Type: System.String[]) (Syntax: 'F2()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F2')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F2')
       Arguments(0)
   Indices(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -165,7 +165,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
       IInvocationOperation ( System.Int32 C.F2()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'F2()')
         Instance Receiver: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F2')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F2')
         Arguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -227,7 +227,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
       Indices(1):
           IInvocationOperation ( System.Int32 C.F2()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'F2()')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F2')
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F2')
             Arguments(0)
   Indices(1):
       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -265,7 +265,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
       IInvocationOperation ( System.Int32 C.F2()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'F2()')
         Instance Receiver: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F2')
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'F2')
         Arguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

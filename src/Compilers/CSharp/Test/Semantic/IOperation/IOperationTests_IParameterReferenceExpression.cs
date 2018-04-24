@@ -216,14 +216,14 @@ IObjectCreationOperation (Constructor: Class..ctor()) (OperationKind.ObjectCreat
             Left: 
               IPropertyReferenceOperation: System.Int32 Class.X { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'X')
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'X')
             Right: 
               IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
           IMemberInitializerOperation (OperationKind.MemberInitializer, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'Y = { x, y, 3 }')
             InitializedMember: 
               IPropertyReferenceOperation: System.Collections.Generic.List<System.Int32> Class.Y { get; set; } (OperationKind.PropertyReference, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'Y')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'Y')
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'Y')
             Initializer: 
               IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ x, y, 3 }')
                 Initializers(3):
@@ -240,7 +240,7 @@ IObjectCreationOperation (Constructor: Class..ctor()) (OperationKind.ObjectCreat
             InitializedMember: 
               IPropertyReferenceOperation: System.Collections.Generic.Dictionary<System.Int32, System.Int32> Class.Z { get; set; } (OperationKind.PropertyReference, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: 'Z')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'Z')
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'Z')
             Initializer: 
               IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Collections.Generic.Dictionary<System.Int32, System.Int32>) (Syntax: '{ { x, y } }')
                 Initializers(1):
@@ -252,7 +252,7 @@ IObjectCreationOperation (Constructor: Class..ctor()) (OperationKind.ObjectCreat
             InitializedMember: 
               IPropertyReferenceOperation: Class Class.C { get; set; } (OperationKind.PropertyReference, Type: Class) (Syntax: 'C')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'C')
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'C')
             Initializer: 
               IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Class) (Syntax: '{ X = z }')
                 Initializers(1):
@@ -260,7 +260,7 @@ IObjectCreationOperation (Constructor: Class..ctor()) (OperationKind.ObjectCreat
                       Left: 
                         IPropertyReferenceOperation: System.Int32 Class.X { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
                           Instance Receiver: 
-                            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'X')
+                            IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'X')
                       Right: 
                         IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'z')
 ";
@@ -334,7 +334,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Class.Delegate
   Target: 
     IMethodReferenceOperation: void Class.Method2(System.Int32 x, System.Int32 y) (OperationKind.MethodReference, Type: null) (Syntax: 'Method2')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'Method2')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'Method2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -396,7 +396,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
         InitializedMember: 
           IPropertyReferenceOperation: dynamic Class.X { get; set; } (OperationKind.PropertyReference, Type: dynamic) (Syntax: 'X')
             Instance Receiver: 
-              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'X')
+              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'X')
         Initializer: 
           IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: dynamic) (Syntax: '{ { x, y } }')
             Initializers(1):

@@ -28,7 +28,7 @@ IRaiseEventOperation (OperationKind.RaiseEvent, Type: null) (Syntax: 'RaiseEvent
   Event Reference: 
     IEventReferenceOperation: Event TestClass.TestEvent As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'TestEvent')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
   Arguments(0)
 ]]>.Value
 
@@ -56,7 +56,7 @@ IRaiseEventOperation (OperationKind.RaiseEvent, Type: null) (Syntax: 'RaiseEvent
   Event Reference: 
     IEventReferenceOperation: Event TestClass.MyEvent(x As System.String, y As System.Int32) (OperationKind.EventReference, Type: TestClass.MyEventEventHandler) (Syntax: 'MyEvent')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'MyEvent')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'MyEvent')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'x:=String.Empty')
         IFieldReferenceOperation: System.String.Empty As System.String (Static) (OperationKind.FieldReference, Type: System.String) (Syntax: 'String.Empty')
@@ -126,7 +126,7 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Raise
               Children(1):
                   IFieldReferenceOperation: TestClass.TestEventEvent As System.Action (OperationKind.FieldReference, Type: System.Action, IsImplicit) (Syntax: 'TestEvent')
                     Instance Receiver: 
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
+                      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ]]>.Value
 
@@ -188,7 +188,7 @@ IInvocationOperation (virtual Sub System.Action.Invoke()) (OperationKind.Invocat
   Instance Receiver: 
     IFieldReferenceOperation: TestClass.TestEventEvent As System.Action (OperationKind.FieldReference, Type: System.Action) (Syntax: 'TestEventEvent')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEventEvent')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEventEvent')
   Arguments(0)
 ]]>.Value
 
@@ -216,7 +216,7 @@ IInvocationOperation (virtual Sub System.Action.Invoke()) (OperationKind.Invocat
   Instance Receiver: 
     IFieldReferenceOperation: TestClass.TestEventEvent As System.Action (OperationKind.FieldReference, Type: System.Action) (Syntax: 'TestEventEvent')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEventEvent')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEventEvent')
   Arguments(0)
 ]]>.Value
 
@@ -252,7 +252,7 @@ IRaiseEventOperation (OperationKind.RaiseEvent, Type: null) (Syntax: 'RaiseEvent
   Event Reference: 
     IEventReferenceOperation: Event TestClass.TestEvent As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'TestEvent')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
   Arguments(0)
 ]]>.Value
 
@@ -288,7 +288,7 @@ IRaiseEventOperation (OperationKind.RaiseEvent, Type: null) (Syntax: 'RaiseEvent
   Event Reference: 
     IEventReferenceOperation: Event TestClass.TestEvent As System.EventHandler (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'TestEvent')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: sender) (OperationKind.Argument, Type: null) (Syntax: 'Nothing')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
@@ -327,7 +327,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IEventReferenceOperation: Event TestClass.TestEvent As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'TestEvent')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
 ]]>.Value
             Dim expectedDiagnostics = String.Empty
             VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)
@@ -359,7 +359,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IEventReferenceOperation: Event TestClass.TestEvent As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'TestEvent')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: TestClass, IsImplicit) (Syntax: 'TestEvent')
 ]]>.Value
             Dim expectedDiagnostics = String.Empty
             VerifyOperationTreeAndDiagnosticsForTest(Of IdentifierNameSyntax)(source, expectedOperationTree, expectedDiagnostics)

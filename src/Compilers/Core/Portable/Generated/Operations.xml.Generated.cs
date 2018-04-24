@@ -2584,10 +2584,12 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class InstanceReferenceExpression : Operation, IInstanceReferenceOperation
     {
-        public InstanceReferenceExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public InstanceReferenceExpression(InstanceReferenceKind referenceKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.InstanceReference, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            ReferenceKind = referenceKind;
         }
+        public InstanceReferenceKind ReferenceKind { get; }
         public override IEnumerable<IOperation> Children
         {
             get

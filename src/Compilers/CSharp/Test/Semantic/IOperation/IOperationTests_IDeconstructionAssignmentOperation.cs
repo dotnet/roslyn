@@ -308,7 +308,7 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'this')
               Value: 
-                IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
 
         Next (Regular) Block[B4]
     Block[B3] - Block

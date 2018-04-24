@@ -1271,7 +1271,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
               Children(1):
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1459,7 +1459,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
               Children(1):
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

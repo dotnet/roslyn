@@ -294,27 +294,30 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundMeReferenceOperation(boundMeReference As BoundMeReference) As IInstanceReferenceOperation
+            Dim referenceKind As InstanceReferenceKind = InstanceReferenceKind.ContainingTypeInstance
             Dim syntax As SyntaxNode = boundMeReference.Syntax
             Dim type As ITypeSymbol = boundMeReference.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundMeReference.ConstantValueOpt)
             Dim isImplicit As Boolean = boundMeReference.WasCompilerGenerated
-            Return New InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InstanceReferenceExpression(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundMyBaseReferenceOperation(boundMyBaseReference As BoundMyBaseReference) As IInstanceReferenceOperation
+            Dim referenceKind As InstanceReferenceKind = InstanceReferenceKind.ContainingTypeInstance
             Dim syntax As SyntaxNode = boundMyBaseReference.Syntax
             Dim type As ITypeSymbol = boundMyBaseReference.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundMyBaseReference.ConstantValueOpt)
             Dim isImplicit As Boolean = boundMyBaseReference.WasCompilerGenerated
-            Return New InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InstanceReferenceExpression(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundMyClassReferenceOperation(boundMyClassReference As BoundMyClassReference) As IInstanceReferenceOperation
+            Dim referenceKind As InstanceReferenceKind = InstanceReferenceKind.ContainingTypeInstance
             Dim syntax As SyntaxNode = boundMyClassReference.Syntax
             Dim type As ITypeSymbol = boundMyClassReference.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundMyClassReference.ConstantValueOpt)
             Dim isImplicit As Boolean = boundMyClassReference.WasCompilerGenerated
-            Return New InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InstanceReferenceExpression(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundLiteralOperation(boundLiteral As BoundLiteral, Optional implicit As Boolean = False) As ILiteralOperation
@@ -759,19 +762,21 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundWithLValueExpressionPlaceholder(boundWithLValueExpressionPlaceholder As BoundWithLValueExpressionPlaceholder) As IInstanceReferenceOperation
+            Dim referenceKind As InstanceReferenceKind = InstanceReferenceKind.ImplicitReceiver
             Dim syntax As SyntaxNode = boundWithLValueExpressionPlaceholder.Syntax
             Dim type As ITypeSymbol = boundWithLValueExpressionPlaceholder.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundWithLValueExpressionPlaceholder.ConstantValueOpt)
             Dim isImplicit As Boolean = boundWithLValueExpressionPlaceholder.WasCompilerGenerated
-            Return New InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InstanceReferenceExpression(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundWithRValueExpressionPlaceholder(boundWithRValueExpressionPlaceholder As BoundWithRValueExpressionPlaceholder) As IInstanceReferenceOperation
+            Dim referenceKind As InstanceReferenceKind = InstanceReferenceKind.ImplicitReceiver
             Dim syntax As SyntaxNode = boundWithRValueExpressionPlaceholder.Syntax
             Dim type As ITypeSymbol = boundWithRValueExpressionPlaceholder.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundWithRValueExpressionPlaceholder.ConstantValueOpt)
             Dim isImplicit As Boolean = boundWithRValueExpressionPlaceholder.WasCompilerGenerated
-            Return New InstanceReferenceExpression(_semanticModel, syntax, type, constantValue, isImplicit)
+            Return New InstanceReferenceExpression(referenceKind, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundEventAccessOperation(boundEventAccess As BoundEventAccess) As IEventReferenceOperation

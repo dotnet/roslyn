@@ -492,6 +492,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.InstanceReference, operation.Kind);
             Assert.Empty(operation.Children);
+            var referenceKind = operation.ReferenceKind;
         }
 
         private void VisitMemberReference(IMemberReferenceOperation operation)

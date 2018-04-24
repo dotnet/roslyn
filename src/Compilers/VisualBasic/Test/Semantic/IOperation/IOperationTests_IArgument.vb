@@ -25,7 +25,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2(a As System.Int32, b As System.Double)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, 0.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -58,7 +58,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2(a As System.Int32, [b As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -91,7 +91,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2(a As System.Int32, [b As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(a:=1, b:=1.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'a:=1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -124,7 +124,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2(a As System.Int32, [b As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(b:=1.0, a:=0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'a:=0')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -157,7 +157,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(b:=1.0, c:=2.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
@@ -194,7 +194,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(, b:=1.0, c:=2.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '')
@@ -231,7 +231,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(b:=2.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
@@ -268,7 +268,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2([a As System.Int32 = 0], [b As System.Double = 0], [c As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, c:=2.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -305,7 +305,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -335,7 +335,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(x)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'x')
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -366,7 +366,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0], [ByRef b As System.Double = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(b:=y, a:=x)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'a:=x')
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
@@ -400,7 +400,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2()')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'M2')
@@ -429,7 +429,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1.0)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1.0')
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1.0')
@@ -462,7 +462,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(x)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Double) (Syntax: 'x')
@@ -496,7 +496,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'E1(1, 2)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'E1')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'E1')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -534,7 +534,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub P.E1([b As System.Int32 = 0], [c As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'E1(c:=1, b:=2)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'E1')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'E1')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b:=2')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -571,7 +571,7 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32())) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, a)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -605,7 +605,7 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32())) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, 2, 3)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -648,7 +648,7 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub P.M2(x As System.Int32, ParamArray y As System.Int32())) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(2):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '1')
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -688,7 +688,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
   Children(1):
       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'M2')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'M2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -718,7 +718,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
   Children(3):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
 ]]>.Value
@@ -750,7 +750,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
   Children(5):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
       IOmittedArgumentOperation (OperationKind.OmittedArgument, Type: null) (Syntax: '')
       IOmittedArgumentOperation (OperationKind.OmittedArgument, Type: null) (Syntax: '')
@@ -790,7 +790,7 @@ IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Objec
     IDynamicMemberReferenceOperation (Member Name: "M2", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'M2')
       Type Arguments(0)
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
   Arguments(3):
       IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
       IOmittedArgumentOperation (OperationKind.OmittedArgument, Type: System.Object) (Syntax: '')
@@ -822,7 +822,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
   Children(3):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
       IOmittedArgumentOperation (OperationKind.OmittedArgument, Type: null, IsInvalid) (Syntax: '')
 ]]>.Value
@@ -855,7 +855,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
   Children(3):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'M2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
       ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32()) (Syntax: 'a')
 ]]>.Value
@@ -887,7 +887,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
   Children(2):
       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'M2')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'M2')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
@@ -920,7 +920,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2([ByRef a As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(x)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Double) (Syntax: 'x')
@@ -960,7 +960,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2(ByRef a As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(x)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: C) (Syntax: 'x')
@@ -1000,7 +1000,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationOperation ( Sub Program.M2(ByRef c As C)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(x)')
   Instance Receiver: 
-    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
   Arguments(1):
       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Double) (Syntax: 'x')
@@ -1038,7 +1038,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
   Children(2):
       IOperation:  (OperationKind.None, Type: null) (Syntax: 'M2')
         Children(1):
-            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
       ILocalReferenceOperation: x (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
@@ -1179,7 +1179,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
   Expression: 
     IInvocationOperation ( Sub Program.M2(ParamArray a As System.Int32())) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1)')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
       Arguments(1):
           IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2(1)')
             IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'M2(1)')
@@ -1215,7 +1215,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
   Expression: 
     IInvocationOperation ( Sub Program.M2(ParamArray a As System.Int32())) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(0, 1)')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
       Arguments(1):
           IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M2(0, 1)')
             IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'M2(0, 1)')
@@ -1252,7 +1252,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
   Expression: 
     IInvocationOperation ( Sub Program.M2(a As System.Int32, [b As System.Int32 = 0], [c As System.Int32 = 0])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(1, , 2)')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Program, IsImplicit) (Syntax: 'M2')
       Arguments(3):
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: '1')
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')

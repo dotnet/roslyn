@@ -596,7 +596,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                 Left: 
                   IFieldReferenceOperation: D1 C.Deconstruct (OperationKind.FieldReference, Type: D1, IsInvalid) (Syntax: 'Deconstruct')
                     Instance Receiver: 
-                      IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Deconstruct')
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Deconstruct')
                 Right: 
                   IDelegateCreationOperation (OperationKind.DelegateCreation, Type: D1, IsInvalid, IsImplicit) (Syntax: 'DeconstructMethod')
                     Target: 
@@ -655,11 +655,11 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
                     Children(1):
                         IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Deconstruct')
                           Children(1):
-                              IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
+                              IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
                 Right: 
                   IOperation:  (OperationKind.None, Type: null) (Syntax: 'DeconstructMethod')
                     Children(1):
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'DeconstructMethod')
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'DeconstructMethod')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0102: The type 'C' already contains a definition for 'Deconstruct'

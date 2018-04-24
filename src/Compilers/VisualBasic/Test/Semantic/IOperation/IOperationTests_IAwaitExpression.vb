@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -31,7 +31,7 @@ IAwaitOperation (OperationKind.Await, Type: System.Void) (Syntax: 'Await M2()')
   Expression: 
     IInvocationOperation ( Function C.M2() As System.Threading.Tasks.Task) (OperationKind.Invocation, Type: System.Threading.Tasks.Task) (Syntax: 'M2()')
       Instance Receiver: 
-        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
       Arguments(0)
 ]]>.Value
 
