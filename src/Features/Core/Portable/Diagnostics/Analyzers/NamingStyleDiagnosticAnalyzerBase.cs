@@ -152,13 +152,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             async Task<NamingStylePreferences> GetNamingStylePreferencesAsync()
             {
-                var location = symbol.Locations.FirstOrDefault();
-                if (location == null)
+                var sourceTree = symbol.Locations.FirstOrDefault()?.SourceTree;
+                if (sourceTree == null)
                 {
                     return null;
                 }
 
-                var optionSet = await options.GetDocumentOptionSetAsync(location.SourceTree, cancellationToken).ConfigureAwait(false);
+                var optionSet = await options.GetDocumentOptionSetAsync(sourceTree, cancellationToken).ConfigureAwait(false);
                 return optionSet?.GetOption(SimplificationOptions.NamingPreferences, compilation.Language);
             }
         }

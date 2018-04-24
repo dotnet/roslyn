@@ -9,13 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
     Friend NotInheritable Class VisualBasicNamingStyleDiagnosticAnalyzer
         Inherits NamingStyleDiagnosticAnalyzerBase(Of SyntaxKind)
 
-        Private Shared _supportedSyntaxKinds As ImmutableArray(Of SyntaxKind) =
+        Protected Overrides ReadOnly Property SupportedSyntaxKinds As ImmutableArray(Of SyntaxKind) =
             ImmutableArray.Create(SyntaxKind.ModifiedIdentifier)
-
-        Protected Overrides ReadOnly Property SupportedSyntaxKinds As ImmutableArray(Of SyntaxKind)
-            Get
-                Return _supportedSyntaxKinds
-            End Get
-        End Property
     End Class
 End Namespace
