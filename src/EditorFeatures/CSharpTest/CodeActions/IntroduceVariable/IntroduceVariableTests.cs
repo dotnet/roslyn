@@ -2304,7 +2304,7 @@ class Program
     {
         byte z = 0;
         Func<byte, byte> {|Rename:p|} = x => 0;
-        Goo<byte, byte>(p, y => 0, z, z);
+        Goo(p, y => (byte)0, z, z);
     }
 
     static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
