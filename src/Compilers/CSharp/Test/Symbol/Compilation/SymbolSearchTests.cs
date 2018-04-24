@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentException>(() =>
             {
                 var compilation = GetTestCompilation();
+                compilation.ContainsSymbolsWithName("", SymbolFilter.None);
+            });
+
+            Assert.Throws<ArgumentException>(() =>
+            {
+                var compilation = GetTestCompilation();
                 compilation.GetSymbolsWithName("", SymbolFilter.None);
             });
         }
@@ -227,10 +233,7 @@ enum Enum
 
         private static void Test(CSharpCompilation compilation, string name, bool includeNamespace, bool includeType, bool includeMember, int count)
         {
-            var filter = SymbolFilter.None;
-            filter = includeNamespace ? filter | SymbolFilter.Namespace : filter;
-            filter = includeType ? filter | SymbolFilter.Type : filter;
-            filter = includeMember ? filter | SymbolFilter.Member : filter;
+            SymbolFilter filter = ComputeFilter(includeNamespace, includeType, includeMember);
 
             Assert.Equal(count > 0, compilation.ContainsSymbolsWithName(name, filter));
             Assert.Equal(count, compilation.GetSymbolsWithName(name, filter).Count());
@@ -238,13 +241,19 @@ enum Enum
 
         private static void Test(CSharpCompilation compilation, Func<string, bool> predicate, bool includeNamespace, bool includeType, bool includeMember, int count)
         {
-            var filter = SymbolFilter.None;
-            filter = includeNamespace ? filter | SymbolFilter.Namespace : filter;
-            filter = includeType ? filter | SymbolFilter.Type : filter;
-            filter = includeMember ? filter | SymbolFilter.Member : filter;
+            SymbolFilter filter = ComputeFilter(includeNamespace, includeType, includeMember);
 
             Assert.Equal(count > 0, compilation.ContainsSymbolsWithName(predicate, filter));
             Assert.Equal(count, compilation.GetSymbolsWithName(predicate, filter).Count());
+        }
+
+        private static SymbolFilter ComputeFilter(bool includeNamespace, bool includeType, bool includeMember)
+        {
+            var filter = SymbolFilter.None;
+            filter = includeNamespace ? (filter | SymbolFilter.Namespace) : filter;
+            filter = includeType ? (filter | SymbolFilter.Type) : filter;
+            filter = includeMember ? (filter | SymbolFilter.Member) : filter;
+            return filter;
         }
     }
 }
