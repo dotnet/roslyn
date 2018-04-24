@@ -10,6 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
         Inherits NamingStyleDiagnosticAnalyzerBase(Of SyntaxKind)
 
         Protected Overrides ReadOnly Property SupportedSyntaxKinds As ImmutableArray(Of SyntaxKind) =
-            ImmutableArray.Create(SyntaxKind.ModifiedIdentifier)
+            ImmutableArray.Create(
+                SyntaxKind.ModifiedIdentifier,
+                SyntaxKind.CatchStatement)
     End Class
 End Namespace

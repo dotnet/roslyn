@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
             ImmutableArray.Create(
                 SyntaxKind.VariableDeclarator,
                 SyntaxKind.ForEachStatement,
+                SyntaxKind.CatchDeclaration,
                 SyntaxKind.SingleVariableDesignation);
     }
 }

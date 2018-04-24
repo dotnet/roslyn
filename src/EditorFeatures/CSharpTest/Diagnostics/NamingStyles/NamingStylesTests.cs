@@ -299,6 +299,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocals_CatchVariable()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class C
+{
+    void M()
+    {
+        try
+        {
+        }
+        catch (Exception [|Exception|])
+        {
+        }
+    }
+}",
+@"using System;
+class C
+{
+    void M()
+    {
+        try
+        {
+        }
+        catch (Exception exception)
+        {
+        }
+    }
+}",
+                options: options.LocalNamesAreCamelCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseLocals_Deconstruction1()
         {
             await TestInRegularAndScriptAsync(
