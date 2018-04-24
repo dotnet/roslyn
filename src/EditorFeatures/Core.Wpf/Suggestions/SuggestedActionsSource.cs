@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 throw new NotImplementedException($"We implement {nameof(GetSuggestedActionCategoriesAsync)}. This should not be called.");
             }
 
-            private async Task<TextSpan?> GetSpanAsync(SnapshotSpan range)
+            private async Task<TextSpan?> GetSpanAsync(SnapshotSpan range, CancellationToken cancellationToken)
             {
                 // First, ensure that the snapshot we're being asked about is for an actual
                 // roslyn document.  This can fail, for example, in projection scenarios where
@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         }
 
                         selection = TryGetCodeRefactoringSelection(range);
-                    }).ConfigureAwait(false);
+                    }, cancellationToken).ConfigureAwait(false);
                 }
 
                 return selection;
@@ -752,10 +752,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (provider._codeFixService != null &&
                     supportsFeatureService.SupportsCodeFixes(document))
                 {
-                    var result = await Task.Run(
-                        () => provider._codeFixService.GetMostSevereFixableDiagnostic(
-                            document, range.Span.ToTextSpan(), cancellationToken),
-                            cancellationToken).ConfigureAwait(false);
+                    var result = await provider._codeFixService.GetMostSevereFixableDiagnostic(
+                            document, range.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
 
                     if (result.HasFix)
                     {
@@ -794,10 +792,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     provider._codeRefactoringService != null &&
                     supportsFeatureService.SupportsRefactorings(document))
                 {
-                    if (await Task.Run(
-                        () => provider._codeRefactoringService.HasRefactoringsAsync(
-                            document, selection.Value, cancellationToken),
-                        cancellationToken).ConfigureAwait(false))
+                    if (await provider._codeRefactoringService.HasRefactoringsAsync(
+                            document, selection.Value, cancellationToken).ConfigureAwait(false))
                     {
                         return PredefinedSuggestedActionCategoryNames.Refactoring;
                     }
@@ -923,19 +919,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         var errorTask = Task.Run(
                             () => GetFixLevelAsync(provider, document, range, linkedToken), linkedToken);
 
-                        var selection = await GetSpanAsync(range).ConfigureAwait(false);
+                        var selection = await GetSpanAsync(range, linkedToken).ConfigureAwait(false);
+
                         Task<string> refactoringTask = Task.FromResult((string)null);
                         if (selection != null && requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                         {
                             refactoringTask = Task.Run(
-                                    () => TryGetRefactoringSuggestedActionCategoryAsync(provider, document, selection, linkedToken),
-                                    linkedToken);
+                                () => TryGetRefactoringSuggestedActionCategoryAsync(provider, document, selection, linkedToken), linkedToken);
                         }
 
                         // If we happen to get the result of the error task before the refactoring task,
                         // and that result is non-null, we can just cancel the refactoring task.
                         var result = await errorTask.ConfigureAwait(false) ?? await refactoringTask.ConfigureAwait(false);
                         linkedTokenSource.Cancel();
+
                         return result == null
                             ? null
                             : _suggestedActionCategoryRegistry.CreateSuggestedActionCategorySet(result);
