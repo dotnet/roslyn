@@ -325,12 +325,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInInContext(this ExpressionSyntax expression)
             => (expression?.Parent as ArgumentSyntax)?.RefKindKeyword.Kind() == SyntaxKind.InKeyword;
 
-        public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
+        private static ExpressionSyntax GetExpressionToAnalyzeForWrites(ExpressionSyntax expression)
         {
             if (expression.IsRightSideOfDotOrArrow())
             {
                 expression = expression.Parent as ExpressionSyntax;
             }
+
+            expression = expression.WalkUpParentheses();
+
+            return expression;
+        }
+
+        public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
+        {
+            expression = GetExpressionToAnalyzeForWrites(expression);
 
             if (expression != null)
             {
@@ -356,22 +365,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static bool IsAttributeNamedArgumentIdentifier(this ExpressionSyntax expression)
-        {
-            var nameEquals = expression?.Parent as NameEqualsSyntax;
-            return nameEquals.IsParentKind(SyntaxKind.AttributeArgument);
-        }
-
         public static bool IsWrittenTo(this ExpressionSyntax expression)
         {
+            expression = GetExpressionToAnalyzeForWrites(expression);
+
             if (expression.IsOnlyWrittenTo())
             {
                 return true;
-            }
-
-            if (expression.IsRightSideOfDotOrArrow())
-            {
-                expression = expression.Parent as ExpressionSyntax;
             }
 
             if (expression.IsInRefContext())
@@ -391,6 +391,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsAttributeNamedArgumentIdentifier(this ExpressionSyntax expression)
+        {
+            var nameEquals = expression?.Parent as NameEqualsSyntax;
+            return nameEquals.IsParentKind(SyntaxKind.AttributeArgument);
         }
 
         public static bool IsOperandOfIncrementOrDecrementExpression(this ExpressionSyntax expression)

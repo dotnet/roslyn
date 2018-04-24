@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.MakeFieldReadonly;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly
@@ -778,6 +779,52 @@ class MyClass
     }
 
     partial struct MyClass { }");
+        }
+
+        [WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInCtor_InParens()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    MyClass()
+    {
+        (_goo) = 0;
+    }
+}",
+@"class MyClass
+{
+    private readonly int _goo;
+    MyClass()
+    {
+        (_goo) = 0;
+    }
+}");
+        }
+
+        [WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task FieldAssignedInCtor_QualifiedWithThis_InParens()
+        {
+            await TestInRegularAndScriptAsync(
+@"class MyClass
+{
+    private int [|_goo|];
+    MyClass()
+    {
+        (this._goo) = 0;
+    }
+}",
+@"class MyClass
+{
+    private readonly int _goo;
+    MyClass()
+    {
+        (this._goo) = 0;
+    }
+}");
         }
     }
 }
