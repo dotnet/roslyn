@@ -23,6 +23,7 @@
     <MicrosoftBuildVersion>15.3.409</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>15.3.409</MicrosoftBuildFrameworkVersion>
     <MicrosoftBuildLoggingStructuredLoggerVersion>1.1.130</MicrosoftBuildLoggingStructuredLoggerVersion>
+    <MicrosoftBuildLocatorVersion>1.0.13</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildRuntimeVersion>15.3.409</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>15.3.409</MicrosoftBuildTasksCoreVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
@@ -47,6 +48,8 @@ namespace AnalyzerRunner
                     cts.Cancel();
                 };
 
+            MSBuildLocator.RegisterDefaults();
+
             var analyzers = GetDiagnosticAnalyzers(options.AnalyzerPath);
             analyzers = FilterAnalyzers(analyzers, options);
 
@@ -61,8 +64,13 @@ namespace AnalyzerRunner
             Stopwatch stopwatch = Stopwatch.StartNew();
             var properties = new Dictionary<string, string>
             {
-                { "VSToolsPath", Environment.GetEnvironmentVariable("VSToolsPath") },
-                { "LangVersion", "latest" }
+                // This property ensures that XAML files will be compiled in the current AppDomain
+                // rather than a separate one. Any tasks isolated in AppDomains or tasks that create
+                // AppDomains will likely not work due to https://github.com/Microsoft/MSBuildLocator/issues/16.
+                { "AlwaysCompileMarkupFilesInSeparateDomain", bool.FalseString },
+
+                // Use the latest language version to force the full set of available analyzers to run on the project.
+                { "LangVersion", "latest" },
             };
             using (MSBuildWorkspace workspace = MSBuildWorkspace.Create(properties))
             {
