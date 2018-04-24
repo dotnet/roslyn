@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,11 +22,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
         {
-            return TryExecuteCommand(args, context);
+            // TODO: it does not work if we want to apply multiple changes at once, so I will just apply one change at a time for now.
+            while (TryExecuteCommand(args, context, out var allChangesAreDone))
+            {
+                if (allChangesAreDone)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
-        private bool TryExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
+        private bool TryExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context, out bool allChangesAreDone)
         {
+            allChangesAreDone = false;
+
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
             {
                 return false;
@@ -55,10 +68,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 if (changes.Count() > 0)
                 {
                     ApplyChanges(document, changes, null, cancellationToken);
+                    // TODO: it does not work if we want to apply multiple changes at once, so I just apply one change at a time for now.
+                    return true;
                 }
             }
 
             // remove unused variables
+            var changeList = new List<CodeActionOperation>();
+            var workspace = document.Project.Solution.Workspace;
+
             var fixCollectionArray = _codeFixService.GetFixesAsync(document, new TextSpan(0, document.GetTextAsync().Result.Length), true, cancellationToken).Result;
             if (fixCollectionArray != null)
             {
@@ -69,7 +87,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                         var ops = fix.Action.GetPreviewOperationsAsync(cancellationToken).Result;
                         foreach (var op in ops)
                         {
-                            op.Apply(document.Project.Solution.Workspace, cancellationToken);
+                            op.Apply(workspace, cancellationToken);
+                            // TODO: it does not work if we want to apply multiple changes at once, so I will just apply one change at a time for now.
+                            return true;
                         }
                     }
                 }
@@ -87,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 Format(args.TextView, document, null, context.WaitContext.UserCancellationToken);
             }
 
-
+            allChangesAreDone = true;
             return true;
         }
     }
