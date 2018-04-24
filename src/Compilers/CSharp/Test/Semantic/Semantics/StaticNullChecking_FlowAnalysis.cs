@@ -1194,7 +1194,7 @@ class C
         return x ?? y;
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,21): warning CS8619: Nullability of reference types in value of type '(I<object?>, I<object>)?' doesn't match target type '(I<object>, I<object?>)?'.
                 //         return x ?? y;
@@ -1344,7 +1344,7 @@ class C
         if (x != null) F(y, x);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): We should be able to report warnings
             // when all applicable methods agree on the nullability of particular parameters.
             // (For instance, x in F(x, y) above.)
@@ -1366,7 +1366,7 @@ class C
         if (x != null) o = new C(y, x);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): We should be able to report warnings
             // when all applicable methods agree on the nullability of particular parameters.
             // (For instance, x in F(x, y) above.)
@@ -1391,7 +1391,7 @@ class C
         o.G.ToString();
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -1454,7 +1454,7 @@ class C
         F(y: y, x: x).ToString();
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         F(y: y, x: x).ToString();
@@ -1928,7 +1928,7 @@ class C
         (x ?? y).Item1.ToString();
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         (x ?? y).Item1.ToString();
@@ -1980,7 +1980,7 @@ class C
         (y6 ?? x6)/*T:B<object!>?*/.Value.F.ToString();
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (14,10): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'B<object?>'.
@@ -2065,7 +2065,7 @@ class C
         (y6 ?? x6)/*T:B<object!>*/.F.ToString();
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (6,7): warning CS8618: Non-nullable field 'F' is uninitialized.
@@ -2131,7 +2131,7 @@ class C
         (z ?? y).ToString();
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (x ?? y).ToString();

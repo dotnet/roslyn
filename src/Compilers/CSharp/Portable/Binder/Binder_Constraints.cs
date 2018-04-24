@@ -168,11 +168,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // though so the public binding API has the most information.
                                 if (!IsValidConstraintType(typeConstraintSyntax, type.TypeSymbol, diagnostics))
                                 {
-                                    Error(diagnostics, ErrorCode.ERR_ClassBoundNotFirst, syntax, type.TypeSymbol);
                                     continue;
                                 }
 
-                                if (constraintTypes.Contains(type))
+                                if (constraintTypes.Contains(c => type.TypeSymbol == c.TypeSymbol))
                                 {
                                     // "Duplicate constraint '{0}' for type parameter '{1}'"
                                     Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type.TypeSymbol, name);

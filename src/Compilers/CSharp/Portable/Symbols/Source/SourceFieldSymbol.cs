@@ -125,6 +125,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            if (this.Type.ContainsNullableReferenceTypes())
+            {
+                DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, ErrorLocation, modifyCompilation: true);
+            }
+        }
+
         internal sealed override bool HasRuntimeSpecialName
         {
             get

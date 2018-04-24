@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!mismatch.IsNull)
             {
                 var method = (MethodSymbol)(Symbol)mismatch.Member;
-                diagnostics.Add(ErrorCode.ERR_BadRetType, location, method, method.ReturnType);
+                diagnostics.Add(ErrorCode.ERR_BadRetType, location, method, method.ReturnType.TypeSymbol);
                 return true;
             }
 

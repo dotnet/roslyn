@@ -5320,7 +5320,7 @@ var (x, y) = (1, null);
             Assert.True(xType.TypeSymbol.IsErrorType());
             Assert.Equal("var", xType.ToTestDisplayString());
 
-            var xTypeISymbol = (ISymbol)xType;
+            var xTypeISymbol = (ISymbol)xType.TypeSymbol;
             Assert.Equal(SymbolKind.ErrorType, xTypeISymbol.Kind);
 
             var y = GetDeconstructionVariable(tree, "y");

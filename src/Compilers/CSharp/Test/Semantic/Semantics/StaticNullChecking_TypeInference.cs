@@ -1143,10 +1143,7 @@ class C
         F((y, y)).Item2.ToString();
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
                 //         F((x, y)).Item2.ToString();
@@ -1174,10 +1171,7 @@ class C
         F((y, y)).Item2.ToString();
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F((y, x)).Item2.ToString();
@@ -1202,10 +1196,7 @@ class C
         F(w).ToString();
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F(z).ToString();
@@ -1234,10 +1225,7 @@ class C
         F(ref t4).ToString();
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,15): warning CS8620: Nullability of reference types in argument of type '(string, string)' doesn't match target type '(string, string?)' for parameter 't' in 'string C.F<string>(ref (string, string?) t)'.
                 //         F(ref t1).ToString();
@@ -1268,10 +1256,7 @@ class C
         F(out (string?, string?) t4).ToString();
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,15): warning CS8620: Nullability of reference types in argument of type '(string, string)' doesn't match target type '(string, string?)' for parameter 't' in 'string C.F<string>(out (string, string?) t)'.
                 //         F(out (string, string) t1).ToString();
@@ -1321,10 +1306,7 @@ class C
         F(w).ToString();
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,11): warning CS8620: Nullability of reference types in argument of type 'I<(string, string)>' doesn't match target type 'I<(string, string?)>' for parameter 't' in 'string C.F<string>(I<(string, string?)> t)'.
                 //         F(x).ToString();
@@ -1456,10 +1438,7 @@ static class E
         y = null;
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         x.ToString();
@@ -1486,10 +1465,7 @@ static class E
         y = null;
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
                 //         x.ToString();
@@ -1520,10 +1496,7 @@ static class E
         y = null;
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,9): warning CS8602: Possible dereference of a null reference.
                 //         x.ToString();
@@ -1552,10 +1525,7 @@ static class E
         t.y = null;
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         t.y.ToString();
@@ -1584,10 +1554,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,13): warning CS8602: Possible dereference of a null reference.
                 //             y.ToString();
@@ -1614,19 +1581,13 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (13,22): error CS1061: '(object, int)' does not contain a definition for 'x' and no extension method 'x' accepting a first argument of type '(object, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         c.F((o, -1)).x.ToString();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("(object, int)", "x").WithLocation(13, 22));
 
-            comp = CreateCompilationWithMscorlib45(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (13,22): error CS1061: '(object, int)' does not contain a definition for 'x' and no extension method 'x' accepting a first argument of type '(object, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         c.F((o, -1)).x.ToString();
@@ -1652,10 +1613,7 @@ class C
         c.F((o, -1)).x.ToString();
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (13,22): error CS1061: '(object?, int)' does not contain a definition for 'x' and no extension method 'x' accepting a first argument of type '(object?, int)' could be found (are you missing a using directive or an assembly reference?)
                 //         c.F((o, -1)).x.ToString();
@@ -1682,16 +1640,10 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilationWithMscorlib45(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -1714,10 +1666,7 @@ class C
         c.F((x, y)).Item1.G();
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -1741,10 +1690,7 @@ class C
         i.F(d).G();
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,9): error CS1929: 'I<object>' does not contain a definition for 'F' and the best extension method overload 'E.F<T>(I<T>, T)' requires a receiver of type 'I<T>'
                 //         i.F(d).G();
@@ -1918,10 +1864,7 @@ class C
         F(t).Item2.ToString();
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F(t).Item2.ToString();
@@ -1949,10 +1892,7 @@ class C
         F(u).b.ToString();
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F(t).Item2.ToString();

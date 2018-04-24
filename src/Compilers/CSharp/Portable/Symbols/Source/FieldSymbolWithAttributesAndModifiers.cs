@@ -228,6 +228,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
+            {
+                // NullableAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
         }
 
         /// <summary>
@@ -362,17 +367,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            var type = Type.TypeSymbol;
-            if (type.ContainsDynamic())
+            var type = this.Type;
+
+            if (type.TypeSymbol.ContainsDynamic())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeDynamicAttribute(type, Type.CustomModifiers.Length));
+                    DeclaringCompilation.SynthesizeDynamicAttribute(type.TypeSymbol, Type.CustomModifiers.Length));
             }
 
-            if (type.ContainsTupleNames())
+            if (type.TypeSymbol.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type));
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
+            }
+
+            if (type.ContainsNullableReferenceTypes())
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
         }
     }

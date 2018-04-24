@@ -92,6 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static NamespaceOrTypeOrAliasSymbolWithAnnotations Create(CSharpCompilation compilation, Symbol symbol)
         {
+            if (symbol is null)
+            {
+                return null;
+            }
+
             switch (symbol.Kind)
             {
                 case SymbolKind.Namespace:

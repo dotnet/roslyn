@@ -551,10 +551,7 @@ class C5<T, U> where T : A where U : T
     internal readonly (object, object? B) F3;
     internal readonly (object?, object?) F4;
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 

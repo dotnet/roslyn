@@ -3721,7 +3721,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     public void M()
@@ -3729,21 +3729,22 @@ class C
         var [|s1|] = $""hello"";
         var s2 = string.Replace(s1, ""world"");
     }
-}", 
+}",
 @"class C
 {
     public void M()
     {
         var s2 = string.Replace($""hello"", ""world"");
     }
-}");
+}",
+parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontParenthesizeInterpolatedStringWithInterpolation()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     public void M(int x)
@@ -3758,7 +3759,8 @@ class C
     {
         var s2 = string.Replace($""hello {x}"", ""world"");
     }
-}");
+}",
+parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
         }
 
         [WorkItem(15530, "https://github.com/dotnet/roslyn/issues/15530")]

@@ -152,7 +152,7 @@ class C
     public struct Enum { }
     public class Attribute { }
 }";
-            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
@@ -162,7 +162,7 @@ class C
 {
     int F() => (int)E.A;
 }";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 source,
                 references: new[] { ref0 },
                 parseOptions: TestOptions.Regular8);
@@ -221,10 +221,10 @@ namespace System
     }
 }
 ";
-            var comp = CreateCompilation(lib, parseOptions: TestOptions.Regular8);
+            var comp = CreateEmptyCompilation(lib, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
-            var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp2 = CreateEmptyCompilation("", references: new[] { comp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp2.VerifyDiagnostics();
 
             var expected = ImmutableArray.Create(
@@ -382,7 +382,7 @@ public class C
     }
 }";
 
-            var comp0 = CreateCompilation(source0, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
 
             void verifyTuple(TypeSymbolWithAnnotations type)
@@ -402,10 +402,10 @@ public class C
                 verifyTuple(method.Parameters[0].Type);
             }
 
-            var comp1A = CreateCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
+            var comp1A = CreateCompilation(source1, references: new[] { new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
             verify(comp1A);
 
-            var comp1B = CreateCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp1B = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             verify(comp1B);
         }
 
@@ -4232,15 +4232,9 @@ class C
                 // (11,23): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         G(y: y, x: y, x: x);
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(11, 23),
-                // (13,17): error CS1740: Named argument 'y' cannot be specified multiple times
-                //         G(y: x, y: y);
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(13, 17),
                 // (13,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.G(object, params object?[])'
                 //         G(y: x, y: y);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "G").WithArguments("x", "C.G(object, params object?[])").WithLocation(13, 9),
-                // (14,17): error CS1740: Named argument 'y' cannot be specified multiple times
-                //         G(y: y, y: x);
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(14, 17),
                 // (14,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.G(object, params object?[])'
                 //         G(y: y, y: x);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "G").WithArguments("x", "C.G(object, params object?[])").WithLocation(14, 9),
@@ -4255,25 +4249,7 @@ class C
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(17, 17),
                 // (18,17): error CS1740: Named argument 'y' cannot be specified multiple times
                 //         G(y: y, y: x, x: x);
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(18, 17),
-                // (6,20): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
-                //         G(x: x, x: y);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(6, 20),
-                // (7,14): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
-                //         G(x: y, x: x);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(7, 14),
-                // (8,20): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
-                //         G(x: x, x: y, y: y);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(8, 20),
-                // (9,14): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
-                //         G(x: y, x: x, y: y);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(9, 14),
-                // (10,26): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
-                //         G(y: y, x: x, x: y);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(10, 26),
-                // (11,20): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
-                //         G(y: y, x: y, x: x);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(11, 20));
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(18, 17));
         }
 
         [Fact]
@@ -9939,7 +9915,7 @@ class C
         y = null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -12823,7 +12799,7 @@ public abstract class ClassITest28 //: ITest28
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, new MetadataReference[] { MscorlibRef_v4_0_30316_17626 }, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7);
+            var piaCompilation = CreateCompilationWithMscorlib45(pia, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7);
 
             CompileAndVerify(piaCompilation);
 
@@ -12845,8 +12821,8 @@ class UsePia
     }
 }";
 
-            var compilation = CreateCompilation(source,
-                                                new MetadataReference[] { MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
+            var compilation = CreateCompilationWithMscorlib45(source,
+                                                new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
                                                 options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
@@ -17938,7 +17914,7 @@ static T F<T>(IEnumerable<T> e)
 dynamic d = null!;
 d.F(out var v);
 F(v).ToString();";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp8));
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp8));
             comp.VerifyDiagnostics(
                 // (8,13): error CS8197: Cannot infer the type of implicitly-typed out variable 'v'.
                 // d.F(out var v);
@@ -18498,7 +18474,7 @@ namespace System
         }
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (16,22): warning CS8602: Possible dereference of a null reference.
                 //             _value = _f.GetHashCode();
@@ -18604,7 +18580,7 @@ class Program
         var items = from i in Enumerable.Range(0, 3) group (long)i by i;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -18864,7 +18840,7 @@ class C
         (C, C?) c = b; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,21): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
                 //         (C, C?) c = b; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
@@ -18892,7 +18868,7 @@ class C
         (A, A?) t = (x, y); // (ImplicitTuple)(ImplicitReference)(ImplicitUserDefined)
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,17): warning CS0219: The variable 't' is assigned but its value is never used
                 //         (A, A?) t = (x, y); // (ImplicitTuple)(ImplicitReference)(ImplicitUserDefined)

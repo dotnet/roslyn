@@ -2671,7 +2671,7 @@ class UsePia2
                     Assert.Equal("Pia.dll", test.ContainingModule.Name);
 
                     var usePia1 = compilation2.GetTypeByMetadataName("UsePia1");
-                    Assert.Same(test, usePia1.GetMember<MethodSymbol>("M1").ReturnType);
+                    Assert.Same(test, usePia1.GetMember<MethodSymbol>("M1").ReturnType.TypeSymbol);
                 }
             }
         }

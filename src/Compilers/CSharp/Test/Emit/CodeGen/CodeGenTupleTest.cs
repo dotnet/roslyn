@@ -717,7 +717,7 @@ val: -2
             var tooFewNames = c.GetMember<FieldSymbol>("TooFewNames");
             Assert.True(tooFewNames.Type.IsErrorType());
             Assert.IsType<UnsupportedMetadataTypeSymbol>(tooFewNames.Type.TypeSymbol);
-            Assert.False(((INamedTypeSymbol)tooFewNames.Type).IsSerializable);
+            Assert.False(((INamedTypeSymbol)tooFewNames.Type.TypeSymbol).IsSerializable);
 
             var tooManyNames = c.GetMember<FieldSymbol>("TooManyNames");
             Assert.True(tooManyNames.Type.TypeSymbol.IsErrorType());

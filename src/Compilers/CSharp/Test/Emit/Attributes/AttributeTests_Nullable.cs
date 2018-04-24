@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void EmptyProject_MissingAttribute()
         {
             var source = "";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Do not emit [module: NullableAttribute] if no nullable types,
             // or change the missing System.Attribute error to a warning in this case.
             comp.VerifyEmitDiagnostics(
@@ -141,7 +141,7 @@ class C
     {
     }
 }";
-            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular7);
             var ref0 = comp0.EmitToImageReference();
 
             var source =
@@ -149,7 +149,7 @@ class C
 {
     object? F() => null;
 }";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 source,
                 references: new[] { ref0 },
                 parseOptions: TestOptions.Regular8);
@@ -169,7 +169,7 @@ class C
     public struct Void { }
     public struct Boolean { }
 }";
-            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular7);
             var ref0 = comp0.EmitToImageReference();
 
             var source =
@@ -177,7 +177,7 @@ class C
 {
     object? F() => null;
 }";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 source,
                 references: new[] { ref0 },
                 parseOptions: TestOptions.Regular8);
@@ -204,7 +204,7 @@ class C
         public Attribute(object o) { }
     }
 }";
-            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular7);
             var ref0 = comp0.EmitToImageReference();
 
             var source =
@@ -212,7 +212,7 @@ class C
 {
     object? F() => null;
 }";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 source,
                 references: new[] { ref0 },
                 parseOptions: TestOptions.Regular8);
@@ -726,7 +726,7 @@ class C
     public struct IntPtr { }
     public class MulticastDelegate { }
 }";
-            var comp0 = CreateCompilation(source0);
+            var comp0 = CreateEmptyCompilation(source0);
             var ref0 = comp0.EmitToImageReference();
 
             var source =
@@ -745,7 +745,7 @@ class C
         });
     }
 }";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 source,
                 references: new[] { ref0 },
                 parseOptions: TestOptions.Regular8);

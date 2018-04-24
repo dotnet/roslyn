@@ -2737,7 +2737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!bestType.IsErrorType() && bestType.IsManagedType)
             {
-                Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, bestType);
+                Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, bestType.TypeSymbol);
             }
 
             return BindStackAllocWithInitializer(
