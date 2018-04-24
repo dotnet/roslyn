@@ -107,105 +107,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             elseStatements = ifStatement.Else;
         }
 
-        private bool TryNegateBinaryComparisonExpression(
-            SyntaxNode expressionNode,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken,
-            out ExpressionSyntax result)
-        {
-            var expression= (ExpressionSyntax)expressionNode;
-            if (s_negatedBinaryMap.TryGetValue(expression.Kind(), out var negatedExpressionInfo))
-            {
-                var binaryExpression = (BinaryExpressionSyntax)expression;
-                var (negatedBinaryExpression, negatedToken) = negatedExpressionInfo;
-
-                // Certain expressions can never be negative, such as length or unsigned numeric types.
-                // If these expressions are compared with zero using <, >, or =, we construct the negated
-                // binary expression to reflect that it will never be negative.
-                // For example, the expression Array.Length > 0, becomes Array.Length == 0 when negated.
-                var operation = semanticModel.GetOperation(binaryExpression);
-
-                if (IsSpecialCaseBinaryExpression(operation as IBinaryOperation, cancellationToken))
-                {
-                    negatedToken = binaryExpression.OperatorToken.Kind() == SyntaxKind.EqualsEqualsToken
-                        ? binaryExpression.Right is LiteralExpressionSyntax ? SyntaxKind.GreaterThanToken : SyntaxKind.LessThanToken
-                        : SyntaxKind.EqualsEqualsToken;
-                    negatedBinaryExpression = binaryExpression.Kind() == SyntaxKind.EqualsExpression
-                        ? binaryExpression.Right is LiteralExpressionSyntax ? SyntaxKind.GreaterThanExpression 
-                            : SyntaxKind.LessThanExpression
-                        : SyntaxKind.EqualsExpression;
-                }
-
-                result = SyntaxFactory.BinaryExpression(
-                    negatedBinaryExpression,
-                    binaryExpression.Left,
-                    SyntaxFactory.Token(
-                        binaryExpression.OperatorToken.LeadingTrivia,
-                        negatedToken,
-                        binaryExpression.OperatorToken.TrailingTrivia),
-                    binaryExpression.Right);
-
-                return true;
-            }
-
-            result = null;
-            return false;
-        }
-
         protected override ISyntaxFactsService GetSyntaxFactsService()
            => CSharpSyntaxFactsService.Instance;
-
-        protected override SyntaxNode Negate(SyntaxNode expression, SyntaxGenerator generator, ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            if (TryNegateBinaryComparisonExpression(expression, semanticModel, cancellationToken, out var result))
-            {
-                return result;
-            }
-
-            switch (expression.Kind())
-            {
-                case SyntaxKind.ParenthesizedExpression:
-                    {
-                        return GetNegationOfParenthesizedExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken);
-                    }
-
-                case SyntaxKind.LogicalNotExpression:
-                    {
-                        return GetNegationOfLogicalNotExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken);
-                    }
-
-                case SyntaxKind.LogicalOrExpression:
-                    {
-                        return GetNegationOfLogicalOrExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken);
-                    }
-
-                case SyntaxKind.LogicalAndExpression:
-                    {
-                        return GetNegationOfLogicalAndExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken);
-                    }
-
-                case SyntaxKind.TrueLiteralExpression:
-                    {
-                        return GetNegationOfTrueLiteralExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken);
-                    }
-
-                case SyntaxKind.FalseLiteralExpression:
-                    {
-                        return GetNegationOfFalseLiteralExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken);
-                    }
-            }
-
-            // Anything else we can just negate by adding a ! in front of the parenthesized expression.
-            // Unnecessary parentheses will get removed by the simplification service.
-            return generator.LogicalNotExpression(expression);
-            //return SyntaxFactory.PrefixUnaryExpression(
-            //    SyntaxKind.LogicalNotExpression,
-            //    expression.Parenthesize());
-        }
 
         internal override string GetInvertIfText()
         {
             return CSharpFeaturesResources.Invert_if;
+        }
+
+        internal override IOperation GetBinaryOperation(SyntaxNode expressionNode, SemanticModel semanticModel)
+        {
+            return semanticModel.GetOperation((BinaryExpressionSyntax)expressionNode);
+        }
+
+        internal override bool IsConditionalAnd(IBinaryOperation binaryOperation)
+        {
+            return binaryOperation.Syntax.ToString().Contains("&&");
+        }
+
+        internal override bool IsConditionalOr(IBinaryOperation binaryOperation)
+        {
+            return binaryOperation.Syntax.ToString().Contains("||");
         }
     }
 }

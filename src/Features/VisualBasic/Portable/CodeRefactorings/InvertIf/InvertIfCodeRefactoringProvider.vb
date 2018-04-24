@@ -294,48 +294,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 .WithLeadingTrivia(ifLeadingTrivia)
         End Function
 
-        Private Function TryNegateBinaryComparisonExpression(
-            expressionNode As SyntaxNode,
-            semanticModel As SemanticModel,
-            cancellationToken As CancellationToken,
-            ByRef result As ExpressionSyntax) As Boolean
+        'Private Function TryNegateBinaryComparisonExpression(
+        '    expressionNode As SyntaxNode,
+        '    semanticModel As SemanticModel,
+        '    cancellationToken As CancellationToken,
+        '    ByRef result As ExpressionSyntax) As Boolean
 
-            Dim expression = DirectCast(expressionNode, ExpressionSyntax)
+        '    Dim expression = DirectCast(expressionNode, ExpressionSyntax)
 
-            Dim inverses As Tuple(Of SyntaxKind, SyntaxKind) = Nothing
-            If s_comparisonInversesMap.TryGetValue(Expression.Kind, inverses) Then
-                Dim binaryExpression = DirectCast(expression, BinaryExpressionSyntax)
-                Dim expressionType = inverses.Item1
-                Dim operatorType = inverses.Item2
+        '    Dim inverses As Tuple(Of SyntaxKind, SyntaxKind) = Nothing
+        '    If s_comparisonInversesMap.TryGetValue(Expression.Kind, inverses) Then
+        '        Dim binaryExpression = DirectCast(expression, BinaryExpressionSyntax)
+        '        Dim expressionType = inverses.Item1
+        '        Dim operatorType = inverses.Item2
 
-                ' Special case negating Length > 0 to Length = 0 and 0 < Length to 0 == Length
-                ' for arrays and strings. We can do this because we know that Length cannot be
-                ' less than 0.
-                Dim operation = semanticModel.GetOperation(binaryExpression)
+        '        ' Special case negating Length > 0 to Length = 0 and 0 < Length to 0 == Length
+        '        ' for arrays and strings. We can do this because we know that Length cannot be
+        '        ' less than 0.
+        '        Dim operation = semanticModel.GetOperation(binaryExpression)
 
-                If (IsSpecialCaseBinaryExpression(TryCast(operation, IBinaryOperation), cancellationToken)) Then
-                    expressionType = SyntaxKind.EqualsExpression
-                    operatorType = SyntaxKind.EqualsToken
-                End If
+        '        If (IsSpecialCaseBinaryExpression(TryCast(operation, IBinaryOperation), cancellationToken)) Then
+        '            expressionType = SyntaxKind.EqualsExpression
+        '            operatorType = SyntaxKind.EqualsToken
+        '        End If
 
-                result = SyntaxFactory.BinaryExpression(
-                    expressionType,
-                    binaryExpression.Left.Parenthesize(),
-                    SyntaxFactory.Token(
-                        binaryExpression.OperatorToken.LeadingTrivia,
-                        operatorType,
-                        binaryExpression.OperatorToken.TrailingTrivia),
-                    binaryExpression.Right.Parenthesize())
+        '        result = SyntaxFactory.BinaryExpression(
+        '            expressionType,
+        '            binaryExpression.Left.Parenthesize(),
+        '            SyntaxFactory.Token(
+        '                binaryExpression.OperatorToken.LeadingTrivia,
+        '                operatorType,
+        '                binaryExpression.OperatorToken.TrailingTrivia),
+        '            binaryExpression.Right.Parenthesize())
 
-                result = result _
-                .WithLeadingTrivia(binaryExpression.GetLeadingTrivia()) _
-                .WithTrailingTrivia(binaryExpression.GetTrailingTrivia())
+        '        result = result _
+        '        .WithLeadingTrivia(binaryExpression.GetLeadingTrivia()) _
+        '        .WithTrailingTrivia(binaryExpression.GetTrailingTrivia())
 
-                Return True
-            End If
+        '        Return True
+        '    End If
 
-            Return False
-        End Function
+        '    Return False
+        'End Function
 
         Private Function TryNegateBinaryLogicalExpression(
             expressionNode As SyntaxNode,
@@ -371,59 +371,71 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return False
         End Function
 
-        Protected Overrides Function Negate(expression As SyntaxNode, generator As SyntaxGenerator, syntaxFacts As ISyntaxFactsService, semanticModel As SemanticModel, cancellationToken As CancellationToken) As SyntaxNode
-            Dim result As ExpressionSyntax = Nothing
+        'Protected Overrides Function Negate(expression As SyntaxNode, generator As SyntaxGenerator, syntaxFacts As ISyntaxFactsService, semanticModel As SemanticModel, cancellationToken As CancellationToken) As SyntaxNode
+        '    Dim result As ExpressionSyntax = Nothing
 
-            If TryNegateBinaryComparisonExpression(expression, semanticModel, cancellationToken, result) OrElse
-               TryNegateBinaryLogicalExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken, result) Then
-                'Return result.WithAdditionalAnnotations(Formatter.Annotation)
-                Return result
-            End If
+        '    If TryNegateBinaryComparisonExpression(expression, semanticModel, cancellationToken, result) OrElse
+        '       TryNegateBinaryLogicalExpression(expression, generator, syntaxFacts, semanticModel, cancellationToken, result) Then
+        '        'Return result.WithAdditionalAnnotations(Formatter.Annotation)
+        '        Return result
+        '    End If
 
-            Select Case expression.Kind
-                Case SyntaxKind.ParenthesizedExpression
-                    Dim parenthesizedExpression = DirectCast(expression, ParenthesizedExpressionSyntax)
-                    Return parenthesizedExpression _
-                        .WithExpression(DirectCast(Negate(parenthesizedExpression.Expression, generator, syntaxFacts, semanticModel, cancellationToken), ExpressionSyntax)) _
-                        .WithAdditionalAnnotations({Simplifier.Annotation})
+        '    Select Case expression.Kind
+        '        Case SyntaxKind.ParenthesizedExpression
+        '            Dim parenthesizedExpression = DirectCast(expression, ParenthesizedExpressionSyntax)
+        '            Return parenthesizedExpression _
+        '                .WithExpression(DirectCast(Negate(parenthesizedExpression.Expression, generator, syntaxFacts, semanticModel, cancellationToken), ExpressionSyntax)) _
+        '                .WithAdditionalAnnotations({Simplifier.Annotation})
 
-                Case SyntaxKind.NotExpression
-                    Dim notExpression = DirectCast(expression, UnaryExpressionSyntax)
+        '        Case SyntaxKind.NotExpression
+        '            Dim notExpression = DirectCast(expression, UnaryExpressionSyntax)
 
-                    Dim notToken = notExpression.OperatorToken
-                    Dim nextToken = notExpression.Operand.GetFirstToken(
-                        includeZeroWidth:=True,
-                        includeSkipped:=True,
-                        includeDirectives:=True,
-                        includeDocumentationComments:=True)
-                    Dim updatedNextToken = nextToken.WithLeadingTrivia(notToken.LeadingTrivia)
+        '            Dim notToken = notExpression.OperatorToken
+        '            Dim nextToken = notExpression.Operand.GetFirstToken(
+        '                includeZeroWidth:=True,
+        '                includeSkipped:=True,
+        '                includeDirectives:=True,
+        '                includeDocumentationComments:=True)
+        '            Dim updatedNextToken = nextToken.WithLeadingTrivia(notToken.LeadingTrivia)
 
-                    Return notExpression.Operand.ReplaceToken(nextToken, updatedNextToken).WithAdditionalAnnotations(Simplifier.Annotation)
+        '            Return notExpression.Operand.ReplaceToken(nextToken, updatedNextToken).WithAdditionalAnnotations(Simplifier.Annotation)
 
-                Case SyntaxKind.TrueLiteralExpression
-                    Return SyntaxFactory.FalseLiteralExpression(
-                        SyntaxFactory.Token(expression.GetLeadingTrivia(),
-                                     SyntaxKind.FalseKeyword,
-                                     expression.GetTrailingTrivia()))
+        '        Case SyntaxKind.TrueLiteralExpression
+        '            Return SyntaxFactory.FalseLiteralExpression(
+        '                SyntaxFactory.Token(expression.GetLeadingTrivia(),
+        '                             SyntaxKind.FalseKeyword,
+        '                             expression.GetTrailingTrivia()))
 
-                Case SyntaxKind.FalseLiteralExpression
-                    Return SyntaxFactory.TrueLiteralExpression(
-                        SyntaxFactory.Token(expression.GetLeadingTrivia(),
-                                     SyntaxKind.TrueKeyword,
-                                     expression.GetTrailingTrivia()))
-            End Select
+        '        Case SyntaxKind.FalseLiteralExpression
+        '            Return SyntaxFactory.TrueLiteralExpression(
+        '                SyntaxFactory.Token(expression.GetLeadingTrivia(),
+        '                             SyntaxKind.TrueKeyword,
+        '                             expression.GetTrailingTrivia()))
+        '    End Select
 
-            ' Anything else can be negated by adding Not in front of the expression
-            result = SyntaxFactory.UnaryExpression(
-                SyntaxKind.NotExpression,
-                SyntaxFactory.Token(SyntaxKind.NotKeyword),
-                DirectCast(expression, ExpressionSyntax).Parenthesize())
+        '    ' Anything else can be negated by adding Not in front of the expression
+        '    result = SyntaxFactory.UnaryExpression(
+        '        SyntaxKind.NotExpression,
+        '        SyntaxFactory.Token(SyntaxKind.NotKeyword),
+        '        DirectCast(expression, ExpressionSyntax).Parenthesize())
 
-            Return result
-        End Function
+        '    Return result
+        'End Function
 
         Friend Overrides Function GetInvertIfText() As String
             Return VBFeaturesResources.Invert_If
+        End Function
+
+        Friend Overrides Function GetBinaryOperation(expressionNode As SyntaxNode, semanticModel As SemanticModel) As IOperation
+            Return semanticModel.GetOperation(DirectCast(expressionNode, BinaryExpressionSyntax))
+        End Function
+
+        Friend Overrides Function IsConditionalAnd(binaryOperation As IBinaryOperation) As Boolean
+            Return Not binaryOperation.Syntax.ToString().Contains("AndAlso")
+        End Function
+
+        Friend Overrides Function IsConditionalOr(binaryOperation As IBinaryOperation) As Boolean
+            Return Not binaryOperation.Syntax.ToString().Contains("OrElse")
         End Function
     End Class
 End Namespace

@@ -1628,6 +1628,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             right = binaryExpression.Right;
         }
 
+        public SyntaxToken GetOperatorTokenOfBinaryExpression(SyntaxNode node)
+            => ((BinaryExpressionSyntax)node).OperatorToken;
+
         public void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse)
         {
             var conditionalExpression = (ConditionalExpressionSyntax)node;
@@ -1641,6 +1644,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsLogicalAndExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalAndExpression;
+
+        public bool IsLogicalOrExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.LogicalOrExpression;
 
         public bool IsLogicalNotExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalNotExpression;

@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsBinaryExpression(SyntaxNode node);
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right);
+        SyntaxToken GetOperatorTokenOfBinaryExpression(SyntaxNode node);
+
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
 
         bool IsCastExpression(SyntaxNode node);
@@ -93,6 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
 
         bool IsLogicalAndExpression(SyntaxNode node);
+        bool IsLogicalOrExpression(SyntaxNode node);
         bool IsLogicalNotExpression(SyntaxNode node);
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
         SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node);

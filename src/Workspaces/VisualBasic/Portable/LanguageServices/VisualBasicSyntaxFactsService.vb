@@ -1562,6 +1562,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             right = binaryExpression.Right
         End Sub
 
+        Public Function GetOperatorTokenOfBinaryExpression(node As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetOperatorTokenOfBinaryExpression
+            Dim binaryExpression = DirectCast(node, BinaryExpressionSyntax)
+            Return binaryExpression.OperatorToken
+        End Function
+
         Public Sub GetPartsOfConditionalExpression(node As SyntaxNode, ByRef condition As SyntaxNode, ByRef whenTrue As SyntaxNode, ByRef whenFalse As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfConditionalExpression
             Dim conditionalExpression = DirectCast(node, TernaryConditionalExpressionSyntax)
             condition = conditionalExpression.Condition
@@ -1575,6 +1580,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsLogicalAndExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalAndExpression
             Return node.IsKind(SyntaxKind.AndAlsoExpression)
+        End Function
+
+        Public Function IsLogicalOrExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalOrExpression
+            Return node.IsKind(SyntaxKind.OrElseExpression)
         End Function
 
         Public Function IsLogicalNotExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalNotExpression
