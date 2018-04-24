@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ICodeActionEditHandlerService editHandler,
             IWaitIndicator waitIndicator,
             ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
+            IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany] IEnumerable<Lazy<IImageMonikerService, OrderableMetadata>> imageMonikerServices,
             [ImportMany] IEnumerable<Lazy<ISuggestedActionCallback>> actionCallbacks)
         {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ActionCallbacks = actionCallbacks.ToImmutableArray();
             EditHandler = editHandler;
             WaitIndicator = waitIndicator;
-            OperationListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LightBulb);
+            OperationListener = listenerProvider.GetListener(FeatureAttribute.LightBulb);
 
             ImageMonikerServices = ExtensionOrderer.Order(imageMonikerServices).ToImmutableArray();
         }

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1375,6 +1376,8 @@ class C
 @"
 {
         int y,
+#if true
+
 #endif
         z;
 
@@ -1399,7 +1402,9 @@ class C
 {
         int y,
 #if true
-        z;
+        z
+#endif
+        ;
 
         int a = 1;
 }");
@@ -4533,6 +4538,30 @@ class C
     bool M<T>(out T x) 
     {
         return M(out x) || M(out x);
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(24791, "https://github.com/dotnet/roslyn/issues/24791")]
+        public async Task InlineVariableDoesNotAddUnnecessaryCast()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        var [||]o = M();
+        if (!o) throw null;
+        throw null;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        if (!M()) throw null;
+        throw null;
     }
 }");
         }

@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return DefaultMarshallingCharSet; }
         }
 
-        internal sealed override bool IsSerializable
+        public sealed override bool IsSerializable
         {
             get { return false; }
         }

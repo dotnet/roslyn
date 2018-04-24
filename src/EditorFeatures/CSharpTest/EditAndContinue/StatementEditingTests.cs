@@ -4690,7 +4690,7 @@ class Program
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int X", "parameter"));
+                Diagnostic(RudeEditKind.Renamed, "int X", FeaturesResources.parameter));
         }
 
         #endregion
@@ -6694,7 +6694,7 @@ class Program
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int X", "parameter"));
+                Diagnostic(RudeEditKind.Renamed, "int X", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -8521,7 +8521,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "static void F()", "method"));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "static void F()", FeaturesResources.method));
         }
 
         [Fact]

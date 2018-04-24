@@ -12,6 +12,7 @@ Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
 
+    <[UseExportProvider]>
     Public Class BraceHighlightingTests
 
         Private Function Enumerable(Of t)(ParamArray array() As t) As IEnumerable(Of t)
@@ -24,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             Dim producer = New BraceHighlightingViewTaggerProvider(
                 workspace.GetService(Of IBraceMatchingService),
                 workspace.GetService(Of IForegroundNotificationService),
-                AggregateAsynchronousOperationListener.EmptyListeners)
+                AsynchronousOperationListenerProvider.NullProvider)
 
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()
             Dim context = New TaggerContext(Of BraceHighlightTag)(

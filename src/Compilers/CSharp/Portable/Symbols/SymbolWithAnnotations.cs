@@ -8,14 +8,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// A simple class that combines a single symbol with annotations
     /// </summary>
-    internal abstract class SymbolWithAnnotations : IMessageSerializable 
+    internal abstract class SymbolWithAnnotations 
     {
         public abstract Symbol Symbol { get; }
 

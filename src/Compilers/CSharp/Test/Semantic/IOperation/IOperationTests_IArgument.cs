@@ -1053,7 +1053,7 @@ IInvocationOperation ( void P.M2([System.String memberName = null], [System.Stri
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, TargetFramework.Mscorlib46, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1096,7 +1096,7 @@ IInvocationOperation ( System.Boolean P.M2([System.String memberName = null], [S
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, TargetFramework.Mscorlib46, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1139,7 +1139,7 @@ IInvocationOperation (System.Boolean P.M2([System.String memberName = null], [Sy
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, TargetFramework.Mscorlib46, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1194,7 +1194,7 @@ IInvocationOperation (System.Boolean P.M2([System.String memberName = null], [Sy
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, additionalReferences: new[] { MscorlibRef_v46 });
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, TargetFramework.Mscorlib46, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2171,7 +2171,7 @@ IInvocationOperation (void P.M2([System.Boolean[missing]? x = true])) (Operation
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(2, 7)
             };
 
-            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
         }
 
@@ -2238,7 +2238,7 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = tru
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(9, 5)
             };
 
-            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
         }
 
@@ -2322,7 +2322,7 @@ IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] 
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(3, 7)
             };
 
-            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
         }
 
@@ -2378,7 +2378,7 @@ IInvocationOperation (void P.M2([System.Boolean[missing]? x = null])) (Operation
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(2, 7)
             };
             
-            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
         }
 
@@ -2440,7 +2440,7 @@ IObjectCreationOperation (Constructor: P..ctor([System.Boolean[missing]? x = nul
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(9, 5)
             };
 
-            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
         }
 
@@ -2522,7 +2522,7 @@ IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] 
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(2, 7)
             };
 
-            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
         }
 
@@ -2775,7 +2775,7 @@ class P
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var (operation, syntaxNode) = GetOperationAndSyntaxForTest<InvocationExpressionSyntax>(compilation);
 
             var invocation = (IInvocationOperation)operation;
@@ -3534,7 +3534,7 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(2, 7)
             };
 
-            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
         }
 
@@ -3626,7 +3626,7 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(2, 7)
             };
 
-            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
         }
 

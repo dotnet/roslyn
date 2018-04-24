@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        bool IObjectWritable.ShouldReuseInSerialization => true;
+
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             // write nothing, always read/deserialized as global Instance
@@ -160,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_InvalidFileAlignment => (int)ErrorCode.ERR_InvalidFileAlignment;
         public override int ERR_InvalidSubsystemVersion => (int)ErrorCode.ERR_InvalidSubsystemVersion;
         public override int ERR_InvalidInstrumentationKind => (int)ErrorCode.ERR_InvalidInstrumentationKind;
+        public override int ERR_InvalidHashAlgorithmName => (int)ErrorCode.ERR_InvalidHashAlgorithmName;
 
         // reference manager:
         public override int ERR_MetadataFileNotAssembly => (int)ErrorCode.ERR_ImportNonAssembly;

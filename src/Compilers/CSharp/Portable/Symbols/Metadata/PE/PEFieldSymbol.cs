@@ -435,14 +435,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (FilterOutDecimalConstantAttribute())
                 {
                     // filter out DecimalConstantAttribute
-                    CustomAttributeHandle ignore1;
-                    CustomAttributeHandle ignore2;
                     var attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
                         _handle,
-                        out ignore1,
-                        AttributeDescription.DecimalConstantAttribute,
-                        out ignore2,
-                        default(AttributeDescription));
+                        out _,
+                        AttributeDescription.DecimalConstantAttribute);
 
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
                 }

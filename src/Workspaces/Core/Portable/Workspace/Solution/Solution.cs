@@ -294,6 +294,20 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the reference assembly output file path.
+        /// </summary>
+        public Solution WithProjectOutputRefFilePath(ProjectId projectId, string outputRefFilePath)
+        {
+            var newState = _state.WithProjectOutputRefFilePath(projectId, outputRefFilePath);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
         public Solution WithProjectName(ProjectId projectId, string name)
@@ -1036,6 +1050,19 @@ namespace Microsoft.CodeAnalysis
                 // TODO: actually make this a snapshot
                 return this.Workspace.Options;
             }
+        }
+
+        /// <summary>
+        /// Update current solution as a result of option changes.
+        /// 
+        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
+        /// until then, this will explicitly fork current solution snapshot
+        /// </summary>
+        internal Solution WithOptionChanged()
+        {
+            // options are associated with solution snapshot. creating new snapshot
+            // will cause us to retrieve new options
+            return new Solution(_state);
         }
     }
 }

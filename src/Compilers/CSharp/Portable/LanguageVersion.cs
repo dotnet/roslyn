@@ -121,6 +121,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp7_2 = 702,
 
         /// <summary>
+        /// C# language version 7.3
+        /// </summary>
+        CSharp7_3 = 703,
+
+        /// <summary>
         /// C# language version 8.
         /// </summary>
         CSharp8 = 800,
@@ -146,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp7:
                 case LanguageVersion.CSharp7_1:
                 case LanguageVersion.CSharp7_2:
+                case LanguageVersion.CSharp7_3:
                 case LanguageVersion.CSharp8:
                     return true;
             }
@@ -175,6 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_FeatureNotAvailableInVersion7_1;
                 case LanguageVersion.CSharp7_2:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion7_2;
+                case LanguageVersion.CSharp7_3:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion7_3;
                 case LanguageVersion.CSharp8:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion8;
                 default:
@@ -223,6 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "7.1";
                 case LanguageVersion.CSharp7_2:
                     return "7.2";
+                case LanguageVersion.CSharp7_3:
+                    return "7.3";
                 case LanguageVersion.CSharp8:
                     return "8.0";
                 case LanguageVersion.Default:
@@ -300,6 +310,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = LanguageVersion.CSharp7_2;
                     return true;
 
+                case "7.3":
+                    result = LanguageVersion.CSharp7_3;
+                    return true;
+
                 case "8":
                 case "8.0":
                     result = LanguageVersion.CSharp8;
@@ -336,6 +350,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool AllowNonTrailingNamedArguments(this LanguageVersion self)
         {
             return self >= MessageID.IDS_FeatureNonTrailingNamedArguments.RequiredVersion();
+        }
+
+        internal static bool AllowAttributesOnBackingFields(this LanguageVersion self)
+        {
+            return self >= MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion();
+        }
+
+        internal static bool AllowImprovedOverloadCandidates(this LanguageVersion self)
+        {
+            return self >= MessageID.IDS_FeatureImprovedOverloadCandidates.RequiredVersion();
         }
     }
 }

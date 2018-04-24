@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
 {
+    [UseExportProvider]
     public abstract class AbstractCodeLensTest
     {
         protected static async Task RunCountTest(XElement input, int cap = 0)

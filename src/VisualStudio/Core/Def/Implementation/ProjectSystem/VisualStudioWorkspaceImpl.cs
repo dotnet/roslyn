@@ -13,10 +13,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
@@ -25,8 +23,8 @@ using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
-using Roslyn.VisualStudio.ProjectSystem;
 using VSLangProj;
 using VSLangProj140;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
@@ -41,6 +39,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly IntPtr s_docDataExisting_Unknown = new IntPtr(-1);
         private const string AppCodeFolderName = "App_Code";
 
+        private readonly ITextBufferFactoryService _textBufferFactoryService;
+        private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
+        private readonly ITextBufferCloneService _textBufferCloneService;
+
         // document worker coordinator
         private ISolutionCrawlerRegistrationService _registrationService;
 
@@ -50,6 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private readonly Lazy<ForegroundThreadAffinitizedObject> _foregroundObject
             = new Lazy<ForegroundThreadAffinitizedObject>(() => new ForegroundThreadAffinitizedObject());
+
+        private readonly Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>> _hierarchyEventSinks = new Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>>();
 
         /// <summary>
         /// The <see cref="DeferredInitializationState"/> that consists of the <see cref="VisualStudioProjectTracker" />
@@ -62,7 +66,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 MefV1HostServices.Create(exportProvider),
                 backgroundWork: WorkspaceBackgroundWork.ParseAndCompile)
         {
-            PrimaryWorkspace.Register(this);
+            _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
+            _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
+            _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
+            _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
+            _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
+            exportProvider.GetExportedValue<PrimaryWorkspace>().Register(this);
         }
 
         /// <summary>
@@ -215,6 +224,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var updated = parseOptionsService.WithLanguageVersion(oldOptions, newLanguageVersion);
 
             return newOptions == updated;
+        }
+
+        private void AddTextBufferCloneServiceToBuffer(object sender, TextBufferCreatedEventArgs e)
+        {
+            e.TextBuffer.Properties.AddProperty(typeof(ITextBufferCloneService), _textBufferCloneService);
         }
 
         public override bool CanApplyChange(ApplyChangesKind feature)
@@ -973,6 +987,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             OnDocumentContextUpdated(documentId);
         }
 
+        internal void ConnectToSharedHierarchyEvents(IVisualStudioHostDocument document)
+        {
+            Contract.ThrowIfFalse(document.IsOpen);
+
+            var project = document.Project;
+            var itemId = document.GetItemId();
+
+            if (itemId != (uint)VSConstants.VSITEMID.Nil)
+            {
+                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
+
+                if (sharedHierarchy != null)
+                {
+                    ProjectTracker.NotifyWorkspace(workspace =>
+                    {
+                        var eventSink = new HierarchyEventsSink((VisualStudioWorkspaceImpl)workspace, sharedHierarchy, document.Id);
+                        if (ErrorHandler.Succeeded(sharedHierarchy.AdviseHierarchyEvents(eventSink, out var cookie)))
+                        {
+                            _hierarchyEventSinks.MultiAdd(document.Id, (sharedHierarchy, cookie));
+                        }
+                    });
+                }
+            }
+        }
+
+        protected override void OnDocumentClosing(DocumentId documentId)
+        {
+            base.OnDocumentClosing(documentId);
+
+            if (_hierarchyEventSinks.TryGetValue(documentId, out var subscribedSinks))
+            {
+                foreach (var subscribedSink in subscribedSinks)
+                {
+                    subscribedSink.hierarchy.UnadviseHierarchyEvents(subscribedSink.cookie);
+                }
+
+                _hierarchyEventSinks.Remove(documentId);
+            }
+        }
+
         /// <summary>
         /// Finds the <see cref="DocumentId"/> related to the given <see cref="DocumentId"/> that
         /// is in the current context. For regular files (non-shared and non-linked) and closed
@@ -1085,6 +1139,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override void Dispose(bool finalize)
         {
+            if (!finalize)
+            {
+                _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
+                _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
+            }
+
             // workspace is going away. unregister this workspace from work coordinator
             StopSolutionCrawler();
 
@@ -1128,18 +1188,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void EnsureEditableDocuments(params DocumentId[] documents)
         {
             this.EnsureEditableDocuments((IEnumerable<DocumentId>)documents);
-        }
-
-        internal void OnDocumentTextUpdatedOnDisk(DocumentId documentId)
-        {
-            var vsDoc = this.GetHostDocument(documentId);
-            this.OnDocumentTextLoaderChanged(documentId, vsDoc.Loader);
-        }
-
-        internal void OnAdditionalDocumentTextUpdatedOnDisk(DocumentId documentId)
-        {
-            var vsDoc = this.GetHostDocument(documentId);
-            this.OnAdditionalDocumentTextLoaderChanged(documentId, vsDoc.Loader);
         }
 
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
@@ -1213,265 +1261,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // reference to be added.
             var result = referenceManager.QueryCanReferenceProject(referencingHierarchy, referencedHierarchy);
             return result != (uint)__VSREFERENCEQUERYRESULT.REFERENCE_DENY;
-        }
-
-        /// <summary>
-        /// A trivial implementation of <see cref="IVisualStudioWorkspaceHost" /> that just
-        /// forwards the calls down to the underlying Workspace.
-        /// </summary>
-        protected sealed class VisualStudioWorkspaceHost : IVisualStudioWorkspaceHost, IVisualStudioWorkspaceHost2, IVisualStudioWorkingFolder
-        {
-            private readonly VisualStudioWorkspaceImpl _workspace;
-
-            private readonly Dictionary<DocumentId, uint> _documentIdToHierarchyEventsCookieMap = new Dictionary<DocumentId, uint>();
-
-            public VisualStudioWorkspaceHost(VisualStudioWorkspaceImpl workspace)
-            {
-                _workspace = workspace;
-            }
-
-            void IVisualStudioWorkspaceHost.OnOptionsChanged(ProjectId projectId, CompilationOptions compilationOptions, ParseOptions parseOptions)
-            {
-                _workspace.OnCompilationOptionsChanged(projectId, compilationOptions);
-                _workspace.OnParseOptionsChanged(projectId, parseOptions);
-            }
-
-            void IVisualStudioWorkspaceHost.OnDocumentAdded(DocumentInfo documentInfo)
-            {
-                _workspace.OnDocumentAdded(documentInfo);
-            }
-
-            void IVisualStudioWorkspaceHost.OnDocumentClosed(DocumentId documentId, ITextBuffer textBuffer, TextLoader loader, bool updateActiveContext)
-            {
-                // TODO: Move this out to DocumentProvider. As is, this depends on being able to 
-                // access the host document which will already be deleted in some cases, causing 
-                // a crash. Until this is fixed, we will leak a HierarchyEventsSink every time a
-                // Mercury shared document is closed.
-                // UnsubscribeFromSharedHierarchyEvents(documentId);
-                using (_workspace.Services.GetService<IGlobalOperationNotificationService>().Start("Document Closed"))
-                {
-                    _workspace.OnDocumentClosed(documentId, loader, updateActiveContext);
-                }
-            }
-
-            void IVisualStudioWorkspaceHost.OnDocumentOpened(DocumentId documentId, ITextBuffer textBuffer, bool currentContext)
-            {
-                SubscribeToSharedHierarchyEvents(documentId);
-                _workspace.OnDocumentOpened(documentId, textBuffer.AsTextContainer(), currentContext);
-            }
-
-            private void SubscribeToSharedHierarchyEvents(DocumentId documentId)
-            {
-                // Todo: maybe avoid double alerts.
-                var hostDocument = _workspace.GetHostDocument(documentId);
-                if (hostDocument == null)
-                {
-                    return;
-                }
-
-                var hierarchy = hostDocument.Project.Hierarchy;
-
-                var itemId = hostDocument.GetItemId();
-                if (itemId == (uint)VSConstants.VSITEMID.Nil)
-                {
-                    // the document has been removed from the solution
-                    return;
-                }
-
-                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hierarchy, itemId);
-                if (sharedHierarchy != null)
-                {
-                    var eventSink = new HierarchyEventsSink(_workspace, sharedHierarchy, documentId);
-                    var hr = sharedHierarchy.AdviseHierarchyEvents(eventSink, out var cookie);
-
-                    if (hr == VSConstants.S_OK && !_documentIdToHierarchyEventsCookieMap.ContainsKey(documentId))
-                    {
-                        _documentIdToHierarchyEventsCookieMap.Add(documentId, cookie);
-                    }
-                }
-            }
-
-            private void UnsubscribeFromSharedHierarchyEvents(DocumentId documentId)
-            {
-                var hostDocument = _workspace.GetHostDocument(documentId);
-                var itemId = hostDocument.GetItemId();
-                if (itemId == (uint)VSConstants.VSITEMID.Nil)
-                {
-                    // the document has been removed from the solution
-                    return;
-                }
-
-                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(hostDocument.Project.Hierarchy, itemId);
-                if (sharedHierarchy != null)
-                {
-                    if (_documentIdToHierarchyEventsCookieMap.TryGetValue(documentId, out var cookie))
-                    {
-                        var hr = sharedHierarchy.UnadviseHierarchyEvents(cookie);
-                        _documentIdToHierarchyEventsCookieMap.Remove(documentId);
-                    }
-                }
-            }
-
-            private void RegisterPrimarySolutionForPersistentStorage(
-                SolutionId solutionId)
-            {
-                var service = _workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
-                if (service == null)
-                {
-                    return;
-                }
-
-                service.RegisterPrimarySolution(solutionId);
-            }
-
-            private void UnregisterPrimarySolutionForPersistentStorage(
-                SolutionId solutionId, bool synchronousShutdown)
-            {
-                var service = _workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
-                if (service == null)
-                {
-                    return;
-                }
-
-                service.UnregisterPrimarySolution(solutionId, synchronousShutdown);
-            }
-
-            void IVisualStudioWorkspaceHost.OnDocumentRemoved(DocumentId documentId)
-            {
-                _workspace.OnDocumentRemoved(documentId);
-            }
-
-            void IVisualStudioWorkspaceHost.OnMetadataReferenceAdded(ProjectId projectId, PortableExecutableReference metadataReference)
-            {
-                _workspace.OnMetadataReferenceAdded(projectId, metadataReference);
-            }
-
-            void IVisualStudioWorkspaceHost.OnMetadataReferenceRemoved(ProjectId projectId, PortableExecutableReference metadataReference)
-            {
-                _workspace.OnMetadataReferenceRemoved(projectId, metadataReference);
-            }
-
-            void IVisualStudioWorkspaceHost.OnProjectAdded(ProjectInfo projectInfo)
-            {
-                using (_workspace.Services.GetService<IGlobalOperationNotificationService>()?.Start("Add Project"))
-                {
-                    _workspace.OnProjectAdded(projectInfo);
-                }
-            }
-
-            void IVisualStudioWorkspaceHost.OnProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
-            {
-                _workspace.OnProjectReferenceAdded(projectId, projectReference);
-            }
-
-            void IVisualStudioWorkspaceHost.OnProjectReferenceRemoved(ProjectId projectId, ProjectReference projectReference)
-            {
-                _workspace.OnProjectReferenceRemoved(projectId, projectReference);
-            }
-
-            void IVisualStudioWorkspaceHost.OnProjectRemoved(ProjectId projectId)
-            {
-                using (_workspace.Services.GetService<IGlobalOperationNotificationService>()?.Start("Remove Project"))
-                {
-                    _workspace.OnProjectRemoved(projectId);
-                }
-            }
-
-            void IVisualStudioWorkspaceHost.OnSolutionAdded(SolutionInfo solutionInfo)
-            {
-                RegisterPrimarySolutionForPersistentStorage(solutionInfo.Id);
-
-                _workspace.OnSolutionAdded(solutionInfo);
-            }
-
-            void IVisualStudioWorkspaceHost.OnSolutionRemoved()
-            {
-                var solutionId = _workspace.CurrentSolution.Id;
-
-                _workspace.OnSolutionRemoved();
-                _workspace.ClearReferenceCache();
-
-                UnregisterPrimarySolutionForPersistentStorage(solutionId, synchronousShutdown: false);
-            }
-
-            void IVisualStudioWorkspaceHost.ClearSolution()
-            {
-                _workspace.ClearSolution();
-                _workspace.ClearReferenceCache();
-            }
-
-            void IVisualStudioWorkspaceHost.OnDocumentTextUpdatedOnDisk(DocumentId id)
-            {
-                _workspace.OnDocumentTextUpdatedOnDisk(id);
-            }
-
-            void IVisualStudioWorkspaceHost.OnAssemblyNameChanged(ProjectId id, string assemblyName)
-            {
-                _workspace.OnAssemblyNameChanged(id, assemblyName);
-            }
-
-            void IVisualStudioWorkspaceHost.OnOutputFilePathChanged(ProjectId id, string outputFilePath)
-            {
-                _workspace.OnOutputFilePathChanged(id, outputFilePath);
-            }
-
-            void IVisualStudioWorkspaceHost.OnProjectNameChanged(ProjectId projectId, string name, string filePath)
-            {
-                _workspace.OnProjectNameChanged(projectId, name, filePath);
-            }
-
-            void IVisualStudioWorkspaceHost.OnAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
-            {
-                _workspace.OnAnalyzerReferenceAdded(projectId, analyzerReference);
-            }
-
-            void IVisualStudioWorkspaceHost.OnAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference)
-            {
-                _workspace.OnAnalyzerReferenceRemoved(projectId, analyzerReference);
-            }
-
-            void IVisualStudioWorkspaceHost.OnAdditionalDocumentAdded(DocumentInfo documentInfo)
-            {
-                _workspace.OnAdditionalDocumentAdded(documentInfo);
-            }
-
-            void IVisualStudioWorkspaceHost.OnAdditionalDocumentRemoved(DocumentId documentInfo)
-            {
-                _workspace.OnAdditionalDocumentRemoved(documentInfo);
-            }
-
-            void IVisualStudioWorkspaceHost.OnAdditionalDocumentOpened(DocumentId documentId, ITextBuffer textBuffer, bool isCurrentContext)
-            {
-                _workspace.OnAdditionalDocumentOpened(documentId, textBuffer.AsTextContainer(), isCurrentContext);
-            }
-
-            void IVisualStudioWorkspaceHost.OnAdditionalDocumentClosed(DocumentId documentId, ITextBuffer textBuffer, TextLoader loader)
-            {
-                _workspace.OnAdditionalDocumentClosed(documentId, loader);
-            }
-
-            void IVisualStudioWorkspaceHost.OnAdditionalDocumentTextUpdatedOnDisk(DocumentId id)
-            {
-                _workspace.OnAdditionalDocumentTextUpdatedOnDisk(id);
-            }
-
-            void IVisualStudioWorkspaceHost2.OnHasAllInformation(ProjectId projectId, bool hasAllInformation)
-            {
-                _workspace.OnHasAllInformationChanged(projectId, hasAllInformation);
-            }
-
-            void IVisualStudioWorkingFolder.OnBeforeWorkingFolderChange()
-            {
-                UnregisterPrimarySolutionForPersistentStorage(_workspace.CurrentSolution.Id, synchronousShutdown: true);
-            }
-
-            void IVisualStudioWorkingFolder.OnAfterWorkingFolderChange()
-            {
-                var solutionId = _workspace.CurrentSolution.Id;
-
-                _workspace.DeferredState.ProjectTracker.UpdateSolutionProperties(solutionId);
-                RegisterPrimarySolutionForPersistentStorage(solutionId);
-            }
         }
     }
 }
