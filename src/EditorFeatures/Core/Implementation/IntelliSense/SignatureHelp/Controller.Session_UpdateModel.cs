@@ -56,6 +56,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         }
                     }
 
+                    if (bestItem.IsVariadic)
+                    {
+                        var paramsItem = bestItem.Parameters.Where(i => !i.IsOptional).Last();
+                        var index = bestItem.Parameters.IndexOf(paramsItem);
+                        if (index >= 0)
+                        {
+                            return index;
+                        }
+                    }
+
                     return parameterIndex;
                 }
 
