@@ -15,9 +15,12 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
     internal abstract class AbstractMakeMethodAsynchronousCodeFixProvider : CodeFixProvider
     {
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
+
         protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
             INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType);
+
+        protected abstract bool IsLikelyEntryPointName(string methodName);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -47,7 +50,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
 
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
-            bool isEntryPoint = symbol != null && symbol.IsStatic && string.Equals(symbol.Name, "Main", StringComparison.Ordinal);
+            bool isEntryPoint = symbol != null && symbol.IsStatic && IsLikelyEntryPointName(symbol.Name);
 
             // Offer to convert to a Task return type.
             context.RegisterCodeFix(
