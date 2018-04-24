@@ -728,6 +728,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ((AttributeSyntax)node).Name;
         }
 
+        public bool IsParenthesizedExpression(SyntaxNode node)
+        {
+            return (node.Kind() == SyntaxKind.ParenthesizedExpression);
+        }
+
+        public SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node)
+        {
+            return ((ParenthesizedExpressionSyntax)node).Expression;
+        }
+
+        public bool IsIfStatement(SyntaxNode node)
+        {
+            return (node.Kind() == SyntaxKind.IfStatement);
+        }
+
         public bool IsAttribute(SyntaxNode node)
         {
             return node is AttributeSyntax;
@@ -1613,6 +1628,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             right = binaryExpression.Right;
         }
 
+        public SyntaxToken GetOperatorTokenOfBinaryExpression(SyntaxNode node)
+            => ((BinaryExpressionSyntax)node).OperatorToken;
+
         public void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse)
         {
             var conditionalExpression = (ConditionalExpressionSyntax)node;
@@ -1627,11 +1645,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsLogicalAndExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalAndExpression;
 
+        public bool IsLogicalOrExpression(SyntaxNode node)
+            => node.Kind() == SyntaxKind.LogicalOrExpression;
+
         public bool IsLogicalNotExpression(SyntaxNode node)
             => node.Kind() == SyntaxKind.LogicalNotExpression;
 
         public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).Operand;
+
+        public SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node)
+            => ((PrefixUnaryExpressionSyntax)node).OperatorToken;
 
         public SyntaxNode GetNextExecutableStatement(SyntaxNode statement)
             => ((StatementSyntax)statement).GetNextStatement();

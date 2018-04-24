@@ -2015,6 +2015,11 @@ Version utilisée dans : {2}</target>
         <target state="new">Make field readonly</target>
         <note />
       </trans-unit>
-    </body>
+      <trans-unit id="Invert_if_statement">
+        <source>Invert if statement</source>
+        <target state="new">Invert if statement</target>
+        <note />
+      </trans-unit>
+s    </body>
   </file>
 </xliff>

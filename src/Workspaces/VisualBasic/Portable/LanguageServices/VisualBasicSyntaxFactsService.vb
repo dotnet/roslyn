@@ -662,6 +662,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, AttributeSyntax).Name
         End Function
 
+        Public Function IsParenthesizedExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsParenthesizedExpression
+            Return node.Kind() = SyntaxKind.ParenthesizedExpression
+        End Function
+
+        Public Function GetExpressionOfParenthesizedExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfParenthesizedExpression
+            Return DirectCast(node, ParenthesizedExpressionSyntax).Expression
+        End Function
+
+        Public Function IsIfStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsIfStatement
+            Return (node.Kind() = SyntaxKind.IfStatement)
+        End Function
+
         Public Function IsAttribute(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttribute
             Return TypeOf node Is AttributeSyntax
         End Function
@@ -1550,6 +1562,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             right = binaryExpression.Right
         End Sub
 
+        Public Function GetOperatorTokenOfBinaryExpression(node As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetOperatorTokenOfBinaryExpression
+            Dim binaryExpression = DirectCast(node, BinaryExpressionSyntax)
+            Return binaryExpression.OperatorToken
+        End Function
+
         Public Sub GetPartsOfConditionalExpression(node As SyntaxNode, ByRef condition As SyntaxNode, ByRef whenTrue As SyntaxNode, ByRef whenFalse As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfConditionalExpression
             Dim conditionalExpression = DirectCast(node, TernaryConditionalExpressionSyntax)
             condition = conditionalExpression.Condition
@@ -1565,12 +1582,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.IsKind(SyntaxKind.AndAlsoExpression)
         End Function
 
+        Public Function IsLogicalOrExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalOrExpression
+            Return node.IsKind(SyntaxKind.OrElseExpression)
+        End Function
+
         Public Function IsLogicalNotExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalNotExpression
             Return node.IsKind(SyntaxKind.NotExpression)
         End Function
 
         Public Function GetOperandOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetOperandOfPrefixUnaryExpression
             Return DirectCast(node, UnaryExpressionSyntax).Operand
+        End Function
+
+        Public Function GetOperatorTokeOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetOperatorTokenOfPrefixUnaryExpression
+            Return DirectCast(node, UnaryExpressionSyntax).OperatorToken
         End Function
 
         Public Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef name As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfMemberAccessExpression
