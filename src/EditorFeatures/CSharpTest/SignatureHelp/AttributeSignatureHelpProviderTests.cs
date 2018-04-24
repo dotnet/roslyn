@@ -357,6 +357,34 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(12544, "https://github.com/dotnet/roslyn/issues/12544")]
+        public async Task TestAttributeWithOverriddenAndNewProperties()
+        {
+            var markup = @"
+class BaseAttribute : System.Attribute
+{
+    public virtual int foo { get; set; }
+    public bool bar { get; set; }
+}
+class DerivedAttribute : BaseAttribute
+{
+    public override int foo { get; set; }
+    public new int bar { get; set; }
+
+}
+[[|Derived($$|])]
+class D
+{
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"DerivedAttribute({CSharpFeaturesResources.Properties}: [bar = int], [foo = int])", string.Empty, string.Empty, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestAttributeWithInvalidPropertyStatic()
         {
             var markup = @"
