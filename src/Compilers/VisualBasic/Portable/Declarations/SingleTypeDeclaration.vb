@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _flags As TypeDeclarationFlags
         Private ReadOnly _arity As UShort
         Private ReadOnly _modifiers As DeclarationModifiers
+        Private ReadOnly _memberNames As ICollection(Of String)
 
         Friend Enum TypeDeclarationFlags As Byte
             None = 0
@@ -32,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        declFlags As TypeDeclarationFlags,
                        syntaxReference As SyntaxReference,
                        nameLocation As Location,
-                       memberNames As ImmutableHashSet(Of String),
+                       memberNames As ICollection(Of String),
                        children As ImmutableArray(Of SingleTypeDeclaration))
             MyBase.New(name, syntaxReference, nameLocation)
 
@@ -42,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._arity = CUShort(arity)
             Me._flags = declFlags
             Me._modifiers = modifiers
-            Me.MemberNames = memberNames
+            Me._memberNames = memberNames
             Me._children = children
         End Sub
 
@@ -94,7 +95,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property MemberNames As ImmutableHashSet(Of String)
+        Public ReadOnly Property MemberNames As ICollection(Of String)
+            Get
+                Return Me._memberNames
+            End Get
+        End Property
 
         Protected Overrides Function GetNamespaceOrTypeDeclarationChildren() As ImmutableArray(Of SingleNamespaceOrTypeDeclaration)
             Return StaticCast(Of SingleNamespaceOrTypeDeclaration).From(_children)

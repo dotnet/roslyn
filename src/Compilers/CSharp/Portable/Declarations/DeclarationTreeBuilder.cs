@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return childrenBuilder.ToImmutableAndFree();
         }
 
-        private static SingleNamespaceOrTypeDeclaration CreateImplicitClass(ImmutableHashSet<string> memberNames, SyntaxReference container, SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+        private static SingleNamespaceOrTypeDeclaration CreateImplicitClass(ICollection<string> memberNames, SyntaxReference container, SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.ImplicitClass,
@@ -162,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SingleNamespaceOrTypeDeclaration CreateScriptClass(
             CompilationUnitSyntax parent,
             ImmutableArray<SingleTypeDeclaration> children,
-            ImmutableHashSet<string> memberNames,
+            ICollection<string> memberNames,
             SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             Debug.Assert(parent.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind != SourceCodeKind.Regular);
@@ -395,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arity: node.Arity,
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
-                memberNames: ImmutableHashSet<string>.Empty,
+                memberNames: SpecializedCollections.EmptyCollection<string>(),
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
                 diagnostics: diagnostics.ToReadOnlyAndFree());
         }
@@ -413,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations;
             }
 
-            ImmutableHashSet<string> memberNames = GetEnumMemberNames(members, ref declFlags);
+            string[] memberNames = GetEnumMemberNames(members, ref declFlags);
 
             var diagnostics = DiagnosticBag.GetInstance();
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
@@ -431,20 +433,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
-        private static ImmutableHashSet<string> GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+        private static string[] GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             var cnt = members.Count;
 
-            var memberNamesBuilder = s_memberNameBuilderPool.Allocate();
+            string[] memberNames = new string[cnt];
             if (cnt != 0)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
+            int i = 0;
             bool anyMemberHasAttributes = false;
             foreach (var member in members)
             {
-                memberNamesBuilder.Add(member.Identifier.ValueText);
+                memberNames[i++] = member.Identifier.ValueText;
                 if (!anyMemberHasAttributes && member.AttributeLists.Any())
                 {
                     anyMemberHasAttributes = true;
@@ -456,32 +459,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes;
             }
 
-            return ToImmutableAndFree(memberNamesBuilder);
+            return memberNames;
         }
 
-        private static readonly ObjectPool<ImmutableHashSet<string>.Builder> s_memberNameBuilderPool =
-            new ObjectPool<ImmutableHashSet<string>.Builder>(() => ImmutableHashSet.CreateBuilder<string>());
-
-        private static ImmutableHashSet<string> ToImmutableAndFree(ImmutableHashSet<string>.Builder builder)
-        {
-            var result = builder.ToImmutable();
-            builder.Clear();
-            s_memberNameBuilderPool.Free(builder);
-            return result;
-        }
-
-        private static ImmutableHashSet<string> GetNonTypeMemberNames(
+        private static string[] GetNonTypeMemberNames(
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             bool anyMethodHadExtensionSyntax = false;
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
 
-            var memberNameBuilder = s_memberNameBuilderPool.Allocate();
+            var set = PooledHashSet<string>.GetInstance();
 
             foreach (var member in members)
             {
-                AddNonTypeMemberNames(member, memberNameBuilder, ref anyNonTypeMembers);
+                AddNonTypeMemberNames(member, set, ref anyNonTypeMembers);
 
                 // Check to see if any method contains a 'this' modifier on its first parameter.
                 // This data is used to determine if a type needs to have its members materialized
@@ -512,7 +504,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
-            return ToImmutableAndFree(memberNameBuilder);
+            // PERF: The member names collection tends to be long-lived. Use a string array since
+            // that uses less memory than a HashSet<string>.
+            string[] result;
+            if (set.Count == 0)
+            {
+                result = Array.Empty<string>();
+            }
+            else
+            {
+                result = new string[set.Count];
+                set.CopyTo(result);
+            }
+
+            set.Free();
+            return result;
         }
 
         private static bool CheckMethodMemberForExtensionSyntax(Syntax.InternalSyntax.CSharpSyntaxNode member)
@@ -589,8 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static void AddNonTypeMemberNames(
-            Syntax.InternalSyntax.CSharpSyntaxNode member, ImmutableHashSet<string>.Builder set, ref bool anyNonTypeMembers)
+        private static void AddNonTypeMemberNames(Syntax.InternalSyntax.CSharpSyntaxNode member, HashSet<string> set, ref bool anyNonTypeMembers)
         {
             switch (member.Kind)
             {

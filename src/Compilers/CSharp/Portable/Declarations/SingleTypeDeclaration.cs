@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ushort _arity;
         private readonly DeclarationModifiers _modifiers;
         private readonly ImmutableArray<SingleTypeDeclaration> _children;
+        private readonly ICollection<string> _memberNames;
 
         [Flags]
         internal enum TypeDeclarationFlags : byte
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeDeclarationFlags declFlags,
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
-            ImmutableHashSet<string> memberNames,
+            ICollection<string> memberNames,
             ImmutableArray<SingleTypeDeclaration> children,
             ImmutableArray<Diagnostic> diagnostics)
             : base(name, syntaxReference, nameLocation, diagnostics)
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _kind = kind;
             _arity = (ushort)arity;
             _modifiers = modifiers;
-            MemberNames = memberNames;
+            _memberNames = memberNames;
             _children = children;
             _flags = declFlags;
         }
@@ -82,7 +83,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ImmutableHashSet<string> MemberNames { get; }
+        public ICollection<string> MemberNames
+        {
+            get
+            {
+                return _memberNames;
+            }
+        }
 
         public bool AnyMemberHasExtensionMethodSyntax
         {
