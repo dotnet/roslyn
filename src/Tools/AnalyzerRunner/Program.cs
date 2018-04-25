@@ -86,14 +86,12 @@ namespace AnalyzerRunner
 
                 if (options.ShowStats)
                 {
-                    // TODO The tool support CSharp projects for now. It should support VB/FSharp as well
-                    // https://github.com/dotnet/roslyn/issues/23108
-                    List<Project> csharpProjects = solution.Projects.Where(project => project.Language == LanguageNames.CSharp).ToList();
+                    List<Project> projects = solution.Projects.Where(project => project.Language == LanguageNames.CSharp || project.Language == LanguageNames.VisualBasic).ToList();
 
-                    Console.WriteLine("Number of projects:\t\t" + csharpProjects.Count);
-                    Console.WriteLine("Number of documents:\t\t" + csharpProjects.Sum(x => x.DocumentIds.Count));
+                    Console.WriteLine("Number of projects:\t\t" + projects.Count);
+                    Console.WriteLine("Number of documents:\t\t" + projects.Sum(x => x.DocumentIds.Count));
 
-                    var statistics = GetSolutionStatistics(csharpProjects, cancellationToken);
+                    var statistics = GetSolutionStatistics(projects, cancellationToken);
 
                     Console.WriteLine("Number of syntax nodes:\t\t" + statistics.NumberofNodes);
                     Console.WriteLine("Number of syntax tokens:\t" + statistics.NumberOfTokens);
@@ -118,7 +116,7 @@ namespace AnalyzerRunner
                     foreach (var projectId in solution.ProjectIds)
                     {
                         var project = solution.GetProject(projectId);
-                        if (project.Language != LanguageNames.CSharp)
+                        if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
                         {
                             continue;
                         }
@@ -364,9 +362,7 @@ namespace AnalyzerRunner
                 // Make sure we analyze the projects in parallel
                 foreach (var project in solution.Projects)
                 {
-                    // TODO The tool support CSharp projects for now. It should support VB/FSharp as well
-                    // https://github.com/dotnet/roslyn/issues/23108
-                    if (project.Language != LanguageNames.CSharp)
+                    if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
                     {
                         continue;
                     }
