@@ -73,11 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             _scopeId = scopeId;
 
-            var mefHostExportProvider = (IMefHostExportProvider)hostServices;
-            var primaryWorkspace = mefHostExportProvider.GetExports<PrimaryWorkspace>().Single().Value;
-            var workspace = (RemoteWorkspace)primaryWorkspace.Workspace ?? new RemoteWorkspace();
-
-            AssetService = new AssetService(_scopeId, storage, workspace);
+            AssetService = new AssetService(_scopeId, storage, SolutionService.PrimaryWorkspace);
             SolutionService = new SolutionService(AssetService);
             CompilationService = new CompilationService(SolutionService);
         }
