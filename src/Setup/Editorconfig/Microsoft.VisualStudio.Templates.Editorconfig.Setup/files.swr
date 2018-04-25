@@ -9,8 +9,8 @@ vs.localizedResources
                        description="Template to create an editorconfig file."
 
 folder "InstallDir:Common7\IDE\NewFileItems"
-  file source="$(MSBuildProjectDirectory)\..\..\Templates\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\EditorconfigDefault.vstemplate"
+  file source="$(MSBuildProjectDirectory)\..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\EditorconfigDefault.vstemplate"
 folder "InstallDir:Common7\IDE\ItemTemplates\CSharp\General\EditorConfig"
-  file source="$(MSBuildProjectDirectory)\..\..\Templates\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.CS.DotNet.vstemplate"
-  file source="$(MSBuildProjectDirectory)\..\..\Templates\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.CS.Default.vstemplate"
-  file source="$(MSBuildProjectDirectory)\..\..\Templates\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\EditorconfigIcon.png"
+  file source="$(MSBuildProjectDirectory)\..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.CS.DotNet.vstemplate"
+  file source="$(MSBuildProjectDirectory)\..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.CS.Default.vstemplate"
+  file source="$(MSBuildProjectDirectory)\..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\EditorconfigIcon.png"
