@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectsDifference = GetChangedProjectChanges(oldSolution, newSolution);
             foreach (var projectDifference in projectsDifference)
             {
-                changedDocuments.AddRange(projectDifference.GetTextChangedDocuments());
+                changedDocuments.AddRange(projectDifference.GetChangedDocuments(true));
             }
 
             return changedDocuments;

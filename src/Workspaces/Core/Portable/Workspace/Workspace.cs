@@ -1211,7 +1211,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument)
-                && projectChanges.GetTextChangedDocuments().Any())
+                && projectChanges.GetChangedDocuments(true).Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_documents_is_not_supported);
             }

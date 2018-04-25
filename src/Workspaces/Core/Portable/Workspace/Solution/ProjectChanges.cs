@@ -116,28 +116,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public IEnumerable<DocumentId> GetChangedDocuments()
-        {
-            // if the document states are different then there is a change.
-            foreach (var id in _newProject.DocumentIds)
-            {
-                var newState = _newProject.GetDocumentState(id);
-                var oldState = _oldProject.GetDocumentState(id);
-                if (oldState != null && newState != oldState)
-                {
-                    yield return id;
-                }
-            }
-        }
-
         /// <summary>
-        /// The difference between this GetTextChangedDocuments() and GetChangedDocuments() is:
-        /// GetTextChangedDocuments only returns documents that have text changes
-        /// GetChangedDocuments returns documents that have any changes, i.e. ParseOption, filename, SourceCodeKind ...
         /// https://github.com/dotnet/roslyn/issues/18199
         /// </summary>
+        /// <param name="onlyGetDocumentsWithTextChanges">when onlyGetDocumentsWithTextChanges is true, only get documents with text changes;
+        /// otherwise get documents with any changes i.e. ParseOption, filename, SourceCodeKind (DocumentState changes)</param>
         /// <returns></returns>
-        public IEnumerable<DocumentId> GetTextChangedDocuments()
+        public IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges = false)
         {
             // if the document states are different then there is a change.
             foreach (var id in _newProject.DocumentIds)
@@ -145,9 +130,18 @@ namespace Microsoft.CodeAnalysis
                 var newState = _newProject.GetDocumentState(id);
                 var oldState = _oldProject.GetDocumentState(id);
 
-                if (oldState != null && newState.HasTextChanged(oldState))
+                if (oldState != null)
                 {
-                    yield return id;
+                    if (onlyGetDocumentsWithTextChanges)
+                    {
+                        if (newState.HasTextChanged(oldState))
+                            yield return id;
+                    }
+                    else
+                    {
+                        if (newState != oldState)
+                            yield return id;
+                    }
                 }
             }
         }
