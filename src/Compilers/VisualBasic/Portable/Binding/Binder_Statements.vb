@@ -73,13 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return BindSelectBlock(DirectCast(node, SelectBlockSyntax), diagnostics)
 
                 Case SyntaxKind.CaseStatement
-                    ' Valid Case statement within Select Case statement is handled in BindSelectBlock.
-                    ' We should reach here only for invalid Case statements which are not inside any SelectBlock.
-                    ' Parser must have already reported error ERRID.ERR_CaseNoSelect or ERRID.ERR_SubRequiresSingleStatement.
-                    Debug.Assert(node.ContainsDiagnostics)
-                    Dim caseStatement = DirectCast(node, CaseStatementSyntax)
-                    Dim statement = BindCaseStatement(caseStatement, selectExpressionOpt:=Nothing, convertCaseElements:=False, diagnostics:=diagnostics)
-                    Return New BoundBadStatement(node, ImmutableArray.Create(Of BoundNode)(statement), hasErrors:=True)
+                    Return BindStandAloneCaseStatement(DirectCast(node, CaseStatementSyntax), diagnostics)
 
                 Case SyntaxKind.LocalDeclarationStatement
                     Return BindLocalDeclaration(DirectCast(node, LocalDeclarationStatementSyntax), diagnostics)
@@ -266,6 +260,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' to blocks handled above, etc).
             Debug.Assert(IsSemanticModelBinder OrElse node.ContainsDiagnostics)
             Return New BoundBadStatement(node, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
+        End Function
+
+        Private Function BindStandAloneCaseStatement(caseStatement As CaseStatementSyntax, diagnostics As DiagnosticBag) As BoundBadStatement
+            ' Valid Case statement within Select Case statement is handled in BindSelectBlock.
+            ' We should reach here only for invalid Case statements which are not inside any SelectBlock.
+            ' Parser must have already reported error ERRID.ERR_CaseNoSelect or ERRID.ERR_SubRequiresSingleStatement.
+            Debug.Assert(caseStatement.ContainsDiagnostics)
+            Dim statement As BoundCaseStatement = BindCaseStatement(caseStatement, selectExpressionOpt:=Nothing, convertCaseElements:=False, diagnostics:=diagnostics)
+            Dim children = ArrayBuilder(Of BoundNode).GetInstance(statement.CaseClauses.Length)
+
+            For Each clause As BoundCaseClause In statement.CaseClauses
+                Select Case clause.Kind
+                    Case BoundKind.SimpleCaseClause
+                        children.Add(DirectCast(clause, BoundSimpleCaseClause).ValueOpt)
+                    Case BoundKind.RelationalCaseClause
+                        children.Add(DirectCast(clause, BoundRelationalCaseClause).OperandOpt)
+                    Case BoundKind.RangeCaseClause
+                        Dim range = DirectCast(clause, BoundRangeCaseClause)
+                        children.Add(range.LowerBoundOpt)
+                        children.Add(range.UpperBoundOpt)
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(clause.Kind)
+                End Select
+            Next
+
+            Return New BoundBadStatement(caseStatement, children.ToImmutableAndFree(), hasErrors:=True)
         End Function
 
         Private Function BindMethodBlock(methodBlock As MethodBlockBaseSyntax, diagnostics As DiagnosticBag) As BoundBlock

@@ -131,25 +131,36 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.SwitchCase, operation.Kind);
             VisitLocals(operation.Locals);
             AssertEx.Equal(operation.Clauses.Concat(operation.Body), operation.Children);
+            IOperation condition = ((BaseSwitchCase)operation).Condition;
+
+            if (condition != null)
+            {
+                var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+
+                foreach (IOperation descendant in condition.DescendantsAndSelf())
+                {
+                    if (!descendant.IsImplicit)
+                    {
+                        try
+                        {
+                            explictNodeMap.Add(descendant.Syntax, descendant);
+                        }
+                        catch (ArgumentException)
+                        {
+                            Assert.False(true, $"Duplicate explicit node for syntax ({descendant.Syntax.RawKind}): {descendant.Syntax.ToString()}");
+                        }
+                    }
+
+                    Singleton.Visit(descendant);
+                }
+            }
         }
 
         public override void VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation)
         {
             VisitCaseClauseOperation(operation);
             Assert.Equal(CaseKind.SingleValue, operation.CaseKind);
-
-            // It is unexpected to have null operation.Value. The conditional logic is added
-            // as a work around for https://github.com/dotnet/roslyn/issues/23795 and should be removed
-            // once the issue is fixed
-            if (operation.Value == null)
-            {
-                Assert.Equal(LanguageNames.VisualBasic, operation.Language);
-                Assert.Empty(operation.Children);
-            }
-            else
-            {
-                AssertEx.Equal(new[] { operation.Value }, operation.Children);
-            }
+            AssertEx.Equal(new[] { operation.Value }, operation.Children);
         }
 
         private static void VisitCaseClauseOperation(ICaseClauseOperation operation)
@@ -267,6 +278,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             IEnumerable<IOperation> children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body }.Concat(operation.NextVariables);
             AssertEx.Equal(children, operation.Children);
+            _ = ((BaseForEachLoopStatement)operation).Info;
         }
 
         private static void VisitLoop(ILoopOperation operation)
@@ -594,6 +606,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.None, operation.Kind);
             Assert.Empty(operation.Children);
+            Assert.Equal(PlaceholderKind.Unspecified, operation.PlaceholderKind);
         }
 
         public override void VisitUnaryOperator(IUnaryOperation operation)

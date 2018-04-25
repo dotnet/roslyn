@@ -704,11 +704,9 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Case x')
+IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Case x')
   Children(1):
-      ISingleValueCaseClauseOperation (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'x')
-        Value: 
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -859,9 +857,10 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If x Then'B ... End If')
   Condition: 
-    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'x')
-      Children(1):
-          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'x')
+    IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+      Instance Receiver: 
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Nullable(Of System.Boolean)) (Syntax: 'x')
+      Arguments(0)
   WhenTrue: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If x Then'B ... End If')
   WhenFalse: 

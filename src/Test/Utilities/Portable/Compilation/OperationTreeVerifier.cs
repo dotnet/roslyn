@@ -493,6 +493,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Clauses, "Clauses", logElementCount: false);
             VisitArray(operation.Body, "Body", logElementCount: false);
             Unindent();
+            _ = ((BaseSwitchCase)operation).Condition;
         }
 
         public override void VisitWhileLoop(IWhileLoopOperation operation)
@@ -580,6 +581,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Collection, "Collection");
             Visit(operation.Body, "Body");
             VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
+            _ = ((BaseForEachLoopStatement)operation).Info;
         }
 
         public override void VisitLabeled(ILabeledOperation operation)
@@ -987,6 +989,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IPlaceholderOperation));
             LogCommonPropertiesAndNewLine(operation);
+            Assert.Equal(PlaceholderKind.Unspecified, operation.PlaceholderKind);
         }
 
         public override void VisitUnaryOperator(IUnaryOperation operation)

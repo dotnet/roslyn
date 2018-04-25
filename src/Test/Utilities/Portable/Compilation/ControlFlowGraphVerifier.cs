@@ -492,6 +492,13 @@ endRegion:
             switch (n.Kind)
             {
                 case OperationKind.Block:
+                    if (n.Parent?.Kind == OperationKind.AnonymousFunction && ((IBlockOperation)n).Operations.IsEmpty)
+                    {
+                        // PROTOTYPE(dataflow): Temporary allow
+                        return true;
+                    }
+                    return false;
+
                 case OperationKind.Switch:
                 case OperationKind.Loop:
                 case OperationKind.Branch:
@@ -526,7 +533,9 @@ endRegion:
 
                 case OperationKind.BinaryOperator:
                     var binary = (IBinaryOperation)n;
-                    return binary.OperatorKind != Operations.BinaryOperatorKind.ConditionalAnd && binary.OperatorKind != Operations.BinaryOperatorKind.ConditionalOr;
+                    return (binary.OperatorKind != Operations.BinaryOperatorKind.ConditionalAnd && binary.OperatorKind != Operations.BinaryOperatorKind.ConditionalOr) ||
+                            binary.OperatorMethod != null || // PROTOTYPE(dataflow): no proper support for user-defined operators yet.
+                            binary.Type.SpecialType != SpecialType.System_Boolean; // PROTOTYPE(dataflow): no proper support for nullable conditional operators yet.
 
                 case OperationKind.None:
                 case OperationKind.Invalid:

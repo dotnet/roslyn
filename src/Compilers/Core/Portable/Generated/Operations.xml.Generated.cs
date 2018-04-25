@@ -2144,6 +2144,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Info = info;
         }
+
         public override IEnumerable<IOperation> Children
         {
             get
@@ -4072,12 +4073,16 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class PlaceholderExpression : Operation, IPlaceholderOperation
     {
-        public PlaceholderExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public PlaceholderExpression(PlaceholderKind placeholderKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             // https://github.com/dotnet/roslyn/issues/21294
             // base(OperationKind.Placeholder, semanticModel, syntax, type, constantValue, isImplicit)
             base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            PlaceholderKind = placeholderKind;
         }
+
+        public PlaceholderKind PlaceholderKind { get; }
+
         public override IEnumerable<IOperation> Children
         {
             get
@@ -4726,6 +4731,17 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return visitor.VisitSwitchCase(this, argument);
         }
+
+        /// <summary>
+        /// Optional combined logical condition that accounts for all <see cref="Clauses"/>.
+        /// An instance of <see cref="IPlaceholderOperation"/> with kind <see cref="PlaceholderKind.SwitchOperationExpression"/>
+        /// is used to refer to the /// <see cref="ISwitchOperation.Value"/> in context of this expression. 
+        /// It is not part of <see cref="Children"/> list and likely contains duplicate nodes for
+        /// nodes exposed by <see cref="Clauses"/>, like <see cref="ISingleValueCaseClauseOperation.Value"/>,
+        /// etc.
+        /// Never set for C# at the moment.
+        /// </summary>
+        public abstract IOperation Condition { get; }
     }
 
     /// <summary>
@@ -4733,14 +4749,16 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class SwitchCase : BaseSwitchCase, ISwitchCaseOperation
     {
-        public SwitchCase(ImmutableArray<ILocalSymbol> locals, ImmutableArray<ICaseClauseOperation> clauses, ImmutableArray<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public SwitchCase(ImmutableArray<ILocalSymbol> locals, IOperation condition, ImmutableArray<ICaseClauseOperation> clauses, ImmutableArray<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Clauses = SetParentOperation(clauses, this);
+            Condition = SetParentOperation(condition, null);
             Body = SetParentOperation(body, this);
         }
 
         public override ImmutableArray<ICaseClauseOperation> Clauses { get; }
+        public override IOperation Condition { get; }
         public override ImmutableArray<IOperation> Body { get; }
     }
 
@@ -4750,16 +4768,19 @@ namespace Microsoft.CodeAnalysis.Operations
     internal sealed partial class LazySwitchCase : BaseSwitchCase, ISwitchCaseOperation
     {
         private readonly Lazy<ImmutableArray<ICaseClauseOperation>> _lazyClauses;
+        private readonly Lazy<IOperation> _lazyCondition;
         private readonly Lazy<ImmutableArray<IOperation>> _lazyBody;
 
-        public LazySwitchCase(ImmutableArray<ILocalSymbol> locals, Lazy<ImmutableArray<ICaseClauseOperation>> clauses, Lazy<ImmutableArray<IOperation>> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazySwitchCase(ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> condition, Lazy<ImmutableArray<ICaseClauseOperation>> clauses, Lazy<ImmutableArray<IOperation>> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyClauses = clauses;
+            _lazyCondition = condition;
             _lazyBody = body;
         }
 
         public override ImmutableArray<ICaseClauseOperation> Clauses => SetParentOperation(_lazyClauses.Value, this);
+        public override IOperation Condition => SetParentOperation(_lazyCondition.Value, null);
         public override ImmutableArray<IOperation> Body => SetParentOperation(_lazyBody.Value, this);
     }
 

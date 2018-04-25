@@ -225,7 +225,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClauseOperation)Create(s));
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                return (ISwitchCaseOperation)new SwitchCase(locals: ImmutableArray<ILocalSymbol>.Empty, clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
+                return (ISwitchCaseOperation)new SwitchCase(locals: ImmutableArray<ILocalSymbol>.Empty, condition: null, clauses, body, _semanticModel, switchSection.Syntax,
+                                                            type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });
         }
 
@@ -237,7 +238,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
                 ImmutableArray<ILocalSymbol> locals = switchSection.Locals.As<ILocalSymbol>();
 
-                return (ISwitchCaseOperation)new SwitchCase(locals, clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
+                return (ISwitchCaseOperation)new SwitchCase(locals, condition: null, clauses, body, _semanticModel, switchSection.Syntax,
+                                                            type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });
         }
 

@@ -304,14 +304,18 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Return clause.ValueOpt
             End If
 
-            If clause.ConditionOpt IsNot Nothing AndAlso clause.ConditionOpt.Kind = BoundKind.BinaryOperator Then
-                Dim value As BoundBinaryOperator = DirectCast(clause.ConditionOpt, BoundBinaryOperator)
-                If value.OperatorKind = VisualBasic.BinaryOperatorKind.Equals Then
-                    Return value.Right
-                End If
-            End If
+            Select Case clause.ConditionOpt.Kind
+                Case BoundKind.BinaryOperator
+                    Dim binaryOp As BoundBinaryOperator = DirectCast(clause.ConditionOpt, BoundBinaryOperator)
+                    Return binaryOp.Right
 
-            Return Nothing
+                Case BoundKind.UserDefinedBinaryOperator
+                    Dim binaryOp As BoundUserDefinedBinaryOperator = DirectCast(clause.ConditionOpt, BoundUserDefinedBinaryOperator)
+                    Return GetUserDefinedBinaryOperatorChildBoundNode(binaryOp, 1)
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(clause.ConditionOpt.Kind)
+            End Select
         End Function
 
         Private Shared Function GetRelationalCaseClauseValue(clause As BoundRelationalCaseClause) As BoundExpression

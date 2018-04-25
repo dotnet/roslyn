@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = boundDeconstructValuePlaceholder.Type;
             Optional<object> constantValue = ConvertToOptional(boundDeconstructValuePlaceholder.ConstantValue);
             bool isImplicit = boundDeconstructValuePlaceholder.WasCompilerGenerated;
-            return new PlaceholderExpression(_semanticModel, syntax, type, constantValue, isImplicit);
+            return new PlaceholderExpression(PlaceholderKind.Unspecified, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDeconstructionAssignmentOperation CreateBoundDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator boundDeconstructionAssignmentOperator)
