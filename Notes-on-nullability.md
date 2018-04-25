@@ -91,6 +91,21 @@ Open issue: confirm null-state when `expr` is oblivious top-level null-state.
 
 Open issue: confirm warning on unnecessary `!`.
 
+### Generic types
+
+(See LDM notes 4/25/2018)
+
+Unconstrained generic types could be null (so `t.ToString()` warns)
+
+You can constrain either with `T : class` (`T` must be non-nullable) or `T : class?` (just a reference type, either nullable or non-nullable). In such cases, since we can't store this information in PE constraints, we'll flag the type parameter itself (and this should round-trip properly through PE).
+
+Similarly, you can do `T : IInterface` (if `T` is a reference type, it must be non-nullable) or `T : IInterface?` (less constrained). You can also do `T : object` (if `T` is a reference type, it must be non-nullable), but `T : object?` is superfluous (constraint does nothing).
+
+We will do some validation on constraints, so as to complain for nullability mismatch on `where T : class, IInterface?`.
+
+
+
+There is still an open question about `default(T)` and `T?`.
 
 ### Null tests
 
