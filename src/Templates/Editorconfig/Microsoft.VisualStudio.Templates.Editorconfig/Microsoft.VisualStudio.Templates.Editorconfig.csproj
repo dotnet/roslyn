@@ -1,4 +1,4 @@
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
@@ -9,12 +9,14 @@
     <VisualStudioInsertionComponent>Microsoft.VisualStudio.Templates.Editorconfig</VisualStudioInsertionComponent>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Tools\Templates.Editorconfig.Wizard\Templates.Editorconfig.Wizard.csproj">
-      <Name>Templates.Editorconfig.Wizard</Name>
+    <ProjectReference Include="..\..\..\Tools\Microsoft.VisualStudio.Templates.Editorconfig.Wizard\Microsoft.VisualStudio.Templates.Editorconfig.Wizard.csproj">
+      <Name>Microsoft.VisualStudio.Templates.Editorconfig.Wizard</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
+    <None Include="Editorconfig.CS.Default.vstemplate" />
+    <None Include="Editorconfig.CS.DotNet.vstemplate" />
     <VSTemplate Include="Editorconfig.CS.Default.vstemplate">
       <OutputSubPath>General</OutputSubPath>
     </VSTemplate>

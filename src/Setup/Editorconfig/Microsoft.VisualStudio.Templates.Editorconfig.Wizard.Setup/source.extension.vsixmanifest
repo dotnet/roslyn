@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="Templates.Editorconfig.Wizard.Setup" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
+    <Identity Id="Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Setup" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
     <DisplayName>editorconfig Wizard</DisplayName>
     <Description>Wizard that helps create editorconfig files</Description>
   </Metadata>
@@ -18,6 +18,10 @@
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
   </Dependencies>
   <Assets>
-    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Templates.Editorconfig.Wizard" Path="|Templates.Editorconfig.Wizard|" AssemblyName="|Templates.Editorconfig.Wizard;AssemblyName|" />
+    <Asset Type="Microsoft.VisualStudio.Assembly"
+           d:Source="Project"
+           d:ProjectName="Microsoft.VisualStudio.Templates.Editorconfig.Wizard"
+           Path="|Microsoft.VisualStudio.Templates.Editorconfig.Wizard|"
+           AssemblyName="|Microsoft.VisualStudio.Templates.Editorconfig.Wizard;AssemblyName|" />
   </Assets>
 </PackageManifest>

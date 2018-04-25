@@ -20,6 +20,10 @@
   <Assets>
     <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="EditorconfigDefault" />
     <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="EditorconfigDotNet" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Templates.Editorconfig.Wizard" Path="|Templates.Editorconfig.Wizard|" AssemblyName="|Templates.Editorconfig.Wizard;AssemblyName|" />
+    <Asset Type="Microsoft.VisualStudio.Assembly"
+           d:Source="Project"
+           d:ProjectName="Microsoft.VisualStudio.Templates.Editorconfig.Wizard"
+           Path="|Microsoft.VisualStudio.Templates.Editorconfig.Wizard|"
+           AssemblyName="|Microsoft.VisualStudio.Templates.Editorconfig.Wizard;AssemblyName|" />
   </Assets>
 </PackageManifest>
