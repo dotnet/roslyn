@@ -197,7 +197,7 @@
                 case ErrorCode.FTL_DebugEmitFailure:
                 case ErrorCode.FTL_BadCodepage:
                 case ErrorCode.FTL_InvalidTarget:
-                case ErrorCode.FTL_InputFileNameTooLong:
+                case ErrorCode.FTL_InvalidInputFileName:
                 case ErrorCode.FTL_OutputFileExists:
                 case ErrorCode.FTL_BadChecksumAlgorithm:
                     return true;
