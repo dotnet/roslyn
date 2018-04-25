@@ -897,6 +897,7 @@ Microsoft.CodeAnalysis.ProjectChanges.GetAddedDocuments() -> System.Collections.
 Microsoft.CodeAnalysis.ProjectChanges.GetAddedMetadataReferences() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference>
 Microsoft.CodeAnalysis.ProjectChanges.GetAddedProjectReferences() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference>
 Microsoft.CodeAnalysis.ProjectChanges.GetChangedAdditionalDocuments() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
+Microsoft.CodeAnalysis.ProjectChanges.GetChangedDocuments() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
 Microsoft.CodeAnalysis.ProjectChanges.GetRemovedAdditionalDocuments() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
 Microsoft.CodeAnalysis.ProjectChanges.GetRemovedAnalyzerReferences() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference>
 Microsoft.CodeAnalysis.ProjectChanges.GetRemovedDocuments() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
