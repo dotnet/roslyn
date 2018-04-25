@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
@@ -22,34 +24,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
         {
-            // TODO: it does not work if we want to apply multiple changes at once, so I will just apply one change at a time for now.
-            while (TryExecuteCommand(args, context, out var allChangesAreDone))
-            {
-                if (allChangesAreDone)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool TryExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context, out bool allChangesAreDone)
-        {
-            allChangesAreDone = false;
-
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
             {
                 return false;
             }
 
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            RemoveSortUsings(args.SubjectBuffer.CurrentSnapshot, context);
+
+            while (ApplyOneCodeFix(args.SubjectBuffer.CurrentSnapshot, context, out var hasMoreCodeFix) && hasMoreCodeFix) ;
+
+            return FormatText(args.SubjectBuffer.CurrentSnapshot, args.TextView, context);
+        }
+
+        private bool RemoveSortUsings(ITextSnapshot currentSnapShot, CommandExecutionContext context)
+        {
+            var cancellationToken = context.WaitContext.UserCancellationToken;
+            var document = currentSnapShot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return false;
             }
-
-            var cancellationToken = context.WaitContext.UserCancellationToken;
 
             // remove and sort usings
             var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
@@ -68,16 +62,47 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 if (changes.Count() > 0)
                 {
                     ApplyChanges(document, changes, null, cancellationToken);
-                    // TODO: it does not work if we want to apply multiple changes at once, so I just apply one change at a time for now.
-                    return true;
                 }
             }
+            return true;
+        }
 
-            // remove unused variables
-            var changeList = new List<CodeActionOperation>();
-            var workspace = document.Project.Solution.Workspace;
+        private bool FormatText(ITextSnapshot currentSnapShot, ITextView textView, CommandExecutionContext context)
+        {
+            var document = currentSnapShot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return false;
+            }
 
-            var fixCollectionArray = _codeFixService.GetFixesAsync(document, new TextSpan(0, document.GetTextAsync().Result.Length), true, cancellationToken).Result;
+            var formattingService = document.GetLanguageService<IEditorFormattingService>();
+            if (formattingService == null || !formattingService.SupportsFormatDocument)
+            {
+                return false;
+            }
+
+            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
+            {
+                Format(textView, document, null, context.WaitContext.UserCancellationToken);
+            }
+
+            return true;
+        }
+
+        private bool ApplyOneCodeFix(ITextSnapshot currentSnapShot, CommandExecutionContext context, out bool hasMoreCodeFix)
+        {
+            hasMoreCodeFix = false;
+            var cancellationToken = context.WaitContext.UserCancellationToken;
+
+            // document needs to be retrieved again after each change, otherwise it does not work
+            var document = currentSnapShot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return false;
+            }
+
+            var textSpan = new TextSpan(0, document.GetTextAsync().Result.Length);
+            var fixCollectionArray = _codeFixService.GetFixesAsync(document, textSpan, true, cancellationToken).Result;
             if (fixCollectionArray != null)
             {
                 foreach (var fixCollection in fixCollectionArray.Select(f => f.Fixes))
@@ -87,27 +112,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                         var ops = fix.Action.GetPreviewOperationsAsync(cancellationToken).Result;
                         foreach (var op in ops)
                         {
-                            op.Apply(workspace, cancellationToken);
-                            // TODO: it does not work if we want to apply multiple changes at once, so I will just apply one change at a time for now.
+                            // Apply one change at a time, setting hasMoreCodeFix to true as there are probably other code fixes
+                            op.Apply(document.Project.Solution.Workspace, cancellationToken);
+                            hasMoreCodeFix = true;
                             return true;
                         }
                     }
                 }
             }
 
-            // formatting
-            var formattingService = document.GetLanguageService<IEditorFormattingService>();
-            if (formattingService == null || !formattingService.SupportsFormatDocument)
-            {
-                return false;
-            }
-
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
-            {
-                Format(args.TextView, document, null, context.WaitContext.UserCancellationToken);
-            }
-
-            allChangesAreDone = true;
             return true;
         }
     }
