@@ -87,11 +87,6 @@
         <target state="translated">Lista descriptiva de Visual Basic</target>
         <note />
       </trans-unit>
-      <trans-unit id="Multiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="translated">&lt;Varios tipos&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="not_supported">
         <source>not supported</source>
         <target state="translated">no compatible</target>

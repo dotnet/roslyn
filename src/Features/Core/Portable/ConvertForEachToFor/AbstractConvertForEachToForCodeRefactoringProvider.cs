@@ -189,8 +189,8 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 
             var requireCollectionStatement = CheckRequireCollectionStatement(foreachCollection);
             return new ForEachInfo(
-                semanticFact, options, collectionNameSuggestion, countName,
-                explicitCastInterface, foreachVariable.Type, requireCollectionStatement, foreachStatement);
+                semanticFact, collectionNameSuggestion, countName, explicitCastInterface,
+                foreachVariable.Type, requireCollectionStatement, foreachStatement);
         }
 
         private static void GetInterfaceInfo(
@@ -429,13 +429,11 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         protected class ForEachInfo
         {
             public ForEachInfo(
-                ISemanticFactsService semanticFacts, OptionSet options,
-                string collectionNameSuggestion, string countName,
+                ISemanticFactsService semanticFacts, string collectionNameSuggestion, string countName,
                 ITypeSymbol explicitCastInterface, ITypeSymbol forEachElementType,
                 bool requireCollectionStatement, TForEachStatement forEachStatement)
             {
                 SemanticFacts = semanticFacts;
-                Options = options;
 
                 RequireExplicitCastInterface = explicitCastInterface != null;
 

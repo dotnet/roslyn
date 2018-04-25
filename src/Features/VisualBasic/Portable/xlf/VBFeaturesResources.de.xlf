@@ -52,6 +52,11 @@
         <target state="translated">Löschen der "{0}"-Anweisung.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="new">&lt;Multiple Types&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">Unnötige Import-Direktiven entfernen</target>

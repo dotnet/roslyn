@@ -2108,6 +2108,51 @@ class C<T>
         }
 
         [Fact]
+        public void GenericWithInterfaceConstraint()
+        {
+            var source =
+@"public interface I
+{
+    string Key { get; set; }
+}
+
+class C
+{
+    public static void M<T>(T t) where T : I
+    {
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    expr: "t.Key",
+                    error: out error,
+                    testData: testData);
+
+                var methodData = testData.GetMethodData("<>x.<>m0<T>(T)");
+                var method = methodData.Method;
+                Assert.Equal(1, method.Parameters.Length);
+                var eeTypeParameterSymbol = (EETypeParameterSymbol)method.Parameters[0].Type;
+                Assert.Equal(1, eeTypeParameterSymbol.AllEffectiveInterfacesNoUseSiteDiagnostics.Length);
+                Assert.Equal("I", eeTypeParameterSymbol.AllEffectiveInterfacesNoUseSiteDiagnostics[0].Name);
+
+                methodData.VerifyIL(
+@"{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""T""
+  IL_0008:  callvirt   ""string I.Key.get""
+  IL_000d:  ret
+}");
+            });
+        }
+
+        [Fact]
         public void AssignEmitError()
         {
             var longName = new string('P', 1100);

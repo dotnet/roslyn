@@ -77,6 +77,43 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestRemoteHostTextSynchronize()
+        {
+            var code = @"class Test { void Method() { } }";
+
+            using (var workspace = TestWorkspace.CreateCSharp(code))
+            {
+                var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
+
+                var solution = workspace.CurrentSolution;
+
+                // sync base solution
+                await UpdatePrimaryWorkspace(client, solution);
+                VerifyAssetStorage(client, solution);
+
+                // get basic info
+                var oldDocument = solution.Projects.First().Documents.First();
+                var oldState = await oldDocument.State.GetStateChecksumsAsync(CancellationToken.None);
+                var oldText = await oldDocument.GetTextAsync();
+
+                // update text
+                var newText = oldText.WithChanges(new TextChange(TextSpan.FromBounds(0, 0), "/* test */"));
+
+                // sync
+                await client.TryRunRemoteAsync(WellKnownRemoteHostServices.RemoteHostService, nameof(IRemoteHostService.SynchronizeTextAsync),
+                    new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) }, CancellationToken.None);
+
+                // apply change to solution
+                var newDocument = oldDocument.WithText(newText);
+                var newState = await newDocument.State.GetStateChecksumsAsync(CancellationToken.None);
+
+                // check that text already exist in remote side
+                Assert.True(client.AssetStorage.TryGetAsset<SourceText>(newState.Text, out var remoteText));
+                Assert.Equal(newText.ToString(), remoteText.ToString());
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public async Task TestTodoComments()
         {
             var code = @"// TODO: Test";
