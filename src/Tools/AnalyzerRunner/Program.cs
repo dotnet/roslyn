@@ -372,13 +372,13 @@ namespace AnalyzerRunner
                         continue;
                     }
 
-                    projectDiagnosticTasks.Add(new KeyValuePair<ProjectId, Task<AnalysisResult>>(
-                        project.Id,
-                        GetProjectAnalysisResultAsync(
-                            languageAnalyzers,
-                            project,
-                            options,
-                            cancellationToken)));
+                    var resultTask = GetProjectAnalysisResultAsync(languageAnalyzers, project, options, cancellationToken);
+                    if (!options.RunConcurrent)
+                    {
+                        await resultTask.ConfigureAwait(false);
+                    }
+
+                    projectDiagnosticTasks.Add(new KeyValuePair<ProjectId, Task<AnalysisResult>>(project.Id, resultTask));
                 }
 
                 foreach (var task in projectDiagnosticTasks)
@@ -419,6 +419,10 @@ namespace AnalyzerRunner
             CancellationToken cancellationToken)
         {
             WriteLine($"Running analyzers for {project.Name}", ConsoleColor.Gray);
+            if (analyzerOptionsInternal.RunConcurrent)
+            {
+                await Task.Yield();
+            }
 
             // update the project compilation options
             var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions
