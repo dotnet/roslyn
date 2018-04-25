@@ -18836,6 +18836,33 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.explicit operator S(A a)").WithLocation(13, 17));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Conversions: Explicit.
+        // Should report CS8600 for (B)s.
+        [Fact]
+        public void MultipleConversions_Explicit_04()
+        {
+            var source =
+@"struct S
+{
+    public static explicit operator A?(S s) => null;
+}
+class A { }
+class B : A
+{
+    internal void F() { }
+}
+class C
+{
+    static void F(S s)
+    {
+        var b = (B)s;
+        b.F();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
         // PROTOTYPE(NullableReferenceTypes): Conversions: Tuples
         [Fact(Skip = "TODO")]
         public void MultipleTupleConversions_01()

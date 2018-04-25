@@ -774,8 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.DeclaredType.InferredType)
             {
-                Debug.Assert(initializer == node.InitializerOpt); // no implicit conversion
-                if ((object)valueType == null)
+                if (valueType is null)
                 {
                     Debug.Assert(type.IsErrorType());
                     valueType = type;
