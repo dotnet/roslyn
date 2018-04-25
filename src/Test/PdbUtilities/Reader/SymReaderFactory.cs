@@ -3,12 +3,16 @@ extern alias DSR;
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
+using System.Text;
 using DSR::Microsoft.DiaSymReader;
+using Xunit;
 using PortablePdb = Microsoft.DiaSymReader.PortablePdb;
 
 namespace Roslyn.Test.PdbUtilities
@@ -26,21 +30,56 @@ namespace Roslyn.Test.PdbUtilities
         [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymReader")]
         private extern static void CreateSymReader64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symReader);
 
+        [DllImport("kernel32")]
+        private static extern IntPtr GetModuleHandle(string path);
+
+        [DllImport("kernel32")]
+        private static extern int GetModuleFileName(IntPtr handle, [Out]StringBuilder path, int size);
+
+        private static string GetModuleFullPath(string moduleName)
+        {
+            var capacity = ushort.MaxValue;
+            var moduleHandle = GetModuleHandle(moduleName);
+            var buffer = new StringBuilder(capacity);
+            int actualLength = GetModuleFileName(moduleHandle, buffer, capacity);
+            return buffer.ToString(0, actualLength);
+        }
+
         private static ISymUnmanagedReader5 CreateNativeSymReader(Stream pdbStream, object metadataImporter)
         {
             object symReader = null;
+            string moduleName;
 
-            var guid = default(Guid);
-            if (IntPtr.Size == 4)
+            try
             {
-                CreateSymReader32(ref guid, out symReader);
+                var guid = default(Guid);
+                if (IntPtr.Size == 4)
+                {
+                    CreateSymReader32(ref guid, out symReader);
+                    moduleName = "Microsoft.DiaSymReader.Native.x86.dll";
+                }
+                else
+                {
+                    CreateSymReader64(ref guid, out symReader);
+                    moduleName = "Microsoft.DiaSymReader.Native.amd64.dll";
+                }
             }
-            else
+            catch (DllNotFoundException e)
             {
-                CreateSymReader64(ref guid, out symReader);
+                var getLocation = (Func<Assembly, string>)typeof(Assembly).GetMethod("get_Location").CreateDelegate(typeof(Func<Assembly, string>));
+                var assemblyFile = getLocation(typeof(SymReaderFactory).GetTypeInfo().Assembly);
+                var files = Directory.EnumerateFiles(Path.GetDirectoryName(assemblyFile), "*.dll");
+                throw new InvalidOperationException(e.Message + $"Files next to {assemblyFile}: " + string.Join(";", files.Select(Path.GetFileName)));
             }
 
-            var reader = (ISymUnmanagedReader5)symReader;
+            var reader = symReader as ISymUnmanagedReader5;
+            if (reader == null)
+            {
+                var path = GetModuleFullPath(moduleName);
+                var info = FileVersionInfo.GetVersionInfo(path);
+                throw new InvalidOperationException($"DSRN failed: path='{path}' {info.FileVersion}");
+            }
+
             reader.Initialize(pdbStream, metadataImporter);
             return reader;
         }
