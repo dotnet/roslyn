@@ -5345,7 +5345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Partial Private Sub Validate()
+        Private Partial Sub Validate()
         End Sub
 
 
