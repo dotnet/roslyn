@@ -494,11 +494,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Lookup(lookupResult, containedModule, name, arity, options, binder, useSiteDiagnostics)
                         firstModule = False
                     Else
-                        Dim currentResult = LookupResult.GetInstance()
+                        Dim currentResult As LookupResult = Nothing
                         Lookup(currentResult, containedModule, name, arity, options, binder, useSiteDiagnostics)
 
                         ' Symbols in source take priority over symbols in a referenced assembly.
-                        If currentResult.StopFurtherLookup AndAlso currentResult.Symbols.Count > 0 AndAlso
+                        If currentResult IsNot Nothing AndAlso currentResult.StopFurtherLookup AndAlso currentResult.Symbols.Count > 0 AndAlso
                            lookupResult.StopFurtherLookup AndAlso lookupResult.Symbols.Count > 0 Then
 
                             Dim currentFromSource = currentResult.Symbols(0).ContainingModule Is sourceModule
@@ -520,7 +520,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         lookupResult.MergeAmbiguous(currentResult, s_ambiguousInModuleError)
-                        currentResult.Free()
+                        currentResult?.Free()
                     End If
                 Next
             End Sub
@@ -558,14 +558,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' discussing of the meaning of the results. The supplied binder is used for accessibility
             ''' checked and base class suppression.
             ''' </summary>
-            Friend Shared Sub Lookup(lookupResult As LookupResult,
+            Friend Shared Sub Lookup(ByRef lookupResult As LookupResult,
                                       type As TypeSymbol,
                                       name As String,
                                       arity As Integer,
                                       options As LookupOptions,
                                       binder As Binder,
                                       <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
-                Debug.Assert(lookupResult.IsClear)
+                Debug.Assert(lookupResult Is Nothing OrElse lookupResult.IsClear)
 
                 Select Case type.TypeKind
                     Case TypeKind.Class, TypeKind.Module, TypeKind.Structure, TypeKind.Delegate, TypeKind.Array, TypeKind.Enum
@@ -624,7 +624,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' discussing of the meaning of the results. The supplied binder is used for accessibility
             ''' checks and base class suppression.
             ''' </summary>
-            Private Shared Sub LookupInClass(result As LookupResult,
+            Private Shared Sub LookupInClass(ByRef result As LookupResult,
                                              container As TypeSymbol,
                                              name As String,
                                              arity As Integer,
@@ -632,7 +632,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              accessThroughType As TypeSymbol,
                                              binder As Binder,
                                              <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
-                Debug.Assert(result.IsClear)
+                Debug.Assert(result Is Nothing OrElse result.IsClear)
 
                 Dim methodsOnly As Boolean = CheckAndClearMethodsOnlyOption(options)
 
@@ -641,15 +641,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Do
                     Dim hitNonoverloadingSymbol As Boolean = False
 
-                    Dim currentResult = LookupResult.GetInstance()
+                    Dim currentResult As LookupResult = Nothing
                     LookupWithoutInheritance(currentResult, currentType, name, arity, options, accessThroughType, binder, useSiteDiagnostics)
-                    If result.IsGoodOrAmbiguous AndAlso currentResult.IsGoodOrAmbiguous AndAlso Not LookupResult.CanOverload(result.Symbols(0), currentResult.Symbols(0)) Then
+                    If result IsNot Nothing AndAlso result.IsGoodOrAmbiguous AndAlso currentResult IsNot Nothing AndAlso currentResult.IsGoodOrAmbiguous AndAlso Not LookupResult.CanOverload(result.Symbols(0), currentResult.Symbols(0)) Then
                         ' We hit another good symbol that can't overload this one. That doesn't affect the lookup result, but means we have to stop
                         ' looking for more members. See bug #14078 for example.
                         hitNonoverloadingSymbol = True
                     End If
-                    result.MergeOverloadedOrPrioritized(currentResult, True)
-                    currentResult.Free()
+
+                    If result Is Nothing AndAlso currentResult IsNot Nothing Then
+                        result = LookupResult.GetInstance()
+                    End If
+
+                    result?.MergeOverloadedOrPrioritized(currentResult, True)
+                    currentResult?.Free()
 
                     ' If the type is from a winmd file and implements any of the special WinRT collection
                     ' projections, then we may need to add projected interface members
@@ -669,7 +674,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Exit Do ' still do extension methods.
                     End If
 
-                    If result.StopFurtherLookup Then
+                    If result IsNot Nothing AndAlso result.StopFurtherLookup Then
                         ' If we found a non-overloadable symbol, we can stop now. Note that even if we find a method without the Overloads
                         ' modifier, we cannot stop because we need to check for extension methods.
                         If result.HasSymbol Then
@@ -713,7 +718,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' this function lookups up members with the given <paramref name="name" />,
             ''' <paramref name="arity" />, and <paramref name="options" />. Otherwise, it looks for default properties.
             ''' </summary>
-            Private Shared Sub FindWinRTMembers(result As LookupResult,
+            Private Shared Sub FindWinRTMembers(ByRef result As LookupResult,
                                                 type As NamedTypeSymbol,
                                                 binder As Binder,
                                                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
@@ -734,7 +739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim conflictingMembers = New HashSet(Of Symbol)(comparer)
 
                 ' Add all viable members from type lookup
-                If result.IsGood Then
+                If result IsNot Nothing AndAlso result.IsGood Then
                     For Each sym In result.Symbols
                         ' Fields can't be present in the HashSet because they can't be compared
                         ' with a MemberSignatureComparer
@@ -781,7 +786,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 tmp.Free()
-                If result.IsGood Then
+                If result IsNot Nothing AndAlso result.IsGood Then
                     For Each sym In result.Symbols
                         If sym.Kind <> SymbolKind.Field Then
                             allMembers.Remove(sym)
@@ -792,6 +797,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 For Each sym In allMembers
                     If Not conflictingMembers.Contains(sym) Then
+                        If result Is Nothing Then
+                            result = LookupResult.GetInstance()
+                        End If
+
                         ' since we only added viable members, every lookupresult should be viable
                         result.MergeOverloadedOrPrioritized(
                             New SingleLookupResult(LookupResultKind.Good, sym, Nothing),
@@ -838,14 +847,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' 2) If a visited submission contains a matching member of a kind different from lookingForOverloadsOfKind we stop 
             '''    looking further. Otherwise, if we find viable overload(s) we add them into the result. Overloads modifier is ignored.
             ''' </remarks>
-            Private Shared Sub LookupInSubmissions(result As LookupResult,
+            Private Shared Sub LookupInSubmissions(ByRef result As LookupResult,
                                                    submissionClass As TypeSymbol,
                                                    name As String,
                                                    arity As Integer,
                                                    options As LookupOptions,
                                                    binder As Binder,
                                                    <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
-                Debug.Assert(result.IsClear)
+                Debug.Assert(result Is Nothing OrElse result.IsClear)
                 Dim submissionSymbols = LookupResult.GetInstance()
                 Dim nonViable = LookupResult.GetInstance()
                 Dim lookingForOverloadsOfKind As SymbolKind? = Nothing
@@ -870,6 +879,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         ' always overload (ignore Overloads modifier):
+                        If result Is Nothing Then
+                            result = LookupResult.GetInstance()
+                        End If
+
                         result.MergeOverloadedOrPrioritized(submissionSymbols, checkIfCurrentHasOverloads:=False)
 
                         Dim first = submissionSymbols.Symbols.First
@@ -889,6 +902,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' found a viable overload
                         If submissionSymbols.IsGoodOrAmbiguous Then
                             ' merge overloads
+                            If result Is Nothing Then
+                                result = LookupResult.GetInstance()
+                            End If
+
                             Debug.Assert(result.Symbols.All(Function(s) s.IsOverloadable))
 
                             ' always overload (ignore Overloads modifier):
@@ -899,8 +916,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     submission = submission.PreviousSubmission
                 Loop Until submission Is Nothing
 
-                If Not result.HasSymbol Then
-                    result.SetFrom(nonViable)
+                If result Is Nothing OrElse Not result.HasSymbol Then
+                    If result Is Nothing AndAlso nonViable.Kind <> LookupResultKind.Empty Then
+                        result = LookupResult.GetInstance()
+                    End If
+
+                    result?.SetFrom(nonViable)
                 End If
 
                 ' TODO (tomat): extension methods
@@ -1108,7 +1129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Shared Sub LookupForExtensionMethodsIfNeedTo(
-                result As LookupResult,
+                ByRef result As LookupResult,
                 container As TypeSymbol,
                 name As String,
                 arity As Integer,
@@ -1116,17 +1137,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 binder As Binder,
                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             )
-                If result.IsGood AndAlso
+                If result IsNot Nothing AndAlso result.IsGood AndAlso
                     ((options And LookupOptions.EagerlyLookupExtensionMethods) = 0 OrElse
                      result.Symbols(0).Kind <> SymbolKind.Method) Then
                     Return
                 End If
 
-                Dim currentResult = LookupResult.GetInstance()
+                Dim currentResult As LookupResult = Nothing
                 LookupForExtensionMethods(currentResult, container, name, arity, options, binder, useSiteDiagnostics)
                 MergeInternalXmlHelperValueIfNecessary(currentResult, container, name, arity, options, binder, useSiteDiagnostics)
-                result.MergeOverloadedOrPrioritized(currentResult, checkIfCurrentHasOverloads:=False)
-                currentResult.Free()
+
+                If result Is Nothing AndAlso currentResult IsNot Nothing Then
+                    result = LookupResult.GetInstance()
+                End If
+
+                result?.MergeOverloadedOrPrioritized(currentResult, checkIfCurrentHasOverloads:=False)
+                currentResult?.Free()
             End Sub
 
             Private Shared Function ShouldLookupExtensionMethods(options As LookupOptions, container As TypeSymbol) As Boolean
@@ -1137,7 +1163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Shared Sub LookupForExtensionMethods(
-                lookupResult As LookupResult,
+                ByRef lookupResult As LookupResult,
                 container As TypeSymbol,
                 name As String,
                 arity As Integer,
@@ -1145,10 +1171,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 binder As Binder,
                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             )
-                Debug.Assert(lookupResult.IsClear)
+                Debug.Assert(lookupResult Is Nothing OrElse lookupResult.IsClear)
 
                 If Not ShouldLookupExtensionMethods(options, container) Then
-                    lookupResult.SetFrom(SingleLookupResult.Empty)
+                    lookupResult?.SetFrom(SingleLookupResult.Empty)
                     Return
                 End If
 
@@ -1187,6 +1213,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Dim reduced As MethodSymbol = methods(i).ReduceExtensionMethod(container, proximity)
 
                                 If reduced IsNot Nothing Then
+                                    If lookupResult Is Nothing Then
+                                        lookupResult = LookupResult.GetInstance()
+                                    End If
+
                                     lookupResult.MergeOverloadedOrPrioritizedExtensionMethods(binder.CheckViability(reduced, arity, options, reduced.ContainingType, useSiteDiagnostics))
                                 End If
 
@@ -1215,7 +1245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' and the arity is 0.
             ''' </summary>
             Private Shared Sub MergeInternalXmlHelperValueIfNecessary(
-                lookupResult As LookupResult,
+                ByRef lookupResult As LookupResult,
                 container As TypeSymbol,
                 name As String,
                 arity As Integer,
@@ -1239,13 +1269,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If symbol Is Nothing Then
                     ' Match the native compiler which reports ERR_XmlFeaturesNotAvailable in this case.
                     Dim useSiteError = ErrorFactory.ErrorInfo(ERRID.ERR_XmlFeaturesNotAvailable)
-                    singleResult = New SingleLookupResult(LookupResultKind.NotReferencable, binder.GetErrorSymbol(name, useSiteError), useSiteError)
+                    singleResult = New SingleLookupResult(LookupResultKind.NotReferencable, Binder.GetErrorSymbol(name, useSiteError), useSiteError)
                 Else
                     Dim reduced = New ReducedExtensionPropertySymbol(DirectCast(symbol, PropertySymbol))
                     singleResult = binder.CheckViability(reduced, arity, options, reduced.ContainingType, useSiteDiagnostics)
                 End If
 
-                lookupResult.MergePrioritized(singleResult)
+                If lookupResult Is Nothing And singleResult.Kind <> LookupResultKind.Empty Then
+                    lookupResult = LookupResult.GetInstance()
+                End If
+
+                lookupResult?.MergePrioritized(singleResult)
             End Sub
 
             Private Shared Sub AddLookupSymbolsInfoOfExtensionMethods(nameSet As LookupSymbolsInfo,
@@ -1408,7 +1442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
             End Structure
 
-            Private Shared Sub LookupInInterface(lookupResult As LookupResult,
+            Private Shared Sub LookupInInterface(ByRef lookupResult As LookupResult,
                          container As NamedTypeSymbol,
                          name As String,
                          arity As Integer,
@@ -1416,7 +1450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          binder As Binder,
                          <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             )
-                Debug.Assert(lookupResult.IsClear)
+                Debug.Assert(lookupResult Is Nothing OrElse lookupResult.IsClear)
 
                 Dim methodsOnly As Boolean = CheckAndClearMethodsOnlyOption(options)
 
@@ -1432,7 +1466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 LookupInInterfaces(lookupResult, container, lookIn, processed, name, arity, options, binder, methodsOnly, useSiteDiagnostics)
 
                 ' If no viable or ambiguous results, look in Object.
-                If Not lookupResult.IsGoodOrAmbiguous AndAlso (options And LookupOptions.NoSystemObjectLookupForInterfaces) = 0 Then
+                If lookupResult Is Nothing OrElse (Not lookupResult.IsGoodOrAmbiguous AndAlso (options And LookupOptions.NoSystemObjectLookupForInterfaces) = 0) Then
                     Dim currentResult = LookupResult.GetInstance()
                     Dim obj As NamedTypeSymbol = binder.SourceModule.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
 
@@ -1442,6 +1476,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                   useSiteDiagnostics)
 
                     If currentResult.IsGood Then
+                        If lookupResult Is Nothing Then
+                            lookupResult = LookupResult.GetInstance()
+                        End If
+
                         lookupResult.SetFrom(currentResult)
                     End If
 
@@ -1453,7 +1491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return
             End Sub
 
-            Private Shared Sub LookupInInterfaces(lookupResult As LookupResult,
+            Private Shared Sub LookupInInterfaces(ByRef lookupResult As LookupResult,
                          container As TypeSymbol,
                          lookIn As Queue(Of InterfaceInfo),
                          processed As HashSet(Of InterfaceInfo),
@@ -1464,7 +1502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          methodsOnly As Boolean,
                          <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             )
-                Debug.Assert(lookupResult.IsClear)
+                Debug.Assert(lookupResult Is Nothing OrElse lookupResult.IsClear)
 
                 Dim basesBeingResolved As ConsList(Of Symbol) = binder.BasesBeingResolved()
 
@@ -1490,14 +1528,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         leaveEventsOnly = isEventsOnlySpecified
                     End If
 
-                    If lookupResult.IsGood AndAlso currentResult.IsGood Then
+                    If lookupResult IsNot Nothing AndAlso lookupResult.IsGood AndAlso currentResult.IsGood Then
                         ' We have _another_ viable result while lookupResult is already viable. Use special interface merging rules.
                         MergeInterfaceLookupResults(lookupResult, currentResult, basesBeingResolved, leaveEventsOnly, useSiteDiagnostics)
                     Else
                         If currentResult.IsGood AndAlso leaveEventsOnly.HasValue Then
                             FilterSymbolsInLookupResult(currentResult, SymbolKind.Event, leaveInsteadOfRemoving:=leaveEventsOnly.Value)
                         End If
-                        lookupResult.MergePrioritized(currentResult)
+
+                        If lookupResult Is Nothing AndAlso currentResult.Kind <> LookupResultKind.Empty Then
+                            lookupResult = LookupResult.GetInstance()
+                        End If
+
+                        lookupResult?.MergePrioritized(currentResult)
                     End If
                     currentResult.Clear()
 
@@ -1505,7 +1548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 currentResult.Free()
 
-                If methodsOnly AndAlso lookupResult.IsGood Then
+                If methodsOnly AndAlso lookupResult IsNot Nothing AndAlso lookupResult.IsGood Then
                     ' We need to filter out non-method symbols from 'currentResult' 
                     ' before merging with 'lookupResult'
                     FilterSymbolsInLookupResult(lookupResult, SymbolKind.Method, leaveInsteadOfRemoving:=True)
@@ -1513,7 +1556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' it may look like a Good result, but it may have ambiguities inside
                 ' so we need to check that to be sure.
-                If lookupResult.IsGood Then
+                If lookupResult IsNot Nothing AndAlso lookupResult.IsGood Then
                     Dim ambiguityDiagnostics As AmbiguousSymbolDiagnostic = Nothing
                     Dim symbols As ArrayBuilder(Of Symbol) = lookupResult.Symbols
 
@@ -1542,6 +1585,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 ExitForFor:
 
                     If ambiguityDiagnostics IsNot Nothing Then
+                        If lookupResult Is Nothing Then
+                            lookupResult = LookupResult.GetInstance()
+                        End If
+
                         lookupResult.SetFrom(New SingleLookupResult(LookupResultKind.Ambiguous, symbols.First, ambiguityDiagnostics))
                     End If
                 End If
@@ -1570,7 +1617,7 @@ ExitForFor:
                 End If
             End Sub
 
-            Private Shared Sub LookupInTypeParameter(lookupResult As LookupResult,
+            Private Shared Sub LookupInTypeParameter(ByRef lookupResult As LookupResult,
                          typeParameter As TypeParameterSymbol,
                          name As String,
                          arity As Integer,
@@ -1585,7 +1632,7 @@ ExitForFor:
                 LookupForExtensionMethodsIfNeedTo(lookupResult, typeParameter, name, arity, options, binder, useSiteDiagnostics)
             End Sub
 
-            Private Shared Sub LookupInTypeParameterNoExtensionMethods(result As LookupResult,
+            Private Shared Sub LookupInTypeParameterNoExtensionMethods(ByRef result As LookupResult,
                          typeParameter As TypeParameterSymbol,
                          name As String,
                          arity As Integer,
@@ -1604,7 +1651,7 @@ ExitForFor:
                 Dim constraintClass = typeParameter.GetClassConstraint(useSiteDiagnostics)
                 If constraintClass IsNot Nothing Then
                     LookupInClass(result, constraintClass, name, arity, options, constraintClass, binder, useSiteDiagnostics)
-                    If result.StopFurtherLookup Then
+                    If result IsNot Nothing AndAlso result.StopFurtherLookup Then
                         Return
                     End If
                 End If
@@ -1620,16 +1667,21 @@ ExitForFor:
                     Dim interfaceResult = LookupResult.GetInstance()
                     Debug.Assert((options And LookupOptions.MethodsOnly) = 0)
                     LookupInInterfaces(interfaceResult, typeParameter, lookIn, processed, name, arity, options, binder, False, useSiteDiagnostics)
-                    result.MergePrioritized(interfaceResult)
+
+                    If result Is Nothing AndAlso interfaceResult.Kind <> LookupResultKind.Empty Then
+                        result = LookupResult.GetInstance()
+                    End If
+
+                    result?.MergePrioritized(interfaceResult)
                     interfaceResult.Free()
-                    If Not result.IsClear Then
+                    If result IsNot Nothing AndAlso Not result.IsClear Then
                         Return
                     End If
                 End If
 
                 ' Look up in System.ValueType or System.Object.
                 If constraintClass Is Nothing Then
-                    Debug.Assert(result.IsClear)
+                    Debug.Assert(result Is Nothing OrElse result.IsClear)
                     Dim baseType = GetTypeParameterBaseType(typeParameter)
                     LookupInClass(result, baseType, name, arity, options, baseType, binder, useSiteDiagnostics)
                 End If
@@ -1644,9 +1696,10 @@ ExitForFor:
             End Function
 
             Private Shared Sub ClearLookupResultIfNotMethods(methodsOnly As Boolean, lookupResult As LookupResult)
-                If methodsOnly AndAlso
-                   lookupResult.HasSymbol AndAlso
-                   lookupResult.Symbols(0).Kind <> SymbolKind.Method Then
+                If lookupResult IsNot Nothing AndAlso
+                    methodsOnly AndAlso
+                    lookupResult.HasSymbol AndAlso
+                    lookupResult.Symbols(0).Kind <> SymbolKind.Method Then
                     lookupResult.Clear()
                 End If
             End Sub
@@ -2046,7 +2099,7 @@ ExitForFor:
             ''' summarizes the results of the lookup. See LookupResult structure for a detailed
             ''' discussing of the meaning of the results.
             ''' </summary>
-            Private Shared Sub LookupWithoutInheritance(lookupResult As LookupResult,
+            Private Shared Sub LookupWithoutInheritance(ByRef lookupResult As LookupResult,
                                                        container As TypeSymbol,
                                                        name As String,
                                                        arity As Integer,
@@ -2067,11 +2120,15 @@ ExitForFor:
                     members = container.GetMembers(name)
                 End If
 
-                Debug.Assert(lookupResult.IsClear)
+                Debug.Assert(lookupResult Is Nothing OrElse lookupResult.IsClear)
 
                 ' Go through each member of the type, and combine them into a single result. Overloadable members
                 ' are combined together, while other duplicates cause an ambiguity error.
                 If Not members.IsDefaultOrEmpty Then
+                    If lookupResult Is Nothing Then
+                        lookupResult = LookupResult.GetInstance()
+                    End If
+
                     Dim imported As Boolean = container.ContainingModule IsNot binder.SourceModule
 
                     For Each sym In members

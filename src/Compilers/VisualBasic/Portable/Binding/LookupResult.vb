@@ -449,6 +449,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' multiple viable results, instead produce an ambiguity between all of them.
         Public Sub MergeAmbiguous(other As LookupResult,
                                   generateAmbiguityDiagnostic As Func(Of ImmutableArray(Of Symbol), AmbiguousSymbolDiagnostic))
+            If other Is Nothing Then
+                Return
+            End If
+
             If Me.IsGoodOrAmbiguous AndAlso other.IsGoodOrAmbiguous Then
                 ' Two viable or ambiguous results. Produce ambiguity.
                 Dim ambiguousResults = ArrayBuilder(Of Symbol).GetInstance()
@@ -552,6 +556,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' If the "checkIfCurrentHasOverloads" is True, then we only overload if every symbol in our current result has "Overloads" modifier; otherwise
         ' we overload regardless of the modifier.
         Public Sub MergeOverloadedOrPrioritized(other As LookupResult, checkIfCurrentHasOverloads As Boolean)
+            If other Is Nothing Then
+                Return
+            End If
+
             If Me.IsGoodOrAmbiguous AndAlso other.IsGoodOrAmbiguous Then
                 If Me.IsGood AndAlso other.IsGood Then
                     ' Two viable results. Either they can overload each other, or we need to produce an ambiguity.
