@@ -103,9 +103,7 @@ Similarly, you can do `T : IInterface` (if `T` is a reference type, it must be n
 
 We will do some validation on constraints, so as to complain for nullability mismatch on `where T : class, IInterface?`.
 
-
-
-There is still an open question about `default(T)` and `T?`.
+`T?` is disallowed for now.
 
 ### Null tests
 
