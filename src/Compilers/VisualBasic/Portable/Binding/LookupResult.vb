@@ -556,10 +556,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' If the "checkIfCurrentHasOverloads" is True, then we only overload if every symbol in our current result has "Overloads" modifier; otherwise
         ' we overload regardless of the modifier.
         Public Sub MergeOverloadedOrPrioritized(other As LookupResult, checkIfCurrentHasOverloads As Boolean)
-            If other Is Nothing Then
-                Return
-            End If
-
             If Me.IsGoodOrAmbiguous AndAlso other.IsGoodOrAmbiguous Then
                 If Me.IsGood AndAlso other.IsGood Then
                     ' Two viable results. Either they can overload each other, or we need to produce an ambiguity.

@@ -643,18 +643,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim currentResult As LookupResult = Nothing
                     LookupWithoutInheritance(currentResult, currentType, name, arity, options, accessThroughType, binder, useSiteDiagnostics)
-                    If result IsNot Nothing AndAlso result.IsGoodOrAmbiguous AndAlso currentResult IsNot Nothing AndAlso currentResult.IsGoodOrAmbiguous AndAlso Not LookupResult.CanOverload(result.Symbols(0), currentResult.Symbols(0)) Then
-                        ' We hit another good symbol that can't overload this one. That doesn't affect the lookup result, but means we have to stop
-                        ' looking for more members. See bug #14078 for example.
-                        hitNonoverloadingSymbol = True
-                    End If
+                    If currentResult IsNot Nothing Then
+                        If result Is Nothing Then
+                            result = LookupResult.GetInstance()
+                        End If
 
-                    If result Is Nothing AndAlso currentResult IsNot Nothing Then
-                        result = LookupResult.GetInstance()
-                    End If
+                        If result.IsGoodOrAmbiguous AndAlso currentResult.IsGoodOrAmbiguous AndAlso Not LookupResult.CanOverload(result.Symbols(0), currentResult.Symbols(0)) Then
+                            ' We hit another good symbol that can't overload this one. That doesn't affect the lookup result, but means we have to stop
+                            ' looking for more members. See bug #14078 for example.
+                            hitNonoverloadingSymbol = True
+                        End If
 
-                    result?.MergeOverloadedOrPrioritized(currentResult, True)
-                    currentResult?.Free()
+                        result.MergeOverloadedOrPrioritized(currentResult, True)
+                        currentResult.Free()
+                    End If
 
                     ' If the type is from a winmd file and implements any of the special WinRT collection
                     ' projections, then we may need to add projected interface members
@@ -1147,12 +1149,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 LookupForExtensionMethods(currentResult, container, name, arity, options, binder, useSiteDiagnostics)
                 MergeInternalXmlHelperValueIfNecessary(currentResult, container, name, arity, options, binder, useSiteDiagnostics)
 
-                If result Is Nothing AndAlso currentResult IsNot Nothing Then
-                    result = LookupResult.GetInstance()
-                End If
+                If currentResult IsNot Nothing Then
+                    If result Is Nothing Then
+                        result = LookupResult.GetInstance()
+                    End If
 
-                result?.MergeOverloadedOrPrioritized(currentResult, checkIfCurrentHasOverloads:=False)
-                currentResult?.Free()
+                    result.MergeOverloadedOrPrioritized(currentResult, checkIfCurrentHasOverloads:=False)
+                    currentResult.Free()
+                End If
             End Sub
 
             Private Shared Function ShouldLookupExtensionMethods(options As LookupOptions, container As TypeSymbol) As Boolean
