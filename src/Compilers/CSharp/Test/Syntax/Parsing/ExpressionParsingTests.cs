@@ -3787,7 +3787,7 @@ select t";
         }
 
         [Fact]
-        public void IndexExpression_PositiveNumber()
+        public void IndexExpression()
         {
             UsingExpression("^1");
             N(SyntaxKind.IndexExpression);
@@ -3802,19 +3802,231 @@ select t";
         }
 
         [Fact]
-        public void IndexExpression_NegativeNumber()
+        public void RangeExpression_ThreeDots()
         {
-            UsingExpression("^-1");
-            N(SyntaxKind.IndexExpression);
+            UsingExpression("1...2",
+                // (1,2): error CS8401: Unexpected character sequence '...'
+                // 1...2
+                Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 2));
+        }
+
+        [Fact]
+        public void RangeExpression_Binary()
+        {
+            UsingExpression("1..1");
+            N(SyntaxKind.RangeExpression);
             {
-                N(SyntaxKind.CaretToken);
-                N(SyntaxKind.UnaryMinusExpression);
+                N(SyntaxKind.NumericLiteralExpression);
                 {
-                    N(SyntaxKind.MinusToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Binary_WithIndexes()
+        {
+            UsingExpression("^5..^3");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IndexExpression);
+                {
+                    N(SyntaxKind.CaretToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "5");
+                    }
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.IndexExpression);
+                {
+                    N(SyntaxKind.CaretToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Binary_WithALowerPrecedenceOperator()
+        {
+            UsingExpression("1<<2..3>>4");
+            N(SyntaxKind.RightShiftExpression);
+            {
+                N(SyntaxKind.LeftShiftExpression);
+                {
                     N(SyntaxKind.NumericLiteralExpression);
                     {
                         N(SyntaxKind.NumericLiteralToken, "1");
                     }
+                    N(SyntaxKind.LessThanLessThanToken);
+                    N(SyntaxKind.RangeExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "3");
+                        }
+                    }
+                }
+                N(SyntaxKind.GreaterThanGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Binary_WithAHigherPrecedenceOperator()
+        {
+            UsingExpression("1+2..3-4");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "2");
+                    }
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.SubtractExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                    N(SyntaxKind.MinusToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "4");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Prefix()
+        {
+            UsingExpression("..1");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Prefix_WithIndexes()
+        {
+            UsingExpression("..^3");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.IndexExpression);
+                {
+                    N(SyntaxKind.CaretToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "3");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Postfix()
+        {
+            UsingExpression("1..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.DotDotToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Postfix_WithIndexes()
+        {
+            UsingExpression("^5..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.IndexExpression);
+                {
+                    N(SyntaxKind.CaretToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "5");
+                    }
+                }
+                N(SyntaxKind.DotDotToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Term()
+        {
+            UsingExpression("..");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Term_WithOtherOperators()
+        {
+            UsingExpression("1+..<<2");
+            N(SyntaxKind.LeftShiftExpression);
+            {
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.RangeExpression);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                    }
+                }
+                N(SyntaxKind.LessThanLessThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "2");
                 }
             }
             EOF();

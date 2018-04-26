@@ -8664,11 +8664,7 @@ tryAgain:
                     // expression (whether it is used as an identifier or a keyword).
                     return this.IsTrueIdentifier() || (this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword);
                 default:
-                    return IsExpectedPrefixUnaryOperator(tk)
-                        || (IsPredefinedType(tk) && tk != SyntaxKind.VoidKeyword)
-                        || SyntaxFacts.IsAnyUnaryExpression(tk)
-                        || SyntaxFacts.IsBinaryExpression(tk)
-                        || SyntaxFacts.IsAssignmentExpressionOperatorToken(tk);
+                    return IsExpectedPrefixUnaryOperator(tk) || (IsPredefinedType(tk) && tk != SyntaxKind.VoidKeyword);
             }
         }
 
@@ -8736,6 +8732,7 @@ tryAgain:
             Equality,
             Relational,
             Shift,
+            Range,
             Additive,
             Mutiplicative,
             Unary,
@@ -8816,6 +8813,8 @@ tryAgain:
                     return Precedence.PointerIndirection;
                 case SyntaxKind.AddressOfExpression:
                     return Precedence.AddressOf;
+                case SyntaxKind.RangeExpression:
+                    return Precedence.Range;
                 default:
                     return Precedence.Expression;
             }
@@ -8923,10 +8922,28 @@ tryAgain:
             if (IsExpectedPrefixUnaryOperator(tk))
             {
                 opKind = SyntaxFacts.GetPrefixUnaryExpression(tk);
-                newPrecedence = GetPrecedence(opKind);
                 var opToken = this.EatToken();
-                var operand = this.ParseSubExpression(newPrecedence);
-                leftOperand = _syntaxFactory.PrefixUnaryExpression(opKind, opToken, operand);
+
+                if (opToken.Kind == SyntaxKind.DotDotToken)
+                {
+                    // Operator ".." here can either be a prefix unary operator or a stand alone empty range:
+                    Debug.Assert(opKind == SyntaxKind.RangeExpression);
+
+                    if (IsPossibleExpression())
+                    {
+                        newPrecedence = GetPrecedence(opKind);
+                        leftOperand = _syntaxFactory.RangeExpression(left: null, opToken, right: this.ParseSubExpression(newPrecedence));
+                    }
+                    else
+                    {
+                        leftOperand = _syntaxFactory.RangeExpression(left: null, opToken, right: null);
+                    }
+                }
+                else
+                {
+                    newPrecedence = GetPrecedence(opKind);
+                    leftOperand = _syntaxFactory.PrefixUnaryExpression(opKind, opToken, this.ParseSubExpression(newPrecedence));
+                }
             }
             else if (IsAwaitExpression())
             {
@@ -9055,7 +9072,24 @@ tryAgain:
                     }
                     else
                     {
-                        leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, opToken, this.ParseSubExpression(newPrecedence));
+                        if (tk == SyntaxKind.DotDotToken)
+                        {
+                            // Operator ".." here can either be a binary or a postfix unary operator:
+                            Debug.Assert(opKind == SyntaxKind.RangeExpression);
+
+                            if (IsPossibleExpression())
+                            {
+                                leftOperand = _syntaxFactory.RangeExpression(left: leftOperand, opToken, right: this.ParseSubExpression(newPrecedence));
+                            }
+                            else
+                            {
+                                leftOperand = _syntaxFactory.RangeExpression(left: leftOperand, opToken, right: null);
+                            }
+                        }
+                        else
+                        {
+                            leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, opToken, this.ParseSubExpression(newPrecedence));
+                        }
                     }
                 }
             }

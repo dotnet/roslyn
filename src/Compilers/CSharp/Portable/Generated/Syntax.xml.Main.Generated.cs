@@ -154,6 +154,12 @@ namespace Microsoft.CodeAnalysis.CSharp
       return this.DefaultVisit(node);
     }
 
+    /// <summary>Called when the visitor visits a RangeExpressionSyntax node.</summary>
+    public virtual TResult VisitRangeExpression(RangeExpressionSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
     /// <summary>Called when the visitor visits a ImplicitElementAccessSyntax node.</summary>
     public virtual TResult VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
     {
@@ -1383,6 +1389,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     /// <summary>Called when the visitor visits a ElementBindingExpressionSyntax node.</summary>
     public virtual void VisitElementBindingExpression(ElementBindingExpressionSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a RangeExpressionSyntax node.</summary>
+    public virtual void VisitRangeExpression(RangeExpressionSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -2647,6 +2659,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var argumentList = (BracketedArgumentListSyntax)this.Visit(node.ArgumentList);
       return node.Update(argumentList);
+    }
+
+    public override SyntaxNode VisitRangeExpression(RangeExpressionSyntax node)
+    {
+      var left = (ExpressionSyntax)this.Visit(node.Left);
+      var operatorToken = this.VisitToken(node.OperatorToken);
+      var right = (ExpressionSyntax)this.Visit(node.Right);
+      return node.Update(left, operatorToken, right);
     }
 
     public override SyntaxNode VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
@@ -4881,6 +4901,32 @@ namespace Microsoft.CodeAnalysis.CSharp
     public static ElementBindingExpressionSyntax ElementBindingExpression()
     {
       return SyntaxFactory.ElementBindingExpression(SyntaxFactory.BracketedArgumentList());
+    }
+
+    /// <summary>Creates a new RangeExpressionSyntax instance.</summary>
+    public static RangeExpressionSyntax RangeExpression(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+    {
+      switch (operatorToken.Kind())
+      {
+        case SyntaxKind.DotDotToken:
+          break;
+        default:
+          throw new ArgumentException("operatorToken");
+      }
+      return (RangeExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RangeExpression(left == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node, right == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)right.Green).CreateRed();
+    }
+
+
+    /// <summary>Creates a new RangeExpressionSyntax instance.</summary>
+    public static RangeExpressionSyntax RangeExpression(ExpressionSyntax left, ExpressionSyntax right)
+    {
+      return SyntaxFactory.RangeExpression(left, SyntaxFactory.Token(SyntaxKind.DotDotToken), right);
+    }
+
+    /// <summary>Creates a new RangeExpressionSyntax instance.</summary>
+    public static RangeExpressionSyntax RangeExpression()
+    {
+      return SyntaxFactory.RangeExpression(default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.DotDotToken), default(ExpressionSyntax));
     }
 
     /// <summary>Creates a new ImplicitElementAccessSyntax instance.</summary>

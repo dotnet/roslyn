@@ -1579,6 +1579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 7.3
 
         #region diagnostics introduced for C# 8.0
+        ERR_TripleDotNotAllowed = 8401,
         ERR_FeatureNotAvailableInVersion8 = 8402,
         #endregion diagnostics introduced for C# 8.0
     }

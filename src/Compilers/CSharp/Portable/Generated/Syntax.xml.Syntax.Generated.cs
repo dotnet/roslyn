@@ -1954,6 +1954,100 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     }
   }
 
+  /// <summary>Class which represents the syntax node for a range expression.</summary>
+  public sealed partial class RangeExpressionSyntax : ExpressionSyntax
+  {
+    private ExpressionSyntax left;
+    private ExpressionSyntax right;
+
+    internal RangeExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.CSharpSyntaxNode green, SyntaxNode parent, int position)
+        : base(green, parent, position)
+    {
+    }
+
+    /// <summary>ExpressionSyntax node representing the expression on the left of the range operator.</summary>
+    public ExpressionSyntax Left 
+    {
+        get
+        {
+            return this.GetRedAtZero(ref this.left);
+        }
+    }
+
+    /// <summary>SyntaxToken representing the operator of the range expression.</summary>
+    public SyntaxToken OperatorToken 
+    {
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RangeExpressionSyntax)this.Green).operatorToken, this.GetChildPosition(1), this.GetChildIndex(1)); }
+    }
+
+    /// <summary>ExpressionSyntax node representing the expression on the right of the range operator.</summary>
+    public ExpressionSyntax Right 
+    {
+        get
+        {
+            return this.GetRed(ref this.right, 2);
+        }
+    }
+
+    internal override SyntaxNode GetNodeSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.GetRedAtZero(ref this.left);
+            case 2: return this.GetRed(ref this.right, 2);
+            default: return null;
+        }
+    }
+    internal override SyntaxNode GetCachedSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.left;
+            case 2: return this.right;
+            default: return null;
+        }
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitRangeExpression(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitRangeExpression(this);
+    }
+
+    public RangeExpressionSyntax Update(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+    {
+        if (left != this.Left || operatorToken != this.OperatorToken || right != this.Right)
+        {
+            var newNode = SyntaxFactory.RangeExpression(left, operatorToken, right);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               return newNode.WithAnnotations(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    public RangeExpressionSyntax WithLeft(ExpressionSyntax left)
+    {
+        return this.Update(left, this.OperatorToken, this.Right);
+    }
+
+    public RangeExpressionSyntax WithOperatorToken(SyntaxToken operatorToken)
+    {
+        return this.Update(this.Left, operatorToken, this.Right);
+    }
+
+    public RangeExpressionSyntax WithRight(ExpressionSyntax right)
+    {
+        return this.Update(this.Left, this.OperatorToken, right);
+    }
+  }
+
   /// <summary>Class which represents the syntax node for implicit element access expression.</summary>
   public sealed partial class ImplicitElementAccessSyntax : ExpressionSyntax
   {

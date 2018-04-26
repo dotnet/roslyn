@@ -7,6 +7,11 @@
         <target state="new">Feature '{0}' is not available in C# 8. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TripleDotNotAllowed">
+        <source>Unexpected character sequence '...'</source>
+        <target state="new">Unexpected character sequence '...'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureIndexOperator">
         <source>index operator</source>
         <target state="new">index operator</target>
