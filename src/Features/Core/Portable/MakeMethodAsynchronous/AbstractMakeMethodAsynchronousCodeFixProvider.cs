@@ -49,6 +49,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
 
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
+
+            // Heuristic to recognize the common case for entry point method
             var isEntryPoint = symbol != null && symbol.IsStatic && IsLikelyEntryPointName(symbol.Name, context.Document);
 
             // Offer to convert to a Task return type.
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             // Store the path to this node.  That way we can find it post rename.
             var syntaxPath = new SyntaxPath(node);
 
-            // Rename the method to add the 'Async' suffix (except if it's the entry point), then add the 'async' keyword.
+            // Rename the method to add the 'Async' suffix, then add the 'async' keyword.
             var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
 
             var newDocument = newSolution.GetDocument(document.Id);
