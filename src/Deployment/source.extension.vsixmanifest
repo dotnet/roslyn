@@ -13,7 +13,7 @@
     
     <Dependency d:ProjectName="CompilerExtension" 
                 DisplayName="Roslyn Compilers" 
-                Version="[|CompilerExtension;GetBuildVersion|,)"
+                Version="[|%CurrentProject%;GetBuildVersion|,)"
                 d:Source="Project" 
                 d:InstallSource="Embed" 
                 d:VsixSubPath="Vsixes" 
@@ -22,7 +22,7 @@
     
     <Dependency d:ProjectName="VisualStudioSetup"
                 DisplayName="Roslyn Language Services"
-                Version="[|VisualStudioSetup;GetBuildVersion|,)"
+                Version="[|%CurrentProject%;GetBuildVersion|,)"
                 d:Source="Project"
                 d:InstallSource="Embed"
                 d:VsixSubPath="Vsixes"
@@ -31,7 +31,7 @@
     
     <Dependency d:ProjectName="VisualStudioInteractiveComponents" 
                 DisplayName="Roslyn Interactive Components" 
-                Version="[|VisualStudioInteractiveComponents;GetBuildVersion|,)"
+                Version="[|%CurrentProject%;GetBuildVersion|,)"
                 d:Source="Project"  
                 d:InstallSource="Embed" 
                 d:VsixSubPath="Vsixes" 
@@ -40,7 +40,7 @@
     
     <Dependency  d:ProjectName="ExpressionEvaluatorPackage" 
                  DisplayName="Roslyn Expression Evaluators" 
-                 Version="[|ExpressionEvaluatorPackage;GetBuildVersion|,)"
+                 Version="[|%CurrentProject%;GetBuildVersion|,)"
                  d:Source="Project" 
                  d:InstallSource="Embed" 
                  d:VsixSubPath="Vsixes" 
