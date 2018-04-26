@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
             : base(containingType,
                    originalMethod,
-                   null,
                    blockSyntax,
                    originalMethod.DeclaringSyntaxReferences[0].GetLocation(),
                    originalMethod is LocalFunctionSymbol

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map;
 
         [ImportingConstructor]
-        public DiagnosticService([ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners) : this()
+        public DiagnosticService(IAsynchronousOperationListenerProvider listenerProvider) : this()
         {
             // queue to serialize events.
             _eventMap = new EventMap();
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
             _eventQueue = new SimpleTaskQueue(s_eventScheduler);
 
-            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DiagnosticService);
+            _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
 
             _gate = new object();
             _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>>();

@@ -38,5 +38,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.UnitTests.Utilities" />
+    <InternalsVisibleToCompletionTests Include="Microsoft.VisualStudio.Completion.Tests" />
   </ItemGroup>
 </Project>

@@ -2108,6 +2108,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbolWithAnnotations.Create(tupleOpt.WithElementTypes(elementTypes));
         }
 
+        public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
+        {
+            base.VisitTupleBinaryOperator(node);
+            SetResult(node);
+            return null;
+        }
+
         private void ReportNullabilityMismatchWithTargetDelegate(SyntaxNode syntax, NamedTypeSymbol delegateType, MethodSymbol method)
         {
             if ((object)delegateType == null || (object)method == null)
@@ -2346,12 +2353,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitRvalue(node.Right);
             Result right = _result;
-
-            // byref assignment is also a potential write
-            if (node.IsRef)
-            {
-                WriteArgument(node.Right, node.Left.GetRefKind(), method: null);
-            }
 
             if (node.Left.Kind == BoundKind.EventAccess && ((BoundEventAccess)node.Left).EventSymbol.IsWindowsRuntimeEvent)
             {

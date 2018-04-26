@@ -992,7 +992,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: "1");
+            var comp = CompileAndVerify(source, expectedOutput: "1");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -1056,7 +1056,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef, SystemCoreRef }, expectedOutput: "00", verify: Verification.Fails);
+            var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef, SystemCoreRef }, expectedOutput: "00", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Main", @"
@@ -1144,7 +1144,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: "00", verify: Verification.Fails);
+            var comp = CompileAndVerify(source, expectedOutput: "00", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Test", @"

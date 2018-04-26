@@ -33,6 +33,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return False
             End If
 
+            If RemovalCausesAmbiguity(DirectCast(node.Parent, TupleExpressionSyntax).Arguments, node) Then
+                Return False
+            End If
+
             Dim inferredName = node.Expression.TryGetInferredMemberName()
             If inferredName Is Nothing OrElse
                 Not CaseInsensitiveComparison.Equals(inferredName, node.NameColonEquals.Name.Identifier.ValueText) Then
@@ -54,6 +58,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         End Function
 
         Friend Shared Function CanSimplifyNamedFieldInitializer(node As NamedFieldInitializerSyntax) As Boolean
+            If RemovalCausesAmbiguity(DirectCast(node.Parent, ObjectMemberInitializerSyntax).Initializers, node) Then
+                Return False
+            End If
+
             Dim inferredName = node.Expression.TryGetInferredMemberName()
             If inferredName Is Nothing OrElse
                     Not CaseInsensitiveComparison.Equals(inferredName, node.Name.Identifier.ValueText) Then
@@ -61,6 +69,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End If
 
             Return True
+        End Function
+
+        ' An explicit name cannot be removed if some other position would produce it as inferred name
+        Private Shared Function RemovalCausesAmbiguity(arguments As SeparatedSyntaxList(Of SimpleArgumentSyntax), toRemove As SimpleArgumentSyntax) As Boolean
+            Dim name = toRemove.NameColonEquals.Name.Identifier.ValueText
+            For Each argument In arguments
+
+                If argument Is toRemove Then
+                    Continue For
+                End If
+
+                If argument.NameColonEquals Is Nothing AndAlso CaseInsensitiveComparison.Equals(argument.Expression.TryGetInferredMemberName(), name) Then
+                    Return True
+                End If
+            Next
+
+            Return False
+        End Function
+
+        ' An explicit name cannot be removed if some other position would produce it as inferred name
+        Private Shared Function RemovalCausesAmbiguity(initializers As SeparatedSyntaxList(Of FieldInitializerSyntax), toRemove As NamedFieldInitializerSyntax) As Boolean
+            Dim name = toRemove.Name.Identifier.ValueText
+            For Each initializer In initializers
+
+                If initializer Is toRemove Then
+                    Continue For
+                End If
+
+                Dim inferredInitializer = TryCast(initializer, InferredFieldInitializerSyntax)
+                If inferredInitializer IsNot Nothing AndAlso CaseInsensitiveComparison.Equals(inferredInitializer.Expression.TryGetInferredMemberName(), name) Then
+                    Return True
+                End If
+            Next
+
+            Return False
         End Function
     End Class
 End Namespace

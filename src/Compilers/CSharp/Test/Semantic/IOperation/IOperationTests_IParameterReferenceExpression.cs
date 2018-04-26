@@ -939,10 +939,10 @@ struct S
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(sources0);
+            var compilation0 = CreateCompilation(sources0);
             compilation0.VerifyDiagnostics();
 
-            var compilation1 = CreateStandardCompilation(
+            var compilation1 = CreateCompilation(
                 sources1,
                 references: new[] { MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes: true) });
 

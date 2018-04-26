@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private partial class IncrementalAnalyzerProcessor
             {
-                private static readonly Func<int, object, bool, string> s_enqueueLogger = (t, i, s) => string.Format("[{0}] {1} : {2}", t, i.ToString(), s);
+                private static readonly Func<int, object, bool, string> s_enqueueLogger = (t, i, s) => string.Format("Tick:{0}, Id:{1}, Replaced:{2}", t, i.ToString(), s);
 
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;

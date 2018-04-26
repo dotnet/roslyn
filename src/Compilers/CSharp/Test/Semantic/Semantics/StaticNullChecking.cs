@@ -75,7 +75,7 @@ namespace System.Runtime.CompilerServices
         [Fact]
         public void Test0()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -152,7 +152,7 @@ class C
     public struct Enum { }
     public class Attribute { }
 }";
-            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
@@ -162,7 +162,7 @@ class C
 {
     int F() => (int)E.A;
 }";
-            var comp = CreateCompilation(
+            var comp = CreateEmptyCompilation(
                 source,
                 references: new[] { ref0 },
                 parseOptions: TestOptions.Regular8);
@@ -182,7 +182,7 @@ class C
         public void UnannotatedAssemblies_WithSomeExtraAnnotations()
         {
             // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
-            var comp = CreateStandardCompilation("", parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation("", parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var systemNamespace = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingNamespace;
 
@@ -221,10 +221,10 @@ namespace System
     }
 }
 ";
-            var comp = CreateCompilation(lib, parseOptions: TestOptions.Regular8);
+            var comp = CreateEmptyCompilation(lib, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
 
-            var comp2 = CreateCompilation("", references: new[] { comp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp2 = CreateEmptyCompilation("", references: new[] { comp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp2.VerifyDiagnostics();
 
             var expected = ImmutableArray.Create(
@@ -255,51 +255,51 @@ namespace System
             TypeSymbolWithAnnotations getParameterType(Compilation c) => c.GetMember<MethodSymbol>("A.F").Parameters[0].Type;
 
             // 7.0 library
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
             var compRefs0 = new MetadataReference[] { new CSharpCompilationReference(comp0) };
             var metadataRefs0 = new[] { comp0.EmitToImageReference() };
             Assert.Equal(null, getParameterType(comp0).IsNullable);
 
             // ... used in 7.0.
-            var comp1 = CreateStandardCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular7);
+            var comp1 = CreateCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
             Assert.Equal(null, getParameterType(comp1).IsNullable);
-            comp1 = CreateStandardCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular7);
+            comp1 = CreateCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
             Assert.Equal(null, getParameterType(comp1).IsNullable);
 
             // ... used in 8.0.
-            comp1 = CreateStandardCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular8);
+            comp1 = CreateCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics();
             Assert.Equal(null, getParameterType(comp1).IsNullable);
-            comp1 = CreateStandardCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular8);
+            comp1 = CreateCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics();
             Assert.Equal(null, getParameterType(comp1).IsNullable);
 
             // 8.0 library
-            comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular8);
+            comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
             comp0.VerifyDiagnostics();
             compRefs0 = new MetadataReference[] { new CSharpCompilationReference(comp0) };
             metadataRefs0 = new[] { comp0.EmitToImageReference() };
             Assert.Equal(false, getParameterType(comp0).IsNullable);
 
             // ... used in 7.0.
-            comp1 = CreateStandardCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular7);
+            comp1 = CreateCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
             Assert.Equal(false, getParameterType(comp1).IsNullable);
-            comp1 = CreateStandardCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular7);
+            comp1 = CreateCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
             Assert.Equal(false, getParameterType(comp1).IsNullable);
 
             // ... used in 8.0.
-            comp1 = CreateStandardCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular8);
+            comp1 = CreateCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics(
                 // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         A.F(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
             Assert.Equal(false, getParameterType(comp1).IsNullable);
-            comp1 = CreateStandardCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular8);
+            comp1 = CreateCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics(
                 // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         A.F(null);
@@ -335,7 +335,7 @@ public class C
     }
 }";
 
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
 
             void verify(Compilation c)
@@ -352,10 +352,10 @@ public class C
                 Assert.Equal(null, method.Parameters[0].Type.IsNullable);
             }
 
-            var comp1A = CreateStandardCompilation(source1, references: new MetadataReference[] { new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
+            var comp1A = CreateCompilation(source1, references: new MetadataReference[] { new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
             verify(comp1A);
 
-            var comp1B = CreateStandardCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp1B = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             verify(comp1B);
         }
 
@@ -382,7 +382,7 @@ public class C
     }
 }";
 
-            var comp0 = CreateStandardCompilation(source0, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
 
             void verifyTuple(TypeSymbolWithAnnotations type)
@@ -402,10 +402,10 @@ public class C
                 verifyTuple(method.Parameters[0].Type);
             }
 
-            var comp1A = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
+            var comp1A = CreateCompilation(source1, references: new[] { new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
             verify(comp1A);
 
-            var comp1B = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp1B = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             verify(comp1B);
         }
 
@@ -424,7 +424,7 @@ class D : C<B>, I<B>
 {
     internal override void M<T>() { }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
             var derivedType = comp.GetMember<NamedTypeSymbol>("D");
             var baseType = derivedType.BaseTypeNoUseSiteDiagnostics;
@@ -450,7 +450,7 @@ class C : I<string>
 {
     I<object[]> I<string>.F(I<string> s) => null;
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
             var type = comp.GetMember<NamedTypeSymbol>("C");
             var interfaceType = type.Interfaces().Single();
@@ -488,9 +488,9 @@ public class C
         z = C.Create(y).F;
     }
 }";
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
-            var comp1 = CreateStandardCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics(
                 // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         z = C.Create(y).F;
@@ -561,10 +561,10 @@ class P
         y = ((I)d2).F(x);
     }
 }";
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
 
-            var comp1 = CreateStandardCompilation(source1, references: new MetadataReference[] { new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(source1, references: new MetadataReference[] { new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics(
                 // (43,18): warning CS8604: Possible null reference argument for parameter 'o' in 'object? B2.F(object o)'.
                 //         y = b2.F(x);
@@ -579,7 +579,7 @@ class P
                 //         y = d2.F(x);
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "d2.F(x)").WithLocation(51, 13));
 
-            comp1 = CreateStandardCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp1 = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics(
                 // (43,18): warning CS8604: Possible null reference argument for parameter 'o' in 'object? B2.F(object o)'.
                 //         y = b2.F(x);
@@ -646,18 +646,18 @@ public class D : C
         ((I)d).G(null).ToString();
     }
 }";
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular8);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular7);
+            var comp1 = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2A = CreateStandardCompilation(source2, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular7);
+            var comp2A = CreateCompilation(source2, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular7);
             comp2A.VerifyDiagnostics();
 
-            var comp2B = CreateStandardCompilation(source2, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
+            var comp2B = CreateCompilation(source2, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
             comp2B.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         ((I)a).F(o).ToString();
@@ -723,15 +723,15 @@ class P
         ((A)c).F(x, y).ToString();
     }
 }";
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular8);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular7);
+            var comp1 = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
             var ref1 = comp1.EmitToImageReference();
 
-            var comp2 = CreateStandardCompilation(source2, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
+            var comp2 = CreateCompilation(source2, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
             comp2.VerifyDiagnostics(
                 // (15,13): warning CS8604: Possible null reference argument for parameter 'x' in 'object C1.F(object x, object y)'.
                 //         c.F(x, y).ToString();
@@ -781,13 +781,13 @@ public sealed class B : A<object>
         b.F = null;
     }
 }";
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
 
-            var comp1 = CreateStandardCompilation(source1, references: new MetadataReference[] { new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(source1, references: new MetadataReference[] { new CSharpCompilationReference(comp0) }, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics();
 
-            comp1 = CreateStandardCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            comp1 = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics();
         }
 
@@ -811,7 +811,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             //var a = compilation.GetTypeByMetadataName("A");
             //var aFoo = a.GetMember<MethodSymbol>("Foo");
@@ -842,7 +842,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
         }
 
@@ -866,7 +866,7 @@ class B : A
     }
 } 
 ";
-            CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -887,7 +887,7 @@ class B : A
     }
 } 
 ";
-            CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -910,7 +910,7 @@ class B : A
     }
 } 
 ";
-            CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -931,7 +931,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -961,7 +961,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -990,7 +990,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
 
@@ -1030,7 +1030,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
 
@@ -1095,7 +1095,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 );
 
@@ -1135,7 +1135,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             // PROTOTYPE(NullableReferenceTypes): The overriding is ambiguous.
             // We simply matched the first candidate. Should this be an error?
@@ -1199,7 +1199,7 @@ class B : A
 
 class C<T> {}
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -1232,7 +1232,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
 
             var b = compilation.GetTypeByMetadataName("B");
@@ -1260,7 +1260,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 // (11,38): error CS0460: Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly
                 //     public override void M1<T>(T? x) where T : struct
@@ -1320,7 +1320,7 @@ class B : A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 // (27,26): error CS0506: 'B.M2<T>(T?)': cannot override inherited member 'A.M2<T>(T?)' because it is not marked virtual, abstract, or override
                 //     public override void M2<T>(T? x)
@@ -1370,7 +1370,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                 // (4,50): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public virtual void M1<T>(System.Nullable<T> x) where T : class
@@ -1408,7 +1408,7 @@ class B : A
 
 class C<T> {}
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                  // (4,42): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                  //     public virtual C<System.Nullable<T>> M1<T>() where T : class
@@ -1484,7 +1484,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                  // (32,29): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
                  //     public override string? M1()
@@ -1569,7 +1569,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (27,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -1667,7 +1667,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
                  // (42,25): error CS0508: 'B.M3()': return type must be 'int?' to match overridden member 'A.M3()'
                  //     public override int M3()
@@ -1738,7 +1738,7 @@ class B : A
     }
 } 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (35,26): error CS0115: 'B.M3(int)': no suitable method found to override
@@ -1799,7 +1799,7 @@ class B2 : A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (19,49): warning CS8608: Nullability of reference types in type doesn't match overridden member.
@@ -1881,7 +1881,7 @@ class B2 : A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -1926,7 +1926,7 @@ class B2 : IA
 }
 
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (26,40): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'event Action<string>? IA.E2'.
@@ -2019,7 +2019,7 @@ class B2 : IB
     event System.Action<string?>? IB.E3; // 2
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (34,37): error CS0071: An explicit interface implementation of an event must use event accessor syntax
@@ -2134,7 +2134,7 @@ class B2 : A2
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (28,31): warning CS8608: Nullability of reference types in type doesn't match overridden member.
@@ -2216,7 +2216,7 @@ class B1 : A1
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -2269,7 +2269,7 @@ class B : IA, IA2
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (23,22): warning CS8612: Nullability of reference types in type doesn't match implicitly implemented member 'string[] IA.P2'.
@@ -2360,7 +2360,7 @@ class B : IA, IA2
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (22,17): warning CS8615: Nullability of reference types in type doesn't match implemented member 'string?[] IA.P1'.
@@ -2439,7 +2439,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (23,26): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
@@ -2495,7 +2495,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
         }
 
@@ -2535,7 +2535,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (23,17): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'T[] IA.M2<T>()'.
@@ -2603,7 +2603,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (23,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'T[] IA.M2<T>()'.
@@ -2669,7 +2669,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -2707,7 +2707,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (22,26): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -2761,7 +2761,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -2871,7 +2871,7 @@ class B : A
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, new[] { CompileIL(ilSource, prependDefaultHeader: false) },
+            var compilation = CreateCompilation(source, new[] { CompileIL(ilSource, prependDefaultHeader: false) },
                                                             options: TestOptions.ReleaseDll,
                                                             parseOptions: TestOptions.Regular8);
 
@@ -2917,7 +2917,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (20,17): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'void IA.M2<T>(T[] x)'.
@@ -2980,7 +2980,7 @@ class B : IA
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (20,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'void IA.M2<T>(T[] x)'.
@@ -3061,7 +3061,7 @@ class B3 : A3
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (24,25): warning CS8610: Nullability of reference types in type of parameter 'x' doesn't match overridden member.
@@ -3146,7 +3146,7 @@ class B3 : IA3
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (32,16): warning CS8614: Nullability of reference types in type of parameter 'x' doesn't match implicitly implemented member 'int IA2.this[string[] x]'.
@@ -3231,7 +3231,7 @@ class B3 : IA3
     } 
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (24,13): warning CS8617: Nullability of reference types in type of parameter 'x' doesn't match implemented member 'int IA1.this[string?[] x]'.
@@ -3288,7 +3288,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                  // (16,18): warning CS8611: Nullability of reference types in type of parameter 'x' doesn't match partial method declaration.
@@ -3340,7 +3340,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -3367,7 +3367,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateStandardCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -3385,7 +3385,7 @@ class A
     string? Test2(string y2) { return y2; }
 }
 ";
-            CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).
+            CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8).
                 VerifyDiagnostics(
                  // (5,10): error CS0111: Type 'A' already defines a member called 'Test1' with the same parameter types
                  //     void Test1(string x2) {}
@@ -3411,14 +3411,14 @@ class A
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
         }
 
         [Fact()]
         public void Test1()
         {
-            CSharpCompilation c = CreateStandardCompilation(
+            CSharpCompilation c = CreateCompilation(
 @"#pragma warning disable 8618
 class C
 {
@@ -3904,7 +3904,7 @@ struct S2
         [Fact]
         public void PassingParameters_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -4047,7 +4047,7 @@ class CL1
         [Fact]
         public void PassingParameters_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -4079,7 +4079,7 @@ class CL0
         [Fact]
         public void PassingParameters_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -4139,7 +4139,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,11): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(y);
@@ -4212,7 +4212,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,17): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         G(x: x, x: y);
@@ -4232,15 +4232,9 @@ class C
                 // (11,23): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         G(y: y, x: y, x: x);
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(11, 23),
-                // (13,17): error CS1740: Named argument 'y' cannot be specified multiple times
-                //         G(y: x, y: y);
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(13, 17),
                 // (13,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.G(object, params object?[])'
                 //         G(y: x, y: y);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "G").WithArguments("x", "C.G(object, params object?[])").WithLocation(13, 9),
-                // (14,17): error CS1740: Named argument 'y' cannot be specified multiple times
-                //         G(y: y, y: x);
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(14, 17),
                 // (14,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.G(object, params object?[])'
                 //         G(y: y, y: x);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "G").WithArguments("x", "C.G(object, params object?[])").WithLocation(14, 9),
@@ -4255,25 +4249,7 @@ class C
                 Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(17, 17),
                 // (18,17): error CS1740: Named argument 'y' cannot be specified multiple times
                 //         G(y: y, y: x, x: x);
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(18, 17),
-                // (6,20): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
-                //         G(x: x, x: y);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(6, 20),
-                // (7,14): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
-                //         G(x: y, x: x);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(7, 14),
-                // (8,20): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
-                //         G(x: x, x: y, y: y);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(8, 20),
-                // (9,14): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
-                //         G(x: y, x: x, y: y);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(9, 14),
-                // (10,26): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
-                //         G(y: y, x: x, x: y);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(10, 26),
-                // (11,20): warning CS8604: Possible null reference argument for parameter 'x' in 'void C.G(object x, params object?[] y)'.
-                //         G(y: y, x: y, x: x);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "void C.G(object x, params object?[] y)").WithLocation(11, 20));
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(18, 17));
         }
 
         [Fact]
@@ -4290,7 +4266,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,45): error CS1737: Optional parameters must appear after all required parameters
                 //     static void G(object? x = null, object y)
@@ -4314,7 +4290,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,19): error CS0231: A params parameter must be the last parameter in a formal parameter list
                 //     static void G(params object[] x, params object[] y)
@@ -4350,7 +4326,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,20): error CS0225: The params parameter must be a single dimensional array
                 //     static void F2(params object x)
@@ -4384,7 +4360,7 @@ class C
     public static object operator+(C x, params object?[] y) => x;
     static object F(C x, object[] y) => x + y;
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (3,41): error CS1670: params is not valid in this context
                 //     public static object operator+(C x, params object?[] y) => x;
@@ -4397,7 +4373,7 @@ class C
         [Fact]
         public void RefOutParameters_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -4466,7 +4442,7 @@ class CL1
         [Fact]
         public void RefOutParameters_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -4544,7 +4520,7 @@ struct S1
         [Fact]
         public void RefOutParameters_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -4594,7 +4570,7 @@ struct S1
         [Fact]
         public void RefOutParameters_04()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -4659,7 +4635,7 @@ class CL0<T>
         x = new object();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,22): warning CS8604: Possible null reference argument for parameter 'y' in 'void C.G(out object x, ref object y, in object z)'.
                 //         G(out x, ref y, in z);
@@ -4690,7 +4666,7 @@ class CL0<T>
         x = new object();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         G(out x, ref y, in z);
@@ -4709,7 +4685,7 @@ class CL0<T>
         [Fact]
         public void TargetingUnannotatedAPIs_01()
         {
-            CSharpCompilation c0 = CreateStandardCompilation(@"
+            CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
     public object F1;
@@ -4731,7 +4707,7 @@ public struct S1
 }
 ", options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7);
 
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C 
 {
     static void Main()
@@ -4863,14 +4839,14 @@ public struct S2
         [Fact]
         public void TargetingUnannotatedAPIs_02()
         {
-            CSharpCompilation c0 = CreateStandardCompilation(@"
+            CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7);
 
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C 
 {
     static void Main()
@@ -4947,14 +4923,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_03()
         {
-            CSharpCompilation c0 = CreateStandardCompilation(@"
+            CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7);
 
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C 
 {
     static void Main()
@@ -5001,14 +4977,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_04()
         {
-            CSharpCompilation c0 = CreateStandardCompilation(@"
+            CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7);
 
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C 
 {
     static void Main()
@@ -5075,14 +5051,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_05()
         {
-            CSharpCompilation c0 = CreateStandardCompilation(@"
+            CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7);
 
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C 
 {
     static void Main()
@@ -5125,14 +5101,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_06()
         {
-            CSharpCompilation c0 = CreateStandardCompilation(@"
+            CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7);
 
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C 
 {
     static void Main()
@@ -5208,14 +5184,14 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_07()
         {
-            CSharpCompilation c0 = CreateStandardCompilation(@"
+            CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
     public static object M1() { return new object(); }
 }
 ", options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7);
 
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C 
 {
     static void Main()
@@ -5263,7 +5239,7 @@ class C
         [Fact]
         public void TargetingUnannotatedAPIs_08()
         {
-            CSharpCompilation c0 = CreateStandardCompilation(@"
+            CSharpCompilation c0 = CreateCompilation(@"
 public abstract class A1
 {
     public abstract event System.Action E1;
@@ -5283,7 +5259,7 @@ public interface IA2
 }
 ", options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7);
 
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class B1 : A1
 {
     static void Main()
@@ -5390,7 +5366,7 @@ class B3 : IA2
         [Fact]
         public void ReturningValues_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -5428,7 +5404,7 @@ class CL1
         [Fact]
         public void ReturningValues_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -5464,7 +5440,7 @@ class CL1<T>
         [Fact]
         public void ConditionalBranching_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -5567,7 +5543,7 @@ class CL2
         [Fact]
         public void ConditionalBranching_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -5670,7 +5646,7 @@ class CL2
         [Fact]
         public void ConditionalBranching_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -5745,7 +5721,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_04()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -5809,7 +5785,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_05()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -5866,7 +5842,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_06()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -5945,7 +5921,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_07()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6024,7 +6000,7 @@ class CL1
         [Fact(Skip = "Unexpected warning")]
         public void ConditionalBranching_08()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6056,7 +6032,7 @@ class CL1
         [Fact]
         public void ConditionalBranching_09()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6083,7 +6059,7 @@ class C
         [Fact]
         public void ConditionalBranching_10()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6110,7 +6086,7 @@ class C
         [Fact]
         public void ConditionalBranching_11()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6137,7 +6113,7 @@ class C
         [Fact]
         public void ConditionalBranching_12()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6173,7 +6149,7 @@ class C
         [Fact]
         public void ConditionalBranching_13()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6209,7 +6185,7 @@ class C
         [Fact]
         public void Loop_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6284,7 +6260,7 @@ class CL1
         [Fact]
         public void Loop_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6339,7 +6315,7 @@ class CL1
 {
     public object F;
 }";
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
             var source1 =
 @"#pragma warning disable 8618
@@ -6374,7 +6350,7 @@ class B
         return b3.G;
     }
 }";
-            var comp1 = CreateStandardCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics(
                 // (9,20): warning CS8601: Possible null reference assignment.
                 //             b1.G = o;
@@ -6398,7 +6374,7 @@ class B
 {
     public object F;
 }";
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
             var source1 =
 @"#pragma warning disable 8618
@@ -6432,7 +6408,7 @@ class C
         return a3.F;
     }
 }";
-            var comp1 = CreateStandardCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics(
                 // (10,16): warning CS8603: Possible null reference return.
                 //         return a1.F;
@@ -6445,7 +6421,7 @@ class C
         [Fact]
         public void Var_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6483,7 +6459,7 @@ class CL1
         [Fact]
         public void Array_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6555,7 +6531,7 @@ class CL1
         [Fact]
         public void Array_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6614,7 +6590,7 @@ class CL1
         [Fact]
         public void Array_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6647,7 +6623,7 @@ class C
         [Fact]
         public void Array_04()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6747,7 +6723,7 @@ class CL1
         [Fact]
         public void Array_05()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6779,7 +6755,7 @@ class C
         [Fact]
         public void Array_06()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6823,7 +6799,7 @@ class C
         [Fact]
         public void Array_07()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -6982,7 +6958,7 @@ class C
         [Fact]
         public void Array_08()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -7086,7 +7062,7 @@ class C
         [Fact]
         public void Array_09()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -7126,7 +7102,7 @@ class CL0<T>
         [Fact]
         public void ObjectInitializer_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(
+            CSharpCompilation c = CreateCompilation(
 @"#pragma warning disable 8618
 class C
 {
@@ -7173,7 +7149,7 @@ class CL1
         [Fact]
         public void Structs_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -7260,7 +7236,7 @@ struct S2
         [Fact]
         public void Structs_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -7389,7 +7365,7 @@ struct S1
         [Fact]
         public void Structs_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -7454,7 +7430,7 @@ struct S2
         [Fact]
         public void Structs_04()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -7489,7 +7465,7 @@ struct TS2
         [Fact]
         public void AnonymousTypes_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -7694,7 +7670,7 @@ struct S1
         [Fact]
         public void AnonymousTypes_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -7741,7 +7717,7 @@ class CL1
         [Fact]
         public void AnonymousTypes_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -7773,7 +7749,7 @@ class CL1
         [Fact]
         public void AnonymousTypes_04()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -7816,7 +7792,7 @@ class CL1<T>
         y = new { x, y = y }.y ?? y;
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Should report ErrorCode.HDN_ExpressionIsProbablyNeverNull.
@@ -7827,7 +7803,7 @@ class CL1<T>
         [Fact]
         public void This()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -7855,7 +7831,7 @@ class C
         [Fact]
         public void ReadonlyAutoProperties_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C1
 {
     static void Main()
@@ -7938,7 +7914,7 @@ struct S1
         [Fact]
         public void ReadonlyAutoProperties_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 struct C1
 {
     static void Main()
@@ -8025,7 +8001,7 @@ struct S1
         [Fact]
         public void NotAssigned()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8075,7 +8051,7 @@ class CL1
         [Fact]
         public void Lambda_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8118,7 +8094,7 @@ class CL1
         [Fact]
         public void Lambda_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8151,7 +8127,7 @@ class CL1
         [Fact]
         public void Lambda_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8206,7 +8182,7 @@ class CL1
         [Fact]
         public void Lambda_04()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8245,7 +8221,7 @@ class CL1
         [Fact]
         public void Lambda_05()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8306,7 +8282,7 @@ class CL1
         [Fact]
         public void Lambda_06()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8355,7 +8331,7 @@ class CL1
         [Fact]
         public void Lambda_07()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8415,7 +8391,7 @@ class CL1
         [Fact]
         public void Lambda_08()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8463,7 +8439,7 @@ class CL1
         [Fact]
         public void Lambda_09()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8521,7 +8497,7 @@ class CL1
         [Fact]
         public void Lambda_10()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8573,7 +8549,7 @@ class CL1
         [Fact]
         public void Lambda_11()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8629,7 +8605,7 @@ class CL1
         [Fact(Skip = "TODO")]
         public void Lambda_12()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8697,7 +8673,7 @@ class CL1
         [Fact(Skip = "TODO")]
         public void Lambda_13()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8752,7 +8728,7 @@ class CL1
         [Fact]
         public void Lambda_14()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8795,7 +8771,7 @@ class CL1
         [Fact]
         public void Lambda_15()
         {
-            CSharpCompilation notAnnotated = CreateStandardCompilation(@"
+            CSharpCompilation notAnnotated = CreateCompilation(@"
 public class CL0 
 {
     public static void M1(System.Func<CL1<CL0>, CL0> x) {}
@@ -8812,7 +8788,7 @@ public class CL1<T>
 }
 ", options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7);
 
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C 
 {
     static void Main() {}
@@ -8856,7 +8832,7 @@ class C
         [Fact(Skip = "TODO")]
         public void Lambda_16()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -8892,7 +8868,7 @@ class CL1<T>
         [Fact(Skip = "TODO")]
         public void Lambda_17()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 using System.Linq.Expressions;
 
 class C
@@ -8937,7 +8913,7 @@ class CL1<T>
         var y = x => x;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
                 //         var y = x => x;
@@ -8956,7 +8932,7 @@ class CL1<T>
     }
 }";
             // PROTOTYPE(NullableReferenceTypes): Should not report HDN_ExpressionIsProbablyNeverNull for `y`.
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
                 //         var z = y => y ?? x.ToString();
@@ -9006,7 +8982,7 @@ class CL1<T>
         x4 = (new T4?[1])[0];
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (13,14): error CS0304: Cannot create an instance of the variable type 'T2' because it does not have the new() constraint
                 //         x2 = new T2?();
@@ -9025,7 +9001,7 @@ class CL1<T>
         [Fact]
         public void New_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9070,14 +9046,14 @@ class C
         F2(y);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
         public void DynamicObjectCreation_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9111,7 +9087,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9154,7 +9130,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9197,7 +9173,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9240,7 +9216,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_04()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9283,7 +9259,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_05()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9326,7 +9302,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_06()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9369,7 +9345,7 @@ class CL0
         [Fact]
         public void DynamicIndexerAccess_07()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9394,7 +9370,7 @@ class C
         [Fact]
         public void DynamicIndexerAccess_08()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9437,7 +9413,7 @@ class CL0<T>
         [Fact]
         public void DynamicIndexerAccess_09()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9493,7 +9469,7 @@ class CL1
         [Fact]
         public void DynamicIndexerAccess_10()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9539,7 +9515,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9580,7 +9556,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9621,7 +9597,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9662,7 +9638,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_04()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9703,7 +9679,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_05()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9744,7 +9720,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_06()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9785,7 +9761,7 @@ class CL0
         [Fact]
         public void DynamicInvocation_07()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9810,7 +9786,7 @@ class C
         [Fact]
         public void DynamicInvocation_08()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9850,7 +9826,7 @@ class CL0<T>
         [Fact]
         public void DynamicInvocation_09()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9894,7 +9870,7 @@ class CL0
         [Fact]
         public void DynamicMemberAccess_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9939,14 +9915,14 @@ class C
         y = null;
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
         public void DynamicObjectCreationExpression_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -9987,7 +9963,7 @@ class CL0
         [Fact]
         public void NameOf_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10017,7 +9993,7 @@ class C
         [Fact]
         public void StringInterpolation_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10046,7 +10022,7 @@ class C
         [Fact]
         public void DelegateCreation_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10077,7 +10053,7 @@ class C
         [Fact]
         public void DelegateCreation_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10111,7 +10087,7 @@ class CL0<T>{}
         [Fact]
         public void Base_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Base
 {
     public virtual void Test() {}
@@ -10137,7 +10113,7 @@ class C : Base
         [Fact]
         public void TypeOf_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10166,7 +10142,7 @@ class C
         [Fact]
         public void Default_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10201,7 +10177,7 @@ class C
         ((x, _) = t).Item2.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
@@ -10214,7 +10190,7 @@ class C
         [Fact]
         public void BinaryOperator_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10243,7 +10219,7 @@ class C
         [Fact]
         public void BinaryOperator_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10269,7 +10245,7 @@ class C
         [Fact]
         public void BinaryOperator_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10356,7 +10332,7 @@ class CL2
         [Fact]
         public void BinaryOperator_04()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10411,7 +10387,7 @@ class CL0
         [Fact]
         public void BinaryOperator_05()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10456,7 +10432,7 @@ class CL0
         [Fact]
         public void BinaryOperator_06()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10495,7 +10471,7 @@ class CL0
         [Fact]
         public void BinaryOperator_07()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10537,7 +10513,7 @@ class CL0
         [Fact]
         public void BinaryOperator_08()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10576,7 +10552,7 @@ class CL0
         [Fact]
         public void BinaryOperator_09()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10626,7 +10602,7 @@ class CL0
         [Fact]
         public void BinaryOperator_10()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10675,7 +10651,7 @@ class CL0
         [Fact]
         public void BinaryOperator_11()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10746,7 +10722,7 @@ class C
         [Fact]
         public void BinaryOperator_12()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10798,7 +10774,7 @@ class CL0
         [Fact]
         public void BinaryOperator_13()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10862,7 +10838,7 @@ class CL0
         if (y || y) { }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -10882,7 +10858,7 @@ class CL0
         s = y + y;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -10916,14 +10892,14 @@ class CL0
         if (y != x) { }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
         public void MethodGroupConversion_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -10957,7 +10933,7 @@ class CL0
         [Fact]
         public void MethodGroupConversion_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -11011,7 +10987,7 @@ class CL0<T>
         [Fact]
         public void MethodGroupConversion_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -11053,7 +11029,7 @@ class CL0<T>
         [Fact]
         public void MethodGroupConversion_04()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -11107,7 +11083,7 @@ class CL0<T>
         [Fact]
         public void MethodGroupConversion_05()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -11149,7 +11125,7 @@ class CL0<T>
         [Fact]
         public void UnaryOperator_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -11231,14 +11207,14 @@ class CL2
         s = ~s;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
         [Fact]
         public void Conversion_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -11404,7 +11380,7 @@ class CL4 : CL3 {}
         [Fact]
         public void Conversion_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -11433,7 +11409,7 @@ class CL0<T>
         [Fact]
         public void IncrementOperator_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -11546,7 +11522,7 @@ class CL1
         [Fact]
         public void IncrementOperator_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(
+            CSharpCompilation c = CreateCompilation(
 @"#pragma warning disable 8618
 class C
 {
@@ -11639,7 +11615,7 @@ class CL1
         [Fact]
         public void IncrementOperator_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -11752,7 +11728,7 @@ class X4
         [Fact]
         public void IncrementOperator_04()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -11801,7 +11777,7 @@ class C
         [Fact]
         public void IncrementOperator_05()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -11852,7 +11828,7 @@ class B : A
         [Fact]
         public void IncrementOperator_06()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -11899,7 +11875,7 @@ class B : A
         [Fact]
         public void IncrementOperator_07()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -11950,7 +11926,7 @@ class Convertible
         [Fact]
         public void CompoundAssignment_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -11998,7 +11974,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -12046,7 +12022,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -12132,7 +12108,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_04()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -12239,7 +12215,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_05()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -12277,7 +12253,7 @@ class Test
         [Fact]
         public void CompoundAssignment_06()
         {
-            CSharpCompilation c = CreateStandardCompilation(
+            CSharpCompilation c = CreateCompilation(
 @"#pragma warning disable 8618
 class Test
 {
@@ -12339,7 +12315,7 @@ class CL1
         [Fact]
         public void CompoundAssignment_07()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -12415,7 +12391,7 @@ class CL3
         [Fact]
         public void Events_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -12493,7 +12469,7 @@ class Test
         [Fact(Skip = "TODO")]
         public void Events_02()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -12549,7 +12525,7 @@ struct TS1
         [Fact(Skip = "TODO")]
         public void Events_03()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -12581,7 +12557,7 @@ struct TS2
         [Fact]
         public void Events_04()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -12630,7 +12606,7 @@ class CL0
         [Fact]
         public void Events_05()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -12656,7 +12632,7 @@ class Test
         [Fact]
         public void AsOperator_01()
         {
-            CSharpCompilation c = CreateStandardCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     static void Main()
@@ -12823,7 +12799,7 @@ public abstract class ClassITest28 //: ITest28
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, new MetadataReference[] { MscorlibRef_v4_0_30316_17626 }, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7);
+            var piaCompilation = CreateCompilationWithMscorlib45(pia, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7);
 
             CompileAndVerify(piaCompilation);
 
@@ -12845,8 +12821,8 @@ class UsePia
     }
 }";
 
-            var compilation = CreateCompilation(source,
-                                                new MetadataReference[] { MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
+            var compilation = CreateCompilationWithMscorlib45(source,
+                                                new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
                                                 options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
@@ -12884,7 +12860,7 @@ class C<T> {}
 class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 {}
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             var b = compilation.GetTypeByMetadataName("B");
             Assert.Equal("System.String? B.F1", b.GetMember("F1").ToTestDisplayString());
@@ -12913,19 +12889,19 @@ class F : C<F?>, I1<C<B?>>, I2<C<B>?>
             var source = @"";
             var optionsWithoutFeature = TestOptions.Regular8;
             var optionsWithFeature = optionsWithoutFeature.WithNullCheckingFeature(NullableReferenceFlags.None);
-            Assert.Throws<System.ArgumentException>(() => CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithFeature),
+            Assert.Throws<System.ArgumentException>(() => CreateCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithFeature),
                                                                                                 CSharpSyntaxTree.ParseText(source, optionsWithoutFeature) },
                                                                                         options: TestOptions.ReleaseDll));
 
-            Assert.Throws<System.ArgumentException>(() => CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithoutFeature),
+            Assert.Throws<System.ArgumentException>(() => CreateCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithoutFeature),
                                                                                                 CSharpSyntaxTree.ParseText(source, optionsWithFeature) },
                                                                                         options: TestOptions.ReleaseDll));
 
-            CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithFeature),
+            CreateCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithFeature),
                                                   CSharpSyntaxTree.ParseText(source, optionsWithFeature) },
                                           options: TestOptions.ReleaseDll);
 
-            CreateStandardCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithoutFeature),
+            CreateCompilation(new[] { CSharpSyntaxTree.ParseText(source, optionsWithoutFeature),
                                                   CSharpSyntaxTree.ParseText(source, optionsWithoutFeature) },
                                           options: TestOptions.ReleaseDll);
         }
@@ -12963,7 +12939,7 @@ public class C<T> {}
 public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 {}
 ";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                 // (5,33): warning CS0067: The event 'B.E1' is never used
@@ -13002,7 +12978,7 @@ public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
         [Fact]
         public void NullableAttribute_02()
         {
-            CSharpCompilation c0 = CreateStandardCompilation(@"
+            CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
     public object F1;
@@ -13039,12 +13015,12 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2.P1").WithLocation(15, 14)
             };
 
-            CSharpCompilation c = CreateStandardCompilation(source,
+            CSharpCompilation c = CreateCompilation(source,
                                                                 parseOptions: TestOptions.Regular8,
                                                                 references: new[] { c0.EmitToImageReference() });
             c.VerifyDiagnostics(expected);
 
-            c = CreateStandardCompilation(source,
+            c = CreateCompilation(source,
                                                                 parseOptions: TestOptions.Regular8,
                                                                 references: new[] { c0.ToMetadataReference() });
             c.VerifyDiagnostics(expected);
@@ -13053,7 +13029,7 @@ class C
         [Fact]
         public void NullableAttribute_03()
         {
-            CSharpCompilation c0 = CreateStandardCompilation(@"
+            CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
     public object F1;
@@ -13080,12 +13056,12 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y1").WithLocation(10, 17)
             };
 
-            CSharpCompilation c = CreateStandardCompilation(source,
+            CSharpCompilation c = CreateCompilation(source,
                                                                 parseOptions: TestOptions.Regular8,
                                                                 references: new[] { c0.EmitToImageReference() });
             c.VerifyDiagnostics(expected);
 
-            c = CreateStandardCompilation(source,
+            c = CreateCompilation(source,
                                                                 parseOptions: TestOptions.Regular8,
                                                                 references: new[] { c0.ToMetadataReference() });
             c.VerifyDiagnostics(expected);
@@ -13114,7 +13090,7 @@ public class C<T> {}
 [Nullable] public class F : C<F>
 {}
 ";
-            var compilation = CreateStandardCompilation(new[] { source, NullableAttributeDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NullableAttributeDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                 // (7,6): error CS8623: Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.
@@ -13147,7 +13123,7 @@ public class C<T> {}
         public void OptOutFromAssembly_01()
         {
             var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
-            CSharpCompilation c0 = CreateStandardCompilation(@"
+            CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
     public object F1;
@@ -13170,7 +13146,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: parseOptions,
                                                                 references: new[] { c0.EmitToImageReference() });
 
@@ -13179,7 +13155,7 @@ class C
                                                      Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", (((PEModuleSymbol)m).GetAttributes().Single().ToString()));
                                                  });
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: parseOptions,
                                                                 references: new[] { c0.ToMetadataReference() });
 
@@ -13192,14 +13168,14 @@ class C
         public void OptOutFromAssembly_02()
         {
             var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
-            CSharpCompilation c0 = CreateStandardCompilation(@"
+            CSharpCompilation c0 = CreateCompilation(@"
 public class CL0 
 {
     public object F1;
 }
 ", parseOptions: parseOptions, options: TestOptions.DebugDll, assemblyName: "OptOutFromAssembly_02_Lib1");
 
-            CSharpCompilation c1 = CreateStandardCompilation(@"
+            CSharpCompilation c1 = CreateCompilation(@"
 public class CL1 
 {
     public object F2;
@@ -13234,13 +13210,13 @@ class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y2").WithLocation(17, 17)
             };
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: parseOptions,
                                                                 references: new[] { c0.EmitToImageReference(), c1.EmitToImageReference() });
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: parseOptions,
                                                                 references: new[] { c0.ToMetadataReference(), c1.ToMetadataReference() });
 
@@ -13272,7 +13248,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: parseOptions);
 
             c.VerifyDiagnostics(
@@ -13379,25 +13355,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -13514,7 +13490,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13557,7 +13533,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 );
 
-            CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13593,13 +13569,13 @@ partial class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -13705,7 +13681,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -13735,13 +13711,13 @@ partial class C
                 //             x22 = c.M1() ?? x22;
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(19, 19));
 
-            CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -13765,7 +13741,7 @@ partial class C
                 //             x22 = c.M1() ?? x22;
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(19, 19));
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -13887,25 +13863,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -14011,25 +13987,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -14141,25 +14117,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -14262,25 +14238,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -14381,25 +14357,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -14498,25 +14474,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -14623,7 +14599,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -14666,7 +14642,7 @@ partial class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 );
 
-            CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -14702,13 +14678,13 @@ partial class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -14815,7 +14791,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -14858,7 +14834,7 @@ partial class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 );
 
-            CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -14894,13 +14870,13 @@ partial class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -15007,7 +14983,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15050,7 +15026,7 @@ partial class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 );
 
-            CSharpCompilation c1 = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15086,13 +15062,13 @@ partial class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -15134,7 +15110,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15205,7 +15181,7 @@ class CL1<T>
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15281,7 +15257,7 @@ class CL6 : CL4<string?>
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15354,7 +15330,7 @@ class CL6 : CL4<string?>
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15393,7 +15369,7 @@ class CL0<T>
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15455,7 +15431,7 @@ class CL1<T>
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15494,7 +15470,7 @@ class CL0<T>
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15565,7 +15541,7 @@ class CL1<T>
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15604,7 +15580,7 @@ class CL0<T>
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15668,7 +15644,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15765,7 +15741,7 @@ class CL1<T>
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15858,7 +15834,7 @@ delegate void CL1<T>(T? x) where T : class;
 delegate void CL2<T>(T? x) where T : class; 
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15913,7 +15889,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15956,7 +15932,7 @@ delegate T CL0<T>();
 delegate string D2();
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -15986,7 +15962,7 @@ class C
     static I<string> F3(I<string?> i) => i;
     static I<object> F4(I<string?> i) => i;
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16011,7 +15987,7 @@ class C
     static I<string> F3(I<string?> i) => i;
     static I<string> F4(I<object?> i) => i;
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16048,7 +16024,7 @@ class C
         F<string?>(F4);
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16085,7 +16061,7 @@ class C
         F<object?>(F4);
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16144,7 +16120,7 @@ class CL0<T>
 }
 ";
 
-            CSharpCompilation c = CreateStandardCompilation(source,
+            CSharpCompilation c = CreateCompilation(source,
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -16185,7 +16161,7 @@ class C : I
 {
     void I.M<T>(T? x) { }
 }";
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             var method = compilation.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
             var implementations = method.ExplicitInterfaceImplementations;
             Assert.Equal(new[] { "void I.M<T>(T? x)" }, implementations.SelectAsArray(m => m.ToTestDisplayString()));
@@ -16206,7 +16182,7 @@ public struct S
     private string F { get; }
     private IEnumerable G { get; }
 }";
-            var compA = CreateStandardCompilation(sourceA, parseOptions: TestOptions.Regular7);
+            var compA = CreateCompilation(sourceA, parseOptions: TestOptions.Regular7);
             var sourceB =
 @"using System.Collections.Generic;
 class C
@@ -16217,7 +16193,7 @@ class C
         c.Add(new S(string.Empty, new object[0]));
     }
 }";
-            var compB = CreateStandardCompilation(
+            var compB = CreateCompilation(
                 sourceB,
                 options: TestOptions.ReleaseExe,
                 parseOptions: TestOptions.Regular8,
@@ -16245,7 +16221,7 @@ struct S
         this.B = b;
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16283,7 +16259,7 @@ class Program
     }
 }";
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16413,7 +16389,7 @@ class Program
     }
 }";
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16476,7 +16452,7 @@ class Program
     static string F9(Person p) => p.MiddleName ?? null;
 }";
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16534,7 +16510,7 @@ class Program
     }
 }";
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
@@ -16560,7 +16536,7 @@ class Program
                 //     static void F(string? s)
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "s").WithArguments("System.Nullable<T>", "T", "string").WithLocation(3, 27));
 
-            comp = CreateStandardCompilation(
+            comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
@@ -16584,7 +16560,7 @@ class Program
     void F() { }
     static void G(C o) { }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
@@ -16638,7 +16614,7 @@ class C<T>
 {
     internal void F() { }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
@@ -16661,7 +16637,7 @@ class C<T>
     {
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(/* ... */);
@@ -16682,7 +16658,7 @@ class C<T>
         F(G(t!)!);
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16716,7 +16692,7 @@ class C
         b = c ? x! : y!;
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16772,7 +16748,7 @@ class C
         b = y!;
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16803,7 +16779,7 @@ class C
         b = y!;
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16870,7 +16846,7 @@ class C
         a2 = b2!;
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16900,7 +16876,7 @@ class C
         b = ((I<object>)y)!;
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -16929,7 +16905,7 @@ class C
         F(ref s!, ref t!);
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8,
                 options: TestOptions.ReleaseExe);
@@ -16961,7 +16937,7 @@ class C
         F(out s!, out t!);
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8,
                 options: TestOptions.ReleaseExe);
@@ -16987,7 +16963,7 @@ class C
         (t!) = s;
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8,
                 options: TestOptions.ReleaseExe);
@@ -17016,7 +16992,7 @@ class C
     {
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -17046,7 +17022,7 @@ class C
         return true;
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -17076,7 +17052,7 @@ class C
 }";
 
             // Feature enabled.
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -17091,7 +17067,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(S)!").WithLocation(7, 11));
 
             // Feature disabled.
-            comp = CreateStandardCompilation(
+            comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
@@ -17123,7 +17099,7 @@ class C
 {
     static S<object> F(S<object?> s) => s!;
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
@@ -17152,7 +17128,7 @@ class C
         default(T3)!.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -17232,7 +17208,7 @@ class B5 : A<int>
         u5 = default!;
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -17278,7 +17254,7 @@ class B5 : A<int>
     {
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
@@ -17300,7 +17276,7 @@ class B5 : A<int>
     }
     object P { set { } }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -17324,7 +17300,7 @@ class B5 : A<int>
         var a = new object[] { new object(), F! };
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,46): error CS0428: Cannot convert method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         var a = new object[] { new object(), F };
@@ -17366,7 +17342,7 @@ End Class";
         return a.Q!;
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 new[] { ref0 },
                 parseOptions: TestOptions.Regular8);
@@ -17401,7 +17377,7 @@ End Class";
     {
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -17429,7 +17405,7 @@ End Class";
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (3,17): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     object P => null;
@@ -17452,7 +17428,7 @@ End Class";
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -17481,7 +17457,7 @@ class C
         F(new S());
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (15,9): warning CS8602: Possible dereference of a null reference.
                 //         i.F();
@@ -17508,7 +17484,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,16): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.F1(object o)'.
                 //             F1(o);
@@ -17530,7 +17506,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0428: Cannot convert method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         if (o is F)
@@ -17552,7 +17528,7 @@ class C
         F(s is var o);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -17573,7 +17549,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -17607,7 +17583,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (18,19): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.F(object o)'.
                 //                 F(x); // null
@@ -17656,7 +17632,7 @@ class C
     static object F(object? o) => o;
 }";
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking"));
             comp.VerifyDiagnostics(
@@ -17667,7 +17643,7 @@ class C
                 //     static object F(object? o) => o;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
 
-            comp = CreateStandardCompilation(
+            comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking", "0"));
             comp.VerifyDiagnostics(
@@ -17678,7 +17654,7 @@ class C
                 //     static object F(object? o) => o;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
 
-            comp = CreateStandardCompilation(
+            comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8.WithFeature("staticNullChecking", "1"));
             comp.VerifyDiagnostics(
@@ -17708,7 +17684,7 @@ class C
     }
 }";
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 new[] { source, NullableOptOutAttributesDefinition },
                 parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowMemberOptOut));
             comp.VerifyDiagnostics(
@@ -17716,7 +17692,7 @@ class C
                 //         G(o);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "void C.G(object o)").WithLocation(9, 11));
 
-            comp = CreateStandardCompilation(
+            comp = CreateCompilation(
                 new[] { source, NullableOptOutAttributesDefinition },
                 parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Should warn that [NullableOptOut] is ignored.
@@ -17746,20 +17722,20 @@ class B
     static object G(object? x) => A.F(x);
 }";
 
-            var comp0 = CreateStandardCompilation(
+            var comp0 = CreateCompilation(
                 new[] { source0, NullableOptOutAttributesDefinition },
                 parseOptions: TestOptions.Regular8,
                 assemblyName: "A.dll");
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
-            var comp1 = CreateStandardCompilation(
+            var comp1 = CreateCompilation(
                 new[] { source1, NullableOptOutAttributesDefinition },
                 parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut),
                 references: new[] { ref0 });
             comp1.VerifyDiagnostics();
 
-            comp1 = CreateStandardCompilation(
+            comp1 = CreateCompilation(
                 new[] { source1, NullableOptOutAttributesDefinition },
                 parseOptions: TestOptions.Regular8,
                 references: new[] { ref0 });
@@ -17791,7 +17767,7 @@ class B
     }
 }";
 
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -17805,7 +17781,7 @@ class B
                 //         F(y);
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("s", "string? C.F(string s)").WithLocation(11, 11));
 
-            comp = CreateStandardCompilation(
+            comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.InferLocalNullability));
             comp.VerifyDiagnostics(
@@ -17841,7 +17817,7 @@ class C
         var a = new[] { F(a) };
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,27): error CS0841: Cannot use local variable 'a' before it is declared
                 //         var a = new[] { F(a) };
@@ -17862,7 +17838,7 @@ static T F<T>(IEnumerable<T> e)
     throw new NotImplementedException();
 }
 var a = new[] { F(a) };";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp8));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp8));
             comp.VerifyDiagnostics(
                 // (7,5): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // var a = new[] { F(a) };
@@ -17887,7 +17863,7 @@ class C
         var b = a;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,27): error CS0841: Cannot use local variable 'b' before it is declared
                 //         var a = new[] { F(b) };
@@ -17915,7 +17891,7 @@ class C
 }";
             // ErrorCode.WRN_NullReferenceReceiver is reported for F(v).ToString() because F(v)
             // has type T from initial binding (see https://github.com/dotnet/roslyn/issues/25778).
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,21): error CS8197: Cannot infer the type of implicitly-typed out variable 'v'.
                 //         d.F(out var v);
@@ -17938,7 +17914,7 @@ static T F<T>(IEnumerable<T> e)
 dynamic d = null!;
 d.F(out var v);
 F(v).ToString();";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp8));
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp8));
             comp.VerifyDiagnostics(
                 // (8,13): error CS8197: Cannot infer the type of implicitly-typed out variable 'v'.
                 // d.F(out var v);
@@ -17967,7 +17943,7 @@ class Program
         C.F(null);
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -17990,7 +17966,7 @@ class Program
     {
     }
 }";
-            var comp0 = CreateStandardCompilation(
+            var comp0 = CreateCompilation(
                 source0,
                 parseOptions: TestOptions.Regular8);
             comp0.VerifyDiagnostics();
@@ -18005,7 +17981,7 @@ class Program
         C.F(null);
     }
 }";
-            var comp1 = CreateStandardCompilation(
+            var comp1 = CreateCompilation(
                 source1,
                 parseOptions: TestOptions.Regular8,
                 references: new[] { ref0 });
@@ -18023,7 +17999,7 @@ class Program
 {
     static string F(string s) => s + throw new System.Exception();
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -18041,7 +18017,7 @@ class Program
 {
     static IEnumerator<T> M<T>() => default(T);
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -18062,7 +18038,7 @@ class Program
         var (x, y) = c;
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -18093,7 +18069,7 @@ class C<T>
         return f?.Invoke();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,17): error CS0023: Operator '?' cannot be applied to operand of type 'Func<T>'
                 //         return f?.Invoke();
@@ -18114,7 +18090,7 @@ struct S : I
 {
     int I.P => 0;
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
@@ -18129,7 +18105,7 @@ class A : System.Attribute
 {
     string P => null;
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                  source,
                  parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -18161,7 +18137,7 @@ class A : System.Attribute
         c.ToString(); // 3
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,9): error CS0269: Use of unassigned out parameter 'c'
                 //         c.ToString(); // 1
@@ -18185,7 +18161,7 @@ class A : System.Attribute
         c.F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,20): error CS0269: Use of unassigned out parameter 'c'
                 //         object o = c.F;
@@ -18215,7 +18191,7 @@ class A : System.Attribute
         s.F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,20): error CS0170: Use of possibly unassigned field 'F'
                 //         object o = s.F;
@@ -18243,7 +18219,7 @@ struct S
 {
     internal C? F;
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0170: Use of possibly unassigned field 'F'
                 //         c = s.F;
@@ -18280,7 +18256,7 @@ struct S
     internal object? F;
     internal object? G;
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (14,17): error CS0170: Use of possibly unassigned field 'F'
                 //             o = s.F;
@@ -18308,7 +18284,7 @@ struct S
 {
     internal C? P { get => null; }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         c = s.P;
@@ -18331,7 +18307,7 @@ struct S
         P.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = P;
@@ -18354,7 +18330,7 @@ struct S
         P.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = P;
@@ -18377,7 +18353,7 @@ struct S
         P.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = P;
@@ -18400,7 +18376,7 @@ struct S
         P.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,13): error CS8079: Use of possibly unassigned auto-implemented property 'P'
                 //         o = P;
@@ -18424,7 +18400,7 @@ struct S
         object z = y.F;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object z = y.F;
@@ -18445,7 +18421,7 @@ struct S
         object z = y.F;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object z = y.F;
@@ -18465,7 +18441,7 @@ struct S
         S.F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,9): error CS0120: An object reference is required for the non-static field, method, or property 'S.F'
                 //         S.F.ToString();
@@ -18498,7 +18474,7 @@ namespace System
         }
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (16,22): warning CS8602: Possible dereference of a null reference.
                 //             _value = _f.GetHashCode();
@@ -18516,7 +18492,7 @@ namespace System
         *p = 0;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
         }
 
@@ -18555,7 +18531,7 @@ class C
         s.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0037: Cannot convert null to 'S' because it is a non-nullable value type
                 //         S s = (S)null;
@@ -18585,7 +18561,7 @@ class C
         w?.F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (17,11): warning CS8602: Possible dereference of a null reference.
                 //         w?.F.ToString();
@@ -18604,7 +18580,7 @@ class Program
         var items = from i in Enumerable.Range(0, 3) group (long)i by i;
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -18627,7 +18603,7 @@ class C
         (new[]{ c })[0].F<object>(string.Empty);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -18649,7 +18625,7 @@ class C
         C c = b; // (ImplicitUserDefined)(ImplicitReference)
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,15): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
                 //         C c = b; // (ImplicitUserDefined)(ImplicitReference)b
@@ -18674,7 +18650,7 @@ class C
         A a = c; // (ImplicitReference)(ImplicitUserDefined)
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         A a = c; // (ImplicitReference)(ImplicitUserDefined)
@@ -18693,7 +18669,7 @@ class C
         S<object> s = true; // (ImplicitUserDefined)(Boxing)
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -18709,7 +18685,7 @@ class C
         bool b = new S<object>(); // (Unboxing)(ExplicitUserDefined)
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0266: Cannot implicitly convert type 'S<object>' to 'bool'. An explicit conversion exists (are you missing a cast?)
                 //         bool b = new S<object>(); // (Unboxing)(ExplicitUserDefined)
@@ -18745,7 +18721,7 @@ class C
         c = (C?)b2; // (ExplicitUserDefined)(ImplicitReference)
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (19,16): warning CS8604: Possible null reference argument for parameter 'a' in 'A.explicit operator C(A a)'.
                 //         c = (C)b2; // (ExplicitUserDefined)(ImplicitReference)
@@ -18800,7 +18776,7 @@ class P
         d = (D?)b2; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (26,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         c = (C)a2; // (ExplicitUserDefined)
@@ -18835,7 +18811,7 @@ class C
         s = (S?)b; // (ImplicitNullable)(ExplicitUserDefined)(ImplicitReference)
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,16): warning CS8604: Possible null reference argument for parameter 'a' in 'A.explicit operator S(A a)'.
                 //         s = (S)b; // (ExplicitUserDefined)(ImplicitReference)
@@ -18864,7 +18840,7 @@ class C
         (C, C?) c = b; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,21): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
                 //         (C, C?) c = b; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
@@ -18892,7 +18868,7 @@ class C
         (A, A?) t = (x, y); // (ImplicitTuple)(ImplicitReference)(ImplicitUserDefined)
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,17): warning CS0219: The variable 't' is assigned but its value is never used
                 //         (A, A?) t = (x, y); // (ImplicitTuple)(ImplicitReference)(ImplicitUserDefined)
@@ -18915,7 +18891,7 @@ struct S
         return (ushort)(s?.F ?? 0);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -18932,7 +18908,7 @@ class P
     static int F(S? x, int y) => x ?? y;
     static int G(S x, int? y) => y ?? x;
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -18943,9 +18919,9 @@ class P
 @"class C<T, U> where U : T
 {
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
-            comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -18956,9 +18932,9 @@ class P
 @"class C<T> where T : C<T>
 {
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics();
-            comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -18970,7 +18946,7 @@ class P
 {
     static object F() => new sbyte[] { -1 };
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -18995,7 +18971,7 @@ class P
         y.ToString(); // 6
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x = null;
@@ -19034,7 +19010,7 @@ class C
         c.P.ToString(); // 6
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         c.F = null;
@@ -19059,7 +19035,7 @@ class C
     public object F;
     public object P { get; set; }
 }";
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
 
             var source1 =
@@ -19079,7 +19055,7 @@ class C
         c.P.ToString(); // 6
     }
 }";
-            var comp1 = CreateStandardCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         c.F.ToString(); // 3
@@ -19155,7 +19131,7 @@ class P
         c.P = y;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (17,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object x1 = null;
@@ -19254,7 +19230,7 @@ class C
         ((A<string>)y4).F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (2,7): warning CS8618: Non-nullable field 'F' is uninitialized.
                 // class A<T>
@@ -19385,7 +19361,7 @@ class C
         b = ((B?)y4)/*T:B!*/;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (23,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         b = ((B)x1)/*T:B?*/;
@@ -19423,7 +19399,7 @@ class C
     static object F(object? x) => (C)x;
     static object? G(object? y) => (C?)y;
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (3,35): error CS0716: Cannot convert to static type 'C'
                 //     static object F(object? x) => (C)x;
@@ -19474,7 +19450,7 @@ class C3<T3> where T3 : new()
         T3 t = (T3)NullableObject(); // warn: T3 may be non-null
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (4,23): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //     static T1 F1() => default; // warn: return type T1 may be non-null
@@ -19542,7 +19518,7 @@ class C3<T3> where T3 : new()
         t4.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.F(object o)'.
                 //         F(t1);
@@ -19598,7 +19574,7 @@ class C3<T3> where T3 : new()
         y3 = (object)new T3();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y1 = (object)x1; // warn: T1 may be null
@@ -19634,7 +19610,7 @@ class C3<T3> where T3 : new()
     static object? F15<T, U>(U u) where U : struct, T => (object?)u;
     static object? F16<T, U>(U u) where U : T, new() => (object?)u;
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -19661,7 +19637,7 @@ class C3<T3> where T3 : new()
     static object F15<T, U>(U u) where U : struct, T => (object)u;
     static object F16<T, U>(U u) where U : T, new() => (object)u;
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (3,34): warning CS8603: Possible null reference return.
                 //     static object F01<T>(T t) => t;
@@ -19728,7 +19704,7 @@ class C3<T3> where T3 : new()
     static U F19<T, U>(T t) where U : struct, T => (U)t;
     static U F20<T, U>(T t) where U : T, new() => (U)t;
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (20,51): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //     static U F18<T, U>(T t) where U : class, T => (U)t;
@@ -19768,7 +19744,7 @@ class C3<T3> where T3 : new()
         x3!.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         default(T).ToString();
@@ -19805,7 +19781,7 @@ class C3<T3> where T3 : new()
         if (t2 != null) F((object)t2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,11): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         F((object)t1);
@@ -19826,7 +19802,7 @@ class C
     static void F1<T>() where T : class, I<T?> { }
     static void F2<T>() where T : I<dynamic?> { }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,35): error CS1968: Constraint cannot be a dynamic type 'I<dynamic>'
                 //     static void F2<T>() where T : I<dynamic?> { }

@@ -2549,7 +2549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var typeParameterSymbol = (TypeParameterSymbol)typeParameters[paramIndex].TypeSymbol;
+                    TypeParameterSymbol typeParameterSymbol = (TypeParameterSymbol)typeParameters[paramIndex].TypeSymbol;
 
                     switch (typeParameterSymbol.Variance)
                     {

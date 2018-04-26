@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -19,15 +20,61 @@ namespace Microsoft.CodeAnalysis.SQLite
 
         private readonly IPersistentStorageFaultInjector _faultInjectorOpt;
 
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr LoadLibrary(string dllToLoad);
+
+        private static bool TryInitializeLibraries() => s_initialized.Value;
+
+        private static readonly Lazy<bool> s_initialized = new Lazy<bool>(() => TryInitializeLibrariesLazy());
+
+        private static bool TryInitializeLibrariesLazy()
+        {
+            // Attempt to load the correct version of e_sqlite.dll.  That way when we call
+            // into SQLitePCL.Batteries_V2.Init it will be able to find it.
+            //
+            // Only do this on Windows when we can safely do the LoadLibrary call to this
+            // direct dll.  On other platforms, it is the responsibility of the host to ensure
+            // that the necessary sqlite library has already been loaded such that SQLitePCL.Batteries_V2
+            // will be able to call into it.
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                var myFolder = Path.GetDirectoryName(
+                    typeof(SQLitePersistentStorage).Assembly.Location);
+
+                var is64 = IntPtr.Size == 8;
+                var subfolder = is64 ? "x64" : "x86";
+
+                LoadLibrary(Path.Combine(myFolder, subfolder, "e_sqlite3.dll"));
+            }
+
+            try
+            {
+                // Necessary to initialize SQLitePCL.
+                SQLitePCL.Batteries_V2.Init();
+            }
+            catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException)
+            {
+                StorageDatabaseLogger.LogException(e);
+                return false;
+            }
+
+            return true;
+        }
+
         public SQLitePersistentStorageService(
             IOptionService optionService,
-            SolutionSizeTracker solutionSizeTracker)
-            : base(optionService, solutionSizeTracker)
+            IPersistentStorageLocationService locationService,
+            ISolutionSizeTracker solutionSizeTracker)
+            : base(optionService, locationService, solutionSizeTracker)
         {
         }
 
-        public SQLitePersistentStorageService(IOptionService optionService, IPersistentStorageFaultInjector faultInjector)
-            : base(optionService, testing: true)
+        public SQLitePersistentStorageService(
+            IOptionService optionService,
+            IPersistentStorageLocationService locationService,
+            ISolutionSizeTracker solutionSizeTracker,
+            IPersistentStorageFaultInjector faultInjector)
+            : this(optionService, locationService, solutionSizeTracker)
         {
             _faultInjectorOpt = faultInjector;
         }
@@ -39,20 +86,50 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         protected override bool TryOpenDatabase(
-            Solution solution, string workingFolderPath, string databaseFilePath, out AbstractPersistentStorage storage)
+            Solution solution, string workingFolderPath, string databaseFilePath, out IPersistentStorage storage)
         {
-            storage = null;
+            if (!TryInitializeLibraries())
+            {
+                // SQLite is not supported on the current platform
+                storage = null;
+                return false;
+            }
 
             // try to get db ownership lock. if someone else already has the lock. it will throw
             var dbOwnershipLock = TryGetDatabaseOwnership(databaseFilePath);
             if (dbOwnershipLock == null)
             {
+                storage = null;
                 return false;
             }
 
-            storage = new SQLitePersistentStorage(
-                OptionService, workingFolderPath, solution.FilePath, databaseFilePath, this.Release, dbOwnershipLock, _faultInjectorOpt);
+            SQLitePersistentStorage sqlStorage = null;
 
+            try
+            {
+                sqlStorage = new SQLitePersistentStorage(
+                     workingFolderPath, solution.FilePath, databaseFilePath, dbOwnershipLock, _faultInjectorOpt);
+
+                sqlStorage.Initialize(solution);
+
+            }
+            catch (Exception)
+            {
+                if (sqlStorage != null)
+                {
+                    // Dispose of the storage, releasing the ownership lock.
+                    sqlStorage.Dispose();
+                }
+                else
+                {
+                    // The storage was not created so nothing owns the lock.
+                    // Dispose the lock to allow reuse.
+                    dbOwnershipLock.Dispose();
+                }
+                throw;
+            }
+
+            storage = sqlStorage;
             return true;
         }
 
@@ -80,10 +157,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             Directory.CreateDirectory(directory);
         }
 
-        protected override bool ShouldDeleteDatabase(Exception exception)
-        {
-            // Error occurred when trying to open this DB.  Try to remove it so we can create a good dB.
-            return true;
-        }
+        // Error occurred when trying to open this DB.  Try to remove it so we can create a good DB.
+        protected override bool ShouldDeleteDatabase(Exception exception) => true;
     }
 }

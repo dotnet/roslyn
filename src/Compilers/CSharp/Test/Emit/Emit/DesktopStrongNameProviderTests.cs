@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#if NET461
 
 using System.Collections.Immutable;
 using System.IO;
@@ -48,7 +49,7 @@ class C
                 .DebugExe
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
-            var comp = CreateStandardCompilation(src, options: options);
+            var comp = CreateCompilation(src, options: options);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -65,8 +66,9 @@ class C
                 .DebugExe
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
-            var comp = CreateStandardCompilation(src, options: options);
+            var comp = CreateCompilation(src, options: options);
             comp.VerifyEmitDiagnostics();
         }
     }
 }
+#endif

@@ -2098,7 +2098,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -2802,7 +2802,7 @@ End Module
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 compilationDef,
                 New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)).
             VerifyDiagnostics(Diagnostic(ERRID.WRN_ImplicitConversionCopyBack, "By").WithArguments("a", "Integer", "Byte"))
@@ -2841,7 +2841,7 @@ End Module
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef).
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef).
             VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_TypecharNoMatch2, "Goo$()").WithArguments("$", "Void"),
                 Diagnostic(ERRID.ERR_TypecharNoMatch2, "Goo$").WithArguments("$", "Void"),
@@ -2875,7 +2875,7 @@ End Module
 
         <Fact>
         Public Sub ConstructorCallDiagnostic()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ConstructorCallDiagnostic">
     <file name="a.vb">
 Module Module1
@@ -2908,7 +2908,7 @@ BC30516: Overload resolution failed because no accessible 'New' accepts this num
         <WorkItem(539691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539691")>
         <Fact>
         Public Sub DiagnosticsOnInvalidConstructorCall()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="DiagnosticsOnInvalidConstructorCall">
     <file name="a.vb">
 class C
@@ -2983,7 +2983,7 @@ End Module
             Dim assemblyPath = TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray
 
             CompileAndVerify(source,
-                        additionalRefs:={assemblyPath},
+                        references:={assemblyPath},
                          expectedOutput:=<![CDATA[
 Called SubWithByRefParamArrayOfReferenceTypes_Identify_1.
 True
@@ -3086,7 +3086,7 @@ End Class
     </file>
 </compilation>
             CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(123)
 123
@@ -3154,7 +3154,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3225,7 +3225,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3295,7 +3295,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3369,7 +3369,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3442,7 +3442,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3558,7 +3558,7 @@ End Class
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(123)
 PassByRef: 124, 123.
@@ -3738,7 +3738,7 @@ End Class
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 101
 101
@@ -4074,7 +4074,7 @@ End Module
     </file>
 </compilation>
             CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(123)
 123
@@ -4087,7 +4087,7 @@ set_P1(123)
 
         <Fact>
         Public Sub ByRefInInitializer1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ByRefInInitializer1">
     <file name="a.vb">
 Class T1
@@ -4208,7 +4208,7 @@ End Module
     </file>
 </compilation>
             CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 100
 0
@@ -4227,7 +4227,7 @@ End Module
 
         <Fact>
         Public Sub ByRefInInitializer3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ByRefInInitializer3">
     <file name="a.vb">
 Imports System
@@ -4304,7 +4304,7 @@ BC36602: 'ReadOnly' variable cannot be the target of an assignment in a lambda e
 
         <Fact>
         Public Sub NamedArgumentsAndOverriding()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
 Class Test1
@@ -4387,7 +4387,7 @@ BC30272: 't1' is not a parameter of 'Public Overrides Function fun1(Of T)(ByRef 
 
         <Fact()>
         Public Sub SharedThroughInstance1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
 Module Module1
@@ -4424,7 +4424,7 @@ Success
 
         <Fact()>
         Public Sub InaccessibleOverloads1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
 Module Module1
@@ -4475,7 +4475,7 @@ BC30517: Overload resolution failed because no 'Test' is accessible.
 
         <Fact()>
         Public Sub InaccessibleOverloads2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
 Module Module1
@@ -4526,7 +4526,7 @@ BC30517: Overload resolution failed because no 'Test' is accessible.
 
         <Fact()>
         Public Sub InaccessibleOverloads3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
 Module Module1
@@ -4754,7 +4754,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -4785,7 +4785,7 @@ End Module
 }
 ]]>)
 
-            compilation = CreateCompilationWithMscorlibAndReferences(source, {SystemRef}, TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True))
+            compilation = CreateCompilationWithMscorlib40AndReferences(source, {SystemRef}, TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True))
 
             compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -4841,7 +4841,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -4880,7 +4880,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -4920,7 +4920,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -4958,7 +4958,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -4992,7 +4992,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -5028,7 +5028,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5089,7 +5089,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5120,7 +5120,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5156,7 +5156,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5203,7 +5203,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5247,7 +5247,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5364,7 +5364,7 @@ End Interface
         <Fact(), WorkItem(758861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/758861")>
         Public Sub Bug758861()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module Program
@@ -5418,7 +5418,7 @@ End Module
         <Fact(), WorkItem(762717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762717")>
         Public Sub Bug762717()
 
-            Dim library = CreateCompilationWithMscorlib(
+            Dim library = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class Test1
@@ -5437,7 +5437,7 @@ End Class
 
             CompileAndVerify(library)
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class Module1
@@ -5605,7 +5605,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -5865,7 +5865,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -5924,7 +5924,7 @@ Public Delegate Function MessageFormatter(ByVal format As String, <[ParamArray]>
     ]]></file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithMscorlib(source1, options:=TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib40(source1, options:=TestOptions.DebugDll)
 
             Dim source2 =
 <compilation>
@@ -5953,11 +5953,11 @@ Test
 test
 ]]>
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {compilation1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2, {compilation1.EmitToImageReference()}, options:=TestOptions.DebugExe)
 
             CompileAndVerify(compilation2, expectedOutput:=expectedOutput)
 
-            Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {New VisualBasicCompilationReference(compilation1)}, options:=TestOptions.DebugExe)
+            Dim compilation3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2, {New VisualBasicCompilationReference(compilation1)}, options:=TestOptions.DebugExe)
 
             CompileAndVerify(compilation3, expectedOutput:=expectedOutput)
 
@@ -5984,7 +5984,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation4 = CreateCompilationWithMscorlibAndVBRuntime(source4, options:=TestOptions.DebugExe)
+            Dim compilation4 = CreateCompilationWithMscorlib40AndVBRuntime(source4, options:=TestOptions.DebugExe)
 
             CompileAndVerify(compilation4, expectedOutput:=expectedOutput)
 

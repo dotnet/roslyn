@@ -31,7 +31,7 @@ class Program
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,11): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.G(string s)'.
                 //         G(a.F);
@@ -63,7 +63,7 @@ class Program
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,11): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.G(string s)'.
                 //         G(a.P);
@@ -95,7 +95,7 @@ class Program
     {
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,11): warning CS8604: Possible null reference argument for parameter 's' in 'void Program.G(string s)'.
                 //         G(a.P);
@@ -137,7 +137,7 @@ class B : A
         if (base.P != null) F(base.P);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (17,11): warning CS8604: Possible null reference argument for parameter 's' in 'void A.F(string s)'.
                 //         F(this.P);
@@ -165,7 +165,7 @@ class C
         c.F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         c.F.ToString();
@@ -210,7 +210,7 @@ class Program
         o = c.B.A; // 6
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (24,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = c.B.A; // 2
@@ -280,7 +280,7 @@ class Program
         o = c.B.F; // 5
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (17,13): warning CS8602: Possible dereference of a null reference.
                 //         o = c.A.A; // 1
@@ -353,7 +353,7 @@ class Program
         o = c.B.P; // 5
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (17,13): warning CS8602: Possible dereference of a null reference.
                 //         o = c.A.A; // 1
@@ -419,7 +419,7 @@ class Program
         o = b.A.F; // 3
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (23,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = b.A.F; // 2
@@ -454,7 +454,7 @@ class C
         o = F.P; // 2
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = F.P; // 1
@@ -481,7 +481,7 @@ class C
         o = F.P; // 2
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = F.P; // 1
@@ -496,7 +496,7 @@ class C
 {
     public object? P { get; set; }
 }";
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular8);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
             var ref0 = comp0.EmitToImageReference();
 
             var source =
@@ -512,7 +512,7 @@ class C
         o = F.P; // 2
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { ref0 });
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = F.P; // 1
@@ -535,7 +535,7 @@ class C
         o = P; // 2
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = P; // 1
@@ -563,7 +563,7 @@ class C
         o = F.P; // 2
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = F.P; // 1
@@ -601,7 +601,7 @@ class Program
         o = b.Q.P; // 5
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Should report warnings.
             comp.VerifyDiagnostics(/*...*/);
         }
@@ -686,7 +686,7 @@ class Program
         b.G.F2.ToString(); // 3
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         b.G.F2.ToString(); // 1
@@ -733,7 +733,7 @@ class Program
         b.G.F2.ToString(); // 3
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         b.G.F2.ToString(); // 1
@@ -780,7 +780,7 @@ class Program
         b.Q.P2.ToString(); // 3
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         b.Q.P2.ToString(); // 1
@@ -826,7 +826,7 @@ class Program
         a.F.ToString(); // 4
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         a.F.ToString(); // 2
@@ -873,7 +873,7 @@ class Program
         a.F.ToString(); // 4
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (17,9): warning CS8602: Possible dereference of a null reference.
                 //         a.F.ToString(); // 1
@@ -937,7 +937,7 @@ class Program
         F.F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,9): warning CS8602: Possible dereference of a null reference.
                 //         F.F.ToString();
@@ -958,7 +958,7 @@ class Program
         F.F.F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F.F.F.ToString();
@@ -980,7 +980,7 @@ class Program
         y.F.F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         y.F.F.ToString();
@@ -1006,7 +1006,7 @@ class C
         s.G.S = s;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -1039,7 +1039,7 @@ class C
         s.P.F.ToString(); // 2
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         s.P.F.ToString(); // 1

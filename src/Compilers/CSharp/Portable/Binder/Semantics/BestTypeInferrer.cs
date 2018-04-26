@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class BestTypeInferrer
+    internal static class BestTypeInferrer
     {
         public static TypeSymbolWithAnnotations InferBestType(ImmutableArray<TypeSymbolWithAnnotations> types, Conversions conversions, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that every type *before* best was also worse.
             for (int i = 0; i < bestIndex; i++)
             {
-                var type = types[i];
-                var better = Better(best, type, conversions, ref useSiteDiagnostics);
+                TypeSymbolWithAnnotations type = types[i];
+                TypeSymbolWithAnnotations better = Better(best, type, conversions, ref useSiteDiagnostics);
 
                 if (!best.Equals(better, TypeCompareKind.ConsiderEverything))
                 {

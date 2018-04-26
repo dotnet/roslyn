@@ -73,6 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            public override bool HasUnmanagedTypeConstraint
+            {
+                get { return false; }
+            }
+
             public override bool IsImplicitlyDeclared
             {
                 get { return true; }

@@ -179,7 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             return initializerOpt == null ?
                 IsInBody(position, constructorDecl) :
-                IsBetweenTokens(position, initializerOpt.ColonToken, constructorDecl.Body?.CloseBraceToken ?? constructorDecl.SemicolonToken);
+                IsBetweenTokens(position, initializerOpt.ColonToken, 
+                                constructorDecl.SemicolonToken.Kind() == SyntaxKind.None ? constructorDecl.Body.CloseBraceToken : constructorDecl.SemicolonToken);
         }
 
         internal static bool IsInMethodTypeParameterScope(int position, MethodDeclarationSyntax methodDecl)

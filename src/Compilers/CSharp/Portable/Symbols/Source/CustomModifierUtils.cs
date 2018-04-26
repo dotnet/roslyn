@@ -150,5 +150,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return builder == null ? destinationParameters : builder.ToImmutableAndFree();
         }
+
+        internal static bool HasInAttributeModifier(this ImmutableArray<CustomModifier> modifiers)
+        {
+            return modifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeInAttribute());
+        }
     }
 }

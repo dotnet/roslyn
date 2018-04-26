@@ -5,9 +5,9 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
+    <[UseExportProvider]>
     Public Class DashboardTests
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
@@ -588,9 +588,6 @@ class D : B
                     edit.Replace(token.SpanStart, token.Span.Length, newName)
                     edit.Apply()
                 End Using
-
-                Dim listeners = DirectCast(workspace.ExportProvider.GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(), IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata)))
-                Dim renameListener = New AggregateAsynchronousOperationListener(listeners, FeatureAttribute.Rename)
 
                 Using dashboard = New Dashboard(
                     New DashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),

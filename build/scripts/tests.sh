@@ -20,11 +20,10 @@ xunit_console_version="$(get_package_version dotnet-xunit)"
 
 if [[ "${runtime}" == "dotnet" ]]; then
     target_framework=netcoreapp2.0
-    xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
+    xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
 elif [[ "${runtime}" == "mono" ]]; then
-    source ${root_path}/build/scripts/obtain_mono.sh
     target_framework=net461
-    xunit_console="${nuget_dir}"/dotnet-xunit/"${xunit_console_version}"/tools/net452/xunit.console.exe
+    xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/net452/xunit.console.exe
 else
     echo "Unknown runtime: ${runtime}"
     exit 1
@@ -64,12 +63,17 @@ do
         continue
     fi
 
-    echo Running "${file_name[@]}"
+    echo Running "${runtime} ${file_name[@]}"
     if [[ "${runtime}" == "dotnet" ]]; then
         runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
+        if [[ "${file_name[@]}" == *'Roslyn.Compilers.CSharp.Emit.UnitTests.dll' ]]
+        then
+            echo "Skipping ${file_name[@]}"
+            continue
+        fi
     elif [[ "${runtime}" == "mono" ]]; then
         runner=mono
-        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll' || "${file_name[@]}" == *'Roslyn.Compilers.CompilerServer.UnitTests.dll' ]]
+        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll' || "${file_name[@]}" == *'Roslyn.Compilers.CompilerServer.UnitTests.dll' || "${file_name[@]}" == *'Roslyn.Compilers.CSharp.Emit.UnitTests.dll' ]]
         then
             echo "Skipping ${file_name[@]}"
             continue

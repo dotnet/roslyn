@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -1409,7 +1409,7 @@ class C<T>
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(624274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624274")]
@@ -1431,7 +1431,7 @@ class C<T>
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (10,19): error CS0034: Operator '&' is ambiguous on operands of type 'C<dynamic>.E' and 'C<object>.E'
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "C<dynamic>.E.A & C<object>.E.A").WithArguments("&", "C<dynamic>.E", "C<object>.E"),
                 // (11,18): error CS0034: Operator '|' is ambiguous on operands of type 'C<dynamic>.E' and 'C<object>.E'
@@ -1472,7 +1472,7 @@ class C<T>
 }
 ";
             // Dev11 reports error CS0034: Operator '...' is ambiguous on operands ... and ... for all combinations
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1584,7 +1584,7 @@ class C<T>
     }      
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (17,20): error CS0034: Operator '+' is ambiguous on operands of type 'C<dynamic>.A<object, object>' and 'C<object>.A<object, object>'
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "d1 + d2").WithArguments("+", "C<dynamic>.A<object, object>", "C<object>.A<object, object>"),
                 // (18,20): error CS0034: Operator '+' is ambiguous on operands of type 'C<dynamic>.A<object, object>' and 'C<dynamic>.A<object, dynamic>'
@@ -1624,7 +1624,7 @@ class Program
 ";
             // Dev11 considers Action<object> == Action<dynamic> ambiguous and thus chooses Goo(Func<Action<object>, IComparable>) overload.
 
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Goo(System.Func<System.Action<object>, System.IComparable>)' and 'Program.Goo(System.Func<System.Action<dynamic>, System.IConvertible>)'
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Program.Goo(System.Func<System.Action<object>, System.IComparable>)", "Program.Goo(System.Func<System.Action<dynamic>, System.IConvertible>)"));
         }
@@ -1681,7 +1681,7 @@ unsafe class C<T>
 }
 ";
             // Dev11 reports "error CS0034: Operator '-' is ambiguous on operands ... and ..." for all ptr - ptr
-            CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2840,7 +2840,7 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (7,12): error CS0023: Operator '!' cannot be applied to operand of type 'int'
                 //         if(!1) {}
@@ -2909,7 +2909,7 @@ class C
         bool b3 = (object)s1 == ex1; // legal!
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
 // (11,21): error CS0034: Operator '+' is ambiguous on operands of type 'long' and 'ulong'
 //         object o1 = i64 + ui64; // CS0034
 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i64 + ui64").WithArguments("+", "long", "ulong"),
@@ -2967,7 +2967,7 @@ class C
 
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (17,9): error CS0200: Property or indexer 'C.ReadOnly' cannot be assigned to -- it is read only
                 //         c.ReadOnly += 1;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "c.ReadOnly").WithArguments("C.ReadOnly").WithLocation(17, 9),
@@ -3071,7 +3071,7 @@ class C
             // from it the nodes that describe the operators. We then compare the description of
             // the operators given to the comment that follows the use of the operator.
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var diagnostics = new DiagnosticBag();
             var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
@@ -4610,7 +4610,7 @@ OPERATOR ndec   //-LiftedDecimalKIND" + Postfix;
         [Fact, WorkItem(527598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527598")]
         public void UserDefinedOperatorOnPointerType()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 unsafe struct A
 {
     public static implicit operator int*(A x) { return null; }
@@ -4683,7 +4683,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source).VerifyDiagnostics();
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(541147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541147")]
@@ -4701,7 +4701,7 @@ static class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "Main ?? Main").WithArguments("??", "method group", "method group"));
         }
 
@@ -4721,7 +4721,7 @@ static class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "a ?? (() => { })").WithArguments("??", "System.Action<int>", "lambda expression"));
         }
 
@@ -4777,7 +4777,7 @@ class A
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,22): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         var c = a ?? b;
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
@@ -4814,7 +4814,7 @@ struct A
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,22): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         var c = a ?? b;
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
@@ -4848,7 +4848,7 @@ struct A
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         var c2 = b2 ?? a2;
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
@@ -4929,7 +4929,7 @@ public class X
         Console.Write(obj == null);
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "True"); ;
 
             source = @"
@@ -4954,7 +4954,7 @@ public class X
         var unused = new X();
     }
 }";
-            comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
 
@@ -4964,7 +4964,7 @@ public class X
 {
     public X(object param = default(dynamic)) {}
 }";
-            comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (4,21): error CS1750: A value of type 'dynamic' cannot be used as a default parameter because there are no standard conversions to type 'object'
                 //     public X(object param = default(dynamic)) {}
@@ -5105,7 +5105,7 @@ class Program
         System.Console.WriteLine(c2 ? 7 : 8);
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -5132,7 +5132,7 @@ class Program
         }
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (14,13): error CS0029: Cannot implicitly convert type 'Program.C?' to 'bool'
                 //         if (c) 
@@ -5174,7 +5174,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (13,20): error CS0039: Cannot convert type 'void' to 'T' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         object o = Main() as T;
@@ -5208,7 +5208,7 @@ class Program
             // NOTE:    We follow the specification and generate WRN_IsAlwaysFalse
             // NOTE:    instead of an error.
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (13,18): warning CS0184: The given expression is never of the provided ('T') type
                 //         bool b = Main() is T;
@@ -5261,7 +5261,7 @@ class Outer<T>
     public enum E { }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (16,13): warning CS0184: The given expression is never of the provided ('Outer<long>.C') type
                 //         b = c2 is Outer<long>.C;    // Always false.
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "c2 is Outer<long>.C").WithArguments("Outer<long>.C").WithLocation(16, 13),
@@ -5309,7 +5309,7 @@ class Outer<T>
     public struct S { }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (11,13): warning CS0183: The given expression is always of the provided ('Outer<T[]>.S') type
                 //         b = s2 is Outer<T[]>.S;     // Always true.
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s2 is Outer<T[]>.S").WithArguments("Outer<T[]>.S").WithLocation(11, 13));
@@ -5360,7 +5360,7 @@ class Outer<T>
     public enum E { }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (11,13): warning CS0183: The given expression is always of the provided ('System.Enum') type
                 //         b = e1 is Enum; // Always true.
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "e1 is Enum").WithArguments("System.Enum").WithLocation(11, 13),
@@ -5530,7 +5530,7 @@ class Test
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (37,21): error CS0039: Cannot convert type 'Bar' to 'Goo' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         object a1 = numeral as Goo;
@@ -5578,7 +5578,7 @@ public class C
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is C").WithArguments("C"));
         }
 
@@ -5603,7 +5603,7 @@ public class Base
 }
 ";
 
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (12,27): warning CS0184: The given expression is never of the provided ('System.IntPtr') type
                 //         Console.WriteLine(e is IntPtr);
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "e is IntPtr").WithArguments("System.IntPtr"),
@@ -5629,7 +5629,7 @@ public class Base
         return false;
     }
 }";
-            CreateStandardCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (3,39): error CS1670: params is not valid in this context public static bool operator >(X a, params int[] b)
                 Diagnostic(ErrorCode.ERR_IllegalParams, "params"),
                 // (8,40): error CS1670: params is not valid in this context
@@ -5761,7 +5761,7 @@ struct S
 
 ";
             CompileAndVerify(source1, expectedOutput: "1");
-            CreateStandardCompilation(source2).VerifyDiagnostics(
+            CreateCompilation(source2).VerifyDiagnostics(
 // (16,9): error CS0034: Operator '==' is ambiguous on operands of type 'S?' and '<null>'
 //     if (s == null) s = default(S);
 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "s == null").WithArguments("==", "S?", "<null>"));
@@ -5787,7 +5787,7 @@ class B : A
     }
 }
 class D {}";
-            CreateStandardCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [Fact(), WorkItem(543433, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543433")]
@@ -5811,7 +5811,7 @@ class B : A
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b++").WithArguments("A", "B"));
+            CreateCompilation(text).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b++").WithArguments("A", "B"));
         }
 
         [WorkItem(543431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543431")]
@@ -5880,7 +5880,7 @@ class D
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (21,27): error CS0019: Operator '==' cannot be applied to operands of type 'System.Func<int>' and 'D'
                 //         Console.WriteLine((Func<int>)(C)null == (D)null);
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(Func<int>)(C)null == (D)null").WithArguments("==", "System.Func<int>", "D"),
@@ -5925,7 +5925,7 @@ class D
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (26,27): error CS0019: Operator '==' cannot be applied to operands of type 'C' and 'D'
                 //         Console.WriteLine((C)null == (D)null);
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(C)null == (D)null").WithArguments("==", "C", "D"),
@@ -6024,7 +6024,7 @@ public class ConstrainedTestContext<T,U> where T : Gen<U>
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(544490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544490")]
@@ -6081,7 +6081,7 @@ class Derived1 : Base1
     public static Base1 operator +(Base1 b, Derived1 d) { return b; }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -6098,7 +6098,7 @@ class Derived2 : Base2
     public static Base2 operator +(Base2 b, Derived2 d) { return b; }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -6115,7 +6115,7 @@ class Derived3 : Base3
     public static Base3 op_Addition(Base3 b, Derived3 d) { return b; }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -6132,7 +6132,7 @@ class Derived4 : Base4
     public static Base4 op_Addition(Base4 b, Derived4 d) { return b; }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,25): warning CS0108: 'Derived4.op_Addition(Base4, Derived4)' hides inherited member 'Base4.op_Addition(Base4, Derived4)'. Use the new keyword if hiding was intended.
                 //     public static Base4 op_Addition(Base4 b, Derived4 d) { return b; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "op_Addition").WithArguments("Derived4.op_Addition(Base4, Derived4)", "Base4.op_Addition(Base4, Derived4)"));
@@ -6152,7 +6152,7 @@ class Derived1 : Base1
     public static implicit operator string(Base1 b) { return null; } // CS0556, but not CS0108
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,37): error CS0556: User-defined conversion must convert to or from the enclosing type
                 //     public static implicit operator string(Base1 b) { return null; }
                 Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "string"));
@@ -6172,7 +6172,7 @@ class Derived2 : Base2
     public static implicit operator string(Derived2 d) { return null; }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -6189,7 +6189,7 @@ class Derived3 : Base3
     public static string op_Explicit(Base3 b) { return null; }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -6206,7 +6206,7 @@ class Derived4 : Base4
     public static string op_Explicit(Base4 b) { return null; }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,26): warning CS0108: 'Derived4.op_Explicit(Base4)' hides inherited member 'Base4.op_Explicit(Base4)'. Use the new keyword if hiding was intended.
                 //     public static string op_Explicit(Base4 b) { return null; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "op_Explicit").WithArguments("Derived4.op_Explicit(Base4)", "Base4.op_Explicit(Base4)"));
@@ -6281,7 +6281,7 @@ class op_UnsignedRightShift
 		
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,38): error CS0542: 'op_Increment': member names cannot be the same as their enclosing type
                 // 	public static op_Increment operator ++ (op_Increment c) { return null; }
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "++").WithArguments("op_Increment"),
@@ -6343,7 +6343,7 @@ class op_Implicit
     public static implicit operator op_Implicit(int x) { return null; }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,37): error CS0542: 'op_Explicit': member names cannot be the same as their enclosing type
                 //     public static explicit operator op_Explicit(int x) { return null; }
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "op_Explicit").WithArguments("op_Explicit"),
@@ -6444,7 +6444,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var expectedOperator = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S1").GetMembers(WellKnownMemberNames.EqualityOperatorName).
@@ -6494,7 +6494,7 @@ class Program
 }
 ";
             // CONSIDER: This is a little silly, since that method will never be called.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (27,16): warning CS0618: 'S1.operator ==(S1, S1)' is obsolete: 'A'
                 //         return s1 == null;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "s1 == null").WithArguments("S1.operator ==(S1, S1)", "A"));
@@ -6529,7 +6529,7 @@ class Program
 }
 ";
             // CONSIDER: There is no reason not to allow this, but dev11 doesn't.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (21,16): error CS0019: Operator '==' cannot be applied to operands of type 'S1?' and 'S2?'
                 //         return s1 == s2;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 == s2").WithArguments("==", "S1?", "S2?"));
@@ -6564,7 +6564,7 @@ class Program
 }
 ";
             // SPEC VIOLATION: According to the spec, this is ambiguous.  However, we will match the dev11 behavior.
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -6606,7 +6606,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (21,18): error CS0034: Operator '|' is ambiguous on operands of type 'InputParameter' and 'InputParameter'
                 //         bool b = i1 | i2;
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i1 | i2").WithArguments("|", "InputParameter", "InputParameter"));
@@ -6644,7 +6644,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"A
 A");
         }
@@ -6691,7 +6691,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(comp,
                 "Operator '|' is ambiguous on operands of type 'InputParameter' and 'InputParameter'");
         }
@@ -6719,7 +6719,7 @@ class Program
     }
 }
 ";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -6756,7 +6756,7 @@ class Program
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (16,18): error CS0019: Operator '||' cannot be applied to operands of type 'InputParameter' and 'InputParameter'
                 //         bool b = i1 || i2;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "i1 || i2").WithArguments("||", "InputParameter", "InputParameter"));
@@ -6789,7 +6789,7 @@ public class RubyTime
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact()]
@@ -6881,7 +6881,7 @@ public class RubyTime
 
             var source = builder.ToString();
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -7097,7 +7097,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -7248,7 +7248,7 @@ class Module1
 
             var source = builder.ToString();
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -7405,7 +7405,7 @@ class Module1
 
             var source = builder.ToString();
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -7941,7 +7941,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -7976,7 +7976,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -8020,7 +8020,7 @@ class Module1
     }
 }";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -8085,7 +8085,7 @@ struct TestStr
 {}
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             compilation.VerifyDiagnostics(
     // (17,20): error CS0019: Operator '==' cannot be applied to operands of type 'TestStr?' and 'TestStr?'
@@ -8150,7 +8150,7 @@ struct TestStr
         return i += 1;
     }
 }";
-            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees[0];
@@ -8189,9 +8189,9 @@ public static class Program
         M(1 - Color.Red);
     }
 }";
-            CreateStandardCompilation(source1, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source1, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 );
-            CreateStandardCompilation(source1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
+            CreateCompilation(source1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (7,11): error CS0019: Operator '-' cannot be applied to operands of type 'int' and 'Color'
                 //         M(1 - Color.Red);
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 - Color.Red").WithArguments("-", "int", "Color").WithLocation(7, 11)
@@ -8304,7 +8304,7 @@ class P
         }
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (18,13): error CS0218: In order for 'B.operator &(B, B)' to be applicable as a short circuit operator, its declaring type 'B' must define operator true and operator false
                 //         if (x && y)
@@ -9058,7 +9058,7 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (26,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'int'
     //         Print(x - c);
     Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - c").WithArguments("-", "TestEnum", "int").WithLocation(26, 15),
@@ -9565,7 +9565,7 @@ class Program
     }
 }";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
     // (24,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long'
     //         Print(x - d);
     Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum", "long").WithLocation(24, 15),
@@ -10561,7 +10561,7 @@ class MainClass
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics();
         }
@@ -10622,7 +10622,7 @@ public enum FlagsEnum
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source)
+            var compilation = CreateCompilation(source)
                 .VerifyDiagnostics(
                 // (6,17): warning CS0183: The given expression is always of the provided ('string') type
                 //         var x = d is string;
@@ -10645,7 +10645,7 @@ class Program
         if (t is ValueTuple<int, int>) { }    // goldilocks
     }
 }";
-            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
                 .VerifyDiagnostics(
                 // (7,13): warning CS0184: The given expression is never of the provided ('(long, int)') type
                 //         if (t is ValueTuple<long, int>) { }   // too big
@@ -10671,7 +10671,7 @@ public class C {
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (4,22): error CS0103: The name 'invalidExpression' does not exist in the current context
                 //         var local = !invalidExpression;

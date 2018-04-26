@@ -71,6 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            public override bool HasUnmanagedTypeConstraint
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
             public override int Ordinal
             {
                 get

@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -17,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     // isn't yet available outside of Visual Studio.
     internal sealed partial class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
     {
+        private const int EventDelayInMillisecond = 50;
+
         private readonly object _gate = new object();
 
         /// <summary>
@@ -25,13 +26,20 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         /// </summary>
         private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
 
+        private readonly Workspace _workspace;
         private readonly ICodingConventionsManager _codingConventionsManager;
         private readonly IErrorLoggerService _errorLogger;
 
-        internal EditorConfigDocumentOptionsProvider(Workspace workspace)
+        private ResettableDelay _resettableDelay;
+
+        internal EditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager)
         {
-            _codingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager();
+            _workspace = workspace;
+
+            _codingConventionsManager = codingConventionsManager;
             _errorLogger = workspace.Services.GetService<IErrorLoggerService>();
+
+            _resettableDelay = ResettableDelay.CompletedDelay;
 
             workspace.DocumentOpened += Workspace_DocumentOpened;
             workspace.DocumentClosed += Workspace_DocumentClosed;
@@ -47,7 +55,13 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
                     // Ensure we dispose the context, which we'll do asynchronously
                     contextTask.ContinueWith(
-                        t => t.Result.Dispose(),
+                        t =>
+                        {
+                            var context = t.Result;
+
+                            context.CodingConventionsChangedAsync -= OnCodingConventionsChangedAsync;
+                            context.Dispose();
+                        },
                         CancellationToken.None,
                         TaskContinuationOptions.OnlyOnRanToCompletion,
                         TaskScheduler.Default);
@@ -59,7 +73,14 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         {
             lock (_gate)
             {
-                _openDocumentContexts.Add(e.Document.Id, Task.Run(() => GetConventionContextAsync(e.Document.FilePath, CancellationToken.None)));
+                var contextTask = Task.Run(async () =>
+                {
+                    var context = await GetConventionContextAsync(e.Document.FilePath, CancellationToken.None).ConfigureAwait(false);
+                    context.CodingConventionsChangedAsync += OnCodingConventionsChangedAsync;
+                    return context;
+                });
+
+                _openDocumentContexts.Add(e.Document.Id, contextTask);
             }
         }
 
@@ -121,6 +142,40 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             return IOUtilities.PerformIOAsync(
                 () => _codingConventionsManager.GetConventionContextAsync(path, cancellationToken),
                 defaultValue: EmptyCodingConventionContext.Instance);
+        }
+
+        private Task OnCodingConventionsChangedAsync(object sender, CodingConventionsChangedEventArgs arg)
+        {
+            // this is a temporary workaround. once we finish the work to put editorconfig file as a part of roslyn solution snapshot,
+            // that system will automatically pick up option changes and update snapshot. and it will work regardless
+            // whether a file is opened in editor or not.
+            // 
+            // but until then, we need to explicitly touch workspace to update snapshot. and 
+            // only works for open files. it is not easy to track option changes for closed files with current model.
+            // related tracking issue - https://github.com/dotnet/roslyn/issues/26250
+
+            lock (_gate)
+            {
+                if (!_resettableDelay.Task.IsCompleted)
+                {
+                    _resettableDelay.Reset();
+                }
+                else
+                {
+                    // since this event gets raised for all documents that are affected by 1 editconfig file,
+                    // and since for now we make that event as whole solution changed event, we don't need to update
+                    // snapshot for each events. aggregate all events to 1.
+                    var delay = new ResettableDelay(EventDelayInMillisecond);
+                    delay.Task.ContinueWith(_ => _workspace.OnOptionChanged(),
+                        CancellationToken.None,
+                        TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
+
+                    _resettableDelay = delay;
+                }
+            }
+
+            return Task.CompletedTask;
         }
     }
 }

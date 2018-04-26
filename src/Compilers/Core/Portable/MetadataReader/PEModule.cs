@@ -951,6 +951,11 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.IsReadOnlyAttribute).HasValue;
         }
 
+        internal bool HasIsUnmanagedAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.IsUnmanagedAttribute).HasValue;
+        }
+
         internal bool HasExtensionAttribute(EntityHandle token, bool ignoreCase)
         {
             return FindTargetAttribute(token, ignoreCase ? AttributeDescription.CaseInsensitiveExtensionAttribute : AttributeDescription.CaseSensitiveExtensionAttribute).HasValue;
