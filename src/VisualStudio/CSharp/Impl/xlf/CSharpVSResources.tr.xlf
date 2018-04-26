@@ -694,7 +694,7 @@
       </trans-unit>
       <trans-unit id="Generate Event Subscription">
         <source>Generate Event Subscription</source>
-        <target state="new">Generate Event Subscription</target>
+        <target state="translated">Olay Aboneliği Oluştur</target>
         <note />
       </trans-unit>
     </body>
