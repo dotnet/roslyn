@@ -128,12 +128,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
-        public static ValueTuple<string, VersionStamp> GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)
+        public static (string analyzerId, VersionStamp version) GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)
         {
             // Get the unique ID for given diagnostic analyzer.
             // note that we also put version stamp so that we can detect changed analyzer.
             var typeInfo = analyzer.GetType().GetTypeInfo();
-            return ValueTuple.Create(analyzer.GetAnalyzerId(), GetAnalyzerVersion(CorLightup.Desktop.GetAssemblyLocation(typeInfo.Assembly)));
+            return (analyzer.GetAnalyzerId(), GetAnalyzerVersion(CorLightup.Desktop.GetAssemblyLocation(typeInfo.Assembly)));
         }
 
         public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
