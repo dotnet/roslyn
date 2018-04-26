@@ -146,18 +146,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         private TypeSyntax GetTypeSyntax(SemanticDocument document, DocumentOptionSet options, ExpressionSyntax expression, bool isConstant, CancellationToken cancellationToken)
         {
             var typeSymbol = GetTypeSymbol(document, expression, cancellationToken);
-            if (typeSymbol.ContainsAnonymousType())
-            {
-                return SyntaxFactory.IdentifierName("var");
-            }
-
-            if (!isConstant && 
-                CanUseVar(typeSymbol) && 
-                TypeStyleHelper.IsImplicitTypePreferred(expression, document.SemanticModel, options, cancellationToken))
-            {
-                return SyntaxFactory.IdentifierName("var");
-            }
-
             return typeSymbol.GenerateTypeSyntax();
         }
 
