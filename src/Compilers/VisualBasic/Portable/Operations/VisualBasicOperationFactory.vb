@@ -1010,9 +1010,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundCaseBlock.WasCompilerGenerated
 
-            Dim condition As Lazy(Of IOperation) = If(boundCaseBlock.CaseStatement.ConditionOpt Is Nothing,
-                                                      OperationFactory.NullOperation,
-                                                      New Lazy(Of IOperation)(Function() Create(boundCaseBlock.CaseStatement.ConditionOpt)))
+            Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundCaseBlock.CaseStatement.ConditionOpt))
 
             Return New LazySwitchCase(ImmutableArray(Of ILocalSymbol).Empty, condition, clauses, body, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function

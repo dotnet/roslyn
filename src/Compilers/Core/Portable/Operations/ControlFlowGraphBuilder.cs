@@ -39,6 +39,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public static ControlFlowGraph Create(IBlockOperation body)
         {
+            // PROTOTYPE(dataflow): Consider getting the SemanticModel and Compilation from the root node, 
+            //                      storing them in readonly fields in ControlFlowGraphBuilder, and reusing
+            //                      throughout the process rather than getting them from individual nodes.
+
             var builder = new ControlFlowGraphBuilder();
             var blocks = ArrayBuilder<BasicBlock>.GetInstance();
             builder._blocks = blocks;
@@ -2875,6 +2879,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Debug.Assert(_currentStatement == operation);
 
+            INamedTypeSymbol booleanType = ((Operation)operation).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
             int expressionCaptureId = VisitAndCapture(operation.Value);
 
             ImmutableArray<ILocalSymbol> locals = getLocals();
@@ -2925,7 +2930,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 IOperation condition = ((BaseSwitchCase)section).Condition;
                 if (condition != null)
                 {
-                    Debug.Assert(!section.Clauses.Any(c => c.Label != null));
+                    Debug.Assert(section.Clauses.All(c => c.Label == null));
                     _currentSwitchOperationExpression = getSwitchValue();
                     VisitConditionalBranch(condition, ref nextSection, sense: false);
                     _currentSwitchOperationExpression = null;
@@ -2998,12 +3003,29 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                  operatorMethod: null,
                                                                  semanticModel: null,
                                                                  singleValueClause.Value.Syntax,
-                                                                 ((Operation)operation).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean), 
+                                                                 booleanType, 
                                                                  constantValue: default, 
                                                                  isImplicit: true);
 
                         condition = Operation.SetParentOperation(condition, null);
                         LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: false, RegularBranch(nextCase)));
+                        AppendNewBlock(labeled);
+                        _currentBasicBlock = null;
+                        break;
+
+                    case CaseKind.Pattern:
+                        var patternClause = (IPatternCaseClauseOperation)caseClause;
+
+                        condition = new IsPatternExpression(getSwitchValue(), Visit(patternClause.Pattern), semanticModel: null, patternClause.Pattern.Syntax, booleanType, constantValue: default, isImplicit: true);
+                        condition = Operation.SetParentOperation(condition, null);
+                        LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: false, RegularBranch(nextCase)));
+
+                        if (patternClause.Guard != null)
+                        {
+                            AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
+                            VisitConditionalBranch(patternClause.Guard, ref nextCase, sense: false);
+                        }
+
                         AppendNewBlock(labeled);
                         _currentBasicBlock = null;
                         break;
@@ -3020,10 +3042,10 @@ namespace Microsoft.CodeAnalysis.Operations
                         LinkBlocks(CurrentBasicBlock, nextCase);
                         AppendNewBlock(labeled);
                         _currentBasicBlock = null;
-
                         break;
+
                     default:
-                        // PROTOTYPE(dataflow): TODO.
+                        // PROTOTYPE(dataflow): TODO. See VisitRelationalCaseClause and VisitRangeCaseClause
                         throw new NotImplementedException();
                 }
             }
@@ -3064,7 +3086,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, int? captureIdForResult)
         {
             throw ExceptionUtilities.Unreachable;
-            //return new PatternCaseClause(operation.Label, Visit(operation.Pattern), Visit(operation.Guard), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitEnd(IEndOperation operation, int? captureIdForResult)
