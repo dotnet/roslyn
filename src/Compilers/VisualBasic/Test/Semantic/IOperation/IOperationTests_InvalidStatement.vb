@@ -67,7 +67,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
           Clauses:
               ISingleValueCaseClauseOperation (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null) (Syntax: '1')
                 Value: 
-                  null
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           Body:
               IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Case 1')
 ]]>.Value
@@ -107,7 +107,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
           Clauses:
               ISingleValueCaseClauseOperation (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'x')
                 Value: 
-                  null
+                  ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
           Body:
               IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Case x ... Exit Select')
                 IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'Exit Select')
@@ -460,11 +460,9 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Case 0')
+IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Case 0')
   Children(1):
-      ISingleValueCaseClauseOperation (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: '0')
-        Value: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

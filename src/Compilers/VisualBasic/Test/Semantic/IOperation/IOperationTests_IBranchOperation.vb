@@ -2495,6 +2495,7 @@ Public Class C
         Exit Do
         Exit While
         Exit For
+        Exit Select
     End Sub
 End Class]]>.Value
 
@@ -2517,6 +2518,9 @@ BC30097: 'Exit While' can only appear inside a 'While' statement.
 BC30096: 'Exit For' can only appear inside a 'For' statement.
         Exit For
         ~~~~~~~~
+BC30099: 'Exit Select' can only appear inside a 'Select' statement.
+        Exit Select
+        ~~~~~~~~~~~
 ]]>.Value
 
             Dim expectedFlowGraph = <![CDATA[
@@ -2525,7 +2529,7 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (6)
+    Statements (7)
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Continue Do')
           Children(0)
 
@@ -2542,6 +2546,9 @@ Block[B1] - Block
           Children(0)
 
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit For')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit Select')
           Children(0)
 
     Next (Regular) Block[B2]

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation _currentStatement;
         private ArrayBuilder<IOperation> _evalStack;
         private IOperation _currentConditionalAccessInstance;
+        private IOperation _currentSwitchOperationExpression;
 
         // PROTOTYPE(dataflow): does the public API IFlowCaptureOperation.Id specify how identifiers are created or assigned?
         // Should we use uint to exclude negative integers? Should we randomize them in any way to avoid dependencies 
@@ -1146,6 +1148,14 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+        private void VisitStatements(IEnumerable<IOperation> statements)
+        {
+            foreach (var statement in statements)
+            {
+                VisitStatement(statement);
+            }
+        }
+
         public override IOperation VisitConditional(IConditionalOperation operation, int? captureIdForResult)
         {
             if (operation == _currentStatement)
@@ -1377,7 +1387,9 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitBinaryOperator(IBinaryOperation operation, int? captureIdForResult)
         {
-            if (IsConditional(operation))
+            if (IsConditional(operation) &&
+                operation.OperatorMethod == null && // PROTOTYPE(dataflow): cannot properly handle user-defined conditional operators yet.
+                operation.Type.SpecialType == SpecialType.System_Boolean) // PROTOTYPE(dataflow): cannot properly handle nullable conditional operators yet.
             {
                 return VisitBinaryConditionalOperator(operation, sense: true, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
             }
@@ -2832,6 +2844,202 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+        public override IOperation VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            int expressionCaptureId = VisitAndCapture(operation.Value);
+
+            ImmutableArray<ILocalSymbol> locals = getLocals();
+            bool haveLocals = !locals.IsEmpty;
+            if (haveLocals)
+            {
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: locals));
+            }
+
+            BasicBlock defaultBody = null; // Adjusted in handleSection
+            BasicBlock @break = GetLabeledOrNewBlock(operation.ExitLabel);
+
+            foreach (ISwitchCaseOperation section in operation.Cases)
+            {
+                handleSection(section);
+            }
+
+            if (defaultBody != null)
+            {
+                LinkBlocks(CurrentBasicBlock, defaultBody); 
+            }
+
+            if (haveLocals)
+            {
+                LeaveRegion();
+            }
+
+            AppendNewBlock(@break);
+
+            return null;
+
+            ImmutableArray<ILocalSymbol> getLocals()
+            {
+                ImmutableArray<ILocalSymbol> l = operation.Locals;
+                foreach (ISwitchCaseOperation section in operation.Cases)
+                {
+                    l = l.Concat(section.Locals);
+                }
+
+                return l;
+            }
+
+            void handleSection(ISwitchCaseOperation section)
+            {
+                var body = new BasicBlock(BasicBlockKind.Block);
+                var nextSection = new BasicBlock(BasicBlockKind.Block);
+
+                IOperation condition = ((BaseSwitchCase)section).Condition;
+                if (condition != null)
+                {
+                    Debug.Assert(!section.Clauses.Any(c => c.Label != null));
+                    _currentSwitchOperationExpression = getSwitchValue();
+                    VisitConditionalBranch(condition, ref nextSection, sense: false);
+                    _currentSwitchOperationExpression = null;
+                }
+                else
+                {
+                    foreach (ICaseClauseOperation caseClause in section.Clauses)
+                    {
+                        var nextCase = new BasicBlock(BasicBlockKind.Block);
+                        handleCase(caseClause, body, nextCase);
+                        AppendNewBlock(nextCase);
+                    }
+
+                    LinkBlocks(CurrentBasicBlock, nextSection);
+                }
+
+                AppendNewBlock(body);
+
+                VisitStatements(section.Body);
+
+                LinkBlocks(CurrentBasicBlock, @break);
+
+                AppendNewBlock(nextSection);
+            }
+
+            void handleCase(ICaseClauseOperation caseClause, BasicBlock body, BasicBlock nextCase)
+            {
+                IOperation condition;
+                BasicBlock labeled = GetLabeledOrNewBlock(caseClause.Label);
+                LinkBlocks(labeled, body);
+
+                switch (caseClause.CaseKind)
+                {
+                    case CaseKind.SingleValue:
+                        var singleValueClause = (ISingleValueCaseClauseOperation)caseClause;
+
+                        bool leftIsNullable = ITypeSymbolHelpers.IsNullableType(operation.Value.Type);
+                        bool rightIsNullable = ITypeSymbolHelpers.IsNullableType(singleValueClause.Value.Type);
+                        bool isLifted = leftIsNullable || rightIsNullable;
+                        IOperation leftOperand = getSwitchValue();
+                        IOperation rightOperand = Visit(singleValueClause.Value);
+
+                        if (isLifted)
+                        {
+                            if (!leftIsNullable)
+                            {
+                                if (leftOperand.Type != null)
+                                {
+                                    // PROTOTYPE(dataflow): Consider using similar conversion for TryMakeNullable value and using the helper here
+                                    leftOperand = new ConversionOperation(leftOperand, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
+                                                                          semanticModel: null, leftOperand.Syntax, singleValueClause.Value.Type,
+                                                                          constantValue: default, isImplicit: true);
+                                }
+                            }
+                            else if (!rightIsNullable && rightOperand.Type != null)
+                            {
+                                // PROTOTYPE(dataflow): Consider using similar conversion for TryMakeNullable value and using the helper here
+                                rightOperand = new ConversionOperation(rightOperand, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
+                                                                       semanticModel: null, rightOperand.Syntax, operation.Value.Type,
+                                                                       constantValue: default, isImplicit: true);
+                            }
+                        }
+
+                        condition = new BinaryOperatorExpression(BinaryOperatorKind.Equals,
+                                                                 leftOperand,
+                                                                 rightOperand,
+                                                                 isLifted,
+                                                                 isChecked: false, 
+                                                                 isCompareText: false,
+                                                                 operatorMethod: null,
+                                                                 semanticModel: null,
+                                                                 singleValueClause.Value.Syntax,
+                                                                 ((Operation)operation).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean), 
+                                                                 constantValue: default, 
+                                                                 isImplicit: true);
+
+                        condition = Operation.SetParentOperation(condition, null);
+                        LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: false, RegularBranch(nextCase)));
+                        AppendNewBlock(labeled);
+                        _currentBasicBlock = null;
+                        break;
+
+                    case CaseKind.Default:
+                        var defaultClause = (IDefaultCaseClauseOperation)caseClause;
+                        if (defaultBody == null)
+                        {
+                            defaultBody = labeled;
+                        }
+
+                        // 'default' clause is never entered from the top, we'll jump back to it after all 
+                        // sections are processed.
+                        LinkBlocks(CurrentBasicBlock, nextCase);
+                        AppendNewBlock(labeled);
+                        _currentBasicBlock = null;
+
+                        break;
+                    default:
+                        // PROTOTYPE(dataflow): TODO.
+                        throw new NotImplementedException();
+                }
+            }
+
+            FlowCaptureReference getSwitchValue()
+            {
+                return new FlowCaptureReference(expressionCaptureId, operation.Value.Syntax, operation.Value.Type, operation.Value.ConstantValue);
+            }
+        }
+
+        public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable; 
+        }
+
+        public override IOperation VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitRelationalCaseClause(IRelationalCaseClauseOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+            //return new RelationalCaseClause(Visit(operation.Value), operation.Relation, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitRangeCaseClause(IRangeCaseClauseOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+            //return new RangeCaseClause(Visit(operation.MinimumValue), Visit(operation.MaximumValue), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+            //return new PatternCaseClause(operation.Label, Visit(operation.Pattern), Visit(operation.Guard), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
         public override IOperation VisitEnd(IEndOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
@@ -2886,7 +3094,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
             var start = new BasicBlock(BasicBlockKind.Block); 
             AppendNewBlock(start);
-
 
             bool haveConditionLocals = !operation.ConditionLocals.IsEmpty;
             if (haveConditionLocals)
@@ -3200,10 +3407,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private void VisitNoneOperationStatement(IOperation operation)
         {
             Debug.Assert(_currentStatement == operation);
-            foreach (var child in operation.Children)
-            {
-                VisitStatement(child);
-            }
+            VisitStatements(operation.Children);
         }
 
         private IOperation VisitNoneOperationExpression(IOperation operation)
@@ -3269,36 +3473,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)
         {
             return new ConversionOperation(Visit(operation.Operand), ((BaseConversionExpression)operation).ConvertibleConversion, operation.IsTryCast, operation.IsChecked, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
-        {
-            return new SwitchStatement(operation.Locals, Visit(operation.Value), VisitArray(operation.Cases), operation.ExitLabel, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, int? captureIdForResult)
-        {
-            return new SwitchCase(operation.Locals, VisitArray(operation.Clauses), VisitArray(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, int? captureIdForResult)
-        {
-            return new SingleValueCaseClause(operation.Label, Visit(operation.Value), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitRelationalCaseClause(IRelationalCaseClauseOperation operation, int? captureIdForResult)
-        {
-            return new RelationalCaseClause(Visit(operation.Value), operation.Relation, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitRangeCaseClause(IRangeCaseClauseOperation operation, int? captureIdForResult)
-        {
-            return new RangeCaseClause(Visit(operation.MinimumValue), Visit(operation.MaximumValue), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitDefaultCaseClause(IDefaultCaseClauseOperation operation, int? captureIdForResult)
-        {
-            return new DefaultCaseClause(operation.Label, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForToLoop(IForToLoopOperation operation, int? captureIdForResult)
@@ -3376,7 +3550,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, int? captureIdForResult)
         {
-            return new PlaceholderExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            if (operation.PlaceholderKind == PlaceholderKind.SwitchOperationExpression && _currentSwitchOperationExpression != null)
+            {
+                return OperationCloner.CloneOperation(_currentSwitchOperationExpression);
+            }
+
+            return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitIsType(IIsTypeOperation operation, int? captureIdForResult)
@@ -3396,7 +3575,16 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
         {
-            return new AnonymousFunctionExpression(operation.Symbol, Visit(operation.Body), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new AnonymousFunctionExpression(operation.Symbol, 
+                                                   // PROTOTYPE(dataflow): Drop lambda's body for now to enable some test scenarios
+                                                   new BlockStatement(ImmutableArray<IOperation>.Empty,
+                                                                      ImmutableArray<ILocalSymbol>.Empty,
+                                                                      semanticModel: null,
+                                                                      operation.Body.Syntax, 
+                                                                      operation.Body.Type, 
+                                                                      operation.Body.ConstantValue, 
+                                                                      operation.Body.IsImplicit),
+                                                   semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
@@ -3548,11 +3736,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, int? captureIdForResult)
         {
             return new DeclarationPattern(operation.DeclaredSymbol, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, int? captureIdForResult)
-        {
-            return new PatternCaseClause(operation.Label, Visit(operation.Pattern), Visit(operation.Guard), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)

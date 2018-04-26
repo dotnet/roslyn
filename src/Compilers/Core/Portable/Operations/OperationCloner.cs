@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, object argument)
         {
-            return new SwitchCase(operation.Locals, VisitArray(operation.Clauses), VisitArray(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new SwitchCase(operation.Locals, ((BaseSwitchCase)operation).Condition, VisitArray(operation.Clauses), VisitArray(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, object argument)
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, object argument)
         {
-            return new PlaceholderExpression(((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new PlaceholderExpression(operation.PlaceholderKind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitUnaryOperator(IUnaryOperation operation, object argument)

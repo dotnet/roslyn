@@ -1150,7 +1150,7 @@
     <AbstractNode Name="BoundCaseClause" Base="BoundNode">
     </AbstractNode>
 
-    <Node Name="BoundSimpleCaseClause" Base="BoundCaseClause">
+    <Node Name="BoundSimpleCaseClause" Base="BoundCaseClause" HasValidate="true">
         <Field Name="ValueOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="ConditionOpt" Type="BoundExpression" Null="allow"/>
     </Node>

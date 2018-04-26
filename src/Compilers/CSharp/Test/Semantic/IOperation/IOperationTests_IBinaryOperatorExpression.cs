@@ -36,6 +36,112 @@ IBinaryOperation (BinaryOperatorKind.Add, IsLifted) (OperationKind.BinaryOperato
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void VerifyLiftedBinaryOperators2()
+        {
+            var source = @"
+class C
+{
+    void F(int? x, int? y)
+    {
+        var z = /*<bind>*/x == y/*</bind>*/;
+    }
+}";
+
+            string expectedOperationTree =
+@"
+IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x == y')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+  Right: 
+    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'y')
+";
+
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void VerifyLiftedBinaryOperators3()
+        {
+            var source = @"
+class C
+{
+    void F(int? x, int? y)
+    {
+        if (/*<bind>*/x == y/*</bind>*/)
+            x = y;
+    }
+}";
+
+            string expectedOperationTree =
+@"
+IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x == y')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+  Right: 
+    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'y')
+";
+
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void VerifyLiftedBinaryOperators4()
+        {
+            var source = @"
+class C
+{
+    void F(int? x, int? y)
+    {
+        if (/*<bind>*/x == 1/*</bind>*/)
+            x = y;
+    }
+}";
+
+            string expectedOperationTree =
+@"
+IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x == 1')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+  Right: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: '1')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void VerifyNonLiftedBinaryOperators2()
+        {
+            var source = @"
+class C
+{
+    void F(int? x, int? y)
+    {
+        if (/*<bind>*/x == null/*</bind>*/)
+            x = y;
+    }
+}";
+
+            string expectedOperationTree =
+@"
+IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x == null')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+  Right: 
+    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+";
+
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void VerifyNonLiftedBinaryOperators1()
         {
             var source = @"

@@ -4,6 +4,12 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
+    internal enum PlaceholderKind
+    {
+        Unspecified = 0,
+        SwitchOperationExpression = 1,
+    }
+
     /// <summary>
     /// Represents a general placeholder when no more specific kind of placeholder is available.
     /// A placeholder is an expression whose meaning is inferred from context.
@@ -14,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </remarks>
     internal interface IPlaceholderOperation : IOperation // https://github.com/dotnet/roslyn/issues/21294
     {
+        PlaceholderKind PlaceholderKind { get; }
     }
 }
 

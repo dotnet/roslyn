@@ -5341,6 +5341,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.SimpleCaseClause, syntax, hasErrors OrElse valueOpt.NonNullAndHasErrors() OrElse conditionOpt.NonNullAndHasErrors())
             Me._ValueOpt = valueOpt
             Me._ConditionOpt = conditionOpt
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
         End Sub
 
 

@@ -1378,5 +1378,191 @@ Block[B5] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_04()
+        {
+            string source = @"
+class P
+{
+    void M(bool a, bool b, bool c, bool result)
+/*<bind>*/{
+        if (a ? b : c)
+        {
+            result = false;
+        }
+        else
+        {
+            result = true;
+        }
+    }/*</bind>*/
+}
+";
+
+            // PROTOTYPE(dataflow): Consider getting rid of the IFlowCaptureOperation: 0
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a ? b : c')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = true;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = true')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+    Next (Regular) Block[B7]
+Block[B7] - Exit
+    Predecessors: [B5] [B6]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_05()
+        {
+            string source = @"
+class P
+{
+    void M(bool? a, bool b, bool result)
+/*<bind>*/{
+        if (a ?? b)
+        {
+            result = false;
+        }
+        else
+        {
+            result = true;
+        }
+    }/*</bind>*/
+}
+";
+            // PROTOTYPE(dataflow): Consider getting rid of the IFlowCaptureOperation: 1
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean?) (Syntax: 'a')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean?, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( System.Boolean System.Boolean?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean?, IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a ?? b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = true;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = true')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+    Next (Regular) Block[B7]
+Block[B7] - Exit
+    Predecessors: [B5] [B6]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }
