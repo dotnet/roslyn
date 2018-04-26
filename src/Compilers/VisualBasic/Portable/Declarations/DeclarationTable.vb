@@ -281,6 +281,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Shared Function ContainsName(
             mergedRoot As MergedNamespaceDeclaration,
+            name As String,
+            filter As SymbolFilter,
+            cancellationToken As CancellationToken) As Boolean
+
+            ' note: because we want to do case-insensitive lookup, and because our decl tables
+            ' do not store members in a way that can lookup in a case-insensitive manner, we have
+            ' to defer to just calling the normal predicate version.
+            Return ContainsName(
+                mergedRoot, Function(n) IdentifierComparison.Equals(n, name), filter, cancellationToken)
+        End Function
+
+        Public Shared Function ContainsName(
+            mergedRoot As MergedNamespaceDeclaration,
             predicate As Func(Of String, Boolean),
             filter As SymbolFilter,
             cancellationToken As CancellationToken) As Boolean
@@ -311,22 +324,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If includeMember Then
                         Dim mergedType = DirectCast(current, MergedTypeDeclaration)
-                        For Each name In mergedType.MemberNames
-                            If predicate(name) Then
-                                Return True
-                            End If
+                        For Each childType In mergedType.Declarations
+                            For Each name In childType.MemberNames
+                                If predicate(name) Then
+                                    Return True
+                                End If
+                            Next
                         Next
                     End If
                 End If
 
-                For Each child In current.Children.OfType(Of MergedNamespaceOrTypeDeclaration)()
-                    If includeMember OrElse includeType Then
-                        stack.Push(child)
-                        Continue For
-                    End If
+                For Each child In current.Children
+                    Dim childNamespaceOrType = DirectCast(child, MergedNamespaceOrTypeDeclaration)
 
-                    If child.Kind = DeclarationKind.Namespace Then
-                        stack.Push(child)
+                    If includeMember OrElse includeType OrElse childNamespaceOrType.Kind = DeclarationKind.Namespace Then
+                        stack.Push(childNamespaceOrType)
                     End If
                 Next
             End While
