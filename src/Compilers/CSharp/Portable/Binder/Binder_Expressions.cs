@@ -450,8 +450,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindUnaryOperator((PrefixUnaryExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.IndexExpression:
-                    Binder.CheckFeatureAvailability(node, MessageID.IDS_FeatureIndexOperator, diagnostics);
-                    return BindUnaryOperator((PrefixUnaryExpressionSyntax)node, diagnostics);
+                    return BindIndexExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.RangeExpression:
+                    return BindRangeExpression((RangeExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.AddressOfExpression:
                     return BindAddressOfExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
@@ -1881,6 +1883,82 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
+        }
+
+        private BoundExpression BindIndexExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureIndexOperator, diagnostics);
+            GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__ctor, diagnostics, syntax: node);
+
+            return BindUnaryOperator(node, diagnostics);
+        }
+
+        private BoundExpression BindRangeExpression(RangeExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureRangeOperator, diagnostics);
+            TypeSymbol rangeType = GetWellKnownType(WellKnownType.System_Range, diagnostics, node);
+
+            if (!rangeType.IsErrorType())
+            {
+                if (node.Left is null)
+                {
+                    if (node.Right is null)
+                    {
+                        GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__All, diagnostics, syntax: node);
+                    }
+                    else
+                    {
+                        GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__ToEnd, diagnostics, syntax: node);
+                    }
+                }
+                else
+                {
+                    if (node.Right is null)
+                    {
+                        GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__FromStart, diagnostics, syntax: node);
+                    }
+                    else
+                    {
+                        GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__Create, diagnostics, syntax: node);
+                    }
+                }
+            }
+
+            BoundExpression left = BindRangeExpressionOperand(node.Left, diagnostics);
+            BoundExpression right = BindRangeExpressionOperand(node.Right, diagnostics);
+
+            if ((left != null && left.Type.IsNullableType()) || (right != null && right.Type.IsNullableType()))
+            {
+                rangeType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(rangeType);
+            }
+
+            return new BoundRangeExpression(node, left, right, rangeType);
+        }
+
+        private BoundExpression BindRangeExpressionOperand(ExpressionSyntax operand, DiagnosticBag diagnostics)
+        {
+            if (operand is null)
+            {
+                return null;
+            }
+
+            BoundExpression boundOperand = BindValue(operand, diagnostics, BindValueKind.RValue);
+            TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, operand);
+
+            if (boundOperand.Type.IsNullableType())
+            {
+                indexType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, operand).Construct(indexType);
+            }
+
+            HashSet<DiagnosticInfo> notUsed = null;
+            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(boundOperand, indexType, ref notUsed);
+
+            if (!conversion.IsValid)
+            {
+                GenerateImplicitConversionError(diagnostics, operand, conversion, boundOperand, indexType);
+            }
+
+            return CreateConversion(boundOperand, indexType, diagnostics);
         }
 
         private BoundExpression BindCastCore(ExpressionSyntax node, BoundExpression operand, TypeSymbol targetType, bool wasCompilerGenerated, DiagnosticBag diagnostics)

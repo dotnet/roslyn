@@ -162,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
 
         IDS_FeatureIndexOperator = MessageBase + 12745,
+        IDS_FeatureRangeOperator = MessageBase + 12746,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -203,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# 8 features.
                 case MessageID.IDS_FeatureIndexOperator: // semantic check
+                case MessageID.IDS_FeatureRangeOperator: // semantic check
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.

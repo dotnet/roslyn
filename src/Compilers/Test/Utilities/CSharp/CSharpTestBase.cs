@@ -1141,12 +1141,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 options: options ?? TestOptions.UnsafeReleaseDll,
                 parseOptions: parseOptions);
         }
-#endregion
+        #endregion
 
-#region Index and Range
-        protected static CSharpCompilation CreateCompilationWithIndexAndRange(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        #region Index and Range
+        protected static CSharpCompilation CreateCompilationWithIndex(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
-            var reference = CreateCompilationWithIndexAndRangeSrc("").VerifyDiagnostics();
+            var reference = CreateCompilation(TestSources.Index).VerifyDiagnostics();
 
             return CreateCompilation(
                 text,
@@ -1155,13 +1155,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 parseOptions: parseOptions);
         }
 
-        protected static CSharpCompilation CreateCompilationWithIndexAndRangeSrc(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        protected static CSharpCompilation CreateCompilationWithIndexAndRange(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
+            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range }).VerifyDiagnostics();
+
             return CreateCompilation(
-                source: new string[] { text, TestSources.IndexAndRange },
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
                 options: options,
                 parseOptions: parseOptions);
         }
-#endregion
+        #endregion
     }
 }

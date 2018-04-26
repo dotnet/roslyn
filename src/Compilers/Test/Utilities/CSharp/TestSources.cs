@@ -209,7 +209,7 @@ namespace System
     }
 }";
 
-        internal const string IndexAndRange = @"
+        internal const string Index = @"
 namespace System
 {
     public readonly struct Index
@@ -227,6 +227,27 @@ namespace System
         {
             return new Index(value, fromEnd: false);
         }
+    }
+}";
+
+        internal const string Range = @"
+namespace System
+{
+    public readonly struct Range
+    {
+        public Index Start { get; }
+        public Index End { get; }
+
+        private Range(Index start, Index end)
+        {
+            this.Start = start;
+            this.End = end;
+        }
+
+        public static Range Create(Index start, Index end) => new Range(start, end);
+        public static Range FromStart(Index start) => new Range(start, new Index(0, fromEnd: true));
+        public static Range ToEnd(Index end) => new Range(new Index(0, fromEnd: false), end);
+        public static Range All() => new Range(new Index(0, fromEnd: false), new Index(0, fromEnd: true));
     }
 }";
     }

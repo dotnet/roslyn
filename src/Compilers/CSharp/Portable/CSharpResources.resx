@@ -5333,4 +5333,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureIndexOperator" xml:space="preserve">
     <value>index operator</value>
   </data>
+  <data name="IDS_FeatureRangeOperator" xml:space="preserve">
+    <value>range operator</value>
+  </data>
 </root>
