@@ -1520,7 +1520,7 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
       </trans-unit>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
-        <target state="new">Live code analysis</target>
+        <target state="translated">Analiza kodu na żywo</target>
         <note />
       </trans-unit>
     </body>

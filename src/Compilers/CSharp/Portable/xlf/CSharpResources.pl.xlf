@@ -8727,12 +8727,12 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">Nazwa pliku „{0}” jest pusta, zawiera nieprawidłowe znaki, zawiera specyfikację dysku bez bezwzględnej ścieżki lub jest za długa</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
-        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <target state="translated">Element __arglist nie może mieć argumentu przekazywanego przez parametr „in” ani „out”</target>
         <note />
       </trans-unit>
     </body>

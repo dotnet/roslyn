@@ -1520,7 +1520,7 @@ L'utente accetta le condizioni sopra riportate:</target>
       </trans-unit>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
-        <target state="new">Live code analysis</target>
+        <target state="translated">Analisi codice in tempo reale</target>
         <note />
       </trans-unit>
     </body>

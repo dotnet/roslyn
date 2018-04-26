@@ -1520,7 +1520,7 @@ Souhlasím se všemi výše uvedenými podmínkami:</target>
       </trans-unit>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
-        <target state="new">Live code analysis</target>
+        <target state="translated">Dynamická analýza kódu</target>
         <note />
       </trans-unit>
     </body>

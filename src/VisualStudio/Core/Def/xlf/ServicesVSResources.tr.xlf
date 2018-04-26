@@ -1520,7 +1520,7 @@ Aşağıdakilerin tümünü onaylıyorum:</target>
       </trans-unit>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
-        <target state="new">Live code analysis</target>
+        <target state="translated">Canlı kod analizi</target>
         <note />
       </trans-unit>
     </body>

@@ -8727,12 +8727,12 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">El nombre de archivo '{0}' está vacío, contiene caracteres no válidos, tiene una especificación de unidad sin ruta de acceso absoluta o es demasiado largo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
-        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <target state="translated">__arglist no puede tener un argumento que se ha pasado con "in" o "out"</target>
         <note />
       </trans-unit>
     </body>

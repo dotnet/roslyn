@@ -8727,12 +8727,12 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">Il nome file '{0}' è vuoto, contiene caratteri non validi, include una specifica di unità senza percorso assoluto oppure è troppo lungo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
-        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <target state="translated">__arglist non può contenere un argomento passato da 'in' o 'out'</target>
         <note />
       </trans-unit>
     </body>

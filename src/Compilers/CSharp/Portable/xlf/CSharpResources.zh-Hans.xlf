@@ -8727,12 +8727,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">文件名“{0}”为空、包含无效字符、未使用绝对路径指定驱动器或太长</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
-        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <target state="translated">__arglist 不能有 "in" 或 "out" 传递的参数</target>
         <note />
       </trans-unit>
     </body>
