@@ -2304,7 +2304,7 @@ class Program
     {
         byte z = 0;
         Func<byte, byte> {|Rename:p|} = x => 0;
-        Goo<byte, byte>(p, y => 0, z, z);
+        Goo(p, y => (byte)0, z, z);
     }
 
     static void Goo<T, S>(Func<S, T> p, Func<T, S> q, T r, S s) { Console.WriteLine(1); }
@@ -5332,6 +5332,259 @@ class C
         {
             var t = new { foo = V };
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestSimpleParameterName()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(int a)
+    {
+        System.Console.Write([|a|]);
+    }
+}",
+@"
+class C
+{
+    void M(int a)
+    {
+        int {|Rename:a1|} = a;
+        System.Console.Write(a1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestSimpleParamterName_EmptySelection()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int a)
+    {
+        System.Console.Write([||]a);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestSimpleParamterName_SmallSelection()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int parameter)
+    {
+        System.Console.Write([|par|]ameter);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestFieldName_QualifiedWithThis()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int a;
+    void M()
+    {
+        System.Console.Write([|this.a|]);
+    }
+}",
+@"
+class C
+{
+    int a;
+    void M()
+    {
+        int {|Rename:a1|} = this.a;
+        System.Console.Write(a1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestFieldName_QualifiedWithType()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    static int a;
+    void M()
+    {
+        System.Console.Write([|C.a|]);
+    }
+}",
+@"
+class C
+{
+    static int a;
+    void M()
+    {
+        int {|Rename:a1|} = C.a;
+        System.Console.Write(a1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestFieldName_QualifiedWithType_TinySelection1()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    static int a;
+    void M()
+    {
+        System.Console.Write(C[|.|]a);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestFieldName_QualifiedWithType_TinySelection2()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    static int a;
+    void M()
+    {
+        System.Console.Write([|C.|]a);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestFieldName_QualifiedWithType_TinySelection3()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    static int a;
+    void M()
+    {
+        System.Console.Write(C.[|a|]);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")]
+        public async Task TestFieldName_QualifiedWithType_EmptySelection()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    static int a;
+    void M()
+    {
+        System.Console.Write(C.[||]a);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
+        public async Task TestWithLineBreak()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int x = [|
+            5 * 2 |]
+            ;
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 5 * 2;
+
+    void M()
+    {
+        int x =
+            V
+            ;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
+        public async Task TestWithLineBreak_AfterExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        int x =
+[|            5 * 2
+|]            ;
+    }
+}",
+@"class C
+{
+    private const int {|Rename:V|} = 5 * 2;
+
+    void M()
+    {
+        int x =
+            V
+            ;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
+        public async Task TestWithLineBreak_WithMultiLineComment()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = // start [| comment
+            5 * 2 |]
+            ;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(25990, "https://github.com/dotnet/roslyn/issues/25990")]
+        public async Task TestWithLineBreak_WithSingleLineComments()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = /*comment1*/ [|
+            5 * 2 |]
+            ;
     }
 }");
         }

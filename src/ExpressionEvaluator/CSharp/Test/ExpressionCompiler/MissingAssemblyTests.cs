@@ -916,7 +916,14 @@ LanguageVersion.CSharp7_1);
                         runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
                         expression,
                         ImmutableArray<Alias>.Empty,
-                        (b, u) => EvaluationContext.CreateMethodContext(b.ToCompilation(), symReader, moduleVersionId, methodToken, methodVersion: 1, ilOffset: 0, localSignatureToken: localSignatureToken),
+                        (b, u) => EvaluationContext.CreateMethodContext(
+                            b.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies),
+                            symReader,
+                            moduleVersionId,
+                            methodToken,
+                            methodVersion: 1,
+                            ilOffset: 0,
+                            localSignatureToken: localSignatureToken),
                         (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                         {
                             retryCount++;
