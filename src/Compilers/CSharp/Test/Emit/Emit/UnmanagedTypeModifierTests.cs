@@ -3,6 +3,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
@@ -1341,6 +1342,51 @@ public class Test
             Assert.True(typeParameter.HasValueTypeConstraint);
             Assert.False(typeParameter.HasReferenceTypeConstraint);
             Assert.False(typeParameter.HasConstructorConstraint);
+        }
+
+        [Fact]
+        [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
+        public void UnmanagedConstraint_PointersTypeInference()
+        {
+            var code = @"
+unsafe class Program
+{
+    static void M<T>(T* a) where T : unmanaged
+    {
+        System.Console.WriteLine(typeof(T).FullName);
+    }
+    static void Main()
+    {
+        int x = 5;
+        M(&x);
+
+        double y = 5.5;
+        M(&y);
+    }
+}";
+
+            CompileAndVerify(code, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
+System.Int32
+System.Double
+")
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  1
+  .locals init (int V_0, //x
+                double V_1) //y
+  IL_0000:  ldc.i4.5
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  conv.u
+  IL_0005:  call       ""void Program.M<int>(int*)""
+  IL_000a:  ldc.r8     5.5
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  conv.u
+  IL_0017:  call       ""void Program.M<double>(double*)""
+  IL_001c:  ret
+}");
         }
 
         private const string IsUnmanagedAttributeIL = @"

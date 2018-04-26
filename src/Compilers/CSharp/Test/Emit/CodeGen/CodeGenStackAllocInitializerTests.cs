@@ -115,7 +115,7 @@ unsafe class Test
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25997")]
         public void TestUnmanaged_Span()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -133,88 +133,81 @@ class Test
 
             CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("Test.M<T>(T)",
 @"{
-  // Code size      175 (0xaf)
+  // Code size      169 (0xa9)
   .maxstack  4
-  .locals init (int V_0)
   IL_0000:  ldc.i4.3
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  conv.u
-  IL_0004:  sizeof     ""T""
-  IL_000a:  mul.ovf.un
-  IL_000b:  localloc
-  IL_000d:  dup
-  IL_000e:  ldarg.1
-  IL_000f:  stobj      ""T""
-  IL_0014:  dup
-  IL_0015:  sizeof     ""T""
-  IL_001b:  add
-  IL_001c:  ldarg.1
-  IL_001d:  stobj      ""T""
-  IL_0022:  dup
-  IL_0023:  ldc.i4.2
-  IL_0024:  conv.i
-  IL_0025:  sizeof     ""T""
-  IL_002b:  mul
-  IL_002c:  add
-  IL_002d:  ldarg.1
-  IL_002e:  stobj      ""T""
-  IL_0033:  ldloc.0
-  IL_0034:  newobj     ""System.Span<T>..ctor(void*, int)""
-  IL_0039:  pop
-  IL_003a:  ldc.i4.3
-  IL_003b:  stloc.0
-  IL_003c:  ldloc.0
-  IL_003d:  conv.u
-  IL_003e:  sizeof     ""T""
-  IL_0044:  mul.ovf.un
-  IL_0045:  localloc
-  IL_0047:  dup
-  IL_0048:  ldarg.1
-  IL_0049:  stobj      ""T""
-  IL_004e:  dup
-  IL_004f:  sizeof     ""T""
-  IL_0055:  add
-  IL_0056:  ldarg.1
-  IL_0057:  stobj      ""T""
-  IL_005c:  dup
-  IL_005d:  ldc.i4.2
-  IL_005e:  conv.i
-  IL_005f:  sizeof     ""T""
-  IL_0065:  mul
-  IL_0066:  add
-  IL_0067:  ldarg.1
-  IL_0068:  stobj      ""T""
-  IL_006d:  ldloc.0
-  IL_006e:  newobj     ""System.Span<T>..ctor(void*, int)""
-  IL_0073:  pop
-  IL_0074:  ldc.i4.3
-  IL_0075:  stloc.0
-  IL_0076:  ldloc.0
-  IL_0077:  conv.u
-  IL_0078:  sizeof     ""T""
-  IL_007e:  mul.ovf.un
-  IL_007f:  localloc
-  IL_0081:  dup
-  IL_0082:  ldarg.1
-  IL_0083:  stobj      ""T""
-  IL_0088:  dup
-  IL_0089:  sizeof     ""T""
-  IL_008f:  add
-  IL_0090:  ldarg.1
-  IL_0091:  stobj      ""T""
-  IL_0096:  dup
-  IL_0097:  ldc.i4.2
-  IL_0098:  conv.i
-  IL_0099:  sizeof     ""T""
-  IL_009f:  mul
-  IL_00a0:  add
-  IL_00a1:  ldarg.1
-  IL_00a2:  stobj      ""T""
-  IL_00a7:  ldloc.0
-  IL_00a8:  newobj     ""System.Span<T>..ctor(void*, int)""
-  IL_00ad:  pop
-  IL_00ae:  ret
+  IL_0001:  conv.u
+  IL_0002:  sizeof     ""T""
+  IL_0008:  mul.ovf.un
+  IL_0009:  localloc
+  IL_000b:  dup
+  IL_000c:  ldarg.1
+  IL_000d:  stobj      ""T""
+  IL_0012:  dup
+  IL_0013:  sizeof     ""T""
+  IL_0019:  add
+  IL_001a:  ldarg.1
+  IL_001b:  stobj      ""T""
+  IL_0020:  dup
+  IL_0021:  ldc.i4.2
+  IL_0022:  conv.i
+  IL_0023:  sizeof     ""T""
+  IL_0029:  mul
+  IL_002a:  add
+  IL_002b:  ldarg.1
+  IL_002c:  stobj      ""T""
+  IL_0031:  ldc.i4.3
+  IL_0032:  newobj     ""System.Span<T>..ctor(void*, int)""
+  IL_0037:  pop
+  IL_0038:  ldc.i4.3
+  IL_0039:  conv.u
+  IL_003a:  sizeof     ""T""
+  IL_0040:  mul.ovf.un
+  IL_0041:  localloc
+  IL_0043:  dup
+  IL_0044:  ldarg.1
+  IL_0045:  stobj      ""T""
+  IL_004a:  dup
+  IL_004b:  sizeof     ""T""
+  IL_0051:  add
+  IL_0052:  ldarg.1
+  IL_0053:  stobj      ""T""
+  IL_0058:  dup
+  IL_0059:  ldc.i4.2
+  IL_005a:  conv.i
+  IL_005b:  sizeof     ""T""
+  IL_0061:  mul
+  IL_0062:  add
+  IL_0063:  ldarg.1
+  IL_0064:  stobj      ""T""
+  IL_0069:  ldc.i4.3
+  IL_006a:  newobj     ""System.Span<T>..ctor(void*, int)""
+  IL_006f:  pop
+  IL_0070:  ldc.i4.3
+  IL_0071:  conv.u
+  IL_0072:  sizeof     ""T""
+  IL_0078:  mul.ovf.un
+  IL_0079:  localloc
+  IL_007b:  dup
+  IL_007c:  ldarg.1
+  IL_007d:  stobj      ""T""
+  IL_0082:  dup
+  IL_0083:  sizeof     ""T""
+  IL_0089:  add
+  IL_008a:  ldarg.1
+  IL_008b:  stobj      ""T""
+  IL_0090:  dup
+  IL_0091:  ldc.i4.2
+  IL_0092:  conv.i
+  IL_0093:  sizeof     ""T""
+  IL_0099:  mul
+  IL_009a:  add
+  IL_009b:  ldarg.1
+  IL_009c:  stobj      ""T""
+  IL_00a1:  ldc.i4.3
+  IL_00a2:  newobj     ""System.Span<T>..ctor(void*, int)""
+  IL_00a7:  pop
+  IL_00a8:  ret
 }");
         }
 
@@ -692,24 +685,23 @@ namespace System
 ", options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"123")
                 .VerifyIL("C.Main",
-@"{
-  // Code size       23 (0x17)
+@"
+{
+  // Code size       21 (0x15)
   .maxstack  4
-  .locals init (int V_0)
   IL_0000:  ldc.i4.3
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  conv.u
-  IL_0004:  localloc
-  IL_0006:  dup
-  IL_0007:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.7037807198C22A7D2B0807371D763779A84FDFCF""
-  IL_000c:  ldc.i4.3
-  IL_000d:  cpblk
-  IL_000f:  ldloc.0
-  IL_0010:  newobj     ""System.Span<byte>..ctor(void*, int)""
-  IL_0015:  pop
-  IL_0016:  ret
-}");
+  IL_0001:  conv.u
+  IL_0002:  localloc
+  IL_0004:  dup
+  IL_0005:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.7037807198C22A7D2B0807371D763779A84FDFCF""
+  IL_000a:  ldc.i4.3
+  IL_000b:  cpblk
+  IL_000d:  ldc.i4.3
+  IL_000e:  newobj     ""System.Span<byte>..ctor(void*, int)""
+  IL_0013:  pop
+  IL_0014:  ret
+}
+");
         }
 
         [Fact]
@@ -744,39 +736,36 @@ namespace System
 ", options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3));
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"123")
                 .VerifyIL("C.Main",
-@"{
-  // Code size       37 (0x25)
+@"
+{
+  // Code size       34 (0x22)
   .maxstack  4
-  .locals init (int V_0)
-  IL_0000:  ldc.i4.3
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  conv.u
-  IL_0004:  ldc.i4.4
-  IL_0005:  mul.ovf.un
-  IL_0006:  localloc
+  IL_0000:  ldc.i4.s   12
+  IL_0002:  conv.u
+  IL_0003:  localloc
+  IL_0005:  dup
+  IL_0006:  ldc.i4.1
+  IL_0007:  stind.i4
   IL_0008:  dup
-  IL_0009:  ldc.i4.1
-  IL_000a:  stind.i4
-  IL_000b:  dup
-  IL_000c:  ldc.i4.4
-  IL_000d:  add
+  IL_0009:  ldc.i4.4
+  IL_000a:  add
+  IL_000b:  ldc.i4.2
+  IL_000c:  stind.i4
+  IL_000d:  dup
   IL_000e:  ldc.i4.2
-  IL_000f:  stind.i4
-  IL_0010:  dup
-  IL_0011:  ldc.i4.2
-  IL_0012:  conv.i
-  IL_0013:  ldc.i4.4
-  IL_0014:  mul
-  IL_0015:  add
-  IL_0016:  ldc.i4.3
-  IL_0017:  stind.i4
-  IL_0018:  ldloc.0
-  IL_0019:  newobj     ""System.Span<int>..ctor(void*, int)""
-  IL_001e:  call       ""System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(System.Span<int>)""
-  IL_0023:  pop
-  IL_0024:  ret
-}");
+  IL_000f:  conv.i
+  IL_0010:  ldc.i4.4
+  IL_0011:  mul
+  IL_0012:  add
+  IL_0013:  ldc.i4.3
+  IL_0014:  stind.i4
+  IL_0015:  ldc.i4.3
+  IL_0016:  newobj     ""System.Span<int>..ctor(void*, int)""
+  IL_001b:  call       ""System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(System.Span<int>)""
+  IL_0020:  pop
+  IL_0021:  ret
+}
+");
         }
 
         private static string GetSource(string pointerType) => $@"

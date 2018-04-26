@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (PdbFilePath != null && !PathUtilities.IsValidFilePath(PdbFilePath))
             {
-                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.FTL_InputFileNameTooLong, Location.None, PdbFilePath));
+                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.FTL_InvalidInputFileName, Location.None, PdbFilePath));
             }
         }
 

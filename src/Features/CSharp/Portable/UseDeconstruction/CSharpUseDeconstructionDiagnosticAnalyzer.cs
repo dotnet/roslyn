@@ -125,11 +125,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             }
 
             var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
+            var initializerConversion = semanticModel.GetConversion(declarator.Initializer.Value, cancellationToken);
 
             return TryAnalyze(
-                semanticModel, local, variableDeclaration.Type,
-                declarator.Identifier, variableDeclaration.Parent.Parent,
-                out tupleType, out memberAccessExpressions, cancellationToken);
+                semanticModel, local, variableDeclaration.Type, declarator.Identifier, initializerConversion,
+                variableDeclaration.Parent.Parent, out tupleType, out memberAccessExpressions, cancellationToken);
         }
 
         public static bool TryAnalyzeForEachStatement(
@@ -140,9 +140,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             CancellationToken cancellationToken)
         {
             var local = semanticModel.GetDeclaredSymbol(forEachStatement, cancellationToken);
+            var elementConversion = semanticModel.GetForEachStatementInfo(forEachStatement).ElementConversion;
 
             return TryAnalyze(
-                semanticModel, local, forEachStatement.Type, forEachStatement.Identifier,
+                semanticModel, local, forEachStatement.Type, forEachStatement.Identifier, elementConversion,
                 forEachStatement, out tupleType, out memberAccessExpressions, cancellationToken);
         }
 
@@ -151,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             ILocalSymbol local,
             TypeSyntax typeNode,
             SyntaxToken identifier,
+            Conversion conversion,
             SyntaxNode searchScope,
             out INamedTypeSymbol tupleType,
             out ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions,
@@ -166,6 +168,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
 
             if (!IsViableTupleTypeSyntax(typeNode))
             {
+                return false;
+            }
+
+            if (conversion.Exists &&
+                !conversion.IsIdentity &&
+                !conversion.IsTupleConversion &&
+                !conversion.IsTupleLiteralConversion)
+            {
+                // If there is any other conversion, we bail out because the source type might not be a tuple
+                // or it is a tuple but only thanks to target type inference, which won't occur in a deconstruction.
+                // Interesting case that illustrates this is initialization with a default literal:
+                // (int a, int b) t = default;
+                // This is classified as conversion.IsNullLiteral.
                 return false;
             }
 

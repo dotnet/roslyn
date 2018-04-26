@@ -4609,7 +4609,7 @@ End Class"
 
                 Assert.False(result.Success)
                 ' // error BC2032: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                result.Diagnostics.Verify(Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments("test\\?.pdb").WithLocation(1, 1))
+                result.Diagnostics.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1))
             End Using
         End Sub
     End Class

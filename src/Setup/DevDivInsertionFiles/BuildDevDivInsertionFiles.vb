@@ -108,8 +108,7 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly VsixesToInstall As String() = {
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
-        "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
-        "Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix"
+        "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix"
     }
 
     ' Files copied to Maddog machines running integration tests that are produced from our builds.
@@ -532,7 +531,7 @@ Public Class BuildDevDivInsertionFiles
 
                         Dim runtimeTarget = Path.GetDirectoryName(assemblyProperty.Name)
 
-                        Dim compileDll = contracts?.Properties().Select(Function(p) p.Name).Where(Function(n) Path.GetFileName(n) = fileName).Single()
+                        Dim compileDll = contracts?.Properties().Select(Function(p) p.Name).Where(Function(n) Path.GetFileName(n) = fileName).SingleOrDefault()
                         Dim compileTarget = If(compileDll IsNot Nothing, Path.GetDirectoryName(compileDll), Nothing)
 
                         result.Add(fileName, New DependencyInfo(compileTarget,

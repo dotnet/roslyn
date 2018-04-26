@@ -101,6 +101,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             protected Connection()
             {
+#if DEBUG
+                _creationCallStack = Environment.StackTrace;
+#endif
                 _disposed = false;
             }
 

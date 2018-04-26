@@ -94,11 +94,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Project GetProject(ProjectId projectId)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
+            // ContainsProject checks projectId being null
             if (this.ContainsProject(projectId))
             {
                 return ImmutableHashMapExtensions.GetOrAdd(ref _projectIdToProjectMap, projectId, s_createProjectFunction, this);
@@ -165,7 +161,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Document GetDocument(DocumentId documentId)
         {
-            if (documentId != null && this.ContainsDocument(documentId))
+            // ContainsDocument checks documentId being null
+            if (this.ContainsDocument(documentId))
             {
                 return this.GetProject(documentId.ProjectId).GetDocument(documentId);
             }

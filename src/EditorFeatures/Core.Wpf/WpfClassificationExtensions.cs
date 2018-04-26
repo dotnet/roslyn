@@ -8,7 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
 
@@ -78,12 +77,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             string classificationFormatMap = null,
             bool wrap = true)
         {
-
             var textBlock = new TextBlock
             {
                 TextWrapping = wrap ? TextWrapping.Wrap : TextWrapping.NoWrap,
                 TextTrimming = wrap ? TextTrimming.None : TextTrimming.CharacterEllipsis
             };
+
             textBlock.SetDefaultTextProperties(formatMap);
             textBlock.Inlines.AddRange(inlines);
 
