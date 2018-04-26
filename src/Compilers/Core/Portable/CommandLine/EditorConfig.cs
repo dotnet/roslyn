@@ -20,9 +20,6 @@ namespace Microsoft.CodeAnalysis
         // Matches EditorConfig property such as "indent_style = space", see http://editorconfig.org for details
         private static readonly Regex s_propertyMatcher = new Regex(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
 
-        private static ImmutableHashSet<string> s_lazyReservedKeys;
-        private static ImmutableHashSet<string> s_lazyReservedValues;
-
         /// <summary>
         /// A set of keys that are reserved for special interpretation for the editorconfig specification.
         /// All values corresponding to reserved keys in a (key,value) property pair are always lowercased
@@ -33,52 +30,24 @@ namespace Microsoft.CodeAnalysis
         /// at 2018-04-21 19:37:05Z. New keys may be added to this list in newer versions, but old ones will
         /// not be removed.
         /// </remarks>
-        public static ImmutableHashSet<string> ReservedKeys
-        {
-            get
-            {
-                if (s_lazyReservedKeys == null)
-                {
-                    var reservedKeys = new[] { 
-                        "root",
-                        "indent_style",
-                        "indent_size",
-                        "tab_width",
-                        "end_of_line",
-                        "charset",
-                        "trim_trailing_whitespace",
-                        "insert_final_newline",
-                    };
-                    Interlocked.CompareExchange(
-                        ref s_lazyReservedKeys,
-                        ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, reservedKeys),
-                        null);
-                }
-
-                return  s_lazyReservedKeys;
-            }
-        }
+        public static ImmutableHashSet<string> ReservedKeys { get; }
+            = ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, new[] {
+                "root",
+                "indent_style",
+                "indent_size",
+                "tab_width",
+                "end_of_line",
+                "charset",
+                "trim_trailing_whitespace",
+                "insert_final_newline",
+            });
 
         /// <summary>
         /// A set of values that are reserved for special use for the editorconfig specification
         /// and will always be lower-cased by the parser.
         /// </summary>
-        public static ImmutableHashSet<string> ReservedValues
-        {
-            get
-            {
-                if (s_lazyReservedValues == null)
-                {
-                    var reservedValues = new[] { "unset" };
-                    Interlocked.CompareExchange(
-                        ref s_lazyReservedValues,
-                        ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, reservedValues),
-                        null);
-                }
-
-                return  s_lazyReservedValues;
-            }
-        }
+        public static ImmutableHashSet<string> ReservedValues { get; }
+            = ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, new[] { "unset" });
 
         public Section GlobalSection { get; }
 
@@ -215,8 +184,8 @@ namespace Microsoft.CodeAnalysis
         {
             public Section(string name, ImmutableDictionary<string, string> properties)
             {
-                this.Name = name;
-                this.Properties = properties;
+                Name = name;
+                Properties = properties;
             }
 
             /// <summary>
@@ -227,8 +196,8 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Keys and values for this section. All keys are lower-cased according to the
             /// EditorConfig specification and keys are compared case-insensitively. Values are
-            /// lower-cased if the value appears in <see href="EditorConfig.ReservedValues" />
-            /// or if the corresponding key is in <see href="EditorConfig.ReservedKeys" />. Otherwise,
+            /// lower-cased if the value appears in <see cref="EditorConfig.ReservedValues" />
+            /// or if the corresponding key is in <see cref="EditorConfig.ReservedKeys" />. Otherwise,
             /// the values are the literal values present in the source.
             /// </summary>
             public ImmutableDictionary<string, string> Properties { get; }
