@@ -82,7 +82,7 @@
     <Rule Id="RS1012" Action="None" />
     <Rule Id="RS1013" Action="None" />
     <Rule Id="RS1014" Action="Warning" />
-    <Rule Id="RS1022" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26400: Enable rules CA1062, CA1303, CA1508, CA2100 and CA2215 for Roslyn.sln -->
+    <Rule Id="RS1022" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26420: Enable rule RS1022 for Roslyn.sln -->
   </Rules>
   <Rules AnalyzerId="Microsoft.Composition.Analyzers" RuleNamespace="Microsoft.Composition.Analyzers">
     <Rule Id="RS0006" Action="Error" />
