@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(3, list.Count);
         }
 
-
         [ConditionalFact(typeof(DesktopOnly))]
         public void BasicResourcesWithStringTypes()
         {
@@ -55,7 +54,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             yield return new Win32Resource(null, 0, 0, 1, null, -1, "A");//2
         }
 
-
         [ConditionalFact(typeof(DesktopOnly))]
         public void EnsureResourceSorting()
         {
@@ -84,7 +82,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(2, elem.TypeId);
             Assert.Equal("b", elem.Name);
         }
-
 
         [ConditionalFact(typeof(DesktopOnly))]
         public void BasicResources()

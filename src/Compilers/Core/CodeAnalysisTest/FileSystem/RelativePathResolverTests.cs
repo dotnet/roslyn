@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if NET461
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class RelativePathResolverTests : TestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ResolveMetadataFile1()
         {
             string fileName = "f.dll";
@@ -90,7 +88,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(filePath, path);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ResolveMetadataFile2()
         {
             string fileName = "f.dll";
@@ -174,5 +172,3 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
     }
 }
-
-#endif
