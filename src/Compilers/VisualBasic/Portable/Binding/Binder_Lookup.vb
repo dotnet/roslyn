@@ -741,7 +741,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim conflictingMembers = New HashSet(Of Symbol)(comparer)
 
                 ' Add all viable members from type lookup
-                If result IsNot Nothing AndAlso result.IsGood Then
+                If result?.IsGood Then
                     For Each sym In result.Symbols
                         ' Fields can't be present in the HashSet because they can't be compared
                         ' with a MemberSignatureComparer
@@ -788,7 +788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 tmp.Free()
-                If result IsNot Nothing AndAlso result.IsGood Then
+                If result?.IsGood Then
                     For Each sym In result.Symbols
                         If sym.Kind <> SymbolKind.Field Then
                             allMembers.Remove(sym)
@@ -1470,7 +1470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 LookupInInterfaces(lookupResult, container, lookIn, processed, name, arity, options, binder, methodsOnly, useSiteDiagnostics)
 
                 ' If no viable or ambiguous results, look in Object.
-                If lookupResult Is Nothing OrElse (Not lookupResult.IsGoodOrAmbiguous AndAlso (options And LookupOptions.NoSystemObjectLookupForInterfaces) = 0) Then
+                If lookupResult?.IsGoodOrAmbiguous <> True AndAlso (options And LookupOptions.NoSystemObjectLookupForInterfaces) = 0 Then
                     Dim currentResult = LookupResult.GetInstance()
                     Dim obj As NamedTypeSymbol = binder.SourceModule.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
 
@@ -1589,10 +1589,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 ExitForFor:
 
                     If ambiguityDiagnostics IsNot Nothing Then
-                        If lookupResult Is Nothing Then
-                            lookupResult = LookupResult.GetInstance()
-                        End If
-
                         lookupResult.SetFrom(New SingleLookupResult(LookupResultKind.Ambiguous, symbols.First, ambiguityDiagnostics))
                     End If
                 End If
@@ -1655,7 +1651,7 @@ ExitForFor:
                 Dim constraintClass = typeParameter.GetClassConstraint(useSiteDiagnostics)
                 If constraintClass IsNot Nothing Then
                     LookupInClass(result, constraintClass, name, arity, options, constraintClass, binder, useSiteDiagnostics)
-                    If result IsNot Nothing AndAlso result.StopFurtherLookup Then
+                    If result?.StopFurtherLookup Then
                         Return
                     End If
                 End If
