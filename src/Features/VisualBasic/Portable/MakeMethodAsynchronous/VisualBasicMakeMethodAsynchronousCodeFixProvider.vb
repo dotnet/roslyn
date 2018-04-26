@@ -39,10 +39,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
-        Protected Overrides Function IsLikelyEntryPointName(methodName As String) As Boolean
-            Return CaseInsensitiveComparison.Compare(methodName, "Main") = 0
-        End Function
-
         Protected Overrides Function AddAsyncTokenAndFixReturnType(
                 keepVoid As Boolean, methodSymbolOpt As IMethodSymbol, node As SyntaxNode,
                 taskType As INamedTypeSymbol, taskOfTType As INamedTypeSymbol, valueTaskOfTType As INamedTypeSymbol) As SyntaxNode

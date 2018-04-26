@@ -37,9 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
 
-        protected override bool IsLikelyEntryPointName(string methodName)
-            => string.Equals(methodName, "Main", StringComparison.Ordinal);
-
         protected override SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
             INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType)

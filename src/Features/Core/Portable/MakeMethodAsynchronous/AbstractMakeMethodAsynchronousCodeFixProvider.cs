@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -19,8 +20,6 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
         protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
             INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTType);
-
-        protected abstract bool IsLikelyEntryPointName(string methodName);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             }
 
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
-            bool isEntryPoint = symbol != null && symbol.IsStatic && IsLikelyEntryPointName(symbol.Name);
+            var isEntryPoint = symbol != null && symbol.IsStatic && IsLikelyEntryPointName(symbol.Name, context.Document);
 
             // Offer to convert to a Task return type.
             context.RegisterCodeFix(
@@ -67,6 +66,12 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                         context.Document, diagnostic, keepVoid: true, isEntryPoint: false, cancellationToken: c)),
                     context.Diagnostics);
             }
+        }
+
+        private bool IsLikelyEntryPointName(string name, Document document)
+        {
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            return syntaxFacts.StringComparer.Equals(name, "Main");
         }
 
         private (INamedTypeSymbol taskType, INamedTypeSymbol taskOfTType, INamedTypeSymbol valueTaskOfTTypeOpt) GetTaskTypes(Compilation compilation)
