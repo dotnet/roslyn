@@ -539,145 +539,272 @@ namespace Microsoft.CodeAnalysis.Operations
             ArrayBuilder<RegionBuilder> fromPredecessor = null;
 
             bool anyRemoved = false;
+            bool retry;
 
-            int count = blocks.Count - 1;
-            for (int i = 1; i < count; i++)
+            do
             {
-                BasicBlock block = blocks[i];
-                block.Ordinal = i;
+                // We set this local to true during the loop below when we make some changes that might enable 
+                // transformations for basic blocks that were already looked at. We simply keep repeating the
+                // pass untill no such changes are made.
+                retry = false;
 
-                if (!block.Statements.IsEmpty)
+                int count = blocks.Count - 1;
+                for (int i = 1; i < count; i++)
                 {
-                    // See if we can move all statements to the previous block
-                    ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
-                    BasicBlock predecessor;
-                    if (predecessors.Count == 1 &&
-                        (predecessor = predecessors.Single()).InternalConditional.Condition == null &&
-                        predecessor.Kind != BasicBlockKind.Entry &&
-                        predecessor.InternalNext.Branch.Destination == block &&
-                        regionMap[predecessor] == regionMap[block])
+                    BasicBlock block = blocks[i];
+                    block.Ordinal = i;
+
+                    // PROTOTYPE(dataflow): Consider if we want to do the following transformation.
+                    //                      Should we care if condition has a constant value?
+                    // If conditional and fallthrough branches have the same kind and destination,
+                    // move condition to the statement list and clear the conditional branch
+                    //if (block.InternalConditional.Condition != null &&
+                    //    block.InternalConditional.Branch.Destination == block.InternalNext.Branch.Destination &&
+                    //    block.InternalConditional.Branch.Kind == block.InternalNext.Branch.Kind)
+                    //{
+                    //    Debug.Assert(block.InternalNext.Value == null);
+                    //    block.AddStatement(block.InternalConditional.Condition);
+                    //    block.InternalConditional = default;
+                    //    retry = true;
+                    //}
+
+                    if (!block.Statements.IsEmpty)
                     {
-                        Debug.Assert(predecessor.InternalNext.Value == null);
-                        Debug.Assert(predecessor.InternalNext.Branch.Kind == BasicBlock.BranchKind.Regular);
+                        // See if we can move all statements to the previous block
+                        ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
+                        BasicBlock predecessor;
+                        if (predecessors.Count == 1 &&
+                            (predecessor = predecessors.Single()).InternalConditional.Condition == null &&
+                            predecessor.Kind != BasicBlockKind.Entry &&
+                            predecessor.InternalNext.Branch.Destination == block &&
+                            regionMap[predecessor] == regionMap[block])
+                        {
+                            Debug.Assert(predecessor.InternalNext.Value == null);
+                            Debug.Assert(predecessor.InternalNext.Branch.Kind == BasicBlock.BranchKind.Regular);
 
-                        predecessor.AddStatements(block.Statements);
-                        block.RemoveStatements();
+                            predecessor.AddStatements(block.Statements);
+                            block.RemoveStatements();
+                        }
+                        else
+                        {
+                            continue;
+                        }
                     }
-                    else
-                    {
-                        continue;
-                    }
-                }
 
-                ref BasicBlock.Branch next = ref block.InternalNext.Branch;
+                    ref BasicBlock.Branch next = ref block.InternalNext.Branch;
 
-                Debug.Assert((block.InternalNext.Value != null) == (next.Kind == BasicBlock.BranchKind.Return || next.Kind == BasicBlock.BranchKind.Throw));
-                Debug.Assert((next.Destination == null) ==
-                             (next.Kind == BasicBlock.BranchKind.ProgramTermination ||
-                              next.Kind == BasicBlock.BranchKind.Throw ||
-                              next.Kind == BasicBlock.BranchKind.ReThrow ||
-                              next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling));
+                    Debug.Assert((block.InternalNext.Value != null) == (next.Kind == BasicBlock.BranchKind.Return || next.Kind == BasicBlock.BranchKind.Throw));
+                    Debug.Assert((next.Destination == null) ==
+                                 (next.Kind == BasicBlock.BranchKind.ProgramTermination ||
+                                  next.Kind == BasicBlock.BranchKind.Throw ||
+                                  next.Kind == BasicBlock.BranchKind.ReThrow ||
+                                  next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling));
 
 #if DEBUG
-                if (next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling)
-                {
-                    RegionBuilder currentRegion = regionMap[block];
-                    Debug.Assert(currentRegion.Kind == ControlFlowGraph.RegionKind.Filter ||
-                                 currentRegion.Kind == ControlFlowGraph.RegionKind.Finally);
-                    Debug.Assert(block == currentRegion.LastBlock);
-                }
-#endif
-
-                if (block.InternalConditional.Condition == null)
-                {
-                    if (next.Destination == block)
-                    {
-                        continue;
-                    }
-
-                    RegionBuilder currentRegion = regionMap[block];
-
-                    // Is this the only block in the region
-                    if (currentRegion.FirstBlock == currentRegion.LastBlock)
-                    {
-                        Debug.Assert(currentRegion.FirstBlock == block);
-                        Debug.Assert(!currentRegion.HasRegions);
-
-                        // Remove Try/Finally if Finally is empty
-                        if (currentRegion.Kind == ControlFlowGraph.RegionKind.Finally &&
-                            next.Destination == null && next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling &&
-                            block.Predecessors.IsEmpty)
-                        {
-                            // Nothing useful is happening in this finally, let's remove it
-                            RegionBuilder tryAndFinally = currentRegion.Enclosing;
-                            Debug.Assert(tryAndFinally.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
-                            Debug.Assert(tryAndFinally.Regions.Count == 2);
-
-                            RegionBuilder @try = tryAndFinally.Regions.First();
-                            Debug.Assert(@try.Kind == ControlFlowGraph.RegionKind.Try);
-                            Debug.Assert(tryAndFinally.Regions.Last() == currentRegion);
-
-                            // If .try region has locals, let's convert it to .locals, otherwise drop it
-                            if (@try.Locals.IsEmpty)
-                            {
-                                i = @try.FirstBlock.Ordinal - 1; // restart at the first block of removed .try region
-                                MergeSubRegionAndFree(@try, blocks, regionMap);
-                            }
-                            else
-                            {
-                                @try.Kind = ControlFlowGraph.RegionKind.Locals;
-                                i--; // restart at the block that was following the tryAndFinally
-                            }
-
-                            MergeSubRegionAndFree(currentRegion, blocks, regionMap);
-
-                            RegionBuilder tryAndFinallyEnclosing = tryAndFinally.Enclosing;
-                            MergeSubRegionAndFree(tryAndFinally, blocks, regionMap);
-
-                            count--;
-                            Debug.Assert(regionMap[block] == tryAndFinallyEnclosing);
-                            removeBlock(block, tryAndFinallyEnclosing);
-                            anyRemoved = true;
-                        }
-
-                        continue;
-                    }
-
                     if (next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling)
                     {
-                        Debug.Assert(block.InternalNext.Value == null);
-                        Debug.Assert(next.Destination == null);
+                        RegionBuilder currentRegion = regionMap[block];
+                        Debug.Assert(currentRegion.Kind == ControlFlowGraph.RegionKind.Filter ||
+                                     currentRegion.Kind == ControlFlowGraph.RegionKind.Finally);
+                        Debug.Assert(block == currentRegion.LastBlock);
+                    }
+#endif
 
-                        ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
-
-                        // It is safe to drop an unreachable empty basic block
-                        if (predecessors.Count > 0)
+                    if (block.InternalConditional.Condition == null)
+                    {
+                        if (next.Destination == block)
                         {
-                            if (predecessors.Count != 1)
-                            {
-                                continue;
-                            }
-
-                            BasicBlock predecessor = predecessors.Single();
-
-                            if (predecessor.Ordinal != i - 1 ||
-                                predecessor.InternalNext.Branch.Destination != block ||
-                                predecessor.InternalConditional.Branch.Destination == block ||
-                                regionMap[predecessor] != currentRegion)
-                            {
-                                // Do not merge StructuredExceptionHandling into the middle of the filter or finally,
-                                // Do not merge StructuredExceptionHandling into conditional branch
-                                // Do not merge StructuredExceptionHandling into a different region
-                                // It is much easier to walk the graph when we can rely on the fact that a StructuredExceptionHandling
-                                // branch is only in the last block in the region, if it is present.
-                                continue;
-                            }
-
-                            predecessor.InternalNext = block.InternalNext;
+                            continue;
                         }
+
+                        RegionBuilder currentRegion = regionMap[block];
+
+                        // Is this the only block in the region
+                        if (currentRegion.FirstBlock == currentRegion.LastBlock)
+                        {
+                            Debug.Assert(currentRegion.FirstBlock == block);
+                            Debug.Assert(!currentRegion.HasRegions);
+
+                            // Remove Try/Finally if Finally is empty
+                            if (currentRegion.Kind == ControlFlowGraph.RegionKind.Finally &&
+                                next.Destination == null && next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling &&
+                                block.Predecessors.IsEmpty)
+                            {
+                                // Nothing useful is happening in this finally, let's remove it
+                                RegionBuilder tryAndFinally = currentRegion.Enclosing;
+                                Debug.Assert(tryAndFinally.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
+                                Debug.Assert(tryAndFinally.Regions.Count == 2);
+
+                                RegionBuilder @try = tryAndFinally.Regions.First();
+                                Debug.Assert(@try.Kind == ControlFlowGraph.RegionKind.Try);
+                                Debug.Assert(tryAndFinally.Regions.Last() == currentRegion);
+
+                                // If .try region has locals, let's convert it to .locals, otherwise drop it
+                                if (@try.Locals.IsEmpty)
+                                {
+                                    i = @try.FirstBlock.Ordinal - 1; // restart at the first block of removed .try region
+                                    MergeSubRegionAndFree(@try, blocks, regionMap);
+                                }
+                                else
+                                {
+                                    @try.Kind = ControlFlowGraph.RegionKind.Locals;
+                                    i--; // restart at the block that was following the tryAndFinally
+                                }
+
+                                MergeSubRegionAndFree(currentRegion, blocks, regionMap);
+
+                                RegionBuilder tryAndFinallyEnclosing = tryAndFinally.Enclosing;
+                                MergeSubRegionAndFree(tryAndFinally, blocks, regionMap);
+
+                                count--;
+                                Debug.Assert(regionMap[block] == tryAndFinallyEnclosing);
+                                removeBlock(block, tryAndFinallyEnclosing);
+                                anyRemoved = true;
+                                retry = true;
+                            }
+
+                            continue;
+                        }
+
+                        if (next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling)
+                        {
+                            Debug.Assert(block.InternalNext.Value == null);
+                            Debug.Assert(next.Destination == null);
+
+                            ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
+
+                            // It is safe to drop an unreachable empty basic block
+                            if (predecessors.Count > 0)
+                            {
+                                if (predecessors.Count != 1)
+                                {
+                                    continue;
+                                }
+
+                                BasicBlock predecessor = predecessors.Single();
+
+                                if (predecessor.Ordinal != i - 1 ||
+                                    predecessor.InternalNext.Branch.Destination != block ||
+                                    predecessor.InternalConditional.Branch.Destination == block ||
+                                    regionMap[predecessor] != currentRegion)
+                                {
+                                    // Do not merge StructuredExceptionHandling into the middle of the filter or finally,
+                                    // Do not merge StructuredExceptionHandling into conditional branch
+                                    // Do not merge StructuredExceptionHandling into a different region
+                                    // It is much easier to walk the graph when we can rely on the fact that a StructuredExceptionHandling
+                                    // branch is only in the last block in the region, if it is present.
+                                    continue;
+                                }
+
+                                predecessor.InternalNext = block.InternalNext;
+                            }
+                        }
+                        else
+                        {
+                            Debug.Assert(next.Kind == BasicBlock.BranchKind.Regular ||
+                                         next.Kind == BasicBlock.BranchKind.Return ||
+                                         next.Kind == BasicBlock.BranchKind.Throw ||
+                                         next.Kind == BasicBlock.BranchKind.ReThrow ||
+                                         next.Kind == BasicBlock.BranchKind.ProgramTermination);
+
+                            ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
+                            IOperation value = block.InternalNext.Value;
+
+                            RegionBuilder implicitEntryRegion = tryGetImplicitEntryRegion(block, currentRegion);
+
+                            if (implicitEntryRegion != null)
+                            {
+                                // First blocks in filter/catch/finally do not capture all possible predecessors
+                                // Do not try to merge them, unless they are simply linked to the next block
+                                if (value != null ||
+                                    next.Destination != blocks[i + 1])
+                                {
+                                    continue;
+                                }
+
+                                Debug.Assert(implicitEntryRegion.LastBlock.Ordinal >= next.Destination.Ordinal);
+                            }
+
+                            if (value != null)
+                            {
+                                BasicBlock predecessor;
+                                int predecessorsCount = predecessors.Count;
+
+                                if (predecessorsCount == 0 && next.Kind == BasicBlock.BranchKind.Return)
+                                {
+                                    // Let's drop an unreachable compiler generated return that VB optimistically adds at the end of a method body
+                                    if (next.Destination.Kind != BasicBlockKind.Exit ||
+                                        !value.IsImplicit ||
+                                        value.Kind != OperationKind.LocalReference ||
+                                        !((ILocalReferenceOperation)value).Local.IsFunctionValue)
+                                    {
+                                        continue;
+                                    }
+                                }
+                                else
+                                {
+                                    if (predecessorsCount != 1 ||
+                                      (predecessor = predecessors.Single()).InternalConditional.Branch.Destination == block ||
+                                      predecessor.Kind == BasicBlockKind.Entry ||
+                                      regionMap[predecessor] != currentRegion)
+                                    {
+                                        // Do not merge return/throw with expression with more than one predecessor
+                                        // Do not merge return/throw with expression with conditional branch
+                                        // Do not merge return/throw with expression with an entry block
+                                        // Do not merge return/throw with expression into a different region
+                                        continue;
+                                    }
+
+                                    Debug.Assert(predecessor.InternalNext.Branch.Destination == block);
+                                }
+                            }
+
+                            // For throw/re-throw assume there is no specific destination region
+                            RegionBuilder destinationRegionOpt = next.Destination == null ? null : regionMap[next.Destination];
+
+                            // If source and destination are in different regions, it might
+                            // be unsafe to merge branches.
+                            if (currentRegion != destinationRegionOpt)
+                            {
+                                fromCurrent?.Clear();
+                                fromDestination?.Clear();
+
+                                if (!checkBranchesFromPredecessors(block, currentRegion, destinationRegionOpt))
+                                {
+                                    continue;
+                                }
+                            }
+
+                            foreach (BasicBlock predecessor in predecessors)
+                            {
+                                if (tryMergeBranch(predecessor, ref predecessor.InternalNext.Branch, block))
+                                {
+                                    Debug.Assert(predecessor.InternalNext.Value == null);
+                                    predecessor.InternalNext.Value = value;
+                                }
+
+                                if (tryMergeBranch(predecessor, ref predecessor.InternalConditional.Branch, block))
+                                {
+                                    Debug.Assert(value == null);
+                                }
+                            }
+
+                            next.Destination?.RemovePredecessor(block);
+                        }
+
+                        i--;
+                        count--;
+                        removeBlock(block, currentRegion);
+                        anyRemoved = true;
+                        retry = true;
                     }
                     else
                     {
+                        if (next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling)
+                        {
+                            continue;
+                        }
+
                         Debug.Assert(next.Kind == BasicBlock.BranchKind.Regular ||
                                      next.Kind == BasicBlock.BranchKind.Return ||
                                      next.Kind == BasicBlock.BranchKind.Throw ||
@@ -685,156 +812,56 @@ namespace Microsoft.CodeAnalysis.Operations
                                      next.Kind == BasicBlock.BranchKind.ProgramTermination);
 
                         ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
-                        IOperation value = block.InternalNext.Value;
 
-                        RegionBuilder implicitEntryRegion = tryGetImplicitEntryRegion(block, currentRegion);
+                        if (predecessors.Count != 1)
+                        {
+                            continue;
+                        }
 
-                        if (implicitEntryRegion != null)
+                        RegionBuilder currentRegion = regionMap[block];
+                        if (tryGetImplicitEntryRegion(block, currentRegion) != null)
                         {
                             // First blocks in filter/catch/finally do not capture all possible predecessors
-                            // Do not try to merge them, unless they are simply linked to the next block
-                            if (value != null ||
-                                next.Destination != blocks[i + 1])
-                            {
-                                continue;
-                            }
-
-                            Debug.Assert(implicitEntryRegion.LastBlock.Ordinal >= next.Destination.Ordinal);
+                            // Do not try to merge conditional branches in them
+                            continue;
                         }
 
-                        if (value != null)
+                        BasicBlock predecessor = predecessors.Single();
+
+                        if (predecessor.Kind != BasicBlockKind.Entry &&
+                            predecessor.InternalNext.Branch.Destination == block &&
+                            predecessor.InternalConditional.Condition == null &&
+                            regionMap[predecessor] == currentRegion)
                         {
-                            BasicBlock predecessor;
-                            int predecessorsCount = predecessors.Count;
+                            Debug.Assert(predecessor != block);
+                            Debug.Assert(predecessor.InternalNext.Value == null);
 
-                            if (predecessorsCount == 0 && next.Kind == BasicBlock.BranchKind.Return)
-                            {
-                                // Let's drop an unreachable compiler generated return that VB optimistically adds at the end of a method body
-                                if (next.Destination.Kind != BasicBlockKind.Exit ||
-                                    !value.IsImplicit ||
-                                    value.Kind != OperationKind.LocalReference ||
-                                    !((ILocalReferenceOperation)value).Local.IsFunctionValue)
-                                {
-                                    continue;
-                                }
-                            }
-                            else
-                            {
-                                if (predecessorsCount != 1 ||
-                                  (predecessor = predecessors.Single()).InternalConditional.Branch.Destination == block ||
-                                  predecessor.Kind == BasicBlockKind.Entry ||
-                                  regionMap[predecessor] != currentRegion)
-                                {
-                                    // Do not merge return/throw with expression with more than one predecessor
-                                    // Do not merge return/throw with expression with conditional branch
-                                    // Do not merge return/throw with expression with an entry block
-                                    // Do not merge return/throw with expression into a different region
-                                    continue;
-                                }
+                            mergeBranch(predecessor, ref predecessor.InternalNext.Branch, ref next);
 
-                                Debug.Assert(predecessor.InternalNext.Branch.Destination == block);
+                            predecessor.InternalNext.Value = block.InternalNext.Value;
+                            next.Destination?.RemovePredecessor(block);
+
+                            predecessor.InternalConditional = block.InternalConditional;
+                            BasicBlock destination = block.InternalConditional.Branch.Destination;
+                            if (destination != null)
+                            {
+                                destination.AddPredecessor(predecessor);
+                                destination.RemovePredecessor(block);
                             }
+
+                            i--;
+                            count--;
+                            removeBlock(block, currentRegion);
+                            anyRemoved = true;
+                            retry = true;
                         }
-
-                        // For throw/re-throw assume there is no specific destination region
-                        RegionBuilder destinationRegionOpt = next.Destination == null ? null : regionMap[next.Destination];
-
-                        // If source and destination are in different regions, it might
-                        // be unsafe to merge branches.
-                        if (currentRegion != destinationRegionOpt)
-                        {
-                            fromCurrent?.Clear();
-                            fromDestination?.Clear();
-
-                            if (!checkBranchesFromPredecessors(block, currentRegion, destinationRegionOpt))
-                            {
-                                continue;
-                            }
-                        }
-
-                        foreach (BasicBlock predecessor in predecessors)
-                        {
-                            if (tryMergeBranch(predecessor, ref predecessor.InternalNext.Branch, block))
-                            {
-                                Debug.Assert(predecessor.InternalNext.Value == null);
-                                predecessor.InternalNext.Value = value;
-                            }
-
-                            if (tryMergeBranch(predecessor, ref predecessor.InternalConditional.Branch, block))
-                            {
-                                Debug.Assert(value == null);
-                            }
-                        }
-
-                        next.Destination?.RemovePredecessor(block);
-                    }
-
-                    i--;
-                    count--;
-                    removeBlock(block, currentRegion);
-                    anyRemoved = true;
-                }
-                else
-                {
-                    if (next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling)
-                    {
-                        continue;
-                    }
-
-                    Debug.Assert(next.Kind == BasicBlock.BranchKind.Regular ||
-                                 next.Kind == BasicBlock.BranchKind.Return ||
-                                 next.Kind == BasicBlock.BranchKind.Throw ||
-                                 next.Kind == BasicBlock.BranchKind.ReThrow ||
-                                 next.Kind == BasicBlock.BranchKind.ProgramTermination);
-
-                    ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
-
-                    if (predecessors.Count != 1)
-                    {
-                        continue;
-                    }
-
-                    RegionBuilder currentRegion = regionMap[block];
-                    if (tryGetImplicitEntryRegion(block, currentRegion) != null)
-                    {
-                        // First blocks in filter/catch/finally do not capture all possible predecessors
-                        // Do not try to merge conditional branches in them
-                        continue;
-                    }
-
-                    BasicBlock predecessor = predecessors.Single();
-
-                    if (predecessor.Kind != BasicBlockKind.Entry &&
-                        predecessor.InternalNext.Branch.Destination == block &&
-                        predecessor.InternalConditional.Condition == null &&
-                        regionMap[predecessor] == currentRegion)
-                    {
-                        Debug.Assert(predecessor != block);
-                        Debug.Assert(predecessor.InternalNext.Value == null);
-
-                        mergeBranch(predecessor, ref predecessor.InternalNext.Branch, ref next);
-
-                        predecessor.InternalNext.Value = block.InternalNext.Value;
-                        next.Destination?.RemovePredecessor(block);
-
-                        predecessor.InternalConditional = block.InternalConditional;
-                        BasicBlock destination = block.InternalConditional.Branch.Destination;
-                        if (destination != null)
-                        {
-                            destination.AddPredecessor(predecessor);
-                            destination.RemovePredecessor(block);
-                        }
-
-                        i--;
-                        count--;
-                        removeBlock(block, currentRegion);
-                        anyRemoved = true;
                     }
                 }
+
+                blocks[0].Ordinal = 0;
+                blocks[count].Ordinal = count;
             }
-
-            blocks[0].Ordinal = 0;
-            blocks[count].Ordinal = count;
+            while (retry);
 
             fromCurrent?.Free();
             fromDestination?.Free();

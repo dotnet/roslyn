@@ -2602,9 +2602,9 @@ Block[B1] - Block
 
     Next (Regular) Block[B2]
 Block[B2] - Block
-    Predecessors: [B1] [B5] [B6]
+    Predecessors: [B1] [B4] [B5]
     Statements (0)
-    Jump if False (Regular) to Block[B7]
+    Jump if False (Regular) to Block[B6]
         IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Me')
           Instance Receiver: 
             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
@@ -2627,16 +2627,12 @@ Block[B2] - Block
                   Instance Receiver: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
 
+        Jump if False (Regular) to Block[B5]
+            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
+
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B3]
-        Statements (0)
-        Jump if False (Regular) to Block[B6]
-            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
-
-        Next (Regular) Block[B5]
-    Block[B5] - Block
-        Predecessors: [B4]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = y')
               Expression: 
@@ -2648,8 +2644,8 @@ Block[B2] - Block
 
         Next (Regular) Block[B2]
             Leaving: {R1}
-    Block[B6] - Block
-        Predecessors: [B4]
+    Block[B5] - Block
+        Predecessors: [B3]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
               Expression: 
@@ -2663,7 +2659,7 @@ Block[B2] - Block
             Leaving: {R1}
 }
 
-Block[B7] - Exit
+Block[B6] - Exit
     Predecessors: [B2]
     Statements (0)
 ]]>.Value
@@ -2726,9 +2722,9 @@ Block[B1] - Block
 
     Next (Regular) Block[B2]
 Block[B2] - Block
-    Predecessors: [B1] [B6]
+    Predecessors: [B1] [B5]
     Statements (0)
-    Jump if False (Regular) to Block[B7]
+    Jump if False (Regular) to Block[B6]
         IInvocationOperation ( Function C.MoveNext() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Me')
           Instance Receiver: 
             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
@@ -2751,16 +2747,12 @@ Block[B2] - Block
                   Instance Receiver: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Me')
 
+        Jump if False (Regular) to Block[B5]
+            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
+
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B3]
-        Statements (0)
-        Jump if False (Regular) to Block[B6]
-            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
-
-        Next (Regular) Block[B5]
-    Block[B5] - Block
-        Predecessors: [B4]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = y')
               Expression: 
@@ -2770,10 +2762,10 @@ Block[B2] - Block
                   Right: 
                     IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
 
-        Next (Regular) Block[B7]
+        Next (Regular) Block[B6]
             Leaving: {R1}
-    Block[B6] - Block
-        Predecessors: [B4]
+    Block[B5] - Block
+        Predecessors: [B3]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
               Expression: 
@@ -2787,8 +2779,8 @@ Block[B2] - Block
             Leaving: {R1}
 }
 
-Block[B7] - Exit
-    Predecessors: [B2] [B5]
+Block[B6] - Exit
+    Predecessors: [B2] [B4]
     Statements (0)
 ]]>.Value
 
