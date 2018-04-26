@@ -2121,6 +2121,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbolWithAnnotations.Create(tupleOpt.WithElementTypes(elementTypes));
         }
 
+        public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
+        {
+            base.VisitTupleBinaryOperator(node);
+            SetResult(node);
+            return null;
+        }
+
         private void ReportNullabilityMismatchWithTargetDelegate(SyntaxNode syntax, NamedTypeSymbol delegateType, MethodSymbol method)
         {
             if ((object)delegateType == null || (object)method == null)

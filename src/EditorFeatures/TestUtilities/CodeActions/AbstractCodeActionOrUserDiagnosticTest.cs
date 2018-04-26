@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -24,6 +25,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
+    [UseExportProvider]
     public abstract class AbstractCodeActionOrUserDiagnosticTest
     {
         public struct TestParameters
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var actions = await GetCodeActionsAsync(workspace, parameters);
-                Assert.True(actions.Length == 0);
+                Assert.True(actions.Length == 0, "An action was offered when none was expected");
             }
         }
 
@@ -421,24 +423,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             void TestAnnotations(ImmutableArray<TextSpan> expectedSpans, string annotationKind)
             {
-                var annotatedTokens = fixedRoot.GetAnnotatedNodesAndTokens(annotationKind).Select(n => (SyntaxToken)n).ToList();
+                var annotatedItems = fixedRoot.GetAnnotatedNodesAndTokens(annotationKind).OrderBy(s => s.SpanStart).ToList();
 
-                Assert.Equal(expectedSpans.Length, annotatedTokens.Count);
+                Assert.Equal(expectedSpans.Length, annotatedItems.Count);
 
-                if (expectedSpans.Length > 0)
+                for (var i = 0; i < Math.Min(expectedSpans.Length, annotatedItems.Count); i++)
                 {
-                    var expectedTokens = TokenUtilities.GetTokens(TokenUtilities.GetSyntaxRoot(expectedText, GetLanguage(), parseOptions));
-                    var actualTokens = TokenUtilities.GetTokens(fixedRoot);
-
-                    for (var i = 0; i < Math.Min(expectedTokens.Count, actualTokens.Count); i++)
-                    {
-                        var expectedToken = expectedTokens[i];
-                        var actualToken = actualTokens[i];
-
-                        var actualIsConflict = annotatedTokens.Contains(actualToken);
-                        var expectedIsConflict = expectedSpans.Contains(expectedToken.Span);
-                        Assert.Equal(expectedIsConflict, actualIsConflict);
-                    }
+                    var actual = annotatedItems[i].Span;
+                    var expected = expectedSpans[i];
+                    Assert.Equal(expected, actual);
                 }
             }
         }
@@ -497,6 +490,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 }
             }
 
+            Assert.True(actions.Length > 0, "No action produced");
             Assert.InRange(index, 0, actions.Length - 1);
 
             var action = actions[index];

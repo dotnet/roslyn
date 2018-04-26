@@ -20,7 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEMethodSymbol : MethodSymbol
     {
-        private class SignatureData
+        /// <summary>
+        /// internal for testing purpose
+        /// </summary>
+        internal class SignatureData
         {
             public readonly SignatureHeader Header;
             public readonly ImmutableArray<ParameterSymbol> Parameters;
@@ -553,7 +556,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return false;
         }
 
-        private SignatureData Signature => _lazySignature ?? LoadSignature();
+        /// <summary>
+        /// internal for testing purpose
+        /// </summary>
+        internal SignatureData Signature => _lazySignature ?? LoadSignature();
 
         private SignatureData LoadSignature()
         {
@@ -587,7 +593,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // zero-th annotation is for the return type
                     ImmutableArray<bool> extraAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[i + 1];
 
-                    builder.Add(PEParameterSymbol.Create(moduleSymbol, this, i, paramInfo[i + 1], extraAnnotations, out isBadParameter));
+                    builder.Add(PEParameterSymbol.Create(
+                        moduleSymbol, this, this.IsMetadataVirtual(), i,
+                        paramInfo[i + 1], extraAnnotations, isReturn: false, out isBadParameter));
+
                     if (isBadParameter)
                     {
                         makeBad = true;
@@ -610,7 +619,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             paramInfo[0].Type = returnType;
 
             ImmutableArray<bool> extraReturnAnnotations = extraMethodAnnotations.IsDefault ? default : extraMethodAnnotations[0];
-            var returnParam = PEParameterSymbol.Create(moduleSymbol, this, ordinal: 0, paramInfo[0], extraReturnAnnotations, out isBadParameter);
+            var returnParam = PEParameterSymbol.Create(
+                moduleSymbol, this, this.IsMetadataVirtual(), 0,
+                paramInfo[0], extraReturnAnnotations, isReturn: true, out isBadParameter);
 
             if (makeBad || isBadParameter)
             {

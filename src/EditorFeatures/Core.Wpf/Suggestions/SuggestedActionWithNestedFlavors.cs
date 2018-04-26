@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return null;
             }
 
-            return new SuggestedActionSet(ImmutableArray.Create(previewChangesAction));
+            return new SuggestedActionSet(categoryName: null, actions: ImmutableArray.Create(previewChangesAction));
         }
 
         // HasPreview is called synchronously on the UI thread. In order to avoid blocking the UI thread,

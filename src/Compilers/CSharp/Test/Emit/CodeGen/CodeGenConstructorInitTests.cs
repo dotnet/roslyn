@@ -600,7 +600,7 @@ public static class Module1
     static dynamic F() => 0;
     dynamic d = F() * 2;
 }";
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyEmitDiagnostics(
                 // (4,17): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
                 //     dynamic d = F() * 2;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F()").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(4, 17));

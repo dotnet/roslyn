@@ -255,6 +255,11 @@ namespace Microsoft.CodeAnalysis.Operations
             return new BinaryOperatorExpression(operation.OperatorKind, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.IsLifted, operation.IsChecked, operation.IsCompareText, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
+        public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, object argument)
+        {
+            return new TupleBinaryOperatorExpression(operation.OperatorKind, Visit(operation.LeftOperand), Visit(operation.RightOperand), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
         public override IOperation VisitConditional(IConditionalOperation operation, object argument)
         {
             return new ConditionalOperation(Visit(operation.Condition), Visit(operation.WhenTrue), Visit(operation.WhenFalse), operation.IsRef, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -342,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, object argument)
         {
-            return new FieldInitializer(operation.InitializedFields, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new FieldInitializer(operation.Locals, operation.InitializedFields, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitVariableInitializer(IVariableInitializerOperation operation, object argument)
@@ -352,12 +357,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitPropertyInitializer(IPropertyInitializerOperation operation, object argument)
         {
-            return new PropertyInitializer(operation.InitializedProperties, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new PropertyInitializer(operation.Locals, operation.InitializedProperties, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, object argument)
         {
-            return new ParameterInitializer(operation.Parameter, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ParameterInitializer(operation.Locals, operation.Parameter, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitArrayCreation(IArrayCreationOperation operation, object argument)
@@ -433,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, object argument)
         {
-            return new LocalFunctionStatement(operation.Symbol, Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new LocalFunctionStatement(operation.Symbol, Visit(operation.Body), Visit(operation.IgnoredBody), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, object argument)
@@ -484,6 +489,21 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, object argument)
         {
             return new RaiseEventStatement(Visit(operation.EventReference), VisitArray(operation.Arguments), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, object argument)
+        {
+            return new ConstructorBodyOperation(operation.Locals, ((Operation)operation).SemanticModel, operation.Syntax, Visit(operation.Initializer), Visit(operation.BlockBody), Visit(operation.ExpressionBody));
+        }
+
+        public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, object argument)
+        {
+            return new MethodBodyOperation(((Operation)operation).SemanticModel, operation.Syntax, Visit(operation.BlockBody), Visit(operation.ExpressionBody));
+        }
+
+        public override IOperation VisitDiscardOperation(IDiscardOperation operation, object argument)
+        {
+            return new DiscardOperation(operation.DiscardSymbol, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
     }
 }

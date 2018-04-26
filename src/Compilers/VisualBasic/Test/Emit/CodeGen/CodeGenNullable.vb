@@ -1744,7 +1744,7 @@ End Module
                     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3415,7 +3415,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
 
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_ConstAsNonConstant, "Boolean?"),
                                         Diagnostic(ERRID.ERR_ConstAsNonConstant, "ULong?"),
@@ -3464,7 +3464,7 @@ End Module
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_NameNotMember2, "ns.field").WithArguments("field", "S?"))
         End Sub
 
@@ -3612,7 +3612,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(False))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(False))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3811,7 +3811,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(False))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.Off).WithOptionInfer(False))
 
             AssertTheseDiagnostics(compilation,
 <expected>

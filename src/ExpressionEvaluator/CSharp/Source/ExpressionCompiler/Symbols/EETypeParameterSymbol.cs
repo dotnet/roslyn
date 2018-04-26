@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _sourceTypeParameter.HasValueTypeConstraint; }
         }
 
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get { return _sourceTypeParameter.HasUnmanagedTypeConstraint; }
+        }
+
         public override ImmutableArray<Location> Locations
         {
             get { throw ExceptionUtilities.Unreachable; }

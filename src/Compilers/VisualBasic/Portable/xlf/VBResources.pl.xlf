@@ -8380,7 +8380,7 @@
                                   Specify a mapping for source path names output by
                                   the compiler.
 /platform:&lt;string&gt;                Limit which platforms this code can run on; 
-                                  must be x86, x64, Itanium, arm,
+                                  must be x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred or anycpu (default).
 /preferreduilang                  Specify the preferred output language name.
 /sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
@@ -8395,7 +8395,7 @@
 /vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic 
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Opcje kompilatora Visual Basic
+        <target state="needs-review-translation">                  Opcje kompilatora Visual Basic
 
                                   - PLIK WYJŚCIOWY -
 /out:&lt;plik&gt;                       Określa nazwę pliku wyjściowego.
@@ -9074,6 +9074,16 @@
       <trans-unit id="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment">
         <source>{0} is not a valid Visual Basic compound assignment operation</source>
         <target state="translated">{0} nie jest prawidłową złożoną operacją przypisania w języku Visual Basic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InterpolatedStrings">
+        <source>interpolated strings</source>
+        <target state="new">interpolated strings</target>
         <note />
       </trans-unit>
     </body>

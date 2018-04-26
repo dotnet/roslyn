@@ -74,14 +74,14 @@ Public Class BuildDevDivInsertionFiles
         "Newtonsoft.Json.dll",
         "StreamJsonRpc.dll",
         "StreamJsonRpc.resources.dll",
-        "codeAnalysisService.servicehub.service.json",
-        "remoteHostService.servicehub.service.json",
-        "snapshotService.servicehub.service.json",
-        "remoteSymbolSearchUpdateEngine.servicehub.service.json",
-        "codeAnalysisService64.servicehub.service.json",
-        "remoteHostService64.servicehub.service.json",
-        "snapshotService64.servicehub.service.json",
-        "remoteSymbolSearchUpdateEngine64.servicehub.service.json",
+        "roslynCodeAnalysis.servicehub.service.json",
+        "roslynRemoteHost.servicehub.service.json",
+        "roslynSnapshot.servicehub.service.json",
+        "roslynRemoteSymbolSearchUpdateEngine.servicehub.service.json",
+        "roslynCodeAnalysis64.servicehub.service.json",
+        "roslynRemoteHost64.servicehub.service.json",
+        "roslynSnapshot64.servicehub.service.json",
+        "roslynRemoteSymbolSearchUpdateEngine64.servicehub.service.json",
         "Microsoft.Build.Conversion.Core.dll",
         "Microsoft.Build.dll",
         "Microsoft.Build.Engine.dll",
@@ -144,7 +144,6 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.LanguageServices.dll",
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Roslyn.Compilers.Test.Resources.dll",
         "Roslyn.Hosting.Diagnostics.dll",
         "Roslyn.Test.PdbUtilities.dll"
@@ -289,7 +288,6 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
         "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Moq.dll",
         "csc.exe",
         "csc.exe.config",
@@ -498,8 +496,8 @@ Public Class BuildDevDivInsertionFiles
         Dim result = New Dictionary(Of String, DependencyInfo)
         Dim objDir = Path.Combine(Path.GetDirectoryName(_binDirectory.TrimEnd(Path.DirectorySeparatorChar)), "Obj")
         Dim files = New List(Of String)
-        files.Add(Path.Combine(objDir, "DevDivPackagesRoslyn\project.assets.json"))
-        files.Add(Path.Combine(objDir, "DevDivPackagesDebugger\project.assets.json"))
+        files.Add(Path.Combine(objDir, "CompilerExtension\project.assets.json"))
+        files.Add(Path.Combine(objDir, "VisualStudioSetup.Dependencies\project.assets.json"))
 
         For Each projectLockJson In files
             Dim items = JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson))
@@ -516,6 +514,10 @@ Public Class BuildDevDivInsertionFiles
                 Dim packageVersion = packageNameAndVersion(1)
                 Dim packageObj = DirectCast(targetProperty.Value, JObject)
 
+                If packageObj.Property("type").Value.Value(Of String) = "project" Then
+                    Continue For
+                End If
+
                 Dim contracts = DirectCast(packageObj.Property("compile")?.Value, JObject)
                 Dim runtime = DirectCast(packageObj.Property("runtime")?.Value, JObject)
                 Dim native = DirectCast(packageObj.Property("native")?.Value, JObject)
@@ -523,6 +525,14 @@ Public Class BuildDevDivInsertionFiles
 
                 Dim implementations = If(runtime, native)
                 If implementations Is Nothing Then
+                    Continue For
+                End If
+
+                ' No need to insert Visual Studio packages back into the repository itself
+                If packageName.StartsWith("Microsoft.VisualStudio.") OrElse
+                   packageName = "EnvDTE" OrElse
+                   packageName = "stdole" OrElse
+                   packageName.StartsWith("Microsoft.Build") Then
                     Continue For
                 End If
 
@@ -550,7 +560,7 @@ Public Class BuildDevDivInsertionFiles
                                                                 packageName,
                                                                 packageVersion,
                                                                 isNative:=native IsNot Nothing,
-                                                                isFacade:=frameworkAssemblies IsNot Nothing OrElse packageName = "System.IO.Pipes.AccessControl"))
+                                                                isFacade:=frameworkAssemblies IsNot Nothing AndAlso packageName <> "Microsoft.Build" OrElse packageName = "System.IO.Pipes.AccessControl"))
                     End If
                 Next
             Next
@@ -769,13 +779,14 @@ Public Class BuildDevDivInsertionFiles
             Dim values = CType(element.Property("values").Value, JArray)
             For Each item As String In values
                 Dim parent = Path.GetDirectoryName(item)
+                Dim name = Path.GetFileName(item)
 
-                ' Don't add in the csc.exe or vbc.exe from the CoreCLR projects.
-                If parent.EndsWith("Core", comparison) Then
+                If parent.EndsWith("NetFX20", comparison) Then
                     Continue For
                 End If
 
-                If parent.EndsWith("NetFX20", comparison) Then
+                ' Don't add in the netcoreapp2.0 version of DLL
+                if Path.GetFileName(parent) = "netcoreapp2.0" AndAlso name = "Microsoft.Build.Tasks.CodeAnalysis.dll" Then
                     Continue For
                 End If
 
@@ -806,6 +817,7 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\csi\net46\csi.rsp")
         add("Exes\csi\net46\csi.exe.config")
         add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")
+        add("Vsix\VisualStudioSetup\Microsoft.CodeAnalysis.Elfie.dll")
         add("Vsix\VisualStudioSetup\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Convention.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Hosting.dll")
@@ -821,8 +833,9 @@ Public Class BuildDevDivInsertionFiles
         add("Dlls\CSharpResultProvider.Portable\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.vsdconfig")
         add("Dlls\FunctionResolver\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.vsdconfig")
         add("Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.vsdconfig")
-        add("Dlls\MSBuildTask\Microsoft.CSharp.Core.targets")
-        add("Dlls\MSBuildTask\Microsoft.VisualBasic.Core.targets")
+        add("Dlls\MSBuildTask\net46\Microsoft.Managed.Core.targets")
+        add("Dlls\MSBuildTask\net46\Microsoft.CSharp.Core.targets")
+        add("Dlls\MSBuildTask\net46\Microsoft.VisualBasic.Core.targets")
         add("Dlls\CSharpCompilerTestUtilities\Roslyn.Compilers.CSharp.Test.Utilities.dll")
         add("Dlls\BasicCompilerTestUtilities\Roslyn.Compilers.VisualBasic.Test.Utilities.dll")
         add("Dlls\CompilerTestResources\\Roslyn.Compilers.Test.Resources.dll")
@@ -832,24 +845,21 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
         add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.PortablePdb.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Converter.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Converter.Xml.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Native.amd64.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Native.x86.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.PortablePdb.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Converter.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Converter.Xml.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Native.amd64.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Native.x86.dll")
         add("Vsix\ExpressionEvaluatorPackage\Microsoft.VisualStudio.Debugger.Engine.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
         add("Exes\Toolset\System.AppContext.dll")
         add("Exes\Toolset\System.Console.dll")
         add("Exes\Toolset\System.Collections.Immutable.dll")
         add("Exes\Toolset\System.Diagnostics.FileVersionInfo.dll")
-        add("Exes\Toolset\System.Diagnostics.Process.dll")
         add("Exes\Toolset\System.Diagnostics.StackTrace.dll")
         add("Exes\Toolset\System.IO.Compression.dll")
         add("Exes\Toolset\System.IO.FileSystem.dll")
-        add("Exes\Toolset\System.IO.FileSystem.DriveInfo.dll")
         add("Exes\Toolset\System.IO.FileSystem.Primitives.dll")
         add("Exes\Toolset\System.IO.Pipes.dll")
         add("Exes\Toolset\System.IO.Pipes.AccessControl.dll")
@@ -862,13 +872,11 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\Toolset\System.Security.Cryptography.X509Certificates.dll")
         add("Exes\Toolset\System.Security.Principal.Windows.dll")
         add("Exes\Toolset\System.Text.Encoding.CodePages.dll")
-        add("Exes\Toolset\System.Threading.Thread.dll")
         add("Exes\Toolset\System.ValueTuple.dll")
         add("Exes\Toolset\System.Xml.ReaderWriter.dll")
         add("Exes\Toolset\System.Xml.XmlDocument.dll")
         add("Exes\Toolset\System.Xml.XPath.dll")
         add("Exes\Toolset\System.Xml.XPath.XDocument.dll")
-        add("Exes\Toolset\Microsoft.Win32.Primitives.dll")
         add("Vsix\VisualStudioSetup\Humanizer.dll")
         Return map
     End Function

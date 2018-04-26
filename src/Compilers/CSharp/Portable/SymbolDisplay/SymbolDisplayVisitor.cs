@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -210,9 +211,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
 
-            if (symbol.IsConst &&
+            if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
+                symbol.IsConst &&
                 symbol.HasConstantValue &&
-                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
                 CanAddConstant(symbol.Type, symbol.ConstantValue))
             {
                 AddSpace();
@@ -296,10 +297,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeAccessibility) &&
                 (containingType == null ||
-                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol))))
+                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol) & !IsLocalFunction(symbol))))
             {
                 AddAccessibility(symbol);
             }
+        }
+
+        private static bool IsLocalFunction(ISymbol symbol)
+        {
+            if (symbol.Kind != SymbolKind.Method)
+            {
+                return false;
+            }
+
+            return ((IMethodSymbol)symbol).MethodKind == MethodKind.LocalFunction;
         }
 
         private void AddAccessibility(ISymbol symbol)

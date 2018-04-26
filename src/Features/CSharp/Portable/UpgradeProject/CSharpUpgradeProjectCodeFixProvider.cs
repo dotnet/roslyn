@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UpgradeProject;
 using Roslyn.Utilities;
 
@@ -28,25 +27,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                 "CS8314", // error CS9003: An expression of type '{0}' cannot be handled by a pattern of type '{1}' in C# {2}. Please use language version {3} or greater.
                 "CS8320", // error CS8320: Feature is not available in C# 7.2. Please use language version X or greater.
                 "CS1738", // error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
-                "CS8350", // error CS8350: Feature is not available in C# 8.0. Please use language version X or greater.
+                "CS8370", // error CS8370: Feature is not available in C# 7.3. Please use language version X or greater.
+                "CS8371", // warning CS8371: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
+                "CS8400", // error CS8400: Feature is not available in C# 8.0. Please use language version X or greater.
             });
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;
         public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0;
 
-        public override ImmutableArray<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics)
+        public override string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics)
         {
-            var required = RequiredVersion(diagnostics);
-            var builder = ArrayBuilder<string>.GetInstance(1);
-
-            var generic = required <= LanguageVersion.Default.MapSpecifiedToEffectiveVersion()
-               ? LanguageVersion.Default // for all versions prior to current Default
-               : LanguageVersion.Latest; // for more recent versions
-
-            builder.Add(generic.ToDisplayString());
-            builder.Add(required.ToDisplayString()); // also suggest the specific required version
-
-            return builder.ToImmutableAndFree();
+            return RequiredVersion(diagnostics).ToDisplayString();
         }
 
         private static LanguageVersion RequiredVersion(ImmutableArray<Diagnostic> diagnostics)

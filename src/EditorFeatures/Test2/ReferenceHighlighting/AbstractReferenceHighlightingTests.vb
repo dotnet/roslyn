@@ -15,7 +15,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
-
+    <[UseExportProvider]>
     Public MustInherit Class AbstractReferenceHighlightingTests
         Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
             Await VerifyHighlightsAsync(test, optionIsEnabled, outOfProcess:=False)
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
                     workspace.GetService(Of IForegroundNotificationService),
                     workspace.GetService(Of ISemanticChangeNotificationService),
-                    AggregateAsynchronousOperationListener.EmptyListeners)
+                    AsynchronousOperationListenerProvider.NullProvider)
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim caretPosition = hostDocument.CursorPosition.Value

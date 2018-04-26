@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(544328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544328")>
         <Fact>
         Public Sub Bug12601()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module M
@@ -32,7 +32,7 @@ End Module
         <WorkItem(544455, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544455")>
         <Fact>
         Public Sub EmptyDefaultPropertyName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -53,7 +53,7 @@ End Module
         <WorkItem(545233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545233")>
         <Fact>
         Public Sub Bug13538()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -74,7 +74,7 @@ End Class
         ''' </summary>
         <Fact>
         Public Sub AnalyzePropertyGroup()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module M
@@ -94,7 +94,7 @@ End Module
         <WorkItem(545667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545667")>
         <Fact()>
         Public Sub Bug14266()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Enum E
@@ -118,7 +118,7 @@ End Enum
         <WorkItem(546685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546685")>
         <Fact()>
         Public Sub Bug16557()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module M
@@ -143,7 +143,7 @@ End Module
 
         <Fact()>
         Public Sub ExpressionInStructuredTrivia()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 #If e=True
@@ -162,7 +162,7 @@ End Module
         <WorkItem(546570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546570")>
         <Fact()>
         Public Sub AnalyzeForEachMeInModule()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module M
@@ -183,7 +183,7 @@ End Module
         <WorkItem(546914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546914")>
         <Fact()>
         Public Sub Bug17230_If()
-            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
+            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -195,7 +195,7 @@ Module Program
 End Module
 ]]></file>
 </compilation>))
-            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
+            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -207,7 +207,7 @@ Module Program
 End Module
 ]]></file>
 </compilation>))
-            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
+            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -217,7 +217,7 @@ Module Program
 End Module
 ]]></file>
 </compilation>))
-            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
+            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -232,7 +232,7 @@ End Module
         <WorkItem(546914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546914")>
         <Fact()>
         Public Sub Bug17230_Other()
-            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
+            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -242,7 +242,7 @@ Module Program
 End Module
 ]]></file>
 </compilation>))
-            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
+            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -252,7 +252,7 @@ Module Program
 End Module
 ]]></file>
 </compilation>))
-            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
+            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -262,7 +262,7 @@ Module Program
 End Module
 ]]></file>
 </compilation>))
-            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
+            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -272,7 +272,7 @@ Module Program
 End Module
 ]]></file>
 </compilation>))
-            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
+            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -282,7 +282,7 @@ Module Program
 End Module
 ]]></file>
 </compilation>))
-            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
+            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -292,7 +292,7 @@ Module Program
 End Module
 ]]></file>
 </compilation>))
-            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
+            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -302,7 +302,7 @@ Module Program
 End Module
 ]]></file>
 </compilation>))
-            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib(
+            AnalyzeExpressionDataFlow(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module Program
@@ -317,7 +317,7 @@ End Module
         <WorkItem(571062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/571062")>
         <Fact()>
         Public Sub Bug571062()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class A
@@ -346,7 +346,7 @@ End Namespace
         <WorkItem(578141, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578141")>
         <Fact()>
         Public Sub IsImplicitlyDeclared()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Dim F
@@ -373,12 +373,12 @@ MustOverride Sub M()
         <Fact()>
         Public Sub MustOverrideMember()
             ' MustOverride method in script class.
-            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(<![CDATA[
+            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib40({VisualBasicSyntaxTree.ParseText(<![CDATA[
 MustOverride Sub M()
 ]]>.Value,
                 options:=TestOptions.Script)}))
             ' MustOverride method in invalid class.
-            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib(
+            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 MClass C
@@ -387,7 +387,7 @@ End Class
 ]]></file>
 </compilation>))
             ' MustOverride property in script class.
-            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib(
+            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 MClass C
@@ -396,7 +396,7 @@ End Class
 ]]></file>
 </compilation>))
             ' MustOverride constructor.
-            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib(
+            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 MustInherit Class C
@@ -405,7 +405,7 @@ End Class
 ]]></file>
 </compilation>))
             ' MustOverride method in class not MustInherit
-            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib(
+            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -425,7 +425,7 @@ End Class
         <WorkItem(611707, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611707")>
         <Fact()>
         Public Sub UnexpectedVarianceKeyword()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Interface(Await
@@ -440,7 +440,7 @@ Interface(Await
         <WorkItem(611707, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611707")>
         <Fact()>
         Public Sub UnexpectedVarianceKeyword_2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Delegate Sub D(Of From
@@ -455,7 +455,7 @@ Delegate Sub D(Of From
         <WorkItem(762034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762034")>
         <Fact()>
         Public Sub Bug762034()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Dim t = !Str

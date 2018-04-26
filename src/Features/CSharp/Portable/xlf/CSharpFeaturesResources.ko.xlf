@@ -212,16 +212,6 @@
         <target state="translated">Using 제거 및 정렬(&amp;E)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_potential_implicit_array_creation">
-        <source>Autoselect disabled due to potential implicit array creation.</source>
-        <target state="translated">배열이 암시적으로 만들어졌을 수 있으므로 자동 선택을 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="implicit_array_creation">
-        <source>&lt;implicit array creation&gt;</source>
-        <target state="translated">&lt;암시적 배열 만들기&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_await">
         <source>Insert 'await'.</source>
         <target state="translated">Await'를 삽입합니다.</target>
@@ -602,11 +592,6 @@
         <target state="translated">this'를 추가합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_if_to_switch">
-        <source>Convert 'if' to 'switch'</source>
-        <target state="translated">if'를 'switch'로 변환</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Warning_Extracting_a_local_function_reference_may_produce_invalid_code">
         <source>Warning: Extracting a local function reference may produce invalid code</source>
         <target state="translated">경고: 로컬 함수 참조를 추출하면 잘못된 코드가 생성될 수 있습니다.</target>
@@ -635,6 +620,26 @@
       <trans-unit id="Use_is_null_check">
         <source>Use 'is null' check</source>
         <target state="translated">is null' 검사 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
+        <source>Add parentheses</source>
+        <target state="new">Add parentheses</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_switch">
+        <source>Convert to 'switch'</source>
+        <target state="new">Convert to 'switch'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_foreach">
+        <source>Convert to 'foreach'</source>
+        <target state="new">Convert to 'foreach'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_for">
+        <source>Convert to 'for'</source>
+        <target state="new">Convert to 'for'</target>
         <note />
       </trans-unit>
     </body>

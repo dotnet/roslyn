@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
         c[0][0].ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         b[0].ToString();
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
         d[0][0].ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         b[0].ToString();
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
         (new[] { y, x })[1].ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         (new[] { y, x })[1].ToString();
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
         b[0][0].ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             a[0].ToString();
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
         f[0].ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,39): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var a = new[] { new object(), (string)null };
@@ -207,7 +207,7 @@ class C
         d[0].F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (2,7): warning CS8618: Non-nullable field 'F' is uninitialized.
                 // class A<T>
@@ -260,7 +260,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,32): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //             var c = new[] { a, b };
@@ -297,7 +297,7 @@ class C
         b[0].ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,25): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //     static void G(C? x, Unknown y)
@@ -326,7 +326,7 @@ class C
         c[0].ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,35): warning CS8601: Possible null reference assignment.
                 //         var a = new object[] { x, y };
@@ -352,7 +352,7 @@ class C
         v.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         z.ToString();
@@ -379,7 +379,7 @@ class C
         if (y != null) (b ? y : x).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? x : y).ToString();
@@ -403,7 +403,7 @@ class C
         (true ? y : x).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (false ? x : y).ToString();
@@ -430,7 +430,7 @@ class C
         (b ? y : x).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? x : y).ToString();
@@ -471,7 +471,7 @@ class C
         (b ? y : x).P.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (2,7): warning CS8618: Non-nullable property 'P' is uninitialized.
@@ -514,7 +514,7 @@ class C
         (b ? default: default).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<null>' and '<null>'
                 //         (b ? null: null).ToString();
@@ -568,7 +568,7 @@ class C
         (b ? y: null).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (3,27): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
                 //     static void F(bool b, Unknown x, Unknown? y)
@@ -612,7 +612,7 @@ class C
         (b ? y : x).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (3,28): error CS0246: The type or namespace name 'UnknownA' could not be found (are you missing a using directive or an assembly reference?)
                 //     static void F1(bool b, UnknownA x, UnknownB y)
@@ -670,7 +670,7 @@ class C
         (b ? y : x).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'A' and 'B'
                 //         (b ? x : y).ToString();
@@ -713,7 +713,7 @@ class C
         (b ? throw new Exception() : y).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? x : throw new Exception()).ToString();
@@ -735,7 +735,7 @@ class C
         (b ? throw null : x).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -751,7 +751,7 @@ class C
         (b ? throw new Exception() : throw new Exception()).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<throw expression>' and '<throw expression>'
                 //         (b ? throw new Exception() : throw new Exception()).ToString();
@@ -832,7 +832,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (15,13): error CS0165: Use of unassigned local variable 'x1'
                 //             x1.ToString(); // unassigned (if)
@@ -901,7 +901,7 @@ class C
         v.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         z.ToString();
@@ -924,7 +924,7 @@ class C
         if (y != null) (y ?? x).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (x ?? y).ToString();
@@ -947,7 +947,7 @@ class C
         (null ?? y).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,10): error CS0019: Operator '??' cannot be applied to operands of type '<null>' and '<null>'
                 //         (null ?? null).ToString();
@@ -969,7 +969,7 @@ class C
         ("""" ?? y).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -984,7 +984,7 @@ public class UnknownNull
     public A A;
     public B B;
 }";
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
@@ -999,7 +999,7 @@ public class NotNull
     public A A = new A();
     public B B = new B();
 }";
-            var comp1 = CreateStandardCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics();
             var ref1 = comp1.EmitToImageReference();
 
@@ -1043,7 +1043,7 @@ public class NotNull
         (x9.A ?? y9.B)/*T:!*/.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (5,10): error CS0019: Operator '??' cannot be applied to operands of type 'A' and 'B'
@@ -1111,7 +1111,7 @@ public class NotNull
         (y2 ?? null)/*T:!*/.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (3,26): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
@@ -1159,7 +1159,7 @@ public class NotNull
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Possible dereference of a null reference.
                 //             (a ?? c)[0].ToString();
@@ -1188,7 +1188,7 @@ class C
         return x ?? y;
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,21): warning CS8619: Nullability of reference types in value of type '(I<object?>, I<object>)?' doesn't match target type '(I<object>, I<object?>)?'.
                 //         return x ?? y;
@@ -1211,7 +1211,7 @@ class C
         (new { Q = o }).Q.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         (new { P = o }).P.ToString();
@@ -1233,7 +1233,7 @@ class C
         (new { Q = new[] { o }}).Q[0].ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         (new { P = new[] { o }}).P[0].ToString();
@@ -1253,7 +1253,7 @@ class C
         if (x != null) y = new C(x);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,23): warning CS8604: Possible null reference argument for parameter 'o' in 'C.C(object o)'.
                 //         var y = new C(x);
@@ -1280,7 +1280,7 @@ class C
         o.F.G.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -1310,7 +1310,7 @@ class C
         y.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
@@ -1338,7 +1338,7 @@ class C
         if (x != null) F(y, x);
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): We should be able to report warnings
             // when all applicable methods agree on the nullability of particular parameters.
             // (For instance, x in F(x, y) above.)
@@ -1360,7 +1360,7 @@ class C
         if (x != null) o = new C(y, x);
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): We should be able to report warnings
             // when all applicable methods agree on the nullability of particular parameters.
             // (For instance, x in F(x, y) above.)
@@ -1385,7 +1385,7 @@ class C
         o.G.ToString();
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -1419,7 +1419,7 @@ class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (1,7): warning CS8618: Non-nullable field 'F' is uninitialized.
                 // class C<T>
@@ -1448,7 +1448,7 @@ class C
         F(y: y, x: x).ToString();
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         F(y: y, x: x).ToString();
@@ -1471,7 +1471,7 @@ class C
         F(() => { if (y == null) return x; return y; });
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,56): warning CS8603: Possible null reference return.
                 //         F(() => { if ((object)x == y) return x; return y; });
@@ -1499,7 +1499,7 @@ class C
         F(() => { if (b) return y; return x; });
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,43): warning CS8603: Possible null reference return.
                 //         F(() => { if (b) return x; return y; });
@@ -1536,7 +1536,7 @@ class C
         F(() => { if (b) return x; return y; }).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         F(() => { if (b) return x; return y; }).ToString();
@@ -1564,7 +1564,7 @@ class C
         if (o != null) F(() => o).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         F(() => o).ToString();
@@ -1588,7 +1588,7 @@ class C
         F(o => { if (o == null) throw new ArgumentException(); return o; }).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -1614,7 +1614,7 @@ class C
         IOut<object> c = z;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,24): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
                 //         I<object?> a = x;
@@ -1658,7 +1658,7 @@ class C
         c = z;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,13): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
                 //         a = x;
@@ -1692,7 +1692,7 @@ class C
         F(x, y, z);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,11): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'x' in 'void C.G(I<object?> x, IIn<object?> y, IOut<object?> z)'.
                 //         G(x, y, z);
@@ -1726,7 +1726,7 @@ class C
         F(out x, out y, out z);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,15): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'x' in 'void C.G(out I<object?> x, out IIn<object?> y, out IOut<object?> z)'.
                 //         G(out x, out y, out z);
@@ -1760,7 +1760,7 @@ class C
         F(ref x, ref y, ref z);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,15): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'x' in 'void C.G(ref I<object?> x, ref IIn<object?> y, ref IOut<object?> z)'.
                 //         G(ref x, ref y, ref z);
@@ -1800,7 +1800,7 @@ class C
         F(in x, in y, in z);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,14): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'x' in 'void C.G(in I<object?> x, in IIn<object?> y, in IOut<object?> z)'.
                 //         G(in x, in y, in z);
@@ -1865,7 +1865,7 @@ class C
         z7 = x7 ?? (IOut<object?>)y7;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,30): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
                 //         I<object> z1 = x1 ?? y1;
@@ -1954,7 +1954,7 @@ class C
         FOut((FOut(x4) ?? FOut(y4))/*T:IOut<object!>?*/).ToString(); // D
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (22,14): warning CS8620: Nullability of reference types in argument of type 'IIn<object>' doesn't match target type 'IIn<object?>' for parameter 'x' in 'void C.FIn(IIn<object?>? x)'.
@@ -2004,7 +2004,7 @@ class C
         (x ?? y).Item1.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         (x ?? y).Item1.ToString();
@@ -2056,7 +2056,7 @@ class C
         (y6 ?? x6)/*T:B<object!>?*/.Value.F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (14,10): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'B<object?>'.
@@ -2141,7 +2141,7 @@ class C
         (y6 ?? x6)/*T:B<object!>*/.F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (6,7): warning CS8618: Non-nullable field 'F' is uninitialized.
@@ -2207,7 +2207,7 @@ class C
         (z ?? y).ToString();
     }
 }";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (x ?? y).ToString();
@@ -2232,7 +2232,7 @@ class C
     public object Object;
     public string String;
 }";
-            var comp0 = CreateStandardCompilation(source0, parseOptions: TestOptions.Regular7);
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
@@ -2247,7 +2247,7 @@ public class NotNull
     public object Object = new object();
     public string String = string.Empty;
 }";
-            var comp1 = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular8);
+            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics();
             var ref1 = comp1.EmitToImageReference();
 
@@ -2300,7 +2300,7 @@ public class NotNull
         (y9.String ?? x9.Object)/*T:object!*/.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (10,10): warning CS8602: Possible dereference of a null reference.
@@ -2360,7 +2360,7 @@ class C
         (w ?? z).F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (2,7): warning CS8618: Non-nullable field 'F' is uninitialized.
                 // class A<T>
@@ -2414,7 +2414,7 @@ class C
         (w ?? z)/*T:IIn<string!>!*/.F(string.Empty, null);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (9,10): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<string?>'.
@@ -2460,7 +2460,7 @@ class C
         (w ?? z)/*T:IOut<object?>!*/.P.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (9,15): warning CS8619: Nullability of reference types in value of type 'IOut<string?>' doesn't match target type 'IOut<object>'.
@@ -2520,7 +2520,7 @@ class C
         (new[] { w, z })[0].ToString(); // C6
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,21): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
                 //         (new[] { x, y })[0].ToString(); // A1
@@ -2601,7 +2601,7 @@ class B
         (new[] { w!, w })[0].F.ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -2640,7 +2640,7 @@ class B
         F2(w!, w).ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
         }
 
@@ -2676,7 +2676,7 @@ class C
         IOut<object>[] d = new[] { x };
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,27): warning CS8619: Nullability of reference types in value of type 'I<object>?[]' doesn't match target type 'I<object?>?[]'.
                 //         I<object?>?[] a = new[] { x };
@@ -2724,7 +2724,7 @@ class C
         var w = new A<object?>[] { x, y };
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,38): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
                 //         var z = new A<object>[] { x, y };
@@ -2753,7 +2753,7 @@ class C
         var b = new IOut<object>[] { y };
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,38): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<string?>'.
                 //         var a = new IIn<string?>[] { x };
@@ -2782,7 +2782,7 @@ class C
         (new[] { y, x })[0].ToString();
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         (new[] { x, y })[0].ToString();
@@ -2835,7 +2835,7 @@ class C
         b = true ? x : y;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,13): warning CS8626: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
                 //         a = c ? x : y;
@@ -2904,7 +2904,7 @@ class C
         y += c;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,9): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
                 //         y += c;
@@ -2946,7 +2946,7 @@ class C<T>
         (x, y) = c;
     }
 }";
-            var comp = CreateStandardCompilation(
+            var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
@@ -2979,7 +2979,7 @@ class C
     }
     object this[I<string> x, I<object?> y] => new object();
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,16): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'y' in 'object C.this[I<string> x, I<object?> y]'.
                 //             y: y, // warn 1
@@ -3016,7 +3016,7 @@ class C
         set { }
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,16): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'y' in 'int C.this[I<string> x, I<object?> y]'.
                 //             y: y, // warn 1
@@ -3047,7 +3047,7 @@ class C
         A<object?> y = x;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,24): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
                 //         A<object?> y = x;
@@ -3084,7 +3084,7 @@ class C
         y = x;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (7,25): warning CS8619: Nullability of reference types in value of type 'IB<object>' doesn't match target type 'IA<object?>'.
                 //         IA<object?> y = x;
@@ -3122,7 +3122,7 @@ class C
         IOut<object> y = x;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,26): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
                 //         IOut<object> y = x;
@@ -3145,7 +3145,7 @@ class C
         IIn<object> y = x;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,26): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
                 //         IIn<object?> y = x;
@@ -3169,7 +3169,7 @@ class C
         IOut<object> y = x;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,26): warning CS8619: Nullability of reference types in value of type 'A<string?>' doesn't match target type 'IOut<object>'.
                 //         IOut<object> y = x;
@@ -3193,7 +3193,7 @@ class C
         IOut<object> y = x;
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (11,26): warning CS8619: Nullability of reference types in value of type 'A<string>' doesn't match target type 'IOut<object>'.
                 //         IOut<object> y = x;

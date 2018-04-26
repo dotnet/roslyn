@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyNullableAttribute;
 
         /// <summary>
@@ -80,6 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)_lazyIsReadOnlyAttribute != null)
             {
                 builder.Add(_lazyIsReadOnlyAttribute);
+            }
+
+            if ((object)_lazyIsUnmanagedAttribute != null)
+            {
+                builder.Add(_lazyIsUnmanagedAttribute);
             }
 
             if ((object)_lazyIsByRefLikeAttribute != null)
@@ -202,6 +208,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.TrySynthesizeIsReadOnlyAttribute();
         }
 
+        protected override SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
+        {
+            if ((object)_lazyIsUnmanagedAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyIsUnmanagedAttribute.Constructors[0],
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeIsUnmanagedAttribute();
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeIsByRefLikeAttribute()
         {
             if ((object)_lazyIsByRefLikeAttribute != null)
@@ -235,6 +254,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ref _lazyIsByRefLikeAttribute,
                     diagnostics,
                     AttributeDescription.IsByRefLikeAttribute);
+            }
+
+            if (this.NeedsGeneratedIsUnmanagedAttribute)
+            {
+                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyIsUnmanagedAttribute,
+                    diagnostics,
+                    AttributeDescription.IsUnmanagedAttribute);
             }
 
             if (this.NeedsGeneratedNullableAttribute)

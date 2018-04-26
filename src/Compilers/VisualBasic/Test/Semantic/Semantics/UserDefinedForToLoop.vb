@@ -535,7 +535,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -576,7 +576,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -632,7 +632,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -684,7 +684,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -741,7 +741,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -799,7 +799,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -857,7 +857,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -908,7 +908,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -978,7 +978,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -1052,7 +1052,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[

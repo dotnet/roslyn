@@ -2,7 +2,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -323,7 +325,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsLambdaSimplifier)]
         public async Task TestMissingOnAmbiguity1()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"using System;
 
 class A
@@ -344,7 +346,7 @@ class A
     {
         Bar(x => [||]Goo(x));
     }
-}");
+}", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)));
         }
 
         [WorkItem(627092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]

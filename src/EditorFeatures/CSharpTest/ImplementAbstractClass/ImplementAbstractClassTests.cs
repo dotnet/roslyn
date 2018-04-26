@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1716,6 +1717,30 @@ public class [|Test|] : TestParent
 public class Test : TestParent
 {
     public override ref readonly int this[int p] => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnmanagedConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"public abstract class ParentTest
+{
+    public abstract void M<T>() where T : unmanaged;
+}
+public class [|Test|] : ParentTest
+{
+}",
+@"public abstract class ParentTest
+{
+    public abstract void M<T>() where T : unmanaged;
+}
+public class Test : ParentTest
+{
+    public override void M<T>()
+    {
+        throw new System.NotImplementedException();
+    }
 }");
         }
     }

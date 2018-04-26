@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities.Desktop;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                 references = references.Concat(additionalRefs);
             }
 
-            var comp = CreateCompilation("", references, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var comp = CreateEmptyCompilation("", references, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var writer = new StringBuilder();
             AppendAssemblyRefs(writer, (PEAssemblySymbol)comp.GetReferencedAssemblySymbol(winmd));

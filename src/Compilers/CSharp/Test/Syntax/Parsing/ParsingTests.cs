@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode(text, SyntaxFactory.ParseStatement(text), expectedErrors);
         }
 
-        internal void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
+        internal void UsingExpression(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
         {
-            UsingNode(text, SyntaxFactory.ParseExpression(text), expectedErrors);
+            UsingNode(text, SyntaxFactory.ParseExpression(text, options: options), expectedErrors);
         }
 
         private void UsingNode(string text, CSharpSyntaxNode node, DiagnosticDescription[] expectedErrors)
@@ -69,6 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actualErrors = node.GetDiagnostics();
             actualErrors.Verify(expectedErrors);
             UsingNode(node);
+        }
+
+        internal void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
+        {
+            UsingExpression(text, options: null, expectedErrors);
         }
 
         /// <summary>

@@ -771,7 +771,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -898,7 +898,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -963,7 +963,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1128,7 +1128,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1173,7 +1173,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1208,7 +1208,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1282,7 +1282,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1332,7 +1332,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1374,7 +1374,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1419,7 +1419,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1469,7 +1469,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1514,7 +1514,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1559,7 +1559,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2334,7 +2334,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             Assert.True(compilation.Options.OptionExplicit)
 
@@ -2504,7 +2504,7 @@ End Structure
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2594,7 +2594,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2657,7 +2657,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2710,7 +2710,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2781,7 +2781,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2815,7 +2815,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             Assert.Equal(OptionStrict.Off, compilation.Options.OptionStrict)
 
@@ -2891,7 +2891,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -2925,7 +2925,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3085,7 +3085,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3125,7 +3125,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3165,7 +3165,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3387,7 +3387,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3433,7 +3433,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -3483,7 +3483,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -4246,7 +4246,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -4510,7 +4510,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -4602,7 +4602,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -4694,7 +4694,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -5273,7 +5273,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 { s = 1, t = 2 }
@@ -5314,7 +5314,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -5374,7 +5374,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -5415,7 +5415,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -5562,7 +5562,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 { s1 = 1, s2 = 2 }
@@ -5958,7 +5958,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -6375,7 +6375,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -6515,7 +6515,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 { s1 = 1, s2 = 2 }
@@ -6623,7 +6623,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -7097,7 +7097,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -7310,7 +7310,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 { s1 = 3, s2 = 3 }
@@ -7722,7 +7722,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -8617,7 +8617,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 { s1 = 1, Group = System.Int32[] }
@@ -9244,7 +9244,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -9443,7 +9443,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -9672,7 +9672,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 { s1 = 1, Group = System.Int32[] }
@@ -10328,7 +10328,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -11044,7 +11044,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -11220,7 +11220,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, additionalRefs:={LinqAssemblyRef},
+            CompileAndVerify(compilationDef, references:={LinqAssemblyRef},
                                 expectedOutput:=
             <![CDATA[
 2
@@ -12009,7 +12009,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -12304,7 +12304,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
@@ -12349,7 +12349,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
@@ -12394,7 +12394,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
@@ -12430,7 +12430,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -13024,7 +13024,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -13284,7 +13284,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -13358,7 +13358,7 @@ End Module
 ]]>
                     </file>
                 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
             compilation.AssertTheseDiagnostics(
 <expected>
 BC30367: Class 'C' cannot be indexed because it has no default property.
@@ -13435,7 +13435,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -13470,7 +13470,7 @@ BC36602: 'ReadOnly' variable cannot be the target of an assignment in a lambda e
         <WorkItem(528731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528731")>
         <Fact>
         Public Sub BC36598ERR_CannotLiftRestrictedTypeQuery()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="CannotLiftRestrictedTypeQuery">
         <file name="a.vb">
 Imports System
@@ -13547,7 +13547,7 @@ Class CI003
 End Class
     </file>
     </compilation>,
-            expectedOutput:="CI003.Count", additionalRefs:={TestReferences.NetFx.v4_0_30319.System_Core})
+            expectedOutput:="CI003.Count", references:={TestReferences.NetFx.v4_0_30319.System_Core})
 
             verifier.VerifyDiagnostics()
         End Sub
@@ -13600,7 +13600,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef,
                                                                                                           SystemXmlRef,
                                                                                                           SystemXmlLinqRef})
@@ -13707,7 +13707,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -13798,7 +13798,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                                                                                          additionalRefs:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -13814,7 +13814,7 @@ BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data t
 
         <Fact()>
         Public Sub ERR_RestrictedType1_3()
-            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -13827,7 +13827,7 @@ Module M
     End Sub
 End Module
     </file>
-    </compilation>, additionalRefs:={SystemCoreRef}).AssertTheseDiagnostics(
+    </compilation>, references:={SystemCoreRef}).AssertTheseDiagnostics(
     <expected>
 BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.
         Dim c1 As System.ArgIterator()() = Nothing
@@ -13867,7 +13867,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -13914,7 +13914,7 @@ End Module
     </file>
 </compilation>
 
-            Dim verifier = CompileAndVerify(compilationDef, additionalRefs:={SystemCoreRef},
+            Dim verifier = CompileAndVerify(compilationDef, references:={SystemCoreRef},
                              expectedOutput:=
             <![CDATA[
 0
@@ -13953,7 +13953,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -13981,7 +13981,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, additionalRefs:={SystemCoreRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -14007,7 +14007,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
                                 expectedOutput:=
@@ -14035,7 +14035,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -14067,7 +14067,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, additionalRefs:={SystemCoreRef})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -14082,7 +14082,7 @@ BC36615: 'Into' expected.
 
         <Fact()>
         Public Sub InaccessibleQueryMethodOnCollectionType1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -14130,7 +14130,7 @@ BC30390: 'QueryAble.Private Function TakeWhile(x As Func(Of Integer, Boolean)) A
 
         <Fact()>
         Public Sub InaccessibleQueryMethodOnCollectionType2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -14178,7 +14178,7 @@ BC36594: Definition of method 'TakeWhile' is not accessible in this context.
 
         <Fact()>
         Public Sub GroupBy6()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -14220,7 +14220,7 @@ BC30390: 'QueryAble.Private Function GroupBy(Of K, R)(key As Func(Of Integer, K)
 
         <Fact()>
         Public Sub GroupBy7()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -14266,7 +14266,7 @@ BC36594: Definition of method 'GroupBy' is not accessible in this context.
 
         <Fact()>
         Public Sub GroupJoin6()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -14308,7 +14308,7 @@ BC30390: 'QueryAble.Private Function GroupJoin(Of I, K, R)(inner As QueryAble(Of
 
         <Fact()>
         Public Sub GroupJoin7()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -14371,7 +14371,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -14437,7 +14437,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
                              expectedOutput:=
@@ -14474,7 +14474,7 @@ End Module
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseDll).AssertNoDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseDll).AssertNoDiagnostics()
 
         End Sub
 
@@ -14527,7 +14527,7 @@ Class C
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, additionalRefs:={SystemCoreRef}, options:=TestOptions.ReleaseDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, references:={SystemCoreRef}, options:=TestOptions.ReleaseDll)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30451: 'Whi' is not declared. It may be inaccessible due to its protection level.

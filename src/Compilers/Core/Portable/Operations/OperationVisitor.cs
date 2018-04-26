@@ -260,6 +260,11 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        public virtual void VisitTupleBinaryOperator(ITupleBinaryOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitConversion(IConversionOperation operation)
         {
             DefaultVisit(operation);
@@ -496,6 +501,21 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         
         public virtual void VisitRaiseEvent(IRaiseEventOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitMethodBodyOperation(IMethodBodyOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitConstructorBodyOperation(IConstructorBodyOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitDiscardOperation(IDiscardOperation operation)
         {
             DefaultVisit(operation);
         }
@@ -765,6 +785,11 @@ namespace Microsoft.CodeAnalysis.Operations
             return DefaultVisit(operation, argument);
         }
 
+        public virtual TResult VisitTupleBinaryOperator(ITupleBinaryOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
         public virtual TResult VisitConversion(IConversionOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -1001,6 +1026,21 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         
         public virtual TResult VisitRaiseEvent(IRaiseEventOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitMethodBodyOperation(IMethodBodyOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitConstructorBodyOperation(IConstructorBodyOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDiscardOperation(IDiscardOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

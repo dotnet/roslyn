@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -23,6 +24,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 {
+    [UseExportProvider]
     public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         public override void Dispose()
         {
-            this.WorkspaceFixture.CloseTextView();
+            this.WorkspaceFixture.DisposeAfterTest();
             base.Dispose();
         }
 
@@ -269,12 +271,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionModeItem)
         {
-            Glyph? expectedGlyph = null;
-            if (glyph.HasValue)
-            {
-                expectedGlyph = (Glyph)glyph.Value;
-            }
-
             var document1 = WorkspaceFixture.UpdateDocument(code, sourceCodeKind);
             await CheckResultsAsync(
                 document1, position, expectedItemOrNull, 

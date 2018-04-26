@@ -67,6 +67,22 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        internal void DoEvents()
+        {
+            if (!_threads.Contains(Thread.CurrentThread))
+                throw new InvalidOperationException();
+
+            // Continually get the next task and try to execute it.
+            // This will continue until the scheduler contains no more actively-scheduled tasks.
+            while (_tasks.TryTake(out var t))
+            {
+                if (!TryExecuteTask(t))
+                {
+                    System.Diagnostics.Debug.Assert(t.IsCompleted, "Can't run, not completed");
+                }
+            }
+        }
+
         /// <summary>Queues a Task to be executed by this scheduler.</summary>
         /// <param name="task">The task to be executed.</param>
         protected override void QueueTask(Task task)

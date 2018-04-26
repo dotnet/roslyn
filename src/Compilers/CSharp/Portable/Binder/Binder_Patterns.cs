@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionType = conversions.CorLibrary.GetSpecialType(SpecialType.System_Object);
             }
 
-            conversion = conversions.ClassifyConversionFromType(expressionType, patternType, ref useSiteDiagnostics);
+            conversion = conversions.ClassifyBuiltInConversion(expressionType, patternType, ref useSiteDiagnostics);
             var result = Binder.GetIsOperatorConstantResult(expressionType, patternType, conversion.Kind, operandConstantValue, operandCouldBeNull);
             return
                 (result == null) ? (bool?)null :
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isVar;
             AliasSymbol aliasOpt;
-            TypeSymbolWithAnnotations declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
+            TypeSymbolWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out aliasOpt);
             if (isVar)
             {
                 declType = TypeSymbolWithAnnotations.Create(Compilation, operandType);
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                 {
-                    Error(diagnostics, ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, node);
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
                 }
 
                 localSymbol.SetTypeSymbol(declType);

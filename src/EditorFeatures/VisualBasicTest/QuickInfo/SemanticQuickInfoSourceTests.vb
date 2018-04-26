@@ -1,15 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.VisualStudio.Language.Intellisense
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
     Public Class SemanticQuickInfoSourceTests
@@ -20,8 +16,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Function
 
         Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of Object)) As Task
-            Dim noListeners = SpecializedCollections.EmptyEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))()
-
             Dim provider = New SemanticQuickInfoProvider()
 
             Await TestSharedAsync(workspace, provider, position, expectedResults)
@@ -2064,6 +2058,80 @@ Namespace MyNs
 End Namespace
 ",
                 Exceptions($"{vbCrLf}{WorkspacesResources.Exceptions_colon}{vbCrLf}  MyException1{vbCrLf}  MyException2{vbCrLf}  Integer{vbCrLf}  Double{vbCrLf}  Not_A_Class_But_Still_Displayed"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures() As Task
+            Await TestAsync("
+Class C
+    Sub M(x As Integer)
+        Dim a As System.Action = Sub$$()
+            x = x + 1
+        End Sub
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} x"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures2() As Task
+            Await TestAsync("
+Class C
+    Sub M(x As Integer)
+        Dim a As System.Action = S$$ub() x = x + 1
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} x"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures3() As Task
+            Await TestAsync("
+Class C
+    Sub M(x As Integer)
+        Dim a As System.Action(Of Integer) = Functio$$n(a) x = x + 1
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} x"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures4() As Task
+            Await TestAsync("
+Class C
+    Sub M(x As Integer)
+        Dim a As System.Action(Of Integer) = Functio$$n(a)
+            x = x + 1
+        End Function
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} x"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(23307, "https://github.com/dotnet/roslyn/issues/23307")>
+        Public Async Function TestQuickInfoCaptures5() As Task
+            Await TestAsync("
+Class C
+    Sub M([Me] As Integer)
+        Dim x As Integer = 0
+        Dim a As System.Action(Of Integer) = Functio$$n(a)
+            M(1)
+            x = x + 1
+            [Me] = [Me] + 1
+        End Function
+    End Sub
+End Class
+",
+                Captures($"{vbCrLf}{WorkspacesResources.Variables_captured_colon} Me, [Me], x"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>

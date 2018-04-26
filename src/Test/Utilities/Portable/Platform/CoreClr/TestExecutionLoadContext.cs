@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Loader;
+using System.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
@@ -80,7 +81,7 @@ namespace Roslyn.Test.Utilities.CoreClr
                             throw;
                         }
                         assembly = null;
-                    }               
+                    }
 
                     return assembly;
                 }
@@ -171,6 +172,28 @@ namespace Roslyn.Test.Utilities.CoreClr
 
             name = null;
             return false;
+        }
+
+        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName, IEnumerable<ModuleDataId> searchModules)
+        {
+            try
+            {
+                var signatures = new SortedSet<string>();
+                foreach (var id in searchModules)
+                {
+                    var name = new AssemblyName(id.FullName);
+                    var assembly = LoadFromAssemblyName(name);
+                    foreach (var signature in MetadataSignatureHelper.GetMemberSignatures(assembly, fullyQualifiedTypeName, memberName))
+                    {
+                        signatures.Add(signature);
+                    }
+                }
+                return signatures;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting signatures {fullyQualifiedTypeName}.{memberName}", ex);
+            }
         }
     }
 }

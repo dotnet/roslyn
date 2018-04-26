@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
         private bool _needsGeneratedIsByRefLikeAttribute_Value;
+        private bool _needsGeneratedIsUnmanagedAttribute_Value;
         private bool _needsGeneratedNullableAttribute_Value;
 
         private bool _needsGeneratedAttributes_IsFrozen;
@@ -72,6 +73,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _needsGeneratedAttributes_IsFrozen = true;
                 return _needsGeneratedNullableAttribute_Value;
+            }
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether this compilation has a member that needs IsUnmanagedAttribute to be generated during emit phase.
+        /// The value is set during binding the symbols that need that attribute, and is frozen on first trial to get it.
+        /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
+        /// </summary>
+        internal bool NeedsGeneratedIsUnmanagedAttribute
+        {
+            get
+            {
+                _needsGeneratedAttributes_IsFrozen = true;
+                return _needsGeneratedIsUnmanagedAttribute_Value;
             }
         }
 
@@ -214,6 +229,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsExceptionType(TypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             return IsEqualOrDerivedFromWellKnownClass(type, WellKnownType.System_Exception, ref useSiteDiagnostics);
+        }
+
+        internal bool IsReadOnlySpanType(TypeSymbol type)
+        {
+            return type.OriginalDefinition == GetWellKnownType(WellKnownType.System_ReadOnlySpan_T);
         }
 
         internal bool IsEqualOrDerivedFromWellKnownClass(TypeSymbol type, WellKnownType wellKnownType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -494,6 +514,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal void EnsureIsUnmanagedAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForIsUnmanaged)
+        {
+            Debug.Assert(!modifyCompilationForIsUnmanaged || !_needsGeneratedAttributes_IsFrozen);
+
+            var isNeeded = CheckIfIsUnmanagedAttributeShouldBeEmbedded(diagnostics, location);
+
+            if (isNeeded && modifyCompilationForIsUnmanaged)
+            {
+                _needsGeneratedIsUnmanagedAttribute_Value = true;
+            }
+        }
+
         internal void EnsureNullableAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilation)
         {
             Debug.Assert(!modifyCompilation || !_needsGeneratedAttributes_IsFrozen);
@@ -518,10 +550,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool CheckIfIsByRefLikeAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
         {
             return CheckIfAttributeShouldBeEmbedded(
-                diagnosticsOpt, 
-                locationOpt, 
-                WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, 
+                diagnosticsOpt,
+                locationOpt,
+                WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
                 WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
+        }
+
+        internal bool CheckIfIsUnmanagedAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
+        {
+            return CheckIfAttributeShouldBeEmbedded(
+                diagnosticsOpt,
+                locationOpt,
+                WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
+                WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor);
         }
 
         internal bool CheckIfNullableAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)

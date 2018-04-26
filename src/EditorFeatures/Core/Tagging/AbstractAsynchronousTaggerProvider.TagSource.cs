@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
-                => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
+                => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation(typeof(TTag).Name), cancellationToken);
 
             private void Connect()
             {
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public void Disconnect()
             {
                 _workQueue.AssertIsForeground();
-                _workQueue.CancelCurrentWork();
+                _workQueue.CancelCurrentWork(remainCancelled: true);
 
                 // Tell the interaction object to stop issuing events.
                 _eventSource.Disconnect();

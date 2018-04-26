@@ -177,6 +177,8 @@
                 case ErrorCode.WRN_UnreferencedLocalFunction:
                 case ErrorCode.WRN_FilterIsConstantFalse:
                 case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
+                case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
+                case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
                 case ErrorCode.WRN_ConvertingNullableToNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:

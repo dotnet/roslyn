@@ -264,6 +264,7 @@
     <InternalsVisibleToMonodevelop Include="MonoDevelop.Refactoring.Tests" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.CSharpBinding.Tests" />
     <InternalsVisibleToMonodevelop Include="MonoDevelop.VBNetBinding.Tests" />
+    <InternalsVisibleToMonodevelop Include="Xamarin.Ide" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -290,6 +291,8 @@
     <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote" />
     <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
+    <InternalsVisibleToVisualStudio Include="Microsoft.Test.Apex.VisualStudio" />
+    <InternalsVisibleToCompletionTests Include="Microsoft.VisualStudio.Completion.Tests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
