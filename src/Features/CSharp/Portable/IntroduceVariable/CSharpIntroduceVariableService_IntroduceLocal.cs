@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var convertedStatement = createReturnStatement
                 ? SyntaxFactory.ReturnStatement(newExpression)
-                : SyntaxFactory.ExpressionStatement(newExpression) as StatementSyntax;
+                : (StatementSyntax)SyntaxFactory.ExpressionStatement(newExpression);
 
             var newBody = SyntaxFactory.Block(declarationStatement, convertedStatement)
                                        .WithLeadingTrivia(leadingTrivia)
