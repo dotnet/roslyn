@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
@@ -507,9 +506,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 ExpressionSyntax expression,
                 bool generateTypeFromExpression)
             {
-                var typeSyntax = generateTypeFromExpression ?
-                     _semanticModel.GetTypeInfo(expression, _cancellationToken).ConvertedType.GenerateTypeSyntax() :
-                     VarNameIdentifier;
+                var typeSyntax = generateTypeFromExpression
+                    ? _semanticModel.GetTypeInfo(expression, _cancellationToken).ConvertedType.GenerateTypeSyntax()
+                    : VarNameIdentifier;
                 return SyntaxFactory.LocalDeclarationStatement(
                             SyntaxFactory.VariableDeclaration(
                                 typeSyntax,
