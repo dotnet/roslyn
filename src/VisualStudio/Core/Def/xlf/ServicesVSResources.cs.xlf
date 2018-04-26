@@ -1424,7 +1424,7 @@ Pro aktuální řešení je povolené zjednodušené načtení řešení. Jeho z
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
-        <target state="needs-review-translation">Chyba při čtení souboru</target>
+        <target state="translated">Při čtení souboru {0} došlo k chybě: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1490,12 +1490,12 @@ Souhlasím se všemi výše uvedenými podmínkami:</target>
       </trans-unit>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
-        <target state="new">Sync Class View</target>
+        <target state="translated">Synchronizovat Zobrazení tříd</target>
         <note />
       </trans-unit>
       <trans-unit id="CantApplyChangesUnexpectedError">
         <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
+        <target state="translated">Změny nelze použít – neočekávaná chyba: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Field_preferences_colon">
@@ -1510,7 +1510,7 @@ Souhlasím se všemi výše uvedenými podmínkami:</target>
       </trans-unit>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
-        <target state="new">Manage naming styles</target>
+        <target state="translated">Spravovat styly pojmenování</target>
         <note />
       </trans-unit>
     </body>
