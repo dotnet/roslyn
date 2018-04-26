@@ -28,10 +28,10 @@ param (
     [switch]$pack = $false,
     [switch]$packAll = $false,
     [switch]$binaryLog = $false,
-    [switch]$noAnalyzers = $false,
-    [switch]$skipBuildExtras = $false,
     [switch]$deployExtensions = $false,
     [string]$signType = "",
+    [switch]$skipBuildExtras = $false,
+    [switch]$skipAnalyzers = $false,
 
     # Test options 
     [switch]$test32 = $false,
@@ -65,6 +65,8 @@ function Print-Usage() {
     Write-Host "  -pack                     Create our NuGet packages"
     Write-Host "  -deployExtensions         Deploy built vsixes"
     Write-Host "  -binaryLog                Create binary log for every MSBuild invocation"
+    Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
+    Write-Host "  -skipBuildExtras          Do not build insertion items"
     Write-Host "" 
     Write-Host "Test options" 
     Write-Host "  -test32                   Run unit tests in the 32-bit runner"
@@ -108,6 +110,11 @@ function Process-Arguments() {
         exit 1
     }
 
+    if (($cibuild -and $anyVsi)) {
+        # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
+        $script:skipAnalyzers = $true
+    }
+
     $script:isAnyTestSpecial = $testBuildCorrectness -or $testDeterminism -or $testPerfCorrectness -or $testPerfRun
     if ($isAnyTestSpecial -and ($anyUnit -or $anyVsi)) {
         Write-Host "Cannot combine special testing with any other action"
@@ -136,8 +143,7 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
         $args += " /m"
     }
 
-    if ($noAnalyzers -or ($cibuild -and $testVsi)) {
-        # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
+    if ($skipAnalyzers) {
         $args += " /p:UseRoslynAnalyzers=false"
     }
 
