@@ -1585,7 +1585,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     cancellationToken.ThrowIfCancellationRequested()
 
                     Dim infoTree As SyntaxTree = info.Tree
-                    If filterTree Is Nothing OrElse filterTree Is infoTree Then
+                    If (filterTree Is Nothing OrElse filterTree Is infoTree) AndAlso infoTree.Options.DocumentationMode <> DocumentationMode.None Then
                         Dim clauseSpans = info.ClauseSpans
                         Dim numClauseSpans = clauseSpans.Length
 

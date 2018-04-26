@@ -1890,7 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     cancellationToken.ThrowIfCancellationRequested();
 
                     SyntaxTree infoTree = info.Tree;
-                    if (filterTree == null || filterTree == infoTree)
+                    if ((filterTree == null || filterTree == infoTree) && infoTree.Options.DocumentationMode != DocumentationMode.None)
                     {
                         TextSpan infoSpan = info.Span;
                         if (!this.IsImportDirectiveUsed(infoTree, infoSpan.Start))
