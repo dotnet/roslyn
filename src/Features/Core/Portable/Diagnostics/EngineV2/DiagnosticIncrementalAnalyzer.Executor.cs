@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic,
-                    (d, a, t) => $"{d.Id}, {d.Project.Id}, {a.ToString()}, {tree.Length}", document, analyzer, tree);
+                    (d, a, t) => $"{d.Id}, {d.Project.Id}, {a.ToString()}, {t.Length}", document, analyzer, tree);
             }
 
             private static void LogSyntaxInfo(CompilationWithAnalyzers analyzerDriverOpt, Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind)
