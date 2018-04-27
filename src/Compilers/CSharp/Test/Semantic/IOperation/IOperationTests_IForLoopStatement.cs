@@ -3391,7 +3391,7 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
 Block[B1] - Block
-    Predecessors: [B0] [B5]
+    Predecessors: [B0] [B4]
     Statements (0)
     Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
@@ -3399,29 +3399,20 @@ Block[B1] - Block
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
-          Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+    Statements (0)
+    Jump if False (Regular) to Block[B5]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
     Next (Regular) Block[B4]
 Block[B3] - Block
     Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
-          Value: 
-            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+    Statements (0)
+    Jump if False (Regular) to Block[B5]
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
 
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (0)
-    Jump if False (Regular) to Block[B6]
-        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a ? b : c')
-
-    Next (Regular) Block[B5]
-Block[B5] - Block
-    Predecessors: [B4]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a;')
           Expression: 
@@ -3432,8 +3423,8 @@ Block[B5] - Block
                 IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
     Next (Regular) Block[B1]
-Block[B6] - Exit
-    Predecessors: [B4]
+Block[B5] - Exit
+    Predecessors: [B2] [B3]
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);

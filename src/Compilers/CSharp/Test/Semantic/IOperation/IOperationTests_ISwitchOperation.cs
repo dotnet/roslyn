@@ -2428,7 +2428,7 @@ Block[B1] - Block
     Block[B2] - Block
         Predecessors: [B1]
         Statements (0)
-        Jump if False (Regular) to Block[B8]
+        Jump if False (Regular) to Block[B7]
             IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: 'int x')
               Expression: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input1')
@@ -2446,30 +2446,22 @@ Block[B1] - Block
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B3]
-        Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other3')
-              Value: 
-                IParameterReferenceOperation: other3 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'other3')
+        Statements (0)
+        Jump if False (Regular) to Block[B7]
+            IParameterReferenceOperation: other3 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'other3')
+            Leaving: {R1}
 
         Next (Regular) Block[B6]
     Block[B5] - Block
         Predecessors: [B3]
-        Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other4')
-              Value: 
-                IParameterReferenceOperation: other4 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'other4')
+        Statements (0)
+        Jump if False (Regular) to Block[B7]
+            IParameterReferenceOperation: other4 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'other4')
+            Leaving: {R1}
 
         Next (Regular) Block[B6]
     Block[B6] - Block
         Predecessors: [B4] [B5]
-        Statements (0)
-        Jump if False (Regular) to Block[B8]
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'other2 ? other3 : other4')
-            Leaving: {R1}
-
-        Next (Regular) Block[B7]
-    Block[B7] - Block
-        Predecessors: [B6]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
               Expression: 
@@ -2479,12 +2471,264 @@ Block[B1] - Block
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-        Next (Regular) Block[B8]
+        Next (Regular) Block[B7]
             Leaving: {R1}
 }
 
-Block[B8] - Exit
-    Predecessors: [B2] [B6] [B7]
+Block[B7] - Exit
+    Predecessors: [B2] [B4] [B5] [B6]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void SwitchFlow_31()
+        {
+            string source = @"
+public sealed class MyClass
+{
+    void M(bool result, object input)
+    /*<bind>*/{
+        switch (input)
+        {
+            case 1:
+                result = false;
+                break;
+            case 2:
+                result = true;
+                break;
+        }
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: 'case 1:')
+          Expression: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+          Pattern: 
+            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 1:')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B5]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B5]
+        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: 'case 2:')
+          Expression: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+          Pattern: 
+            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 2:')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = true;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = true')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B2] [B3] [B4]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void SwitchFlow_32()
+        {
+            string source = @"
+public sealed class MyClass
+{
+    void M(bool result, object input, bool? guard)
+    /*<bind>*/{
+        switch (input)
+        {
+            case 1 when guard ?? throw null:
+                result = false;
+                break;
+        }
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B6]
+        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: '1')
+          Expression: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+          Pattern: 
+            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'guard')
+          Value: 
+            IParameterReferenceOperation: guard (OperationKind.ParameterReference, Type: System.Boolean?) (Syntax: 'guard')
+
+    Jump if True (Regular) to Block[B4]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'guard')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean?, IsImplicit) (Syntax: 'guard')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IInvocationOperation ( System.Boolean System.Boolean?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'guard')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean?, IsImplicit) (Syntax: 'guard')
+          Arguments(0)
+
+    Next (Regular) Block[B5]
+Block[B4] - Block
+    Predecessors: [B2]
+    Statements (0)
+    Next (Throw) Block[null]
+        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+Block[B5] - Block
+    Predecessors: [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B1] [B3] [B5]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void SwitchFlow_33()
+        {
+            string source = @"
+public sealed class MyClass
+{
+    void M(bool result, object input)
+    /*<bind>*/{
+        switch (input)
+        {
+            case 1 when guard:
+                result = false;
+                break;
+        }
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(8,25): error CS0103: The name 'guard' does not exist in the current context
+                //             case 1 when guard:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "guard").WithArguments("guard").WithLocation(8, 25)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B4]
+        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: '1')
+          Expression: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+          Pattern: 
+            IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'guard')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NoConversion)
+          Operand: 
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'guard')
+              Children(0)
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B4]
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
