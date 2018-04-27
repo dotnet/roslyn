@@ -163,6 +163,71 @@ namespace Microsoft.CodeAnalysis
             return new EditorConfig(globalSection, namedSectionBuilder.ToImmutable(), parentDirectory);
         }
 
+        /// <summary>
+        /// Combine an editorconfig with an editorconfig nested in a subdirectory to form a new "effective"
+        /// editorconfig. "Nested" is defined as the parent directory being an ordinal prefix of the nested
+        /// directory.
+        /// </summary>
+        /// <remarks>
+        /// Editorconfig files are combined by applying all properties from the parent editorconfig, then
+        /// applying all properties from the nested editorconfig, with any conflicts resolving in favor
+        /// of the nested editorconfig. Any new sections in the nested editorconfig will appear at the
+        /// end of <see cref="EditorConfig.NamedSections" />.
+        /// </remarks>
+        public static EditorConfig Combine(EditorConfig nested, EditorConfig parent)
+        {
+            Debug.Assert(nested.Directory.StartsWith(parent.Directory, StringComparison.Ordinal));
+
+            // PROTOTYPE(editorconfig): Global properties are not described in the editorconfig
+            // spec and are not specified as being inherited or overriden. The only mentioned
+            // global property, 'root', should definitely not be inherited. For now, let's assume
+            // that the global properties are fixed.
+            var newGlobals = nested.GlobalSection;
+
+            var newSections = ImmutableArray.CreateBuilder<Section>(
+                Math.Max(nested.NamedSections.Length, parent.NamedSections.Length));
+
+            // Parent config sections come first
+            foreach (var parentSection in parent.NamedSections)
+            {
+                string name = parentSection.Name;
+                var nestedSection = findSection(nested.NamedSections, name);
+                if (nestedSection != null)
+                {
+                    // Nested section properties override parent section properties
+                    var properties = parentSection.Properties.SetItems(nestedSection.Properties);
+                    newSections.Add(new Section(name, properties));
+                }
+                else
+                {
+                    newSections.Add(parentSection);
+                }
+            }
+
+            // Now nested config sections
+            foreach (var section in nested.NamedSections)
+            {
+                if (findSection(parent.NamedSections, section.Name) is null)
+                {
+                    newSections.Add(section);
+                }
+            }
+
+            return new EditorConfig(newGlobals, newSections.ToImmutable(), nested.Directory);
+
+            Section findSection(ImmutableArray<Section> sections, string name)
+            {
+                foreach (var s in sections)
+                {
+                    if (s.Name == name)
+                    {
+                        return s;
+                    }
+                }
+                return null;
+            }
+        }
+
         private static bool IsComment(string line)
         {
             for (int i = 0; i < line.Length; i++)
