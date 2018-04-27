@@ -31,11 +31,17 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         /// The map of cached contexts for currently open documents. Should only be accessed if holding a monitor lock
         /// on <see cref="_gate"/>.
         /// </summary>
-        private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
+        private readonly Dictionary<DocumentId, Task<(ICodingConventionContext data, ICodingConventionContext eventing)>> _openDocumentContexts =
+            new Dictionary<DocumentId, Task<(ICodingConventionContext data, ICodingConventionContext eventing)>>();
 
         private readonly Workspace _workspace;
-        private readonly ICodingConventionsManager _codingConventionsManager;
         private readonly IErrorLoggerService _errorLogger;
+
+        // due to an issue where OnCodingConventionsChangedAsync expecting callers to use JoinableTaskFactory
+        // we can't use it in free-thread fashion. so as a workaround until compiler editorconfig work finishes,
+        // we use both dynamic and static manager. one to get data, the other to get eventing.
+        private readonly ICodingConventionsManager _dataCodingConventionsManager;
+        private readonly ICodingConventionsManager _eventingCodingConventionsManager;
 
         /// <summary>
         /// this is used to aggregate OnCodingConventionsChangedAsync event
@@ -47,7 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         {
             _workspace = workspace;
 
-            _codingConventionsManager = codingConventionsManager;
+            _dataCodingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager();
+            _eventingCodingConventionsManager = codingConventionsManager;
+
             _errorLogger = workspace.Services.GetService<IErrorLoggerService>();
 
             _resettableDelay = ResettableDelay.CompletedDelay;
@@ -97,9 +105,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             {
                 var contextTask = Task.Run(async () =>
                 {
-                    var context = await GetConventionContextAsync(e.Document.FilePath, CancellationToken.None).ConfigureAwait(false);
-                    context.CodingConventionsChangedAsync += OnCodingConventionsChangedAsync;
-                    return context;
+                    var dataContext = await GetDataConventionContextAsync(e.Document.FilePath, CancellationToken.None).ConfigureAwait(false);
+                    var eventingContext = await GetEventingConventionContextAsync(e.Document.FilePath, CancellationToken.None).ConfigureAwait(false);
+
+                    eventingContext.CodingConventionsChangedAsync += OnCodingConventionsChangedAsync;
+                    return (dataContext, eventingContext);
                 });
 
                 Contract.Requires(!_openDocumentContexts.ContainsKey(e.Document.Id));
@@ -109,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
         private void ClearOpenFileCache(ProjectId projectId = null)
         {
-            var contextTasks = new List<Task<ICodingConventionContext>>();
+            var contextTasks = new List<Task<(ICodingConventionContext data, ICodingConventionContext eventing)>>();
 
             lock (_gate)
             {
@@ -134,15 +144,17 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             }
         }
 
-        private void EnsureContextCleanup(Task<ICodingConventionContext> contextTask)
+        private void EnsureContextCleanup(Task<(ICodingConventionContext data, ICodingConventionContext eventing)> contextTask)
         {
             contextTask.ContinueWith(
                 t =>
                 {
-                    var context = t.Result;
+                    var (dataContext, eventingContext) = t.Result;
 
-                    context.CodingConventionsChangedAsync -= OnCodingConventionsChangedAsync;
-                    context.Dispose();
+                    eventingContext.CodingConventionsChangedAsync -= OnCodingConventionsChangedAsync;
+
+                    dataContext.Dispose();
+                    eventingContext.Dispose();
                 },
                 CancellationToken.None,
                 TaskContinuationOptions.OnlyOnRanToCompletion,
@@ -151,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
         public async Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            Task<ICodingConventionContext> contextTask;
+            Task<(ICodingConventionContext data, ICodingConventionContext eventing)> contextTask;
 
             lock (_gate)
             {
@@ -169,8 +181,8 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
                     TaskScheduler.Default);
 
-                var context = await cancellableContextTask.ConfigureAwait(false);
-                return new DocumentOptions(context.CurrentConventions, _errorLogger);
+                var (dataContext, _) = await cancellableContextTask.ConfigureAwait(false);
+                return new DocumentOptions(dataContext.CurrentConventions, _errorLogger);
             }
             else
             {
@@ -193,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 // We don't have anything cached, so we'll just get it now lazily and not hold onto it. The workspace layer will ensure
                 // that we maintain snapshot rules for the document options. We'll also run it on the thread pool
                 // as in some builds the ICodingConventionsManager captures the thread pool.
-                var conventionsAsync = Task.Run(() => GetConventionContextAsync(path, cancellationToken));
+                var conventionsAsync = Task.Run(() => GetDataConventionContextAsync(path, cancellationToken));
 
                 using (var context = await conventionsAsync.ConfigureAwait(false))
                 {
@@ -202,10 +214,17 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             }
         }
 
-        private Task<ICodingConventionContext> GetConventionContextAsync(string path, CancellationToken cancellationToken)
+        private Task<ICodingConventionContext> GetDataConventionContextAsync(string path, CancellationToken cancellationToken)
         {
             return IOUtilities.PerformIOAsync(
-                () => _codingConventionsManager.GetConventionContextAsync(path, cancellationToken),
+                () => _dataCodingConventionsManager.GetConventionContextAsync(path, cancellationToken),
+                defaultValue: EmptyCodingConventionContext.Instance);
+        }
+
+        private Task<ICodingConventionContext> GetEventingConventionContextAsync(string path, CancellationToken cancellationToken)
+        {
+            return IOUtilities.PerformIOAsync(
+                () => _eventingCodingConventionsManager.GetConventionContextAsync(path, cancellationToken),
                 defaultValue: EmptyCodingConventionContext.Instance);
         }
 
