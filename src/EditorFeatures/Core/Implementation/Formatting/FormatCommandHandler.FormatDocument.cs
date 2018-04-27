@@ -109,7 +109,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 {
                     foreach (var fix in fixCollection)
                     {
-                        var ops = fix.Action.GetPreviewOperationsAsync(cancellationToken).Result;
+                        var codeAction = fix.Action;
+                        // Hardcode to skip "Remove unused variable" code fix
+                        if (codeAction.EquivalenceKey == "Remove unused variable") continue;
+
+                        var ops = codeAction.GetOperationsAsync(cancellationToken).Result;
                         foreach (var op in ops)
                         {
                             // Apply one change at a time, setting hasMoreCodeFix to true as there are probably other code fixes
