@@ -77,7 +77,7 @@ namespace RunTests
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Error: {ex.Message}");
+                            ConsoleUtil.WriteLine($"Error: {ex.Message}");
                             failures++;
                         }
 
@@ -97,12 +97,12 @@ namespace RunTests
 
                 // Display the current status of the TestRunner.
                 // Note: The { ... , 2 } is to right align the values, thus aligns sections into columns. 
-                Console.Write($"  {running.Count, 2} running, {waiting.Count, 2} queued, {completed.Count, 2} completed");
+                ConsoleUtil.Write($"  {running.Count, 2} running, {waiting.Count, 2} queued, {completed.Count, 2} completed");
                 if (failures > 0)
                 {
-                    Console.Write($", {failures, 2} failures");
+                    ConsoleUtil.Write($", {failures, 2} failures");
                 }
-                Console.WriteLine();
+                ConsoleUtil.WriteLine();
 
                 if (running.Count > 0)
                 {
@@ -124,7 +124,7 @@ namespace RunTests
                 PrintFailedTestResult(testResult);
             }
 
-            Console.WriteLine("================");
+            ConsoleUtil.WriteLine("================");
             var line = new StringBuilder();
             foreach (var testResult in testResults)
             {
@@ -138,15 +138,14 @@ namespace RunTests
 
                 var message = line.ToString();
                 ConsoleUtil.WriteLine(color, message);
-                Logger.Log(message);
             }
-            Console.WriteLine("================");
+            ConsoleUtil.WriteLine("================");
 
             // Print diagnostics out last so they are cleanly visible at the end of the test summary
-            Console.WriteLine("Extra run diagnostics for logging, did not impact run results");
+            ConsoleUtil.WriteLine("Extra run diagnostics for logging, did not impact run results");
             foreach (var testResult in testResults.Where(x => !string.IsNullOrEmpty(x.Diagnostics)))
             {
-                Console.WriteLine(testResult.Diagnostics);
+                ConsoleUtil.WriteLine(testResult.Diagnostics);
             }
         }
 
@@ -156,20 +155,20 @@ namespace RunTests
             var outputLogPath = Path.Combine(_options.LogsDirectory, $"{testResult.DisplayName}.out.log");
             File.WriteAllText(outputLogPath, testResult.StandardOutput ?? "");
 
-            Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
-            Console.WriteLine(testResult.ErrorOutput);
+            ConsoleUtil.WriteLine($"Errors {testResult.AssemblyName}");
+            ConsoleUtil.WriteLine(testResult.ErrorOutput);
 
-            // TODO: Put this in the log and take it off the console output to keep it simple?
-            Console.WriteLine($"Command: {testResult.CommandLine}");
-            Console.WriteLine($"xUnit output log: {outputLogPath}");
+            // TODO: Put this in the log and take it off the ConsoleUtil output to keep it simple?
+            ConsoleUtil.WriteLine($"Command: {testResult.CommandLine}");
+            ConsoleUtil.WriteLine($"xUnit output log: {outputLogPath}");
 
             if (!string.IsNullOrEmpty(testResult.ErrorOutput))
             {
-                Console.WriteLine(testResult.ErrorOutput);
+                ConsoleUtil.WriteLine(testResult.ErrorOutput);
             }
             else
             {
-                Console.WriteLine($"xunit produced no error output but had exit code {testResult.ExitCode}");
+                ConsoleUtil.WriteLine($"xunit produced no error output but had exit code {testResult.ExitCode}");
             }
 
             // If the results are html, use Process.Start to open in the browser.
