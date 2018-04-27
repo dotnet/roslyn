@@ -36,13 +36,13 @@ namespace RunTests
         public static Task<ProcessOutput> RunProcessAsync(
             string executable,
             string arguments,
-            CancellationToken cancellationToken,
             bool lowPriority = false,
             string workingDirectory = null,
             bool captureOutput = false,
             bool displayWindow = true,
             Dictionary<string, string> environmentVariables = null,
-            Action<Process> onProcessStartHandler = null)
+            Action<Process> onProcessStartHandler = null,
+            CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

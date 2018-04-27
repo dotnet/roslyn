@@ -89,10 +89,14 @@ namespace RunTests
                 // unexepected crashes.
                 void onProcessStart(Process process)
                 {
+                    Logger.Log($"xunit process with id {process.Id} created for test {assemblyInfo.DisplayName}");
                     if (_options.ProcDumpInfo != null)
                     {
-                        ProcDumpUtil.AttachProcDump(_options.ProcDumpInfo.Value, process.Id);
+                        var procDumpProcess = ProcDumpUtil.AttachProcDump(_options.ProcDumpInfo.Value, process.Id);
+                        Logger.Log($"procdump with id {procDumpProcess.Id} attached to {process.Id}");
                     }
+
+                    process.Exited += delegate { Logger.Log($"xunit process with id {process.Id} exited with {process.ExitCode}"); };
                 }
 
                 var start = DateTime.UtcNow;

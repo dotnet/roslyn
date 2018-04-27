@@ -169,7 +169,7 @@ namespace RunTests
                 try
                 {
                     var args = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
-                    var processTask = ProcessRunner.RunProcessAsync(procDumpFilePath, args, cancellationToken);
+                    var processTask = ProcessRunner.RunProcessAsync(procDumpFilePath, args, cancellationToken: cancellationToken);
                     var processOutput = await processTask;
 
                     // The exit code for procdump doesn't obey standard windows rules.  It will return non-zero
