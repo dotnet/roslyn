@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -254,6 +256,115 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.False(field1.IsAccessibleWithin(intType3));
             Assert.False(field3.IsAccessibleWithin(intType1));
+        }
+
+        [Fact]
+        public void TestCrossCompilerEquivalence()
+        {
+            var csharpTree = CSharp.CSharpSyntaxTree.ParseText(@"
+internal class A
+{
+    protected int P;
+    internal int I;
+    private int R;
+    private class N
+    {
+    }
+}
+
+internal class B : A
+{
+}
+
+internal class C : B
+{
+}
+");
+            var vbTree = VisualBasic.VisualBasicSyntaxTree.ParseText(@"
+Friend Class A
+    Protected P As Integer
+    Friend I As Integer
+    Private R As Integer
+    Private Class N
+    End Class
+End Class
+
+Friend Class B
+    Inherits A
+End Class
+
+Friend Class C
+    Inherits B
+End Class
+");
+            var assemblyName = "MyAssembly";
+            // Note that these two compilations claim to have the same assembly identity
+            var csc = CSharpCompilation.Create(assemblyName, new[] { csharpTree }, new MetadataReference[] { /* references */ });
+            var Ac = csc.GlobalNamespace.GetMembers("A")[0] as INamedTypeSymbol;
+            var APc = Ac.GetMembers("P")[0];
+            var AIc = Ac.GetMembers("I")[0];
+            var ARc = Ac.GetMembers("R")[0];
+            var ANc = Ac.GetMembers("N")[0] as INamedTypeSymbol;
+            var Bc = csc.GlobalNamespace.GetMembers("B")[0] as INamedTypeSymbol;
+            var Cc = csc.GlobalNamespace.GetMembers("C")[0] as INamedTypeSymbol;
+
+            // A VB assembly that appears to be the same assembly, therefore containing the same types
+            var vbc = VisualBasicCompilation.Create(assemblyName, new[] { vbTree }, new MetadataReference[] { /* references */ });
+            var Av = vbc.GlobalNamespace.GetMembers("A")[0] as INamedTypeSymbol;
+            var APv = Av.GetMembers("P")[0];
+            var AIv = Av.GetMembers("I")[0];
+            var ARv = Av.GetMembers("R")[0];
+            var ANv = Av.GetMembers("N")[0] as INamedTypeSymbol;
+            var Bv = vbc.GlobalNamespace.GetMembers("B")[0] as INamedTypeSymbol;
+            var Cv = vbc.GlobalNamespace.GetMembers("C")[0] as INamedTypeSymbol;
+
+            Assert.True(APc.IsAccessibleWithin(Bc, Cc));
+            Assert.True(APc.IsAccessibleWithin(Bc, Cv));
+            Assert.True(APc.IsAccessibleWithin(Bv, Cc));
+            Assert.True(APc.IsAccessibleWithin(Bv, Cv));
+            Assert.True(APv.IsAccessibleWithin(Bc, Cc));
+            Assert.True(APv.IsAccessibleWithin(Bc, Cv));
+            Assert.True(APv.IsAccessibleWithin(Bv, Cc));
+            Assert.True(APv.IsAccessibleWithin(Bv, Cv));
+
+            Assert.True(AIc.IsAccessibleWithin(Bc));
+            Assert.True(AIc.IsAccessibleWithin(Bv));
+            Assert.True(AIv.IsAccessibleWithin(Bc));
+            Assert.True(AIv.IsAccessibleWithin(Bv));
+
+            Assert.True(ARc.IsAccessibleWithin(ANc));
+            Assert.True(ARc.IsAccessibleWithin(ANv));
+            Assert.True(ARv.IsAccessibleWithin(ANc));
+            Assert.True(ARv.IsAccessibleWithin(ANv));
+
+            // A VB assembly that appears to be a different assembly, therefore containing different types
+            vbc = VisualBasicCompilation.Create(assemblyName+"2", new[] { vbTree }, new MetadataReference[] { /* references */ });
+            Av = vbc.GlobalNamespace.GetMembers("A")[0] as INamedTypeSymbol;
+            APv = Av.GetMembers("P")[0];
+            AIv = Av.GetMembers("I")[0];
+            ARv = Av.GetMembers("R")[0];
+            ANv = Av.GetMembers("N")[0] as INamedTypeSymbol;
+            Bv = vbc.GlobalNamespace.GetMembers("B")[0] as INamedTypeSymbol;
+            Cv = vbc.GlobalNamespace.GetMembers("C")[0] as INamedTypeSymbol;
+
+            Assert.True(APc.IsAccessibleWithin(Bc, Cc)); // pure assemblyName
+            Assert.False(APc.IsAccessibleWithin(Bc, Cv));
+            Assert.False(APc.IsAccessibleWithin(Bv, Cc));
+            Assert.False(APc.IsAccessibleWithin(Bv, Cv));
+            Assert.False(APv.IsAccessibleWithin(Bc, Cc));
+            Assert.False(APv.IsAccessibleWithin(Bc, Cv));
+            Assert.False(APv.IsAccessibleWithin(Bv, Cc));
+            Assert.True(APv.IsAccessibleWithin(Bv, Cv)); // pure assemblyName2
+
+            Assert.True(AIc.IsAccessibleWithin(Bc));
+            Assert.False(AIc.IsAccessibleWithin(Bv));
+            Assert.False(AIv.IsAccessibleWithin(Bc));
+            Assert.True(AIv.IsAccessibleWithin(Bv));
+
+            Assert.True(ARc.IsAccessibleWithin(ANc));
+            Assert.False(ARc.IsAccessibleWithin(ANv));
+            Assert.False(ARv.IsAccessibleWithin(ANc));
+            Assert.True(ARv.IsAccessibleWithin(ANv));
         }
 
         public abstract class Symbol : ISymbol

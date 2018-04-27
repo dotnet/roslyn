@@ -30,21 +30,22 @@ namespace Microsoft.CodeAnalysis
 
             if (!(within is INamedTypeSymbol || within is IAssemblySymbol))
             {
-                throw new ArgumentException("must be an INamedTypeSymbol or an IAssemblySymbol", nameof(within));
+                throw new ArgumentException(CodeAnalysisResources.IsAccessibleBadWithin, nameof(within));
             }
 
             switch (symbol.Kind)
             {
                 case SymbolKind.Alias:
-                    return IsAccessibleWithin(((IAliasSymbol)symbol).Target, within, throughTypeOpt);
+                    return IsAccessibleWithin(((IAliasSymbol)symbol).Target, within);
                 case SymbolKind.ArrayType:
-                    return IsAccessibleWithin(((IArrayTypeSymbol)symbol).ElementType, within, throughTypeOpt);
+                    return IsAccessibleWithin(((IArrayTypeSymbol)symbol).ElementType, within);
                 case SymbolKind.PointerType:
-                    return IsAccessibleWithin(((IPointerTypeSymbol)symbol).PointedAtType, within, throughTypeOpt);
+                    return IsAccessibleWithin(((IPointerTypeSymbol)symbol).PointedAtType, within);
                 case SymbolKind.ErrorType:
+                    // Error types arise from error recovery. We permit access to enable further analysis.
                     return true;
                 case SymbolKind.NamedType:
-                    return IsNamedTypeAccessibleWithin((INamedTypeSymbol)symbol, within, throughTypeOpt);
+                    return IsNamedTypeAccessibleWithin((INamedTypeSymbol)symbol, within);
                 case SymbolKind.TypeParameter:
                 case SymbolKind.Parameter:
                 case SymbolKind.Local:
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 case SymbolKind.Method:
                     var method = (IMethodSymbol)symbol;
-                    if (((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator)
+                    if (method.MethodKind == MethodKind.BuiltinOperator)
                     {
                         return true;
                     }
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static bool IsNamedTypeAccessibleWithin(INamedTypeSymbol type, ISymbol within, ITypeSymbol throughTypeOpt)
+        private static bool IsNamedTypeAccessibleWithin(INamedTypeSymbol type, ISymbol within)
         {
             Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
             Debug.Assert(type != null);
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var typeArg in type.TypeArguments)
                 {
-                    if (!IsAccessibleWithin(typeArg, within, throughTypeOpt))
+                    if (!IsAccessibleWithin(typeArg, within))
                     {
                         return false;
                     }
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return IsMemberAccessible(containingType, type.DeclaredAccessibility, within, null);
+                return IsMemberAccessible(containingType, type.DeclaredAccessibility, within, throughTypeOpt: null);
             }
         }
 
@@ -111,7 +112,6 @@ namespace Microsoft.CodeAnalysis
 
             switch (declaredAccessibility)
             {
-                case Accessibility.NotApplicable:
                 case Accessibility.Public:
                     // Public symbols are always accessible from any context
                     return true;
@@ -124,12 +124,12 @@ namespace Microsoft.CodeAnalysis
 
                 case Accessibility.Internal:
                 case Accessibility.ProtectedOrInternal:
-
                     // An internal type is accessible if we're in the same assembly or we have
                     // friend access to the assembly it was defined in.
                     var withinAssembly = (within as IAssemblySymbol) ?? ((INamedTypeSymbol)within).ContainingAssembly;
                     return withinAssembly.HasInternalAccessTo(assembly);
 
+                case Accessibility.NotApplicable:
                 default:
                     throw ExceptionUtilities.UnexpectedValue(declaredAccessibility);
             }
@@ -232,13 +232,12 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            var originalThroughTypeOpt = throughTypeOpt == null ? null : throughTypeOpt.OriginalDefinition as ITypeSymbol;
+            var originalThroughTypeOpt = throughTypeOpt?.OriginalDefinition;
             for (INamedTypeSymbol current = withinType.OriginalDefinition; current != null; current = current.ContainingType)
             {
                 if (current.InheritsFromIgnoringConstruction(originalContainingType))
                 {
-                    if (originalThroughTypeOpt == null ||
-                        originalThroughTypeOpt.InheritsFromIgnoringConstruction(current))
+                    if (originalThroughTypeOpt?.InheritsFromIgnoringConstruction(current) != false)
                     {
                         return true;
                     }
@@ -301,7 +300,8 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            // We relax this to permit a type to be represented by multiple symbols (e.g. separate compilations)
+            // We relax this to permit a type to be represented by multiple symbols (e.g. separate compilations).
+            // Note that the same symbol is expected to have the identical name as itself, despite VB language rules.
             return t2 != null && t1.Name == t2.Name && t1.Arity == t2.Arity && SameOriginalSymbol(t1.ContainingSymbol, t2.ContainingSymbol);
         }
 
@@ -335,6 +335,7 @@ namespace Microsoft.CodeAnalysis
         private static bool SameModule(IModuleSymbol m1, IModuleSymbol m2)
         {
             Debug.Assert(m1 != null);
+            // We don't need to check the module name, as modules are effectively merged in the containing assembly.
             return m2 != null && SameOriginalSymbol(m1.ContainingSymbol, m2.ContainingSymbol);
         }
 
@@ -347,6 +348,7 @@ namespace Microsoft.CodeAnalysis
         private static bool SameNamespace(INamespaceSymbol n1, INamespaceSymbol n2)
         {
             Debug.Assert(n1 != null);
+            // Note that the same symbol is expected to have the identical name as itself, despite VB language rules.
             return n2 != null && n1.Name == n2.Name && SameOriginalSymbol(n1.ContainingSymbol, n2.ContainingSymbol);
         }
     }
