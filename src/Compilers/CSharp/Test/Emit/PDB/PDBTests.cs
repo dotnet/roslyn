@@ -3031,8 +3031,6 @@ class Student : Person { public double GPA; }
         <entry offset=""0x1"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" document=""1"" />
         <entry offset=""0x4"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
-        <entry offset=""0xe"" hidden=""true"" document=""1"" />
-        <entry offset=""0x18"" hidden=""true"" document=""1"" />
         <entry offset=""0x1d"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
         <entry offset=""0x2e"" hidden=""true"" document=""1"" />
         <entry offset=""0x30"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" document=""1"" />
@@ -3133,8 +3131,6 @@ class Student : Person { public double GPA; }
         <entry offset=""0xe"" hidden=""true"" document=""1"" />
         <entry offset=""0x1b"" hidden=""true"" document=""1"" />
         <entry offset=""0x1d"" hidden=""true"" document=""1"" />
-        <entry offset=""0x29"" hidden=""true"" document=""1"" />
-        <entry offset=""0x3d"" hidden=""true"" document=""1"" />
         <entry offset=""0x47"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
         <entry offset=""0x5d"" hidden=""true"" document=""1"" />
         <entry offset=""0x5f"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""63"" document=""1"" />
@@ -3234,8 +3230,6 @@ class Student : Person { public double GPA; }
         <entry offset=""0xe"" hidden=""true"" document=""1"" />
         <entry offset=""0x1b"" hidden=""true"" document=""1"" />
         <entry offset=""0x1d"" hidden=""true"" document=""1"" />
-        <entry offset=""0x29"" hidden=""true"" document=""1"" />
-        <entry offset=""0x3d"" hidden=""true"" document=""1"" />
         <entry offset=""0x47"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
         <entry offset=""0x5d"" hidden=""true"" document=""1"" />
         <entry offset=""0x60"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" document=""1"" />

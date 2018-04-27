@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var arm in arms)
                 {
                     var armBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+                    // We start each switch block with a hidden sequence point so that
+                    // we do not appear to be in the previous switch block when we begin.
                     armBuilder.Add(_factory.HiddenSequencePoint());
                     _switchArms.Add(arm, armBuilder);
                 }
@@ -358,7 +360,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         !loweredNodes.Contains(nodesToLower[indexOfNode + 2]) ? nodesToLower[indexOfNode + 2] : null;
 
                     _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
-                    _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
                     GenerateTest(test, whenTrue, whenFalse, nextNode);
                     return true;
                 }
@@ -558,6 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sectionBuilder.Add(conditionalGoto);
 
                     Debug.Assert(whenFalse != null);
+                    // We hide the jump back into the decision dag, as it is not logically part of the when clause
                     sectionBuilder.Add(_factory.HiddenSequencePoint(_factory.Goto(GetDagNodeLabel(whenFalse))));
                 }
                 else
@@ -580,6 +582,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundExpression sideEffect = LowerEvaluation(evaluationNode.Evaluation);
                             Debug.Assert(sideEffect != null);
                             _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
+                            // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
+                            // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
+                            // synchronize on changes.
                             _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
                             if (nextNode != evaluationNode.Next)
                             {
