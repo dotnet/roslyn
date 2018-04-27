@@ -109,6 +109,7 @@ namespace RunTests
 
             ConsoleUtil.WriteLine($"Test execution time: {elapsed}");
 
+            LogProcessResultDetails(result.ProcessResults);
             WriteLogFile(options);
             DisplayResults(options.Display, result.TestResults);
 
@@ -125,6 +126,32 @@ namespace RunTests
 
             ConsoleUtil.WriteLine($"All tests passed");
             return ExitSuccess;
+        }
+
+        private static void LogProcessResultDetails(ImmutableArray<ProcessResult> processResults)
+        {
+            Logger.Log("### Begin logging executed process details");
+            foreach (var processResult in processResults)
+            {
+                var process = processResult.Process;
+                var startInfo = process.StartInfo;
+                Logger.Log($"### Begin {process.Id}");
+                Logger.Log($"### {startInfo.FileName} {startInfo.Arguments}");
+                Logger.Log($"### Exit code {process.ExitCode}");
+                Logger.Log("### Standard Output");
+                foreach (var line in processResult.OutputLines)
+                {
+                    Logger.Log(line);
+                }
+                Logger.Log("### Standard Error");
+                foreach (var line in processResult.ErrorLines)
+                {
+                    Logger.Log(line);
+                }
+                Logger.Log($"### End {process.Id}");
+            }
+
+            Logger.Log("End logging executed process details");
         }
 
         private static void WriteLogFile(Options options)

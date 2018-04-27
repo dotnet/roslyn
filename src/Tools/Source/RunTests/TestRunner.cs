@@ -18,12 +18,14 @@ namespace RunTests
         internal bool Succeeded { get; }
         internal int CacheCount { get; }
         internal ImmutableArray<TestResult> TestResults { get; }
+        internal ImmutableArray<ProcessResult> ProcessResults { get; }
 
-        internal RunAllResult(bool succeeded, int cacheCount, ImmutableArray<TestResult> testResults)
+        internal RunAllResult(bool succeeded, int cacheCount, ImmutableArray<TestResult> testResults, ImmutableArray<ProcessResult> processResults)
         {
             Succeeded = succeeded;
             CacheCount = cacheCount;
             TestResults = testResults;
+            ProcessResults = processResults;
         }
     }
 
@@ -112,7 +114,13 @@ namespace RunTests
 
             Print(completed);
 
-            return new RunAllResult((failures == 0), cacheCount, completed.ToImmutableArray());
+            var processResults = ImmutableArray.CreateBuilder<ProcessResult>();
+            foreach (var c in completed)
+            {
+                processResults.AddRange(c.ProcessResults);
+            }
+
+            return new RunAllResult((failures == 0), cacheCount, completed.ToImmutableArray(), processResults.ToImmutable());
         }
 
         private void Print(List<TestResult> testResults)

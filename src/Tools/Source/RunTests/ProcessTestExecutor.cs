@@ -3,6 +3,8 @@
 using RunTests.Cache;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -73,6 +75,7 @@ namespace RunTests
                 var commandLineArguments = GetCommandLineArguments(assemblyInfo);
                 var resultsFilePath = GetResultsFilePath(assemblyInfo);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
+                var processResultList = new List<ProcessResult>();
                 ProcessInfo? procDumpProcessInfo = null;
 
                 // NOTE: xUnit doesn't always create the log directory
@@ -96,7 +99,7 @@ namespace RunTests
                         environmentVariables: environmentVariables),
                     lowPriority: false,
                     cancellationToken: cancellationToken);
-                Logger.Log($"xunit process with id {xunitProcessInfo.Id} created for test {assemblyInfo.DisplayName}");
+                Logger.Log($"Create xunit process with id {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName}");
 
                 // Now that xunit is running we should kick off a procDump process if it was specified
                 if (_options.ProcDumpInfo != null)
@@ -109,30 +112,19 @@ namespace RunTests
                         displayWindow: false);
                     Directory.CreateDirectory(procDumpInfo.DumpDirectory);
                     procDumpProcessInfo = ProcessRunner.CreateProcess(procDumpStartInfo, cancellationToken: cancellationToken);
-                    Logger.Log($"procdump with id {procDumpProcessInfo.Value.Id} attached to {xunitProcessInfo.Id}");
+                    Logger.Log($"Create procdump process with id {procDumpProcessInfo.Value.Id} for xunit {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName}");
                 }
 
                 var xunitProcessResult = await xunitProcessInfo.Result;
                 var span = DateTime.UtcNow - start;
 
+                Logger.Log($"Exit xunit process with id {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName} with code {xunitProcessResult.ExitCode}");
+                processResultList.Add(xunitProcessResult);
                 if (procDumpProcessInfo != null)
                 {
                     var procDumpProcessResult = await procDumpProcessInfo.Value.Result;
-                    var output = new StringBuilder();
-                    output.AppendLine($"procdump with id {procDumpProcessInfo.Value.Id} exited with {procDumpProcessResult.ExitCode}");
-                    output.AppendLine($"begin procdump {procDumpProcessResult.Process.Id} output");
-                    output.AppendLine("standard output");
-                    foreach (var line in procDumpProcessResult.OutputLines)
-                    {
-                        output.AppendLine(line);
-                    }
-                    output.AppendLine("standard error");
-                    foreach (var line in procDumpProcessResult.ErrorLines)
-                    {
-                        output.AppendLine(line);
-                    }
-                    output.AppendLine("end procdump output");
-                    Logger.Log(output.ToString());
+                    Logger.Log($"Exit procdump process with id {procDumpProcessInfo.Value.Id} for {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName} with code {procDumpProcessResult.ExitCode}");
+                    processResultList.Add(procDumpProcessResult);
                 }
 
                 if (xunitProcessResult.ExitCode != 0)
@@ -175,7 +167,8 @@ namespace RunTests
                     assemblyInfo,
                     testResultInfo,
                     commandLine,
-                    isFromCache: false);
+                    isFromCache: false,
+                    processResults: ImmutableArray.CreateRange(processResultList));
             }
             catch (Exception ex)
             {
