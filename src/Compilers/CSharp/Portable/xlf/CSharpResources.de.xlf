@@ -8682,7 +8682,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="needs-review-translation">Der Typ "{2}" kann kein Verweistyp sein oder Verweistypfelder auf einer beliebigen Schachtelungsebene enthalten, damit er als Parameter "{1}" im generischen Typ oder der Methode "{0}" verwendet werden kann.</target>
+        <target state="translated">Der Typ "{2}" darf, ebenso wie sämtliche Felder auf jeder Schachtelungsebene, keine NULL-Werte zulassen, wenn er als {1}-Parameter im generischen Typ oder in der generischen Methode "{0}" verwendet werden soll.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">

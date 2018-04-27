@@ -1424,7 +1424,7 @@ La opción "Carga de solución ligera" está habilitada para la solución actual
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
-        <target state="needs-review-translation">Error al leer un archivo.</target>
+        <target state="translated">Error al leer el archivo "{0}": {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1488,6 +1488,16 @@ Estoy de acuerdo con todo lo anterior:</target>
         <target state="translated">Los parámetros configurados aquí solo son aplicables a su equipo. Para configurar estos parámetros de manera que se desplacen con su solución, use los archivos .editorconfig.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="translated">Sincronizar vista de clases</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="translated">No se pueden aplicar los cambios: error inesperado "{0}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Field_preferences_colon">
         <source>Field preferences:</source>
         <target state="translated">Preferencias de campo:</target>
@@ -1505,17 +1515,7 @@ Estoy de acuerdo con todo lo anterior:</target>
       </trans-unit>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
-        <target state="new">Manage naming styles</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sync_Class_View">
-        <source>Sync Class View</source>
-        <target state="new">Sync Class View</target>
+        <target state="translated">Administrar estilos de nomenclatura</target>
         <note />
       </trans-unit>
       <trans-unit id="Live_code_analysis">
