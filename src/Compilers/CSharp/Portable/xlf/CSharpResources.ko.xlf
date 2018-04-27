@@ -4142,7 +4142,7 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="translated">'{0}' 형식 변수에서 foreach 문을 수행할 수 없습니다. ‘{0}’에는 '{1}'에 대한 공용 인스턴스 정의가 없기 때문입니다.</target>
+        <target state="translated">'{0}' 형식 변수에서 foreach 문을 수행할 수 없습니다. '{0}'에는 '{1}'에 대한 공용 인스턴스 정의가 없기 때문입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -8682,7 +8682,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="needs-review-translation">'{2}' 형식은 제네릭 형식 또는 메서드 '{0}'에서 '{1}' 매개 변수로 사용하려면 참조 형식이 아니거나 어느 중첩 수준에서도 참조 형식 필드를 포함하지 않아야 합니다.</target>
+        <target state="translated">제네릭 형식 또는 메서드 '{0}'에서 모든 중첩 수준의 모든 필드와 함께 '{2}' 형식을 '{1}' 매개 변수로 사용하려면 해당 형식이 null을 허용하지 않는 값 형식이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">

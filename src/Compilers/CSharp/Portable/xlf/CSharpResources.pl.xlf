@@ -8682,7 +8682,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="needs-review-translation">Typ „{2}” nie może być typem referencyjnym ani zawierać pól typów odwołania na jakimkolwiek poziomie zagnieżdżenia, aby można było używać go jako parametru „{1}” w typie ogólnym lub metodzie ogólnej „{0}”</target>
+        <target state="translated">Typ „{2}” musi być typem wartości niedopuszczającym wartości null (podobnie jak wszystkie pola na wszystkich poziomach zagnieżdżenia), aby można było używać go jako parametru „{1}” w typie ogólnym lub metodzie ogólnej „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">

@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Implement_Abstract_Class_Or_Interface">
         <source>Implement Abstract Class Or Interface</source>
-        <target state="new">Implement Abstract Class Or Interface</target>
+        <target state="translated">추상 클래스 또는 인터페이스 구현</target>
         <note />
       </trans-unit>
     </body>

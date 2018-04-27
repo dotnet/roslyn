@@ -13,19 +13,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Spans of active statements in the document, or null if the document has syntax errors.
         /// </summary>
-        public readonly ImmutableArray<ActiveStatement> ActiveStatements;
+        public ImmutableArray<ActiveStatement> ActiveStatements { get; }
 
         /// <summary>
         /// Diagnostics for rude edits in the document, or null if the document is unchanged or has syntax errors.
         /// If the compilation has semantic errors only syntactic rude edits are calculated.
         /// </summary>
-        public readonly ImmutableArray<RudeEditDiagnostic> RudeEditErrors;
+        public ImmutableArray<RudeEditDiagnostic> RudeEditErrors { get; }
 
         /// <summary>
         /// Edits made in the document, or null if the document is unchanged, has syntax errors, has rude edits,
         /// or if the compilation has semantic errors.
         /// </summary>
-        public readonly ImmutableArray<SemanticEdit> SemanticEdits;
+        public ImmutableArray<SemanticEdit> SemanticEdits { get; }
 
         /// <summary>
         /// Exception regions -- spans of catch and finally handlers that surround the active statements.
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ///   try { } |finally { try { } catch { ... AS ... } }|
         ///   try { try { } |finally { ... AS ... }| } |catch { } catch { } finally { }|
         /// </remarks>
-        public readonly ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions;
+        public ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions { get; }
 
         /// <summary>
         /// Line edits in the document, or null if the document has syntax errors or rude edits, 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <remarks>
         /// Sorted by <see cref="LineChange.OldLine"/>
         /// </remarks>
-        public readonly ImmutableArray<LineChange> LineEdits;
+        public ImmutableArray<LineChange> LineEdits { get; }
 
         /// <summary>
         /// The compilation has compilation errors (syntactic or semantic), 
