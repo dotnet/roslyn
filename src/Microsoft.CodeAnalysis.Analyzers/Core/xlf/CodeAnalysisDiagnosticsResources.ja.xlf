@@ -357,6 +357,21 @@
         <target state="translated">診断アナライザーの型 '{0}' を変更して、型 '{1}' へのすべての直接アクセスを削除します</target>
         <note />
       </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceDescription">
+        <source>Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</source>
+        <target state="new">Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceMessage">
+        <source>Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</source>
+        <target state="new">Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceTitle">
+        <source>Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</source>
+        <target state="new">Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

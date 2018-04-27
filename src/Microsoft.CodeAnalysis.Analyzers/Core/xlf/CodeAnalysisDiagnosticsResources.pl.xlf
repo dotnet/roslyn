@@ -357,6 +357,21 @@
         <target state="translated">Zmień typ analizatora diagnostycznego „{0}”, aby usunąć cały bezpośredni dostęp do typów „{1}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceDescription">
+        <source>Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</source>
+        <target state="new">Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceMessage">
+        <source>Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</source>
+        <target state="new">Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceTitle">
+        <source>Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</source>
+        <target state="new">Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

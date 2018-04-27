@@ -6,4 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Analyzers.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Analyzers.UnitTests" />
+  </ItemGroup>
 </Project>
