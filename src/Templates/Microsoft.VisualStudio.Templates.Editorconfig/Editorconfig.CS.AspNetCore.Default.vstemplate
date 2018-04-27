@@ -2,8 +2,10 @@
   <TemplateData>
     <Name>editorconfig File (default)</Name>
     <Description>Create an editorconfig file to persist your editor and code settings.</Description>
-    <ProjectType>VisualBasic</ProjectType>
+    <ProjectType>CSharp</ProjectType>
     <Icon Package="{FAE04EC1-301F-11d3-BF4B-00C04F79EFBC}" ID="4600" />
+    <TemplateGroupID>AspNetCore</TemplateGroupID>
+    <TemplateID>Microsoft.VisualStudio.Templates.Editorconfig.AspNetCore.default</TemplateID>
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
     <DefaultName>editorconfig</DefaultName>
     <ShowByDefault>false</ShowByDefault> 

@@ -2,12 +2,12 @@
   <TemplateData>
     <Name>editorconfig File (default)</Name>
     <Description>Create an editorconfig file to persist your editor and code settings.</Description>
-    <TemplateID>Microsoft.VisualStudio.Templates.Editorconfig.default</TemplateID>
     <ProjectType>CSharp</ProjectType>
-    <Icon>EditorconfigIcon.png</Icon>
+    <Icon Package="{FAE04EC1-301F-11d3-BF4B-00C04F79EFBC}" ID="4600" />
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
     <DefaultName>editorconfig</DefaultName>
-    <AppliesTo>ABC | (!ABC)</AppliesTo>
+    <AppliesTo>CSharp & (!Web)</AppliesTo>
+    <ShowByDefault>false</ShowByDefault> 
   </TemplateData>
   <TemplateContent>
     <CustomParameters>
