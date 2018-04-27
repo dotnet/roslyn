@@ -6,7 +6,7 @@
     <Icon Package="{FAE04EC1-301F-11d3-BF4B-00C04F79EFBC}" ID="4600" />
     <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
     <DefaultName>editorconfig</DefaultName>
-    <AppliesTo>CSharp & (!Web)</AppliesTo>
+    <AppliesTo>CSharp + (!Web)</AppliesTo>
     <ShowByDefault>false</ShowByDefault> 
   </TemplateData>
   <TemplateContent>
