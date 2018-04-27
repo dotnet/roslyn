@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -136,6 +137,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static ComposableCatalog WithPart(this ComposableCatalog catalog, Type t)
         {
             return catalog.WithParts(CreateTypeCatalog(SpecializedCollections.SingletonEnumerable(t)));
+        }
+
+        public static ComposableCatalog WithoutPartsOfType(this ComposableCatalog catalog, Type t)
+        {
+            return catalog.WithoutPartsOfTypes(SpecializedCollections.SingletonEnumerable(t));
+        }
+
+        public static ComposableCatalog WithoutPartsOfTypes(this ComposableCatalog catalog, IEnumerable<Type> types)
+        {
+            var parts = catalog.Parts.Where(composablePartDefinition => !IsExcludedPart(composablePartDefinition));
+            return ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts);
+
+            // Local functions
+            bool IsExcludedPart(ComposablePartDefinition part)
+            {
+                return types.Any(excludedType => excludedType.IsAssignableFrom(part.Type));
+            }
         }
 
         public static IExportProviderFactory GetOrCreateExportProviderFactory(ComposableCatalog catalog)
