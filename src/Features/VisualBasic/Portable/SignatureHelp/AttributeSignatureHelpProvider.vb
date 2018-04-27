@@ -77,8 +77,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(attribute.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            Dim symbolInfo = semanticModel.GetSymbolInfo(attribute)
-            Dim selectedItem = GetSelectedIndex(accessibleConstructors, symbolInfo)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(attribute, cancellationToken)
+            Dim selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo)
 
             Return CreateSignatureHelpItems(accessibleConstructors.Select(
                 Function(c) Convert(c, within, attribute, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),

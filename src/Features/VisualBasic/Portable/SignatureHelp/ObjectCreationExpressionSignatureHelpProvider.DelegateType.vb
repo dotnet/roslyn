@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                                      documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                                      delegateType As INamedTypeSymbol,
                                                      within As ISymbol,
-                                                     cancellationToken As CancellationToken) As (Items As IList(Of SignatureHelpItem), SelectedItem As Integer?)
+                                                     cancellationToken As CancellationToken) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
             Dim invokeMethod = delegateType.DelegateInvokeMethod
             If invokeMethod Is Nothing Then
                 Return (Nothing, Nothing)

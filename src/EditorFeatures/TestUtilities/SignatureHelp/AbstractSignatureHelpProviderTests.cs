@@ -429,6 +429,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 return;
             }
 
+            Assert.True(expectedOrderedItemsOrNull.Count(i => i.IsSelected) == 1, "Only one expected item can be marked with 'IsSelected'");
             Assert.True(selectedItemIndex != null, "Expected an item to be selected, but no item was actually selected");
 
             int counter = 0;

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName, selectedItem);
         }
 
-        private static (IList<SignatureHelpItem>, int?) Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames, int? selectedItem)
+        private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames, int? selectedItem)
         {
             if (parameterNames == null)
             {
@@ -288,20 +288,18 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return supportedPlatforms;
         }
 
-        protected static int? GetSelectedIndex<TSymbol>(ImmutableArray<TSymbol> candidates, SymbolInfo currentSymbol) where TSymbol : class, ISymbol
+        protected static int? TryGetSelectedIndex<TSymbol>(ImmutableArray<TSymbol> candidates, SymbolInfo currentSymbol) where TSymbol : class, ISymbol
         {
-            var matched = currentSymbol.Symbol as TSymbol;
-            int? matchedIndex = null;
-            if (matched != null)
+            if (currentSymbol.Symbol is TSymbol matched)
             {
                 var found = candidates.IndexOf(matched);
                 if (found >= 0)
                 {
-                    matchedIndex = found;
+                    return found;
                 }
             }
 
-            return matchedIndex;
+            return null;
         }
     }
 }

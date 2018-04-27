@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             if (methodGroup.Any())
             {
-                var selectedItem = GetSelectedIndex(methodGroup, symbolInfo);
+                var selectedItem = TryGetSelectedIndex(methodGroup, symbolInfo);
 
                 return CreateSignatureHelpItems(
                     GetMethodGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, cancellationToken),

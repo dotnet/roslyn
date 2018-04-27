@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                                    anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                    normalType As INamedTypeSymbol,
                                                    within As ISymbol,
-                                                   cancellationToken As CancellationToken) As (Items As IList(Of SignatureHelpItem), SelectedItem As Integer?)
+                                                   cancellationToken As CancellationToken) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
 
             Dim accessibleConstructors = normalType.InstanceConstructors.
                                                     WhereAsArray(Function(c) c.IsAccessibleWithin(within)).
@@ -34,8 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim items = accessibleConstructors.Select(
                 Function(c) ConvertNormalTypeConstructor(c, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList()
 
-            Dim currentConstructor = semanticModel.GetSymbolInfo(objectCreationExpression)
-            Dim selectedItem = GetSelectedIndex(accessibleConstructors, currentConstructor)
+            Dim currentConstructor = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken)
+            Dim selectedItem = TryGetSelectedIndex(accessibleConstructors, currentConstructor)
 
             Return (items, selectedItem)
         End Function

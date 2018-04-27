@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private (IList<SignatureHelpItem> Items, int? SelectedItem) GetDelegateTypeConstructors(
+        private (IList<SignatureHelpItem> items, int? selectedItem) GetDelegateTypeConstructors(
             ObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
             ISymbolDisplayService symbolDisplayService,
