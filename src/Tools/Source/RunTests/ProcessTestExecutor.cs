@@ -73,6 +73,7 @@ namespace RunTests
                 var commandLineArguments = GetCommandLineArguments(assemblyInfo);
                 var resultsFilePath = GetResultsFilePath(assemblyInfo);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
+                ProcessInfo? procDumpProcessInfo = null;
 
                 // NOTE: xUnit doesn't always create the log directory
                 Directory.CreateDirectory(resultsDir);
@@ -85,34 +86,56 @@ namespace RunTests
                 var environmentVariables = new Dictionary<string, string>();
                 _options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
 
-                // Attach procDump to processes when the are started so we can watch for 
-                // unexepected crashes.
-                void onProcessStart(Process process)
-                {
-                    Logger.Log($"xunit process with id {process.Id} created for test {assemblyInfo.DisplayName}");
-                    if (_options.ProcDumpInfo != null)
-                    {
-                        var procDumpProcess = ProcDumpUtil.AttachProcDump(_options.ProcDumpInfo.Value, process.Id);
-                        Logger.Log($"procdump with id {procDumpProcess.Id} attached to {process.Id}");
-                    }
+                var start = DateTime.UtcNow;
+                var xunitProcessInfo = ProcessRunner.CreateProcess(
+                    ProcessRunner.CreateProcessStartInfo(
+                        _options.XunitPath,
+                        commandLineArguments,
+                        displayWindow: false,
+                        captureOutput: true,
+                        environmentVariables: environmentVariables),
+                    lowPriority: false,
+                    cancellationToken: cancellationToken);
+                Logger.Log($"xunit process with id {xunitProcessInfo.Id} created for test {assemblyInfo.DisplayName}");
 
-                    process.Exited += delegate { Logger.Log($"xunit process with id {process.Id} exited with {process.ExitCode}"); };
+                // Now that xunit is running we should kick off a procDump process if it was specified
+                if (_options.ProcDumpInfo != null)
+                {
+                    var procDumpInfo = _options.ProcDumpInfo.Value;
+                    var procDumpStartInfo = ProcessRunner.CreateProcessStartInfo(
+                        procDumpInfo.ProcDumpFilePath,
+                        ProcDumpUtil.GetProcDumpCommandLine(xunitProcessInfo.Id, procDumpInfo.DumpDirectory),
+                        captureOutput: true,
+                        displayWindow: false);
+                    Directory.CreateDirectory(procDumpInfo.DumpDirectory);
+                    procDumpProcessInfo = ProcessRunner.CreateProcess(procDumpStartInfo, cancellationToken: cancellationToken);
+                    Logger.Log($"procdump with id {procDumpProcessInfo.Value.Id} attached to {xunitProcessInfo.Id}");
                 }
 
-                var start = DateTime.UtcNow;
-                var xunitPath = _options.XunitPath;
-                var processOutput = await ProcessRunner.RunProcessAsync(
-                    xunitPath,
-                    commandLineArguments,
-                    lowPriority: false,
-                    displayWindow: false,
-                    captureOutput: true,
-                    cancellationToken: cancellationToken,
-                    environmentVariables: environmentVariables,
-                    onProcessStartHandler: onProcessStart);
+                var xunitProcessResult = await xunitProcessInfo.Result;
                 var span = DateTime.UtcNow - start;
 
-                if (processOutput.ExitCode != 0)
+                if (procDumpProcessInfo != null)
+                {
+                    var procDumpProcessResult = await procDumpProcessInfo.Value.Result;
+                    var output = new StringBuilder();
+                    output.AppendLine($"procdump with id {procDumpProcessInfo.Value.Id} exited with {procDumpProcessResult.ExitCode}");
+                    output.AppendLine($"begin procdump {procDumpProcessResult.Process.Id} output");
+                    output.AppendLine("standard output");
+                    foreach (var line in procDumpProcessResult.OutputLines)
+                    {
+                        output.AppendLine(line);
+                    }
+                    output.AppendLine("standard error");
+                    foreach (var line in procDumpProcessResult.ErrorLines)
+                    {
+                        output.AppendLine(line);
+                    }
+                    output.AppendLine("end procdump output");
+                    Logger.Log(output.ToString());
+                }
+
+                if (xunitProcessResult.ExitCode != 0)
                 {
                     // On occasion we get a non-0 output but no actual data in the result file.  The could happen
                     // if xunit manages to crash when running a unit test (a stack overflow could cause this, for instance).
@@ -138,10 +161,10 @@ namespace RunTests
 
                 var commandLine = GetCommandLine(assemblyInfo);
                 Logger.Log($"Command line {assemblyInfo.DisplayName}: {commandLine}");
-                var standardOutput = string.Join(Environment.NewLine, processOutput.OutputLines) ?? "";
-                var errorOutput = string.Join(Environment.NewLine, processOutput.ErrorLines) ?? "";
+                var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
+                var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
                 var testResultInfo = new TestResultInfo(
-                    exitCode: processOutput.ExitCode,
+                    exitCode: xunitProcessResult.ExitCode,
                     resultsDirectory: resultsDir,
                     resultsFilePath: resultsFilePath,
                     elapsed: span,

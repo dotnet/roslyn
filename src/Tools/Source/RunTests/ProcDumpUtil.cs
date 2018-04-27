@@ -52,7 +52,7 @@ namespace RunTests
             return AttachProcDump(procDumpInfo.ProcDumpFilePath, processId, procDumpInfo.DumpDirectory);
         }
 
-        internal static string GetProcDumpCommandLine(string procDumpFilePath, int processId, string dumpDirectory)
+        internal static string GetProcDumpCommandLine(int processId, string dumpDirectory)
         {
             // /accepteula command line option to automatically accept the Sysinternals license agreement.
             // -ma	Write a 'Full' dump file. Includes All the Image, Mapped and Private memory.
@@ -72,7 +72,7 @@ namespace RunTests
         internal static Process AttachProcDump(string procDumpFilePath, int processId, string dumpDirectory)
         {
             Directory.CreateDirectory(dumpDirectory);
-            return Process.Start(procDumpFilePath, GetProcDumpCommandLine(procDumpFilePath, processId, dumpDirectory));
+            return Process.Start(procDumpFilePath, GetProcDumpCommandLine(processId, dumpDirectory));
         }
     }
 }

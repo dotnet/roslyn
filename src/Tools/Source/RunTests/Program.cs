@@ -169,8 +169,8 @@ namespace RunTests
                 try
                 {
                     var args = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
-                    var processTask = ProcessRunner.RunProcessAsync(procDumpFilePath, args, cancellationToken: cancellationToken);
-                    var processOutput = await processTask;
+                    var processInfo = ProcessRunner.CreateProcess(procDumpFilePath, args, cancellationToken: cancellationToken);
+                    var processOutput = await processInfo.Result;
 
                     // The exit code for procdump doesn't obey standard windows rules.  It will return non-zero
                     // for succesful cases (possibly returning the count of dumps that were written).  Best 
