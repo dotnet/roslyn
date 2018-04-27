@@ -6,7 +6,9 @@ namespace Test.Utilities
     {
         public const string DataflowAnalysis = nameof(DataflowAnalysis);
 #pragma warning disable CA1034 // Nested types should not be visible - test class matching the pattern used in Roslyn.
+#pragma warning disable CA1724 // Type names should not match namespaces - test class matching the pattern used in Roslyn.
         public static class Dataflow
+#pragma warning restore CA1724 // Type names should not match namespaces
 #pragma warning restore CA1034 // Nested types should not be visible
         {
             public const string CopyAnalysis = nameof(CopyAnalysis);
