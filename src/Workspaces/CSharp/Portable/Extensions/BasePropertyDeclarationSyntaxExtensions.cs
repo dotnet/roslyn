@@ -6,21 +6,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class BasePropertyDeclarationSyntaxExtensions
     {
-        public static BasePropertyDeclarationSyntax WithAccessorList(this BasePropertyDeclarationSyntax node, AccessorListSyntax accessorList)
-        {
-            if (node != null)
-            {
-                switch (node.Kind())
-                {
-                    case SyntaxKind.PropertyDeclaration: return ((PropertyDeclarationSyntax)node).WithAccessorList(accessorList);
-                    case SyntaxKind.IndexerDeclaration: return ((IndexerDeclarationSyntax)node).WithAccessorList(accessorList);
-                    case SyntaxKind.EventDeclaration: return ((EventDeclarationSyntax)node).WithAccessorList(accessorList);
-                }
-            }
-
-            return node;
-        }
-
         /// <summary>
         /// Available if <paramref name="node"/> is <see cref="PropertyDeclarationSyntax"/> or <see cref="IndexerDeclarationSyntax"/>.
         /// </summary>
