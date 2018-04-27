@@ -29,6 +29,7 @@ param (
     [switch]$packAll = $false,
     [switch]$binaryLog = $false,
     [switch]$noAnalyzers = $false,
+    [switch]$skipBuildExtras = $false,
     [switch]$deployExtensions = $false,
     [string]$signType = "",
 
@@ -249,7 +250,9 @@ function Build-Artifacts() {
     }
     elseif ($build) {
         Run-MSBuild "Roslyn.sln" "/p:DeployExtension=$deployExtensions"
-        Build-ExtraSignArtifacts
+        if (-not $skipBuildExtras) {
+            Build-ExtraSignArtifacts
+        }
     }
 
     if ($pack) {
@@ -264,7 +267,7 @@ function Build-Artifacts() {
         Build-DeployToSymStore
     }
 
-    if ($build -and (-not $buildCoreClr)) {
+    if ($build -and (-not $skipBuildExtras) -and (-not $buildCoreClr)) {
         Build-InsertionItems
     }
 }
