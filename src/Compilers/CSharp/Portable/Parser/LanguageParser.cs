@@ -8628,7 +8628,7 @@ tryAgain:
             return this.ParseSubExpression(Precedence.Expression);
         }
 
-        private bool IsPossibleExpression()
+        private bool IsPossibleExpression(bool allowBinaryExpressions = true, bool allowAssignmentExpressions = true)
         {
             var tk = this.CurrentToken.Kind;
             switch (tk)
@@ -8664,7 +8664,10 @@ tryAgain:
                     // expression (whether it is used as an identifier or a keyword).
                     return this.IsTrueIdentifier() || (this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword);
                 default:
-                    return IsExpectedPrefixUnaryOperator(tk) || (IsPredefinedType(tk) && tk != SyntaxKind.VoidKeyword);
+                    return (IsPredefinedType(tk) && tk != SyntaxKind.VoidKeyword)
+                        || SyntaxFacts.IsAnyUnaryExpression(tk)
+                        || (allowBinaryExpressions && SyntaxFacts.IsBinaryExpression(tk))
+                        || (allowAssignmentExpressions && SyntaxFacts.IsAssignmentExpressionOperatorToken(tk));
             }
         }
 
@@ -8929,7 +8932,7 @@ tryAgain:
                     // Operator ".." here can either be a prefix unary operator or a stand alone empty range:
                     Debug.Assert(opKind == SyntaxKind.RangeExpression);
 
-                    if (IsPossibleExpression())
+                    if (IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false))
                     {
                         newPrecedence = GetPrecedence(opKind);
                         leftOperand = _syntaxFactory.RangeExpression(leftOperand: null, opToken, rightOperand: this.ParseSubExpression(newPrecedence));
@@ -9077,7 +9080,7 @@ tryAgain:
                             // Operator ".." here can either be a binary or a postfix unary operator:
                             Debug.Assert(opKind == SyntaxKind.RangeExpression);
 
-                            if (IsPossibleExpression())
+                            if (IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false))
                             {
                                 leftOperand = _syntaxFactory.RangeExpression(leftOperand: leftOperand, opToken, rightOperand: this.ParseSubExpression(newPrecedence));
                             }

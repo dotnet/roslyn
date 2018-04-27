@@ -563,6 +563,8 @@ namespace System
                     case WellKnownType.System_Span_T:
                     case WellKnownType.System_ReadOnlySpan_T:
                     case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
+                    case WellKnownType.System_Index:
+                    case WellKnownType.System_Range:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
@@ -867,6 +869,11 @@ namespace System
                     case WellKnownMember.System_ReadOnlySpan_T__ctor:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
+                    case WellKnownMember.System_Index__ctor:
+                    case WellKnownMember.System_Range__All:
+                    case WellKnownMember.System_Range__Create:
+                    case WellKnownMember.System_Range__FromStart:
+                    case WellKnownMember.System_Range__ToEnd:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
