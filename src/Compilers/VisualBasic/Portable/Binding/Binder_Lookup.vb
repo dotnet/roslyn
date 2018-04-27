@@ -1470,7 +1470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 LookupInInterfaces(lookupResult, container, lookIn, processed, name, arity, options, binder, methodsOnly, useSiteDiagnostics)
 
                 ' If no viable or ambiguous results, look in Object.
-                If lookupResult?.IsGoodOrAmbiguous <> True AndAlso (options And LookupOptions.NoSystemObjectLookupForInterfaces) = 0 Then
+                If (lookupResult Is Nothing OrElse Not lookupResult.IsGoodOrAmbiguous) AndAlso (options And LookupOptions.NoSystemObjectLookupForInterfaces) = 0 Then
                     Dim currentResult = LookupResult.GetInstance()
                     Dim obj As NamedTypeSymbol = binder.SourceModule.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
 
