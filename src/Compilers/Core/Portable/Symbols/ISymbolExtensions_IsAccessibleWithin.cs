@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
 
         private static bool HasInternalAccessTo(this IAssemblySymbol fromAssembly, IAssemblySymbol toAssembly)
         {
-            if (fromAssembly == toAssembly)
+            if (fromAssembly.Identity.Equals(toAssembly.Identity))
             {
                 return true;
             }
@@ -159,7 +159,8 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(within is INamedTypeSymbol || within is IAssemblySymbol);
             Debug.Assert(containingType != null);
 
-            if (containingType == within)
+            // This is a shortcut optimization of the more complex test for the most common situation.
+            if (within == containingType)
             {
                 return true;
             }
@@ -263,7 +264,7 @@ namespace Microsoft.CodeAnalysis
 
             for (var current = type.OriginalDefinition; current != null; current = current.ContainingType)
             {
-                if (current == possiblyContainingOriginalType)
+                if (SameOriginalNamedType(current, possiblyContainingOriginalType))
                 {
                     return true;
                 }
@@ -279,13 +280,74 @@ namespace Microsoft.CodeAnalysis
 
             for (var current = type; current != null; current = current.BaseType?.OriginalDefinition)
             {
-                if (current == baseType)
+                if (SameOriginalNamedType(baseType, current as INamedTypeSymbol))
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        private static bool SameOriginalNamedType(INamedTypeSymbol t1, INamedTypeSymbol t2)
+        {
+            Debug.Assert(t1 != null);
+            Debug.Assert(t1.IsDefinition);
+            Debug.Assert(t2?.IsDefinition != false);
+
+            // We expect a given named type definition to satisfy reference identity.
+            if (t1 == t2)
+            {
+                return true;
+            }
+
+            // We relax this to permit a type to be represented by multiple symbols (e.g. separate compilations)
+            return t2 != null && t1.Name == t2.Name && t1.Arity == t2.Arity && SameOriginalSymbol(t1.ContainingSymbol, t2.ContainingSymbol);
+        }
+
+        private static bool SameOriginalSymbol(ISymbol s1, ISymbol s2)
+        {
+            if (s1 == s2)
+            {
+                return true;
+            }
+
+            if (s1 == null || s2 == null)
+            {
+                return false;
+            }
+
+            switch (s1.Kind)
+            {
+                case SymbolKind.NamedType:
+                    return SameOriginalNamedType(s1 as INamedTypeSymbol, s2 as INamedTypeSymbol);
+                case SymbolKind.Namespace:
+                    return SameNamespace(s1 as INamespaceSymbol, s2 as INamespaceSymbol);
+                case SymbolKind.Assembly:
+                    return SameAssembly(s1 as IAssemblySymbol, s2 as IAssemblySymbol);
+                case SymbolKind.NetModule:
+                    return SameModule(s1 as IModuleSymbol, s2 as IModuleSymbol);
+                default:
+                    return false;
+            }
+        }
+
+        private static bool SameModule(IModuleSymbol m1, IModuleSymbol m2)
+        {
+            Debug.Assert(m1 != null);
+            return m2 != null && SameOriginalSymbol(m1.ContainingSymbol, m2.ContainingSymbol);
+        }
+
+        private static bool SameAssembly(IAssemblySymbol a1, IAssemblySymbol a2)
+        {
+            Debug.Assert(a1 != null);
+            return a2 != null && a1.Identity.Equals(a2.Identity);
+        }
+
+        private static bool SameNamespace(INamespaceSymbol n1, INamespaceSymbol n2)
+        {
+            Debug.Assert(n1 != null);
+            return n2 != null && n1.Name == n2.Name && SameOriginalSymbol(n1.ContainingSymbol, n2.ContainingSymbol);
         }
     }
 }
