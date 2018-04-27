@@ -261,12 +261,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-        internal sealed override bool IsManagedType
+        internal sealed override bool IsManagedType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
-            {
-                return true;
-            }
+            return true;
         }
 
         internal override bool ShouldAddWinRTMembers

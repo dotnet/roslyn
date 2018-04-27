@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// See Type::computeManagedType.
         /// </remarks>
-        internal abstract bool IsManagedType { get; }
+        internal abstract bool IsManagedType(ConsList<FieldSymbol> fieldsBeingBound = null);
 
         /// <summary>
         /// Returns true if the type may contain embedded references

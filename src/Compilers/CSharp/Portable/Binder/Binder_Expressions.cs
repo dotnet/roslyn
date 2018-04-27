@@ -1120,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool typeHasErrors = type.IsErrorType();
 
-            if (!typeHasErrors && type.IsManagedType)
+            if (!typeHasErrors && type.IsManagedType(fieldsBeingBound: null))
             {
                 diagnostics.Add(ErrorCode.ERR_ManagedAddr, node.Location, type);
                 typeHasErrors = true;
@@ -2717,7 +2717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bestType = CreateErrorType();
             }
 
-            if (!bestType.IsErrorType() && bestType.IsManagedType)
+            if (!bestType.IsErrorType() && bestType.IsManagedType(fieldsBeingBound: null))
             {
                 Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, bestType);
             }
@@ -3070,7 +3070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol elementType = BindType(elementTypeSyntax, diagnostics);
 
             TypeSymbol type = GetStackAllocType(node, elementType, diagnostics, out bool hasErrors);
-            if (!elementType.IsErrorType() && elementType.IsManagedType)
+            if (!elementType.IsErrorType() && elementType.IsManagedType(fieldsBeingBound: null))
             {
                 Error(diagnostics, ErrorCode.ERR_ManagedAddr, elementTypeSyntax, elementType);
                 hasErrors = true;

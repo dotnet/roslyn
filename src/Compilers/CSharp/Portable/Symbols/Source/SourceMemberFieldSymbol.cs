@@ -401,8 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeSyntax = fieldSyntax.Declaration.Type;
 
             var compilation = this.DeclaringCompilation;
-
             var diagnostics = DiagnosticBag.GetInstance();
+
             TypeSymbol type;
 
             // When we have multiple declarators, we report the type diagnostics on only the first.
@@ -434,7 +434,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder = binder.WithContainingMemberOrLambda(this);
                 if (!ContainingType.IsScriptClass)
                 {
-                    type = binder.BindType(typeSyntax, diagnosticsForFirstDeclarator);
+                    if (fieldsBeingBound.ContainsReference(this))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_CircularField, this.ErrorLocation, this);
+                        type = binder.CreateErrorType("circular");
+                    }
+                    else
+                    {
+                        type = binder.BindType(typeSyntax, diagnosticsForFirstDeclarator, fieldsBeingBound: fieldsBeingBound.Push(this));
+                    }
                 }
                 else
                 {
