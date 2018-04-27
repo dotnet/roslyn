@@ -80,7 +80,7 @@ steps:
 
 - task: PublishSymbols@1
   inputs:
-    SymbolsPath: '$(DropRoot)\$(Build.DefinitionName)\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\Symbols'
+    SymbolsPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\Symbols'
     SearchPattern: '*.dll;*.exe;*.pdb;Dlls\**\*.dll;Dlls\**\*.exe;Dlls\**\*.pdb;Exes\**\*.dll;Exes\**\*.exe;Exes\**\*.pdb;Vsix\**\*.dll;Vsix\**\*.exe;Vsix\**\*.pdb'
     SymbolsFolder: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)'
     SkipIndexing: true
@@ -92,7 +92,7 @@ steps:
 
 - task: PublishSymbols@1
   inputs:
-    SymbolsPath: '$(DropRoot)\$(Build.DefinitionName)\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\Symbols'
+    SymbolsPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\Symbols'
     SearchPattern: '**\*.dll;**\*.exe;**\*.pdb'
     SymbolsFolder: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\SymStore'
     SkipIndexing: true
@@ -104,14 +104,14 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(DropRoot)\$(Build.DefinitionName)\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\Symbols'
+    SourceFolder: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)\$(Build.BuildNumber)\Symbols'
     TargetFolder: '$(Build.StagingDirectory)\SymbolsForPublish'
   condition: and(succeeded(), contains(variables['PB_PublishType'], 'vsts'))
 
 - task: ms-vscs-artifact.build-tasks.artifactSymbolTask-1.artifactSymbolTask@0
   inputs:
     symbolServiceURI: 'https://microsoft.artifacts.visualstudio.com/DefaultCollection'
-    requestName: '$(system.teamProject)/$(Build.DefinitionName)/$(Build.BuildNumber)/$(Build.BuildId)'
+    requestName: '$(system.teamProject)/Roslyn-Signed/$(Build.BuildNumber)/$(Build.BuildId)'
     sourcePath: '$(Build.StagingDirectory)\SymbolsForPublish'
     usePat: false
   continueOnError: true
@@ -137,7 +137,7 @@ steps:
     PathtoPublish: 'Binaries\$(BuildConfiguration)'
     ArtifactName: '$(Build.BuildNumber)'
     publishLocation: FilePath
-    TargetPath: '$(DropRoot)\$(Build.DefinitionName)\$(Build.SourceBranchName)\$(BuildConfiguration)'
+    TargetPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)'
     Parallel: true
     ParallelCount: 64
 
@@ -149,7 +149,7 @@ steps:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)\MicroBuild\Output'
     ArtifactName: '$(Build.BuildNumber)'
     publishLocation: FilePath
-    TargetPath: '$(DropRoot)\$(Build.DefinitionName)\$(Build.SourceBranchName)\$(BuildConfiguration)'
+    TargetPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)'
   condition: and(succeededOrFailed(), contains(variables['PB_PublishType'], 'vsts'))
 
 
