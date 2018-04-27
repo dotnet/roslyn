@@ -88,7 +88,7 @@ steps:
     SymbolsProduct: Roslyn
     SymbolsVersion: '$(Build.BuildNumber)'
     SymbolsArtifactName: Symbols
-  condition: and(succeeded(), and(eq(variables['SymStoreDirectoryExists'], False), contains(variables['PB_PublishType'], 'vsts')))
+  condition: and(succeeded(), contains(variables['PB_PublishType'], 'vsts'))
 
 - task: PublishSymbols@1
   inputs:
@@ -100,7 +100,7 @@ steps:
     SymbolsProduct: Roslyn
     SymbolsVersion: '$(Build.BuildNumber)'
     SymbolsArtifactName: Symbols
-  condition: and(succeeded(), eq(variables['SymStoreDirectoryExists'], True))
+  condition: and(succeeded(), contains(variables['PB_PublishType'], 'vsts'))
 
 - task: CopyFiles@2
   inputs:
