@@ -498,7 +498,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Lookup(currentResult, containedModule, name, arity, options, binder, useSiteDiagnostics)
 
                         ' Symbols in source take priority over symbols in a referenced assembly.
-                        If currentResult IsNot Nothing AndAlso currentResult.StopFurtherLookup AndAlso currentResult.Symbols.Count > 0 AndAlso
+                        If currentResult?.StopFurtherLookup AndAlso currentResult.Symbols.Count > 0 AndAlso
                            lookupResult.StopFurtherLookup AndAlso lookupResult.Symbols.Count > 0 Then
 
                             Dim currentFromSource = currentResult.Symbols(0).ContainingModule Is sourceModule
@@ -676,7 +676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Exit Do ' still do extension methods.
                     End If
 
-                    If result IsNot Nothing AndAlso result.StopFurtherLookup Then
+                    If result?.StopFurtherLookup Then
                         ' If we found a non-overloadable symbol, we can stop now. Note that even if we find a method without the Overloads
                         ' modifier, we cannot stop because we need to check for extension methods.
                         If result.HasSymbol Then
@@ -1139,7 +1139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 binder As Binder,
                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             )
-                If result IsNot Nothing AndAlso result.IsGood AndAlso
+                If result?.IsGood AndAlso
                     ((options And LookupOptions.EagerlyLookupExtensionMethods) = 0 OrElse
                      result.Symbols(0).Kind <> SymbolKind.Method) Then
                     Return
@@ -1532,7 +1532,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         leaveEventsOnly = isEventsOnlySpecified
                     End If
 
-                    If lookupResult IsNot Nothing AndAlso lookupResult.IsGood AndAlso currentResult.IsGood Then
+                    If lookupResult?.IsGood AndAlso currentResult.IsGood Then
                         ' We have _another_ viable result while lookupResult is already viable. Use special interface merging rules.
                         MergeInterfaceLookupResults(lookupResult, currentResult, basesBeingResolved, leaveEventsOnly, useSiteDiagnostics)
                     Else
@@ -1552,7 +1552,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 currentResult.Free()
 
-                If methodsOnly AndAlso lookupResult IsNot Nothing AndAlso lookupResult.IsGood Then
+                If methodsOnly AndAlso lookupResult?.IsGood Then
                     ' We need to filter out non-method symbols from 'currentResult' 
                     ' before merging with 'lookupResult'
                     FilterSymbolsInLookupResult(lookupResult, SymbolKind.Method, leaveInsteadOfRemoving:=True)
@@ -1560,7 +1560,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' it may look like a Good result, but it may have ambiguities inside
                 ' so we need to check that to be sure.
-                If lookupResult IsNot Nothing AndAlso lookupResult.IsGood Then
+                If lookupResult?.IsGood Then
                     Dim ambiguityDiagnostics As AmbiguousSymbolDiagnostic = Nothing
                     Dim symbols As ArrayBuilder(Of Symbol) = lookupResult.Symbols
 
@@ -1696,10 +1696,9 @@ ExitForFor:
             End Function
 
             Private Shared Sub ClearLookupResultIfNotMethods(methodsOnly As Boolean, lookupResult As LookupResult)
-                If lookupResult IsNot Nothing AndAlso
-                    methodsOnly AndAlso
-                    lookupResult.HasSymbol AndAlso
-                    lookupResult.Symbols(0).Kind <> SymbolKind.Method Then
+                If methodsOnly AndAlso
+                   lookupResult?.HasSymbol AndAlso
+                   lookupResult.Symbols(0).Kind <> SymbolKind.Method Then
                     lookupResult.Clear()
                 End If
             End Sub
