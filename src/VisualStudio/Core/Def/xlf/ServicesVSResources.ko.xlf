@@ -1424,7 +1424,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
-        <target state="needs-review-translation">파일을 읽는 동안 오류가 발생했습니다.</target>
+        <target state="translated">'{0}' 파일을 읽는 동안 오류가 발생했습니다. {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1490,12 +1490,12 @@ I agree to all of the foregoing:</source>
       </trans-unit>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
-        <target state="new">Sync Class View</target>
+        <target state="translated">클래스 뷰 동기화</target>
         <note />
       </trans-unit>
       <trans-unit id="CantApplyChangesUnexpectedError">
         <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
+        <target state="translated">변경 내용을 적용할 수 없음 - 예기치 않은 오류: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Field_preferences_colon">
@@ -1510,7 +1510,7 @@ I agree to all of the foregoing:</source>
       </trans-unit>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
-        <target state="new">Manage naming styles</target>
+        <target state="translated">명명 스타일 관리</target>
         <note />
       </trans-unit>
     </body>

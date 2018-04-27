@@ -1135,7 +1135,7 @@ Zusätzliche Informationen: {1}</target>
       </trans-unit>
       <trans-unit id="Collapse_regions_when_collapsing_to_definitions">
         <source>Collapse #regions when collapsing to definitions</source>
-        <target state="translated">#regions beim Reduzieren auf Definitionen ausblenden</target>
+        <target state="translated">#regions beim Reduzieren auf Definitionen zuklappen</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_null_propagation">
@@ -1424,7 +1424,7 @@ Für die aktuelle Projektmappe ist die Option "Lightweight-Ladevorgang für Proj
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
-        <target state="needs-review-translation">Fehler beim Lesen einer Datei.</target>
+        <target state="translated">Fehler beim Lesen der Datei "{0}": {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1490,12 +1490,12 @@ Ich stimme allen vorstehenden Bedingungen zu:</target>
       </trans-unit>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
-        <target state="new">Sync Class View</target>
+        <target state="translated">Synchronisierungsklassenansicht</target>
         <note />
       </trans-unit>
       <trans-unit id="CantApplyChangesUnexpectedError">
         <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
+        <target state="translated">Änderungen können nicht angewendet werden -- unerwarteter Fehler: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Field_preferences_colon">
@@ -1510,7 +1510,7 @@ Ich stimme allen vorstehenden Bedingungen zu:</target>
       </trans-unit>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
-        <target state="new">Manage naming styles</target>
+        <target state="translated">Benennungsstile verwalten</target>
         <note />
       </trans-unit>
     </body>

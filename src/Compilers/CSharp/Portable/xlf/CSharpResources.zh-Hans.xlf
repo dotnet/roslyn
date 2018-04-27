@@ -8687,7 +8687,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="needs-review-translation">类型“{2}”不能为引用类型，或包含任何嵌套级别的引用类型字段，以将其用作泛型类型或方法“{0}”中的参数“{1}”</target>
+        <target state="translated">类型“{2}”必须是不可以为 null 值的类型，且包括任何嵌套级别的所有字段，才能用作泛型类型或方法“{0}”中的参数“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">

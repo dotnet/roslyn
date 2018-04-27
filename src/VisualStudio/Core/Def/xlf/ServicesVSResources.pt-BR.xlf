@@ -1424,7 +1424,7 @@ O 'Carregamento da solução leve' está habilitado para a solução atual. Desa
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
-        <target state="needs-review-translation">Erro durante a leitura de um arquivo</target>
+        <target state="translated">Erro ao ler o arquivo '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1490,12 +1490,12 @@ Eu concordo com todo o conteúdo supracitado:</target>
       </trans-unit>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
-        <target state="new">Sync Class View</target>
+        <target state="translated">Sincronizar Modo de Exibição de Classe</target>
         <note />
       </trans-unit>
       <trans-unit id="CantApplyChangesUnexpectedError">
         <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
+        <target state="translated">Não é possível aplicar as alterações – erro inesperado: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Field_preferences_colon">
@@ -1510,7 +1510,7 @@ Eu concordo com todo o conteúdo supracitado:</target>
       </trans-unit>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
-        <target state="new">Manage naming styles</target>
+        <target state="translated">Gerenciar estilos de nomenclatura</target>
         <note />
       </trans-unit>
     </body>
