@@ -533,7 +533,7 @@
   </Node>
   <Node Name="RangeExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="RangeExpression"/>
-    <Field Name="Left" Type="ExpressionSyntax" Optional="true">
+    <Field Name="LeftOperand" Type="ExpressionSyntax" Optional="true">
       <PropertyComment>
         <summary>ExpressionSyntax node representing the expression on the left of the range operator.</summary>
       </PropertyComment>
@@ -544,7 +544,7 @@
         <summary>SyntaxToken representing the operator of the range expression.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Right" Type="ExpressionSyntax" Optional="true">
+    <Field Name="RightOperand" Type="ExpressionSyntax" Optional="true">
       <PropertyComment>
         <summary>ExpressionSyntax node representing the expression on the right of the range operator.</summary>
       </PropertyComment>

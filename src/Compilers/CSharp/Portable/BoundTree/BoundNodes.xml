@@ -314,8 +314,8 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
-    <Field Name="Left" Type="BoundExpression" Null="allow"/>
-    <Field Name="Right" Type="BoundExpression" Null="allow"/>
+    <Field Name="LeftOperand" Type="BoundExpression" Null="allow"/>
+    <Field Name="RightOperand" Type="BoundExpression" Null="allow"/>
   </Node>
 
   <Node Name="BoundBinaryOperator" Base="BoundExpression">

@@ -8932,11 +8932,11 @@ tryAgain:
                     if (IsPossibleExpression())
                     {
                         newPrecedence = GetPrecedence(opKind);
-                        leftOperand = _syntaxFactory.RangeExpression(left: null, opToken, right: this.ParseSubExpression(newPrecedence));
+                        leftOperand = _syntaxFactory.RangeExpression(leftOperand: null, opToken, rightOperand: this.ParseSubExpression(newPrecedence));
                     }
                     else
                     {
-                        leftOperand = _syntaxFactory.RangeExpression(left: null, opToken, right: null);
+                        leftOperand = _syntaxFactory.RangeExpression(leftOperand: null, opToken, rightOperand: null);
                     }
                 }
                 else
@@ -9079,11 +9079,11 @@ tryAgain:
 
                             if (IsPossibleExpression())
                             {
-                                leftOperand = _syntaxFactory.RangeExpression(left: leftOperand, opToken, right: this.ParseSubExpression(newPrecedence));
+                                leftOperand = _syntaxFactory.RangeExpression(leftOperand: leftOperand, opToken, rightOperand: this.ParseSubExpression(newPrecedence));
                             }
                             else
                             {
-                                leftOperand = _syntaxFactory.RangeExpression(left: leftOperand, opToken, right: null);
+                                leftOperand = _syntaxFactory.RangeExpression(leftOperand: leftOperand, opToken, rightOperand: null);
                             }
                         }
                         else

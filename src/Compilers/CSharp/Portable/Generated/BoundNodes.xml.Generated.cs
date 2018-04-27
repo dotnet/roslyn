@@ -1019,31 +1019,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRangeExpression : BoundExpression
     {
-        public BoundRangeExpression(SyntaxNode syntax, BoundExpression left, BoundExpression right, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.RangeExpression, syntax, type, hasErrors || left.HasErrors() || right.HasErrors())
+        public BoundRangeExpression(SyntaxNode syntax, BoundExpression leftOperand, BoundExpression rightOperand, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.RangeExpression, syntax, type, hasErrors || leftOperand.HasErrors() || rightOperand.HasErrors())
         {
 
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
-            this.Left = left;
-            this.Right = right;
+            this.LeftOperand = leftOperand;
+            this.RightOperand = rightOperand;
         }
 
 
-        public BoundExpression Left { get; }
+        public BoundExpression LeftOperand { get; }
 
-        public BoundExpression Right { get; }
+        public BoundExpression RightOperand { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitRangeExpression(this);
         }
 
-        public BoundRangeExpression Update(BoundExpression left, BoundExpression right, TypeSymbol type)
+        public BoundRangeExpression Update(BoundExpression leftOperand, BoundExpression rightOperand, TypeSymbol type)
         {
-            if (left != this.Left || right != this.Right || type != this.Type)
+            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || type != this.Type)
             {
-                var result = new BoundRangeExpression(this.Syntax, left, right, type, this.HasErrors);
+                var result = new BoundRangeExpression(this.Syntax, leftOperand, rightOperand, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8044,8 +8044,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitRangeExpression(BoundRangeExpression node)
         {
-            this.Visit(node.Left);
-            this.Visit(node.Right);
+            this.Visit(node.LeftOperand);
+            this.Visit(node.RightOperand);
             return null;
         }
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
@@ -8870,10 +8870,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitRangeExpression(BoundRangeExpression node)
         {
-            BoundExpression left = (BoundExpression)this.Visit(node.Left);
-            BoundExpression right = (BoundExpression)this.Visit(node.Right);
+            BoundExpression leftOperand = (BoundExpression)this.Visit(node.LeftOperand);
+            BoundExpression rightOperand = (BoundExpression)this.Visit(node.RightOperand);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(left, right, type);
+            return node.Update(leftOperand, rightOperand, type);
         }
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
@@ -9893,8 +9893,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("rangeExpression", null, new TreeDumperNode[]
             {
-                new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
-                new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
+                new TreeDumperNode("leftOperand", null, new TreeDumperNode[] { Visit(node.LeftOperand, null) }),
+                new TreeDumperNode("rightOperand", null, new TreeDumperNode[] { Visit(node.RightOperand, null) }),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

@@ -3167,81 +3167,81 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
   /// <summary>Class which represents the syntax node for a range expression.</summary>
   internal sealed partial class RangeExpressionSyntax : ExpressionSyntax
   {
-    internal readonly ExpressionSyntax left;
+    internal readonly ExpressionSyntax leftOperand;
     internal readonly SyntaxToken operatorToken;
-    internal readonly ExpressionSyntax right;
+    internal readonly ExpressionSyntax rightOperand;
 
-    internal RangeExpressionSyntax(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal RangeExpressionSyntax(SyntaxKind kind, ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         this.SlotCount = 3;
-        if (left != null)
+        if (leftOperand != null)
         {
-            this.AdjustFlagsAndWidth(left);
-            this.left = left;
+            this.AdjustFlagsAndWidth(leftOperand);
+            this.leftOperand = leftOperand;
         }
         this.AdjustFlagsAndWidth(operatorToken);
         this.operatorToken = operatorToken;
-        if (right != null)
+        if (rightOperand != null)
         {
-            this.AdjustFlagsAndWidth(right);
-            this.right = right;
+            this.AdjustFlagsAndWidth(rightOperand);
+            this.rightOperand = rightOperand;
         }
     }
 
 
-    internal RangeExpressionSyntax(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right, SyntaxFactoryContext context)
+    internal RangeExpressionSyntax(SyntaxKind kind, ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
         this.SlotCount = 3;
-        if (left != null)
+        if (leftOperand != null)
         {
-            this.AdjustFlagsAndWidth(left);
-            this.left = left;
+            this.AdjustFlagsAndWidth(leftOperand);
+            this.leftOperand = leftOperand;
         }
         this.AdjustFlagsAndWidth(operatorToken);
         this.operatorToken = operatorToken;
-        if (right != null)
+        if (rightOperand != null)
         {
-            this.AdjustFlagsAndWidth(right);
-            this.right = right;
+            this.AdjustFlagsAndWidth(rightOperand);
+            this.rightOperand = rightOperand;
         }
     }
 
 
-    internal RangeExpressionSyntax(SyntaxKind kind, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+    internal RangeExpressionSyntax(SyntaxKind kind, ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand)
         : base(kind)
     {
         this.SlotCount = 3;
-        if (left != null)
+        if (leftOperand != null)
         {
-            this.AdjustFlagsAndWidth(left);
-            this.left = left;
+            this.AdjustFlagsAndWidth(leftOperand);
+            this.leftOperand = leftOperand;
         }
         this.AdjustFlagsAndWidth(operatorToken);
         this.operatorToken = operatorToken;
-        if (right != null)
+        if (rightOperand != null)
         {
-            this.AdjustFlagsAndWidth(right);
-            this.right = right;
+            this.AdjustFlagsAndWidth(rightOperand);
+            this.rightOperand = rightOperand;
         }
     }
 
     /// <summary>ExpressionSyntax node representing the expression on the left of the range operator.</summary>
-    public ExpressionSyntax Left { get { return this.left; } }
+    public ExpressionSyntax LeftOperand { get { return this.leftOperand; } }
     /// <summary>SyntaxToken representing the operator of the range expression.</summary>
     public SyntaxToken OperatorToken { get { return this.operatorToken; } }
     /// <summary>ExpressionSyntax node representing the expression on the right of the range operator.</summary>
-    public ExpressionSyntax Right { get { return this.right; } }
+    public ExpressionSyntax RightOperand { get { return this.rightOperand; } }
 
     internal override GreenNode GetSlot(int index)
     {
         switch (index)
         {
-            case 0: return this.left;
+            case 0: return this.leftOperand;
             case 1: return this.operatorToken;
-            case 2: return this.right;
+            case 2: return this.rightOperand;
             default: return null;
         }
     }
@@ -3261,11 +3261,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         visitor.VisitRangeExpression(this);
     }
 
-    public RangeExpressionSyntax Update(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+    public RangeExpressionSyntax Update(ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand)
     {
-        if (left != this.Left || operatorToken != this.OperatorToken || right != this.Right)
+        if (leftOperand != this.LeftOperand || operatorToken != this.OperatorToken || rightOperand != this.RightOperand)
         {
-            var newNode = SyntaxFactory.RangeExpression(left, operatorToken, right);
+            var newNode = SyntaxFactory.RangeExpression(leftOperand, operatorToken, rightOperand);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -3280,23 +3280,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new RangeExpressionSyntax(this.Kind, this.left, this.operatorToken, this.right, diagnostics, GetAnnotations());
+         return new RangeExpressionSyntax(this.Kind, this.leftOperand, this.operatorToken, this.rightOperand, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new RangeExpressionSyntax(this.Kind, this.left, this.operatorToken, this.right, GetDiagnostics(), annotations);
+         return new RangeExpressionSyntax(this.Kind, this.leftOperand, this.operatorToken, this.rightOperand, GetDiagnostics(), annotations);
     }
 
     internal RangeExpressionSyntax(ObjectReader reader)
         : base(reader)
     {
       this.SlotCount = 3;
-      var left = (ExpressionSyntax)reader.ReadValue();
-      if (left != null)
+      var leftOperand = (ExpressionSyntax)reader.ReadValue();
+      if (leftOperand != null)
       {
-         AdjustFlagsAndWidth(left);
-         this.left = left;
+         AdjustFlagsAndWidth(leftOperand);
+         this.leftOperand = leftOperand;
       }
       var operatorToken = (SyntaxToken)reader.ReadValue();
       if (operatorToken != null)
@@ -3304,20 +3304,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
          AdjustFlagsAndWidth(operatorToken);
          this.operatorToken = operatorToken;
       }
-      var right = (ExpressionSyntax)reader.ReadValue();
-      if (right != null)
+      var rightOperand = (ExpressionSyntax)reader.ReadValue();
+      if (rightOperand != null)
       {
-         AdjustFlagsAndWidth(right);
-         this.right = right;
+         AdjustFlagsAndWidth(rightOperand);
+         this.rightOperand = rightOperand;
       }
     }
 
     internal override void WriteTo(ObjectWriter writer)
     {
       base.WriteTo(writer);
-      writer.WriteValue(this.left);
+      writer.WriteValue(this.leftOperand);
       writer.WriteValue(this.operatorToken);
-      writer.WriteValue(this.right);
+      writer.WriteValue(this.rightOperand);
     }
 
     static RangeExpressionSyntax()
@@ -36198,10 +36198,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     public override CSharpSyntaxNode VisitRangeExpression(RangeExpressionSyntax node)
     {
-      var left = (ExpressionSyntax)this.Visit(node.Left);
+      var leftOperand = (ExpressionSyntax)this.Visit(node.LeftOperand);
       var operatorToken = (SyntaxToken)this.Visit(node.OperatorToken);
-      var right = (ExpressionSyntax)this.Visit(node.Right);
-      return node.Update(left, operatorToken, right);
+      var rightOperand = (ExpressionSyntax)this.Visit(node.RightOperand);
+      return node.Update(leftOperand, operatorToken, rightOperand);
     }
 
     public override CSharpSyntaxNode VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
@@ -38563,7 +38563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public RangeExpressionSyntax RangeExpression(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+    public RangeExpressionSyntax RangeExpression(ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand)
     {
 #if DEBUG
       if (operatorToken == null)
@@ -38578,10 +38578,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.RangeExpression, left, operatorToken, right, this.context, out hash);
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.RangeExpression, leftOperand, operatorToken, rightOperand, this.context, out hash);
       if (cached != null) return (RangeExpressionSyntax)cached;
 
-      var result = new RangeExpressionSyntax(SyntaxKind.RangeExpression, left, operatorToken, right, this.context);
+      var result = new RangeExpressionSyntax(SyntaxKind.RangeExpression, leftOperand, operatorToken, rightOperand, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -45555,7 +45555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static RangeExpressionSyntax RangeExpression(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+    public static RangeExpressionSyntax RangeExpression(ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand)
     {
 #if DEBUG
       if (operatorToken == null)
@@ -45570,10 +45570,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.RangeExpression, left, operatorToken, right, out hash);
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.RangeExpression, leftOperand, operatorToken, rightOperand, out hash);
       if (cached != null) return (RangeExpressionSyntax)cached;
 
-      var result = new RangeExpressionSyntax(SyntaxKind.RangeExpression, left, operatorToken, right);
+      var result = new RangeExpressionSyntax(SyntaxKind.RangeExpression, leftOperand, operatorToken, rightOperand);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);

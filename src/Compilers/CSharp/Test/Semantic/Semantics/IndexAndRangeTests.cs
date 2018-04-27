@@ -290,20 +290,20 @@ class Test
             Assert.Equal(4, expressions.Length);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[0]).Type.ToTestDisplayString());
-            Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].Right).Type.ToTestDisplayString());
-            Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].Left).Type.ToTestDisplayString());
+            Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].RightOperand).Type.ToTestDisplayString());
+            Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[1]).Type.ToTestDisplayString());
-            Assert.Null(expressions[1].Right);
-            Assert.Equal("System.Index", model.GetTypeInfo(expressions[1].Left).Type.ToTestDisplayString());
+            Assert.Null(expressions[1].RightOperand);
+            Assert.Equal("System.Index", model.GetTypeInfo(expressions[1].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[2]).Type.ToTestDisplayString());
-            Assert.Equal("System.Index", model.GetTypeInfo(expressions[2].Right).Type.ToTestDisplayString());
-            Assert.Null(expressions[2].Left);
+            Assert.Equal("System.Index", model.GetTypeInfo(expressions[2].RightOperand).Type.ToTestDisplayString());
+            Assert.Null(expressions[2].LeftOperand);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[3]).Type.ToTestDisplayString());
-            Assert.Null(expressions[3].Right);
-            Assert.Null(expressions[3].Left);
+            Assert.Null(expressions[3].RightOperand);
+            Assert.Null(expressions[3].LeftOperand);
         }
 
         [Fact]
@@ -329,20 +329,20 @@ class Test
             Assert.Equal(4, expressions.Length);
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[0]).Type.ToTestDisplayString());
-            Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].Right).Type.ToTestDisplayString());
-            Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].Left).Type.ToTestDisplayString());
+            Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].RightOperand).Type.ToTestDisplayString());
+            Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[1]).Type.ToTestDisplayString());
-            Assert.Null(expressions[1].Right);
-            Assert.Equal("System.Index?", model.GetTypeInfo(expressions[1].Left).Type.ToTestDisplayString());
+            Assert.Null(expressions[1].RightOperand);
+            Assert.Equal("System.Index?", model.GetTypeInfo(expressions[1].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[2]).Type.ToTestDisplayString());
-            Assert.Equal("System.Index?", model.GetTypeInfo(expressions[2].Right).Type.ToTestDisplayString());
-            Assert.Null(expressions[2].Left);
+            Assert.Equal("System.Index?", model.GetTypeInfo(expressions[2].RightOperand).Type.ToTestDisplayString());
+            Assert.Null(expressions[2].LeftOperand);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[3]).Type.ToTestDisplayString());
-            Assert.Null(expressions[3].Right);
-            Assert.Null(expressions[3].Left);
+            Assert.Null(expressions[3].RightOperand);
+            Assert.Null(expressions[3].LeftOperand);
         }
 
         [Fact]

@@ -1305,9 +1305,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateRangeExpression();
             
-            Assert.Null(node.Left);
+            Assert.Null(node.LeftOperand);
             Assert.Equal(SyntaxKind.DotDotToken, node.OperatorToken.Kind);
-            Assert.Null(node.Right);
+            Assert.Null(node.RightOperand);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -10312,10 +10312,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateRangeExpression();
             
-            Assert.Null(node.Left);
+            Assert.Null(node.LeftOperand);
             Assert.Equal(SyntaxKind.DotDotToken, node.OperatorToken.Kind());
-            Assert.Null(node.Right);
-            var newNode = node.WithLeft(node.Left).WithOperatorToken(node.OperatorToken).WithRight(node.Right);
+            Assert.Null(node.RightOperand);
+            var newNode = node.WithLeftOperand(node.LeftOperand).WithOperatorToken(node.OperatorToken).WithRightOperand(node.RightOperand);
             Assert.Equal(node, newNode);
         }
         

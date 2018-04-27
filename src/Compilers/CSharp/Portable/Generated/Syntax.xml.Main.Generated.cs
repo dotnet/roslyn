@@ -2663,10 +2663,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public override SyntaxNode VisitRangeExpression(RangeExpressionSyntax node)
     {
-      var left = (ExpressionSyntax)this.Visit(node.Left);
+      var leftOperand = (ExpressionSyntax)this.Visit(node.LeftOperand);
       var operatorToken = this.VisitToken(node.OperatorToken);
-      var right = (ExpressionSyntax)this.Visit(node.Right);
-      return node.Update(left, operatorToken, right);
+      var rightOperand = (ExpressionSyntax)this.Visit(node.RightOperand);
+      return node.Update(leftOperand, operatorToken, rightOperand);
     }
 
     public override SyntaxNode VisitImplicitElementAccess(ImplicitElementAccessSyntax node)
@@ -4904,7 +4904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new RangeExpressionSyntax instance.</summary>
-    public static RangeExpressionSyntax RangeExpression(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+    public static RangeExpressionSyntax RangeExpression(ExpressionSyntax leftOperand, SyntaxToken operatorToken, ExpressionSyntax rightOperand)
     {
       switch (operatorToken.Kind())
       {
@@ -4913,14 +4913,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException("operatorToken");
       }
-      return (RangeExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RangeExpression(left == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node, right == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)right.Green).CreateRed();
+      return (RangeExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RangeExpression(leftOperand == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)leftOperand.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node, rightOperand == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)rightOperand.Green).CreateRed();
     }
 
 
     /// <summary>Creates a new RangeExpressionSyntax instance.</summary>
-    public static RangeExpressionSyntax RangeExpression(ExpressionSyntax left, ExpressionSyntax right)
+    public static RangeExpressionSyntax RangeExpression(ExpressionSyntax leftOperand, ExpressionSyntax rightOperand)
     {
-      return SyntaxFactory.RangeExpression(left, SyntaxFactory.Token(SyntaxKind.DotDotToken), right);
+      return SyntaxFactory.RangeExpression(leftOperand, SyntaxFactory.Token(SyntaxKind.DotDotToken), rightOperand);
     }
 
     /// <summary>Creates a new RangeExpressionSyntax instance.</summary>

@@ -1900,9 +1900,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!rangeType.IsErrorType())
             {
-                if (node.Left is null)
+                if (node.LeftOperand is null)
                 {
-                    if (node.Right is null)
+                    if (node.RightOperand is null)
                     {
                         GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__All, diagnostics, syntax: node);
                     }
@@ -1913,7 +1913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (node.Right is null)
+                    if (node.RightOperand is null)
                     {
                         GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__FromStart, diagnostics, syntax: node);
                     }
@@ -1924,8 +1924,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            BoundExpression left = BindRangeExpressionOperand(node.Left, diagnostics);
-            BoundExpression right = BindRangeExpressionOperand(node.Right, diagnostics);
+            BoundExpression left = BindRangeExpressionOperand(node.LeftOperand, diagnostics);
+            BoundExpression right = BindRangeExpressionOperand(node.RightOperand, diagnostics);
 
             if ((left != null && left.Type.IsNullableType()) || (right != null && right.Type.IsNullableType()))
             {
