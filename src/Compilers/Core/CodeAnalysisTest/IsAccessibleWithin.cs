@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class IsAccessibleWithin
     {
         [Fact]
-        void TestUsingMockSymbols_01()
+        public void TestIsAccessibleWithin_UsingMockSymbols_01()
         {
             IAssemblySymbol mscorlibAssem = new AssemblySymbol(new AssemblyIdentity("mscorlib"));
             INamespaceSymbol mscorlibGlobalNS = new NamespaceSymbol("", mscorlibAssem);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestUsingMockSymbols_02()
+        public void TestIsAccessibleWithin_UsingMockSymbols_02()
         {
             IAssemblySymbol mscorlibAssem = new AssemblySymbol(new AssemblyIdentity("mscorlib"));
             INamespaceSymbol mscorlibGlobalNS = new NamespaceSymbol("", mscorlibAssem);
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestUsingMockSymbols_03()
+        public void TestIsAccessibleWithin_UsingMockSymbols_03()
         {
             IAssemblySymbol mscorlibAssem = new AssemblySymbol(new AssemblyIdentity("mscorlib"));
             INamespaceSymbol mscorlibGlobalNS = new NamespaceSymbol("", mscorlibAssem);
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestUsingMockSymbols_04()
+        public void TestIsAccessibleWithin_UsingMockSymbols_04()
         {
             // check that equivalent symbols are treated as equal.
 
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestCrossCompilerEquivalence()
+        public void TestIsAccessibleWithin_CrossCompilerEquivalence()
         {
             var csharpTree = CSharpSyntaxTree.ParseText(@"
 internal class A
@@ -368,7 +368,7 @@ End Class
         }
 
         [Fact, WorkItem(26459, "https://github.com/dotnet/roslyn/issues/26459")]
-        public void TestCrossCompilationIVT()
+        public void TestIsAccessibleWithin_CrossCompilationIVT()
         {
             var csharpTree = CSharpSyntaxTree.ParseText(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""VB"")]
@@ -416,7 +416,7 @@ End Class
             Assert.False(VB.IsAccessibleWithin(CS)); // should be Assert.True
         }
 
-        public abstract class Symbol : ISymbol
+        private abstract class Symbol : ISymbol
         {
             private readonly string _name;
             private readonly ISymbol _containingSymbol;
@@ -536,7 +536,7 @@ End Class
             #endregion unimplemented members
         }
 
-        public class AssemblySymbol : Symbol, IAssemblySymbol
+        private class AssemblySymbol : Symbol, IAssemblySymbol
         {
             private readonly AssemblyIdentity _identity;
             private readonly HashSet<AssemblyIdentity> _givesAccessTo = new HashSet<AssemblyIdentity>();
@@ -588,7 +588,7 @@ End Class
             #endregion unimplemented members
         }
 
-        public abstract class NamespaceOrTypeSymbol : Symbol, INamespaceOrTypeSymbol
+        private abstract class NamespaceOrTypeSymbol : Symbol, INamespaceOrTypeSymbol
         {
             public NamespaceOrTypeSymbol(string name, ISymbol containingSymbol, Accessibility accessibility) : base(name, containingSymbol, accessibility)
             {
@@ -626,7 +626,7 @@ End Class
             #endregion unimplemented members
         }
 
-        public abstract class TypeSymbol : Symbol, ITypeSymbol
+        private abstract class TypeSymbol : Symbol, ITypeSymbol
         {
             public TypeSymbol(string name, ISymbol containingSymbol, Accessibility accessibility) : base(name, containingSymbol, accessibility)
             {
@@ -689,7 +689,7 @@ End Class
             #endregion unimplemented members
         }
 
-        public class ArrayTypeSymbol : TypeSymbol, IArrayTypeSymbol
+        private class ArrayTypeSymbol : TypeSymbol, IArrayTypeSymbol
         {
             private readonly ITypeSymbol _elementType;
 
@@ -722,7 +722,7 @@ End Class
             #endregion unimplemented members
         }
 
-        public class PointerTypeSymbol : TypeSymbol, IPointerTypeSymbol
+        private class PointerTypeSymbol : TypeSymbol, IPointerTypeSymbol
         {
             private readonly ITypeSymbol _pointedAtType;
 
@@ -742,7 +742,7 @@ End Class
             #endregion unimplemented members
         }
 
-        public class NamedTypeSymbol : TypeSymbol, INamedTypeSymbol
+        private class NamedTypeSymbol : TypeSymbol, INamedTypeSymbol
         {
             private readonly INamedTypeSymbol _baseType;
 
@@ -817,7 +817,7 @@ End Class
             #endregion unimplemented members
         }
 
-        public class ErrorType : NamedTypeSymbol, IErrorTypeSymbol
+        private class ErrorType : NamedTypeSymbol, IErrorTypeSymbol
         {
             public ErrorType() : base(string.Empty, null, Accessibility.Public, null) { }
 
@@ -830,7 +830,7 @@ End Class
             #endregion unimplemented members
         }
 
-        public class NamespaceSymbol : NamespaceOrTypeSymbol, INamespaceSymbol
+        private class NamespaceSymbol : NamespaceOrTypeSymbol, INamespaceSymbol
         {
             public NamespaceSymbol(string name, ISymbol containingSymbol) : base(name, containingSymbol, Accessibility.NotApplicable)
             {
@@ -868,7 +868,7 @@ End Class
             #endregion unimplemented members
         }
 
-        public class FieldSymbol : Symbol, IFieldSymbol
+        private class FieldSymbol : Symbol, IFieldSymbol
         {
             public FieldSymbol(string name, INamedTypeSymbol containingSymbol, Accessibility accessibility) : base(name, containingSymbol, accessibility)
             {
@@ -899,7 +899,7 @@ End Class
             #endregion unimplemented members
         }
 
-        public class ArrayType : TypeSymbol, IArrayTypeSymbol
+        private class ArrayType : TypeSymbol, IArrayTypeSymbol
         {
             private INamedTypeSymbol _elementType;
 
@@ -930,7 +930,7 @@ End Class
             #endregion unimplemented members
         }
 
-        public class GenericNamedTypeSymbol : NamedTypeSymbol, INamedTypeSymbol
+        private class GenericNamedTypeSymbol : NamedTypeSymbol, INamedTypeSymbol
         {
             private readonly int _arity;
             private readonly ImmutableArray<ITypeParameterSymbol> _typeParameters;
@@ -968,7 +968,7 @@ End Class
             }
         }
 
-        public class TypeParameterSymbol : Symbol, ITypeParameterSymbol
+        private class TypeParameterSymbol : Symbol, ITypeParameterSymbol
         {
             private readonly int _ordinal;
 
@@ -1058,7 +1058,7 @@ End Class
             #endregion unimplemented members
         }
 
-        public class ConstructedNamedTypeSymbol : NamedTypeSymbol, INamedTypeSymbol
+        private class ConstructedNamedTypeSymbol : NamedTypeSymbol, INamedTypeSymbol
         {
             private readonly INamedTypeSymbol _constructedFrom;
             private readonly int _arity;
@@ -1084,7 +1084,7 @@ End Class
             ITypeSymbol ITypeSymbol.OriginalDefinition => _constructedFrom.OriginalDefinition;
         }
 
-        public class AliasSymbol : Symbol, IAliasSymbol
+        private class AliasSymbol : Symbol, IAliasSymbol
         {
             private readonly INamespaceOrTypeSymbol _target;
 
@@ -1098,7 +1098,7 @@ End Class
             SymbolKind ISymbol.Kind => SymbolKind.Alias;
         }
 
-        public class BuiltinOperatorSymbol : Symbol, IMethodSymbol
+        private class BuiltinOperatorSymbol : Symbol, IMethodSymbol
         {
             public BuiltinOperatorSymbol() : base(null, null, Accessibility.NotApplicable)
             {
