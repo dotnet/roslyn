@@ -4735,7 +4735,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Optional combined logical condition that accounts for all <see cref="Clauses"/>.
         /// An instance of <see cref="IPlaceholderOperation"/> with kind <see cref="PlaceholderKind.SwitchOperationExpression"/>
-        /// is used to refer to the /// <see cref="ISwitchOperation.Value"/> in context of this expression. 
+        /// is used to refer to the <see cref="ISwitchOperation.Value"/> in context of this expression. 
         /// It is not part of <see cref="Children"/> list and likely contains duplicate nodes for
         /// nodes exposed by <see cref="Clauses"/>, like <see cref="ISingleValueCaseClauseOperation.Value"/>,
         /// etc.
