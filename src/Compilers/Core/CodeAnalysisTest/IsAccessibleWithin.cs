@@ -67,9 +67,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             INamedTypeSymbol classADerived2 = new NamedTypeSymbol("ADerived2", globalNS, Accessibility.Internal, classA);
 
             ISymbol nullSymbol = null;
-            //Assert.Throws<ArgumentNullException>(() => { classA.IsAccessibleWithin(nullSymbol); });
-            //Assert.Throws<ArgumentNullException>(() => { nullSymbol.IsAccessibleWithin(classA); });
-            //Assert.Throws<ArgumentException>(() => { classA.IsAccessibleWithin(pubField); });
+            Assert.Throws<ArgumentNullException>(() => { classA.IsAccessibleWithin(nullSymbol); });
+            Assert.Throws<ArgumentNullException>(() => { nullSymbol.IsAccessibleWithin(classA); });
+            Assert.Throws<ArgumentException>(() => { classA.IsAccessibleWithin(pubField); });
 
             Assert.True(classA.IsAccessibleWithin(classB));
             Assert.True(pubField.IsAccessibleWithin(classB));
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestCrossCompilerEquivalence()
         {
-            var csharpTree = CSharp.CSharpSyntaxTree.ParseText(@"
+            var csharpTree = CSharpSyntaxTree.ParseText(@"
 internal class A
 {
     protected int P;
@@ -280,7 +280,7 @@ internal class C : B
 {
 }
 ");
-            var vbTree = VisualBasic.VisualBasicSyntaxTree.ParseText(@"
+            var vbTree = VisualBasicSyntaxTree.ParseText(@"
 Friend Class A
     Protected P As Integer
     Friend I As Integer
@@ -365,6 +365,55 @@ End Class
             Assert.False(ARc.IsAccessibleWithin(ANv));
             Assert.False(ARv.IsAccessibleWithin(ANc));
             Assert.True(ARv.IsAccessibleWithin(ANv));
+        }
+
+        [Fact, WorkItem(26459, "https://github.com/dotnet/roslyn/issues/26459")]
+        public void TestCrossCompilationIVT()
+        {
+            var csharpTree = CSharpSyntaxTree.ParseText(@"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""VB"")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""CS2"")]
+internal class CS
+{
+}
+");
+            var csharpTree2 = CSharpSyntaxTree.ParseText(@"
+internal class CS2
+{
+}
+");
+            var vbTree = VisualBasicSyntaxTree.ParseText(@"
+<assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""CS"")>
+<assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""VB2"")>
+Friend Class VB
+End Class
+");
+            var vbTree2 = VisualBasicSyntaxTree.ParseText(@"
+Friend Class VB2
+End Class
+");
+            var csc = CSharpCompilation.Create("CS", new[] { csharpTree }, new MetadataReference[] { TestBase.MscorlibRef });
+            var CS = csc.GlobalNamespace.GetMembers("CS")[0] as INamedTypeSymbol;
+
+            var csc2 = CSharpCompilation.Create("CS2", new[] { csharpTree2 }, new MetadataReference[] { TestBase.MscorlibRef });
+            var CS2 = csc2.GlobalNamespace.GetMembers("CS2")[0] as INamedTypeSymbol;
+
+            var vbc = VisualBasicCompilation.Create("VB", new[] { vbTree }, new MetadataReference[] { TestBase.MscorlibRef });
+            var VB = vbc.GlobalNamespace.GetMembers("VB")[0] as INamedTypeSymbol;
+
+            var vbc2 = VisualBasicCompilation.Create("VB2", new[] { vbTree2 }, new MetadataReference[] { TestBase.MscorlibRef });
+            var VB2 = vbc2.GlobalNamespace.GetMembers("VB2")[0] as INamedTypeSymbol;
+
+            Assert.True(CS.ContainingAssembly.GivesAccessTo(CS2.ContainingAssembly));
+            Assert.True(VB.ContainingAssembly.GivesAccessTo(VB2.ContainingAssembly));
+            Assert.True(CS.IsAccessibleWithin(CS2));
+            Assert.True(VB.IsAccessibleWithin(VB2));
+
+            // The following results are incorrect; See https://github.com/dotnet/roslyn/issues/26459
+            Assert.False(CS.ContainingAssembly.GivesAccessTo(VB.ContainingAssembly)); // should be Assert.True
+            Assert.False(VB.ContainingAssembly.GivesAccessTo(CS.ContainingAssembly)); // should be Assert.True
+            Assert.False(CS.IsAccessibleWithin(VB)); // should be Assert.True
+            Assert.False(VB.IsAccessibleWithin(CS)); // should be Assert.True
         }
 
         public abstract class Symbol : ISymbol
@@ -890,7 +939,6 @@ End Class
             {
                 this._arity = arity;
                 this._typeParameters = MakeTypeParameters();
-                INamedTypeSymbol i;
             }
 
             private ImmutableArray<ITypeParameterSymbol> MakeTypeParameters()
