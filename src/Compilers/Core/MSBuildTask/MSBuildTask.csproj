@@ -12,6 +12,8 @@
     <TargetFrameworks>$(RoslynPortableTargetFrameworks46)</TargetFrameworks>
     <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
     <NoWarn>$(NoWarn);CA1819</NoWarn>
+    <LangVersion>8.0</LangVersion>
+    <DefineConstants>$(DefineConstants);USES_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

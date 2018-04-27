@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// The last RCW that was created for the current context.
         /// </summary>
-        private T _rcwForCurrentCtx;
+        private T? _rcwForCurrentCtx;
 
         /// <summary>
         /// Indicates if we created the RCW and therefore need to release it's com reference.
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // the caching behavior of the marshaled pointer. 
             // See RCW::GetComIPForMethodTableFromCache in ndp\clr\src\VM\RuntimeCallableWrapper.cpp
             IntPtr iunknownPtr = Marshal.GetIUnknownForObject(rcw);
-            Object objInCurrentCtx = null;
+            Object? objInCurrentCtx = null;
 
             try
             {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             else
             {
                 _shouldReleaseRCW = true;
-                _rcwForCurrentCtx = objInCurrentCtx as T;
+                _rcwForCurrentCtx = (objInCurrentCtx as T);
             }
         }
 

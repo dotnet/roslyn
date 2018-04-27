@@ -89,14 +89,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             for (int i = 0; i < count; i++)
             {
+                // PROTOTYPE(NullableDogfood): ReadBytes follows a pattern like TryGetValue. Having annotation on Debug.Assert would also help.
                 // Section: Name (8)
+#if USES_ANNOTATIONS
+                if (!ReadBytes(reader, 8, out byte[]? name))
+#else
                 if (!ReadBytes(reader, 8, out byte[] name))
+#endif
                 {
                     return s_empty;
                 }
 
+#if USES_ANNOTATIONS
+                if (name!.Length == 8 && name![0] == '.' &&
+                    name![1] == 'm' && name![2] == 'v' && name![3] == 'i' && name![4] == 'd' && name![5] == '\0')
+#else
                 if (name.Length == 8 && name[0] == '.' &&
                     name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd' && name[5] == '\0')
+#endif
                 {
                     // Section: VirtualSize (4)
                     if (!ReadUInt32(reader, out uint virtualSize) || virtualSize != 16)
@@ -141,11 +151,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return s_empty;
             }
 
+#if USES_ANNOTATIONS
+            if (!ReadBytes(reader, 16, out byte[]? guidBytes))
+#else
             if (!ReadBytes(reader, 16, out byte[] guidBytes))
+#endif
             {
                 return s_empty;
             }
 
+            // PROTOTYPE(NullableDogfood): Need annotation on Guid constructor (throws on null)
             return new Guid(guidBytes);
         }
 
@@ -173,7 +188,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return true;
         }
 
+#if USES_ANNOTATIONS
+        private static bool ReadBytes(BinaryReader reader, int count, out byte[]? output)
+#else
         private static bool ReadBytes(BinaryReader reader, int count, out byte[] output)
+#endif
         {
             if (reader.BaseStream.Position + count >= reader.BaseStream.Length)
             {

@@ -69,7 +69,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool CreateProcess
         (
+#if USES_ANNOTATIONS
+            string? lpApplicationName,
+#else
             string lpApplicationName,
+#endif
             [In, Out]StringBuilder lpCommandLine,
             IntPtr lpProcessAttributes,
             IntPtr lpThreadAttributes,

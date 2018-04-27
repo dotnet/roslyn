@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public abstract class ManagedCompiler : ManagedToolTask
     {
-        private CancellationTokenSource _sharedCompileCts;
+        private CancellationTokenSource? _sharedCompileCts;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         internal abstract RequestLanguage Language { get; }
@@ -39,28 +39,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         #region Properties
 
         // Please keep these alphabetized.
-        public string[] AdditionalLibPaths
+        public string[]? AdditionalLibPaths
         {
             set { _store[nameof(AdditionalLibPaths)] = value; }
-            get { return (string[])_store[nameof(AdditionalLibPaths)]; }
+            get { return (string[]?)_store[nameof(AdditionalLibPaths)]; }
         }
 
-        public string[] AddModules
+        public string[]? AddModules
         {
             set { _store[nameof(AddModules)] = value; }
-            get { return (string[])_store[nameof(AddModules)]; }
+            get { return (string[]?)_store[nameof(AddModules)]; }
         }
 
-        public ITaskItem[] AdditionalFiles
+        public ITaskItem[]? AdditionalFiles
         {
             set { _store[nameof(AdditionalFiles)] = value; }
-            get { return (ITaskItem[])_store[nameof(AdditionalFiles)]; }
+            get { return (ITaskItem[]?)_store[nameof(AdditionalFiles)]; }
         }
 
-        public ITaskItem[] EmbeddedFiles
+        public ITaskItem[]? EmbeddedFiles
         {
             set { _store[nameof(EmbeddedFiles)] = value; }
-            get { return (ITaskItem[])_store[nameof(EmbeddedFiles)]; }
+            get { return (ITaskItem[]?)_store[nameof(EmbeddedFiles)]; }
         }
 
         public bool EmbedAllSources
@@ -69,25 +69,25 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(EmbedAllSources), false); }
         }
 
-        public ITaskItem[] Analyzers
+        public ITaskItem[]? Analyzers
         {
             set { _store[nameof(Analyzers)] = value; }
-            get { return (ITaskItem[])_store[nameof(Analyzers)]; }
+            get { return (ITaskItem[]?)_store[nameof(Analyzers)]; }
         }
 
         // We do not support BugReport because it always requires user interaction,
         // which will cause a hang.
 
-        public string ChecksumAlgorithm
+        public string? ChecksumAlgorithm
         {
             set { _store[nameof(ChecksumAlgorithm)] = value; }
-            get { return (string)_store[nameof(ChecksumAlgorithm)]; }
+            get { return (string?)_store[nameof(ChecksumAlgorithm)]; }
         }
 
-        public string CodeAnalysisRuleSet
+        public string? CodeAnalysisRuleSet
         {
             set { _store[nameof(CodeAnalysisRuleSet)] = value; }
-            get { return (string)_store[nameof(CodeAnalysisRuleSet)]; }
+            get { return (string?)_store[nameof(CodeAnalysisRuleSet)]; }
         }
 
         public int CodePage
@@ -97,28 +97,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         [Output]
-        public ITaskItem[] CommandLineArgs
+        public ITaskItem[]? CommandLineArgs
         {
             set { _store[nameof(CommandLineArgs)] = value; }
-            get { return (ITaskItem[])_store[nameof(CommandLineArgs)]; }
+            get { return (ITaskItem[]?)_store[nameof(CommandLineArgs)]; }
         }
 
-        public string DebugType
+        public string? DebugType
         {
             set { _store[nameof(DebugType)] = value; }
-            get { return (string)_store[nameof(DebugType)]; }
+            get { return (string?)_store[nameof(DebugType)]; }
         }
 
-        public string SourceLink
+        public string? SourceLink
         {
             set { _store[nameof(SourceLink)] = value; }
-            get { return (string)_store[nameof(SourceLink)]; }
+            get { return (string?)_store[nameof(SourceLink)]; }
         }
 
-        public string DefineConstants
+        public string? DefineConstants
         {
             set { _store[nameof(DefineConstants)] = value; }
-            get { return (string)_store[nameof(DefineConstants)]; }
+            get { return (string?)_store[nameof(DefineConstants)]; }
         }
 
         public bool DelaySign
@@ -145,16 +145,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(EmitDebugInformation), false); }
         }
 
-        public string ErrorLog
+        public string? ErrorLog
         {
             set { _store[nameof(ErrorLog)] = value; }
-            get { return (string)_store[nameof(ErrorLog)]; }
+            get { return (string?)_store[nameof(ErrorLog)]; }
         }
 
-        public string Features
+        public string? Features
         {
             set { _store[nameof(Features)] = value; }
-            get { return (string)_store[nameof(Features)]; }
+            get { return (string?)_store[nameof(Features)]; }
         }
 
         public int FileAlignment
@@ -172,34 +172,34 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Specifies the list of instrumentation kinds to be used during compilation.
         /// </summary>
-        public string Instrument
+        public string? Instrument
         {
             set { _store[nameof(Instrument)] = value; }
-            get { return (string)_store[nameof(Instrument)]; }
+            get { return (string?)_store[nameof(Instrument)]; }
         }
 
-        public string KeyContainer
+        public string? KeyContainer
         {
             set { _store[nameof(KeyContainer)] = value; }
-            get { return (string)_store[nameof(KeyContainer)]; }
+            get { return (string?)_store[nameof(KeyContainer)]; }
         }
 
-        public string KeyFile
+        public string? KeyFile
         {
             set { _store[nameof(KeyFile)] = value; }
-            get { return (string)_store[nameof(KeyFile)]; }
+            get { return (string?)_store[nameof(KeyFile)]; }
         }
 
-        public ITaskItem[] LinkResources
+        public ITaskItem[]? LinkResources
         {
             set { _store[nameof(LinkResources)] = value; }
-            get { return (ITaskItem[])_store[nameof(LinkResources)]; }
+            get { return (ITaskItem[]?)_store[nameof(LinkResources)]; }
         }
 
-        public string MainEntryPoint
+        public string? MainEntryPoint
         {
             set { _store[nameof(MainEntryPoint)] = value; }
-            get { return (string)_store[nameof(MainEntryPoint)]; }
+            get { return (string?)_store[nameof(MainEntryPoint)]; }
         }
 
         public bool NoConfig
@@ -227,23 +227,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         [Output]
-        public ITaskItem OutputAssembly
+        public ITaskItem? OutputAssembly
         {
             set { _store[nameof(OutputAssembly)] = value; }
-            get { return (ITaskItem)_store[nameof(OutputAssembly)]; }
+            get { return (ITaskItem?)_store[nameof(OutputAssembly)]; }
         }
 
         [Output]
-        public ITaskItem OutputRefAssembly
+        public ITaskItem? OutputRefAssembly
         {
             set { _store[nameof(OutputRefAssembly)] = value; }
-            get { return (ITaskItem)_store[nameof(OutputRefAssembly)]; }
+            get { return (ITaskItem?)_store[nameof(OutputRefAssembly)]; }
         }
 
-        public string Platform
+        public string? Platform
         {
             set { _store[nameof(Platform)] = value; }
-            get { return (string)_store[nameof(Platform)]; }
+            get { return (string?)_store[nameof(Platform)]; }
         }
 
         public bool Prefer32Bit
@@ -258,10 +258,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(ProvideCommandLineArgs), false); }
         }
 
-        public ITaskItem[] References
+        public ITaskItem[]? References
         {
             set { _store[nameof(References)] = value; }
-            get { return (ITaskItem[])_store[nameof(References)]; }
+            get { return (ITaskItem[]?)_store[nameof(References)]; }
         }
 
         public bool RefOnly
@@ -276,28 +276,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(ReportAnalyzer), false); }
         }
 
-        public ITaskItem[] Resources
+        public ITaskItem[]? Resources
         {
             set { _store[nameof(Resources)] = value; }
-            get { return (ITaskItem[])_store[nameof(Resources)]; }
+            get { return (ITaskItem[]?)_store[nameof(Resources)]; }
         }
 
-        public string RuntimeMetadataVersion
+        public string? RuntimeMetadataVersion
         {
             set { _store[nameof(RuntimeMetadataVersion)] = value; }
-            get { return (string)_store[nameof(RuntimeMetadataVersion)]; }
+            get { return (string?)_store[nameof(RuntimeMetadataVersion)]; }
         }
 
-        public ITaskItem[] ResponseFiles
+        public ITaskItem[]? ResponseFiles
         {
             set { _store[nameof(ResponseFiles)] = value; }
-            get { return (ITaskItem[])_store[nameof(ResponseFiles)]; }
+            get { return (ITaskItem[])_store[nameof(ResponseFiles)]!; }
         }
 
-        public string SharedCompilationId
+        public string? SharedCompilationId
         {
             set { _store[nameof(SharedCompilationId)] = value; }
-            get { return (string)_store[nameof(SharedCompilationId)]; }
+            get { return (string?)_store[nameof(SharedCompilationId)]; }
         }
 
         public bool SkipCompilerExecution
@@ -306,30 +306,32 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(SkipCompilerExecution), false); }
         }
 
-        public ITaskItem[] Sources
+        public ITaskItem[]? Sources
         {
             set
             {
                 if (UsedCommandLineTool)
                 {
-                    NormalizePaths(value);
+                    // PROTOTYPE(NullableDogfood): property setter should be non-null
+                    // https://github.com/dotnet/roslyn/issues/26621
+                    NormalizePaths(value!);
                 }
 
                 _store[nameof(Sources)] = value;
             }
-            get { return (ITaskItem[])_store[nameof(Sources)]; }
+            get { return (ITaskItem[]?)_store[nameof(Sources)]; }
         }
 
-        public string SubsystemVersion
+        public string? SubsystemVersion
         {
             set { _store[nameof(SubsystemVersion)] = value; }
-            get { return (string)_store[nameof(SubsystemVersion)]; }
+            get { return (string?)_store[nameof(SubsystemVersion)]; }
         }
 
-        public string TargetType
+        public string? TargetType
         {
             set { _store[nameof(TargetType)] = CultureInfo.InvariantCulture.TextInfo.ToLower(value); }
-            get { return (string)_store[nameof(TargetType)]; }
+            get { return (string?)_store[nameof(TargetType)]; }
         }
 
         public bool TreatWarningsAsErrors
@@ -344,28 +346,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(Utf8Output), false); }
         }
 
-        public string Win32Icon
+        public string? Win32Icon
         {
             set { _store[nameof(Win32Icon)] = value; }
-            get { return (string)_store[nameof(Win32Icon)]; }
+            get { return (string?)_store[nameof(Win32Icon)]; }
         }
 
-        public string Win32Manifest
+        public string? Win32Manifest
         {
             set { _store[nameof(Win32Manifest)] = value; }
-            get { return (string)_store[nameof(Win32Manifest)]; }
+            get { return (string?)_store[nameof(Win32Manifest)]; }
         }
 
-        public string Win32Resource
+        public string? Win32Resource
         {
             set { _store[nameof(Win32Resource)] = value; }
-            get { return (string)_store[nameof(Win32Resource)]; }
+            get { return (string?)_store[nameof(Win32Resource)]; }
         }
 
-        public string PathMap
+        public string? PathMap
         {
             set { _store[nameof(PathMap)] = value; }
-            get { return (string)_store[nameof(PathMap)]; }
+            get { return (string?)_store[nameof(PathMap)]; }
         }
 
         /// <summary>
@@ -387,12 +389,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             get
             {
-                string platform = Platform;
-                if ((string.IsNullOrEmpty(platform) || platform.Equals("anycpu", StringComparison.OrdinalIgnoreCase)) && Prefer32Bit)
+                string? platform = Platform;
+                // PROTOTYPE(NullableDogfood): need contract on IsNullOrEmpty
+                if ((string.IsNullOrEmpty(platform) || platform!.Equals("anycpu", StringComparison.OrdinalIgnoreCase)) && Prefer32Bit)
                 {
                     platform = "anycpu32bitpreferred";
                 }
-                return platform;
+                return platform!;
             }
         }
 
@@ -407,10 +410,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        public string LangVersion
+        public string? LangVersion
         {
             set { _store[nameof(LangVersion)] = value; }
-            get { return (string)_store[nameof(LangVersion)]; }
+            get { return (string?)_store[nameof(LangVersion)]; }
         }
 
         #endregion
@@ -432,7 +435,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return GenerateFullPathToTool();
         }
 
-        protected sealed override string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
+        // PROTOTYPE(NullableDogfood): Need to follow-up, possible compiler bug
+        protected sealed override string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName)!;
 
         protected sealed override string PathToNativeTool => Path.Combine(ToolPath ?? "", ToolExe);
 
@@ -464,7 +468,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
                     CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
-                    var clientDir = Path.GetDirectoryName(PathToManagedTool);
+                    // PROTOTYPE(NullableDogfood): GetDirectoryName should be annotated (can return null)
+                    // PROTOTYPE(NullableDogfood): The cast should not be grayed out as un-necessary by IDE
+                    var clientDir = (string?)Path.GetDirectoryName(PathToManagedTool);
 
                     // Note: we can't change the "tool path" printed to the console when we run
                     // the Csc/Vbc task since MSBuild logs it for us before we get here. Instead,
@@ -801,14 +807,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Adds a "/features:" switch to the command line for each provided feature.
         /// </summary>
-        internal static void AddFeatures(CommandLineBuilderExtension commandLine, string features)
+        internal static void AddFeatures(CommandLineBuilderExtension commandLine, string? features)
         {
             if (string.IsNullOrEmpty(features))
             {
                 return;
             }
 
-            foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(features))
+            foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(features!))
             {
                 commandLine.AppendSwitchIfNotNull("/features:", feature.Trim());
             }
@@ -817,7 +823,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Adds a "/analyzer:" switch to the command line for each provided analyzer.
         /// </summary>
-        internal static void AddAnalyzersToCommandLine(CommandLineBuilderExtension commandLine, ITaskItem[] analyzers)
+        internal static void AddAnalyzersToCommandLine(CommandLineBuilderExtension commandLine, ITaskItem[]? analyzers)
         {
             // If there were no analyzers passed in, don't add any /analyzer: switches
             // on the command-line.
@@ -896,7 +902,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             if (_store[nameof(DebugType)] != null)
             {
                 // If debugtype is none then only show debug- else use the debug type and the debugsymbols as is.
-                if (string.Compare((string)_store[nameof(DebugType)], "none", StringComparison.OrdinalIgnoreCase) == 0)
+                if (string.Compare((string?)_store[nameof(DebugType)], "none", StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     _store[nameof(DebugType)] = null;
                     _store[nameof(EmitDebugInformation)] = false;
@@ -916,7 +922,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Returns true if the provided item list contains duplicate items, false otherwise.
         /// </summary>
-        internal static bool ListHasNoDuplicateItems(ITaskItem[] itemList, string parameterName, TaskLoggingHelper log)
+        internal static bool ListHasNoDuplicateItems(ITaskItem[]? itemList, string parameterName, TaskLoggingHelper log)
         {
             return ListHasNoDuplicateItems(itemList, parameterName, null, log);
         }
@@ -928,7 +934,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <param name="disambiguatingMetadataName">Optional name of metadata that may legitimately disambiguate items. May be null.</param>
         /// <param name="parameterName"></param>
         /// <param name="log"></param>
-        private static bool ListHasNoDuplicateItems(ITaskItem[] itemList, string parameterName, string disambiguatingMetadataName, TaskLoggingHelper log)
+        private static bool ListHasNoDuplicateItems(ITaskItem[]? itemList, string parameterName, string? disambiguatingMetadataName, TaskLoggingHelper log)
         {
             if (itemList == null || itemList.Length == 0)
             {
@@ -939,7 +945,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             foreach (ITaskItem item in itemList)
             {
                 string key;
-                string disambiguatingMetadataValue = null;
+                string? disambiguatingMetadataValue = null;
                 if (disambiguatingMetadataName != null)
                 {
                     disambiguatingMetadataValue = item.GetMetadata(disambiguatingMetadataName);
@@ -1106,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal string GetWin32ManifestSwitch
         (
             bool noDefaultWin32Manifest,
-            string win32Manifest
+            string? win32Manifest
         )
         {
             if (!noDefaultWin32Manifest)
@@ -1151,7 +1157,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            return win32Manifest;
+            // PROTOTYPE(NullableDogfood): IsNullOrEmpty needs an annotation
+            return win32Manifest!;
         }
     }
 }

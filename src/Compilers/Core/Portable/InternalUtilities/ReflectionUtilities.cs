@@ -12,7 +12,11 @@ namespace Roslyn.Utilities
     {
         private static readonly Type Missing = typeof(void);
 
+#if USES_ANNOTATIONS
+        public static Type? TryGetType(string assemblyQualifiedName)
+#else
         public static Type TryGetType(string assemblyQualifiedName)
+#endif
         {
             try
             {
@@ -25,7 +29,11 @@ namespace Roslyn.Utilities
             }
         }
 
+#if USES_ANNOTATIONS
+        public static Type? TryGetType(ref Type lazyType, string assemblyQualifiedName)
+#else
         public static Type TryGetType(ref Type lazyType, string assemblyQualifiedName)
+#endif
         {
             if (lazyType == null)
             {
@@ -39,7 +47,11 @@ namespace Roslyn.Utilities
         /// Find a <see cref="Type"/> instance by first probing the contract name and then the name as it
         /// would exist in mscorlib.  This helps satisfy both the CoreCLR and Desktop scenarios. 
         /// </summary>
+#if USES_ANNOTATIONS
+        public static Type? GetTypeFromEither(string contractName, string desktopName)
+#else
         public static Type GetTypeFromEither(string contractName, string desktopName)
+#endif
         {
             var type = TryGetType(contractName);
 
@@ -51,7 +63,11 @@ namespace Roslyn.Utilities
             return type;
         }
 
+#if USES_ANNOTATIONS
+        public static Type? GetTypeFromEither(ref Type lazyType, string contractName, string desktopName)
+#else
         public static Type GetTypeFromEither(ref Type lazyType, string contractName, string desktopName)
+#endif
         {
             if (lazyType == null)
             {
@@ -61,7 +77,11 @@ namespace Roslyn.Utilities
             return (lazyType == Missing) ? null : lazyType;
         }
 
+#if USES_ANNOTATIONS
+        public static T? FindItem<T>(IEnumerable<T> collection, params Type[] paramTypes)
+#else
         public static T FindItem<T>(IEnumerable<T> collection, params Type[] paramTypes)
+#endif
             where T : MethodBase
         {
             foreach (var current in collection)
@@ -91,17 +111,30 @@ namespace Roslyn.Utilities
             return null;
         }
 
+#if USES_ANNOTATIONS
+        internal static MethodInfo? GetDeclaredMethod(this TypeInfo typeInfo, string name, params Type[] paramTypes)
+#else
         internal static MethodInfo GetDeclaredMethod(this TypeInfo typeInfo, string name, params Type[] paramTypes)
+#endif
         {
             return FindItem(typeInfo.GetDeclaredMethods(name), paramTypes);
         }
 
+#if USES_ANNOTATIONS
+        internal static ConstructorInfo? GetDeclaredConstructor(this TypeInfo typeInfo, params Type[] paramTypes)
+#else
         internal static ConstructorInfo GetDeclaredConstructor(this TypeInfo typeInfo, params Type[] paramTypes)
+#endif
         {
             return FindItem(typeInfo.DeclaredConstructors, paramTypes);
         }
 
+#if USES_ANNOTATIONS
+        public static T? CreateDelegate<T>(this MethodInfo? methodInfo)
+            where T : Delegate
+#else
         public static T CreateDelegate<T>(this MethodInfo methodInfo)
+#endif
         {
             if (methodInfo == null)
             {
@@ -111,26 +144,37 @@ namespace Roslyn.Utilities
             return (T)(object)methodInfo.CreateDelegate(typeof(T));
         }
 
+#if USES_ANNOTATIONS
+        public static T? InvokeConstructor<T>(this ConstructorInfo? constructorInfo, params object[]? args)
+#else
         public static T InvokeConstructor<T>(this ConstructorInfo constructorInfo, params object[] args)
+#endif
+            where T : class
         {
             if (constructorInfo == null)
             {
-                return default;
+                return null;
             }
 
             try
             {
+                // PROTOTYPE(NullableDogfood): Invoke method needs annotation
                 return (T)constructorInfo.Invoke(args);
             }
             catch (TargetInvocationException e)
             {
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
                 Debug.Assert(false, "Unreachable");
-                return default;
+
+                return null;
             }
         }
 
+#if USES_ANNOTATIONS
+        public static object? InvokeConstructor(this ConstructorInfo constructorInfo, params object[] args)
+#else
         public static object InvokeConstructor(this ConstructorInfo constructorInfo, params object[] args)
+#endif
         {
             return constructorInfo.InvokeConstructor<object>(args);
         }

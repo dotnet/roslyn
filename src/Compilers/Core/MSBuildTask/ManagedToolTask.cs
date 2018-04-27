@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected sealed override string GenerateCommandLineCommands()
         {
             var commandLineArguments = ToolArguments;
-            if (IsManagedTool && IsCliHost(out string pathToDotnet))
+            if (IsManagedTool && IsCliHost(out string? pathToDotnet))
             {
                 var pathToTool = PathToManagedTool;
                 if (pathToTool is null)
@@ -53,9 +53,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             if (IsManagedTool)
             {
-                if (IsCliHost(out string pathToDotnet))
+                if (IsCliHost(out string? pathToDotnet))
                 {
-                    return pathToDotnet;
+                    // PROTOTYPE(NullableDogfood): TryGetValue pattern
+                    return pathToDotnet!;
                 }
                 else
                 {
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected sealed override string ToolName
             => $"{ToolNameWithoutExtension}.{(CoreClrShim.IsRunningOnCoreClr ? "dll" : "exe")}";
 
-        private static bool IsCliHost(out string pathToDotnet)
+        private static bool IsCliHost(out string? pathToDotnet)
         {
             if (CoreClrShim.IsRunningOnCoreClr)
             {
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        private static string PrependFileToArgs(string pathToTool, string commandLineArgs)
+        private static string PrependFileToArgs(string? pathToTool, string commandLineArgs)
         {
             var builder = new CommandLineBuilderExtension();
             builder.AppendFileNameIfNotNull(pathToTool);

@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private static readonly ConcurrentDictionary<AssemblyName, byte> s_failedLoadSet = new ConcurrentDictionary<AssemblyName, byte>();
         private static int s_failedServerConnectionCount = 0;
 
-        private string _bootstrapPath;
+        private string? _bootstrapPath;
 
-        public string BootstrapPath
+        public string? BootstrapPath
         {
             get { return _bootstrapPath; }
             set { _bootstrapPath = NormalizePath(value); }
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var comparer = StringComparer.OrdinalIgnoreCase;
             foreach (var dependency in dependencies)
             {
-                var path = GetDirectory(dependency);
+                string? path = GetDirectory(dependency);
                 path = NormalizePath(path);
                 if (!comparer.Equals(path, toolsPath))
                 {
@@ -87,17 +87,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return allGood;
         }
 
-        private static string NormalizePath(string path)
+        private static string? NormalizePath(string? path)
         {
+            // PROTOTYPE(NullableDogfood): string.IsNullOrEmpty needs annotation
             if (string.IsNullOrEmpty(path))
             {
                 return path;
             }
 
-            var c = path[path.Length - 1];
+            var c = path![path!.Length - 1];
             if (c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar)
             {
-                path = path.Substring(0, path.Length - 1);
+                path = path!.Substring(0, path!.Length - 1);
             }
 
             return path;

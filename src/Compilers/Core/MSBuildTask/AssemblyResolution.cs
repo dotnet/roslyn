@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // empty, just to trigger static ctor
         }
 
-        internal static Assembly ResolveAssembly(string assemblyDisplayName, Assembly requestingAssemblyOpt)
+        internal static Assembly? ResolveAssembly(string assemblyDisplayName, Assembly requestingAssemblyOpt)
         {
             var name = new AssemblyName(assemblyDisplayName);
             try
@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return false;
         }
 
-        private static readonly string s_assemblyLocation = Utilities.TryGetAssemblyPath(typeof(AssemblyResolution).GetTypeInfo().Assembly);
-        private static Assembly TryRedirectToRuntimesDir(AssemblyName name)
+        private static readonly string? s_assemblyLocation = Utilities.TryGetAssemblyPath(typeof(AssemblyResolution).GetTypeInfo().Assembly);
+        private static Assembly? TryRedirectToRuntimesDir(AssemblyName name)
         {
             CompilerServerLogger.Log($"Loading with redirect {name.Name}");
             if (s_assemblyLocation == null)

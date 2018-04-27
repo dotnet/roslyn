@@ -37,7 +37,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// The path which contains mscorlib.  This can be null when specified by the user or running in a 
         /// CoreClr environment.
         /// </summary>
+#if USES_ANNOTATIONS
+        internal string? SdkDirectory { get; }
+#else
         internal string SdkDirectory { get; }
+#endif
 
         /// <summary>
         /// The temporary directory a compilation should use instead of <see cref="Path.GetTempPath"/>.  The latter
@@ -45,9 +49,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal string TempDirectory { get; }
 
+#if USES_ANNOTATIONS
+        internal BuildPathsAlt(string? clientDir, string workingDir, string? sdkDir, string tempDir)
+#else
         internal BuildPathsAlt(string clientDir, string workingDir, string sdkDir, string tempDir)
+#endif
         {
-            ClientDirectory = clientDir;
+            ClientDirectory = clientDir ?? string.Empty;
             WorkingDirectory = workingDir;
             SdkDirectory = sdkDir;
             TempDirectory = tempDir;
@@ -71,6 +79,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static bool IsCompilerServerSupported => 
             GetPipeNameForPathOpt("") != null;
 
+#if USES_ANNOTATIONS
+        public static Task<BuildResponse> RunServerCompilation(
+            RequestLanguage language,
+            string? sharedCompilationId,
+            List<string> arguments,
+            BuildPathsAlt buildPaths,
+            string? keepAlive,
+            string libEnvVariable,
+            CancellationToken cancellationToken)
+#else
         public static Task<BuildResponse> RunServerCompilation(
             RequestLanguage language,
             string sharedCompilationId,
@@ -79,9 +97,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string keepAlive,
             string libEnvVariable,
             CancellationToken cancellationToken)
+#endif
         {
             var pipeNameOpt = sharedCompilationId ?? GetPipeNameForPathOpt(buildPaths.ClientDirectory);
-
             return RunServerCompilationCore(
                 language,
                 arguments,
@@ -94,6 +112,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 cancellationToken: cancellationToken);
         }
 
+#if USES_ANNOTATIONS
+        internal static async Task<BuildResponse> RunServerCompilationCore(
+            RequestLanguage language,
+            List<string> arguments,
+            BuildPathsAlt buildPaths,
+            string? pipeName,
+            string? keepAlive,
+            string libEnvVariable,
+            int? timeoutOverride,
+            Func<string?, string, bool> tryCreateServerFunc,
+            CancellationToken cancellationToken)
+#else
         internal static async Task<BuildResponse> RunServerCompilationCore(
             RequestLanguage language,
             List<string> arguments,
@@ -104,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             int? timeoutOverride,
             Func<string, string, bool> tryCreateServerFunc,
             CancellationToken cancellationToken)
+#endif
         {
             if (pipeName == null)
             {
@@ -118,8 +149,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var clientDir = buildPaths.ClientDirectory;
             var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
+#if USES_ANNOTATIONS
+            Task<NamedPipeClientStream?>? pipeTask = null;
+            Mutex? clientMutex = null;
+#else
             Task<NamedPipeClientStream> pipeTask = null;
             Mutex clientMutex = null;
+#endif
             var holdsMutex = false;
             try
             {
@@ -162,7 +198,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
                 {
+#if USES_ANNOTATIONS
+                    // PROTOTYPE(NullableDogfood): Workaround async issue
                     pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
+#else
+                    pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
+#endif
                 }
             }
             finally
@@ -302,10 +343,17 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>
         /// An open <see cref="NamedPipeClientStream"/> to the server process or null on failure.
         /// </returns>
+#if USES_ANNOTATIONS
+        internal static async Task<NamedPipeClientStream?> TryConnectToServerAsync(
+            string pipeName,
+            int timeoutMs,
+            CancellationToken cancellationToken)
+#else
         internal static async Task<NamedPipeClientStream> TryConnectToServerAsync(
             string pipeName,
             int timeoutMs,
             CancellationToken cancellationToken)
+#endif
         {
             NamedPipeClientStream pipeStream;
             try
@@ -350,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             catch (Exception e) when (!(e is TaskCanceledException || e is OperationCanceledException))
             {
                 LogException(e, "Exception while connecting to process");
-                return null;
+                    return null;
             }
         }
 
@@ -526,7 +574,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>
         /// Null if not enough information was found to create a valid pipe name.
         /// </returns>
+#if USES_ANNOTATIONS
+        internal static string? GetPipeNameForPathOpt(string compilerExeDirectory)
+#else
         internal static string GetPipeNameForPathOpt(string compilerExeDirectory)
+#endif
         {
             var basePipeName = GetBasePipeName(compilerExeDirectory);
 
