@@ -949,6 +949,34 @@ class Class
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestPropertyInPropertySubpattern() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class Class
+{
+    int Prop { get; set; }
+    int OtherProp { get; set; }
+    public void M()
+    {
+        _ = this is $$
+    }
+}]]></Document>)
+
+                state.SendTypeChars("C")
+                Await state.AssertSelectedCompletionItem(displayText:="Class", isHardSelected:=True)
+                state.SendTypeChars("{ P")
+                Await state.AssertSelectedCompletionItem(displayText:="Prop", isHardSelected:=True)
+                state.SendTypeChars(":")
+                Assert.Contains("{ Prop:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(" 0, ")
+                state.SendTypeChars("O")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", isHardSelected:=True)
+                state.SendTypeChars(": 1 }")
+                Assert.Contains("is Class { Prop: 0, OtherProp: 1 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestSymbolInTupleLiteral() As Task
             Using state = TestState.CreateCSharpTestState(

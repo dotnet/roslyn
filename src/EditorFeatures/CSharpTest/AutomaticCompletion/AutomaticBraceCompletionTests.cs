@@ -371,6 +371,38 @@ $$
             }
         }
 
+        // PROTOTYPE(recursive-patterns) The IDE behaves fine in manual tests (after change to TokenBasedFormattingRule), but this test doesn't capture that
+        [WpfFact(Skip = "PROTOTYPE"), Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void RecursivePattern_PropertyBraces()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        _ = this is {
+
+}
+    }
+}";
+            using (var session = CreateSession(code))
+            {
+                Assert.NotNull(session);
+
+                CheckStart(session.Session);
+                CheckReturn(session.Session, 8, expected);
+            }
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Class_ObjectInitializer_OpenBrace_Enter()
         {

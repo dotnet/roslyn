@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         return null;
                     }
 
+                    if (currentToken.IsPattern())
+                    {
+                        return null;
+                    }
+
                     if (!previousToken.IsParenInParenthesizedExpression())
                     {
                         return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
@@ -37,6 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 case SyntaxKind.CloseBraceToken:
                     if (currentToken.IsInterpolation())
+                    {
+                        return null;
+                    }
+
+                    if (currentToken.IsPattern())
                     {
                         return null;
                     }

@@ -4821,6 +4821,38 @@ var(x,y)=(1,2);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Recursive()
+        {
+            var code = @"class C
+{
+    void M() { _ = this is  ( 1 , 2 )  ; }
+}";
+            var expectedCode = @"class C
+{
+    void M() { _ = this is (1, 2); }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Properties()
+        {
+            var code = @"class C
+{
+    void M() { _ = this is  {  P1 :  1  } ; }
+}";
+            var expectedCode = @"class C
+{
+    void M() { _ = this is { P1: 1 }; }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleExtension()
         {
             var code = @"static class Class5
