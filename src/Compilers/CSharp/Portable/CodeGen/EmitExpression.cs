@@ -699,21 +699,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             EmitSequencePoint(node);
 
-            if (node.Expression != null)
-            {
-                // used is true to ensure that something is emitted
-                EmitExpression(node.Expression, used: true);
-                EmitPopIfUnused(used);
-            }
-            else
-            {
-                if (node.Syntax != null && _ilEmitStyle == ILEmitStyle.Debug)
-                {
-                    // if there was no code emitted, then emit nop 
-                    // otherwise this point could get associated with some random statement, possibly in a wrong scope
-                    _builder.EmitOpCode(ILOpCode.Nop);
-                }
-            }
+            // used is true to ensure that something is emitted
+            EmitExpression(node.Expression, used: true);
+            EmitPopIfUnused(used);
         }
 
         private void EmitSequencePoint(BoundSequencePointExpression node)
