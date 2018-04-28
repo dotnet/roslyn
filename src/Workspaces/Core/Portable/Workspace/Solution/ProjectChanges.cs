@@ -116,6 +116,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Get Documents with any changes, including textual and non-textual changes
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<DocumentId> GetChangedDocuments()
         {
             return GetChangedDocuments(false);
