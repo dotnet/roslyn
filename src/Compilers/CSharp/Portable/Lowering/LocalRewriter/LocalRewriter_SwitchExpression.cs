@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.Syntax = node.Syntax;
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
+                var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
                 var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
 
                 // Note that a when-clause can contain an assignment to a
@@ -70,7 +71,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sectionBuilder.Add(_factory.Label(arm.Label));
                     sectionBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), _localRewriter.VisitExpression(arm.Value)));
                     sectionBuilder.Add(_factory.Goto(afterSwitchExpression));
-                    result.Add(new BoundBlock(arm.Syntax, arm.Locals, sectionBuilder.ToImmutableAndFree()));
+                    var statements = sectionBuilder.ToImmutableAndFree();
+                    if (arm.Locals.IsEmpty)
+                    {
+                        result.Add(_factory.StatementList(statements));
+                    }
+                    else
+                    {
+                        // Lifetime of these locals is expanded to the entire switch body, as it is possible to
+                        // share them as temps in the decision dag.
+                        outerVariables.AddRange(arm.Locals);
+
+                        // Note the language scope of the locals, even though they are included for the purposes of
+                        // lifetime analysis in the enclosing scope.
+                        result.Add(new BoundScope(arm.Syntax, arm.Locals, statements));
+                    }
                 }
 
                 _factory.Syntax = node.Syntax;
@@ -82,7 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 result.Add(_factory.Label(afterSwitchExpression));
-                return _factory.SpillSequence(_tempAllocator.AllTemps().Add(resultTemp), result.ToImmutableAndFree(), _factory.Local(resultTemp));
+                outerVariables.Add(resultTemp);
+                outerVariables.AddRange(_tempAllocator.AllTemps());
+                return _factory.SpillSequence(outerVariables.ToImmutableAndFree(), result.ToImmutableAndFree(), _factory.Local(resultTemp));
             }
         }
     }
