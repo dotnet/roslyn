@@ -519,6 +519,27 @@ public class Point
         }
 
         [Fact]
+        public void EmptySwitchExpression()
+        {
+            var source =
+@"class Program
+{
+    public static void Main()
+    {
+        var r = 1 switch { };
+    }
+}";
+            CreatePatternCompilation(source).VerifyDiagnostics(
+                // (5,17): error CS8406: No best type was found for the switch expression.
+                //         var r = 1 switch { };
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "1 switch { }").WithLocation(5, 17),
+                // (5,19): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         var r = 1 switch { };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19)
+                );
+        }
+
+        [Fact]
         public void SwitchExpression_06()
         {
             // test common type vs delegate in match expression
