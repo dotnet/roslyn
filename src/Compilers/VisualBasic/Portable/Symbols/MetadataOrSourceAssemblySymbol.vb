@@ -135,10 +135,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             'A name w/o a key is represented by a list with an entry that is empty
             Dim publicKeys As IEnumerable(Of ImmutableArray(Of Byte)) = potentialGiverOfAccess.GetInternalsVisibleToPublicKeys(Me.Name)
 
+            ' We have an easy out here. Suppose the assembly wanting access is
+            ' being compiled as a module. You can only strong-name an assembly. So we are going to optimistically
+            ' assume that it Is going to be compiled into an assembly with a matching strong name, if necessary
+            If publicKeys.Any() AndAlso DeclaringCompilation IsNot Nothing AndAlso DeclaringCompilation.Options.OutputKind.IsNetModule() Then
+                Return IVTConclusion.Match
+            End If
+
             'EDMAURER look for one that works, if none work, then return the failure for the last one examined.
             For Each key In publicKeys
                 If result <> IVTConclusion.Match Then
-                    result = PerformIVTCheck(key, potentialGiverOfAccess.Identity)
+                    ' We pass the public key of this assembly explicitly so PerformIVTCheck does not need
+                    ' to get it from this.Identity, which would trigger an infinite recursion.
+                    result = Me.PerformIVTCheck(Me.PublicKey, key, potentialGiverOfAccess.Identity)
                 End If
             Next
 

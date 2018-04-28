@@ -444,11 +444,10 @@ End Class
             Assert.True(CS.IsAccessibleWithin(CS2));
             Assert.True(VB.IsAccessibleWithin(VB2));
 
-            // The following results are incorrect; See https://github.com/dotnet/roslyn/issues/26459
-            Assert.False(CS.ContainingAssembly.GivesAccessTo(VB.ContainingAssembly)); // should be Assert.True
-            Assert.False(VB.ContainingAssembly.GivesAccessTo(CS.ContainingAssembly)); // should be Assert.True
-            Assert.False(CS.IsAccessibleWithin(VB)); // should be Assert.True
-            Assert.False(VB.IsAccessibleWithin(CS)); // should be Assert.True
+            Assert.True(CS.ContainingAssembly.GivesAccessTo(VB.ContainingAssembly));
+            Assert.True(VB.ContainingAssembly.GivesAccessTo(CS.ContainingAssembly));
+            Assert.True(CS.IsAccessibleWithin(VB));
+            Assert.True(VB.IsAccessibleWithin(CS));
         }
 
         private abstract class Symbol : ISymbol
