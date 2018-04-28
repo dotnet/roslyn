@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers
 
             Dim identifierName = DirectCast(context.Node, IdentifierNameSyntax)
 
-            If identifierName.Identifier.ToString() <> MSBuildWorkspace Then
+            If Not CaseInsensitiveComparison.Equals(identifierName.Identifier.ToString(), MSBuildWorkspace) Then
                 Return
             End If
 
