@@ -22,14 +22,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers
         End Function
 
         Protected Overrides Sub RegisterIdentifierAnalysis(context As CompilationStartAnalysisContext)
-            context.RegisterSyntaxNodeAction(AddressOf AnalyzerIdentifier, SyntaxKind.IdentifierName)
+            context.RegisterSyntaxNodeAction(AddressOf AnalyzeIdentifier, SyntaxKind.IdentifierName)
         End Sub
 
         Protected Overrides Sub RegisterIdentifierAnalysis(context As AnalysisContext)
-            context.RegisterSyntaxNodeAction(AddressOf AnalyzerIdentifier, SyntaxKind.IdentifierName)
+            context.RegisterSyntaxNodeAction(AddressOf AnalyzeIdentifier, SyntaxKind.IdentifierName)
         End Sub
 
-        Private Sub AnalyzerIdentifier(context As SyntaxNodeAnalysisContext)
+        Private Sub AnalyzeIdentifier(context As SyntaxNodeAnalysisContext)
             If TypeOf context.Node IsNot IdentifierNameSyntax Then
                 Return
             End If

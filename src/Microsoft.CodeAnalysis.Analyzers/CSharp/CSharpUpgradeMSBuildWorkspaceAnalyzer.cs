@@ -24,15 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 
         protected override void RegisterIdentifierAnalysis(CompilationStartAnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzerIdentifier, SyntaxKind.IdentifierName);
+            context.RegisterSyntaxNodeAction(AnalyzeIdentifier, SyntaxKind.IdentifierName);
         }
 
         protected override void RegisterIdentifierAnalysis(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzerIdentifier, SyntaxKind.IdentifierName);
+            context.RegisterSyntaxNodeAction(AnalyzeIdentifier, SyntaxKind.IdentifierName);
         }
 
-        private void AnalyzerIdentifier(SyntaxNodeAnalysisContext context)
+        private void AnalyzeIdentifier(SyntaxNodeAnalysisContext context)
         {
             if (context.Node is IdentifierNameSyntax identifierName &&
                 identifierName.Identifier.ToString() == MSBuildWorkspace)
