@@ -30,11 +30,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers
         End Sub
 
         Private Sub AnalyzeIdentifier(context As SyntaxNodeAnalysisContext)
-            If TypeOf context.Node IsNot IdentifierNameSyntax Then
+            Dim identifierName = TryCast(context.Node, IdentifierNameSyntax)
+            If identifierName Is Nothing Then
                 Return
             End If
-
-            Dim identifierName = DirectCast(context.Node, IdentifierNameSyntax)
 
             If Not CaseInsensitiveComparison.Equals(identifierName.Identifier.ToString(), MSBuildWorkspace) Then
                 Return
