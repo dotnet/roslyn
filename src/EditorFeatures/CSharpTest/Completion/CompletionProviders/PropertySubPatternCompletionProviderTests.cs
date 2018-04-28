@@ -9,6 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
+    [Trait(Traits.Feature, Traits.Features.Completion)]
     public class PropertySubPatternCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         public PropertySubPatternCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new PropertySubPatternCompletionProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PropertiesInRecursivePattern()
         {
             var markup =
@@ -41,7 +42,50 @@ class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
+        public async Task PropertiesInRecursivePattern_WithDerivedType()
+        {
+            var markup =
+@"
+class Program
+{
+    void M()
+    {
+        _ = this is Derived { $$ }
+    }
+}
+class Derived
+{
+    public int P1 { get; set; }
+    public int P2 { get; set; }
+}
+";
+            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemExistsAsync(markup, "P2");
+        }
+
+        [Fact]
+        public async Task PropertiesInRecursivePattern_WithDerivedType_WithInaccessibleMembers()
+        {
+            var markup =
+@"
+class Program
+{
+    void M()
+    {
+        _ = this is Derived { $$ }
+    }
+}
+class Derived : Program
+{
+    private int P1 { get; set; }
+    private int P2 { get; set; }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
         public async Task PropertiesInRecursivePattern_UseStaticTypeFromIs()
         {
             var markup =
@@ -62,7 +106,7 @@ class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PropertiesInRecursivePattern_InSwitchStatement()
         {
             var markup =
@@ -86,7 +130,7 @@ class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PropertiesInRecursivePattern_UseStaticTypeFromSwitchStatement()
         {
             var markup =
@@ -110,7 +154,81 @@ class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
+        public async Task PropertiesInRecursivePattern_Nested()
+        {
+            var markup =
+@"
+public class Nested
+{
+    public int P3 { get; set; }
+    public int P4 { get; set; }
+}
+class Program
+{
+    public int P1 { get; set; }
+    public Nested P2 { get; set; }
+
+    void M()
+    {
+         _ = this is Program { P2: { $$ } }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "P3");
+            await VerifyItemExistsAsync(markup, "P4");
+        }
+
+        [Fact,]
+        public async Task PropertiesInRecursivePattern_Nested_WithFields()
+        {
+            var markup =
+@"
+public class Nested
+{
+    public int F3;
+    public int F4;
+}
+class Program
+{
+    public int P1 { get; set; }
+    public Nested P2 { get; set; }
+
+    void M()
+    {
+         _ = this is Program { P2: { $$ } }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "F3");
+            await VerifyItemExistsAsync(markup, "F4");
+        }
+
+        [Fact]
+        public async Task PropertiesInRecursivePattern_Nested_WithMissingProperty()
+        {
+            var markup =
+@"
+public class Nested
+{
+    public int P3 { get; set; }
+    public int P4 { get; set; }
+}
+class Program
+{
+    public int P1 { get; set; }
+    public Nested P2 { get; set; }
+
+    void M()
+    {
+         _ = this is Program { : { $$ } }
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
         public async Task PropertiesInRecursivePattern_NoType()
         {
             var markup =
@@ -129,7 +247,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PropertiesInRecursivePattern_MissingAfterColon()
         {
             var markup =
@@ -148,7 +266,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PropertiesInRecursivePattern_SecondProperty()
         {
             var markup =
@@ -168,7 +286,7 @@ class Program
             await VerifyItemExistsAsync(markup, "P1");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PropertiesInRecursivePattern_NoPropertyLeft()
         {
             var markup =
@@ -187,7 +305,7 @@ class Program
             await VerifyNoItemsExistAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact]
         public async Task PropertiesInRecursivePattern_NotForEditorUnbrowsable()
         {
             var markup =

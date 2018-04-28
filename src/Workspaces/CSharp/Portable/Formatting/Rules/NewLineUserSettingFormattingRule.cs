@@ -46,13 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             var operation = nextOperation.Invoke();
 
-            // `is {` in a property-based pattern
-            //if (previousToken.IsKind(SyntaxKind.IsKeyword))
-            //{
-            //    operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
-            //}
-            // PROTOTYPE(recursive-pattern): We probably also need to handle tuple patterns: `is (1, 2) {`
-
             // } else in the if else context
             if (previousToken.IsKind(SyntaxKind.CloseBraceToken) && currentToken.IsKind(SyntaxKind.ElseKeyword))
             {

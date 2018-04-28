@@ -4821,7 +4821,7 @@ var(x,y)=(1,2);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatRecursivePattern_Recursive()
+        public async Task FormatRecursivePattern_Positional()
         {
             var code = @"class C
 {
@@ -4830,6 +4830,33 @@ var(x,y)=(1,2);
             var expectedCode = @"class C
 {
     void M() { _ = this is (1, 2); }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Positional_Multiline()
+        {
+            var code = @"class C
+{
+    void M() { 
+_ = this is  
+( 
+1 , 
+2 )  ; 
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is
+        (
+        1,
+        2);
+    }
 }";
 
             await AssertFormatAsync(expectedCode, code);
@@ -4847,6 +4874,71 @@ var(x,y)=(1,2);
 {
     void M() { _ = this is { P1: 1 }; }
 }";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Properties_Multiline()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is
+{
+P1 :  1  ,
+P2 : 2
+} ;
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is
+        {
+        P1: 1,
+        P2: 2
+        };
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSwitchExpression()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this switch
+{
+{ P1: 1} => true,
+(0, 1) => true,
+_ => true
+};
+
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this switch
+        {
+        {
+        P1: 1 }
+        => true,
+        (0, 1) => true,
+        _ => true
+        };
+
+    }
+}";
+            // PROTOTYPE(recursive-patterns): TODO
 
             await AssertFormatAsync(expectedCode, code);
         }

@@ -35,18 +35,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // Find the members that can be tested.
             IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, type);
             members = members.Where(m => m.CanBeReferencedByName &&
-                m.Kind == SymbolKind.Property &&
+                (m.IsKind(SymbolKind.Property) || m.IsKind(SymbolKind.Field)) &&
                 !m.IsImplicitlyDeclared);
 
             // Filter out those members that have already been typed
-            var alreadyTestedProperties = GetTestedProperties(semanticModel.SyntaxTree, position, cancellationToken);
-            var untestedProperties = members.Where(m => !alreadyTestedProperties.Contains(m.Name));
+            var alreadyTestedMembers = GetTestedMembers(semanticModel.SyntaxTree, position, cancellationToken);
+            var untestedMembers = members.Where(m => !alreadyTestedMembers.Contains(m.Name));
 
-            untestedProperties = untestedProperties.Where(m => m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
+            untestedMembers = untestedMembers.Where(m => m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
 
-            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var untestedProperty in untestedProperties)
+            foreach (var untestedProperty in untestedMembers)
             {
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: untestedProperty.Name,
@@ -128,14 +126,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
+            // e is { P1: { $$
+            // e is { P1: { P2: 2, $$
+            if (propertyPattern.IsParentKind(SyntaxKind.SubpatternElement))
+            {
+                var containingProperty = ((SubpatternElementSyntax)propertyPattern.Parent).NameColon?.Name;
+                if (containingProperty != null)
+                {
+                    var symbol = semanticModel.GetSymbolInfo(containingProperty).Symbol;
+
+                    switch (symbol)
+                    {
+                        case null:
+                            break;
+                        case IPropertySymbol propertySymbol:
+                            return (propertySymbol.Type, token.GetLocation());
+                        case IFieldSymbol fieldSymbol:
+                            return (fieldSymbol.Type, token.GetLocation());
+                    }
+                }
+            }
+
             // PROTOTYPE(NullableReferenceTypes): patterns in switch expression
-            // PROTOTYPE(NullableReferenceTypes): nested patterns
 
             return default;
         }
 
-        // List the properties that are already tested in this property sub-pattern
-        protected HashSet<string> GetTestedProperties(SyntaxTree tree, int position, CancellationToken cancellationToken)
+        // List the members that are already tested in this property sub-pattern
+        protected HashSet<string> GetTestedMembers(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
                 .GetPreviousTokenIfTouchingWord(position);

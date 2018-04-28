@@ -962,13 +962,15 @@ class Class
     }
 }]]></Document>)
 
+                Await state.AssertNoCompletionSession()
                 state.SendTypeChars("C")
                 Await state.AssertSelectedCompletionItem(displayText:="Class", isHardSelected:=True)
-                state.SendTypeChars("{ P")
+                state.SendTypeChars(" { P")
                 Await state.AssertSelectedCompletionItem(displayText:="Prop", isHardSelected:=True)
                 state.SendTypeChars(":")
                 Assert.Contains("{ Prop:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 state.SendTypeChars(" 0, ")
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", isSoftSelected:=True)
                 state.SendTypeChars("O")
                 Await state.AssertSelectedCompletionItem(displayText:="OtherProp", isHardSelected:=True)
                 state.SendTypeChars(": 1 }")
