@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
 
                 // Verify no document changes when upgrade project
                 var changedDocs = SolutionUtilities.GetTextChangedDocuments(oldSolution, newSolution);
-                Assert.Equal(0, changedDocs.Count());
+                Assert.Empty(changedDocs);
             }
 
             await TestAsync(initialMarkup, initialMarkup, parseOptions); // no change to markup

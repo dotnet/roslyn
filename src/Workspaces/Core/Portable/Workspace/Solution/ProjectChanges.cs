@@ -122,14 +122,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// https://github.com/dotnet/roslyn/issues/18199
+        /// Get Changed Documents:
+        /// When onlyGetDocumentsWithTextChanges is true, only get documents with text changes;
+        /// otherwise get documents with any changes i.e. DocumentState changes:
+        /// <see cref="DocumentState.ParseOptions"/>, <see cref="DocumentState.SourceCodeKind"/>, <see cref="TextDocumentState.FilePath"/>
         /// </summary>
-        /// <param name="onlyGetDocumentsWithTextChanges">when onlyGetDocumentsWithTextChanges is true, only get documents with text changes;
-        /// otherwise get documents with any changes i.e. ParseOption, filename, SourceCodeKind (DocumentState changes)</param>
+        /// <param name="onlyGetDocumentsWithTextChanges"></param>
         /// <returns></returns>
         public IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges)
         {
-            // if the document states are different then there is a change.
             foreach (var id in _newProject.DocumentIds)
             {
                 var newState = _newProject.GetDocumentState(id);
