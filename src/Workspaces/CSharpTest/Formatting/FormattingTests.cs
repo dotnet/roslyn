@@ -4945,6 +4945,40 @@ _ => true
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSwitchWithPropertyPattern()
+        {
+            var code = @"class C
+{
+    void M()
+    {
+        switch (this)
+        {
+            case { P1: 1, P2: { P3: 3, P4: 4 } }:
+                break;
+        }
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        switch (this)
+        {
+            case {
+            P1: 1, P2: {
+            P3: 3, P4: 4 } }
+            :
+                break;
+        }
+    }
+}";
+            // PROTOTYPE(recursive-patterns): TODO
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleExtension()
         {
             var code = @"static class Class5
