@@ -42,7 +42,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task PropertiesInRecursivePattern_MissingType()
+        public async Task PropertiesInRecursivePattern_UseStaticTypeFromIs()
         {
             var markup =
 @"
@@ -54,6 +54,75 @@ class Program
     void M()
     {
         _ = this is { $$ }
+    }
+}
+";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemExistsAsync(markup, "P2");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PropertiesInRecursivePattern_InSwitchStatement()
+        {
+            var markup =
+@"
+class Program
+{
+    public int P1 { get; set; }
+    public int P2 { get; set; }
+
+    void M()
+    {
+        switch (this)
+        {
+            case Program { $$ }
+        }
+    }
+}
+";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemExistsAsync(markup, "P2");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PropertiesInRecursivePattern_UseStaticTypeFromSwitchStatement()
+        {
+            var markup =
+@"
+class Program
+{
+    public int P1 { get; set; }
+    public int P2 { get; set; }
+
+    void M()
+    {
+        switch (this)
+        {
+            case { $$ }
+        }
+    }
+}
+";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemExistsAsync(markup, "P2");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PropertiesInRecursivePattern_NoType()
+        {
+            var markup =
+@"
+class Program
+{
+    public int P1 { get; set; }
+    public int P2 { get; set; }
+
+    void M()
+    {
+        _ = missing is { $$ }
     }
 }
 ";

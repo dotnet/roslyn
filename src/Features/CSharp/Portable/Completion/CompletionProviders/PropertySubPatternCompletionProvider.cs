@@ -94,13 +94,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // is Goo { P1: 0, $$
             var propertyPattern = (PropertyPatternSyntax)token.Parent.Parent;
             var patternType = propertyPattern.Type;
-            if (patternType == null)
+            if (patternType != null)
             {
-                return default;
+                var typeSymbol = (ITypeSymbol)semanticModel.GetSymbolInfo(patternType, cancellationToken).Symbol;
+                return (typeSymbol, token.GetLocation());
             }
 
-            var typeSymbol = (ITypeSymbol)semanticModel.GetSymbolInfo(patternType, cancellationToken).Symbol;
-            return (typeSymbol, token.GetLocation());
+            // e is { $$
+            // e is { P1: 0, $$
+            if (propertyPattern.IsParentKind(SyntaxKind.IsPatternExpression))
+            {
+                var isPattern = (IsPatternExpressionSyntax)propertyPattern.Parent;
+                var typeSymbol = semanticModel.GetTypeInfo(isPattern.Expression, cancellationToken).Type;
+                if (typeSymbol != null)
+                {
+                    return (typeSymbol, token.GetLocation());
+                }
+            }
+
+            // switch (e) { case { $$
+            // switch (e) { case { P1: 0, $$
+            if (propertyPattern.IsParentKind(SyntaxKind.CasePatternSwitchLabel))
+            {
+                var casePattern = (CasePatternSwitchLabelSyntax)propertyPattern.Parent;
+                var switchStatment = casePattern.Parent?.Parent as SwitchStatementSyntax;
+                if (switchStatment != null && switchStatment.Expression != null)
+                {
+                    var typeSymbol = semanticModel.GetTypeInfo(switchStatment.Expression).Type;
+                    if (typeSymbol != null)
+                    {
+                        return (typeSymbol, token.GetLocation());
+                    }
+                }
+            }
+
+            // PROTOTYPE(NullableReferenceTypes): patterns in switch expression
+            // PROTOTYPE(NullableReferenceTypes): nested patterns
+
+            return default;
         }
 
         // List the properties that are already tested in this property sub-pattern
