@@ -546,11 +546,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return currentToken.Parent.IsKind(SyntaxKind.Interpolation);
         }
 
-        public static bool IsPattern(this SyntaxToken currentToken)
-        {
-            return currentToken.Parent.IsKind(SyntaxKind.PropertySubpattern);
-        }
-
         /// <summary>
         /// Checks whether currentToken is the opening paren of a deconstruction-declaration in var form, such as `var (x, y) = ...`
         /// </summary>

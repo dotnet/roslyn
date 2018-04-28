@@ -43,6 +43,24 @@ class Program
         }
 
         [Fact]
+        public async Task PropertiesInRecursivePattern_WriteOnlyProperties()
+        {
+            var markup =
+@"
+class Program
+{
+    public int P1 { set => throw null; }
+
+    void M()
+    {
+        _ = this is Program { $$ }
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
         public async Task PropertiesInRecursivePattern_WithDerivedType()
         {
             var markup =
@@ -65,6 +83,28 @@ class Derived
         }
 
         [Fact]
+        public async Task PropertiesInRecursivePattern_WithOtherType()
+        {
+            var markup =
+@"
+class Program
+{
+    void M(Other other)
+    {
+        _ = other is Other { $$ }
+    }
+}
+class Other
+{
+    public int P1 { get; set; }
+    public int F2;
+}
+";
+            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemExistsAsync(markup, "F2");
+        }
+
+        [Fact]
         public async Task PropertiesInRecursivePattern_WithDerivedType_WithInaccessibleMembers()
         {
             var markup =
@@ -83,6 +123,27 @@ class Derived : Program
 }
 ";
             await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
+        public async Task PropertiesInRecursivePattern_WithDerivedType_WithInaccessibleMembers2()
+        {
+            var markup =
+@"
+class Program
+{
+    private int P1 { get; set; }
+    void M()
+    {
+        _ = this is Derived { $$ }
+    }
+}
+class Derived : Program
+{
+    private int P2 { get; set; }
+}
+";
+            await VerifyItemExistsAsync(markup, "P1");
         }
 
         [Fact]
@@ -155,7 +216,7 @@ class Program
         }
 
         [Fact]
-        public async Task PropertiesInRecursivePattern_Nested()
+        public async Task PropertiesInRecursivePattern_NestedInProperty()
         {
             var markup =
 @"
@@ -175,11 +236,40 @@ class Program
     }
 }
 ";
+            await VerifyItemIsAbsentAsync(markup, "P1");
+            await VerifyItemIsAbsentAsync(markup, "P2");
             await VerifyItemExistsAsync(markup, "P3");
             await VerifyItemExistsAsync(markup, "P4");
         }
 
-        [Fact,]
+        [Fact]
+        public async Task PropertiesInRecursivePattern_NestedInField()
+        {
+            var markup =
+@"
+public class Nested
+{
+    public int P3 { get; set; }
+    public int P4 { get; set; }
+}
+class Program
+{
+    public int P1 { get; set; }
+    public Nested F2;
+
+    void M()
+    {
+         _ = this is Program { F2: { $$ } }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "P1");
+            await VerifyItemIsAbsentAsync(markup, "F2");
+            await VerifyItemExistsAsync(markup, "P3");
+            await VerifyItemExistsAsync(markup, "P4");
+        }
+
+        [Fact]
         public async Task PropertiesInRecursivePattern_Nested_WithFields()
         {
             var markup =
@@ -200,6 +290,8 @@ class Program
     }
 }
 ";
+            await VerifyItemIsAbsentAsync(markup, "P1");
+            await VerifyItemIsAbsentAsync(markup, "P2");
             await VerifyItemExistsAsync(markup, "F3");
             await VerifyItemExistsAsync(markup, "F4");
         }
@@ -284,6 +376,73 @@ class Program
 ";
             // VerifyItemExistsAsync also tests with the item typed.
             await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemIsAbsentAsync(markup, "P2");
+        }
+
+        [Fact]
+        public async Task PropertiesInRecursivePattern_PositionalInFirstProperty()
+        {
+            var markup =
+@"
+class Program
+{
+    public D P1 { get; set; }
+
+    void M()
+    {
+        _ = this is Program { P1: ($$ }
+    }
+}
+class D
+{
+    public int P2 { get; set; }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
+        public async Task PropertiesInRecursivePattern_PositionalInFirstProperty_AfterComma()
+        {
+            var markup =
+@"
+class Program
+{
+    public D P1 { get; set; }
+
+    void M()
+    {
+        _ = this is Program { P1: (1, $$ }
+    }
+}
+class D
+{
+    public int P2 { get; set; }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
+        public async Task PropertiesInRecursivePattern_PositionalInFirstProperty_AfterCommaAndBeforeParen()
+        {
+            var markup =
+@"
+class Program
+{
+    public D P1 { get; set; }
+
+    void M()
+    {
+        _ = this is Program { P1: (1, $$) }
+    }
+}
+class D
+{
+    public int P2 { get; set; }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact]
@@ -323,6 +482,7 @@ class Program
     }
 }
 ";
+            await VerifyItemExistsAsync(markup, "P1"); // PROTOTYPE(recursive-patterns): Need to review and confirm
             await VerifyItemExistsAsync(markup, "P2");
         }
     }

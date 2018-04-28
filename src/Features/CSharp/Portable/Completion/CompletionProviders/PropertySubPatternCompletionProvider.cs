@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var workspace = document.Project.Solution.Workspace;
             var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, length: 0), cancellationToken).ConfigureAwait(false);
-            var (type, location) = GetPatternType(document, semanticModel, position, cancellationToken);
+            var (type, location) = TryGetPatternType(document, semanticModel, position, cancellationToken);
 
             if (type == null)
             {
@@ -35,24 +35,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // Find the members that can be tested.
             IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, type);
             members = members.Where(m => m.CanBeReferencedByName &&
-                (m.IsKind(SymbolKind.Property) || m.IsKind(SymbolKind.Field)) &&
+                IsFieldOrReadableProperty(m) &&
                 !m.IsImplicitlyDeclared);
 
             // Filter out those members that have already been typed
             var alreadyTestedMembers = GetTestedMembers(semanticModel.SyntaxTree, position, cancellationToken);
-            var untestedMembers = members.Where(m => !alreadyTestedMembers.Contains(m.Name));
+            var untestedMembers = members.Where(m => !alreadyTestedMembers.Contains(m.Name) &&
+                m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
 
-            untestedMembers = untestedMembers.Where(m => m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
-
-            foreach (var untestedProperty in untestedMembers)
+            foreach (var untestedMember in untestedMembers)
             {
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                    displayText: untestedProperty.Name,
+                    displayText: untestedMember.Name,
                     insertionText: null,
-                    symbols: ImmutableArray.Create(untestedProperty),
+                    symbols: ImmutableArray.Create(untestedMember),
                     contextPosition: location.SourceSpan.Start,
                     rules: s_rules));
             }
+        }
+
+        private static bool IsFieldOrReadableProperty(ISymbol symbol)
+        {
+            if (symbol.IsKind(SymbolKind.Field))
+            {
+                return true;
+            }
+
+            if (symbol.IsKind(SymbolKind.Property) && !((IPropertySymbol)symbol).IsWriteOnly)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
@@ -61,11 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
-        }
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
 
-        protected (ITypeSymbol type, Location location) GetPatternType(
+        private static (ITypeSymbol type, Location location) TryGetPatternType(
             Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var tree = semanticModel.SyntaxTree;
@@ -77,13 +89,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.Kind() != SyntaxKind.CommaToken && token.Kind() != SyntaxKind.OpenBraceToken)
+            if (!token.IsKind(SyntaxKind.CommaToken, SyntaxKind.OpenBraceToken))
             {
                 return default;
             }
 
-            if (token.Parent?.IsKind(SyntaxKind.PropertySubpattern) == false ||
-                token.Parent.Parent?.IsKind(SyntaxKind.PropertyPattern) == false)
+            if (token.Parent.IsKind(SyntaxKind.PropertySubpattern) == false ||
+                token.Parent.Parent.IsKind(SyntaxKind.PropertyPattern) == false)
             {
                 return default;
             }
@@ -94,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var patternType = propertyPattern.Type;
             if (patternType != null)
             {
+                // TODO test alias
                 var typeSymbol = (ITypeSymbol)semanticModel.GetSymbolInfo(patternType, cancellationToken).Symbol;
                 return (typeSymbol, token.GetLocation());
             }
@@ -153,21 +166,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         // List the members that are already tested in this property sub-pattern
-        protected HashSet<string> GetTestedMembers(SyntaxTree tree, int position, CancellationToken cancellationToken)
+        private static HashSet<string> GetTestedMembers(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
                 .GetPreviousTokenIfTouchingWord(position);
 
             // We should have gotten back a { or ,
-            if (token.Kind() == SyntaxKind.CommaToken || token.Kind() == SyntaxKind.OpenBraceToken)
+            if (token.IsKind(SyntaxKind.CommaToken, SyntaxKind.OpenBraceToken))
             {
-                if (token.Parent != null)
+                if (token.Parent is PropertySubpatternSyntax subpattern)
                 {
-                    if (token.Parent is PropertySubpatternSyntax subpattern)
-                    {
-                        return new HashSet<string>(subpattern.SubPatterns.Select(
-                            p => p.NameColon?.Name?.Identifier.ValueText).Where(s => !string.IsNullOrEmpty(s)));
-                    }
+                    return new HashSet<string>(subpattern.SubPatterns.Select(
+                        p => p.NameColon?.Name?.Identifier.ValueText).Where(s => !string.IsNullOrEmpty(s)));
                 }
             }
 

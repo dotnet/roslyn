@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         return null;
                     }
 
-                    if (currentToken.IsPattern())
+                    if (IsPropertySubpattern(currentToken))
                     {
                         return null;
                     }
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         return null;
                     }
 
-                    if (currentToken.IsPattern())
+                    if (IsPropertySubpattern(currentToken))
                     {
                         return null;
                     }
@@ -185,6 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             return nextOperation.Invoke();
+        }
+
+        private static bool IsPropertySubpattern(SyntaxToken currentToken)
+        {
+            return currentToken.Parent.IsKind(SyntaxKind.PropertySubpattern);
         }
 
         public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
