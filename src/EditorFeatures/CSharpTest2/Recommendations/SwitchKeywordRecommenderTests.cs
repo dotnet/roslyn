@@ -95,6 +95,18 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"expr $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterTuple()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(@"(expr, expr) $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterSwitch2()
         {
             await VerifyAbsenceAsync(AddInsideMethod(

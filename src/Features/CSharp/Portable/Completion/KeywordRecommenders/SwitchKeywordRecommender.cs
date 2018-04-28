@@ -2,6 +2,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -16,7 +17,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsStatementContext ||
-                context.IsGlobalStatementContext;
+                context.IsGlobalStatementContext ||
+                IsAfterExpression(context);
+        }
+
+        // `switch` follows expressions in switch expressions
+        internal static bool IsAfterExpression(CSharpSyntaxContext context)
+        {
+            var token = context.TargetToken;
+            if (token.Parent == null)
+            {
+                return false;
+            }
+
+            var ancestors = token.Parent.AncestorsAndSelf();
+
+            foreach (var ancestor in ancestors)
+            {
+                if (ancestor is ExpressionSyntax)
+                {
+                    return true;
+                }
+
+                if (ancestor is LambdaExpressionSyntax || ancestor is StatementSyntax)
+                {
+                    break;
+                }
+            }
+
+            return false;
         }
     }
 }
