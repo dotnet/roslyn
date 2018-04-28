@@ -19,6 +19,7 @@ namespace RunTests
         internal static void WriteLine()
         {
             Console.WriteLine();
+            Logger.Log("");
         }
 
         internal static void WriteLine(string message)
