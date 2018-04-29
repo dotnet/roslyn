@@ -943,6 +943,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer &apos;is null&apos; over &apos;(object)... == null&apos;.
+        /// </summary>
+        internal static string Prefer_is_null_over_cast_check {
+            get {
+                return ResourceManager.GetString("Prefer_is_null_over_cast_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer &apos;is null&apos; over &apos;object.ReferenceEquals(..., null)&apos;.
         /// </summary>
         internal static string Prefer_is_null_over_ReferenceEquals {

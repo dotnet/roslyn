@@ -691,6 +691,30 @@ class Customer
 }}
 ";
 
+        private static readonly string s_preferIsNullOverCastAndEqualityOperator = $@"
+using System;
+
+class Customer
+{{
+    void M1(string value)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        if (value is null)
+            return;
+//]
+    }}
+    void M2(string value)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if ((object)value == null)
+            return;
+//]
+    }}
+}}
+";
+
         private const string s_preferExpressionBodyForMethods = @"
 using System;
 
@@ -948,6 +972,7 @@ class Customer2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_over_ReferenceEquals, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionSet, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverCastAndEqualityOperator, CSharpVSResources.Prefer_is_null_over_cast_check, s_preferIsNullOverCastAndEqualityOperator, s_preferIsNullOverCastAndEqualityOperator, this, optionSet, nullCheckingGroupTitle));
 
             // Field preferences.
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, this, optionSet, fieldGroupTitle));

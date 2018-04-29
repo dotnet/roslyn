@@ -7,6 +7,11 @@
         <target state="translated">C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_is_null_over_cast_check">
+        <source>Prefer 'is null' over '(object)... == null'</source>
+        <target state="new">Prefer 'is null' over '(object)... == null'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">Şununla Çevrele</target>

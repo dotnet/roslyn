@@ -534,4 +534,7 @@
   <data name="Event_Hookup_Command_Handler" xml:space="preserve">
     <value>Generate Event Subscription Command Handler</value>
   </data>
+  <data name="Prefer_is_null_over_cast_check" xml:space="preserve">
+    <value>Prefer 'is null' over '(object)... == null'</value>
+  </data>
 </root>
