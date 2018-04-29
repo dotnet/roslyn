@@ -9,13 +9,13 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.UseIsNullCheck
 {
-    internal abstract class AbstractUseIsNullCheckDiagnosticAnalyzer<
+    internal abstract class AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer<
         TLanguageKindEnum>
         : AbstractCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
     {
 
-        protected AbstractUseIsNullCheckDiagnosticAnalyzer(LocalizableString title)
+        protected AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(LocalizableString title)
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
                    title,
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     // Needs special casing for C# as long as
                     // https://github.com/dotnet/csharplang/issues/1284
                     // is not implemented.
-                    properties = properties.Add(AbstractUseIsNullCheckCodeFixProvider.UnconstrainedGeneric, "");
+                    properties = properties.Add(AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider.UnconstrainedGeneric, "");
                 }
             }
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             var negated = syntaxFacts.IsLogicalNotExpression(invocation.Parent);
             if (negated)
             {
-                properties = properties.Add(AbstractUseIsNullCheckCodeFixProvider.Negated, "");
+                properties = properties.Add(AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider.Negated, "");
             }
 
             var severity = option.Notification.Value;

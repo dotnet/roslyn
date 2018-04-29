@@ -12,10 +12,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
 {
-    public partial class UseIsNullCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpUseIsNullCheckDiagnosticAnalyzer(), new CSharpUseIsNullCheckCodeFixProvider());
+            => (new CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(), new CSharpUseIsNullCheckForReferenceEqualsCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestIdentifierName()

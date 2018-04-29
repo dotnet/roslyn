@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseIsNullCheck
 {
-    internal abstract class AbstractUseIsNullCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public const string Negated = nameof(Negated);
         public const string UnconstrainedGeneric = nameof(UnconstrainedGeneric);
