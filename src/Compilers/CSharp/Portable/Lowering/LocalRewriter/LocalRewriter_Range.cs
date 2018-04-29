@@ -118,25 +118,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // left.HasValue && right.HasValue
             BoundExpression condition = null;
-            for (var i = 0; i < operands.Length; i++)
+            foreach (var operand in operands)
             {
-                BoundExpression operand = operands[i];
                 if (operand.Type.IsNullableType())
                 {
-                    operand = CaptureExpressionInTempIfNeeded(operand, sideeffects, locals);
+                    BoundExpression tempOperand = CaptureExpressionInTempIfNeeded(operand, sideeffects, locals);
 
                     if (condition is null)
                     {
-                        condition = MakeOptimizedHasValue(operand.Syntax, operand);
+                        condition = MakeOptimizedHasValue(tempOperand.Syntax, tempOperand);
                     }
                     else
                     {
                         TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
-                        BoundExpression operandHasValue = MakeOptimizedHasValue(operand.Syntax, operand);
+                        BoundExpression operandHasValue = MakeOptimizedHasValue(tempOperand.Syntax, tempOperand);
                         condition = MakeBinaryOperator(syntax, BinaryOperatorKind.BoolAnd, condition, operandHasValue, boolType, method: null);
                     }
 
-                    arguments.Add(MakeOptimizedGetValueOrDefault(operand.Syntax, operand));
+                    arguments.Add(MakeOptimizedGetValueOrDefault(tempOperand.Syntax, tempOperand));
                 }
                 else
                 {

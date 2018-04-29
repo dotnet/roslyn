@@ -318,7 +318,7 @@ class C
 @"class C
 {
     void M(int arg1, int arg2) 
-        => M(arg1: 1 + 2, arg2: 2);
+        => M(arg1: 1 + 2, 2);
 }");
         }
 
@@ -342,6 +342,23 @@ class C
 {
     void M(Action arg1, int arg2) 
         => M(arg1: () => {  }, arg2: 2);
+}");
+        }
+
+        [WorkItem(18848, "https://github.com/dotnet/roslyn/issues/18848")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestNotMissingWhenInsideSingleLineArgument4()
+        {
+            await TestWithCSharp7(
+@"class C
+{
+    void M(int arg1, int arg2) 
+        => M(1 [||]+ 2, 2);
+}",
+@"class C
+{
+    void M(int arg1, int arg2) 
+        => M(arg1: 1 + 2, arg2: 2);
 }");
         }
 

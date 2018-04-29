@@ -39,7 +39,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
                 await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length));
                 analyzer.VerifyAllAnalyzerMembersWereCalled();
                 analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(new HashSet<SyntaxKind>());
+
+                var syntaxKinds = new HashSet<SyntaxKind>();
+
+                // PROTOTYPE: investigate whether this should be added or not?
+                syntaxKinds.Add(SyntaxKind.RangeExpression);
+                syntaxKinds.Add(SyntaxKind.IndexExpression);
+
+                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKinds);
+
                 analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks, true);
             }
         }

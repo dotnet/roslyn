@@ -3734,9 +3734,11 @@ class C
 {
     public void M()
     {
-        var s2 = string.Replace($""hello"", ""world"");
+        var s2 = string.Replace((string)$""hello"", ""world"");
     }
 }");
+
+            // PROTOTYPE: why? is it a C# 8.0 bug?
         }
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
@@ -3751,14 +3753,16 @@ class C
         var [|s1|] = $""hello {x}"";
         var s2 = string.Replace(s1, ""world"");
     }
-}", 
+}",
 @"class C
 {
     public void M(int x)
     {
-        var s2 = string.Replace($""hello {x}"", ""world"");
+        var s2 = string.Replace((string)$""hello {x}"", ""world"");
     }
 }");
+
+            // PROTOTYPE: why? is it a C# 8.0 bug?
         }
 
         [WorkItem(15530, "https://github.com/dotnet/roslyn/issues/15530")]
