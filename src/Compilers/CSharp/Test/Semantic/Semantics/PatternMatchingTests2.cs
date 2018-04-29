@@ -1974,6 +1974,38 @@ class Blah
             Assert.Equal(SpecialType.System_Boolean, typeInfo.Type.SpecialType);
         }
 
+        [Fact]
+        public void WrongArity()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Point p = new Point() { X = 3, Y = 4 };
+        if (p is Point())
+        {
+        }
+    }
+}
+
+class Point
+{
+    public int X, Y;
+    public void Deconstruct(out int X, out int Y) => (X, Y) = (this.X, this.Y);
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'X' of 'Point.Deconstruct(out int, out int)'
+                //         if (p is Point())
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Point()").WithArguments("X", "Point.Deconstruct(out int, out int)").WithLocation(6, 18),
+                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Point', with 0 out parameters and a void return type.
+                //         if (p is Point())
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "Point()").WithArguments("Point", "0").WithLocation(6, 18)
+                );
+        }
+
         class RemoveAliasQual : CSharpSyntaxRewriter
         {
             public override SyntaxNode VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
