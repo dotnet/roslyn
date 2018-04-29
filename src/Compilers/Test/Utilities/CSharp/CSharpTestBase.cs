@@ -1165,6 +1165,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 options: options,
                 parseOptions: parseOptions);
         }
+
+        protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range, TestSources.Span }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
+        }
         #endregion
     }
 }

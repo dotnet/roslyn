@@ -483,10 +483,189 @@ i: default
 j: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'False''
 k: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '2', fromEnd: 'False''
 l: default
-m: value: 'value: '1', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''
-n: value: 'value: '2', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''
+m: value: 'value: '1', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''
+n: value: 'value: '2', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''
 o: default
-p: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''");
+p: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''");
+        }
+
+        [Fact]
+        public void ExtensionIndexerHack_Error()
+        {
+            CreateCompilationWithIndex(@"
+using System;
+public static class Program
+{
+    public static char get_IndexerExtension(this string foo, Index index)
+    {
+        return index.FromEnd ? foo[foo.Length - index.Value] : foo[index.Value];
+    }
+    public static void Main()
+    {
+        var foo = ""abcdefg"";
+        foo[^3] = ""invalid"";
+    }
+}").VerifyDiagnostics(
+                // (12,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         foo[^3] = "invalid";
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "foo[^3]").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void ExtensionIndexerHack_StringIndex()
+        {
+            CompileAndVerify(CreateCompilationWithIndex(@"
+using System;
+public static class Program
+{
+    public static char get_IndexerExtension(this string foo, Index index)
+    {
+        return index.FromEnd ? foo[foo.Length - index.Value] : foo[index.Value];
+    }
+    public static void Main()
+    {
+        var foo = ""abcdefg"";
+        Console.WriteLine(foo[3] + "" -- "" + foo[^1]);
+    }
+}", options: TestOptions.ReleaseExe), expectedOutput: "d -- g");
+        }
+
+        [Fact]
+        public void ExtensionIndexerHack_StringRange()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+using System;
+public static class Program
+{
+    public static string get_IndexerExtension(this string foo, Range range)
+    {
+        int start = range.Start.FromEnd ? (foo.Length - range.Start.Value) : range.Start.Value;
+        int end = range.End.FromEnd ? (foo.Length - range.End.Value) : range.End.Value;
+        return foo.Substring(start, end - start + 1);
+    }
+    public static void Main()
+    {
+        var foo = ""abcdefg"";
+        Console.WriteLine(foo[1..2] + "" -- "" + foo[^2..^1]);
+        Console.WriteLine(foo[..0] + "" -- "" + foo[..^2]);
+        Console.WriteLine(foo[1..] + "" -- "" + foo[^3..]);
+        Console.WriteLine(foo[..]);
+    }
+}", options: TestOptions.ReleaseExe), expectedOutput: @"
+bc -- fg
+a -- abcdef
+bcdefg -- efg
+abcdefg");
+        }
+
+        [Fact]
+        public void ExtensionIndexerHack_SpanIndex()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+public static class Program
+{
+    public static int get_IndexerExtension(this Span<int> foo, Index index)
+    {
+        return foo[index.FromEnd ? (foo.Length - index.Value) : index.Value];
+    }
+    public static void Main()
+    {
+        Span<int> foo = new Span<int>(new [] { 0, 1, 2, 3, 4, 5, 6 });
+        Console.WriteLine(foo[3] + "" -- "" + foo[^1]);
+    }
+}", options: TestOptions.ReleaseExe), expectedOutput: "3 -- 6");
+        }
+
+        [Fact]
+        public void ExtensionIndexerHack_SpanRange()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+using System.Linq;
+public static class Program
+{
+    public static string get_IndexerExtension(this Span<int> foo, Range range)
+    {
+        int start = range.Start.FromEnd ? (foo.Length - range.Start.Value) : range.Start.Value;
+        int end = range.End.FromEnd ? (foo.Length - range.End.Value) : range.End.Value;
+
+        int[] ar = new int[end - start + 1];
+        for(var i = start; i <= end; i++)
+        {
+            ar[i - start] = foo[i];
+        }
+
+        return ""["" + string.Join("", "", ar) + ""]"";
+    }
+    public static void Main()
+    {
+        var foo = new Span<int>(new [] { 0, 1, 2, 3, 4, 5, 6 });
+        Console.WriteLine(foo[1..2] + "" -- "" + foo[^2..^1]);
+        Console.WriteLine(foo[..0] + "" -- "" + foo[..^2]);
+        Console.WriteLine(foo[1..] + "" -- "" + foo[^3..]);
+        Console.WriteLine(foo[..]);
+    }
+}", options: TestOptions.UnsafeReleaseExe), expectedOutput: @"
+[1, 2] -- [5, 6]
+[0] -- [0, 1, 2, 3, 4, 5]
+[1, 2, 3, 4, 5, 6] -- [4, 5, 6]
+[0, 1, 2, 3, 4, 5, 6]");
+        }
+
+        [Fact]
+        public void ExtensionIndexerHack_ArrayIndex()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+public static class Program
+{
+    public static int get_IndexerExtension(this int[] foo, Index index)
+    {
+        return foo[index.FromEnd ? (foo.Length - index.Value) : index.Value];
+    }
+    public static void Main()
+    {
+        int[] foo = new [] { 0, 1, 2, 3, 4, 5, 6 };
+        Console.WriteLine(foo[3] + "" -- "" + foo[^1]);
+    }
+}", options: TestOptions.ReleaseExe), expectedOutput: "3 -- 6");
+        }
+
+        [Fact]
+        public void ExtensionIndexerHack_ArrayRange()
+        {
+            CompileAndVerify(CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+using System.Linq;
+public static class Program
+{
+    public static string get_IndexerExtension(this int[] foo, Range range)
+    {
+        int start = range.Start.FromEnd ? (foo.Length - range.Start.Value) : range.Start.Value;
+        int end = range.End.FromEnd ? (foo.Length - range.End.Value) : range.End.Value;
+
+        int[] ar = new int[end - start + 1];
+        for(var i = start; i <= end; i++)
+        {
+            ar[i - start] = foo[i];
+        }
+
+        return ""["" + string.Join("", "", ar) + ""]"";
+    }
+    public static void Main()
+    {
+        int[] foo = new [] { 0, 1, 2, 3, 4, 5, 6 };
+        Console.WriteLine(foo[1..2] + "" -- "" + foo[^2..^1]);
+        Console.WriteLine(foo[..0] + "" -- "" + foo[..^2]);
+        Console.WriteLine(foo[1..] + "" -- "" + foo[^3..]);
+        Console.WriteLine(foo[..]);
+    }
+}", options: TestOptions.UnsafeReleaseExe), expectedOutput: @"
+[1, 2] -- [5, 6]
+[0] -- [0, 1, 2, 3, 4, 5]
+[1, 2, 3, 4, 5, 6] -- [4, 5, 6]
+[0, 1, 2, 3, 4, 5, 6]");
         }
     }
 }

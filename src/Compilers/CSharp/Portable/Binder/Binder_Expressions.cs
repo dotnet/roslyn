@@ -6641,6 +6641,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expr != null);
             Debug.Assert(arguments != null);
 
+            BoundExpression prototypeExtensionMethod = GetPrototypeExtensionIndexderOpt(node, expr, arguments, diagnostics);
+            if (prototypeExtensionMethod != null)
+            {
+                return prototypeExtensionMethod;
+            }
+
             // For an array access, the primary-no-array-creation-expression of the element-access
             // must be a value of an array-type. Furthermore, the argument-list of an array access
             // is not allowed to contain named arguments.The number of expressions in the
@@ -6822,8 +6828,79 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        /// <summary>
+        /// PROTOTYPE: remove this method before shipping (this is for demo purposes only)
+        /// </summary>
+        private BoundExpression GetPrototypeExtensionIndexderOpt(ExpressionSyntax syntax, BoundExpression receiver, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
+        {
+            // can only have one unnamed argument, with no ref kind.
+            if (analyzedArguments.Arguments.Count != 1
+                || analyzedArguments.Argument(0).Type is null
+                || analyzedArguments.RefKinds.Any()
+                || analyzedArguments.Names.Any())
+            {
+                return null;
+            }
+
+            BoundExpression argument = analyzedArguments.Argument(0);
+
+            // argument must be a range or an index
+            switch (argument.Type.ToDisplayString())
+            {
+                case "System.Index":
+                case "System.Range":
+                    break;
+                default:
+                    return null;
+            }
+
+            // receiver must be a string, a span, or an array
+            if (receiver.Type.ToDisplayString() != "string"
+                && !receiver.Type.IsArray()
+                && receiver.Type.ConstructedFrom().ToDisplayString() != "System.Span<T>")
+            {
+                return null;
+            }
+
+            const string methodName = "get_IndexerExtension";
+
+            var resolution = BindExtensionMethod(syntax, methodName, analyzedArguments, receiver, typeArguments: default, isMethodGroupConversion: false, returnRefKind: RefKind.None, returnType: null);
+            if (resolution.IsExtensionMethodGroup && resolution.OverloadResolutionResult.Succeeded)
+            {
+                MethodSymbol method = resolution.OverloadResolutionResult.BestResult.Member;
+
+                if (method.Arity == 0 && method.Parameters.All(p => p.RefKind == RefKind.None))
+                {
+                    diagnostics.AddRange(resolution.Diagnostics);
+
+                    return new BoundCall(
+                        syntax,
+                        receiver,
+                        method,
+                        arguments: ImmutableArray.Create(receiver, argument),
+                        argumentNamesOpt: default,
+                        argumentRefKindsOpt: default,
+                        isDelegateCall: false,
+                        expanded: false,
+                        invokedAsExtensionMethod: true,
+                        argsToParamsOpt: default,
+                        resultKind: LookupResultKind.Viable,
+                        binderOpt: default,
+                        type: method.ReturnType);
+                }
+            }
+
+            return null;
+        }
+
         private BoundExpression BindIndexerAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
         {
+            BoundExpression prototypeExtensionMethod = GetPrototypeExtensionIndexderOpt(node, expr, analyzedArguments, diagnostics);
+            if (prototypeExtensionMethod != null)
+            {
+                return prototypeExtensionMethod;
+            }
+
             Debug.Assert(node != null);
             Debug.Assert(expr != null);
             Debug.Assert((object)expr.Type != null);
