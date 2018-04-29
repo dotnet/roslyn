@@ -329,17 +329,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestGenerateUniqueName()
         {
-            var a = NameGenerator.GenerateUniqueName("ABC", "txt", _ => true);
+            var a = NameGenerator.GenerateUniqueName("ABC", "txt", _ => true, generateNewName: null);
             Assert.True(a.StartsWith("ABC", StringComparison.Ordinal));
             Assert.True(a.EndsWith(".txt", StringComparison.Ordinal));
             Assert.False(a.EndsWith("..txt", StringComparison.Ordinal));
 
-            var b = NameGenerator.GenerateUniqueName("ABC", ".txt", _ => true);
+            var b = NameGenerator.GenerateUniqueName("ABC", ".txt", _ => true, generateNewName: null);
             Assert.True(b.StartsWith("ABC", StringComparison.Ordinal));
             Assert.True(b.EndsWith(".txt", StringComparison.Ordinal));
             Assert.False(b.EndsWith("..txt", StringComparison.Ordinal));
 
-            var c = NameGenerator.GenerateUniqueName("ABC", "\u0640.txt", _ => true);
+            var c = NameGenerator.GenerateUniqueName("ABC", "\u0640.txt", _ => true, generateNewName: null);
             Assert.True(c.StartsWith("ABC", StringComparison.Ordinal));
             Assert.True(c.EndsWith(".\u0640.txt", StringComparison.Ordinal));
             Assert.False(c.EndsWith("..txt", StringComparison.Ordinal));

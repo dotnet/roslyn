@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -198,6 +200,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
             return generatedCodeRecognitionService?.IsGeneratedCode(document, cancellationToken) == true;
+        }
+
+        public static async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(
+               this Document document, CancellationToken cancellationToken)
+        {
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences);
+
+            var rules = namingStyleOptions.CreateRules().NamingRules;
+            return rules;
         }
     }
 }

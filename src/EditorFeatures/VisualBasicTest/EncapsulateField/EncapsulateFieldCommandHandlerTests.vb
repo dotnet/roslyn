@@ -59,14 +59,14 @@ End Class</File>.ConvertTestSourceTag()
 
             Dim expected = <File>
 Class C
-    Private _goo As Integer
+    Private goo1 As Integer
 
     Protected Property Goo As Integer
         Get
-            Return _goo
+            Return goo1
         End Get
         Set(value As Integer)
-            _goo = value
+            goo1 = value
         End Set
     End Property
 
