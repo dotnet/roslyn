@@ -43,12 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
                 var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
-
-                // Note that a when-clause can contain an assignment to a
-                // pattern variable declared in a different when-clause (e.g. in the same section, or
-                // in a different section via the use of a local function), so we need to analyze all
-                // of the when clauses to see if they are all simple enough to conclude that they do
-                // not mutate pattern variables.
                 BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(node.DecisionDag, loweredSwitchGoverningExpression, result);
 
                 // lower the decision dag.
