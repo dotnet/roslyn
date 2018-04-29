@@ -10,7 +10,7 @@
       <trans-unit id="Prefer_is_null_over_cast_check">
         <source>Prefer 'is null' over '(object)... == null'</source>
         <target state="new">Prefer 'is null' over '(object)... == null'</target>
-        <note />
+        <note>'is null' and '(object)... == null' are both C# strings and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Surround_With">
         <source>Surround With</source>
@@ -679,8 +679,8 @@
       </trans-unit>
       <trans-unit id="Prefer_is_null_over_ReferenceEquals">
         <source>Prefer 'is null' over 'object.ReferenceEquals(..., null)'</source>
-        <target state="translated">Preferuj „is null” zamiast „object.ReferenceEquals(..., null)”</target>
-        <note />
+        <target state="needs-review-translation">Preferuj „is null” zamiast „object.ReferenceEquals(..., null)”</target>
+        <note>'is null' and 'object.ReferenceEquals(..., null)' are both C# strings and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'string.Format' calls</source>

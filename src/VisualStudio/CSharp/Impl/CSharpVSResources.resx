@@ -521,6 +521,7 @@
   </data>
   <data name="Prefer_is_null_over_ReferenceEquals" xml:space="preserve">
     <value>Prefer 'is null' over 'object.ReferenceEquals(..., null)'</value>
+    <comment>'is null' and 'object.ReferenceEquals(..., null)' are both C# strings and should not be localized.</comment>
   </data>
   <data name="Report_invalid_placeholders_in_string_dot_format_calls" xml:space="preserve">
     <value>Report invalid placeholders in 'string.Format' calls</value>
@@ -536,5 +537,6 @@
   </data>
   <data name="Prefer_is_null_over_cast_check" xml:space="preserve">
     <value>Prefer 'is null' over '(object)... == null'</value>
+    <comment>'is null' and '(object)... == null' are both C# strings and should not be localized.</comment>
   </data>
 </root>
