@@ -1975,7 +1975,7 @@ class Blah
         }
 
         [Fact]
-        public void CrashOnWrongArity()
+        public void WrongArity()
         {
             var source =
 @"class Program

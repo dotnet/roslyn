@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression deconstruct = MakeDeconstructInvocationExpression(
                     node.SubPatterns.Count, inputPlaceholder, node, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
                 deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
-                if (deconstructMethod == null)
+                if (deconstructMethod is null)
                 {
                     hasErrors = true;
                 }
