@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         public const string UnconstrainedGeneric = nameof(UnconstrainedGeneric);
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckForReferenceEqualsDiagnosticId);
 
         protected abstract string GetIsNullTitle();
         protected abstract string GetIsNotNullTitle();

@@ -14,9 +14,8 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         : AbstractCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
     {
-
         protected AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(LocalizableString title)
-            : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
+            : base(IDEDiagnosticIds.UseIsNullCheckForReferenceEqualsDiagnosticId,
                    title,
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
