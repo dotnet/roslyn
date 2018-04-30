@@ -132,21 +132,18 @@ namespace Microsoft.CodeAnalysis.Remote
 
 #if DEBUG
             private readonly string _creationCallStack;
-#endif
+
             ~Connection()
             {
                 // this can happen if someone kills OOP. 
                 // when that happen, we don't want to crash VS, so this is debug only check
                 if (!Environment.HasShutdownStarted)
                 {
-#if DEBUG
-                    Contract.Fail($"Should have been disposed!\r\n {_creationCallStack}");
-#else
-                    Contract.Fail($"Should have been disposed!");
-#endif
+                    Contract.Requires(false, 
+                        $"Unless OOP process (RoslynCodeAnalysisService) is explicitly killed, this should have been disposed!\r\n {_creationCallStack}");
                 }
             }
-
+#endif
         }
     }
 }

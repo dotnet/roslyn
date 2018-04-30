@@ -964,7 +964,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // - i.e assigns int value to a short local.
                 // in that case we should force lhs to be a real local.
                 Debug.Assert(
-                    node.Left.Type.Equals(node.Right.Type, TypeCompareKind.AllIgnoreOptions),
+                    node.Left.Type.Equals(node.Right.Type, TypeCompareKind.AllIgnoreOptions) ||
+                    IsFixedBufferAssignmentToRefLocal(node.Left, node.Right, node.IsRef),
                     @"type of the assignment value is not the same as the type of assignment target. 
                 This is not expected by the optimizer and is typically a result of a bug somewhere else.");
 
@@ -997,6 +998,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             return node.Update(left, right, node.IsRef, node.Type);
         }
+
+        /// <summary>
+        /// Fixed-sized buffers are lowered as field accesses with pointer type, but
+        /// we want to assign them to pinned ref locals before creating the pointer
+        /// type, so this results in an assignment with mismatched types (pointer to managed
+        /// ref). This is legal according to the CLR, but not how we usually represent things
+        /// in lowering.
+        /// </summary>
+        internal static bool IsFixedBufferAssignmentToRefLocal(BoundExpression left, BoundExpression right, bool isRef)
+            => isRef &&
+               right is BoundFieldAccess fieldAccess &&
+               fieldAccess.FieldSymbol.IsFixed &&
+               left.Type.Equals(((PointerTypeSymbol)right.Type).PointedAtType, TypeCompareKind.AllIgnoreOptions);
 
         // indirect assignment is assignment to a value referenced indirectly
         // it may only happen if 

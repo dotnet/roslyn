@@ -60,28 +60,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// <summary>
         /// Create a context for evaluating expressions at a type scope.
         /// </summary>
-        /// <param name="previous">Previous context, if any, for possible re-use.</param>
-        /// <param name="metadataBlocks">Module metadata</param>
+        /// <param name="compilation">Compilation.</param>
         /// <param name="moduleVersionId">Module containing type</param>
         /// <param name="typeToken">Type metadata token</param>
         /// <returns>Evaluation context</returns>
         /// <remarks>
         /// No locals since locals are associated with methods, not types.
         /// </remarks>
-        internal static EvaluationContext CreateTypeContext(
-            CSharpMetadataContext previous,
-            ImmutableArray<MetadataBlock> metadataBlocks,
-            Guid moduleVersionId,
-            int typeToken)
-        {
-            // Re-use the previous compilation if possible.
-            var compilation = previous.Matches(metadataBlocks) ?
-                previous.Compilation :
-                metadataBlocks.ToCompilation();
-
-            return CreateTypeContext(compilation, moduleVersionId, typeToken);
-        }
-
         internal static EvaluationContext CreateTypeContext(
             CSharpCompilation compilation,
             Guid moduleVersionId,
@@ -126,24 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var offset = NormalizeILOffset(ilOffset);
 
-            // Re-use the previous compilation if possible.
-            CSharpCompilation compilation;
-            if (previous.Matches(metadataBlocks))
-            {
-                // Re-use entire context if method scope has not changed.
-                var previousContext = previous.EvaluationContext;
-                if (previousContext != null &&
-                    previousContext.MethodContextReuseConstraints.HasValue &&
-                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset))
-                {
-                    return previousContext;
-                }
-                compilation = previous.Compilation;
-            }
-            else
-            {
-                compilation = metadataBlocks.ToCompilation();
-            }
+            CSharpCompilation compilation = metadataBlocks.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies);
 
             return CreateMethodContext(
                 compilation,
@@ -155,26 +123,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 localSignatureToken);
         }
 
+        /// <summary>
+        /// Create a context for evaluating expressions within a method scope.
+        /// </summary>
+        /// <param name="compilation">Compilation.</param>
+        /// <param name="symReader"><see cref="ISymUnmanagedReader"/> for PDB associated with <paramref name="moduleVersionId"/></param>
+        /// <param name="moduleVersionId">Module containing method</param>
+        /// <param name="methodToken">Method metadata token</param>
+        /// <param name="methodVersion">Method version.</param>
+        /// <param name="ilOffset">IL offset of instruction pointer in method</param>
+        /// <param name="localSignatureToken">Method local signature token</param>
+        /// <returns>Evaluation context</returns>
         internal static EvaluationContext CreateMethodContext(
-            CSharpCompilation compilation,
-            object symReader,
-            Guid moduleVersionId,
-            int methodToken,
-            int methodVersion,
-            uint ilOffset,
-            int localSignatureToken)
-        {
-            return CreateMethodContext(
-                compilation,
-                symReader,
-                moduleVersionId,
-                methodToken,
-                methodVersion,
-                NormalizeILOffset(ilOffset),
-                localSignatureToken);
-        }
-
-        private static EvaluationContext CreateMethodContext(
             CSharpCompilation compilation,
             object symReader,
             Guid moduleVersionId,
