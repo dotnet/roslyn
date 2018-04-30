@@ -131,51 +131,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var analyzerExceptionDiagnostics = diagnostics.Where(diag => diag.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.AnalyzerException));
             AssertEx.Empty(analyzerExceptionDiagnostics, "Found analyzer exception diagnostics");
         }
-
-        #region Parentheses options
-
-        private static CodeStyleOption<ParenthesesPreference> IgnorePreference =
-            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, NotificationOption.Suggestion);
-
-        private static CodeStyleOption<ParenthesesPreference> RequireForPrecedenceClarityPreference =
-            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption.Suggestion);
-
-        private static CodeStyleOption<ParenthesesPreference> RemoveIfUnnecessaryPreference =
-            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.Suggestion);
-
-        private static IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()
-        {
-            yield return CodeStyleOptions.ArithmeticBinaryParentheses;
-            yield return CodeStyleOptions.OtherBinaryParentheses;
-        }
-
-        protected IDictionary<OptionKey, object> RequireArithmeticBinaryParenthesesForClarity
-            => GetSingleRequireOption(CodeStyleOptions.ArithmeticBinaryParentheses);
-
-        protected IDictionary<OptionKey, object> RequireOtherBinaryParenthesesForClarity
-            => GetSingleRequireOption(CodeStyleOptions.OtherBinaryParentheses);
-
-        private IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllParenthesesOptions()
-            => GetAllExceptOtherParenthesesOptions().Concat(CodeStyleOptions.OtherParentheses);
-
-        protected IDictionary<OptionKey, object> IgnoreAllParentheses
-            => OptionsSet(GetAllParenthesesOptions().Select(
-                o => SingleOption(o, IgnorePreference)).ToArray());
-
-        protected IDictionary<OptionKey, object> RemoveAllUnnecessaryParentheses
-            => OptionsSet(GetAllParenthesesOptions().Select(
-                o => SingleOption(o, RemoveIfUnnecessaryPreference)).ToArray());
-
-        protected IDictionary<OptionKey, object> RequireAllParenthesesForClarity
-            => OptionsSet(GetAllExceptOtherParenthesesOptions()
-                    .Select(o => SingleOption(o, RequireForPrecedenceClarityPreference))
-                    .Concat(SingleOption(CodeStyleOptions.OtherParentheses, RemoveIfUnnecessaryPreference)).ToArray());
-
-        private IDictionary<OptionKey, object> GetSingleRequireOption(PerLanguageOption<CodeStyleOption<ParenthesesPreference>> option)
-            => OptionsSet(GetAllParenthesesOptions()
-                    .Select(o => SingleOption(o, RemoveIfUnnecessaryPreference))
-                    .Concat(SingleOption(option, RequireForPrecedenceClarityPreference)).ToArray());
-
-        #endregion
     }
 }

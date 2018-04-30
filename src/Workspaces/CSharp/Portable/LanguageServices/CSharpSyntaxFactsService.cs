@@ -816,9 +816,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return name.ToIdentifierToken();
         }
 
-        public SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node)
-            => ((ParenthesizedExpressionSyntax)node).Expression;
-
         public SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia, bool addSimplifierAnnotation)
             => ((ExpressionSyntax)expression).Parenthesize(includeElasticTrivia, addSimplifierAnnotation);
 
@@ -1610,9 +1607,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsBinaryExpression(SyntaxNode node)
             => node is BinaryExpressionSyntax;
-
-        public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxNode right)
-            => GetPartsOfBinaryExpression(node, out left, out _, out right);
 
         public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {

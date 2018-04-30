@@ -755,10 +755,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return name.ToIdentifierToken()
         End Function
 
-        Public Function GetExpressionOfParenthesizedExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfParenthesizedExpression
-            Return DirectCast(node, ParenthesizedExpressionSyntax).Expression
-        End Function
-
         Public Sub GetPartsOfParenthesizedExpression(
             node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef expression As SyntaxNode, ByRef closeParen As SyntaxToken) Implements ISyntaxFactsService.GetPartsOfParenthesizedExpression
 
@@ -1553,10 +1549,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsBinaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsBinaryExpression
             Return TypeOf node Is BinaryExpressionSyntax
         End Function
-
-        Public Sub GetPartsOfBinaryExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfBinaryExpression
-            GetPartsOfBinaryExpression(node, left, Nothing, right)
-        End Sub
 
         Public Sub GetPartsOfBinaryExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfBinaryExpression
             Dim binaryExpression = DirectCast(node, BinaryExpressionSyntax)
