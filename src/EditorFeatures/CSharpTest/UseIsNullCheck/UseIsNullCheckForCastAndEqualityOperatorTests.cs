@@ -303,5 +303,47 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestComplexExpr()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(string[] s)
+    {
+        if ([||](object)s[0] == null)
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string[] s)
+    {
+        if (s[0] is null)
+            return;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNotOnDefault()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M(string[] s)
+    {
+        if ([||](object)s[0] == default)
+            return;
+    }
+}");
+        }
     }
 }
