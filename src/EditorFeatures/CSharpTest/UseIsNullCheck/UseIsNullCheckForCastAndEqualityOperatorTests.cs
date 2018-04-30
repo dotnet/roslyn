@@ -209,5 +209,31 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestTrivia2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if ( /*1*/ [||]null /*2*/ == /*3*/ ( /*4*/ object /*5*/ ) /*6*/ s /*7*/ )
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if ( /*1*/ s /*2*/ is /*3*/ null /*7*/ )
+            return;
+    }
+}");
+        }
     }
 }
