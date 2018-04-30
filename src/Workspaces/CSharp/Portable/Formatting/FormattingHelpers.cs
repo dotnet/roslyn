@@ -332,6 +332,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                      (token.Parent is AnonymousObjectCreationExpressionSyntax));
         }
 
+        public static bool IsColonInCasePatternSwitchLabel(this SyntaxToken token)
+        {
+            return token.Kind() == SyntaxKind.ColonToken && token.Parent is CasePatternSwitchLabelSyntax;
+        }
+
         public static bool IsIdentifierInLabeledStatement(this SyntaxToken token)
         {
             var labeledStatement = token.Parent as LabeledStatementSyntax;

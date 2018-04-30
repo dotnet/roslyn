@@ -5110,14 +5110,11 @@ _ => true
     {
         switch (this)
         {
-            case { P1: 1, P2: { P3: 3, P4: 4 } }
-            :
+            case { P1: 1, P2: { P3: 3, P4: 4 } }:
                 break;
         }
     }
 }";
-
-            // PROTOTYPE Incorrect newline on the colon
             await AssertFormatAsync(expectedCode, code);
         }
 
@@ -5170,15 +5167,12 @@ _ => true
     {
         switch (this)
         {
-            case { P1: 1, P2: { P3: 3, P4: 4 } }
-            :
+            case { P1: 1, P2: { P3: 3, P4: 4 } }:
                 System.Console.Write(1);
                 break;
         }
     }
 }";
-
-            // PROTOTYPE Incorrect newline on the colon
             await AssertFormatAsync(expectedCode, code);
         }
 

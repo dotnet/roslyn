@@ -78,7 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
                             !currentToken.IsCloseParenInStatement() &&
-                            !currentToken.IsEqualsTokenInAutoPropertyInitializers())
+                            !currentToken.IsEqualsTokenInAutoPropertyInitializers() &&
+                            !currentToken.IsColonInCasePatternSwitchLabel())
                         {
                             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                         }
@@ -300,8 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                SyntaxKind.DefaultSwitchLabel,
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,
-                                               SyntaxKind.NameColon,
-                                               SyntaxKind.CasePatternSwitchLabel))
+                                               SyntaxKind.NameColon))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
