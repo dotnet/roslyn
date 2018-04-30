@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a single EditorConfig file, see http://editorconfig.org for details about the format.
     /// </summary>
-    internal sealed class EditorConfig
+    internal sealed partial class EditorConfig
     {
         // Matches EditorConfig section header such as "[*.{js,py}]", see http://editorconfig.org for details
         private static readonly Regex s_sectionMatcher = new Regex(@"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", RegexOptions.Compiled);

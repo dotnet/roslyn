@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -27,7 +29,7 @@ my_global_prop = my_global_val
 [*.cs]
 my_prop = my_val
 
-", "Z:\\bogus");
+", "Z:/bogus");
 
             Assert.Equal("", config.GlobalSection.Name);
             var properties = config.GlobalSection.Properties;
@@ -43,7 +45,7 @@ my_prop = my_val
                 namedSections[0].Properties);
             
             Assert.True(config.IsRoot);
-            Assert.Equal("Z:\\bogus", config.Directory);
+            Assert.Equal("Z:/bogus", config.Directory);
         }
 
         [Fact]
@@ -252,6 +254,83 @@ RoOt = TruE");
             AssertEx.SetEqual(
                 EditorConfig.ReservedKeys.Select(k => KeyValuePair.Create(k, "my_val")).ToList(),
                 config.GlobalSection.Properties);
+        }
+
+        [Fact]
+        public void SimpleNameMatch()
+        {
+            string regex = EditorConfig.CompileSectionNameToRegEx("abc");
+            Assert.Equal("^abc$", regex);
+
+            Assert.Matches(regex, "abc");
+            Assert.DoesNotMatch(regex, "aabc");
+            Assert.DoesNotMatch(regex, " abc");
+            Assert.DoesNotMatch(regex, "cabc");
+        }
+
+        [Fact]
+        public void StarOnlyMatch()
+        {
+            string regex = EditorConfig.CompileSectionNameToRegEx("*");
+            Assert.Equal("^[^/]*$", regex);
+
+            Assert.Matches(regex, "abc");
+            Assert.Matches(regex, "123");
+            Assert.DoesNotMatch(regex, "abc/123");
+        }
+
+        [Fact]
+        public void StarNameMatch()
+        {
+            string regex = EditorConfig.CompileSectionNameToRegEx("*.cs");
+            Assert.Equal("^[^/]*.cs$", regex);
+
+            Assert.Matches(regex, "abc.cs");
+            Assert.Matches(regex, "123.cs");
+            // Only '/' is defined as a directory separator, so the caller
+            // is responsible for converting any other machine directory
+            // separators to '/' before matching
+            Assert.Matches(regex, "dir\\subpath.cs");
+
+            Assert.DoesNotMatch(regex, "abc.vb");
+            Assert.DoesNotMatch(regex, "dir/subpath.cs");
+        }
+
+        [Fact]
+        public void StarStarNameMatch()
+        {
+            string regex = EditorConfig.CompileSectionNameToRegEx("**.cs");
+            Assert.Equal("^.*.cs$", regex);
+
+            Assert.Matches(regex, "abc.cs");
+            Assert.Matches(regex, "dir/subpath.cs");
+        }
+
+        [Fact]
+        public void BadEscapeMatch()
+        {
+            string regex = EditorConfig.CompileSectionNameToRegEx("abc\\d.cs");
+            Assert.Null(regex);
+        }
+
+        [Fact]
+        public void EndBackslashMatch()
+        {
+            string regex = EditorConfig.CompileSectionNameToRegEx("abc\\");
+            Assert.Null(regex);
+        }
+
+        [Fact]
+        public void QuestionMatch()
+        {
+            string regex = EditorConfig.CompileSectionNameToRegEx("ab?def");
+            Assert.Equal("^ab.def$", regex);
+
+            Assert.Matches(regex, "abcdef");
+            Assert.Matches(regex, "ab?def");
+            Assert.Matches(regex, "abzdef");
+            Assert.Matches(regex, "ab/def");
+            Assert.Matches(regex, "ab\\def");
         }
     }
 }
