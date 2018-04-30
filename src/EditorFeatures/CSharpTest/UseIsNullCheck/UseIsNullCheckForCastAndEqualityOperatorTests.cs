@@ -204,7 +204,7 @@ class C
 {
     void M(string s2)
     {
-        if (((object)s2 == null) is null))
+        if ((s2 is null) is null))
             return;
     }
 }");
@@ -257,6 +257,48 @@ class C
     void M(string s)
     {
         if ( /*1*/ s /*2*/ is /*3*/ null /*7*/ )
+            return;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestConstrainedTypeParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M<T>(T s) where T : class
+    {
+        if ([||](object)s == null)
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M<T>(T s) where T : class
+    {
+        if (s is null)
+            return;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestUnconstrainedTypeParameter()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M<T>(T s)
+    {
+        if ([||](object)s == null)
             return;
     }
 }");

@@ -39,21 +39,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            // Order in reverse so we process inner diagnostics before outer diagnostics.
-            // Otherwise, we won't be able to find the nodes we want to replace if they're
-            // not there once their parent has been replaced.
-            foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
+            foreach (var diagnostic in diagnostics)
             {
                 var binary = (BinaryExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
-                var rewritten = Rewrite(binary);
 
-                editor.ReplaceNode(binary, rewritten);
+                editor.ReplaceNode(
+                    binary, 
+                    (current, g) => Rewrite((BinaryExpressionSyntax)current));
             }
 
             return SpecializedTasks.EmptyTask;
         }
 
-        private ExpressionSyntax Rewrite(BinaryExpressionSyntax binary)
+        private static ExpressionSyntax Rewrite(BinaryExpressionSyntax binary)
         {
             var isPattern = RewriteWorker(binary);
             if (binary.IsKind(SyntaxKind.EqualsExpression))
@@ -67,12 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 SyntaxFactory.ParenthesizedExpression(isPattern.WithoutTrivia())).WithTriviaFrom(isPattern);
         }
 
-        private IsPatternExpressionSyntax RewriteWorker(BinaryExpressionSyntax binary)
+        private static IsPatternExpressionSyntax RewriteWorker(BinaryExpressionSyntax binary)
             => binary.Right.IsKind(SyntaxKind.NullLiteralExpression)
                 ? Rewrite(binary, binary.Left, binary.Right)
                 : Rewrite(binary, binary.Right, binary.Left);
 
-        private IsPatternExpressionSyntax Rewrite(
+        private static IsPatternExpressionSyntax Rewrite(
             BinaryExpressionSyntax binary, ExpressionSyntax expr, ExpressionSyntax nullLiteral)
         {
             var castExpr = (CastExpressionSyntax)expr;

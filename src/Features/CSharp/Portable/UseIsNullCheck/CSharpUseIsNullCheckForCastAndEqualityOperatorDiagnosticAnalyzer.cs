@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
             var binaryExpression = (BinaryExpressionSyntax)context.Node;
 
-            if (!IsObjectCastAndReferenceEquals(semanticModel, binaryExpression.Left, binaryExpression.Right) &&
-                !IsObjectCastAndReferenceEquals(semanticModel, binaryExpression.Right, binaryExpression.Left))
+            if (!IsObjectCastAndNullCheck(semanticModel, binaryExpression.Left, binaryExpression.Right) &&
+                !IsObjectCastAndNullCheck(semanticModel, binaryExpression.Right, binaryExpression.Left))
             {
                 return;
             }
@@ -64,15 +64,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                     GetDescriptorWithSeverity(severity), binaryExpression.GetLocation()));
         }
 
-        private bool IsObjectCastAndReferenceEquals(
+        private static bool IsObjectCastAndNullCheck(
             SemanticModel semanticModel, ExpressionSyntax left, ExpressionSyntax right)
         {
             if (left is CastExpressionSyntax castExpression &&
                 right.IsKind(SyntaxKind.NullLiteralExpression))
             {
                 // make sure it's a cast to object, and that the thing we're casting actually has a type.
-                return semanticModel.GetTypeInfo(castExpression.Type).Type?.SpecialType == SpecialType.System_Object &&
-                       semanticModel.GetTypeInfo(castExpression.Expression).Type != null;
+                if (semanticModel.GetTypeInfo(castExpression.Type).Type?.SpecialType == SpecialType.System_Object)
+                {
+                    var expressionType = semanticModel.GetTypeInfo(castExpression.Expression).Type;
+                    if (expressionType != null)
+                    {
+                        if (expressionType is ITypeParameterSymbol typeParameter &&
+                            !typeParameter.HasReferenceTypeConstraint)
+                        {
+                            return false;
+                        }
+
+                        return true;
+                   }
+                }
             }
 
             return false;
