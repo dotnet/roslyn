@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Resetting_execution_engine">
         <source>Resetting execution engine.</source>
-        <target state="translated">Das Ausführungsmodul wird zurückgesetzt.</target>
+        <target state="translated">Die Ausführungs-Engine wird zurückgesetzt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Resetting_Interactive">
