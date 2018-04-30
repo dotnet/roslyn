@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return builder.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetSingleValueCaseClauseValue(clause As BoundSimpleCaseClause) As BoundExpression
+        Private Shared Function GetSingleValueCaseClauseValue(clause As BoundSingleValueCaseClause) As BoundExpression
             If clause.ValueOpt IsNot Nothing Then
                 Return clause.ValueOpt
             End If
@@ -316,18 +316,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(clause.ConditionOpt.Kind)
             End Select
-        End Function
-
-        Private Shared Function GetRelationalCaseClauseValue(clause As BoundRelationalCaseClause) As BoundExpression
-            If clause.OperandOpt IsNot Nothing Then
-                Return clause.OperandOpt
-            End If
-
-            If clause.ConditionOpt?.Kind = BoundKind.BinaryOperator Then
-                Return DirectCast(clause.ConditionOpt, BoundBinaryOperator).Right
-            End If
-
-            Return Nothing
         End Function
 
         Private Function GetVariableDeclarationStatementVariables(declarations As ImmutableArray(Of BoundLocalDeclarationBase)) As ImmutableArray(Of IVariableDeclarationOperation)

@@ -272,10 +272,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For Each clause As BoundCaseClause In statement.CaseClauses
                 Select Case clause.Kind
-                    Case BoundKind.SimpleCaseClause
-                        children.Add(DirectCast(clause, BoundSimpleCaseClause).ValueOpt)
-                    Case BoundKind.RelationalCaseClause
-                        children.Add(DirectCast(clause, BoundRelationalCaseClause).OperandOpt)
+                    Case BoundKind.SimpleCaseClause, BoundKind.RelationalCaseClause
+                        children.Add(DirectCast(clause, BoundSingleValueCaseClause).ValueOpt)
                     Case BoundKind.RangeCaseClause
                         Dim range = DirectCast(clause, BoundRangeCaseClause)
                         children.Add(range.LowerBoundOpt)

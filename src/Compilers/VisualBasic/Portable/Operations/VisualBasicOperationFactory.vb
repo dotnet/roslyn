@@ -1064,7 +1064,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundRelationalCaseClauseOperation(boundRelationalCaseClause As BoundRelationalCaseClause) As IRelationalCaseClauseOperation
-            Dim valueExpression = GetRelationalCaseClauseValue(boundRelationalCaseClause)
+            Dim valueExpression = GetSingleValueCaseClauseValue(boundRelationalCaseClause)
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(valueExpression))
             Dim relation As BinaryOperatorKind = If(valueExpression IsNot Nothing, Helper.DeriveBinaryOperatorKind(boundRelationalCaseClause.OperatorKind, leftOpt:=Nothing), BinaryOperatorKind.None)
             Dim syntax As SyntaxNode = boundRelationalCaseClause.Syntax

@@ -469,18 +469,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim syntax = DirectCast(boundClause.Syntax, RelationalCaseClauseSyntax)
 
             ' Exactly one of the operand or condition must be non-null
-            Debug.Assert(boundClause.ConditionOpt IsNot Nothing Xor boundClause.OperandOpt IsNot Nothing)
+            Debug.Assert(boundClause.ConditionOpt IsNot Nothing Xor boundClause.ValueOpt IsNot Nothing)
 
             conditionOpt = If(boundClause.ConditionOpt, BindBinaryOperator(node:=syntax,
                                                                            left:=selectExpression,
-                                                                           right:=boundClause.OperandOpt,
+                                                                           right:=boundClause.ValueOpt,
                                                                            operatorTokenKind:=syntax.OperatorToken.Kind,
                                                                            preliminaryOperatorKind:=boundClause.OperatorKind,
                                                                            isOperandOfConditionalBranch:=False,
                                                                            diagnostics:=diagnostics,
-                                                                           isSelectCase:=True))
+                                                                           isSelectCase:=True).MakeCompilerGenerated())
 
-            Return boundClause.Update(boundClause.OperatorKind, operandOpt:=Nothing, conditionOpt:=conditionOpt)
+            Return boundClause.Update(boundClause.OperatorKind, valueOpt:=Nothing, conditionOpt:=conditionOpt)
         End Function
 
         Private Function ComputeSimpleCaseClauseCondition(boundClause As BoundSimpleCaseClause, <Out()> ByRef conditionOpt As BoundExpression, selectExpression As BoundRValuePlaceholder, diagnostics As DiagnosticBag) As BoundCaseClause
@@ -585,9 +585,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim relationalClause = DirectCast(caseClause, BoundRelationalCaseClause)
 
                             ' Exactly one of the operand or condition must be non-null
-                            Debug.Assert(relationalClause.OperandOpt IsNot Nothing Xor relationalClause.ConditionOpt IsNot Nothing)
+                            Debug.Assert(relationalClause.ValueOpt IsNot Nothing Xor relationalClause.ConditionOpt IsNot Nothing)
 
-                            Dim operand = relationalClause.OperandOpt
+                            Dim operand = relationalClause.ValueOpt
 
                             If operand Is Nothing OrElse
                                 relationalClause.OperatorKind <> BinaryOperatorKind.Equals OrElse
