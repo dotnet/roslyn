@@ -832,6 +832,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public abstract TypeInfo GetTypeInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
+        public TypeInfo GetTypeInfo(PatternSyntax pattern, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(pattern);
+            return GetTypeInfoWorker(pattern, cancellationToken);
+        }
+
         /// <summary>
         /// Gets type information about an expression.
         /// </summary>
@@ -1866,6 +1872,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode highestBoundNode,
             BoundNode boundNodeForSyntacticParent)
         {
+            if (lowestBoundNode is BoundPattern pat)
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                return new CSharpTypeInfo(
+                    pat.InputType, pat.ConvertedType,
+                    this.GetEnclosingBinder(pat.Syntax.Position).Conversions.ClassifyBuiltInConversion(pat.InputType, pat.ConvertedType, ref useSiteDiagnostics));
+            }
+
             var boundExpr = lowestBoundNode as BoundExpression;
             var highestBoundExpr = highestBoundNode as BoundExpression;
 
@@ -4564,6 +4578,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetTypeInfo(attribute, cancellationToken);
                 case SelectOrGroupClauseSyntax selectOrGroupClause:
                     return this.GetTypeInfo(selectOrGroupClause, cancellationToken);
+                case PatternSyntax pattern:
+                    return this.GetTypeInfo(pattern, cancellationToken);
             }
 
             return CSharpTypeInfo.None;

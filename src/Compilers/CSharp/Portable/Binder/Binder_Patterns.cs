@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSyntax typeSyntax = node.Type;
             TypeSymbol declType = BindRecursivePatternType(typeSyntax, inputType, diagnostics, ref hasErrors, out BoundTypeExpression boundDeclType);
 
-            var patterns = ArrayBuilder<BoundPattern>.GetInstance(node.SubPatterns.Count);
+            var patterns = ArrayBuilder<BoundSubpattern>.GetInstance(node.SubPatterns.Count);
             MethodSymbol deconstructMethod = null;
             if (declType.IsTupleType)
             {
@@ -534,14 +534,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var subPattern = node.SubPatterns[i];
                     bool isError = i >= elementTypes.Length;
                     TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i];
+                    FieldSymbol foundField = null;
                     if (subPattern.NameColon != null)
                     {
                         string name = subPattern.NameColon.Name.Identifier.ValueText;
-                        FieldSymbol foundField = CheckIsTupleElement(subPattern.NameColon.Name, (NamedTypeSymbol)declType, name, i, diagnostics);
+                        foundField = CheckIsTupleElement(subPattern.NameColon.Name, (NamedTypeSymbol)declType, name, i, diagnostics);
                         // PROTOTYPE(patterns2): Should the tuple field binding for the name be stored somewhere in the node?
 
                     }
-                    BoundPattern boundSubpattern = BindPattern(subPattern.Pattern, elementType, isError, diagnostics);
+                    BoundSubpattern boundSubpattern = new BoundSubpattern(
+                        subPattern,
+                        foundField,
+                        BindPattern(subPattern.Pattern, elementType, isError, diagnostics)
+                        );
                     patterns.Add(boundSubpattern);
                 }
             }
@@ -565,26 +570,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var subPattern = node.SubPatterns[i];
                     bool isError = outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
                     TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
+                    ParameterSymbol parameter = null;
                     if (subPattern.NameColon != null && !isError)
                     {
                         // Check that the given name is the same as the corresponding parameter of the method.
                         string name = subPattern.NameColon.Name.Identifier.ValueText;
                         int parameterIndex = i + skippedExtensionParameters;
-                        string parameterName = deconstructMethod.Parameters[parameterIndex].Name;
+                        parameter = deconstructMethod.Parameters[parameterIndex];
+                        string parameterName = parameter.Name;
                         if (name != parameterName)
                         {
                             diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMismatch, subPattern.NameColon.Name.Location, name, parameterName);
                         }
                         // PROTOTYPE(patterns2): Should the parameter binding for the name be stored somewhere in the node?
                     }
-                    BoundPattern boundSubpattern = BindPattern(subPattern.Pattern, elementType, isError, diagnostics);
+                    BoundSubpattern boundSubpattern = new BoundSubpattern(
+                        subPattern,
+                        parameter,
+                        BindPattern(subPattern.Pattern, elementType, isError, diagnostics)
+                        );
                     patterns.Add(boundSubpattern);
                 }
 
                 // PROTOTYPE(patterns2): If no Deconstruct method is found, try casting to `ITuple`.
             }
 
-            ImmutableArray<(Symbol property, BoundPattern pattern)> propertiesOpt = default;
+            ImmutableArray<BoundSubpattern> propertiesOpt = default;
             if (node.PropertySubpattern != null)
             {
                 propertiesOpt = BindPropertySubpattern(node.PropertySubpattern, declType, diagnostics, ref hasErrors);
@@ -658,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ParenthesizedVariableDesignation:
                     {
                         var tupleDesignation = (ParenthesizedVariableDesignationSyntax)designation;
-                        var patterns = ArrayBuilder<BoundPattern>.GetInstance(tupleDesignation.Variables.Count);
+                        var subPatterns = ArrayBuilder<BoundSubpattern>.GetInstance(tupleDesignation.Variables.Count);
                         MethodSymbol deconstructMethod = null;
                         if (inputType.IsTupleType)
                         {
@@ -676,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 bool isError = i >= elementTypes.Length;
                                 TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i];
                                 BoundPattern boundSubpattern = BindVarDesignation(node, tupleDesignation.Variables[i], elementType, isError, diagnostics);
-                                patterns.Add(boundSubpattern);
+                                subPatterns.Add(new BoundSubpattern(node, null, boundSubpattern));
                             }
                         }
                         else
@@ -692,8 +703,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 bool isError = outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
                                 TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
-                                BoundPattern boundSubpattern = BindVarDesignation(node, tupleDesignation.Variables[i], elementType, isError, diagnostics);
-                                patterns.Add(boundSubpattern);
+                                BoundPattern pattern = BindVarDesignation(node, tupleDesignation.Variables[i], elementType, isError, diagnostics);
+                                subPatterns.Add(new BoundSubpattern(node, null, pattern));
                             }
 
                             // PROTOTYPE(patterns2): If no Deconstruct method is found, try casting to `ITuple`.
@@ -701,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return new BoundRecursivePattern(
                             syntax: node, declaredType: null, inputType: inputType, deconstructMethodOpt: deconstructMethod,
-                            deconstruction: patterns.ToImmutableAndFree(), propertiesOpt: default, variable: null, variableAccess: null, hasErrors: hasErrors);
+                            deconstruction: subPatterns.ToImmutableAndFree(), propertiesOpt: default, variable: null, variableAccess: null, hasErrors: hasErrors);
                     }
                 default:
                     {
@@ -714,20 +725,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSyntax typeSyntax = node.Type;
             TypeSymbol declType = BindRecursivePatternType(typeSyntax, inputType, diagnostics, ref hasErrors, out BoundTypeExpression boundDeclType);
-            ImmutableArray<(Symbol property, BoundPattern pattern)> propertiesOpt = BindPropertySubpattern(node.PropertySubpattern, declType, diagnostics, ref hasErrors);
+            ImmutableArray<BoundSubpattern> propertiesOpt = BindPropertySubpattern(node.PropertySubpattern, declType, diagnostics, ref hasErrors);
             BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, inputType: inputType, deconstructMethodOpt: null,
                 deconstruction: default, propertiesOpt: propertiesOpt, variable: variableSymbol, variableAccess: variableAccess, hasErrors: hasErrors);
         }
 
-        ImmutableArray<(Symbol property, BoundPattern pattern)> BindPropertySubpattern(
+        ImmutableArray<BoundSubpattern> BindPropertySubpattern(
             PropertySubpatternSyntax node,
             TypeSymbol inputType,
             DiagnosticBag diagnostics,
             ref bool hasErrors)
         {
-            var builder = ArrayBuilder<(Symbol property, BoundPattern pattern)>.GetInstance(node.SubPatterns.Count);
+            var builder = ArrayBuilder<BoundSubpattern>.GetInstance(node.SubPatterns.Count);
             foreach (SubpatternElementSyntax p in node.SubPatterns)
             {
                 IdentifierNameSyntax name = p.NameColon?.Name;
@@ -750,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundPattern boundPattern = BindPattern(pattern, memberType, hasErrors, diagnostics);
-                builder.Add((member, boundPattern));
+                builder.Add(new BoundSubpattern(pattern, member, boundPattern));
             }
 
             return builder.ToImmutableAndFree();
