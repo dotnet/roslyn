@@ -43,6 +43,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
+            if (node is DeconstructionPatternSyntax deconstructionPattern)
+            {
+                AddSuppressWrappingIfOnSingleLineOperation(list, deconstructionPattern.OpenParenToken, deconstructionPattern.CloseParenToken);
+                return;
+            }
+
+            if (node is PropertySubpatternSyntax propertySubpattern)
+            {
+                AddSuppressWrappingIfOnSingleLineOperation(list, propertySubpattern.OpenBraceToken, propertySubpattern.CloseBraceToken);
+                return;
+            }
+
             if (node is ConstructorInitializerSyntax constructorInitializerNode)
             {
                 var constructorDeclarationNode = constructorInitializerNode.Parent as ConstructorDeclarationSyntax;
