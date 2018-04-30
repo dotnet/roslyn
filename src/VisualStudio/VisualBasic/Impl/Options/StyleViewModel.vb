@@ -336,7 +336,7 @@ Class Customer
     End Sub
 End Class"
 
-#Region "arithmetic parentheses"
+#Region "arithmetic binary parentheses"
 
         Private Shared ReadOnly s_arithmeticBinaryAlwaysForClarity As String = $"
 class C
@@ -368,7 +368,7 @@ end class
 
 #End Region
 
-#Region "relational parentheses"
+#Region "other binary parentheses"
 
         Private ReadOnly s_otherBinaryAlwaysForClarity As String = $"
 class C

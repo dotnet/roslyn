@@ -878,43 +878,7 @@ class Customer2
 
         #endregion
 
-        #region cast parentheses
-
-        private readonly string s_castParenthesesRequireForPrecedenceClarity = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var x = (int)(-y);
-
-        // {ServicesVSResources.Over_colon}
-        var x = (int)-y;
-//]
-    }}
-}}
-";
-
-        private readonly string s_castParenthesesRemoveIfUnnecessary = $@"
-class C
-{{
-    void M()
-    {{
-//[
-        // {ServicesVSResources.Prefer_colon}
-        var x = (int)-y;
-
-        // {ServicesVSResources.Over_colon}
-        var x = (int)(-y);
-//]
-    }}
-}}
-";
-
-        #endregion
-
-        #region arithmetic parentheses
+        #region arithmetic binary parentheses
 
         private readonly string s_arithmeticBinaryAlwaysForClarity = $@"
 class C
@@ -950,7 +914,7 @@ class C
 
         #endregion
 
-        #region equality parentheses
+        #region other binary parentheses
 
         private readonly string s_otherBinaryAlwaysForClarity = $@"
 class C
