@@ -185,6 +185,32 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestFixAllNested1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(string s2)
+    {
+        if ({|FixAllInDocument:|}(object)((object)s2 == null) == null))
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string s2)
+    {
+        if (((object)s2 == null) is null))
+            return;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScriptAsync(

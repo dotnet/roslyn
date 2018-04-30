@@ -39,7 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            foreach (var diagnostic in diagnostics)
+            // Order in reverse so we process inner diagnostics before outer diagnostics.
+            // Otherwise, we won't be able to find the nodes we want to replace if they're
+            // not there once their parent has been replaced.
+            foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
             {
                 var binary = (BinaryExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
                 var rewritten = Rewrite(binary);
