@@ -24007,14 +24007,14 @@ public class C
 {
     public int Test()
     {
-        Expression<Func<int, int>> e = a => a switch { 0 => 1, _ => 2 }; // CS8411
+        Expression<Func<int, int>> e = a => a switch { 0: 1, _: 2 }; // CS8411
         return 1;
     }
 }";
             CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.RegularWithRecursivePatterns).VerifyDiagnostics(
-                // (9,45): error CS8411: An expression tree may not contain a switch expression.
-                //         Expression<Func<int, int>> e = a => a switch { 0 => 1, _ => 2 }; // CS8411
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, "a switch { 0 => 1, _ => 2 }").WithLocation(9, 45)
+                // (9,45): error CS8414: An expression tree may not contain a switch expression.
+                //         Expression<Func<int, int>> e = a => a switch { 0: 1, _: 2 }; // CS8411
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, "a switch { 0: 1, _: 2 }").WithLocation(9, 45)
                 );
         }
     }

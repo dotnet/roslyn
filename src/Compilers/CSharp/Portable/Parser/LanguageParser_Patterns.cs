@@ -682,9 +682,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // expression is not permitted as a constant expression here; it would have to be parenthesized.
                 var pattern = ParsePattern(Precedence.Coalescing, whenIsKeyword: true);
                 var whenClause = ParseWhenClause(Precedence.Coalescing);
-                var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
+                var colon = this.EatToken(SyntaxKind.ColonToken);
                 var expression = ParseExpressionCore();
-                var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(pattern, whenClause, arrow, expression);
+                var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(pattern, whenClause, colon, expression);
                 arms.Add(switchExpressionCase);
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
