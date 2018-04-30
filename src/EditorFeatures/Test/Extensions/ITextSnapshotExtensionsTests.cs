@@ -159,10 +159,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         }
 
         [Fact]
-        public void GetPointTest()
+        public void TryGetPointValueTest()
         {
             var snapshot = GetSampleCodeSnapshot();
-            Assert.Equal(new SnapshotPoint(snapshot, 15), snapshot.GetPoint(3, 0));
+            Assert.Equal(new SnapshotPoint(snapshot, 15), snapshot.TryGetPoint(3, 0).Value);
+        }
+
+        [Fact]
+        public void TryGetPointNullTest()
+        {
+            var snapshot = GetSampleCodeSnapshot();
+            Assert.Null(snapshot.TryGetPoint(3000, 0));
         }
 
         [Fact]
