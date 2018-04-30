@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CSharp.UseIsNullCheck;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
@@ -119,6 +118,22 @@ class C
             return;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestMissingPreCSharp7()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if ([||](object)s == null)
+            return;
+    }
+}", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
