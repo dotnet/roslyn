@@ -18,6 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 {
+    [UseExportProvider]
     public class ReduceTokenTests_WithDigitSeparators
     {
         [Fact]
