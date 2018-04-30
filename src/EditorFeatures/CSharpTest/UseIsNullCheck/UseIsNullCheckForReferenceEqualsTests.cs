@@ -298,5 +298,31 @@ class C
 }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestFixAllNested1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(string s2)
+    {
+        if ({|FixAllInDocument:ReferenceEquals|}(ReferenceEquals(s2, null), null))
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string s2)
+    {
+        if (ReferenceEquals(s2, null) is null)
+            return;
+    }
+}");
+        }
     }
 }
