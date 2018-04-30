@@ -55,6 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
+            if (node is SwitchExpressionArmSyntax switchExpressionArm)
+            {
+                AddSuppressWrappingIfOnSingleLineOperation(list, switchExpressionArm.GetFirstToken(), switchExpressionArm.GetLastToken());
+                return;
+            }
+
             if (node is ConstructorInitializerSyntax constructorInitializerNode)
             {
                 var constructorDeclarationNode = constructorInitializerNode.Parent as ConstructorDeclarationSyntax;

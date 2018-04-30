@@ -103,6 +103,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
             }
 
+            // , in property sub-pattern
+            if (previousToken.Kind() == SyntaxKind.CommaToken && previousToken.Parent is PropertySubpatternSyntax)
+            {
+                // ```
+                // e is
+                //      {
+                //          P1: 1,
+                //          P2: 2
+                //      }
+                // ```
+                // Each sub-pattern gets a new line
+                return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
+            }
+
             // else * except else if case
             if (previousToken.Kind() == SyntaxKind.ElseKeyword && currentToken.Kind() != SyntaxKind.IfKeyword)
             {
@@ -286,7 +300,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                SyntaxKind.DefaultSwitchLabel,
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,
-                                               SyntaxKind.NameColon))
+                                               SyntaxKind.NameColon,
+                                               SyntaxKind.CasePatternSwitchLabel))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
