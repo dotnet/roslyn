@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                         // We have two fixes to offer. We nest the two fixes in an inlinable CodeAction 
                         // so the IDE is free to either show both at once or to create a sub-menu.
                         var titleForNesting = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, includeParameters: true);
-                        var titleCascading = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations, data.Method, 
+                        var titleCascading = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations, data.Method,
                                                              includeParameters: true);
                         codeAction = new CodeAction.CodeActionWithNestedActions(
                             title: titleForNesting,
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 if (cascadingActions.Length > 0)
                 {
                     // if there are cascading CodeActions create a second sub-menu.
-                    var nestedCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations, 
+                    var nestedCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations,
                                                                aMethod, includeParameters: false);
                     builder.Add(new CodeAction.CodeActionWithNestedActions(nestedCascadingTitle, cascadingActions, isInlinable: false));
                 }
@@ -277,8 +277,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
         }
 
         private ImmutableArray<CodeFixData> PrepareCreationOfCodeActions(
-            Document document, 
-            SeparatedSyntaxList<TArgumentSyntax> arguments, 
+            Document document,
+            SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
         {
             var builder = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length);
@@ -470,7 +470,10 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 progress: progress,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             var referencedSymbols = progress.GetReferencedSymbols();
-            return referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition).OfType<IMethodSymbol>().ToImmutableArray();
+            return referencedSymbols.Select(referencedSymbol => referencedSymbol.Definition)
+                                    .OfType<IMethodSymbol>()
+                                    .Distinct()
+                                    .ToImmutableArray();
         }
 
         private async Task<(string argumentNameSuggestion, bool isNamed)> GetNameSuggestionForArgumentAsync(
@@ -536,7 +539,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var leadingIndentation = GetDesiredLeadingIndentation(
                     generator, syntaxFacts, existingParameters[existingParameters.Count - 1], includeLeadingNewLine: true);
                 parameterDeclaration = parameterDeclaration.WithPrependedLeadingTrivia(leadingIndentation)
-                                                            .WithAdditionalAnnotations(Formatter.Annotation);
+                                                           .WithAdditionalAnnotations(Formatter.Annotation);
 
                 editor.AddParameter(declaration, parameterDeclaration);
             }

@@ -972,6 +972,66 @@ class C1 : I1
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        public async Task TestInvocationImplicitInterfaces()
+        {
+            var code =
+@"
+interface I1
+{
+    void M1();
+}
+interface I2
+{
+    void M1();
+}
+class C1 : I1, I2
+{
+    public void M1() { }
+    void M2()
+    {
+        [|M1|](1);
+    }
+}";
+            var fix_DeclarationOnly = @"
+interface I1
+{
+    void M1();
+}
+interface I2
+{
+    void M1();
+}
+class C1 : I1, I2
+{
+    public void M1(int v) { }
+    void M2()
+    {
+        M1(1);
+    }
+}";
+            var fix_All = @"
+interface I1
+{
+    void M1(int v);
+}
+interface I2
+{
+    void M1(int v);
+}
+class C1 : I1, I2
+{
+    public void M1(int v) { }
+    void M2()
+    {
+        M1(1);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, fix_DeclarationOnly, index: 0);
+            await TestInRegularAndScriptAsync(code, fix_All, index: 1);
+        }
+
+        [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
         [Trait("TODO", "Fix broken")]
         public async Task TestInvocationGenericMethod()
         {
