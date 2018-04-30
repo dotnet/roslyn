@@ -45,25 +45,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression;
         }
 
-        public static ExpressionSyntax Parenthesize(this ExpressionSyntax expression, bool includeElasticTrivia = true)
+        public static ExpressionSyntax Parenthesize(
+            this ExpressionSyntax expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         {
-            if (includeElasticTrivia)
-            {
-                return SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia())
-                                    .WithTriviaFrom(expression)
-                                    .WithAdditionalAnnotations(Simplifier.Annotation);
-            }
-            else
-            {
-                return SyntaxFactory.ParenthesizedExpression
-                (
+            var result = ParenthesizeWorker(expression, includeElasticTrivia);
+            return addSimplifierAnnotation
+                ? result.WithAdditionalAnnotations(Simplifier.Annotation)
+                : result;
+        }
+
+        private static ExpressionSyntax ParenthesizeWorker(
+            this ExpressionSyntax expression, bool includeElasticTrivia)
+        {
+            var withoutTrivia = expression.WithoutTrivia();
+            var parenthesized = includeElasticTrivia
+                ? SyntaxFactory.ParenthesizedExpression(withoutTrivia)
+                : SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
-                    expression.WithoutTrivia(),
-                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty)
-                )
-                .WithTriviaFrom(expression)
-                .WithAdditionalAnnotations(Simplifier.Annotation);
-            }
+                    withoutTrivia,
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
+
+            return parenthesized.WithTriviaFrom(expression);
         }
 
         public static CastExpressionSyntax Cast(
@@ -2621,6 +2623,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.CheckedExpression:
                 case SyntaxKind.UncheckedExpression:
                 case SyntaxKind.AnonymousMethodExpression:
+                // unsafe code
+                case SyntaxKind.SizeOfExpression:
+                case SyntaxKind.PointerMemberAccessExpression:
                     // From C# spec, 7.3.1:
                     // Primary: x.y  x?.y  x?[y]  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate
 
@@ -2634,6 +2639,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.PreDecrementExpression:
                 case SyntaxKind.CastExpression:
                 case SyntaxKind.AwaitExpression:
+                // unsafe code.
+                case SyntaxKind.PointerIndirectionExpression:
+                case SyntaxKind.AddressOfExpression:
+
                     // From C# spec, 7.3.1:
                     // Unary: +  -  !  ~  ++x  --x  (T)x  await Task
 
