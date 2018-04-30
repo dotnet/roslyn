@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     [ExportHighlighter(LanguageNames.CSharp)]
     internal class LoopHighlighter : AbstractKeywordHighlighter
     {
-        protected override bool HighlightNode(SyntaxNode node)
+        protected override bool IsHighlightableNode(SyntaxNode node)
             => node.IsContinuableConstruct();
 
         protected override IEnumerable<TextSpan> GetHighlightsForNode(

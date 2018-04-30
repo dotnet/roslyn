@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     [ExportHighlighter(LanguageNames.CSharp)]
     internal class AsyncAwaitHighlighter : AbstractKeywordHighlighter
     {
-        protected override bool HighlightNode(SyntaxNode node)
+        protected override bool IsHighlightableNode(SyntaxNode node)
             => node.IsReturnableConstruct();
 
         protected override IEnumerable<TextSpan> GetHighlightsForNode(SyntaxNode node, CancellationToken cancellationToken)

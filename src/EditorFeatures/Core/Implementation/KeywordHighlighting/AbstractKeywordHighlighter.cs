@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 {
     internal abstract class AbstractKeywordHighlighter<TNode> : AbstractKeywordHighlighter where TNode : SyntaxNode
     {
-        protected sealed override bool HighlightNode(SyntaxNode node) => node is TNode;
+        protected sealed override bool IsHighlightableNode(SyntaxNode node) => node is TNode;
 
         protected sealed override IEnumerable<TextSpan> GetHighlightsForNode(SyntaxNode node, CancellationToken cancellationToken)
             => GetHighlights((TNode)node, cancellationToken);
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 
     internal abstract class AbstractKeywordHighlighter : IHighlighter
     {
-        protected abstract bool HighlightNode(SyntaxNode node);
+        protected abstract bool IsHighlightableNode(SyntaxNode node);
 
         public IEnumerable<TextSpan> GetHighlights(
             SyntaxNode root, int position, CancellationToken cancellationToken)
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             {
                 for (var parent = token.Parent; parent != null; parent = parent.Parent)
                 {
-                    if (HighlightNode(parent))
+                    if (IsHighlightableNode(parent))
                     {
                         var highlights = GetHighlightsForNode(parent, cancellationToken);
 
