@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
             foreach (var diagnostic in diagnostics)
             {
                 var binary = (BinaryExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
