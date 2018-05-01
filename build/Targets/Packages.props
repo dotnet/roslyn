@@ -14,7 +14,7 @@
     <dotnetxunitVersion>2.3.1</dotnetxunitVersion>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
-    <ICSharpCodeDecompilerVersion>3.0.0.3403-beta4</ICSharpCodeDecompilerVersion>
+    <ICSharpCodeDecompilerVersion>3.1.0.3652</ICSharpCodeDecompilerVersion>
     <LibGit2SharpVersion>0.22.0</LibGit2SharpVersion>
     <MicroBuildCoreVersion>0.2.0</MicroBuildCoreVersion>
     <MicroBuildCoreSentinelVersion>1.0.0</MicroBuildCoreSentinelVersion>
