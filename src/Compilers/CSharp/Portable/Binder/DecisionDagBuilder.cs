@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (recursive.PropertiesOpt != null)
+            if (!recursive.PropertiesOpt.IsDefault)
             {
                 // we have a "property" form
                 for (int i = 0; i < recursive.PropertiesOpt.Length; i++)

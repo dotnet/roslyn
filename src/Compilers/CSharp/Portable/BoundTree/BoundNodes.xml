@@ -1772,8 +1772,10 @@
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression" Null="allow"/>
   </Node>
-  
+
+  <!-- A subpattern, either in a positional or property part of a recursive pattern. -->
   <Node Name="BoundSubpattern" Base="BoundNode">
+    <!-- The tuple element or parameter in a positional pattern, or the property or field in a property pattern. -->
     <Field Name="Symbol" Type="Symbol" Null="allow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
   </Node>

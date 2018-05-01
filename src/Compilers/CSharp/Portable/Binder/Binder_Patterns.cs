@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 bool isError = i >= elementTypes.Length;
                                 TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i];
                                 BoundPattern boundSubpattern = BindVarDesignation(node, tupleDesignation.Variables[i], elementType, isError, diagnostics);
-                                subPatterns.Add(new BoundSubpattern(node, null, boundSubpattern));
+                                subPatterns.Add(new BoundSubpattern(node, symbol: null, boundSubpattern));
                             }
                         }
                         else
@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 bool isError = outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
                                 TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
                                 BoundPattern pattern = BindVarDesignation(node, tupleDesignation.Variables[i], elementType, isError, diagnostics);
-                                subPatterns.Add(new BoundSubpattern(node, null, pattern));
+                                subPatterns.Add(new BoundSubpattern(node, symbol: null, pattern));
                             }
 
                             // PROTOTYPE(patterns2): If no Deconstruct method is found, try casting to `ITuple`.
