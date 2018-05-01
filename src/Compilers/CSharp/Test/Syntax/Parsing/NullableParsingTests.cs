@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void PartialAccessibilityAndNullableArray()
         {
+            // Note: the typo `privat` is necessary for https://github.com/dotnet/roslyn/issues/23272.
             UsingTree(
 @"class C
 {
