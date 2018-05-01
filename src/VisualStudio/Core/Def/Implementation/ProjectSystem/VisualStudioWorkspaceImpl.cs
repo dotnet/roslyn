@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
 using VSLangProj;
 using VSLangProj140;
@@ -39,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private const string AppCodeFolderName = "App_Code";
 
         private readonly ITextBufferFactoryService _textBufferFactoryService;
+        private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly ITextBufferCloneService _textBufferCloneService;
 
         // document worker coordinator
@@ -50,6 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private readonly Lazy<ForegroundThreadAffinitizedObject> _foregroundObject
             = new Lazy<ForegroundThreadAffinitizedObject>(() => new ForegroundThreadAffinitizedObject());
+
+        private readonly Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>> _hierarchyEventSinks = new Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>>();
 
         /// <summary>
         /// The <see cref="DeferredInitializationState"/> that consists of the <see cref="VisualStudioProjectTracker" />
@@ -64,7 +68,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
+            _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
             _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
+            _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
             exportProvider.GetExportedValue<PrimaryWorkspace>().Register(this);
         }
 
@@ -981,6 +987,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             OnDocumentContextUpdated(documentId);
         }
 
+        internal void ConnectToSharedHierarchyEvents(IVisualStudioHostDocument document)
+        {
+            Contract.ThrowIfFalse(document.IsOpen);
+
+            var project = document.Project;
+            var itemId = document.GetItemId();
+
+            if (itemId != (uint)VSConstants.VSITEMID.Nil)
+            {
+                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
+
+                if (sharedHierarchy != null)
+                {
+                    ProjectTracker.NotifyWorkspace(workspace =>
+                    {
+                        var eventSink = new HierarchyEventsSink((VisualStudioWorkspaceImpl)workspace, sharedHierarchy, document.Id);
+                        if (ErrorHandler.Succeeded(sharedHierarchy.AdviseHierarchyEvents(eventSink, out var cookie)))
+                        {
+                            _hierarchyEventSinks.MultiAdd(document.Id, (sharedHierarchy, cookie));
+                        }
+                    });
+                }
+            }
+        }
+
+        protected override void OnDocumentClosing(DocumentId documentId)
+        {
+            base.OnDocumentClosing(documentId);
+
+            if (_hierarchyEventSinks.TryGetValue(documentId, out var subscribedSinks))
+            {
+                foreach (var subscribedSink in subscribedSinks)
+                {
+                    subscribedSink.hierarchy.UnadviseHierarchyEvents(subscribedSink.cookie);
+                }
+
+                _hierarchyEventSinks.Remove(documentId);
+            }
+        }
+
         /// <summary>
         /// Finds the <see cref="DocumentId"/> related to the given <see cref="DocumentId"/> that
         /// is in the current context. For regular files (non-shared and non-linked) and closed
@@ -1096,6 +1142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (!finalize)
             {
                 _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
+                _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
             }
 
             // workspace is going away. unregister this workspace from work coordinator

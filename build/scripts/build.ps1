@@ -28,8 +28,10 @@ param (
     [switch]$pack = $false,
     [switch]$packAll = $false,
     [switch]$binaryLog = $false,
-    [switch]$noAnalyzers = $false,
+    [switch]$deployExtensions = $false,
     [string]$signType = "",
+    [switch]$skipBuildExtras = $false,
+    [switch]$skipAnalyzers = $false,
 
     # Test options 
     [switch]$test32 = $false,
@@ -61,7 +63,10 @@ function Print-Usage() {
     Write-Host "  -sign                     Sign our binaries"
     Write-Host "  -signType                 Type of sign: real, test, verify"
     Write-Host "  -pack                     Create our NuGet packages"
+    Write-Host "  -deployExtensions         Deploy built vsixes"
     Write-Host "  -binaryLog                Create binary log for every MSBuild invocation"
+    Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
+    Write-Host "  -skipBuildExtras          Do not build insertion items"
     Write-Host "" 
     Write-Host "Test options" 
     Write-Host "  -test32                   Run unit tests in the 32-bit runner"
@@ -105,6 +110,11 @@ function Process-Arguments() {
         exit 1
     }
 
+    if (($cibuild -and $anyVsi)) {
+        # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
+        $script:skipAnalyzers = $true
+    }
+
     $script:isAnyTestSpecial = $testBuildCorrectness -or $testDeterminism -or $testPerfCorrectness -or $testPerfRun
     if ($isAnyTestSpecial -and ($anyUnit -or $anyVsi)) {
         Write-Host "Cannot combine special testing with any other action"
@@ -133,8 +143,7 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
         $args += " /m"
     }
 
-    if ($noAnalyzers -or ($cibuild -and $testVsi)) {
-        # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
+    if ($skipAnalyzers) {
         $args += " /p:UseRoslynAnalyzers=false"
     }
 
@@ -246,8 +255,10 @@ function Build-Artifacts() {
         Run-MSBuild "Compilers.sln" -useDotnetBuild
     }
     elseif ($build) {
-        Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
-        Build-ExtraSignArtifacts
+        Run-MSBuild "Roslyn.sln" "/p:DeployExtension=$deployExtensions"
+        if (-not $skipBuildExtras) {
+            Build-ExtraSignArtifacts
+        }
     }
 
     if ($pack) {
@@ -262,7 +273,7 @@ function Build-Artifacts() {
         Build-DeployToSymStore
     }
 
-    if ($build -and (-not $buildCoreClr)) {
+    if ($build -and (-not $skipBuildExtras) -and (-not $buildCoreClr)) {
         Build-InsertionItems
     }
 }
@@ -371,6 +382,11 @@ function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packag
     $nuspecFileName = Split-Path -leaf $nuspecFilePath
     $projectFilePath = Join-Path $nugetDir "NuGetProjectPackUtil.csproj"
     $packArgs = "pack -nologo --no-build $projectFilePath $extraArgs /p:NugetPackageKind=$packageKind /p:NuspecFile=$nuspecFilePath /p:NuspecBasePath=$basePath -o $packageOutDir" 
+
+    if ($official) {
+        $packArgs = "$packArgs /p:OfficialBuild=true"
+    }
+
     if ($useConsole) { 
         Exec-Console $dotnet $packArgs
     }
@@ -442,12 +458,12 @@ function Test-Special() {
 }
 
 function Test-PerfCorrectness() {
-    Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false" -logFileName "RoslynPerfCorrectness"
+    Run-MSBuild "Roslyn.sln" "/p:DeployExtension=$deployExtensions" -logFileName "RoslynPerfCorrectness"
     Exec-Block { & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe" --ci-test } | Out-Host
 }
 
 function Test-PerfRun() { 
-    Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false" -logFileName "RoslynPerfRun"
+    Run-MSBuild "Roslyn.sln" "/p:DeployExtension=$deployExtensions" -logFileName "RoslynPerfRun"
 
     # Check if we have credentials to upload to benchview
     $extraArgs = @()
@@ -555,7 +571,13 @@ function Test-XUnit() {
         }
     }
     elseif ($testVsi) {
-        $dlls = Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir
+        # Since they require Visual Studio to be installed, ensure that the MSBuildWorkspace tests run along with our VS
+        # integration tests in CI.
+        if ($cibuild) {
+            $dlls += @(Get-Item (Join-Path $unitDir "Workspaces.MSBuild.Test\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
+        }
+
+        $dlls += @(Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir)
     }
     else {
         $dlls = Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir
@@ -607,7 +629,6 @@ function Deploy-VsixViaTool() {
     $all = @(
         "Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix",
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
-        "Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix",
         "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
         "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
         "Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
@@ -691,9 +712,10 @@ function Ensure-ProcDump() {
 function Redirect-Temp() {
     $temp = Join-Path $binariesDir "Temp"
     Create-Directory $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\.editorconfig") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.props") $temp
-    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.targets") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\.editorconfig") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.props") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.targets") $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.rsp") $temp
     ${env:TEMP} = $temp
     ${env:TMP} = $temp
 }

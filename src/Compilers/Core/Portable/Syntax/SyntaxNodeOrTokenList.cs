@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A list of <see cref="SyntaxNodeOrToken"/> structures.
     /// </summary>
-    public struct SyntaxNodeOrTokenList : IEquatable<SyntaxNodeOrTokenList>, IReadOnlyCollection<SyntaxNodeOrToken>
+    public readonly struct SyntaxNodeOrTokenList : IEquatable<SyntaxNodeOrTokenList>, IReadOnlyCollection<SyntaxNodeOrToken>
     {
         /// <summary>
         /// The underlying field
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis
             private SyntaxNodeOrTokenList _list;
             private int _index;
 
-            internal Enumerator(SyntaxNodeOrTokenList list)
+            internal Enumerator(in SyntaxNodeOrTokenList list)
                 : this()
             {
                 _list = list;

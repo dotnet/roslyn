@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1414,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return TryBindInteractiveReceiver(syntax, this.ContainingMemberOrLambda, currentType, declaringType);
+                return TryBindInteractiveReceiver(syntax, ContainingMember(), currentType, declaringType);
             }
         }
 
@@ -1667,13 +1666,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return TryBindInteractiveReceiver(node, this.ContainingMemberOrLambda, currentType, member.ContainingType);
+                return TryBindInteractiveReceiver(node, ContainingMember(), currentType, member.ContainingType);
             }
         }
 
         internal Symbol ContainingMember()
         {
-            // We skip intervening lambdas to find the actual member.
+            // We skip intervening lambdas and local functions to find the actual member.
             var containingMember = this.ContainingMemberOrLambda;
             while (containingMember.Kind != SymbolKind.NamedType && (object)containingMember.ContainingSymbol != null && containingMember.ContainingSymbol.Kind != SymbolKind.NamedType)
             {
@@ -6085,7 +6084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LookupExtensionMethodsInSingleBinder(scope, lookupResult, rightName, arity, options, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
-            if (!lookupResult.IsClear)
+            if (lookupResult.IsMultiViable)
             {
                 Debug.Assert(lookupResult.Symbols.Any());
                 var members = ArrayBuilder<Symbol>.GetInstance();

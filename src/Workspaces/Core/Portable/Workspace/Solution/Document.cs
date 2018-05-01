@@ -127,18 +127,18 @@ namespace Microsoft.CodeAnalysis
 
 
         /// <summary>
-        /// <code>true</code> if this Document supports providing data through the
+        /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSyntaxTreeAsync"/> and <see cref="GetSyntaxRootAsync"/> methods.
-        ///
-        /// If <code>false</code> then these methods will return <code>null</code> instead.
+        /// 
+        /// If <see langword="false"/> then these methods will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSyntaxTree => DocumentState.SupportsSyntaxTree;
 
         /// <summary>
-        /// <code>true</code> if this Document supports providing data through the
+        /// <see langword="true"/> if this Document supports providing data through the
         /// <see cref="GetSemanticModelAsync"/> method.
-        ///
-        /// If <code>false</code> then this method will return <code>null</code> instead.
+        /// 
+        /// If <see langword="false"/> then this method will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsSemanticModel
         {
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // do it async for real.
-            return DocumentState.GetSyntaxTreeAsync(cancellationToken);
+            return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask();
         }
 
         internal SyntaxTree GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis
                 workspace.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
-               var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
+                var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
                 return newSolution.GetDocument(this.Id);
             }
             else

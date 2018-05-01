@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Async methods cannot have ref or out parameters.
+        ///   Looks up a localized string similar to Async methods cannot have ref, in or out parameters.
         /// </summary>
         internal static string ERR_BadAsyncArgType {
             get {
@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Iterators cannot have ref or out parameters.
+        ///   Looks up a localized string similar to Iterators cannot have ref, in or out parameters.
         /// </summary>
         internal static string ERR_BadIteratorArgType {
             get {
@@ -2357,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree lambda may not contain an out or ref parameter.
+        ///   Looks up a localized string similar to An expression tree lambda may not contain a ref, in or out parameter.
         /// </summary>
         internal static string ERR_ByRefParameterInExpressionTree {
             get {
@@ -2713,6 +2713,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_CantSetWin32Manifest {
             get {
                 return ResourceManager.GetString("ERR_CantSetWin32Manifest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to __arglist cannot have an argument passed by &apos;in&apos; or &apos;out&apos;.
+        /// </summary>
+        internal static string ERR_CantUseInOrOutInArglist {
+            get {
+                return ResourceManager.GetString("ERR_CantUseInOrOutInArglist", resourceCulture);
             }
         }
         
@@ -7253,7 +7262,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and no extension method &apos;{1}&apos; accepting a first argument of type &apos;{0}&apos; could be found (are you missing a using directive or an assembly reference?).
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and no accessible extension method &apos;{1}&apos; accepting a first argument of type &apos;{0}&apos; could be found (are you missing a using directive or an assembly reference?).
         /// </summary>
         internal static string ERR_NoSuchMemberOrExtension {
             get {
@@ -10180,9 +10189,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to File name &apos;{0}&apos; is empty, contains invalid characters, has a drive specification without an absolute path, or is too long.
         /// </summary>
-        internal static string FTL_InputFileNameTooLong {
+        internal static string FTL_InvalidInputFileName {
             get {
-                return ResourceManager.GetString("FTL_InputFileNameTooLong", resourceCulture);
+                return ResourceManager.GetString("FTL_InvalidInputFileName", resourceCulture);
             }
         }
         
@@ -10341,16 +10350,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
         
         /// <summary>
         ///   Looks up a localized string similar to 
-        ///                              Visual C# Compiler Options
+        ///                             Visual C# Compiler Options
         ///
-        ///                        - OUTPUT FILES -
-        /// /out:&lt;file&gt;                   Specify output file name (default: base name of
-        ///                               file with main class or first file)
-        /// /target:exe                   Build a console executable (default) (Short
-        ///                               form: /t:exe)
-        /// /target:winexe                Build a Windows executable (Short form:
-        ///                               /t:winexe)
-        /// /target:library        [rest of string was truncated]&quot;;.
+        ///                       - OUTPUT FILES -
+        ///-out:&lt;file&gt;                   Specify output file name (default: base name of
+        ///                              file with main class or first file)
+        ///-target:exe                   Build a console executable (default) (Short
+        ///                              form: -t:exe)
+        ///-target:winexe                Build a Windows executable (Short form:
+        ///                              -t:winexe)
+        ///-target:library               B [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string IDS_CSCHelp {
             get {

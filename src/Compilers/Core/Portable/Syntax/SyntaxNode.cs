@@ -12,12 +12,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-#pragma warning disable RS0010
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// Represents a non-terminal node in the syntax tree. This is the language agnostic equivalent of <see
     /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxNode"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxNode"/>.
     /// </summary>
-#pragma warning restore RS0010
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public abstract partial class SyntaxNode
     {
@@ -1368,7 +1368,7 @@ namespace Microsoft.CodeAnalysis
             return token;
         }
 
-        internal static SyntaxTrivia GetTriviaFromSyntaxToken(int position, SyntaxToken token)
+        internal static SyntaxTrivia GetTriviaFromSyntaxToken(int position, in SyntaxToken token)
         {
             var span = token.Span;
             var trivia = new SyntaxTrivia();
@@ -1384,7 +1384,7 @@ namespace Microsoft.CodeAnalysis
             return trivia;
         }
 
-        internal static SyntaxTrivia GetTriviaThatContainsPosition(SyntaxTriviaList list, int position)
+        internal static SyntaxTrivia GetTriviaThatContainsPosition(in SyntaxTriviaList list, int position)
         {
             foreach (var trivia in list)
             {

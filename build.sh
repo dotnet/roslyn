@@ -15,6 +15,8 @@ usage()
     echo "  --release             Build Release"
     echo "  --restore             Restore projects required to build"
     echo "  --build               Build all projects"
+    echo "  --pack                Build prerelease nuget packages"
+    echo "  --packall             Build all nuget packages"
     echo "  --test                Run unit tests"
     echo "  --mono                Run unit tests with mono"
     echo "  --build-bootstrap     Build the bootstrap compilers"
@@ -32,6 +34,8 @@ build_configuration=Debug
 restore=false
 build=false
 test_=false
+pack=false
+pack_all=false
 use_mono=false
 build_bootstrap=false
 use_bootstrap=false
@@ -93,6 +97,13 @@ do
         --stop-vbcscompiler)
             stop_vbcscompiler=true
             ;;
+        --pack)
+            pack=true
+            ;;
+        --packall)
+            pack_all=true
+            pack=true
+            ;;
         *)
             echo "$1"
             usage
@@ -108,6 +119,32 @@ logs_path=${config_path}/Logs
 mkdir -p ${binaries_path}
 mkdir -p ${config_path}
 mkdir -p ${logs_path}
+
+function pack_all_kind() {
+    pushd "${root_path}/src/NuGet"
+
+    echo Packing $1
+
+    local nupkg_path="${config_path}/NuGet/PreRelease"
+    local nuspec_files=("Microsoft.CodeAnalysis.CSharp.nuspec" "Microsoft.CodeAnalysis.Compilers.nuspec" "Microsoft.CodeAnalysis.VisualBasic.nuspec" "Microsoft.CodeAnalysis.Common.nuspec" "Microsoft.NETCore.Compilers.nuspec")
+    mkdir -p ${nupkg_path}
+    for i in "${nuspec_files[@]}" 
+    do
+        dotnet pack -nologo --no-build NuGetProjectPackUtil.csproj -p:NuSpecFile=$i -p:NuGetPackageKind=$1 -p:NuspecBasePath=${binaries_path}/Debug -o ${nupkg_path}
+    done
+
+    popd
+}
+
+function pack_all() {
+    pack_all_kind PreRelease
+
+    if [[ "$pack_all" = true ]]
+    then
+        pack_all_kind Release
+        pack_all_kind PerBuildPreRelease
+    fi
+}
 
 if [[ "$build_in_docker" = true ]]
 then
@@ -165,6 +202,11 @@ if [[ "${build}" == true ]]
 then
     echo "Building Compilers.sln"
     dotnet build "${root_path}"/Compilers.sln ${build_args} "/bl:${binaries_path}/Build.binlog"
+fi
+
+if [[ "${pack}" == true ]]
+then
+    pack_all
 fi
 
 if [[ "${stop_vbcscompiler}" == true ]]
