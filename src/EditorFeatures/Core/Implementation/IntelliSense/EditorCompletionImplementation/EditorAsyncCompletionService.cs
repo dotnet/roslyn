@@ -72,6 +72,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             ITextView view, 
             CancellationToken cancellationToken)
         {
+            //if (_broker.GetSession(view).)
+            //if (true /* current selection is NoSelection */)
+            //{
+            //    //  Mimic GetCompletionContext
+            //    if (filterReason == EditorCompletion.CompletionFilterReason.Insertion)
+            //    {
+
+            //    }
+            //}
+
+
             var filterText = applicableToSpan.GetText(snapshot);
 
             // Check if the user is typing a number. If so, only proceed if it's a number
