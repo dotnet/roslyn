@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var endToken = arms.Last().GetLastToken(includeZeroWidth: true);
             var span = CommonFormattingHelpers.GetSpanIncludingTrailingAndLeadingTriviaOfAdjacentTokens(startToken, endToken);
 
-            //AddIndentBlockOperation(list, switchExpression.OpenBraceToken, startToken, endToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
-            AddIndentBlockOperation(list, startToken, endToken);
+            AddIndentBlockOperation(list, switchExpression.OpenBraceToken, startToken, endToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+            //AddIndentBlockOperation(list, startToken, endToken);
         }
 
         private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)

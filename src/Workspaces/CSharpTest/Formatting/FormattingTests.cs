@@ -5015,7 +5015,8 @@ P2 : 2
 {
     void M()
     {
-        _ = this is {
+        _ = this is
+        {
         P1: 1,
         P2: 2
         };
@@ -5043,7 +5044,8 @@ P2 : 2, P3: 3
 {
     void M()
     {
-        _ = this is {
+        _ = this is
+        {
         P1: 1,
         P2: 2,
         P3: 3
@@ -5077,7 +5079,7 @@ _ => false
     {
         _ = this switch
         {
-        { P1: 1 } => true,
+            { P1: 1 } => true,
         (0, 1) => true,
         _ => false
         };
