@@ -55,24 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var arms = switchExpression.Arms;
-            var startToken = arms.First().GetFirstToken(includeZeroWidth: true);
-            var endToken = arms.Last().GetLastToken(includeZeroWidth: true);
-            var span = CommonFormattingHelpers.GetSpanIncludingTrailingAndLeadingTriviaOfAdjacentTokens(startToken, endToken);
-
-            // PROTOTYPE(patterns2)
-            //AddIndentBlockOperation(list, switchExpression.OpenBraceToken, startToken, endToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
-            //AddIndentBlockOperation(list, startToken, endToken);
-
-            //foreach (var arm in arms)
-            //{
-            //    if (arm.Expression != null)
-            //    {
-            //        AddIndentBlockOperation(list, arm.GetFirstToken(includeZeroWidth: true),
-            //            arm.Expression.GetFirstToken(includeZeroWidth: true), arm.Expression.GetLastToken(includeZeroWidth: true),
-            //            IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
-            //    }
-            //}
+            var armsList = switchExpression.Arms;
+            AddIndentBlockOperation(list, armsList.First().GetFirstToken(includeZeroWidth: true), armsList.Last().GetLastToken(includeZeroWidth: true));
         }
 
         private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)

@@ -5058,7 +5058,7 @@ P2 : 2, P3: 3
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatRecursivePattern_PositionalAndProperties()
+        public async Task FormatRecursivePattern_SpaceBetweenTypeAndPositionalSubpattern()
         {
             var code = @"class C
 {
@@ -5078,7 +5078,7 @@ _ = this is  C( 1 , 2 ){}  ; }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatSwitchExpression()
+        public async Task FormatSwitchExpression_IndentArms()
         {
             var code = @"class C
 {
@@ -5098,15 +5098,13 @@ _ => false
     {
         _ = this switch
         {
-        { P1: 1 } => true,
-        (0, 1) => true,
-        _ => false
+            { P1: 1 } => true,
+            (0, 1) => true,
+            _ => false
         };
 
     }
 }";
-            // PROTOTYPE(patterns2): TODO indentation
-
             await AssertFormatAsync(expectedCode, code);
         }
 
@@ -5135,18 +5133,16 @@ _
     {
         _ = this switch
         {
-        { P1: 1 }
-        => true,
-        (0, 1)
+            { P1: 1 }
             => true,
-        _
-                => false
+            (0, 1)
+                => true,
+            _
+                    => false
         };
 
     }
 }";
-            // PROTOTYPE(patterns2): TODO indentation
-
             await AssertFormatAsync(expectedCode, code);
         }
 
@@ -5171,9 +5167,9 @@ _ = this switch
     {
         _ = this switch
         {
-        { P1: 1 } => true,
-        (0, 1) => true,
-        _ => false
+            { P1: 1 } => true,
+            (0, 1) => true,
+            _ => false
         };
 
     }
