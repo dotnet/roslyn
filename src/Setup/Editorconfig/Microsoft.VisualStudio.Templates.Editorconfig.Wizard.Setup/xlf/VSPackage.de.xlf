@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="de" original="../VSPackage.resx">
+    <body>
+      <trans-unit id="110">
+        <source>ResourcePackage Extension</source>
+        <target state="new">ResourcePackage Extension</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="112">
+        <source>ResourcePackage Visual Studio Extension Detailed Info</source>
+        <target state="new">ResourcePackage Visual Studio Extension Detailed Info</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="115">
+        <source>editorconfig File (default)</source>
+        <target state="new">editorconfig File (default)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="116">
+        <source>Create an editorconfig file to persist your editor and code settings.</source>
+        <target state="new">Create an editorconfig file to persist your editor and code settings.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="117">
+        <source>editorconfig File (.NET)</source>
+        <target state="new">editorconfig File (.NET)</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

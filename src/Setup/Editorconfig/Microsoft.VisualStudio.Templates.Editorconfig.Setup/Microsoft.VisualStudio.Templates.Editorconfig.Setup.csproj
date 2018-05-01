@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!-- VS Insertion -->
-    <VisualStudioInsertionComponent>$(MSBuildProjectName)</VisualStudioInsertionComponent>
+    <VisualStudioInsertionComponent>Templates.Editorconfig.Setup</VisualStudioInsertionComponent>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig.csproj" />
