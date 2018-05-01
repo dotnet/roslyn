@@ -349,6 +349,8 @@ class Test
         [Fact]
         public void RangeExpression_InvalidTypes()
         {
+            // PROTOTYPE: add more test for complex conversions
+
             var compilation = CreateCompilationWithIndexAndRange(@"
 class Test
 {
@@ -371,7 +373,7 @@ class Test
         }
 
         [Fact]
-        public void RabgeExpression_NoOperatorOverloading()
+        public void RangeExpression_NoOperatorOverloading()
         {
             var compilation = CreateCompilationWithIndexAndRange(@"
 public class Test

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to change it in the future.
-    /// PROTOTYPE: (from AlekseyTS) expose the method symbol it is lowered into?
+    /// PROTOTYPE: (from AlekseyTS) expose the method symbol it is lowered into, for the benefit of GetSymbolInfo and IOperation APIs
     /// </remarks>
     public interface IRangeOperation : IOperation
     {

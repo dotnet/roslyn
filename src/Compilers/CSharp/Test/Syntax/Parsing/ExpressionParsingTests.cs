@@ -4045,7 +4045,7 @@ select t";
         }
 
         [Fact]
-        public void RangeExpression_MethodInvocation_1()
+        public void RangeExpression_MethodInvocation_NoOperands()
         {
             UsingExpression(".. .ToString()",
                 // (1,1): error CS1073: Unexpected token '.'
@@ -4054,12 +4054,90 @@ select t";
         }
 
         [Fact]
-        public void RangeExpression_MethodInvocation_2()
+        public void RangeExpression_MethodInvocation_LeftOperand()
         {
             UsingExpression("1.. .ToString()",
                 // (1,1): error CS1073: Unexpected token '.'
                 // 1.. .ToString()
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "1..").WithArguments(".").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void RangeExpression_MethodInvocation_RightOperand()
+        {
+            UsingExpression("..2 .ToString()");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.SimpleMemberAccessExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ToString");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_MethodInvocation_TwoOperands()
+        {
+            UsingExpression("1..2 .ToString()");
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.SimpleMemberAccessExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ToString");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_ConditionalAccessExpression()
+        {
+            UsingExpression("c?..b",
+                // (1,6): error CS1003: Syntax error, ':' expected
+                // c?..b
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 6),
+                // (1,6): error CS1733: Expected expression
+                // c?..b
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 6));
         }
     }
 }

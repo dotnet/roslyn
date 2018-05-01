@@ -1144,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         #endregion
 
         #region Index and Range
-        protected static CSharpCompilation CreateCompilationWithIndex(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        protected static CSharpCompilation CreateCompilationWithIndex(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateCompilation(TestSources.Index).VerifyDiagnostics();
 
@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 parseOptions: parseOptions);
         }
 
-        protected static CSharpCompilation CreateCompilationWithIndexAndRange(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        protected static CSharpCompilation CreateCompilationWithIndexAndRange(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range }).VerifyDiagnostics();
 
@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 parseOptions: parseOptions);
         }
 
-        protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpan(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range, TestSources.Span }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 

@@ -14,10 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitRangeExpression(BoundRangeExpression node)
         {
-            if (node is null)
-            {
-                return null;
-            }
+            Debug.Assert(node != null);
 
             if (node.LeftOperand is null)
             {
@@ -123,15 +120,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (operand.Type.IsNullableType())
                 {
                     BoundExpression tempOperand = CaptureExpressionInTempIfNeeded(operand, sideeffects, locals);
+                    BoundExpression operandHasValue = MakeOptimizedHasValue(tempOperand.Syntax, tempOperand);
 
                     if (condition is null)
                     {
-                        condition = MakeOptimizedHasValue(tempOperand.Syntax, tempOperand);
+                        condition = operandHasValue;
                     }
                     else
                     {
                         TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
-                        BoundExpression operandHasValue = MakeOptimizedHasValue(tempOperand.Syntax, tempOperand);
                         condition = MakeBinaryOperator(syntax, BinaryOperatorKind.BoolAnd, condition, operandHasValue, boolType, method: null);
                     }
 

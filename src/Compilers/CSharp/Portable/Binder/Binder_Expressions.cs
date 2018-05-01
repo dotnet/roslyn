@@ -1887,7 +1887,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindIndexExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
+            // PROTOTYPE: move this check to parser?
             CheckFeatureAvailability(node, MessageID.IDS_FeatureIndexOperator, diagnostics);
+
             GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__ctor, diagnostics, syntax: node);
 
             return BindUnaryOperator(node, diagnostics);
@@ -1895,7 +1897,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindRangeExpression(RangeExpressionSyntax node, DiagnosticBag diagnostics)
         {
+            // PROTOTYPE: move this check to parser?
             CheckFeatureAvailability(node, MessageID.IDS_FeatureRangeOperator, diagnostics);
+
             TypeSymbol rangeType = GetWellKnownType(WellKnownType.System_Range, diagnostics, node);
 
             if (!rangeType.IsErrorType())
@@ -1919,6 +1923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (left?.Type.IsNullableType() == true || right?.Type.IsNullableType() == true)
             {
+                // PROTOTYPE: check if range type is nonnullable struct, and if it can be used here. report accourdingly.
                 rangeType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(rangeType);
             }
 
@@ -1937,19 +1942,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (boundOperand.Type.IsNullableType())
             {
+                // PROTOTYPE: check if index type is nonnullable struct, and if it can be used here. report accourdingly.
                 indexType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, operand).Construct(indexType);
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(boundOperand, indexType, ref useSiteDiagnostics);
+            diagnostics.Add(operand, useSiteDiagnostics);
 
             if (!conversion.IsValid)
             {
-                diagnostics.Add(operand, useSiteDiagnostics);
                 GenerateImplicitConversionError(diagnostics, operand, conversion, boundOperand, indexType);
             }
 
-            return CreateConversion(boundOperand, indexType, diagnostics);
+            return CreateConversion(boundOperand, conversion, indexType, diagnostics);
         }
 
         private BoundExpression BindCastCore(ExpressionSyntax node, BoundExpression operand, TypeSymbol targetType, bool wasCompilerGenerated, DiagnosticBag diagnostics)
@@ -6632,10 +6638,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expr != null);
             Debug.Assert(arguments != null);
 
-            BoundExpression prototypeExtensionMethod = GetPrototypeExtensionIndexerOpt(node, expr, arguments, diagnostics);
-            if (prototypeExtensionMethod != null)
+            BoundExpression prototypeExtensionIndexerAccess = GetPrototypeExtensionIndexerOpt(node, expr, arguments, diagnostics);
+            if (prototypeExtensionIndexerAccess != null)
             {
-                return prototypeExtensionMethod;
+                return prototypeExtensionIndexerAccess;
             }
 
             // For an array access, the primary-no-array-creation-expression of the element-access
@@ -6886,10 +6892,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindIndexerAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
         {
-            BoundExpression prototypeExtensionMethod = GetPrototypeExtensionIndexerOpt(node, expr, analyzedArguments, diagnostics);
-            if (prototypeExtensionMethod != null)
+            BoundExpression prototypeExtensionIndexerAccess = GetPrototypeExtensionIndexerOpt(node, expr, analyzedArguments, diagnostics);
+            if (prototypeExtensionIndexerAccess != null)
             {
-                return prototypeExtensionMethod;
+                return prototypeExtensionIndexerAccess;
             }
 
             Debug.Assert(node != null);

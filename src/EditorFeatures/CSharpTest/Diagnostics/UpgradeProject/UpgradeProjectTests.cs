@@ -520,7 +520,7 @@ class Test
         }
 
         [Fact]
-        public async Task UpgradeProjectWithIndexToCsharp8()
+        public async Task UpgradeProjectWithIndexToCSharp8()
         {
             await TestLanguageVersionUpgradedAsync(
                 CodeAnalysis.CSharp.Test.Utilities.TestSources.Index +
@@ -537,7 +537,7 @@ class Test
         }
 
         [Fact]
-        public async Task UpgradeProjectWithRangeToCsharp8()
+        public async Task UpgradeProjectWithRangeToCSharp8()
         {
             await TestLanguageVersionUpgradedAsync(
                 CodeAnalysis.CSharp.Test.Utilities.TestSources.Index +
