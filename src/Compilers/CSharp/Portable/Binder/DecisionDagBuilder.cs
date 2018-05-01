@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // This occurs in error cases.
-                    Debug.Assert(recursive.HasAnyErrors);
+                    //Debug.Assert(recursive.HasAnyErrors);
                     // To prevent this pattern from subsuming other patterns and triggering a cascaded diagnostic, we add a test that will fail.
                     tests.Add(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true));
                 }

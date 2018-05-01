@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case AccessorDeclarationSyntax accessorDeclNode:
                     AddAnchorIndentationOperation(list, accessorDeclNode);
                     return;
+                case SwitchExpressionArmSyntax switchExpressionArm:
+                    AddAnchorIndentationOperation(list, switchExpressionArm);
+                    return;
             }
         }
 

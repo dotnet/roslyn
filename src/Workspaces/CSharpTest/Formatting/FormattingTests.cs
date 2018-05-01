@@ -4821,6 +4821,452 @@ var(x,y)=(1,2);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Positional()
+        {
+            var code = @"class C
+{
+    void M() { _ = this is  ( 1 , 2 )  ; }
+}";
+            var expectedCode = @"class C
+{
+    void M() { _ = this is (1, 2); }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Positional_Singleline()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is  ( 1 , 2 )  ; }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is (1, 2);
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Positional_Multiline()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is  ( 1 ,
+2 ,
+3 )  ; }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is (1,
+        2,
+        3);
+    }
+}";
+            // PROTOTYPE(patterns2): missing indent on 2 and 3
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Positional_Multiline2()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is  ( 1 ,
+2 ,
+3 )  ; }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is (1,
+        2,
+        3);
+    }
+}";
+            // PROTOTYPE(patterns2): missing indent on 2 and 3
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Positional_Multiline3()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is
+( 1 ,
+2 ,
+3 )  ; }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is
+        (1,
+        2,
+        3);
+    }
+}";
+            // PROTOTYPE(patterns2): missing indent on open paren, 2 and 3
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Positional_Multiline4()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is
+( 1 ,
+2 , 3 )  ; }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is
+        (1,
+        2, 3);
+    }
+}";
+            // PROTOTYPE(patterns2): missing indent on open paren, 2 and 3
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Properties_Singleline()
+        {
+            var code = @"class C
+{
+    void M() { _ = this is  C{  P1 :  1  } ; }
+}";
+            var expectedCode = @"class C
+{
+    void M() { _ = this is C { P1: 1 }; }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Properties_Multiline()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is
+{
+P1 :  1  ,
+P2 : 2
+} ;
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is
+        {
+        P1: 1,
+        P2: 2
+        };
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Properties_Multiline2()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is {
+P1 :  1  ,
+P2 : 2
+} ;
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is
+        {
+        P1: 1,
+        P2: 2
+        };
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_Properties_Multiline3()
+        {
+            // move P3 to a new line
+            var code = @"class C
+{
+    void M() {
+_ = this is {
+P1 :  1  ,
+P2 : 2, P3: 3
+} ;
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is
+        {
+        P1: 1,
+        P2: 2, P3: 3
+        };
+    }
+}";
+
+            // PROTOTYPE(patterns2): Wrong indentation
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_SpaceBetweenTypeAndPositionalSubpattern()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is  C( 1 , 2 ){}  ; }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is C (1, 2) { };
+    }
+}";
+            // a space separates the type, the positional pattern and the properties pattern
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSwitchExpression_IndentArms()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this switch
+{
+{ P1: 1} => true,
+(0, 1) => true,
+_ => false
+};
+
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this switch
+        {
+            { P1: 1 } => true,
+            (0, 1) => true,
+            _ => false
+        };
+
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSwitchExpression_ExpressionAnchoredToArm()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this switch
+{
+{ P1: 1} 
+=> true,
+(0, 1) 
+    => true,
+_ 
+        => false
+};
+
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this switch
+        {
+            { P1: 1 }
+            => true,
+            (0, 1)
+                => true,
+            _
+                    => false
+        };
+
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSwitchExpression_ArmCommaWantsNewline()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this switch
+{
+{ P1: 1} => true,
+(0, 1) => true, _ => false
+};
+
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this switch
+        {
+            { P1: 1 } => true,
+            (0, 1) => true,
+            _ => false
+        };
+
+    }
+}";
+            // PROTOTYPE(patterns2): TODO indentation
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSwitchWithPropertyPattern()
+        {
+            var code = @"class C
+{
+    void M()
+    {
+        switch (this)
+        {
+            case { P1: 1, P2: { P3: 3, P4: 4 } }:
+                break;
+        }
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        switch (this)
+        {
+            case { P1: 1, P2: { P3: 3, P4: 4 } }:
+                break;
+        }
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSwitchWithPropertyPattern_Singleline()
+        {
+            var code = @"class C
+{
+    void M()
+    {
+        switch (this)
+        {
+            case { P1: 1, P2: { P3: 3, P4: 4 } }: break;
+        }
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        switch (this)
+        {
+            case { P1: 1, P2: { P3: 3, P4: 4 } }: break;
+        }
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSwitchWithPropertyPattern_Singleline2()
+        {
+            var code = @"class C
+{
+    void M()
+    {
+        switch (this)
+        {
+            case { P1: 1, P2: { P3: 3, P4: 4 } }: System.Console.Write(1);
+    break;
+        }
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        switch (this)
+        {
+            case { P1: 1, P2: { P3: 3, P4: 4 } }:
+                System.Console.Write(1);
+                break;
+        }
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleExtension()
         {
             var code = @"static class Class5

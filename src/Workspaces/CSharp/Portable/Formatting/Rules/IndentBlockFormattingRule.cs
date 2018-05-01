@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             AddLabelIndentationOperation(list, node, optionSet);
 
+            AddSwitchExpressionIdentationOperation(list, node);
+
             AddSwitchIndentationOperation(list, node, optionSet);
 
             AddEmbeddedStatementsIndentationOperation(list, node);
@@ -43,6 +45,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var baseToken = declaringNode.GetFirstToken();
                 AddIndentBlockOperation(list, baseToken, node.GetFirstToken(), node.GetLastToken());
             }
+        }
+
+        private void AddSwitchExpressionIdentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        {
+            var switchExpression = node as SwitchExpressionSyntax;
+            if (switchExpression == null)
+            {
+                return;
+            }
+
+            var armsList = switchExpression.Arms;
+            AddIndentBlockOperation(list, armsList.First().GetFirstToken(includeZeroWidth: true), armsList.Last().GetLastToken(includeZeroWidth: true));
         }
 
         private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)

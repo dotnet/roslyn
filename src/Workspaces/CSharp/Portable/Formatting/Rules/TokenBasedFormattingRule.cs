@@ -68,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
                             !currentToken.IsCloseParenInStatement() &&
-                            !currentToken.IsEqualsTokenInAutoPropertyInitializers())
+                            !currentToken.IsEqualsTokenInAutoPropertyInitializers() &&
+                            !currentToken.IsColonInCasePatternSwitchLabel())
                         {
                             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                         }
@@ -89,6 +90,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // statement related operations
             // object and anonymous initializer "," case
             if (previousToken.IsCommaInInitializerExpression())
+            {
+                return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+            }
+
+            // , * in switch expression arm
+            if (previousToken.IsCommaInSwitchExpression())
             {
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
             }
@@ -160,6 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             return nextOperation.Invoke();
+        }
+
+        private static bool IsPropertySubpattern(SyntaxToken currentToken)
+        {
+            return currentToken.Parent.IsKind(SyntaxKind.PropertySubpattern);
         }
 
         public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
