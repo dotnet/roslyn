@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     //  1) the operands are still executed in the same order: a, b, then c.
                     //     So even if they have side effects, it will not matter.
                     //  2) the same shortcircuiting happens.
-                    //  3) the result will always be the same (for logical operators, there are 
+                    //  3) for logical operators the result will always be the same (there are 
                     //     additional conditions that are checked for non-logical operators).
                     if (IsAssociative(parentBinaryExpression.Kind()) &&
                         node.Expression.Kind() == parentBinaryExpression.Kind() &&
