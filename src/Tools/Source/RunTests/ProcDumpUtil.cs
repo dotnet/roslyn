@@ -58,7 +58,7 @@ namespace RunTests
             // -ma	Write a 'Full' dump file. Includes All the Image, Mapped and Private memory.
             // -e	Write a dump when the process encounters an unhandled exception. Include the 1 to create dump on first chance exceptions.
             // -f C00000FD.STACK_OVERFLOWC Dump when a stack overflow first chance exception is encountered. 
-            const string procDumpSwitches = "/accepteula -ma -e -f C00000FD.STACK_OVERFLOW";
+            const string procDumpSwitches = "-accepteula -ma -e 1 -f C0000005.ACCESS_VIOLATION";
             dumpDirectory = dumpDirectory.TrimEnd('\\');
             return $" {procDumpSwitches} {processId} \"{dumpDirectory}\"";
         }
