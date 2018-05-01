@@ -1935,7 +1935,7 @@ class Blah
             var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
             var returnStatement = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single();
             Assert.Equal("return obj is global::Class1 @class && this.i == @class.i;", returnStatement.ToString());
-            var modifiedReturnStatement = (ReturnStatementSyntax)new RemoveAliasQual().Visit(returnStatement);
+            var modifiedReturnStatement = (ReturnStatementSyntax)new RemoveAliasQualifiers().Visit(returnStatement);
             Assert.Equal("return obj is Class1 @class && this.i == @class.i;", modifiedReturnStatement.ToString());
             var gotModel = model.TryGetSpeculativeSemanticModel(returnStatement.Location.SourceSpan.Start, modifiedReturnStatement, out var speculativeModel);
             Assert.True(gotModel);
@@ -1947,7 +1947,7 @@ class Blah
         /// <summary>
         /// Helper class to remove alias qualifications.
         /// </summary>
-        class RemoveAliasQual : CSharpSyntaxRewriter
+        class RemoveAliasQualifiers : CSharpSyntaxRewriter
         {
             public override SyntaxNode VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
             {
@@ -1976,7 +1976,7 @@ class Blah
             var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
             var returnStatement = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single();
             Assert.Equal("return obj is global::Class1 @class;", returnStatement.ToString());
-            var modifiedReturnStatement = (ReturnStatementSyntax)new RemoveAliasQual().Visit(returnStatement);
+            var modifiedReturnStatement = (ReturnStatementSyntax)new RemoveAliasQualifiers().Visit(returnStatement);
             Assert.Equal("return obj is Class1 @class;", modifiedReturnStatement.ToString());
             var gotModel = model.TryGetSpeculativeSemanticModel(returnStatement.Location.SourceSpan.Start, modifiedReturnStatement, out var speculativeModel);
             Assert.True(gotModel);

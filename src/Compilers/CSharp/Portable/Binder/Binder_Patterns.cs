@@ -539,14 +539,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         string name = subPattern.NameColon.Name.Identifier.ValueText;
                         foundField = CheckIsTupleElement(subPattern.NameColon.Name, (NamedTypeSymbol)declType, name, i, diagnostics);
-                        // PROTOTYPE(patterns2): Should the tuple field binding for the name be stored somewhere in the node?
-
                     }
+
                     BoundSubpattern boundSubpattern = new BoundSubpattern(
                         subPattern,
                         foundField,
-                        BindPattern(subPattern.Pattern, elementType, isError, diagnostics)
-                        );
+                        BindPattern(subPattern.Pattern, elementType, isError, diagnostics));
                     patterns.Add(boundSubpattern);
                 }
             }
@@ -582,7 +580,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMismatch, subPattern.NameColon.Name.Location, name, parameterName);
                         }
-                        // PROTOTYPE(patterns2): Should the parameter binding for the name be stored somewhere in the node?
                     }
                     BoundSubpattern boundSubpattern = new BoundSubpattern(
                         subPattern,
