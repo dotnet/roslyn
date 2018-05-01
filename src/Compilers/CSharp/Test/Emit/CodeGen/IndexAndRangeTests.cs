@@ -525,7 +525,7 @@ value: 'value: '4', fromEnd: 'False'', fromEnd: 'value: '5', fromEnd: 'False''")
         [Fact]
         public void ExtensionIndexer_Error()
         {
-            CreateCompilationWithIndex(@"
+            CreateCompilationWithIndexAndRangeAndSpan(@"
 using System;
 public static class Program
 {
@@ -547,7 +547,7 @@ public static class Program
         [Fact]
         public void ExtensionIndexer_StringIndex()
         {
-            CompileAndVerify(CreateCompilationWithIndex(@"
+            CompileAndVerify(CreateCompilationWithIndexAndRangeAndSpan(@"
 using System;
 public static class Program
 {
@@ -566,7 +566,7 @@ public static class Program
         [Fact]
         public void ExtensionIndexer_StringRange()
         {
-            CompileAndVerify(CreateCompilationWithIndexAndRange(@"
+            CompileAndVerify(CreateCompilationWithIndexAndRangeAndSpan(@"
 using System;
 public static class Program
 {

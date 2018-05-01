@@ -1923,7 +1923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (left?.Type.IsNullableType() == true || right?.Type.IsNullableType() == true)
             {
-                // PROTOTYPE: check if range type is nonnullable struct, and if it can be used here. report accourdingly.
+                // PROTOTYPE: check if range type is nonnullable struct, and if it can be used here. report accordingly.
                 rangeType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(rangeType);
             }
 
@@ -1942,7 +1942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (boundOperand.Type.IsNullableType())
             {
-                // PROTOTYPE: check if index type is nonnullable struct, and if it can be used here. report accourdingly.
+                // PROTOTYPE: check if index type is nonnullable struct, and if it can be used here. report accordingly.
                 indexType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, operand).Construct(indexType);
             }
 
@@ -6839,22 +6839,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            HashSet<DiagnosticInfo> unused = null;
             BoundExpression argument = analyzedArguments.Argument(0);
 
             // argument must be a range or an index
-            switch (argument.Type.ToDisplayString())
+            if (argument.Type != GetWellKnownType(WellKnownType.System_Index,ref unused)
+                && argument.Type != GetWellKnownType(WellKnownType.System_Range, ref unused))
             {
-                case "System.Index":
-                case "System.Range":
-                    break;
-                default:
-                    return null;
+                return null;
             }
 
             // receiver must be a string, a span, or an array
-            if (receiver.Type.ToDisplayString() != "string"
+            if (!receiver.Type.IsStringType()
                 && !receiver.Type.IsArray()
-                && receiver.Type.ConstructedFrom().ToDisplayString() != "System.Span<T>")
+                && receiver.Type.ConstructedFrom() != GetWellKnownType(WellKnownType.System_Span_T, ref unused))
             {
                 return null;
             }

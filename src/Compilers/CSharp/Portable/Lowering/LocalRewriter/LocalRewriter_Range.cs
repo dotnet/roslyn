@@ -24,28 +24,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // translates to:       Range.All()
 
                     MethodSymbol method = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Range__All);
-                    return MakeCall(node.Syntax, rewrittenReceiver: null, method, ImmutableArray<BoundExpression>.Empty, node.Type);
-                }
-
-                BoundExpression rightOperand = VisitExpression(node.RightOperand);
-                rightOperand = NullableAlwaysHasValue(rightOperand) ?? rightOperand;
-
-                if (node.RightOperand.Type.IsNullableType())
-                {
-                    // Case 2:              "..nullableRight"
-                    // translates to:       nullableRight.HasValue ? new Nullable(Range.ToEnd(nullableRight.GetValueOrDefault())) : default
-
-                    MethodSymbol method = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Range__ToEnd);
-                    return LiftRangeExpression(node.Syntax, node.Type, method, rightOperand);
+                    return MakeCall(node.Syntax, rewrittenReceiver: null, method, ImmutableArray<BoundExpression>.Empty, method.ReturnType);
                 }
                 else
                 {
-                    // Case 3:              "..right"
-                    // translates to:       Range.ToEnd(right)
-
                     MethodSymbol method = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Range__ToEnd);
-                    ImmutableArray<BoundExpression> arguments = ImmutableArray.Create(rightOperand);
-                    return MakeCall(node.Syntax, rewrittenReceiver: null, method, arguments, node.Type);
+                    BoundExpression rightOperand = VisitExpression(node.RightOperand);
+                    rightOperand = NullableAlwaysHasValue(rightOperand) ?? rightOperand;
+
+                    if (node.RightOperand.Type.IsNullableType())
+                    {
+                        // Case 2:              "..nullableRight"
+                        // translates to:       nullableRight.HasValue ? new Nullable(Range.ToEnd(nullableRight.GetValueOrDefault())) : default
+
+                        return LiftRangeExpression(node.Syntax, node.Type, method, rightOperand);
+                    }
+                    else
+                    {
+                        // Case 3:              "..right"
+                        // translates to:       Range.ToEnd(right)
+
+                        ImmutableArray<BoundExpression> arguments = ImmutableArray.Create(rightOperand);
+                        return MakeCall(node.Syntax, rewrittenReceiver: null, method, arguments, method.ReturnType);
+                    }
                 }
             }
             else
@@ -55,12 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (node.RightOperand is null)
                 {
+                    MethodSymbol method = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Range__FromStart);
+
                     if (leftOperand.Type.IsNullableType())
                     {
                         // Case 4:              "nullableLeft.."
                         // translates to:       nullableLeft.HasValue ? new Nullable(Range.FromStart(nullableLeft.GetValueOrDefault())) : default
 
-                        MethodSymbol method = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Range__FromStart);
                         return LiftRangeExpression(node.Syntax, node.Type, method, leftOperand);
                     }
                     else
@@ -68,37 +70,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Case 5:              "left.."
                         // translates to:       Range.FromStart(left)
 
-                        MethodSymbol method = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Range__FromStart);
                         ImmutableArray<BoundExpression> arguments = ImmutableArray.Create(leftOperand);
-                        return MakeCall(node.Syntax, rewrittenReceiver: null, method, arguments, node.Type);
+                        return MakeCall(node.Syntax, rewrittenReceiver: null, method, arguments, method.ReturnType);
                     }
-                }
-
-                BoundExpression rightOperand = VisitExpression(node.RightOperand);
-                rightOperand = NullableAlwaysHasValue(rightOperand) ?? rightOperand;
-
-                if (!leftOperand.Type.IsNullableType() && !rightOperand.Type.IsNullableType())
-                {
-                    // Case 6:              "left..right"
-                    // translates to:       Range.Create(left, right)
-
-                    MethodSymbol method = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Range__Create);
-                    ImmutableArray<BoundExpression> arguments = ImmutableArray.Create(leftOperand, rightOperand);
-                    return MakeCall(node.Syntax, rewrittenReceiver: null, method, arguments, node.Type);
                 }
                 else
                 {
-                    // Case 7:              "nullableLeft..nullableRight"
-                    // translates to:       nullableLeft.HasValue && nullableRight.HasValue ? new Nullable(Range.Create(nullableLeft.GetValueOrDefault(), nullableRight.GetValueOrDefault())) : default
-
-                    // Case 8:              "nullableLeft..right"
-                    // translates to:       nullableLeft.HasValue ? new Nullable(Range.Create(nullableLeft.GetValueOrDefault(), right)) : default
-
-                    // Case 9:              "left..nullableRight"
-                    // translates to:       nullableRight.HasValue ? new Nullable(Range.Create(left, nullableRight.GetValueOrDefault())) : default
-
                     MethodSymbol method = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Range__Create);
-                    return LiftRangeExpression(node.Syntax, node.Type, method, leftOperand, rightOperand);
+                    BoundExpression rightOperand = VisitExpression(node.RightOperand);
+                    rightOperand = NullableAlwaysHasValue(rightOperand) ?? rightOperand;
+
+                    if (!leftOperand.Type.IsNullableType() && !rightOperand.Type.IsNullableType())
+                    {
+                        // Case 6:              "left..right"
+                        // translates to:       Range.Create(left, right)
+
+                        ImmutableArray<BoundExpression> arguments = ImmutableArray.Create(leftOperand, rightOperand);
+                        return MakeCall(node.Syntax, rewrittenReceiver: null, method, arguments, method.ReturnType);
+                    }
+                    else
+                    {
+                        // Case 7:              "nullableLeft..nullableRight"
+                        // translates to:       nullableLeft.HasValue && nullableRight.HasValue ? new Nullable(Range.Create(nullableLeft.GetValueOrDefault(), nullableRight.GetValueOrDefault())) : default
+
+                        // Case 8:              "nullableLeft..right"
+                        // translates to:       nullableLeft.HasValue ? new Nullable(Range.Create(nullableLeft.GetValueOrDefault(), right)) : default
+
+                        // Case 9:              "left..nullableRight"
+                        // translates to:       nullableRight.HasValue ? new Nullable(Range.Create(left, nullableRight.GetValueOrDefault())) : default
+
+                        return LiftRangeExpression(node.Syntax, node.Type, method, leftOperand, rightOperand);
+                    }
                 }
             }
         }
@@ -128,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        // PROTOTYPE: make sure this type exists in binding
                         TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
                         condition = MakeBinaryOperator(syntax, BinaryOperatorKind.BoolAnd, condition, operandHasValue, boolType, method: null);
                     }
@@ -146,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rangeCall = MakeCall(syntax, rewrittenReceiver: null, method, arguments.ToImmutableAndFree(), type);
 
             // new Nullable(method(left.GetValueOrDefault(), right.GetValueOrDefault()))
+            // PROTOTYPE: make sure this ctor exists in binding
             MethodSymbol nullableCtor = (MethodSymbol)_compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor).SymbolAsMember((NamedTypeSymbol)type);
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, nullableCtor, binderOpt: null, rangeCall);
 

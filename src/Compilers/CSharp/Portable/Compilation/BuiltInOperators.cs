@@ -243,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (kind.IsLifted())
             {
+                // PROTOTYPE: check if  type is nonnullable struct, and if it can be used here. report accourdingly. (this change will be undone anyways)
                 NamedTypeSymbol nullable = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
 
                 opType = nullable.Construct(opType);
