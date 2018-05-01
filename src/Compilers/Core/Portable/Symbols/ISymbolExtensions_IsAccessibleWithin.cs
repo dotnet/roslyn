@@ -13,6 +13,19 @@ namespace Microsoft.CodeAnalysis
         /// an optional qualifier of type 'throughTypeOpt' to be used to resolve
         /// protected access.
         /// </summary>
+        /// <remarks>
+        /// The following areas of imprecision may exist in the results of this API:
+        /// <para>For assembly identity, we depend on Equals <see cref="IEquatable{T}.Equals(T)"/>/>.
+        /// Assembly symbols that represent the same assembly imported into different language compilers
+        /// may not compare equal, and this may prevent them from appearing to be related through
+        /// this API. See https://github.com/dotnet/roslyn/issues/26542 .</para>
+        /// <para>We compare <see cref="INamedTypeSymbol"/> based on the identity of the containing
+        /// assembly (see above) and their metadata name, which includes the metadata name of the enclosing
+        /// namespaces. Due to the behavior of the VB compiler (https://github.com/dotnet/roslyn/issues/26546)
+        /// it merges namespaces when importing an assembly. Consequently, the metadata name of the namespace
+        /// may not be correct for some of the contained types, and types that are distinct
+        /// may appear to have the same fully-qualified name. In that case this API may treat them as the same type.</para>
+        /// </remarks>
         public static bool IsAccessibleWithin(
             this ISymbol symbol,
             ISymbol within,

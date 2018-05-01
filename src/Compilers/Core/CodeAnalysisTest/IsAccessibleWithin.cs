@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
@@ -299,7 +301,7 @@ End Class
 ");
             var assemblyName = "MyAssembly";
             // Note that these two compilations claim to have the same assembly identity, but are distinct assemblies
-            var csc = CSharpCompilation.Create(assemblyName, new[] { csharpTree }, new MetadataReference[] { /* references */ });
+            var csc = CSharpCompilation.Create(assemblyName, new[] { csharpTree }, new MetadataReference[] { TestBase.MscorlibRef });
             var Ac = csc.GlobalNamespace.GetMembers("A")[0] as INamedTypeSymbol;
             var APc = Ac.GetMembers("P")[0];
             var AIc = Ac.GetMembers("I")[0];
@@ -309,7 +311,7 @@ End Class
             var Cc = csc.GlobalNamespace.GetMembers("C")[0] as INamedTypeSymbol;
 
             // A VB assembly with the same identity
-            var vbc = VisualBasicCompilation.Create(assemblyName, new[] { vbTree }, new MetadataReference[] { /* references */ });
+            var vbc = VisualBasicCompilation.Create(assemblyName, new[] { vbTree }, new MetadataReference[] { TestBase.MscorlibRef });
             var Av = vbc.GlobalNamespace.GetMembers("A")[0] as INamedTypeSymbol;
             var APv = Av.GetMembers("P")[0];
             var AIv = Av.GetMembers("I")[0];
@@ -338,7 +340,7 @@ End Class
             Assert.True(ARv.IsAccessibleWithin(ANv));
 
             // A VB assembly with a different identity
-            vbc = VisualBasicCompilation.Create(assemblyName+"2", new[] { vbTree }, new MetadataReference[] { /* references */ });
+            vbc = VisualBasicCompilation.Create(assemblyName+"2", new[] { vbTree }, new MetadataReference[] { TestBase.MscorlibRef });
             Av = vbc.GlobalNamespace.GetMembers("A")[0] as INamedTypeSymbol;
             APv = Av.GetMembers("P")[0];
             AIv = Av.GetMembers("I")[0];
@@ -365,6 +367,39 @@ End Class
             Assert.False(ARc.IsAccessibleWithin(ANv));
             Assert.False(ARv.IsAccessibleWithin(ANc));
             Assert.True(ARv.IsAccessibleWithin(ANv));
+        }
+
+        [Fact, WorkItem(26546, "https://github.com/dotnet/roslyn/issues/26546")]
+        public void TestIsAccessibleWithin_MergedVBNamespaces()
+        {
+            var csharpTree = CSharpSyntaxTree.ParseText(@"
+namespace NS
+{
+    public class C {}
+}
+namespace ns
+{
+    public class C
+    {
+        protected static int Field;
+    }
+}
+");
+            var csc = CSharpCompilation.Create("A1", new[] { csharpTree }, new MetadataReference[] { TestBase.MscorlibRef }, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            var vbTree = VisualBasicSyntaxTree.ParseText(@"");
+            var vbc = VisualBasicCompilation.Create("B1", new[] { vbTree }, new MetadataReference[] { TestBase.MscorlibRef, MetadataReference.CreateFromImage(csc.EmitToArray()) }, options: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            var ns = vbc.GlobalNamespace.GetMembers("NS")[0] as INamespaceSymbol;
+            var C1 = ns.GetMembers("C").ToArray()[0] as INamedTypeSymbol;
+            var C2 = ns.GetMembers("C").ToArray()[1] as INamedTypeSymbol;
+            if (C2.GetMembers("Field").IsEmpty)
+            {
+                (C1, C2) = (C2, C1);
+            }
+            var Field = C2.GetMembers("Field").ToArray()[0] as IFieldSymbol;
+            Assert.Equal("ns", C1.ContainingSymbol.MetadataName); // should be "NS"; see https://github.com/dotnet/roslyn/issues/26546
+            Assert.Equal("ns", C2.ContainingSymbol.MetadataName);
+            Assert.True(Field.IsAccessibleWithin(C2)); // should be False; see https://github.com/dotnet/roslyn/issues/26546
         }
 
         [Fact, WorkItem(26459, "https://github.com/dotnet/roslyn/issues/26459")]
