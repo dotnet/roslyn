@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // => (x)   ->   => x
             if (node.IsParentKind(SyntaxKind.ArrowExpressionClause))
             {
                 return true;
