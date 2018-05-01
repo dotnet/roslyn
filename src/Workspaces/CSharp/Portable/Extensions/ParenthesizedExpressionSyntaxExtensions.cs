@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Operator precedence cases:
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.
-            return parentExpression != null && !RemovalChangesAssociation(node, expression, parentExpression, semanticModel);
+            return parentExpression != null && !RemovalChangesAssociation(node, parentExpression, semanticModel);
         }
 
         private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = new ObjectPool<Stack<SyntaxNode>>(() => new Stack<SyntaxNode>());
@@ -288,9 +288,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static bool RemovalChangesAssociation(
-            ParenthesizedExpressionSyntax node, ExpressionSyntax expression,
-            ExpressionSyntax parentExpression, SemanticModel semanticModel)
+            ParenthesizedExpressionSyntax node, ExpressionSyntax parentExpression, SemanticModel semanticModel)
         {
+            var expression = node.Expression;
             var precedence = expression.GetOperatorPrecedence();
             var parentPrecedence = parentExpression.GetOperatorPrecedence();
             if (precedence == OperatorPrecedence.None || parentPrecedence == OperatorPrecedence.None)
@@ -340,7 +340,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         node.Expression.Kind() == parentBinaryExpression.Kind() &&
                         parentBinaryExpression.Right == node)
                     {
-                        return !node.IsSafeToChangeAssociativity(node.Expression, semanticModel);
+                        return !node.IsSafeToChangeAssociativity(
+                            node.Expression, parentBinaryExpression.Left, 
+                            parentBinaryExpression.Right, semanticModel);
                     }
 
                     // Null-coalescing is right associative; removing parens from the LHS changes the association.
