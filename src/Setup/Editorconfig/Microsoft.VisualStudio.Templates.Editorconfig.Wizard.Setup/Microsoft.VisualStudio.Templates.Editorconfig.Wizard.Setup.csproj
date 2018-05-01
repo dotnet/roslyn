@@ -9,7 +9,7 @@
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\Editorconfig\Wizard</ExtensionInstallationFolder>
-    <VisualStudioInsertionComponent>Templates.Editorconfig.Wizard.Setup</VisualStudioInsertionComponent>
+    <VisualStudioInsertionComponent>Templates.Editorconfig.Setup</VisualStudioInsertionComponent>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="VSPackage.resx">

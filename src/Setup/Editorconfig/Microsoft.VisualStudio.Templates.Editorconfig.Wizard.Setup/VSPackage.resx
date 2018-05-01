@@ -129,4 +129,7 @@
   <data name="116" xml:space="preserve">
     <value>Create an editorconfig file to persist your editor and code settings.</value>
   </data>
+  <data name="117" xml:space="preserve">
+    <value>editorconfig File (.NET)</value>
+  </data>
 </root>

@@ -22,6 +22,11 @@
         <target state="new">Create an editorconfig file to persist your editor and code settings.</target>
         <note />
       </trans-unit>
+      <trans-unit id="117">
+        <source>editorconfig File (.NET)</source>
+        <target state="new">editorconfig File (.NET)</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
