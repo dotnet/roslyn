@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new NonLazyType(_typeSymbol, isNullable: false, _customModifiers);
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Move this implementation to the base class.
+            // PROTOTYPE(NullableReferenceTypes): Move implementation to the base class.
             public override string ToDisplayString(SymbolDisplayFormat format)
             {
                 var str = _typeSymbol.ToDisplayString(format);
