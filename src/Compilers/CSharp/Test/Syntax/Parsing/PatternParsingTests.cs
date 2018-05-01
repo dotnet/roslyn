@@ -2334,19 +2334,56 @@ case KeyValuePair<String, DateTime>[] pairs2:
             UsingExpression("1 switch { a?b:c: d }", TestOptions.RegularWithoutRecursivePatterns,
                 // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
                 // 1 switch { a?b:c: d }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { a?b:c").WithArguments("recursive patterns", "8.0").WithLocation(1, 1),
-                // (1,1): error CS1073: Unexpected token ':'
-                // 1 switch { a?b:c: d }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "1 switch { a?b:c").WithArguments(":").WithLocation(1, 1),
-                // (1,13): error CS1003: Syntax error, ':' expected
-                // 1 switch { a?b:c: d }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":", "?").WithLocation(1, 13),
-                // (1,13): error CS1525: Invalid expression term '?'
-                // 1 switch { a?b:c: d }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 13),
-                // (1,17): error CS1513: } expected
-                // 1 switch { a?b:c: d }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(1, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { a?b:c: d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
+                );
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.ConditionalExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "d");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpression02b()
+        {
+            UsingExpression("1 switch { e when a?b:c: d }", TestOptions.RegularWithoutRecursivePatterns,
+                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // 1 switch { e when a?b:c: d }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { e when a?b:c: d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -2362,29 +2399,37 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "a");
+                            N(SyntaxKind.IdentifierToken, "e");
                         }
                     }
-                    M(SyntaxKind.ColonToken);
-                    N(SyntaxKind.ConditionalExpression);
+                    N(SyntaxKind.WhenClause);
                     {
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.ConditionalExpression);
                         {
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
                         }
-                        N(SyntaxKind.QuestionToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "b");
-                        }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "c");
-                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "d");
                     }
                 }
-                M(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }

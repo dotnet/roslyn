@@ -676,12 +676,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var arms = _pool.AllocateSeparated<SwitchExpressionArmSyntax>();
             do
             {
-                // Use a precedence that excludes lambdas, assignments, and a ternary which could have a
-                // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
-                // to be consumed by the switch arm. The strange side-effect of that is that the ternary
-                // expression is not permitted as a constant expression here; it would have to be parenthesized.
-                var pattern = ParsePattern(Precedence.Coalescing, whenIsKeyword: true);
-                var whenClause = ParseWhenClause(Precedence.Coalescing);
+                var pattern = ParsePattern(Precedence.Ternary, whenIsKeyword: true);
+                var whenClause = ParseWhenClause(Precedence.Ternary);
                 var colon = this.EatToken(SyntaxKind.ColonToken);
                 var expression = ParseExpressionCore();
                 var switchExpressionCase = _syntaxFactory.SwitchExpressionArm(pattern, whenClause, colon, expression);
