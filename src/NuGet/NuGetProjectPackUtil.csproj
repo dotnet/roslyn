@@ -88,6 +88,7 @@
     <NuspecProperties>$(NuspecProperties);SystemTextRegularExpressionsVersion=$(SystemTextRegularExpressionsVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);SystemThreadingVersion=$(SystemThreadingVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);SystemThreadingTasksVersion=$(SystemThreadingTasksVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemThreadingTasksExtensionsVersion=$(SystemThreadingTasksExtensionsVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);SystemThreadingTasksParallelVersion=$(SystemThreadingTasksParallelVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);SystemThreadingThreadVersion=$(SystemThreadingThreadVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);SystemValueTupleVersion=$(SystemValueTupleVersion)</NuspecProperties>

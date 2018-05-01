@@ -151,7 +151,7 @@
       ]
     },
     {
-      "certificate": null,
+      "certificate": "NuGet",
       "strongName": null,
       "values": [
         "Nuget\\PerBuildPreRelease\\*.nupkg",

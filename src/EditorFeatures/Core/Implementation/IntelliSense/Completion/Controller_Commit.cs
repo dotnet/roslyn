@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             // Let the completion rules know that this item was committed.
-            this.MakeMostRecentItem(item.DisplayText);
+            this.MakeMostRecentItem(CompletionHelper.GetDisplayTextForMatching(item));
         }
 
         private void SetCaretPosition(int desiredCaretPosition)

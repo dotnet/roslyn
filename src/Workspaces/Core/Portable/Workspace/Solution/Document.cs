@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // do it async for real.
-            return DocumentState.GetSyntaxTreeAsync(cancellationToken);
+            return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask();
         }
 
         internal SyntaxTree GetSyntaxTreeSynchronously(CancellationToken cancellationToken)

@@ -153,12 +153,16 @@ $@"<Project>
             ProjectDir.CreateFile("Directory.Build.targets").WriteAllText("<Project/>");
             ProjectDir.CreateFile(".editorconfig").WriteAllText("root = true");
 
-            Assert.True(File.Exists(Path.Combine(testBinDirectory, "Microsoft.CSharp.Core.targets")));
-            Assert.True(File.Exists(Path.Combine(testBinDirectory, "Microsoft.VisualBasic.Core.targets")));
+            var csharpCoreTargets = Path.Combine(testBinDirectory, "Microsoft.CSharp.Core.targets");
+            var visualBasicCoreTargets = Path.Combine(testBinDirectory, "Microsoft.VisualBasic.Core.targets");
+
+            Assert.True(File.Exists(csharpCoreTargets));
+            Assert.True(File.Exists(visualBasicCoreTargets));
 
             EnvironmentVariables = new Dictionary<string, string>()
             {
-                { "RoslynTargetsPath", testBinDirectory },
+                { "CSharpCoreTargetsPath", csharpCoreTargets },
+                { "VisualBasicCoreTargetsPath", visualBasicCoreTargets },
                 { "MSBuildSDKsPath", sdksDir },
                 { "DOTNET_MSBUILD_SDK_RESOLVER_SDKS_DIR", sdksDir }
             };
@@ -185,7 +189,10 @@ $@"<Project>
             var testBinDirectory = Path.GetDirectoryName(typeof(DotNetSdkTests).Assembly.Location);
             var binLog = Path.Combine(ProjectDir.Path, $"build{_logIndex++}.binlog");
 
-            var buildResult = ProcessUtilities.Run(DotNetPath, $@"msbuild ""{Project.Path}"" /t:{targetsArg} /p:Configuration={Configuration} /p:RoslynTargetsPath=""{testBinDirectory}"" /bl:""{binLog}""",
+            // RoslynTargetsPath is a path to the built-in Roslyn compilers in the .NET SDK.
+            // For testing we are using compilers from custom location (this emulates usage of Microsoft.Net.Compilers package.
+            // The core targets should be imported from CSharpCoreTargetsPath and VisualBasicCoreTargetsPath and the compiler tasks from the same location.
+            var buildResult = ProcessUtilities.Run(DotNetPath, $@"msbuild ""{Project.Path}"" /t:{targetsArg} /p:RoslynTargetsPath=""<nonexistent directory>"" /p:Configuration={Configuration} /bl:""{binLog}""",
                 additionalEnvironmentVars: EnvironmentVariables);
             Assert.True(buildResult.ExitCode == 0, $"Failed with exit code {buildResult.ExitCode}: {buildResult.Output}");
 
