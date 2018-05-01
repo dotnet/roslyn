@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             AddLabelIndentationOperation(list, node, optionSet);
 
+            AddSwitchExpressionIdentationOperation(list, node);
+
             AddSwitchIndentationOperation(list, node, optionSet);
 
             AddEmbeddedStatementsIndentationOperation(list, node);
@@ -43,6 +45,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var baseToken = declaringNode.GetFirstToken();
                 AddIndentBlockOperation(list, baseToken, node.GetFirstToken(), node.GetLastToken());
             }
+        }
+
+        private void AddSwitchExpressionIdentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+        {
+            var switchExpression = node as SwitchExpressionSyntax;
+            if (switchExpression == null)
+            {
+                return;
+            }
+
+            var arms = switchExpression.Arms;
+            var startToken = arms.First().GetFirstToken(includeZeroWidth: true);
+            var endToken = arms.Last().GetLastToken(includeZeroWidth: true);
+            var span = CommonFormattingHelpers.GetSpanIncludingTrailingAndLeadingTriviaOfAdjacentTokens(startToken, endToken);
+
+            //AddIndentBlockOperation(list, switchExpression.OpenBraceToken, startToken, endToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+            AddIndentBlockOperation(list, startToken, endToken);
         }
 
         private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet)
@@ -147,9 +166,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case AnonymousObjectCreationExpressionSyntax anonymousObjectCreation:
                     SetAlignmentBlockOperation(list, anonymousObjectCreation.NewKeyword, anonymousObjectCreation.OpenBraceToken, anonymousObjectCreation.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
-                case SwitchExpressionSyntax switchExpression:
-                    SetAlignmentBlockOperation(list, switchExpression.SwitchKeyword, switchExpression.OpenBraceToken, switchExpression.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
-                    return;
+                //PROTOTYPE
+                //case SwitchExpressionSyntax switchExpression:
+                //    SetAlignmentBlockOperation(list, switchExpression.SwitchKeyword, switchExpression.OpenBraceToken, switchExpression.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                //    return;
                 case ArrayCreationExpressionSyntax arrayCreation when arrayCreation.Initializer != null:
                     SetAlignmentBlockOperation(list, arrayCreation.NewKeyword, arrayCreation.Initializer.OpenBraceToken, arrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
