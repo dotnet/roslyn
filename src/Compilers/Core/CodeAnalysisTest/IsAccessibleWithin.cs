@@ -243,8 +243,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             INamedTypeSymbol intType2 = new NamedTypeSymbol("Int32", mscorlibSystemNS2, Accessibility.Public, valueType2);
             IFieldSymbol field2 = new FieldSymbol("Field", intType2, Accessibility.Private);
 
-            Assert.True(field1.IsAccessibleWithin(intType2));
-            Assert.True(field2.IsAccessibleWithin(intType1));
+            Assert.False(field1.IsAccessibleWithin(intType2));
+            Assert.False(field2.IsAccessibleWithin(intType1));
 
             IAssemblySymbol mscorlibAssem3 = new AssemblySymbol(new AssemblyIdentity("mscorlib3")); // note different identity
             INamespaceSymbol mscorlibGlobalNS3 = new NamespaceSymbol("", mscorlibAssem3);
@@ -298,7 +298,7 @@ Friend Class C
 End Class
 ");
             var assemblyName = "MyAssembly";
-            // Note that these two compilations claim to have the same assembly identity
+            // Note that these two compilations claim to have the same assembly identity, but are distinct assemblies
             var csc = CSharpCompilation.Create(assemblyName, new[] { csharpTree }, new MetadataReference[] { /* references */ });
             var Ac = csc.GlobalNamespace.GetMembers("A")[0] as INamedTypeSymbol;
             var APc = Ac.GetMembers("P")[0];
@@ -308,7 +308,7 @@ End Class
             var Bc = csc.GlobalNamespace.GetMembers("B")[0] as INamedTypeSymbol;
             var Cc = csc.GlobalNamespace.GetMembers("C")[0] as INamedTypeSymbol;
 
-            // A VB assembly that appears to be the same assembly, therefore containing the same types
+            // A VB assembly with the same identity
             var vbc = VisualBasicCompilation.Create(assemblyName, new[] { vbTree }, new MetadataReference[] { /* references */ });
             var Av = vbc.GlobalNamespace.GetMembers("A")[0] as INamedTypeSymbol;
             var APv = Av.GetMembers("P")[0];
@@ -319,25 +319,25 @@ End Class
             var Cv = vbc.GlobalNamespace.GetMembers("C")[0] as INamedTypeSymbol;
 
             Assert.True(APc.IsAccessibleWithin(Bc, Cc));
-            Assert.True(APc.IsAccessibleWithin(Bc, Cv));
-            Assert.True(APc.IsAccessibleWithin(Bv, Cc));
-            Assert.True(APc.IsAccessibleWithin(Bv, Cv));
-            Assert.True(APv.IsAccessibleWithin(Bc, Cc));
-            Assert.True(APv.IsAccessibleWithin(Bc, Cv));
-            Assert.True(APv.IsAccessibleWithin(Bv, Cc));
+            Assert.False(APc.IsAccessibleWithin(Bc, Cv));
+            Assert.False(APc.IsAccessibleWithin(Bv, Cc));
+            Assert.False(APc.IsAccessibleWithin(Bv, Cv));
+            Assert.False(APv.IsAccessibleWithin(Bc, Cc));
+            Assert.False(APv.IsAccessibleWithin(Bc, Cv));
+            Assert.False(APv.IsAccessibleWithin(Bv, Cc));
             Assert.True(APv.IsAccessibleWithin(Bv, Cv));
 
             Assert.True(AIc.IsAccessibleWithin(Bc));
-            Assert.True(AIc.IsAccessibleWithin(Bv));
-            Assert.True(AIv.IsAccessibleWithin(Bc));
+            Assert.False(AIc.IsAccessibleWithin(Bv));
+            Assert.False(AIv.IsAccessibleWithin(Bc));
             Assert.True(AIv.IsAccessibleWithin(Bv));
 
             Assert.True(ARc.IsAccessibleWithin(ANc));
-            Assert.True(ARc.IsAccessibleWithin(ANv));
-            Assert.True(ARv.IsAccessibleWithin(ANc));
+            Assert.False(ARc.IsAccessibleWithin(ANv));
+            Assert.False(ARv.IsAccessibleWithin(ANc));
             Assert.True(ARv.IsAccessibleWithin(ANv));
 
-            // A VB assembly that appears to be a different assembly, therefore containing different types
+            // A VB assembly with a different identity
             vbc = VisualBasicCompilation.Create(assemblyName+"2", new[] { vbTree }, new MetadataReference[] { /* references */ });
             Av = vbc.GlobalNamespace.GetMembers("A")[0] as INamedTypeSymbol;
             APv = Av.GetMembers("P")[0];
@@ -560,6 +560,21 @@ End Class
 
             bool IAssemblySymbol.GivesAccessTo(IAssemblySymbol toAssembly) => _givesAccessTo.Contains(toAssembly.Identity);
 
+            bool IEquatable<ISymbol>.Equals(ISymbol other)
+            {
+                return this == (object)other;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return this == (object)obj;
+            }
+
+            public override int GetHashCode()
+            {
+                return 1;
+            }
+
             #region unimplemented members
             INamespaceSymbol IAssemblySymbol.GlobalNamespace => throw new NotImplementedException();
 
@@ -763,6 +778,8 @@ End Class
 
             int INamedTypeSymbol.Arity => 0;
 
+            string ISymbol.MetadataName => ((INamedTypeSymbol)this).Name;
+
             #region unimplemented members
             bool INamedTypeSymbol.IsGenericType => throw new NotImplementedException();
 
@@ -837,6 +854,8 @@ End Class
             }
 
             SymbolKind ISymbol.Kind => SymbolKind.Namespace;
+
+            string ISymbol.MetadataName => ((INamespaceSymbol)this).Name;
 
             #region unimplemented members
             bool INamespaceSymbol.IsGlobalNamespace => throw new NotImplementedException();
@@ -953,6 +972,8 @@ End Class
             }
 
             int INamedTypeSymbol.Arity => _arity;
+
+            string ISymbol.MetadataName => ((INamedTypeSymbol)this).Name + "`" + _arity;
 
             bool ISymbol.IsDefinition => true;
 
@@ -1078,6 +1099,8 @@ End Class
             ImmutableArray<ITypeParameterSymbol> INamedTypeSymbol.TypeParameters => _typeParameters;
 
             int INamedTypeSymbol.Arity => _arity;
+
+            string ISymbol.MetadataName => ((INamedTypeSymbol)this).Name + "`" + _arity;
 
             bool ISymbol.IsDefinition => false;
 

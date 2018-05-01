@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis
 
             bool hasInternalAccessTo(IAssemblySymbol assemblyWantingAccess, IAssemblySymbol declaringAssembly)
             {
-                if (assemblyWantingAccess.Identity.Equals(declaringAssembly.Identity))
+                if (assemblyWantingAccess.Equals(declaringAssembly))
                 {
                     return true;
                 }
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis
                 // We expect a given named type definition to satisfy reference identity.
                 // But we relax this to permit a type to be represented by multiple symbols (e.g. separate compilations).
                 // Note that the same symbol is expected to have the identical name as itself, despite VB language rules.
-                return t1 == t2 || t2 != null && t1.Name == t2.Name && t1.Arity == t2.Arity && sameOriginalSymbol(t1.ContainingSymbol, t2.ContainingSymbol);
+                return t1 == t2 || t2 != null && t1.MetadataName == t2.MetadataName && t1.Arity == t2.Arity && sameOriginalSymbol(t1.ContainingSymbol, t2.ContainingSymbol);
 
                 bool sameOriginalSymbol(ISymbol s1, ISymbol s2)
                 {
@@ -332,15 +332,14 @@ namespace Microsoft.CodeAnalysis
 
                 bool sameAssembly(IAssemblySymbol a1, IAssemblySymbol a2)
                 {
-                    Debug.Assert(a1 != null);
-                    return a2 != null && a1.Identity.Equals(a2.Identity);
+                    return a1.Equals(a2);
                 }
 
                 bool sameNamespace(INamespaceSymbol n1, INamespaceSymbol n2)
                 {
                     Debug.Assert(n1 != null);
                     // Note that the same symbol is expected to have the identical name as itself, despite VB language rules.
-                    return n2 != null && n1.Name == n2.Name && sameOriginalSymbol(n1.ContainingSymbol, n2.ContainingSymbol);
+                    return n2 != null && n1.MetadataName == n2.MetadataName && sameOriginalSymbol(n1.ContainingSymbol, n2.ContainingSymbol);
                 }
             }
         }
