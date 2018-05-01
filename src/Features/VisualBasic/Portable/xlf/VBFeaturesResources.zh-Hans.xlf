@@ -37,11 +37,6 @@
         <target state="translated">检测到冲突。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_If_statement">
-        <source>Invert If statement</source>
-        <target state="translated">反转 If 语句</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">将“{0}”语句移动到第 {1} 行。</target>
@@ -1825,6 +1820,11 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Convert_to_For">
         <source>Convert  to 'For'</source>
         <target state="new">Convert  to 'For'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_If">
+        <source>Invert If</source>
+        <target state="new">Invert If</target>
         <note />
       </trans-unit>
     </body>
