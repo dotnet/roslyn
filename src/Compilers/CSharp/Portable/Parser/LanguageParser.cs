@@ -4470,7 +4470,7 @@ tryAgain:
                 case SyntaxKind.OpenBracketToken:
                     bool sawNonOmittedSize;
                     _termState |= TerminatorState.IsPossibleEndOfVariableDeclaration;
-                    var specifier = this.ParseArrayRankSpecifier(isArrayCreation: false, expectSizes: flags == VariableFlags.Fixed, sawNonOmittedSize: out sawNonOmittedSize);
+                    var specifier = this.ParseArrayRankSpecifier(isArrayCreation: false, expectSizes: flags == VariableFlags.Fixed, allowQuestionToken: false, sawNonOmittedSize: out sawNonOmittedSize);
                     _termState = saveTerm;
                     var open = specifier.OpenBracketToken;
                     var sizes = specifier.Sizes;
@@ -5866,6 +5866,11 @@ tryAgain:
 
                 lastTokenOfType = this.EatToken();
                 result = ScanTypeFlags.MustBeType;
+
+                if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                {
+                    lastTokenOfType = this.EatToken();
+                }
             }
 
             return result;
@@ -6242,7 +6247,7 @@ tryAgain:
                     while (this.IsPossibleRankAndDimensionSpecifier())
                     {
                         bool unused;
-                        var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, out unused);
+                        var rank = this.ParseArrayRankSpecifier(mode == ParseTypeMode.ArrayCreation, expectSizes, allowQuestionToken: true, out unused);
                         ranks.Add(rank);
                         expectSizes = false;
                     }
@@ -6281,7 +6286,7 @@ tryAgain:
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, out bool sawNonOmittedSize)
+        private ArrayRankSpecifierSyntax ParseArrayRankSpecifier(bool isArrayCreation, bool expectSizes, bool allowQuestionToken, out bool sawNonOmittedSize)
         {
             sawNonOmittedSize = false;
             bool sawOmittedSize = false;
@@ -6348,8 +6353,7 @@ tryAgain:
                 var close = this.EatToken(SyntaxKind.CloseBracketToken);
 
                 SyntaxToken questionToken = null;
-
-                if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+                if (allowQuestionToken && this.CurrentToken.Kind == SyntaxKind.QuestionToken)
                 {
                     questionToken = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureStaticNullChecking);
                 }
