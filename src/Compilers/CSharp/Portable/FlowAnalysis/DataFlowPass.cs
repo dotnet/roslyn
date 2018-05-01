@@ -1546,14 +1546,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (var subpat in pat.Deconstruction)
                             {
-                                AssignPatternVariables(subpat);
+                                AssignPatternVariables(subpat.Pattern);
                             }
                         }
                         if (!pat.PropertiesOpt.IsDefaultOrEmpty)
                         {
-                            foreach (var (_, subpat) in pat.PropertiesOpt)
+                            foreach (BoundSubpattern sub in pat.PropertiesOpt)
                             {
-                                AssignPatternVariables(subpat);
+                                AssignPatternVariables(sub.Pattern);
                             }
                         }
                         Assign(pat, null, false, false);
