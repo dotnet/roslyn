@@ -2384,7 +2384,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>The operand of an increment or decrement operator must be a variable, property or indexer</value>
   </data>
   <data name="ERR_NoSuchMemberOrExtension" xml:space="preserve">
-    <value>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</value>
+    <value>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</value>
   </data>
   <data name="ERR_NoSuchMemberOrExtensionNeedUsing" xml:space="preserve">
     <value>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive for '{2}'?)</value>
