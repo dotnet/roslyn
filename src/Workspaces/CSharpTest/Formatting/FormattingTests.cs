@@ -5098,9 +5098,49 @@ _ => false
     {
         _ = this switch
         {
-            { P1: 1 } => true,
+        { P1: 1 } => true,
         (0, 1) => true,
         _ => false
+        };
+
+    }
+}";
+            // PROTOTYPE(patterns2): TODO indentation
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSwitchExpression_ExpressionAnchoredToArm()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this switch
+{
+{ P1: 1} 
+=> true,
+(0, 1) 
+    => true,
+_ 
+        => false
+};
+
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this switch
+        {
+        { P1: 1 }
+        => true,
+        (0, 1)
+            => true,
+        _
+                => false
         };
 
     }
