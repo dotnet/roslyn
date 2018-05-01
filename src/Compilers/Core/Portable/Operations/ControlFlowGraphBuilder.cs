@@ -1574,7 +1574,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private void VisitConditionalBranch(IOperation condition, ref BasicBlock dest, bool sense)
         {
-            oneMoreTime:
+oneMoreTime:
+
+            while (condition.Kind == OperationKind.Parenthesized)
+            {
+                condition = ((IParenthesizedOperation)condition).Operand;
+            }
 
             switch (condition.Kind)
             {
@@ -1600,11 +1605,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                                 VisitConditionalBranch(binOp.LeftOperand, ref fallThrough, !sense);
                                 VisitConditionalBranch(binOp.RightOperand, ref dest, sense);
-
-                                if (fallThrough != null)
-                                {
-                                    AppendNewBlock(fallThrough);
-                                }
+                                AppendNewBlock(fallThrough);
                             }
                             else
                             {
@@ -1624,11 +1625,70 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 case OperationKind.UnaryOperator:
                     var unOp = (IUnaryOperation)condition;
+
                     if (unOp.OperatorKind == UnaryOperatorKind.Not && unOp.Operand.Type.SpecialType == SpecialType.System_Boolean)
                     {
                         sense = !sense;
                         condition = unOp.Operand;
                         goto oneMoreTime;
+                    }
+                    goto default;
+
+                case OperationKind.Conditional:
+                    if (condition.Type.SpecialType == SpecialType.System_Boolean)
+                    {
+                        var conditional = (IConditionalOperation)condition;
+
+                        BasicBlock whenFalse = null;
+                        VisitConditionalBranch(conditional.Condition, ref whenFalse, sense: false);
+                        VisitConditionalBranch(conditional.WhenTrue, ref dest, sense);
+
+                        var afterIf = new BasicBlock(BasicBlockKind.Block);
+                        LinkBlocks(CurrentBasicBlock, afterIf);
+                        _currentBasicBlock = null;
+
+                        AppendNewBlock(whenFalse);
+                        VisitConditionalBranch(conditional.WhenFalse, ref dest, sense);
+                        AppendNewBlock(afterIf);
+
+                        return;
+                    }
+                    goto default;
+
+                case OperationKind.Coalesce:
+                    if (condition.Type.SpecialType == SpecialType.System_Boolean)
+                    {
+                        var coalesce = (ICoalesceOperation)condition;
+
+                        var whenNull = new BasicBlock(BasicBlockKind.Block);
+                        IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(coalesce, whenNull);
+
+                        convertedTestExpression = Operation.SetParentOperation(convertedTestExpression, null);
+                        dest = dest ?? new BasicBlock(BasicBlockKind.Block);
+                        LinkBlocks(CurrentBasicBlock, (convertedTestExpression, sense, RegularBranch(dest)));
+                        _currentBasicBlock = null;
+
+                        var afterCoalesce = new BasicBlock(BasicBlockKind.Block);
+                        LinkBlocks(CurrentBasicBlock, afterCoalesce);
+                        _currentBasicBlock = null;
+
+                        AppendNewBlock(whenNull);
+                        VisitConditionalBranch(coalesce.WhenNull, ref dest, sense);
+
+                        AppendNewBlock(afterCoalesce);
+
+                        return;
+                    }
+                    goto default;
+
+                case OperationKind.Conversion:
+                    var conversion = (IConversionOperation)condition;
+
+                    if (conversion.Operand.Kind == OperationKind.Throw)
+                    {
+                        Visit(conversion.Operand);
+                        dest = dest ?? new BasicBlock(BasicBlockKind.Block);
+                        return;
                     }
                     goto default;
 
@@ -1650,7 +1710,10 @@ namespace Microsoft.CodeAnalysis.Operations
             previous.InternalConditional = next;
         }
 
-        public override IOperation VisitCoalesce(ICoalesceOperation operation, int? captureIdForResult)
+        /// <summary>
+        /// Returns converted test expression
+        /// </summary>
+        private IOperation NullCheckAndConvertCoalesceValue(ICoalesceOperation operation, BasicBlock whenNull)
         {
             SyntaxNode valueSyntax = operation.Value.Syntax;
             ITypeSymbol valueTypeOpt = operation.Value.Type;
@@ -1658,7 +1721,6 @@ namespace Microsoft.CodeAnalysis.Operations
             SpillEvalStack();
             int testExpressionCaptureId = VisitAndCapture(operation.Value);
 
-            var whenNull = new BasicBlock(BasicBlockKind.Block);
             Optional<object> constantValue = operation.Value.ConstantValue;
 
             Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
@@ -1709,9 +1771,17 @@ namespace Microsoft.CodeAnalysis.Operations
                 convertedTestExpression = MakeInvalidOperation(operation.Type, capturedValue);
             }
 
+            return convertedTestExpression;
+        }
+
+        public override IOperation VisitCoalesce(ICoalesceOperation operation, int? captureIdForResult)
+        {
+            var whenNull = new BasicBlock(BasicBlockKind.Block);
+            IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(operation, whenNull);
+
             int resultCaptureId = captureIdForResult ?? _availableCaptureId++;
 
-            AddStatement(new FlowCapture(resultCaptureId, valueSyntax, convertedTestExpression));
+            AddStatement(new FlowCapture(resultCaptureId, operation.Value.Syntax, convertedTestExpression));
 
             var afterCoalesce = new BasicBlock(BasicBlockKind.Block);
             LinkBlocks(CurrentBasicBlock, afterCoalesce);
@@ -2270,12 +2340,14 @@ namespace Microsoft.CodeAnalysis.Operations
                 SpillEvalStack();
             }
 
+            IOperation exception = Operation.SetParentOperation(Visit(operation.Exception), null);
+
             BasicBlock current = CurrentBasicBlock;
             AppendNewBlock(new BasicBlock(BasicBlockKind.Block), linkToPrevious: false);
             Debug.Assert(current.InternalNext.Value == null);
             Debug.Assert(current.InternalNext.Branch.Destination == null);
             Debug.Assert(current.InternalNext.Branch.Kind == BasicBlock.BranchKind.None);
-            current.InternalNext.Value = Operation.SetParentOperation(Visit(operation.Exception), null);
+            current.InternalNext.Value = exception;
             current.InternalNext.Branch.Kind = operation.Exception == null ? BasicBlock.BranchKind.ReThrow : BasicBlock.BranchKind.Throw;
 
             if (isStatement)
