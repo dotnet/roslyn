@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Item">
+  <TemplateData>
+    <Name>editorconfig File (.NET)</Name>
+    <Description>Create an editorconfig file to persist your editor and code settings.</Description>
+    <ProjectType>CSharp</ProjectType>
+    <Icon Package="{FAE04EC1-301F-11d3-BF4B-00C04F79EFBC}" ID="4600" />
+    <TemplateGroupID>AspNetCore</TemplateGroupID>
+    <TemplateID>Microsoft.VisualStudio.Templates.Editorconfig.AspNetCore.dotnet</TemplateID>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+    <DefaultName>editorconfig</DefaultName>
+    <ShowByDefault>false</ShowByDefault>
+  </TemplateData>
+  <TemplateContent>
+    <CustomParameters>
+      <CustomParameter Name="$type$" Value="dotnet" />
+    </CustomParameters>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Templates.Editorconfig.Wizard, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
+    <FullClassName>EditorconfigTemplateWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

@@ -6,7 +6,7 @@
     <!-- VSIX -->
     <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\Templates\Editorconfig</ExtensionInstallationFolder>
-    <VisualStudioInsertionComponent>Templates.Editorconfig.Setup</VisualStudioInsertionComponent>
+    <VisualStudioInsertionComponent>Microsoft.VisualStudio.Templates.Editorconfig</VisualStudioInsertionComponent>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Tools\Microsoft.VisualStudio.Templates.Editorconfig.Wizard\Microsoft.VisualStudio.Templates.Editorconfig.Wizard.csproj">
