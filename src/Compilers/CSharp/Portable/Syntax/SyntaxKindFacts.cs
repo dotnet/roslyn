@@ -390,8 +390,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.PointerIndirectionExpression;
                 case SyntaxKind.CaretToken:
                     return SyntaxKind.IndexExpression;
-                case SyntaxKind.DotDotToken:
-                    return SyntaxKind.RangeExpression;
                 default:
                     return SyntaxKind.None;
             }
@@ -415,8 +413,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.PostIncrementExpression;
                 case SyntaxKind.MinusMinusToken:
                     return SyntaxKind.PostDecrementExpression;
-                case SyntaxKind.DotDotToken:
-                    return SyntaxKind.RangeExpression;
                 default:
                     return SyntaxKind.None;
             }
@@ -622,8 +618,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.LogicalAndExpression;
                 case SyntaxKind.BarBarToken:
                     return SyntaxKind.LogicalOrExpression;
-                case SyntaxKind.DotDotToken:
-                    return SyntaxKind.RangeExpression;
                 default:
                     return SyntaxKind.None;
             }

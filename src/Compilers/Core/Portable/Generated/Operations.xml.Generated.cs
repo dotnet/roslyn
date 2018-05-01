@@ -6755,8 +6755,9 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <summary>
-    /// PROTOTYPE: shouldn't this file be generated (and be parial)?
+    /// PROTOTYPE: shouldn't this file be generated (and be partial)?
     /// Represents an operation with two optional index operands that produce a range.
+    /// PROTOTYPE: operands should be lazily materialized
     /// </summary>
     internal sealed class RangeOperation : Operation, IRangeOperation
     {

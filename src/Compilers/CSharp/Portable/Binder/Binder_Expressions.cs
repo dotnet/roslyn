@@ -1900,34 +1900,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!rangeType.IsErrorType())
             {
+                WellKnownMember requiredRangeMethod;
+
                 if (node.LeftOperand is null)
                 {
-                    if (node.RightOperand is null)
-                    {
-                        GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__All, diagnostics, syntax: node);
-                    }
-                    else
-                    {
-                        GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__ToEnd, diagnostics, syntax: node);
-                    }
+                    requiredRangeMethod = node.RightOperand is null ? WellKnownMember.System_Range__All : WellKnownMember.System_Range__ToEnd;
                 }
                 else
                 {
-                    if (node.RightOperand is null)
-                    {
-                        GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__FromStart, diagnostics, syntax: node);
-                    }
-                    else
-                    {
-                        GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__Create, diagnostics, syntax: node);
-                    }
+                    requiredRangeMethod = node.RightOperand is null ? WellKnownMember.System_Range__FromStart : WellKnownMember.System_Range__Create;
                 }
+
+                GetWellKnownTypeMember(Compilation, requiredRangeMethod, diagnostics, syntax: node);
             }
 
             BoundExpression left = BindRangeExpressionOperand(node.LeftOperand, diagnostics);
             BoundExpression right = BindRangeExpressionOperand(node.RightOperand, diagnostics);
 
-            if ((left != null && left.Type.IsNullableType()) || (right != null && right.Type.IsNullableType()))
+            if (left?.Type.IsNullableType() == true || right?.Type.IsNullableType() == true)
             {
                 rangeType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(rangeType);
             }
@@ -1950,11 +1940,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 indexType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, operand).Construct(indexType);
             }
 
-            HashSet<DiagnosticInfo> notUsed = null;
-            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(boundOperand, indexType, ref notUsed);
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(boundOperand, indexType, ref useSiteDiagnostics);
 
             if (!conversion.IsValid)
             {
+                diagnostics.Add(operand, useSiteDiagnostics);
                 GenerateImplicitConversionError(diagnostics, operand, conversion, boundOperand, indexType);
             }
 
@@ -6641,7 +6632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expr != null);
             Debug.Assert(arguments != null);
 
-            BoundExpression prototypeExtensionMethod = GetPrototypeExtensionIndexderOpt(node, expr, arguments, diagnostics);
+            BoundExpression prototypeExtensionMethod = GetPrototypeExtensionIndexerOpt(node, expr, arguments, diagnostics);
             if (prototypeExtensionMethod != null)
             {
                 return prototypeExtensionMethod;
@@ -6831,7 +6822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// PROTOTYPE: remove this method before shipping (this is for demo purposes only)
         /// </summary>
-        private BoundExpression GetPrototypeExtensionIndexderOpt(ExpressionSyntax syntax, BoundExpression receiver, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
+        private BoundExpression GetPrototypeExtensionIndexerOpt(ExpressionSyntax syntax, BoundExpression receiver, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
         {
             // can only have one unnamed argument, with no ref kind.
             if (analyzedArguments.Arguments.Count != 1
@@ -6895,7 +6886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindIndexerAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
         {
-            BoundExpression prototypeExtensionMethod = GetPrototypeExtensionIndexderOpt(node, expr, analyzedArguments, diagnostics);
+            BoundExpression prototypeExtensionMethod = GetPrototypeExtensionIndexerOpt(node, expr, analyzedArguments, diagnostics);
             if (prototypeExtensionMethod != null)
             {
                 return prototypeExtensionMethod;

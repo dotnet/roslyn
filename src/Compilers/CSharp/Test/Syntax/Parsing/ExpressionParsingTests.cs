@@ -3927,7 +3927,7 @@ select t";
         }
 
         [Fact]
-        public void RangeExpression_Prefix()
+        public void RangeExpression_Right()
         {
             UsingExpression("..1");
             N(SyntaxKind.RangeExpression);
@@ -3942,7 +3942,7 @@ select t";
         }
 
         [Fact]
-        public void RangeExpression_Prefix_WithIndexes()
+        public void RangeExpression_Right_WithIndexes()
         {
             UsingExpression("..^3");
             N(SyntaxKind.RangeExpression);
@@ -3961,7 +3961,7 @@ select t";
         }
 
         [Fact]
-        public void RangeExpression_Postfix()
+        public void RangeExpression_Left()
         {
             UsingExpression("1..");
             N(SyntaxKind.RangeExpression);
@@ -3976,7 +3976,7 @@ select t";
         }
 
         [Fact]
-        public void RangeExpression_Postfix_WithIndexes()
+        public void RangeExpression_Left_WithIndexes()
         {
             UsingExpression("^5..");
             N(SyntaxKind.RangeExpression);
@@ -3995,7 +3995,7 @@ select t";
         }
 
         [Fact]
-        public void RangeExpression_Term()
+        public void RangeExpression_NoOperands()
         {
             UsingExpression("..");
             N(SyntaxKind.RangeExpression);
@@ -4006,7 +4006,7 @@ select t";
         }
 
         [Fact]
-        public void RangeExpression_Term_WithOtherOperators()
+        public void RangeExpression_NoOperands_WithOtherOperators()
         {
             UsingExpression("1+..<<2");
             N(SyntaxKind.LeftShiftExpression);
@@ -4030,6 +4030,36 @@ select t";
                 }
             }
             EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_DotSpaceDot()
+        {
+            UsingExpression("1. .2",
+                // (1,1): error CS1073: Unexpected token '.2'
+                // 1. .2
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "1. ").WithArguments(".2").WithLocation(1, 1),
+                // (1,4): error CS1001: Identifier expected
+                // 1. .2
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".2").WithLocation(1, 4));
+        }
+
+        [Fact]
+        public void RangeExpression_MethodInvocation_1()
+        {
+            UsingExpression(".. .ToString()",
+                // (1,1): error CS1073: Unexpected token '.'
+                // .. .ToString()
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "..").WithArguments(".").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void RangeExpression_MethodInvocation_2()
+        {
+            UsingExpression("1.. .ToString()",
+                // (1,1): error CS1073: Unexpected token '.'
+                // 1.. .ToString()
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "1..").WithArguments(".").WithLocation(1, 1));
         }
     }
 }

@@ -261,7 +261,7 @@ class Program
         #endregion C# 7.3
 
         [Fact]
-        public async Task UpgradeAllProjects()
+        public async Task UpgradeAllProjectsToCSharp7()
         {
             await TestLanguageVersionUpgradedAsync(
 @"<Workspace>

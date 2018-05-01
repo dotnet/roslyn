@@ -490,7 +490,40 @@ p: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''
         }
 
         [Fact]
-        public void ExtensionIndexerHack_Error()
+        public void PassingAsArguments()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+using System;
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(Print(^1));
+        Console.WriteLine(Print(..));
+        Console.WriteLine(Print(2..));
+        Console.WriteLine(Print(..3));
+        Console.WriteLine(Print(4..5));
+    }
+    static string Print(Index arg)
+    {
+        return $""value: '{arg.Value}', fromEnd: '{arg.FromEnd}'"";
+    }
+    static string Print(Range arg)
+    {
+        return $""value: '{Print(arg.Start)}', fromEnd: '{Print(arg.End)}'"";
+    }
+}", options: TestOptions.ReleaseExe).VerifyDiagnostics();
+
+            CompileAndVerify(compilation, expectedOutput: @"
+value: '1', fromEnd: 'True'
+value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''
+value: 'value: '2', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''
+value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '3', fromEnd: 'False''
+value: 'value: '4', fromEnd: 'False'', fromEnd: 'value: '5', fromEnd: 'False''");
+        }
+
+        [Fact]
+        public void ExtensionIndexer_Error()
         {
             CreateCompilationWithIndex(@"
 using System;
@@ -512,7 +545,7 @@ public static class Program
         }
 
         [Fact]
-        public void ExtensionIndexerHack_StringIndex()
+        public void ExtensionIndexer_StringIndex()
         {
             CompileAndVerify(CreateCompilationWithIndex(@"
 using System;
@@ -531,7 +564,7 @@ public static class Program
         }
 
         [Fact]
-        public void ExtensionIndexerHack_StringRange()
+        public void ExtensionIndexer_StringRange()
         {
             CompileAndVerify(CreateCompilationWithIndexAndRange(@"
 using System;
@@ -559,7 +592,7 @@ abcdefg");
         }
 
         [Fact]
-        public void ExtensionIndexerHack_SpanIndex()
+        public void ExtensionIndexer_SpanIndex()
         {
             CompileAndVerify(CreateCompilationWithIndexAndRangeAndSpan(@"
 using System;
@@ -578,7 +611,7 @@ public static class Program
         }
 
         [Fact]
-        public void ExtensionIndexerHack_SpanRange()
+        public void ExtensionIndexer_SpanRange()
         {
             CompileAndVerify(CreateCompilationWithIndexAndRangeAndSpan(@"
 using System;
@@ -614,7 +647,7 @@ public static class Program
         }
 
         [Fact]
-        public void ExtensionIndexerHack_ArrayIndex()
+        public void ExtensionIndexer_ArrayIndex()
         {
             CompileAndVerify(CreateCompilationWithIndexAndRangeAndSpan(@"
 using System;
@@ -633,7 +666,7 @@ public static class Program
         }
 
         [Fact]
-        public void ExtensionIndexerHack_ArrayRange()
+        public void ExtensionIndexer_ArrayRange()
         {
             CompileAndVerify(CreateCompilationWithIndexAndRangeAndSpan(@"
 using System;

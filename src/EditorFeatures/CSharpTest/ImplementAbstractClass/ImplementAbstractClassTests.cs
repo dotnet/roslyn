@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -31,8 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
         internal Task TestAllOptionsOffAsync(
-            string initialMarkup, string expectedMarkup,
-            int index = 0, IDictionary<OptionKey, object> options = null)
+            string initialMarkup,
+            string expectedMarkup,
+            int index = 0,
+            IDictionary<OptionKey, object> options = null,
+            ParseOptions parseOptions = null)
         {
             options = options ?? new Dictionary<OptionKey, object>();
             foreach (var kvp in AllOptionsOff)
@@ -41,8 +45,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
             }
 
             return TestInRegularAndScriptAsync(
-                initialMarkup, expectedMarkup,
-                index: index, options: options);
+                initialMarkup,
+                expectedMarkup,
+                index: index,
+                options: options,
+                parseOptions: parseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -429,6 +436,41 @@ class b : d
         throw new System.NotImplementedException();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestOptionalStructParameter_CSharp7()
+        {
+            await TestAllOptionsOffAsync(
+@"struct b
+{
+}
+
+abstract class d
+{
+    public abstract void goo(b x = new b());
+}
+
+class [|c|] : d
+{
+}",
+@"struct b
+{
+}
+
+abstract class d
+{
+    public abstract void goo(b x = new b());
+}
+
+class c : d
+{
+    public override void goo(b x = default(b))
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+                parseOptions: TestOptions.Regular7);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
@@ -1505,6 +1547,41 @@ namespace My
         }
     }
 }");
+        }
+
+        [WorkItem(17562, "https://github.com/dotnet/roslyn/issues/17562")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestNullableOptionalParameters_CSharp7()
+        {
+            await TestInRegularAndScriptAsync(
+@"struct V { }
+abstract class B
+{
+    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default(V));
+    public abstract void M2<T>(T? i = null) where T : struct;
+}
+sealed class [|D|] : B
+{
+}",
+@"struct V { }
+abstract class B
+{
+    public abstract void M1(int i = 0, string s = null, int? j = null, V v = default(V));
+    public abstract void M2<T>(T? i = null) where T : struct;
+}
+sealed class D : B
+{
+    public override void M1(int i = 0, string s = null, int? j = null, V v = default(V))
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void M2<T>(T? i = null)
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+                parseOptions: TestOptions.Regular7);
         }
 
         [WorkItem(17562, "https://github.com/dotnet/roslyn/issues/17562")]

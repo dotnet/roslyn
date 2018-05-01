@@ -8658,6 +8658,7 @@ tryAgain:
                 case SyntaxKind.ColonColonToken: // bad aliased name
                 case SyntaxKind.ThrowKeyword:
                 case SyntaxKind.StackAllocKeyword:
+                case SyntaxKind.DotDotToken:
                     return true;
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
@@ -8925,28 +8926,29 @@ tryAgain:
             if (IsExpectedPrefixUnaryOperator(tk))
             {
                 opKind = SyntaxFacts.GetPrefixUnaryExpression(tk);
+                newPrecedence = GetPrecedence(opKind);
                 var opToken = this.EatToken();
+                var operand = this.ParseSubExpression(newPrecedence);
+                leftOperand = _syntaxFactory.PrefixUnaryExpression(opKind, opToken, operand);
+            }
+            else if (tk == SyntaxKind.DotDotToken)
+            {
+                // Operator ".." here can either be a prefix unary operator or a stand alone empty range:
+                var opToken = this.EatToken();
+                opKind = SyntaxKind.RangeExpression;
+                newPrecedence = GetPrecedence(opKind);
 
-                if (opToken.Kind == SyntaxKind.DotDotToken)
+                ExpressionSyntax rightOperand;
+                if (IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false))
                 {
-                    // Operator ".." here can either be a prefix unary operator or a stand alone empty range:
-                    Debug.Assert(opKind == SyntaxKind.RangeExpression);
-
-                    if (IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false))
-                    {
-                        newPrecedence = GetPrecedence(opKind);
-                        leftOperand = _syntaxFactory.RangeExpression(leftOperand: null, opToken, rightOperand: this.ParseSubExpression(newPrecedence));
-                    }
-                    else
-                    {
-                        leftOperand = _syntaxFactory.RangeExpression(leftOperand: null, opToken, rightOperand: null);
-                    }
+                    rightOperand = this.ParseSubExpression(newPrecedence);
                 }
                 else
                 {
-                    newPrecedence = GetPrecedence(opKind);
-                    leftOperand = _syntaxFactory.PrefixUnaryExpression(opKind, opToken, this.ParseSubExpression(newPrecedence));
+                    rightOperand = null;
                 }
+
+                leftOperand = _syntaxFactory.RangeExpression(leftOperand: null, opToken, rightOperand);
             }
             else if (IsAwaitExpression())
             {
@@ -9001,6 +9003,10 @@ tryAgain:
                 {
                     opKind = SyntaxFacts.GetAssignmentExpression(tk);
                     isAssignmentOperator = true;
+                }
+                else if (tk == SyntaxKind.DotDotToken)
+                {
+                    opKind = SyntaxKind.RangeExpression;
                 }
                 else
                 {
@@ -9080,14 +9086,18 @@ tryAgain:
                             // Operator ".." here can either be a binary or a postfix unary operator:
                             Debug.Assert(opKind == SyntaxKind.RangeExpression);
 
+                            ExpressionSyntax rightOperand;
                             if (IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false))
                             {
-                                leftOperand = _syntaxFactory.RangeExpression(leftOperand: leftOperand, opToken, rightOperand: this.ParseSubExpression(newPrecedence));
+                                newPrecedence = GetPrecedence(opKind);
+                                rightOperand = this.ParseSubExpression(newPrecedence);
                             }
                             else
                             {
-                                leftOperand = _syntaxFactory.RangeExpression(leftOperand: leftOperand, opToken, rightOperand: null);
+                                rightOperand = null;
                             }
+
+                            leftOperand = _syntaxFactory.RangeExpression(leftOperand, opToken, rightOperand);
                         }
                         else
                         {
