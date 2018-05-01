@@ -3485,6 +3485,72 @@ namespace Microsoft.CodeAnalysis.Operations
             return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, childrenBuilder.ToImmutableAndFree(), operation.IsImplicit);
         }
 
+        public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
+        {
+            foreach (IInterpolatedStringContentOperation element in operation.Parts)
+            {
+                if (element.Kind == OperationKind.Interpolation)
+                {
+                    var interpolation = (IInterpolationOperation)element;
+                    _evalStack.Push(Visit(interpolation.Expression));
+
+                    if (interpolation.Alignment != null)
+                    {
+                        _evalStack.Push(Visit(interpolation.Alignment));
+                    }
+
+                    if (interpolation.FormatString != null)
+                    {
+                        _evalStack.Push(Visit(interpolation.FormatString));
+                    }
+                }
+                else
+                {
+                    var interpolatedStringText = (IInterpolatedStringTextOperation)element;
+                    // PROTOTYPE(DATAFLOW): Should we avoid flow captures for constant string literal "Text" by not pushing onto the eval stack?
+                    //                      Or should there be a separate optimization pass that removes all constant valued flow captures?
+                    _evalStack.Push(Visit(interpolatedStringText.Text));
+                }
+            }
+
+            var partsBuilder = ArrayBuilder<IInterpolatedStringContentOperation>.GetInstance();
+            for (int i = operation.Parts.Length - 1; i >= 0; i--)
+            {
+                IInterpolatedStringContentOperation element = operation.Parts[i];
+
+                IInterpolatedStringContentOperation rewrittenElement;
+                if (element.Kind == OperationKind.Interpolation)
+                {
+                    var interpolation = (IInterpolationOperation)element;
+                    var rewrittenFormatString = interpolation.FormatString != null ? _evalStack.Pop() : null;
+                    var rewrittenAlignment = interpolation.Alignment != null ? _evalStack.Pop() : null;
+                    var rewrittenExpression = _evalStack.Pop();
+                    rewrittenElement = new Interpolation(rewrittenExpression, rewrittenAlignment, rewrittenFormatString, semanticModel: null, element.Syntax, element.Type, element.ConstantValue, element.IsImplicit);
+                }
+                else
+                {
+                    var interpolatedStringText = (IInterpolatedStringTextOperation)element;
+                    var rewrittenText = _evalStack.Pop();
+                    rewrittenElement = new InterpolatedStringText(rewrittenText, semanticModel: null, element.Syntax, element.Type, element.ConstantValue, element.IsImplicit);
+                }
+
+                partsBuilder.Add(rewrittenElement);
+            }
+
+            partsBuilder.ReverseContents();
+            return new InterpolatedStringExpression(partsBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitInterpolation(IInterpolationOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         private T Visit<T>(T node) where T : IOperation
         {
             return (T)Visit(node, argument: null);
@@ -3754,21 +3820,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, int? captureIdForResult)
         {
             return new LocalFunctionStatement(operation.Symbol, Visit(operation.Body), Visit(operation.IgnoredBody), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
-        {
-            return new InterpolatedStringExpression(VisitArray(operation.Parts), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, int? captureIdForResult)
-        {
-            return new InterpolatedStringText(Visit(operation.Text), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitInterpolation(IInterpolationOperation operation, int? captureIdForResult)
-        {
-            return new Interpolation(Visit(operation.Expression), Visit(operation.Alignment), Visit(operation.FormatString), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
