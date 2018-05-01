@@ -25,6 +25,12 @@ namespace Microsoft.CodeAnalysis
         /// it merges namespaces when importing an assembly. Consequently, the metadata name of the namespace
         /// may not be correct for some of the contained types, and types that are distinct
         /// may appear to have the same fully-qualified name. In that case this API may treat them as the same type.</para>
+        /// <para>It is advised to avoid the use of this API within the compilers, as the compilers have additional
+        /// requirements for access checking that are not satisfied by this implementation, including the
+        /// avoidance of infinite recursion that would result from the use of the ISymbol APIs here,
+        /// the requirement that all symbols that it checks are part of the same compilation,
+        /// and additional returned details (from the compiler's internal APIs) that are helpful for more precisely
+        /// diagnosing reasons for accessibility failure.</para>
         /// </remarks>
         public static bool IsAccessibleWithin(
             this ISymbol symbol,
