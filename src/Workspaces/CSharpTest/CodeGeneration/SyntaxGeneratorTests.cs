@@ -122,6 +122,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         }
 
         [Fact]
+        public void TestShortLiteralExpressions()
+        {
+            VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression((short)0), "0");
+            VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression((short)1), "1");
+            VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.LiteralExpression((short)-1), "-1");
+            VerifySyntax<MemberAccessExpressionSyntax>(Generator.LiteralExpression(short.MinValue), "global::System.Int16.MinValue");
+            VerifySyntax<MemberAccessExpressionSyntax>(Generator.LiteralExpression(short.MaxValue), "global::System.Int16.MaxValue");
+        }
+
+        [Fact]
+        public void TestUshortLiteralExpressions()
+        {
+            VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression((ushort)0), "0");
+            VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression((ushort)1), "1");
+            VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression(ushort.MinValue), "0");
+            VerifySyntax<MemberAccessExpressionSyntax>(Generator.LiteralExpression(ushort.MaxValue), "global::System.UInt16.MaxValue");
+        }
+
+        [Fact]
+        public void TestSbyteLiteralExpressions()
+        {
+            VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression((sbyte)0), "0");
+            VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression((sbyte)1), "1");
+            VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.LiteralExpression((sbyte)-1), "-1");
+            VerifySyntax<MemberAccessExpressionSyntax>(Generator.LiteralExpression(sbyte.MinValue), "global::System.SByte.MinValue");
+            VerifySyntax<MemberAccessExpressionSyntax>(Generator.LiteralExpression(sbyte.MaxValue), "global::System.SByte.MaxValue");
+        }
+
+        [Fact]
+        public void TestByteLiteralExpressions()
+        {
+            VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression((byte)0), "0");
+            VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression((byte)1), "1");
+            VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression(byte.MinValue), "0");
+            VerifySyntax<LiteralExpressionSyntax>(Generator.LiteralExpression(byte.MaxValue), "255");
+        }
+
+        [Fact]
         public void TestAttributeData()
         {
             VerifySyntax<AttributeListSyntax>(Generator.Attribute(GetAttributeData(
