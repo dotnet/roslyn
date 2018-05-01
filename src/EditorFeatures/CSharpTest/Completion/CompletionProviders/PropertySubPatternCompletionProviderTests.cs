@@ -146,7 +146,7 @@ class Derived : Program
         }
 
         [Fact]
-        public async Task PropertiesInRecursivePattern_WithDerivedType_WithInaccessibleMembers2()
+        public async Task PropertiesInRecursivePattern_WithDerivedType_WithPrivateMember()
         {
             var markup =
 @"

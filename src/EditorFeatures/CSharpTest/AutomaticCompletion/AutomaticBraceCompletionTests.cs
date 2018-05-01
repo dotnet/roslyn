@@ -371,8 +371,7 @@ $$
             }
         }
 
-        // PROTOTYPE(patterns2) The IDE behaves fine in manual tests (after change to TokenBasedFormattingRule), but this test doesn't capture that
-        [WpfFact(Skip = "PROTOTYPE"), Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void RecursivePattern_PropertyBraces()
         {
             var code = @"
@@ -384,14 +383,24 @@ class C
     }
 }";
 
-            var expected = @"
+            var expectedBeforeReturn = @"
 class C
 {
     void M()
     {
-        _ = this is {
+        _ = this is { }
+    }
+}";
 
-}
+            var expectedAfterReturn = @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        {
+
+        }
     }
 }";
             using (var session = CreateSession(code))
@@ -399,7 +408,8 @@ class C
                 Assert.NotNull(session);
 
                 CheckStart(session.Session);
-                CheckReturn(session.Session, 8, expected);
+                CheckText(session.Session, expectedBeforeReturn);
+                CheckReturn(session.Session, 8, expectedAfterReturn); // PROTOTYPE(patterns2): Should this be 12 instead?
             }
         }
 

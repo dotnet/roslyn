@@ -73,6 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
+            if (node is IsPatternExpressionSyntax isPattern)
+            {
+                AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.GetFirstToken(), isPattern.GetLastToken());
+                return;
+            }
+
             if (node is ConstructorInitializerSyntax constructorInitializerNode)
             {
                 var constructorDeclarationNode = constructorInitializerNode.Parent as ConstructorDeclarationSyntax;

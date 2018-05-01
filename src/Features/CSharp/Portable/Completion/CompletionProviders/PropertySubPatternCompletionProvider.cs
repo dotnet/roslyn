@@ -117,7 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var patternType = propertyPattern.Type;
             if (patternType != null)
             {
-                // TODO test alias
                 var typeSymbol = (ITypeSymbol)semanticModel.GetSymbolInfo(patternType, cancellationToken).Symbol;
                 return typeSymbol;
             }
