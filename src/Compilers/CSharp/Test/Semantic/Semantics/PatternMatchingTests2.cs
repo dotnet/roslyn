@@ -417,7 +417,7 @@ public class Point
         [Fact]
         public void SwitchExpression_03()
         {
-            // test that a ternary expression is not at an appropriate precedence
+            // test that a ternary expression is at an appropriate precedence
             // for the constant expression of a constant pattern in a switch expression arm.
             var source =
 @"class Program
@@ -429,58 +429,7 @@ public class Point
         var r2 = b switch { (true ? true : true): true, false: false };
     }
 }";
-            // PROTOTYPE(patterns2): This is admittedly poor syntax error recovery (for the line declaring r2),
-            // but this test demonstrates that it is a syntax error.
-            CreatePatternCompilation(source).VerifyDiagnostics(
-                // (6,34): error CS1003: Syntax error, ':' expected
-                //         var r1 = b switch { true ? true : true: true, false: false };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":", "?").WithLocation(6, 34),
-                // (6,34): error CS1525: Invalid expression term '?'
-                //         var r1 = b switch { true ? true : true: true, false: false };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(6, 34),
-                // (6,47): error CS1513: } expected
-                //         var r1 = b switch { true ? true : true: true, false: false };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(6, 47),
-                // (6,47): error CS1002: ; expected
-                //         var r1 = b switch { true ? true : true: true, false: false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(6, 47),
-                // (6,47): error CS1513: } expected
-                //         var r1 = b switch { true ? true : true: true, false: false };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(6, 47),
-                // (6,53): error CS1002: ; expected
-                //         var r1 = b switch { true ? true : true: true, false: false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 53),
-                // (6,53): error CS1513: } expected
-                //         var r1 = b switch { true ? true : true: true, false: false };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 53),
-                // (6,60): error CS1002: ; expected
-                //         var r1 = b switch { true ? true : true: true, false: false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(6, 60),
-                // (6,60): error CS1513: } expected
-                //         var r1 = b switch { true ? true : true: true, false: false };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(6, 60),
-                // (6,68): error CS1002: ; expected
-                //         var r1 = b switch { true ? true : true: true, false: false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 68),
-                // (6,69): error CS1597: Semicolon after method or accessor block is not valid
-                //         var r1 = b switch { true ? true : true: true, false: false };
-                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(6, 69),
-                // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1),
-                // (7,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
-                //         var r2 = b switch { (true ? true : true): true, false: false };
-                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 9),
-                // (7,18): error CS0103: The name 'b' does not exist in the current context
-                //         var r2 = b switch { (true ? true : true): true, false: false };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(7, 18),
-                // (7,20): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
-                //         var r2 = b switch { (true ? true : true): true, false: false };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 20),
-                // (6,20): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
-                //         var r1 = b switch { true ? true : true: true, false: false };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 20)
-                );
+            CreatePatternCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
