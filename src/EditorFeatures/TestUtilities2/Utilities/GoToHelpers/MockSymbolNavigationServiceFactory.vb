@@ -6,7 +6,8 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-    <ExportWorkspaceServiceFactory(GetType(ISymbolNavigationService), ServiceLayer.Editor), [Shared]>
+    <ExportWorkspaceServiceFactory(GetType(ISymbolNavigationService), ServiceLayer.Host), [Shared]>
+    <PartNotDiscoverable>
     Friend Class MockSymbolNavigationServiceFactory
         Implements IWorkspaceServiceFactory
 
