@@ -104,10 +104,10 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            bool isNonNestedTypeAccessible(IAssemblySymbol assembly, Accessibility declaredAccessibility, ISymbol within0)
+            bool isNonNestedTypeAccessible(IAssemblySymbol declaringAssembly, Accessibility declaredAccessibility, ISymbol within0)
             {
                 Debug.Assert(within0 is INamedTypeSymbol || within0 is IAssemblySymbol);
-                Debug.Assert(assembly != null);
+                Debug.Assert(declaringAssembly != null);
 
                 switch (declaredAccessibility)
                 {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis
                         // An internal type is accessible if we're in the same assembly or we have
                         // friend access to the assembly it was defined in.
                         var withinAssembly = (within0 as IAssemblySymbol) ?? ((INamedTypeSymbol)within0).ContainingAssembly;
-                        return hasInternalAccessTo(withinAssembly, assembly);
+                        return hasInternalAccessTo(assemblyWantingAccess: withinAssembly, declaringAssembly);
 
                     case Accessibility.NotApplicable:
                     default:
@@ -134,36 +134,36 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            bool hasInternalAccessTo(IAssemblySymbol fromAssembly, IAssemblySymbol toAssembly)
+            bool hasInternalAccessTo(IAssemblySymbol assemblyWantingAccess, IAssemblySymbol declaringAssembly)
             {
-                if (fromAssembly.Identity.Equals(toAssembly.Identity))
+                if (assemblyWantingAccess.Identity.Equals(declaringAssembly.Identity))
                 {
                     return true;
                 }
 
-                if (fromAssembly.IsInteractive && toAssembly.IsInteractive)
+                if (assemblyWantingAccess.IsInteractive && declaringAssembly.IsInteractive)
                 {
                     return true;
                 }
 
-                return toAssembly.GivesAccessTo(fromAssembly);
+                return declaringAssembly.GivesAccessTo(assemblyWantingAccess);
             }
 
             // Is a member with declared accessibility "declaredAccessibility" accessible from within
             // "within", which must be a named type or an assembly.
-            bool isMemberAccessible(INamedTypeSymbol containingType, Accessibility declaredAccessibility, ISymbol within0, ITypeSymbol throughTypeOpt0)
+            bool isMemberAccessible(INamedTypeSymbol declaringType, Accessibility declaredAccessibility, ISymbol within0, ITypeSymbol throughTypeOpt0)
             {
                 Debug.Assert(within0 is INamedTypeSymbol || within0 is IAssemblySymbol);
-                Debug.Assert(containingType != null);
+                Debug.Assert(declaringType != null);
 
                 // This is a shortcut optimization of the more complex test for the most common situation.
-                if (within0 == containingType)
+                if (within0 == declaringType)
                 {
                     return true;
                 }
 
                 // A nested symbol is only accessible to us if its container is accessible as well.
-                if (!IsAccessibleWithin(containingType, within0, throughTypeOpt0))
+                if (!IsAccessibleWithin(declaringType, within0, throughTypeOpt0))
                 {
                     return false;
                 }
@@ -175,12 +175,12 @@ namespace Microsoft.CodeAnalysis
                         return true;
 
                     case Accessibility.Private:
-                        if (containingType.TypeKind == TypeKind.Submission)
+                        if (declaringType.TypeKind == TypeKind.Submission)
                         {
                             return true;
                         }
 
-                        return within0 != null && isPrivateSymbolAccessible(within0, containingType);
+                        return within0 != null && isPrivateSymbolAccessible(within0, declaringType);
                 }
 
                 var withinType = within0 as INamedTypeSymbol;
@@ -189,31 +189,31 @@ namespace Microsoft.CodeAnalysis
                 {
                     case Accessibility.Internal:
                         return
-                            hasInternalAccessTo(withinAssembly, containingType.ContainingAssembly);
+                            hasInternalAccessTo(assemblyWantingAccess: withinAssembly, declaringType.ContainingAssembly);
 
                     case Accessibility.ProtectedAndInternal:
                         return
-                            isProtectedSymbolAccessible(withinType, throughTypeOpt0, containingType) &&
-                            hasInternalAccessTo(withinAssembly, containingType.ContainingAssembly);
+                            isProtectedSymbolAccessible(withinType, throughTypeOpt0, declaringType) &&
+                            hasInternalAccessTo(assemblyWantingAccess: withinAssembly, declaringType.ContainingAssembly);
 
                     case Accessibility.ProtectedOrInternal:
                         return
-                            isProtectedSymbolAccessible(withinType, throughTypeOpt0, containingType) ||
-                            hasInternalAccessTo(withinAssembly, containingType.ContainingAssembly);
+                            isProtectedSymbolAccessible(withinType, throughTypeOpt0, declaringType) ||
+                            hasInternalAccessTo(assemblyWantingAccess: withinAssembly, declaringType.ContainingAssembly);
 
                     case Accessibility.Protected:
                         return
-                            isProtectedSymbolAccessible(withinType, throughTypeOpt0, containingType);
+                            isProtectedSymbolAccessible(withinType, throughTypeOpt0, declaringType);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(declaredAccessibility);
                 }
             }
 
-            bool isProtectedSymbolAccessible(INamedTypeSymbol withinType, ITypeSymbol throughTypeOpt0, INamedTypeSymbol containingType)
+            bool isProtectedSymbolAccessible(INamedTypeSymbol withinType, ITypeSymbol throughTypeOpt0, INamedTypeSymbol declaringType)
             {
-                INamedTypeSymbol originalContainingType = containingType.OriginalDefinition;
-                if (originalContainingType.TypeKind == TypeKind.Submission)
+                INamedTypeSymbol originalDeclaringType = declaringType.OriginalDefinition;
+                if (originalDeclaringType.TypeKind == TypeKind.Submission)
                 {
                     return true;
                 }
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                if (isNestedWithinOriginalContainingType(withinType, originalContainingType))
+                if (isNestedWithinOriginalCDeclaringType(withinType, originalDeclaringType))
                 {
                     return true;
                 }
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis
                 var originalThroughTypeOpt = throughTypeOpt0?.OriginalDefinition;
                 for (INamedTypeSymbol current = withinType.OriginalDefinition; current != null; current = current.ContainingType)
                 {
-                    if (inheritsFromIgnoringConstruction(current, originalContainingType))
+                    if (inheritsFromIgnoringConstruction(current, originalDeclaringType))
                     {
                         if (originalThroughTypeOpt == null || inheritsFromIgnoringConstruction(originalThroughTypeOpt, current))
                         {
@@ -244,23 +244,23 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            bool isPrivateSymbolAccessible(ISymbol within0, INamedTypeSymbol containingType)
+            bool isPrivateSymbolAccessible(ISymbol within0, INamedTypeSymbol declaringType)
             {
                 var withinType = within0 as INamedTypeSymbol;
 
                 // A private symbol is accessible if we're (optionally nested) inside the type that it
                 // was defined in.
-                return withinType != null && isNestedWithinOriginalContainingType(withinType, containingType.OriginalDefinition);
+                return withinType != null && isNestedWithinOriginalCDeclaringType(withinType, declaringType.OriginalDefinition);
             }
 
-            bool isNestedWithinOriginalContainingType(INamedTypeSymbol type, INamedTypeSymbol possiblyContainingOriginalType)
+            bool isNestedWithinOriginalCDeclaringType(INamedTypeSymbol type, INamedTypeSymbol originalDeclatingType)
             {
-                Debug.Assert(possiblyContainingOriginalType.IsDefinition);
+                Debug.Assert(originalDeclatingType.IsDefinition);
                 Debug.Assert(type != null);
 
                 for (var current = type.OriginalDefinition; current != null; current = current.ContainingType)
                 {
-                    if (sameOriginalNamedType(current, possiblyContainingOriginalType))
+                    if (sameOriginalNamedType(current, originalDeclatingType))
                     {
                         return true;
                     }
