@@ -60,18 +60,24 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             WarningDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Warning);
             ErrorDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Error);
 
-            UnnecessaryWithSuggestionDescriptor = CreateDescriptorWithId(
-                descriptorId, _localizableTitle, _localizableMessage, 
-                DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
+            UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor(DiagnosticSeverity.Hidden);
 
             UnnecessaryWithoutSuggestionDescriptor = CreateDescriptorWithId(
                 descriptorId + "WithoutSuggestion",
-                _localizableTitle, _localizableMessage, 
+                _localizableTitle, _localizableMessage,
                 DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
 
             SupportedDiagnostics = ImmutableArray.Create(
                 HiddenDescriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
         }
+
+        protected DiagnosticDescriptor CreateUnnecessaryDescriptor(DiagnosticSeverity severity)
+            => CreateUnnecessaryDescriptor(DescriptorId, severity);
+
+        protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId, DiagnosticSeverity severity)
+            => CreateDescriptorWithId(
+                descriptorId, _localizableTitle, _localizableMessage,
+                severity, DiagnosticCustomTags.Unnecessary);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
