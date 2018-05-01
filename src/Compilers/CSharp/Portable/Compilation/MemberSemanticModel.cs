@@ -1916,7 +1916,8 @@ done:
                             !(node is JoinIntoClauseSyntax) &&
                             !(node is QueryContinuationSyntax) &&
                             !(node is ConstructorInitializerSyntax) &&
-                            !(node is ArrowExpressionClauseSyntax))
+                            !(node is ArrowExpressionClauseSyntax) &&
+                            !(node is PatternSyntax))
                         {
                             return GetBindableSyntaxNode(parent);
                         }
