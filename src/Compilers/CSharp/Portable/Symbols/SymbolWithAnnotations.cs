@@ -469,14 +469,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 newCustomModifiers = newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers);
 
-                if (newIsNullable == true)
-                {
-                    return new NonLazyType(newTypeWithModifiers.TypeSymbol, isNullable: true, newCustomModifiers);
-                }
-
-                Debug.Assert(newIsNullable == null);
-
-                return CreateWithUnknownNullability(newTypeWithModifiers.TypeSymbol, newCustomModifiers);
+                Debug.Assert(newIsNullable != false);
+                return new NonLazyType(newTypeWithModifiers.TypeSymbol, newIsNullable, newCustomModifiers);
             }
 
             return this; // substitution had no effect on the type or modifiers
@@ -594,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!typeSymbol.IsNullableType() && typeSymbol.IsReferenceType)
                 {
                     typeSymbol = typeSymbol.SetUnknownNullabilityForReferenceTypes();
-                    return CreateWithUnknownNullability(typeSymbol, CustomModifiers);
+                    return new NonLazyType(typeSymbol, isNullable: null, CustomModifiers);
                 }
             }
 
@@ -606,11 +600,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return this;
-        }
-
-        private static TypeSymbolWithAnnotations CreateWithUnknownNullability(TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers)
-        {
-            return new NonLazyType(typeSymbol, isNullable: null, customModifiers);
         }
 
         private sealed class NonLazyType : TypeSymbolWithAnnotations
@@ -662,6 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new NonLazyType(_typeSymbol, isNullable: false, _customModifiers);
             }
 
+            // PROTOTYPE(NullableReferenceTypes): Move this implementation to the base class.
             public override string ToDisplayString(SymbolDisplayFormat format)
             {
                 var str = _typeSymbol.ToDisplayString(format);
@@ -687,6 +677,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Nullable type parameter. The underlying TypeSymbol is resolved
+        /// lazily to avoid cycles when binding declarations.
+        /// </summary>
         private sealed class LazyNullableType : TypeSymbolWithAnnotations
         {
             private readonly CSharpCompilation _compilation;
