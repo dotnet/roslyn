@@ -10,6 +10,8 @@ vs.localizedResources
 
 folder "InstallDir:Common7\IDE\NewFileItems"
   file source="$(MSBuildProjectDirectory)\..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\EditorconfigDefault.vstemplate"
+  file source="$(MSBuildProjectDirectory)\..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\EditorconfigDotNet.vstemplate"
+  file source="NewEditorconfigFileItem.vsdir"
 folder "InstallDir:Common7\IDE\ItemTemplates\CSharp\General\EditorConfig"
   file source="$(MSBuildProjectDirectory)\..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.CS.DotNet.vstemplate"
   file source="$(MSBuildProjectDirectory)\..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.CS.Default.vstemplate"
