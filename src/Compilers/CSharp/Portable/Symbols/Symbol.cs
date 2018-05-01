@@ -1291,5 +1291,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return ToString();
         }
+
+        /// <summary>
+        /// Method to prevent the use of <see cref="Microsoft.CodeAnalysis.ISymbolExtensions.IsAccessibleWithin"/> within the compiler.
+        /// <see cref="Microsoft.CodeAnalysis.CSharp.AccessCheck"/> for the right helpers
+        /// to use inside the compiler.
+        /// </summary>
+        [Obsolete("Use Microsoft.CodeAnalysis.CSharp.AccessCheck helper methods instead", true)]
+        internal bool IsAccessibleWithin(
+            ISymbol within,
+            ITypeSymbol throughTypeOpt = null)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 }
