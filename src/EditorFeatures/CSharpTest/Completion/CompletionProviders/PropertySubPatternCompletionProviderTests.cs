@@ -43,6 +43,26 @@ class Program
         }
 
         [Fact]
+        public async Task PropertiesInRecursivePattern_WithEscapedKeyword()
+        {
+            var markup =
+@"
+class Program
+{
+    public int @new { get; set; }
+    public int @struct { get; set; }
+
+    void M()
+    {
+        _ = this is Program { $$ }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "@new");
+            await VerifyItemExistsAsync(markup, "@struct");
+        }
+
+        [Fact]
         public async Task PropertiesInRecursivePattern_WriteOnlyProperties()
         {
             var markup =

@@ -333,9 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public static bool IsColonInCasePatternSwitchLabel(this SyntaxToken token)
-        {
-            return token.Kind() == SyntaxKind.ColonToken && token.Parent is CasePatternSwitchLabelSyntax;
-        }
+            => token.Kind() == SyntaxKind.ColonToken && token.Parent is CasePatternSwitchLabelSyntax;
 
         public static bool IsIdentifierInLabeledStatement(this SyntaxToken token)
         {

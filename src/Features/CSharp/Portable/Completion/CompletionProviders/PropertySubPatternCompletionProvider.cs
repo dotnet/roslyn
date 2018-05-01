@@ -22,11 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var document = context.Document;
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
-
             var workspace = document.Project.Solution.Workspace;
             var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, length: 0), cancellationToken).ConfigureAwait(false);
-            var (type, location) = TryGetPatternType(document, semanticModel, position, cancellationToken);
 
+            var token = TryGetOpenBraceOrCommaInPropertyPattern(document, semanticModel, position, cancellationToken);
+            if (token == default)
+            {
+                return;
+            }
+
+            var type = TryGetPatternType(token, semanticModel, cancellationToken);
             if (type == null)
             {
                 return;
@@ -46,10 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             foreach (var untestedMember in untestedMembers)
             {
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                    displayText: untestedMember.Name,
+                    displayText: untestedMember.Name.EscapeIdentifier(),
                     insertionText: null,
                     symbols: ImmutableArray.Create(untestedMember),
-                    contextPosition: location.SourceSpan.Start,
+                    contextPosition: token.GetLocation().SourceSpan.Start,
                     rules: s_rules));
             }
         }
@@ -77,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
 
-        private static (ITypeSymbol type, Location location) TryGetPatternType(
+        private static SyntaxToken TryGetOpenBraceOrCommaInPropertyPattern(
             Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var tree = semanticModel.SyntaxTree;
@@ -100,6 +105,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return default;
             }
 
+            return token;
+        }
+
+        private static ITypeSymbol TryGetPatternType(
+            SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
             // is Goo { $$
             // is Goo { P1: 0, $$
             var propertyPattern = (PropertyPatternSyntax)token.Parent.Parent;
@@ -108,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 // TODO test alias
                 var typeSymbol = (ITypeSymbol)semanticModel.GetSymbolInfo(patternType, cancellationToken).Symbol;
-                return (typeSymbol, token.GetLocation());
+                return typeSymbol;
             }
 
             // e is { $$
@@ -119,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var typeSymbol = semanticModel.GetTypeInfo(isPattern.Expression, cancellationToken).Type;
                 if (typeSymbol != null)
                 {
-                    return (typeSymbol, token.GetLocation());
+                    return typeSymbol;
                 }
             }
 
@@ -134,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     var typeSymbol = semanticModel.GetTypeInfo(switchStatment.Expression).Type;
                     if (typeSymbol != null)
                     {
-                        return (typeSymbol, token.GetLocation());
+                        return typeSymbol;
                     }
                 }
             }
@@ -153,14 +164,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         case null:
                             break;
                         case IPropertySymbol propertySymbol:
-                            return (propertySymbol.Type, token.GetLocation());
+                            return propertySymbol.Type;
                         case IFieldSymbol fieldSymbol:
-                            return (fieldSymbol.Type, token.GetLocation());
+                            return fieldSymbol.Type;
                     }
                 }
             }
 
-            // PROTOTYPE(NullableReferenceTypes): patterns in switch expression
+            // PROTOTYPE(NullableReferenceTypes): 
+            // All the cases above should be replaced by using the semantic model's GetTypeInfo (ConvertedType) once that is integrated
 
             return default;
         }

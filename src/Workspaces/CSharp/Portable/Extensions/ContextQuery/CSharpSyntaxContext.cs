@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsLabelContext;
         public readonly bool IsTypeArgumentOfConstraintContext;
 
-        public readonly bool IsIsOrAsContext;
+        public readonly bool IsIsOrAsOrSwitchExpressionContext;
         public readonly bool IsObjectCreationTypeContext;
         public readonly bool IsDefiniteCastTypeContext;
         public readonly bool IsGenericTypeArgumentContext;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isLabelContext,
             bool isTypeArgumentOfConstraintContext,
             bool isRightOfDotOrArrowOrColonColon,
-            bool isIsOrAsContext,
+            bool isIsOrAsOrSwitchExpressionContext,
             bool isObjectCreationTypeContext,
             bool isDefiniteCastTypeContext,
             bool isGenericTypeArgumentContext,
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsConstantExpressionContext = isConstantExpressionContext;
             this.IsLabelContext = isLabelContext;
             this.IsTypeArgumentOfConstraintContext = isTypeArgumentOfConstraintContext;
-            this.IsIsOrAsContext = isIsOrAsContext;
+            this.IsIsOrAsOrSwitchExpressionContext = isIsOrAsOrSwitchExpressionContext;
             this.IsObjectCreationTypeContext = isObjectCreationTypeContext;
             this.IsDefiniteCastTypeContext = isDefiniteCastTypeContext;
             this.IsGenericTypeArgumentContext = isGenericTypeArgumentContext;
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsLabelContext(position, cancellationToken),
                 syntaxTree.IsTypeArgumentOfConstraintClause(position, cancellationToken),
                 syntaxTree.IsRightOfDotOrArrowOrColonColon(position, cancellationToken),
-                syntaxTree.IsIsOrAsContext(position, leftToken, cancellationToken),
+                syntaxTree.IsIsOrAsOrSwitchExpressionContext(position, leftToken, cancellationToken),
                 syntaxTree.IsObjectCreationTypeContext(position, leftToken, cancellationToken),
                 syntaxTree.IsDefiniteCastTypeContext(position, leftToken, cancellationToken),
                 syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken),

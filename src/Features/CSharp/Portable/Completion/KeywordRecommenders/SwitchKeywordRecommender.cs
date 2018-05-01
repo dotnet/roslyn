@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
-                context.IsIsOrAsContext; // ie. following an expression
+                context.IsIsOrAsOrSwitchExpressionContext;
         }
     }
 }
