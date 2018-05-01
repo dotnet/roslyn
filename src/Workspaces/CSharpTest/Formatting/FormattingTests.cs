@@ -4875,7 +4875,7 @@ _ = this is  ( 1 ,
         3);
     }
 }";
-            // PROTOTYPE: missing indent on 2 and 3
+            // PROTOTYPE(patterns2): missing indent on 2 and 3
             await AssertFormatAsync(expectedCode, code);
         }
 
@@ -4899,7 +4899,7 @@ _ = this is  ( 1 ,
         3);
     }
 }";
-            // PROTOTYPE: missing indent on 2 and 3
+            // PROTOTYPE(patterns2): missing indent on 2 and 3
             await AssertFormatAsync(expectedCode, code);
         }
 
@@ -4925,7 +4925,7 @@ _ = this is
         3);
     }
 }";
-            // PROTOTYPE: missing indent on open paren, 2 and 3
+            // PROTOTYPE(patterns2): missing indent on open paren, 2 and 3
             await AssertFormatAsync(expectedCode, code);
         }
 
@@ -4949,7 +4949,7 @@ _ = this is
         2, 3);
     }
 }";
-            // PROTOTYPE: missing indent on open paren, 2 and 3
+            // PROTOTYPE(patterns2): missing indent on open paren, 2 and 3
             await AssertFormatAsync(expectedCode, code);
         }
 
@@ -4959,11 +4959,11 @@ _ = this is
         {
             var code = @"class C
 {
-    void M() { _ = this is  {  P1 :  1  } ; }
+    void M() { _ = this is  C{  P1 :  1  } ; }
 }";
             var expectedCode = @"class C
 {
-    void M() { _ = this is { P1: 1 }; }
+    void M() { _ = this is C { P1: 1 }; }
 }";
 
             await AssertFormatAsync(expectedCode, code);
@@ -5047,13 +5047,32 @@ P2 : 2, P3: 3
         _ = this is
         {
         P1: 1,
-        P2: 2,
-        P3: 3
+        P2: 2, P3: 3
         };
     }
 }";
 
-            // PROTOTYPE: Wrong indentation 
+            // PROTOTYPE(patterns2): Wrong indentation
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatRecursivePattern_PositionalAndProperties()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is  C( 1 , 2 ){}  ; }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is C (1, 2) { };
+    }
+}";
+            // a space separates the type, the positional pattern and the properties pattern
             await AssertFormatAsync(expectedCode, code);
         }
 
@@ -5086,7 +5105,7 @@ _ => false
 
     }
 }";
-            // PROTOTYPE(recursive-patterns): TODO indentation
+            // PROTOTYPE(patterns2): TODO indentation
 
             await AssertFormatAsync(expectedCode, code);
         }

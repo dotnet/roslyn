@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            // PROTOTYPE(NullableReferenceTypes): 
+            // PROTOTYPE(patterns2):
             // All the cases above should be replaced by using the semantic model's GetTypeInfo (ConvertedType) once that is integrated
 
             return default;

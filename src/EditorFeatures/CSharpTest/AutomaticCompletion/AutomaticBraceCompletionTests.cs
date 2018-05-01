@@ -371,7 +371,7 @@ $$
             }
         }
 
-        // PROTOTYPE(recursive-patterns) The IDE behaves fine in manual tests (after change to TokenBasedFormattingRule), but this test doesn't capture that
+        // PROTOTYPE(patterns2) The IDE behaves fine in manual tests (after change to TokenBasedFormattingRule), but this test doesn't capture that
         [WpfFact(Skip = "PROTOTYPE"), Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void RecursivePattern_PropertyBraces()
         {

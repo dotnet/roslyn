@@ -325,6 +325,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
             }
 
+            // Put a space between the type and a positional pattern
+            if (currentToken.IsKind(SyntaxKind.OpenParenToken) &&
+                currentParentKind == SyntaxKind.DeconstructionPattern)
+            {
+                var deconstructionPattern = (DeconstructionPatternSyntax)currentToken.Parent;
+                if (deconstructionPattern.Type != null)
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
             return nextOperation.Invoke();
         }
 

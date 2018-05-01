@@ -235,6 +235,49 @@ class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
+        [Fact(Skip = "PROTOTYPE(patterns2)")]
+        public async Task PropertiesInRecursivePattern_InSwitchExpression()
+        {
+            // PROTOTYPE(patterns2): I think this will be fixed by using GetTypeInfo (once merged)
+            var markup =
+@"
+class Program
+{
+    public int P1 { get; set; }
+    public int P2 { get; set; }
+
+    void M()
+    {
+        _ = this switch { { $$ } }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemExistsAsync(markup, "P2");
+        }
+
+        [Fact(Skip = "PROTOTYPE(patterns2)")]
+        public async Task PropertiesInRecursivePattern_WithPositionalPattern()
+        {
+            // PROTOTYPE(patterns2): I think this will be fixed by using GetTypeInfo (once merged)
+            var markup =
+@"
+class Program
+{
+    public int P1 { get; set; }
+    public int P2 { get; set; }
+
+    void M()
+    {
+        _ = this is (1, 2) { $$ }
+    }
+    void Deconstruct(out int x, out int y) => throw null;
+}
+";
+            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemExistsAsync(markup, "P2");
+        }
+
         [Fact]
         public async Task PropertiesInRecursivePattern_NestedInProperty()
         {
@@ -502,7 +545,7 @@ class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1"); // PROTOTYPE(recursive-patterns): Need to review and confirm
+            await VerifyItemExistsAsync(markup, "P1"); // PROTOTYPE(patterns2): Need to review and confirm
             await VerifyItemExistsAsync(markup, "P2");
         }
     }
