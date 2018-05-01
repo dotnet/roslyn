@@ -2965,53 +2965,56 @@ namespace Microsoft.CodeAnalysis.Operations
                 switch (caseClause.CaseKind)
                 {
                     case CaseKind.SingleValue:
-                        var singleValueClause = (ISingleValueCaseClauseOperation)caseClause;
+                        handleEqualityCheck(((ISingleValueCaseClauseOperation)caseClause).Value);
+                        break;
 
-                        bool leftIsNullable = ITypeSymbolHelpers.IsNullableType(operation.Value.Type);
-                        bool rightIsNullable = ITypeSymbolHelpers.IsNullableType(singleValueClause.Value.Type);
-                        bool isLifted = leftIsNullable || rightIsNullable;
-                        IOperation leftOperand = getSwitchValue();
-                        IOperation rightOperand = Visit(singleValueClause.Value);
-
-                        if (isLifted)
+                        void handleEqualityCheck(IOperation compareWith)
                         {
-                            if (!leftIsNullable)
+                            bool leftIsNullable = ITypeSymbolHelpers.IsNullableType(operation.Value.Type);
+                            bool rightIsNullable = ITypeSymbolHelpers.IsNullableType(compareWith.Type);
+                            bool isLifted = leftIsNullable || rightIsNullable;
+                            IOperation leftOperand = getSwitchValue();
+                            IOperation rightOperand = Visit(compareWith);
+
+                            if (isLifted)
                             {
-                                if (leftOperand.Type != null)
+                                if (!leftIsNullable)
+                                {
+                                    if (leftOperand.Type != null)
+                                    {
+                                        // PROTOTYPE(dataflow): Consider using similar conversion for TryMakeNullable value and using the helper here
+                                        leftOperand = new ConversionOperation(leftOperand, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
+                                                                              semanticModel: null, leftOperand.Syntax, compareWith.Type,
+                                                                              constantValue: default, isImplicit: true);
+                                    }
+                                }
+                                else if (!rightIsNullable && rightOperand.Type != null)
                                 {
                                     // PROTOTYPE(dataflow): Consider using similar conversion for TryMakeNullable value and using the helper here
-                                    leftOperand = new ConversionOperation(leftOperand, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                                                          semanticModel: null, leftOperand.Syntax, singleValueClause.Value.Type,
-                                                                          constantValue: default, isImplicit: true);
+                                    rightOperand = new ConversionOperation(rightOperand, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
+                                                                           semanticModel: null, rightOperand.Syntax, operation.Value.Type,
+                                                                           constantValue: default, isImplicit: true);
                                 }
                             }
-                            else if (!rightIsNullable && rightOperand.Type != null)
-                            {
-                                // PROTOTYPE(dataflow): Consider using similar conversion for TryMakeNullable value and using the helper here
-                                rightOperand = new ConversionOperation(rightOperand, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                                                       semanticModel: null, rightOperand.Syntax, operation.Value.Type,
-                                                                       constantValue: default, isImplicit: true);
-                            }
+
+                            condition = new BinaryOperatorExpression(BinaryOperatorKind.Equals,
+                                                                     leftOperand,
+                                                                     rightOperand,
+                                                                     isLifted,
+                                                                     isChecked: false,
+                                                                     isCompareText: false,
+                                                                     operatorMethod: null,
+                                                                     semanticModel: null,
+                                                                     compareWith.Syntax,
+                                                                     booleanType,
+                                                                     constantValue: default,
+                                                                     isImplicit: true);
+
+                            condition = Operation.SetParentOperation(condition, null);
+                            LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: false, RegularBranch(nextCase)));
+                            AppendNewBlock(labeled);
+                            _currentBasicBlock = null;
                         }
-
-                        condition = new BinaryOperatorExpression(BinaryOperatorKind.Equals,
-                                                                 leftOperand,
-                                                                 rightOperand,
-                                                                 isLifted,
-                                                                 isChecked: false, 
-                                                                 isCompareText: false,
-                                                                 operatorMethod: null,
-                                                                 semanticModel: null,
-                                                                 singleValueClause.Value.Syntax,
-                                                                 booleanType, 
-                                                                 constantValue: default, 
-                                                                 isImplicit: true);
-
-                        condition = Operation.SetParentOperation(condition, null);
-                        LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: false, RegularBranch(nextCase)));
-                        AppendNewBlock(labeled);
-                        _currentBasicBlock = null;
-                        break;
 
                     case CaseKind.Pattern:
                         var patternClause = (IPatternCaseClauseOperation)caseClause;
@@ -3030,6 +3033,19 @@ namespace Microsoft.CodeAnalysis.Operations
                         _currentBasicBlock = null;
                         break;
 
+                    case CaseKind.Relational:
+                        var relationalValueClause = (IRelationalCaseClauseOperation)caseClause;
+
+                        if (relationalValueClause.Relation == BinaryOperatorKind.Equals)
+                        {
+                            handleEqualityCheck(relationalValueClause.Value);
+                            break;
+                        }
+
+                        // A switch section with a relational case other than equality must have 
+                        // condition assosiated with it. This point should not be reachable.
+                        throw ExceptionUtilities.UnexpectedValue(relationalValueClause.Relation);
+
                     case CaseKind.Default:
                         var defaultClause = (IDefaultCaseClauseOperation)caseClause;
                         if (defaultBody == null)
@@ -3045,7 +3061,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         break;
 
                     default:
-                        // PROTOTYPE(dataflow): TODO. See VisitRelationalCaseClause and VisitRangeCaseClause
+                        // PROTOTYPE(dataflow): TODO. See VisitRangeCaseClause
                         throw new NotImplementedException();
                 }
             }
@@ -3074,7 +3090,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitRelationalCaseClause(IRelationalCaseClauseOperation operation, int? captureIdForResult)
         {
             throw ExceptionUtilities.Unreachable;
-            //return new RelationalCaseClause(Visit(operation.Value), operation.Relation, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitRangeCaseClause(IRangeCaseClauseOperation operation, int? captureIdForResult)
