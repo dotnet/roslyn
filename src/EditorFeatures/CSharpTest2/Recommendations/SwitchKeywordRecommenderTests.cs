@@ -101,6 +101,16 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExpression_InMethodWithArrowBody()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+    bool M() => this $$
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterForeachVar()
         {
             await VerifyAbsenceAsync(AddInsideMethod(@"foreach (var $$)"));
