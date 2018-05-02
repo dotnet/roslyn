@@ -48,18 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
                 (semanticModel, castExpression) => castExpression.IsUnnecessaryCast(semanticModel, cancellationToken),
                 (_, currentRoot, castExpression) =>
                 {
-                    var (oldParent, newParent) = Update(castExpression);
+                    var oldParent = castExpression.WalkUpParentheses();
+                    var newParent = Recurse(oldParent);
+
                     return currentRoot.ReplaceNode(oldParent, newParent);
                 },
                 cancellationToken).ConfigureAwait(false);
-        }
-
-        private (ExpressionSyntax, ExpressionSyntax) Update(CastExpressionSyntax castExpression)
-        {
-            var oldParent = castExpression.WalkUpParentheses();
-            var newParent = Recurse(oldParent);
-
-            return (oldParent, newParent);
         }
 
         private ExpressionSyntax Recurse(ExpressionSyntax old)
