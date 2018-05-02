@@ -41,28 +41,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     return false;
                 }
 
-                var oldDocument = document;
                 using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
-                using (var transaction = new CaretPreservingEditTransaction(
-                    EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
                 {
                     var cancellationToken = context.WaitContext.UserCancellationToken;
 
-                    document = RemoveSortUsings(document, cancellationToken);
-                    document = ApplyCodeFixes(document, cancellationToken);
-
-                    // we should do apply changes only once. but for now, we just do it twice, for all others and formatting
-                    ApplyChanges(
-                        oldDocument,
-                            document.GetTextChangesAsync(oldDocument, cancellationToken).WaitAndGetResult(cancellationToken).ToList(),
-                            selectionOpt: null, cancellationToken);
-
-                    // this call into existing one
-                    if (FormatText(args.SubjectBuffer.CurrentSnapshot, args.TextView, cancellationToken))
+                    var oldDocument = document;
+                    using (var transaction = new CaretPreservingEditTransaction(
+                        EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
-                        transaction.Complete();
+                        document = RemoveSortUsings(document, cancellationToken);
+                        document = ApplyCodeFixes(document, cancellationToken);
+
+                        var codeFixChanges = document.GetTextChangesAsync(oldDocument, cancellationToken).WaitAndGetResult(cancellationToken).ToList();
+
+                        // we should do apply changes only once. but for now, we just do it twice, for all others and formatting
+                        if (codeFixChanges.Count > 0)
+                        {
+                            ApplyChanges(oldDocument, codeFixChanges, selectionOpt: null, cancellationToken);
+                            transaction.Complete();
+                        }
                     }
 
+                    // this call into existing one
+                    FormatText(args.SubjectBuffer.CurrentSnapshot, args.TextView, cancellationToken);
                     return true;
                 }
             }
