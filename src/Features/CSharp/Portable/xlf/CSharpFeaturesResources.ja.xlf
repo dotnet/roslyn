@@ -67,16 +67,6 @@
         <target state="translated">範囲変数宣言の可能性があるため、自動選択は無効になっています。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">不要なキャストの削除</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">キャストが冗長です</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
         <target state="translated">名前 '{0}' の単純化</target>

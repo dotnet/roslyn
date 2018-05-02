@@ -67,16 +67,6 @@
         <target state="translated">由于可能出现范围变量声明，已禁用自动选择。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">删除不必要的转换</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">强制转换是多余的</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
         <target state="translated">简化名称“{0}”</target>

@@ -213,12 +213,6 @@
   <data name="Fix_Incorrect_Function_Return_Type" xml:space="preserve">
     <value>Fix Incorrect Function Return Type</value>
   </data>
-  <data name="Remove_Unnecessary_Cast" xml:space="preserve">
-    <value>Remove Unnecessary Cast</value>
-  </data>
-  <data name="Cast_is_redundant" xml:space="preserve">
-    <value>Cast is redundant</value>
-  </data>
   <data name="Simplify_name_0" xml:space="preserve">
     <value>Simplify name '{0}'</value>
   </data>

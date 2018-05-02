@@ -241,15 +241,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Cast is redundant.
-        '''</summary>
-        Friend ReadOnly Property Cast_is_redundant() As String
-            Get
-                Return ResourceManager.GetString("Cast_is_redundant", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Catch clause.
         '''</summary>
         Friend ReadOnly Property Catch_clause() As String
@@ -2006,15 +1997,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Remove_Me_qualification() As String
             Get
                 Return ResourceManager.GetString("Remove_Me_qualification", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Remove Unnecessary Cast.
-        '''</summary>
-        Friend ReadOnly Property Remove_Unnecessary_Cast() As String
-            Get
-                Return ResourceManager.GetString("Remove_Unnecessary_Cast", resourceCulture)
             End Get
         End Property
         
