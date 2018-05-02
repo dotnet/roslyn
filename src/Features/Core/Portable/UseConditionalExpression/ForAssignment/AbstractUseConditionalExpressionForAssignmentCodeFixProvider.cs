@@ -110,14 +110,13 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         {
             if (!TryFindMatchingLocalDeclarationImmediatelyAbove(
                     ifOperation, trueAssignment, falseAssignment,
-                    out var localDeclarationOperation))
+                    out var localDeclarationOperation, out var declarator))
             {
                 return false;
             }
 
             // We found a valid local declaration right above the if-statement.
             var localDeclaration = localDeclarationOperation.Syntax;
-            var declarator = localDeclarationOperation.Declarations[0].Declarators[0];
             var variable = GetDeclaratorSyntax(declarator);
 
             // Initialize that variable with the conditional expression.
@@ -137,9 +136,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         private bool TryFindMatchingLocalDeclarationImmediatelyAbove(
             IConditionalOperation ifOperation, ISimpleAssignmentOperation trueAssignment, ISimpleAssignmentOperation falseAssignment,
-            out IVariableDeclarationGroupOperation localDeclaration)
+            out IVariableDeclarationGroupOperation localDeclaration, out IVariableDeclaratorOperation declarator)
         {
             localDeclaration = null;
+            declarator = null;
 
             // See if both assignments are to the same local.
             if (!(trueAssignment.Target is ILocalReferenceOperation trueLocal) ||
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
             }
 
-            var declarator = declarators[0];
+            declarator = declarators[0];
             var variable = declarator.Symbol;
             if (!Equals(variable, trueLocal.Local))
             {
