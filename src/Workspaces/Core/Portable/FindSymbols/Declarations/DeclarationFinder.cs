@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -40,10 +41,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_AddDeclarationsAsync, cancellationToken))
             {
-                var isExactNameSearch = query.Kind == SearchKind.Exact;
+                var syntaxFacts = project.LanguageServices.GetService<ISyntaxFactsService>();
 
                 // If this is an exact query, we can speed things up by just calling into the
                 // compilation entrypoints that take a string directly.
+                //
+                // the search is 'exact' it's either an exact-case-sensitive search,
+                // or it's an exact-case-insensitive search and we're in a case-insensitive
+                // language.
+                var isExactNameSearch = query.Kind == SearchKind.Exact ||
+                    (query.Kind == SearchKind.ExactIgnoreCase && !syntaxFacts.IsCaseSensitive);
+
 
                 // Note: we first call through the project.  This has an optimization where it will
                 // use the DeclarationOnlyCompilation if we have one, avoiding needing to build the
