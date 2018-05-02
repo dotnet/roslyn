@@ -5,6 +5,7 @@ Microsoft.CodeAnalysis.FileTextLoader.DefaultEncoding.get -> System.Text.Encodin
 Microsoft.CodeAnalysis.FileTextLoader.FileTextLoader(string path, System.Text.Encoding defaultEncoding) -> void
 Microsoft.CodeAnalysis.FileTextLoader.Path.get -> string
 Microsoft.CodeAnalysis.Project.OutputRefFilePath.get -> string
+Microsoft.CodeAnalysis.ProjectChanges.GetChangedDocuments(bool onlyGetDocumentsWithTextChanges) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
 Microsoft.CodeAnalysis.ProjectInfo.OutputRefFilePath.get -> string
 Microsoft.CodeAnalysis.ProjectInfo.WithOutputRefFilePath(string outputRefFilePath) -> Microsoft.CodeAnalysis.ProjectInfo
 Microsoft.CodeAnalysis.Solution.WithProjectOutputRefFilePath(Microsoft.CodeAnalysis.ProjectId projectId, string outputRefFilePath) -> Microsoft.CodeAnalysis.Solution
