@@ -27,6 +27,11 @@
         <target state="translated">불필요한 Using 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="if_statement_can_be_simplified">
+        <source>'if' statement can be simplified</source>
+        <target state="new">'if' statement can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
         <target state="translated">&lt;람다 식&gt;</target>
