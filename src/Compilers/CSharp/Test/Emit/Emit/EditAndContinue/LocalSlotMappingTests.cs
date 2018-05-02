@@ -2181,7 +2181,7 @@ class C
   IL_0006:  stloc.1
  ~IL_0007:  ldloc.1
   IL_0008:  stloc.0
-  IL_0009:  ldloc.0
+ ~IL_0009:  ldloc.0
   IL_000a:  brfalse.s  IL_003a
   IL_000c:  ldloc.0
   IL_000d:  ldstr      ""a""
@@ -2223,7 +2223,7 @@ class C
   IL_0006:  stloc.1
  ~IL_0007:  ldloc.1
   IL_0008:  stloc.0
-  IL_0009:  ldloc.0
+ ~IL_0009:  ldloc.0
   IL_000a:  brfalse.s  IL_003c
   IL_000c:  ldloc.0
   IL_000d:  ldstr      ""a""
@@ -2330,6 +2330,7 @@ class C
         <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""21"" document=""1"" />
         <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0x9"" hidden=""true"" document=""1"" />
         <entry offset=""0x15"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""49"" document=""1"" />
         <entry offset=""0x1c"" startLine=""9"" startColumn=""50"" endLine=""9"" endColumn=""56"" document=""1"" />
         <entry offset=""0x1e"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""49"" document=""1"" />
@@ -3833,8 +3834,7 @@ class C
   IL_002f:  br.s       IL_0031
  -IL_0031:  ldloc.s    V_4
   IL_0033:  ret
-}
-", methodToken: diff1.UpdatedMethods.Single());
+}", methodToken: diff1.UpdatedMethods.Single());
         }
 
         [Fact]

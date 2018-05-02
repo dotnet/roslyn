@@ -183,6 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DiscardPattern,
         DeclarationPattern,
         RecursivePattern,
+        Subpattern,
         DiscardExpression,
         ThrowExpression,
         OutVariablePendingInference,
@@ -6715,8 +6716,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRecursivePattern : BoundPattern
     {
-        public BoundRecursivePattern(SyntaxNode syntax, BoundTypeExpression declaredType, MethodSymbol deconstructMethodOpt, ImmutableArray<BoundPattern> deconstruction, ImmutableArray<(Symbol symbol, BoundPattern pattern)> propertiesOpt, Symbol variable, BoundExpression variableAccess, TypeSymbol inputType, bool hasErrors = false)
-            : base(BoundKind.RecursivePattern, syntax, inputType, hasErrors || declaredType.HasErrors() || deconstruction.HasErrors() || variableAccess.HasErrors())
+        public BoundRecursivePattern(SyntaxNode syntax, BoundTypeExpression declaredType, MethodSymbol deconstructMethodOpt, ImmutableArray<BoundSubpattern> deconstruction, ImmutableArray<BoundSubpattern> propertiesOpt, Symbol variable, BoundExpression variableAccess, TypeSymbol inputType, bool hasErrors = false)
+            : base(BoundKind.RecursivePattern, syntax, inputType, hasErrors || declaredType.HasErrors() || deconstruction.HasErrors() || propertiesOpt.HasErrors() || variableAccess.HasErrors())
         {
 
             Debug.Assert(inputType != null, "Field 'inputType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -6734,9 +6735,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public MethodSymbol DeconstructMethodOpt { get; }
 
-        public ImmutableArray<BoundPattern> Deconstruction { get; }
+        public ImmutableArray<BoundSubpattern> Deconstruction { get; }
 
-        public ImmutableArray<(Symbol symbol, BoundPattern pattern)> PropertiesOpt { get; }
+        public ImmutableArray<BoundSubpattern> PropertiesOpt { get; }
 
         public Symbol Variable { get; }
 
@@ -6747,11 +6748,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitRecursivePattern(this);
         }
 
-        public BoundRecursivePattern Update(BoundTypeExpression declaredType, MethodSymbol deconstructMethodOpt, ImmutableArray<BoundPattern> deconstruction, ImmutableArray<(Symbol symbol, BoundPattern pattern)> propertiesOpt, Symbol variable, BoundExpression variableAccess, TypeSymbol inputType)
+        public BoundRecursivePattern Update(BoundTypeExpression declaredType, MethodSymbol deconstructMethodOpt, ImmutableArray<BoundSubpattern> deconstruction, ImmutableArray<BoundSubpattern> propertiesOpt, Symbol variable, BoundExpression variableAccess, TypeSymbol inputType)
         {
             if (declaredType != this.DeclaredType || deconstructMethodOpt != this.DeconstructMethodOpt || deconstruction != this.Deconstruction || propertiesOpt != this.PropertiesOpt || variable != this.Variable || variableAccess != this.VariableAccess || inputType != this.InputType)
             {
                 var result = new BoundRecursivePattern(this.Syntax, declaredType, deconstructMethodOpt, deconstruction, propertiesOpt, variable, variableAccess, inputType, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundSubpattern : BoundNode
+    {
+        public BoundSubpattern(SyntaxNode syntax, Symbol symbol, BoundPattern pattern, bool hasErrors = false)
+            : base(BoundKind.Subpattern, syntax, hasErrors || pattern.HasErrors())
+        {
+
+            Debug.Assert(pattern != null, "Field 'pattern' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Symbol = symbol;
+            this.Pattern = pattern;
+        }
+
+
+        public Symbol Symbol { get; }
+
+        public BoundPattern Pattern { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitSubpattern(this);
+        }
+
+        public BoundSubpattern Update(Symbol symbol, BoundPattern pattern)
+        {
+            if (symbol != this.Symbol || pattern != this.Pattern)
+            {
+                var result = new BoundSubpattern(this.Syntax, symbol, pattern, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -7326,6 +7361,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDeclarationPattern(node as BoundDeclarationPattern, arg);
                 case BoundKind.RecursivePattern: 
                     return VisitRecursivePattern(node as BoundRecursivePattern, arg);
+                case BoundKind.Subpattern: 
+                    return VisitSubpattern(node as BoundSubpattern, arg);
                 case BoundKind.DiscardExpression: 
                     return VisitDiscardExpression(node as BoundDiscardExpression, arg);
                 case BoundKind.ThrowExpression: 
@@ -7997,6 +8034,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitRecursivePattern(BoundRecursivePattern node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitSubpattern(BoundSubpattern node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -8681,6 +8722,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitRecursivePattern(BoundRecursivePattern node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitSubpattern(BoundSubpattern node)
         {
             return this.DefaultVisit(node);
         }
@@ -9563,7 +9608,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.DeclaredType);
             this.VisitList(node.Deconstruction);
+            this.VisitList(node.PropertiesOpt);
             this.Visit(node.VariableAccess);
+            return null;
+        }
+        public override BoundNode VisitSubpattern(BoundSubpattern node)
+        {
+            this.Visit(node.Pattern);
             return null;
         }
         public override BoundNode VisitDiscardExpression(BoundDiscardExpression node)
@@ -10571,10 +10622,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitRecursivePattern(BoundRecursivePattern node)
         {
             BoundTypeExpression declaredType = (BoundTypeExpression)this.Visit(node.DeclaredType);
-            ImmutableArray<BoundPattern> deconstruction = (ImmutableArray<BoundPattern>)this.VisitList(node.Deconstruction);
+            ImmutableArray<BoundSubpattern> deconstruction = (ImmutableArray<BoundSubpattern>)this.VisitList(node.Deconstruction);
+            ImmutableArray<BoundSubpattern> propertiesOpt = (ImmutableArray<BoundSubpattern>)this.VisitList(node.PropertiesOpt);
             BoundExpression variableAccess = (BoundExpression)this.Visit(node.VariableAccess);
             TypeSymbol inputType = this.VisitType(node.InputType);
-            return node.Update(declaredType, node.DeconstructMethodOpt, deconstruction, node.PropertiesOpt, node.Variable, variableAccess, inputType);
+            return node.Update(declaredType, node.DeconstructMethodOpt, deconstruction, propertiesOpt, node.Variable, variableAccess, inputType);
+        }
+        public override BoundNode VisitSubpattern(BoundSubpattern node)
+        {
+            BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
+            return node.Update(node.Symbol, pattern);
         }
         public override BoundNode VisitDiscardExpression(BoundDiscardExpression node)
         {
@@ -12319,10 +12376,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("declaredType", null, new TreeDumperNode[] { Visit(node.DeclaredType, null) }),
                 new TreeDumperNode("deconstructMethodOpt", node.DeconstructMethodOpt, null),
                 new TreeDumperNode("deconstruction", null, node.Deconstruction.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.Deconstruction select Visit(x, null)),
-                new TreeDumperNode("propertiesOpt", node.PropertiesOpt, null),
+                new TreeDumperNode("propertiesOpt", null, node.PropertiesOpt.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.PropertiesOpt select Visit(x, null)),
                 new TreeDumperNode("variable", node.Variable, null),
                 new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) }),
                 new TreeDumperNode("inputType", node.InputType, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitSubpattern(BoundSubpattern node, object arg)
+        {
+            return new TreeDumperNode("subpattern", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("symbol", node.Symbol, null),
+                new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) })
             }
             );
         }

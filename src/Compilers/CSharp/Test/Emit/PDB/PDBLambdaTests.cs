@@ -1269,6 +1269,7 @@ class C
         <entry offset=""0xe"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""21"" document=""1"" />
         <entry offset=""0x21"" hidden=""true"" document=""1"" />
         <entry offset=""0x2e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x30"" hidden=""true"" document=""1"" />
         <entry offset=""0x3c"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""28"" document=""1"" />
         <entry offset=""0x43"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""29"" document=""1"" />
         <entry offset=""0x56"" startLine=""20"" startColumn=""17"" endLine=""20"" endColumn=""23"" document=""1"" />
