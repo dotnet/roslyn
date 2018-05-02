@@ -40,7 +40,13 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Represents the C# 'false' operator and VB 'IsFalse' operator.
         /// </summary>
-        False = 0x6
+        False = 0x6,
+
+        /// <summary>
+        /// Represents the C# '^' operator.
+        /// PROTOTYPE: remove this operator from binding infrastructure both here and CS.CA. This should be lowered into a separate node
+        /// </summary>
+        Index = 0x7,
     }
 }
 

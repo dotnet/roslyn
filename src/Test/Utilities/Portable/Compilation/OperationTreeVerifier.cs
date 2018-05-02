@@ -1602,6 +1602,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
+        public override void VisitRangeOperation(IRangeOperation operation)
+        {
+            LogString(nameof(IRangeOperation));
+
+            if (operation.IsLifted)
+            {
+                LogString(" (IsLifted)");
+            }
+
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.LeftOperand, nameof(operation.LeftOperand));
+            Visit(operation.RightOperand, nameof(operation.RightOperand));
+        }
+
         #endregion
     }
 }

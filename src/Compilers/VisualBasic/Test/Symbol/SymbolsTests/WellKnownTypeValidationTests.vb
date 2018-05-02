@@ -503,7 +503,9 @@ End Namespace
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
                          WellKnownType.System_Span_T,
-                         WellKnownType.System_ReadOnlySpan_T
+                         WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Index,
+                         WellKnownType.System_Range
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -543,7 +545,9 @@ End Namespace
                     Case WellKnownType.System_FormattableString,
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory,
                          WellKnownType.System_Span_T,
-                         WellKnownType.System_ReadOnlySpan_T
+                         WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Index,
+                         WellKnownType.System_Range
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -600,7 +604,12 @@ End Namespace
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Index__ctor,
+                         WellKnownMember.System_Range__All,
+                         WellKnownMember.System_Range__Create,
+                         WellKnownMember.System_Range__FromStart,
+                         WellKnownMember.System_Range__ToEnd
                         ' Not always available.
                         Continue For
                 End Select
@@ -690,7 +699,12 @@ End Namespace
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+                         WellKnownMember.System_Index__ctor,
+                         WellKnownMember.System_Range__All,
+                         WellKnownMember.System_Range__Create,
+                         WellKnownMember.System_Range__FromStart,
+                         WellKnownMember.System_Range__ToEnd
                         ' Not always available.
                         Continue For
                 End Select

@@ -1335,6 +1335,8 @@ d.cs
             Assert.True(args.DisplayLangVersions);
         }
 
+        // PROTOTYPE: add 8.0 to IDE drop-down for selecting Language Version?
+
         [Fact]
         public void LanguageVersionAdded_Canary()
         {
@@ -1388,6 +1390,7 @@ d.cs
             Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.CSharp7_1.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7_2, LanguageVersion.CSharp7_2.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp7_3, LanguageVersion.CSharp7_3.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(LanguageVersion.CSharp8, LanguageVersion.CSharp8.MapSpecifiedToEffectiveVersion());
 
             Assert.Equal(LanguageVersion.CSharp8, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
             Assert.Equal(LanguageVersion.CSharp8, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
@@ -1421,6 +1424,7 @@ d.cs
             InlineData("7.3", true, LanguageVersion.CSharp7_3),
             InlineData("8", true, LanguageVersion.CSharp8),
             InlineData("8.0", true, LanguageVersion.CSharp8),
+            InlineData("08", false, LanguageVersion.Default),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
             InlineData("latest", true, LanguageVersion.Latest),

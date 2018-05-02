@@ -286,7 +286,7 @@ class C
 {
     void A()
     {
-        var x = [|(1, 2)|];
+        var x = [|1..1|];
     }
 }
         </Document>
@@ -300,7 +300,7 @@ class C
     <Project Language=""Visual Basic"">
     </Project>
 </Workspace>",
-                LanguageVersion.CSharp7,
+                LanguageVersion.CSharp8,
                 parseOptions: null,
                 index: 1);
         }
@@ -317,7 +317,7 @@ class C
 {
     void A()
     {
-        var x = [|(1, 2)|];
+        var x = [|1..1|];
     }
 }
         </Document>
@@ -328,8 +328,8 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0"),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "8.0")
     });
         }
 
@@ -345,7 +345,7 @@ class C
 {
     void A()
     {
-        var x = [|(1, 2)|];
+        var x = [|1..1|];
     }
 }
         </Document>
@@ -354,12 +354,12 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0")
                     });
         }
 
         [Fact]
-        public async Task OnlyOfferFixAllProjectsToCSharp7WhenApplicable()
+        public async Task OnlyOfferFixAllProjectsWhenApplicable()
         {
             await TestExactActionSetOfferedAsync(
 
@@ -370,18 +370,18 @@ class C
 {
     void A()
     {
-        var x = [|(1, 2)|];
+        var x = [|1..1|];
     }
 }
         </Document>
     </Project>
-    <Project Language=""C#"" LanguageVersion=""7"">
+    <Project Language=""C#"" LanguageVersion=""800"">
     </Project>
     <Project Language=""Visual Basic"">
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8.0")
                     });
         }
 
@@ -397,7 +397,7 @@ class C
 {
     void A()
     {
-        var x = [|(1, 2)|];
+        var x = [|1..1|];
     }
 }
         </Document>
@@ -408,8 +408,8 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "8"),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "8")
                     });
         }
 
@@ -532,6 +532,41 @@ class Test
     </Project>
 </Workspace>",
                 expectedActionSet: Enumerable.Empty<string>());
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithIndexToCSharp8()
+        {
+            await TestLanguageVersionUpgradedAsync(
+                CodeAnalysis.CSharp.Test.Utilities.TestSources.Index +
+@"
+class Test
+{
+    public void N()
+    {
+        var x = [|^1|];
+    }
+}",
+                LanguageVersion.CSharp8,
+                new CSharpParseOptions(LanguageVersion.CSharp7));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithRangeToCSharp8()
+        {
+            await TestLanguageVersionUpgradedAsync(
+                CodeAnalysis.CSharp.Test.Utilities.TestSources.Index +
+                CodeAnalysis.CSharp.Test.Utilities.TestSources.Range +
+@"
+class Test
+{
+    public void N()
+    {
+        var x = [|1..1|];
+    }
+}",
+                LanguageVersion.CSharp8,
+                new CSharpParseOptions(LanguageVersion.CSharp7));
         }
     }
 }

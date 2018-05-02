@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
+
+            // PROTOTYPE: investigate whether this should be added or not?
+            syntaxKinds.Add(SyntaxKind.RangeExpression);
+            syntaxKinds.Add(SyntaxKind.IndexExpression);
+
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKinds);
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks);
         }

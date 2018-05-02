@@ -1577,8 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidObjectCreation = 8386,
         #endregion diagnostics introduced for C# 7.3
 
-        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
-
+        #region diagnostics introduced for C# 8.0
         ERR_FeatureNotAvailableInVersion8_0 = 8399,
 
         #region diagnostics introduced for recursive patterns
@@ -1606,5 +1605,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_GivenExpressionAlwaysMatchesConstant = 8420,
         #endregion diagnostics introduced for recursive patterns
 
+        ERR_TripleDotNotAllowed = 8421,
+        #endregion diagnostics introduced for C# 8.0
+
+        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
 }
