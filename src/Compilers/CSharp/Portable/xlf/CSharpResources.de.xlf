@@ -3751,8 +3751,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
-        <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="translated">'"{0}" enthält keine Definition für "{1}", und es konnte keine {1}-Erweiterungsmethode gefunden werden, die ein erstes Argument vom Typ "{0}" akzeptiert (möglicherweise fehlt eine using-Direktive oder ein Assemblyverweis).</target>
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="needs-review-translation">'"{0}" enthält keine Definition für "{1}", und es konnte keine {1}-Erweiterungsmethode gefunden werden, die ein erstes Argument vom Typ "{0}" akzeptiert (möglicherweise fehlt eine using-Direktive oder ein Assemblyverweis).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">

@@ -23,7 +23,7 @@ namespace RunTests
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
 
-        private const long MaxTotalDumpSizeInMegabytes = 4096; 
+        private const long MaxTotalDumpSizeInMegabytes = 4096;
 
         internal static int Main(string[] args)
         {
@@ -100,15 +100,16 @@ namespace RunTests
             var start = DateTime.Now;
             var assemblyInfoList = GetAssemblyList(options);
 
-            Console.WriteLine($"Data Storage: {testExecutor.DataStorage.Name}");
-            Console.WriteLine($"Proc dump location: {options.ProcDumpDirectory}");
-            Console.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} partitions");
+            ConsoleUtil.WriteLine($"Data Storage: {testExecutor.DataStorage.Name}");
+            ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpDirectory}");
+            ConsoleUtil.WriteLine($"Running {options.Assemblies.Count()} test assemblies in {assemblyInfoList.Count} partitions");
 
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
-            Console.WriteLine($"Test execution time: {elapsed}");
+            ConsoleUtil.WriteLine($"Test execution time: {elapsed}");
 
+            LogProcessResultDetails(result.ProcessResults);
             WriteLogFile(options);
             DisplayResults(options.Display, result.TestResults);
 
@@ -123,8 +124,34 @@ namespace RunTests
                 return ExitFailure;
             }
 
-            Console.WriteLine($"All tests passed");
+            ConsoleUtil.WriteLine($"All tests passed");
             return ExitSuccess;
+        }
+
+        private static void LogProcessResultDetails(ImmutableArray<ProcessResult> processResults)
+        {
+            Logger.Log("### Begin logging executed process details");
+            foreach (var processResult in processResults)
+            {
+                var process = processResult.Process;
+                var startInfo = process.StartInfo;
+                Logger.Log($"### Begin {process.Id}");
+                Logger.Log($"### {startInfo.FileName} {startInfo.Arguments}");
+                Logger.Log($"### Exit code {process.ExitCode}");
+                Logger.Log("### Standard Output");
+                foreach (var line in processResult.OutputLines)
+                {
+                    Logger.Log(line);
+                }
+                Logger.Log("### Standard Error");
+                foreach (var line in processResult.ErrorLines)
+                {
+                    Logger.Log(line);
+                }
+                Logger.Log($"### End {process.Id}");
+            }
+
+            Logger.Log("End logging executed process details");
         }
 
         private static void WriteLogFile(Options options)
@@ -139,8 +166,8 @@ namespace RunTests
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error writing log file {logFilePath}");
-                Console.WriteLine(ex);
+                ConsoleUtil.WriteLine($"Error writing log file {logFilePath}");
+                ConsoleUtil.WriteLine(ex.ToString());
             }
 
             Logger.Clear();
@@ -165,36 +192,36 @@ namespace RunTests
                     return;
                 }
 
-                Console.Write($"Dumping {name} {targetProcess.Id} to {dumpFilePath} ... ");
+                ConsoleUtil.Write($"Dumping {name} {targetProcess.Id} to {dumpFilePath} ... ");
                 try
                 {
                     var args = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
-                    var processTask = ProcessRunner.RunProcessAsync(procDumpFilePath, args, cancellationToken);
-                    var processOutput = await processTask;
+                    var processInfo = ProcessRunner.CreateProcess(procDumpFilePath, args, cancellationToken: cancellationToken);
+                    var processOutput = await processInfo.Result;
 
                     // The exit code for procdump doesn't obey standard windows rules.  It will return non-zero
                     // for succesful cases (possibly returning the count of dumps that were written).  Best 
                     // backup is to test for the dump file being present.
                     if (File.Exists(dumpFilePath))
                     {
-                        Console.WriteLine("succeeded");
+                        ConsoleUtil.WriteLine("succeeded");
                     }
                     else
                     {
-                        Console.WriteLine($"FAILED with {processOutput.ExitCode}");
-                        Console.WriteLine($"{procDumpFilePath} {args}");
-                        Console.WriteLine(string.Join(Environment.NewLine, processOutput.OutputLines));
+                        ConsoleUtil.WriteLine($"FAILED with {processOutput.ExitCode}");
+                        ConsoleUtil.WriteLine($"{procDumpFilePath} {args}");
+                        ConsoleUtil.WriteLine(string.Join(Environment.NewLine, processOutput.OutputLines));
                     }
                 }
                 catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                 {
-                    Console.WriteLine("FAILED");
-                    Console.WriteLine(ex.Message);
+                    ConsoleUtil.WriteLine("FAILED");
+                    ConsoleUtil.WriteLine(ex.Message);
                     Logger.Log("Failed to dump process", ex);
                 }
             }
 
-            Console.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
+            ConsoleUtil.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
             var procDumpInfo = GetProcDumpInfo(options);
             if (procDumpInfo != null)
             {
@@ -209,7 +236,7 @@ namespace RunTests
             }
             else
             {
-                Console.WriteLine("Could not locate procdump");
+                ConsoleUtil.WriteLine("Could not locate procdump");
             }
 
             WriteLogFile(options);
@@ -248,7 +275,7 @@ namespace RunTests
 
             if (options.Assemblies.Count == 0)
             {
-                Console.WriteLine("No test assemblies specified.");
+                ConsoleUtil.WriteLine("No test assemblies specified.");
                 return false;
             }
 
@@ -405,7 +432,7 @@ namespace RunTests
             var dumpFiles = Directory.EnumerateFiles(directory, "*.dmp", SearchOption.AllDirectories).ToArray();
             long currentTotalSize = 0;
 
-            foreach(var dumpFile in dumpFiles)
+            foreach (var dumpFile in dumpFiles)
             {
                 long fileSizeInMegabytes = (new FileInfo(dumpFile).Length / 1024) / 1024;
                 currentTotalSize += fileSizeInMegabytes;

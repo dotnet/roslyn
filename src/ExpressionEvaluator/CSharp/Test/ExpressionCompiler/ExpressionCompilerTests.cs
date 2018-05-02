@@ -3587,7 +3587,7 @@ class C
                     out missingAssemblyIdentities,
                     EnsureEnglishUICulture.PreferredOrNull,
                     testData: null);
-                Assert.Equal(error, "error CS1061: 'object[]' does not contain a definition for 'First' and no extension method 'First' accepting a first argument of type 'object[]' could be found (are you missing a using directive or an assembly reference?)");
+                Assert.Equal(error, "error CS1061: 'object[]' does not contain a definition for 'First' and no accessible extension method 'First' accepting a first argument of type 'object[]' could be found (are you missing a using directive or an assembly reference?)");
                 AssertEx.SetEqual(missingAssemblyIdentities, EvaluationContextBase.SystemCoreIdentity);
             });
         }

@@ -3751,8 +3751,8 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
-        <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="translated">'{0}' ne contient pas de définition pour '{1}' et aucune méthode d'extension '{1}' acceptant un premier argument de type '{0}' n'a été trouvée (une directive using ou une référence d'assembly est-elle manquante ?)</target>
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="needs-review-translation">'{0}' ne contient pas de définition pour '{1}' et aucune méthode d'extension '{1}' acceptant un premier argument de type '{0}' n'a été trouvée (une directive using ou une référence d'assembly est-elle manquante ?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
