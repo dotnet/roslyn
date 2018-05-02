@@ -1,16 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeActions;
+using System.Threading;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
@@ -24,50 +28,68 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
         {
-            if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
+            try
             {
+                if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
+                {
+                    return false;
+                }
+
+                var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
+                {
+                    return false;
+                }
+
+                using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
+                {
+                    var cancellationToken = context.WaitContext.UserCancellationToken;
+
+                    var oldDocument = document;
+                    using (var transaction = new CaretPreservingEditTransaction(
+                        EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                    {
+                        document = RemoveSortUsings(document, cancellationToken);
+                        document = ApplyCodeFixes(document, cancellationToken);
+
+                        var codeFixChanges = document.GetTextChangesAsync(oldDocument, cancellationToken).WaitAndGetResult(cancellationToken).ToList();
+
+                        // we should do apply changes only once. but for now, we just do it twice, for all others and formatting
+                        if (codeFixChanges.Count > 0)
+                        {
+                            ApplyChanges(oldDocument, codeFixChanges, selectionOpt: null, cancellationToken);
+                            transaction.Complete();
+                        }
+                    }
+
+                    // this call into existing one
+                    FormatText(args.SubjectBuffer.CurrentSnapshot, args.TextView, cancellationToken);
+                    return true;
+                }
+            }
+            catch
+            {
+                // this is just for demo, we just making not crashing.
                 return false;
             }
-
-            RemoveSortUsings(args.SubjectBuffer.CurrentSnapshot, context);
-
-            while (ApplyOneCodeFix(args.SubjectBuffer.CurrentSnapshot, context, out var hasMoreCodeFix) && hasMoreCodeFix) ;
-
-            return FormatText(args.SubjectBuffer.CurrentSnapshot, args.TextView, context);
         }
 
-        private bool RemoveSortUsings(ITextSnapshot currentSnapShot, CommandExecutionContext context)
+        private Document RemoveSortUsings(Document document, CancellationToken cancellationToken)
         {
-            var cancellationToken = context.WaitContext.UserCancellationToken;
-            var document = currentSnapShot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return false;
-            }
-
             // remove and sort usings
             var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
             if (removeUsingsService == null)
             {
-                return false;
+                return document;
             }
 
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
-            {
-                var newDoc = removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).Result;
-                // sort usings
-                newDoc = OrganizeImportsService.OrganizeImportsAsync(newDoc, cancellationToken).Result;
-                var changes = newDoc.GetTextChangesAsync(document, cancellationToken).Result.ToList();
+            var newDocument = removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
 
-                if (changes.Count() > 0)
-                {
-                    ApplyChanges(document, changes, null, cancellationToken);
-                }
-            }
-            return true;
+            // sort usings
+            return OrganizeImportsService.OrganizeImportsAsync(newDocument, cancellationToken).WaitAndGetResult(cancellationToken);
         }
 
-        private bool FormatText(ITextSnapshot currentSnapShot, ITextView textView, CommandExecutionContext context)
+        private bool FormatText(ITextSnapshot currentSnapShot, ITextView textView, CancellationToken cancellationToken)
         {
             var document = currentSnapShot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -81,51 +103,49 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
-            {
-                Format(textView, document, null, context.WaitContext.UserCancellationToken);
-            }
-
+            Format(textView, document, null, cancellationToken);
             return true;
         }
 
-        private bool ApplyOneCodeFix(ITextSnapshot currentSnapShot, CommandExecutionContext context, out bool hasMoreCodeFix)
+        private Document ApplyCodeFixes(Document document, CancellationToken cancellationToken)
         {
-            hasMoreCodeFix = false;
-            var cancellationToken = context.WaitContext.UserCancellationToken;
+            var fixAllService = document.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
-            // document needs to be retrieved again after each change, otherwise it does not work
-            var document = currentSnapShot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
+            var dummy = new ProgressTracker();
+            foreach (var diagnosticId in new string[] {
+                IDEDiagnosticIds.AddBracesDiagnosticId,
+                IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
+                IDEDiagnosticIds.OrderModifiersDiagnosticId,
+                IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
+                IDEDiagnosticIds.AddQualificationDiagnosticId,
+                IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId,
+                IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId,
+                IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId,
+                IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId,
+                IDEDiagnosticIds.InlineDeclarationDiagnosticId,
+                IDEDiagnosticIds.InlineAsTypeCheckId,
+                IDEDiagnosticIds.InlineIsTypeCheckId,
+                IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId
+            })
             {
-                return false;
-            }
+                var length = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken).Length;
+                var textSpan = new TextSpan(0, length);
 
-            var textSpan = new TextSpan(0, document.GetTextAsync().Result.Length);
-            var fixCollectionArray = _codeFixService.GetFixesAsync(document, textSpan, true, cancellationToken).Result;
-            if (fixCollectionArray != null)
-            {
-                foreach (var fixCollection in fixCollectionArray.Select(f => f.Fixes))
+                var fixCollectionArray = _codeFixService.GetFixesAsync(document, diagnosticId, textSpan, cancellationToken).WaitAndGetResult(cancellationToken);
+                if (fixCollectionArray == null || fixCollectionArray.Length == 0)
                 {
-                    foreach (var fix in fixCollection)
-                    {
-                        var codeAction = fix.Action;
-                        // Hardcode to skip "Remove unused variable" code fix
-                        if (codeAction.EquivalenceKey == "Remove unused variable") continue;
-
-                        var ops = codeAction.GetOperationsAsync(cancellationToken).Result;
-                        foreach (var op in ops)
-                        {
-                            // Apply one change at a time, setting hasMoreCodeFix to true as there are probably other code fixes
-                            op.Apply(document.Project.Solution.Workspace, cancellationToken);
-                            hasMoreCodeFix = true;
-                            return true;
-                        }
-                    }
+                    continue;
                 }
+
+                var fixAll = fixCollectionArray.First().FixAllState;
+                var solution = fixAllService.GetFixAllChangedSolutionAsync(fixAll.CreateFixAllContext(dummy, cancellationToken)).WaitAndGetResult(cancellationToken);
+
+                document = solution.GetDocument(document.Id);
             }
 
-            return true;
+            return document;
         }
     }
 }
