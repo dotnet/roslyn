@@ -199,22 +199,6 @@ commitPullList.each { isPr ->
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
-// Perf Correctness
-commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "perf_correctness", isPr)
-  def myJob = job(jobName) {
-    description('perf test correctness')
-    steps {
-      batchFile(""".\\build\\scripts\\cibuild.cmd -testPerfCorrectness""")
-    }
-  }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = "perf-correctness"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
 // Microbuild
 commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "microbuild", isPr)
