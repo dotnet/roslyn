@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         protected abstract PrecedenceKind GetPrecedenceKind(TBinaryLikeExpressionSyntax binaryLike);
         protected abstract TExpressionSyntax TryGetParentExpression(TBinaryLikeExpressionSyntax binaryLike);
         protected abstract bool IsBinaryLike(TExpressionSyntax node);
-        protected abstract void GetPartsOfBinaryLike(
-            TBinaryLikeExpressionSyntax binaryLike, out TExpressionSyntax left, out SyntaxToken operatorToken, out TExpressionSyntax right);
+        protected abstract (TExpressionSyntax, SyntaxToken, TExpressionSyntax) GetPartsOfBinaryLike(TBinaryLikeExpressionSyntax binaryLike);
 
         protected AbstractAddRequiredParenthesesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId,
@@ -89,8 +88,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 IsBinaryLike(binaryLikeOpt) &&
                 GetPrecedence(binaryLikeOpt) == precedence)
             {
-                GetPartsOfBinaryLike(
-                    binaryLikeOpt, out var left, out var operatorToken, out var right);
+                var (left, operatorToken, right) = GetPartsOfBinaryLike(binaryLikeOpt);
 
                 context.ReportDiagnostic(
                     Diagnostic.Create(GetDescriptorWithSeverity(severity), operatorToken.GetLocation(), additionalLocations));

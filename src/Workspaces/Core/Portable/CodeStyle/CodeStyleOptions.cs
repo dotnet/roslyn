@@ -228,15 +228,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static readonly CodeStyleOption<ParenthesesPreference> s_defaultOtherOperatorsParenthesesPreference =
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.None);
 
-        private const string s_isOtherName = "other_operations";
+        private const string s_otherOperatorsName = "other_operators";
         private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
             string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, string styleName)
         {
-            const string suffix = "Parentheses";
-
-            Debug.Assert(fieldName.EndsWith(suffix));
-
-            var isOther = s_isOtherName == styleName;
+            var isOther = s_otherOperatorsName == styleName;
             return new PerLanguageOption<CodeStyleOption<ParenthesesPreference>>(
                 nameof(CodeStyleOptions), fieldName, defaultValue,
                 storageLocations: new OptionStorageLocation[]{
@@ -262,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CreateParenthesesOption(
                 nameof(OtherParentheses),
                 s_defaultOtherOperatorsParenthesesPreference,
-                "other_operators");
+                s_otherOperatorsName);
 
         private static Optional<CodeStyleOption<ParenthesesPreference>> ParseParenthesesPreference(
             string optionString, Optional<CodeStyleOption<ParenthesesPreference>> defaultValue, bool isOther)
@@ -275,10 +271,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
                 switch (value)
                 {
-                // 'ignore' is only allowed for the "dotnet_style_parenthese_in_other_expressions"
+                // 'ignore' is only allowed for the "dotnet_style_parenthese_in_other_operators"
                 case "ignore" when isOther:
                     return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, NotificationOption.None);
-                // 'always_for_clarity' is not allowed for "dotnet_style_parenthese_in_other_expressions";
+                // 'always_for_clarity' is not allowed for "dotnet_style_parenthese_in_other_operators";
                 case "always_for_clarity" when !isOther:
                     return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, notificationOpt);
                 case "never_if_unnecessary":

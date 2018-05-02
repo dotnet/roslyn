@@ -40,12 +40,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
                 SyntaxKind.OrElseExpression,
                 SyntaxKind.AndAlsoExpression)
 
-        Protected Overrides Sub GetPartsOfBinaryLike(
-                binary As BinaryExpressionSyntax, ByRef left As ExpressionSyntax, ByRef operatorToken As SyntaxToken, ByRef right As ExpressionSyntax)
-            left = binary.Left
-            operatorToken = binary.OperatorToken
-            right = binary.Right
-        End Sub
+        Protected Overrides Function GetPartsOfBinaryLike(binary As BinaryExpressionSyntax) As (ExpressionSyntax, SyntaxToken, ExpressionSyntax)
+            Return (binary.Left, binary.OperatorToken, binary.Right)
+        End Function
 
         Protected Overrides Function GetSyntaxNodeKinds() As ImmutableArray(Of SyntaxKind)
             Return s_kinds
