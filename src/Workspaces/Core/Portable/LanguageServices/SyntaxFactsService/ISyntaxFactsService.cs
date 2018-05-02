@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNullLiteralExpression(SyntaxNode node);
         bool IsDefaultLiteralExpression(SyntaxNode node);
         bool IsLiteralExpression(SyntaxNode node);
+        bool IsFalseLiteralExpression(SyntaxNode expression);
+        bool IsTrueLiteralExpression(SyntaxNode expression);
+
 
         string GetText(int kind);
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -78,6 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsBinaryExpression(SyntaxNode node);
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
+
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
 
         bool IsCastExpression(SyntaxNode node);
@@ -93,8 +97,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
 
         bool IsLogicalAndExpression(SyntaxNode node);
+        bool IsLogicalOrExpression(SyntaxNode node);
         bool IsLogicalNotExpression(SyntaxNode node);
+        bool IsConditionalAnd(SyntaxNode node);
+        bool IsConditionalOr(SyntaxNode node);
+
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
+        SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node);
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment(SyntaxNode node);
@@ -155,6 +164,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
         bool IsConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
+
+        bool IsParenthesizedExpression(SyntaxNode node);
+        SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
+
+        bool IsIfStatement(SyntaxNode node);
 
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);

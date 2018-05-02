@@ -68,17 +68,19 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsWhitespaceOrEndOfLineTrivia(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
             => syntaxFacts.IsWhitespaceTrivia(trivia) || syntaxFacts.IsEndOfLineTrivia(trivia);
 
-        public static void GetPartsOfBinaryExpression(
-            this ISyntaxFactsService syntaxFacts, SyntaxNode node, 
-            out SyntaxNode left, out SyntaxNode right)
-        {
-            syntaxFacts.GetPartsOfBinaryExpression(node, out left, out _, out right);
-        }
+        public static void GetPartsOfBinaryExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node, out SyntaxNode left, out SyntaxNode right)
+            => syntaxFacts.GetPartsOfBinaryExpression(node, out left, out _, out right);
 
         public static SyntaxNode GetExpressionOfParenthesizedExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfParenthesizedExpression(node, out _, out var expression, out _);
             return expression;
+        }
+
+        public static SyntaxToken GetOperatorTokenOfBinaryExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfBinaryExpression(node, out _, out var token, out _);
+            return token;
         }
     }
 }
