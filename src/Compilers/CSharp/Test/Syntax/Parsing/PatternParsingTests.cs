@@ -2279,10 +2279,10 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void SwitchExpression01()
         {
-            UsingExpression("1 switch {a: b, c: d}", TestOptions.RegularWithoutRecursivePatterns,
+            UsingExpression("1 switch {a => b, c => d}", TestOptions.RegularWithoutRecursivePatterns,
                 // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // 1 switch {a: b, c: d}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch {a: b, c: d}").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
+                // 1 switch {a => b, c => d}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch {a => b, c => d}").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -2301,7 +2301,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                             N(SyntaxKind.IdentifierToken, "a");
                         }
                     }
-                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.EqualsGreaterThanToken);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "b");
@@ -2317,7 +2317,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                             N(SyntaxKind.IdentifierToken, "c");
                         }
                     }
-                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.EqualsGreaterThanToken);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "d");
@@ -2331,59 +2331,16 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void SwitchExpression02()
         {
-            UsingExpression("1 switch { a?b:c: d }", TestOptions.RegularWithoutRecursivePatterns,
+            UsingExpression("1 switch { a?b:c => d }", TestOptions.RegularWithoutRecursivePatterns,
                 // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // 1 switch { a?b:c: d }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { a?b:c: d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
-                );
-            N(SyntaxKind.SwitchExpression);
-            {
-                N(SyntaxKind.NumericLiteralExpression);
-                {
-                    N(SyntaxKind.NumericLiteralToken, "1");
-                }
-                N(SyntaxKind.SwitchKeyword);
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.SwitchExpressionArm);
-                {
-                    N(SyntaxKind.ConstantPattern);
-                    {
-                        N(SyntaxKind.ConditionalExpression);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "a");
-                            }
-                            N(SyntaxKind.QuestionToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "b");
-                            }
-                            N(SyntaxKind.ColonToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "c");
-                            }
-                        }
-                    }
-                    N(SyntaxKind.ColonToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "d");
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void SwitchExpression02b()
-        {
-            UsingExpression("1 switch { e when a?b:c: d }", TestOptions.RegularWithoutRecursivePatterns,
-                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // 1 switch { e when a?b:c: d }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { e when a?b:c: d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
+                // 1 switch { a?b:c => d }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { a?b:c => d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1),
+                // (1,13): error CS1003: Syntax error, '=>' expected
+                // 1 switch { a?b:c => d }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>", "?").WithLocation(1, 13),
+                // (1,13): error CS1525: Invalid expression term '?'
+                // 1 switch { a?b:c => d }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 13)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -2399,34 +2356,34 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "e");
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
                     }
-                    N(SyntaxKind.WhenClause);
+                    M(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.ConditionalExpression);
                     {
-                        N(SyntaxKind.WhenKeyword);
-                        N(SyntaxKind.ConditionalExpression);
+                        M(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "a");
-                            }
-                            N(SyntaxKind.QuestionToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "b");
-                            }
-                            N(SyntaxKind.ColonToken);
-                            N(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleLambdaExpression);
+                        {
+                            N(SyntaxKind.Parameter);
                             {
                                 N(SyntaxKind.IdentifierToken, "c");
                             }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "d");
+                            }
                         }
-                    }
-                    N(SyntaxKind.ColonToken);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "d");
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
@@ -2437,10 +2394,10 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void SwitchExpression03()
         {
-            UsingExpression("1 switch { (a, b, c): d }", TestOptions.RegularWithoutRecursivePatterns,
+            UsingExpression("1 switch { (a, b, c) => d }", TestOptions.RegularWithoutRecursivePatterns,
                 // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                // 1 switch { (a, b, c): d }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { (a, b, c): d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
+                // 1 switch { (a, b, c) => d }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { (a, b, c) => d }").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
                 );
             N(SyntaxKind.SwitchExpression);
             {
@@ -2489,7 +2446,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.EqualsGreaterThanToken);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "d");

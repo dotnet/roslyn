@@ -3579,9 +3579,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
       var pattern = (PatternSyntax)this.Visit(node.Pattern);
       var whenClause = (WhenClauseSyntax)this.Visit(node.WhenClause);
-      var colonToken = this.VisitToken(node.ColonToken);
+      var equalsGreaterThanToken = this.VisitToken(node.EqualsGreaterThanToken);
       var expression = (ExpressionSyntax)this.Visit(node.Expression);
-      return node.Update(pattern, whenClause, colonToken, expression);
+      return node.Update(pattern, whenClause, equalsGreaterThanToken, expression);
     }
 
     public override SyntaxNode VisitTryStatement(TryStatementSyntax node)
@@ -8194,33 +8194,33 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new SwitchExpressionArmSyntax instance.</summary>
-    public static SwitchExpressionArmSyntax SwitchExpressionArm(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken colonToken, ExpressionSyntax expression)
+    public static SwitchExpressionArmSyntax SwitchExpressionArm(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
     {
       if (pattern == null)
         throw new ArgumentNullException(nameof(pattern));
-      switch (colonToken.Kind())
+      switch (equalsGreaterThanToken.Kind())
       {
-        case SyntaxKind.ColonToken:
+        case SyntaxKind.EqualsGreaterThanToken:
           break;
         default:
-          throw new ArgumentException("colonToken");
+          throw new ArgumentException("equalsGreaterThanToken");
       }
       if (expression == null)
         throw new ArgumentNullException(nameof(expression));
-      return (SwitchExpressionArmSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchExpressionArm(pattern == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PatternSyntax)pattern.Green, whenClause == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.WhenClauseSyntax)whenClause.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node, expression == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
+      return (SwitchExpressionArmSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchExpressionArm(pattern == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PatternSyntax)pattern.Green, whenClause == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.WhenClauseSyntax)whenClause.Green, (Syntax.InternalSyntax.SyntaxToken)equalsGreaterThanToken.Node, expression == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
     }
 
 
     /// <summary>Creates a new SwitchExpressionArmSyntax instance.</summary>
     public static SwitchExpressionArmSyntax SwitchExpressionArm(PatternSyntax pattern, WhenClauseSyntax whenClause, ExpressionSyntax expression)
     {
-      return SyntaxFactory.SwitchExpressionArm(pattern, whenClause, SyntaxFactory.Token(SyntaxKind.ColonToken), expression);
+      return SyntaxFactory.SwitchExpressionArm(pattern, whenClause, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), expression);
     }
 
     /// <summary>Creates a new SwitchExpressionArmSyntax instance.</summary>
     public static SwitchExpressionArmSyntax SwitchExpressionArm(PatternSyntax pattern, ExpressionSyntax expression)
     {
-      return SyntaxFactory.SwitchExpressionArm(pattern, default(WhenClauseSyntax), SyntaxFactory.Token(SyntaxKind.ColonToken), expression);
+      return SyntaxFactory.SwitchExpressionArm(pattern, default(WhenClauseSyntax), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), expression);
     }
 
     /// <summary>Creates a new TryStatementSyntax instance.</summary>
