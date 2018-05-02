@@ -1,25 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertLinq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
@@ -52,45 +45,120 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             private readonly CancellationToken _cancellationToken;
             private readonly Document _document;
             private readonly ForEachStatementSyntax _forEachStatement;
-            private readonly List<string> _introducedLocalNames;
 
             // TODO adjust parameters order in this method and the method in the parent class
-            public Converter(SemanticModel semanticModel, ISemanticFactsService semanticFacts, ForEachStatementSyntax source, Document document, CancellationToken cancellationToken)
+            public Converter(SemanticModel semanticModel, ISemanticFactsService semanticFacts, ForEachStatementSyntax forEachStatement, Document document, CancellationToken cancellationToken)
             {
                 _semanticModel = semanticModel;
                 _semanticFacts = semanticFacts;
-                _forEachStatement = source;
+                _forEachStatement = forEachStatement;
                 _document = document;
-                _introducedLocalNames = new List<string>();
                 _cancellationToken = cancellationToken;
             }
 
             public bool TryConvert(out SyntaxEditor editor)
             {
-                var workspace = _document.Project.Solution.Workspace;
-                editor = new SyntaxEditor(_semanticModel.SyntaxTree.GetRoot(_cancellationToken), workspace);
-                // replace with BSF algorithm
-                var queue = new Queue<StatementSyntax>();
-                AddToQueue(queue, new[] { _forEachStatement.Statement }, out var residuaryStatements);
-                var identifiers = new List<SyntaxToken>();
-                identifiers.Add(_forEachStatement.Identifier);
-                if (TryCreateQueryClauses(queue, out var queryClauses, identifiers, out var lastStatements)) // TODO should not by Try. Need to join with queue creation.
+                // Do not try refactoring queries with comments or conditional compilation in them.
+                // We can consider supporting queries with comments in the future.
+                if (_forEachStatement.DescendantTrivia().Any(trivia => trivia.MatchesKind(
+                        SyntaxKind.SingleLineCommentTrivia,
+                        SyntaxKind.MultiLineCommentTrivia,
+                        SyntaxKind.MultiLineDocumentationCommentTrivia) ||
+                    _forEachStatement.ContainsDirectives))
                 {
-                    // TODO consider case assignment + yield return
-                    if (residuaryStatements.Length == 1 && TryConvertToSpecificCase(residuaryStatements.Single(), editor, queryClauses))
-                    {
-                        return true;
-                    }
+                    editor = default;
+                    return false;
+                }
+
+                // TODO lazy editor, what if nothing to create?
+                editor = new SyntaxEditor(_semanticModel.SyntaxTree.GetRoot(_cancellationToken), _document.Project.Solution.Workspace);
+                var queryClauses = CreateQueryClauses(out var identifiers, out var lastStatements);
+
+                // TODO consider case assignment + yield return like: var a = x + 1; yield return a;
+                if (lastStatements.Count() == 1 && TryConvertToSpecificCase(lastStatements.Single(), editor, queryClauses))
+                {
+                    return !_semanticModel.GetDiagnostics(_forEachStatement.Span, _cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error);
                 }
 
                 // No sense to convert a single foreach to foreach over the same collection
                 if (queryClauses.Count >= 1)
                 {
                     ConvertToDefault(queryClauses, identifiers, lastStatements, editor);
-                    return true;
+
+                    // TODO repeating code
+                    return !_semanticModel.GetDiagnostics(_forEachStatement.Span, _cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error);
                 }
 
                 return false;
+            }
+
+            // TODO signature is not ideal: we always return queryClauses but setting lastStatements to something various
+            private List<QueryClauseSyntax> CreateQueryClauses(out List<SyntaxToken> identifiers, out List<StatementSyntax> lastStatements)
+            {
+                identifiers = new List<SyntaxToken>();
+                identifiers.Add(_forEachStatement.Identifier);
+                var queryClauses = new List<QueryClauseSyntax>();
+                var current = _forEachStatement.Statement;
+
+                while (true)
+                {
+                    switch (current.Kind())
+                    {
+                        case SyntaxKind.Block:
+                            var block = (BlockSyntax)current;
+                            var array = block.Statements.ToArray();
+                            // will process the last statement later on
+                            for (int i = 0; i < array.Length - 1; i++)
+                            {
+                                var statement = array[i];
+                                // TODO anymore checks?
+                                if (statement.Kind() == SyntaxKind.LocalDeclarationStatement)
+                                {
+                                    foreach (var variable in ((LocalDeclarationStatementSyntax)statement).Declaration.Variables)
+                                    {
+                                        queryClauses.Add(SyntaxFactory.LetClause(variable.Identifier, variable.Initializer.Value));
+                                        identifiers.Add(variable.Identifier);
+                                    }
+                                }
+                                else
+                                {
+                                    lastStatements = new List<StatementSyntax>(); lastStatements.AddRange(array.Skip(i));
+                                    return queryClauses;
+                                }
+                            }
+
+                            // process the last statement separately
+                            current = array.Last();
+                            break;
+
+                        case SyntaxKind.ForEachStatement:
+                            var forEachStatement = (ForEachStatementSyntax)current;
+                            identifiers.Add(forEachStatement.Identifier);
+                            queryClauses.Add(CreateFromClause(forEachStatement));
+                            current = forEachStatement.Statement;
+                            break;
+
+                        case SyntaxKind.IfStatement:
+                            var ifStatement = (IfStatementSyntax)current;
+                            if (ifStatement.Else == null)
+                            {
+                                // TODO may consider join for some cases
+                                queryClauses.Add(SyntaxFactory.WhereClause(ifStatement.Condition));
+                                current = ifStatement.Statement;
+                                break;
+                            }
+                            else
+                            {
+                                // TODO may consdier if () break; else {}
+                                lastStatements = new List<StatementSyntax> { current };
+                                return queryClauses;
+                            }
+
+                        default:
+                            lastStatements = new List<StatementSyntax> { current };
+                            return queryClauses;
+                    }
+                }
             }
 
             private bool TryConvertToSpecificCase(StatementSyntax residuaryStatement, SyntaxEditor editor, List<QueryClauseSyntax> queryClauses)
@@ -123,21 +191,47 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         break;
 
                     case SyntaxKind.YieldReturnStatement:
-                        // TODO also need to check that there were no other yield returns above or below.
-                        // TODO maybe simple the check: check that there is a single yield return
-                        // TODO allow yield break just after yield returns
+                        void ReplaceYieldReturn()
+                        {
+                            var queryExpression = CreateQueryExpression(queryClauses, ((YieldStatementSyntax)residuaryStatement).Expression);
+                            editor.ReplaceNode(_forEachStatement, SyntaxFactory.ReturnStatement(queryExpression).WithAdditionalAnnotations(Formatter.Annotation));
+                        }
+
                         var memberDeclaration = FindParentMemberDeclarationNode(_forEachStatement, out _);
                         var yieldStatements = memberDeclaration.DescendantNodes().OfType<YieldStatementSyntax>();
 
-                        if (yieldStatements.Count() == 1 &&
-                            (_forEachStatement.Parent == memberDeclaration || (
-                            _forEachStatement.IsParentKind(SyntaxKind.Block) &&
-                            _forEachStatement.Parent.Parent == memberDeclaration &&
-                            ((BlockSyntax)_forEachStatement.Parent).Statements.Last() == _forEachStatement)))
+                        if (_forEachStatement.IsParentKind(SyntaxKind.Block) &&
+                            _forEachStatement.Parent.Parent == memberDeclaration)
                         {
-                            var expression = ((YieldStatementSyntax)residuaryStatement).Expression;
-                            var queryExpression = CreateQueryExpression(queryClauses, expression);
-                            editor.ReplaceNode(_forEachStatement, SyntaxFactory.ReturnStatement(queryExpression).WithAdditionalAnnotations(Formatter.Annotation));
+                            var statementsOnBlockWithForEach = ((BlockSyntax)_forEachStatement.Parent).Statements;
+                            var lastStatement = statementsOnBlockWithForEach.Last();
+                            if (yieldStatements.Count() == 1 && lastStatement == _forEachStatement)
+                            {
+                                ReplaceYieldReturn();
+                                return true;
+                            }
+
+                            // foreach()
+                            // {
+                            //   yield return ...;
+                            // }
+                            // yield break;
+                            // end of member
+                            if (yieldStatements.Count() == 2 &&
+                                lastStatement.Kind() == SyntaxKind.YieldBreakStatement &&
+                                statementsOnBlockWithForEach.ElementAt(statementsOnBlockWithForEach.Count - 2) == _forEachStatement)
+                            {
+                                ReplaceYieldReturn();
+                                // remove yield break
+                                editor.RemoveNode(lastStatement);
+                                return true;
+                            }
+                        }
+
+                        // TODO add a test
+                        if (_forEachStatement.Parent == memberDeclaration)
+                        {
+                            ReplaceYieldReturn();
                             return true;
                         }
 
@@ -213,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                  QueryExpressionSyntax queryExpression,
                 SyntaxEditor editor)
             {
-             
+
                 editor.ReplaceNode(
                     expressionToReplace,
                     SyntaxFactory.InvocationExpression(
@@ -226,20 +320,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
             private void ConvertToToList(ExpressionStatementSyntax expressionStatement, QueryExpressionSyntax queryExpression, ExpressionSyntax listExpression, SyntaxEditor editor)
             {
-                // TODO consider cases:
-                // var list = new ...; foreach
-                // list = new ... ; foreach
-                // var a = ..., list = new list; foreach
                 var previous = FindPreviousStatement(_forEachStatement);
 
                 switch (previous?.Kind())
                 {
-                    // TODO also need to check the variable name
-                    // a.b.Add(...)
                     case SyntaxKind.LocalDeclarationStatement:
                         var lastDeclaration = ((LocalDeclarationStatementSyntax)previous).Declaration.Variables.Last();
                         if (listExpression is IdentifierNameSyntax identifierName &&
-                            lastDeclaration.Identifier.ValueText.Equals(identifierName.Identifier.ValueText) && // TODO better comparison
+                            lastDeclaration.Identifier.ValueText.Equals(identifierName.Identifier.ValueText) &&
                             lastDeclaration.Initializer.Value is ObjectCreationExpressionSyntax objectCreationExpression1 &&
                             _semanticModel.GetSymbolInfo(objectCreationExpression1.Type, _cancellationToken).Symbol is ITypeSymbol typeSymbol1 &&
                             IsList(typeSymbol1))
@@ -249,8 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         }
 
                         break;
-                    // TODO also need to check the variable name
-                    // a.b.Add(...)
+
                     case SyntaxKind.ExpressionStatement:
                         if (((ExpressionStatementSyntax)previous).Expression is AssignmentExpressionSyntax assignmentExpression &&
                             SymbolEquivalenceComparer.Instance.Equals(_semanticModel.GetSymbolInfo(assignmentExpression.Left, _cancellationToken).Symbol, _semanticModel.GetSymbolInfo(listExpression, _cancellationToken).Symbol) &&
@@ -289,80 +376,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 editor.RemoveNode(_forEachStatement);
             }
 
-
-            // TODO do we need to use Immutable for residuaryStatements?
-            private void AddToQueue(Queue<StatementSyntax> queue, IEnumerable<StatementSyntax> statements, out ImmutableArray<StatementSyntax> residuaryStatements)
+            private void ConvertToDefault(List<QueryClauseSyntax> queryClauses, List<SyntaxToken> identifiers, IEnumerable<StatementSyntax> lastStatements, SyntaxEditor editor)
             {
-                var array = statements.ToArray();
-
-                // process the last statement later on
-                for (int i = 0; i < array.Length - 1; i++)
-                {
-                    var statement = array[i];
-                    // TODO anymore checks?
-                    if (statement.Kind() == SyntaxKind.LocalDeclarationStatement)
-                    {
-                        queue.Enqueue(statement);
-                    }
-                    else
-                    {
-                        residuaryStatements = array.Skip(i).ToImmutableArray();
-                        return;
-                    }
-                }
-
-                // process last statement separately
-                var last = array.Last();
-                switch (last.Kind())
-                {
-                    case SyntaxKind.Block:
-                        //  TODO tests with extra blocks
-                        AddToQueue(queue, ((BlockSyntax)last).Statements, out residuaryStatements);
-                        return;
-
-                    case SyntaxKind.ForEachStatement:
-                        queue.Enqueue(last);
-                        AddToQueue(queue, new[] { ((ForEachStatementSyntax)last).Statement }, out residuaryStatements);
-                        return;
-
-                    case SyntaxKind.IfStatement:
-                        var ifStatement = (IfStatementSyntax)last;
-                        if (ifStatement.Else == null)
-                        {
-                            queue.Enqueue(last);
-                            AddToQueue(queue, new[] { ifStatement.Statement }, out residuaryStatements);
-                            return;
-                        }
-                        else
-                        {
-                            // default
-                            residuaryStatements = new[] { last }.ToImmutableArray();
-                            return;
-                        }
-
-                    default:
-                        // TODO better constructions of the imm array
-                        residuaryStatements = new[] { last }.ToImmutableArray();
-                        return;
-                }
-            }
-
-            private void ConvertToDefault(List<QueryClauseSyntax> queryClauses, List<SyntaxToken> identifiers, List<StatementSyntax> lastStatements, SyntaxEditor editor)
-            {
-                var queryExpression = CreateQueryExpression(queryClauses, identifiers, lastStatements);
-
+                identifiers = FilterIdentifiers(identifiers, lastStatements);
                 // TODO can there be identifiers.Count == 0; ??
                 if (identifiers.Count() == 1)
                 {
                     // TODO should there be var identifier
                     // TODO do we need to add a block? what if there is one statement only?
-                    editor.ReplaceNode(_forEachStatement, SyntaxFactory.ForEachStatement(VarNameIdentifier, identifiers.Single(), queryExpression, WrapWithBlockIfNecessary(lastStatements)));
+                    editor.ReplaceNode(
+                        _forEachStatement,
+                        SyntaxFactory.ForEachStatement(
+                            VarNameIdentifier,
+                            identifiers.Single(),
+                            CreateQueryExpression(queryClauses, SyntaxFactory.IdentifierName(identifiers.Single())),
+                            WrapWithBlockIfNecessary(lastStatements)));
                 }
                 else
                 {
+                    identifiers.Reverse();
+                    var selectExpression = SyntaxFactory.AnonymousObjectCreationExpression(
+                            SyntaxFactory.SeparatedList(identifiers.Select(identifier => SyntaxFactory.AnonymousObjectMemberDeclarator(SyntaxFactory.IdentifierName(identifier)))));
+                    var queryExpression = CreateQueryExpression(queryClauses, selectExpression);
+
                     var anonymousTypeName = "anonymous";
                     var freeName = GetFreeSymbolNameAndMarkUsed(anonymousTypeName);
-                    var fromStatementIdentifierName = SyntaxFactory.IdentifierName(freeName);
                     var block = WrapWithBlockIfNecessary(lastStatements);
 
                     foreach (var identifier in identifiers)
@@ -378,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                                             SyntaxFactory.EqualsValueClause(
                                                 SyntaxFactory.MemberAccessExpression(
                                                     SyntaxKind.SimpleMemberAccessExpression,
-                                                    fromStatementIdentifierName,
+                                                    SyntaxFactory.IdentifierName(freeName),
                                                     SyntaxFactory.Token(SyntaxKind.DotToken),
                                                     SyntaxFactory.IdentifierName(identifier)))))));
                         block = AddToBlockTop(localDeclaration, block);
@@ -388,67 +426,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 }
             }
 
-            private static BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
+            private List<SyntaxToken> FilterIdentifiers(List<SyntaxToken> identifiers, IEnumerable<StatementSyntax> lastStatements)
             {
-                if (statements.Count() == 1 && statements.Single() is BlockSyntax block)
-                {
-                    return block;
-                }
+                var symbols = new HashSet<string>(lastStatements.SelectMany(statement => _semanticModel.AnalyzeDataFlow(statement).ReadInside).Select(symbol => symbol.Name));
 
-                return SyntaxFactory.Block(statements);
-            }
-
-            private List<SyntaxToken> FilterIdentifiers(List<SyntaxToken> identifiers, List<StatementSyntax> lastStatements)
-            {
-
-                var symbols = new HashSet<string>();
-                foreach (var statement in lastStatements)
-                {
-                    foreach (var symbol in _semanticModel.AnalyzeDataFlow(statement).ReadInside)
-                    {
-                        symbols.Add(symbol.Name);
-                    }
-                }
-
-                var result = new List<SyntaxToken>();
-                foreach (var identifier in identifiers)
-                {
-                    if (symbols.Contains(identifier.ValueText))
-                    {
-                        // TODO add a unit tests with no identifiers used in the bottom loop
-                        result.Add(identifier);
-                    }
-                }
-
-                return result;
-            }
-
-            // TODO consider removing reccurrency, if using continuation
-            private QueryExpressionSyntax CreateQueryExpression(
-                List<QueryClauseSyntax> queryClauses,
-                List<SyntaxToken> identifiers,
-                List<StatementSyntax> lastStatements)
-            {
-
-                identifiers = FilterIdentifiers(identifiers, lastStatements);
-                identifiers.Reverse();
-                ExpressionSyntax selectExpression;
-                if (identifiers.Count == 1)
-                {
-                    selectExpression = SyntaxFactory.IdentifierName(identifiers.Single());
-                }
-                else
-                {
-                    // TODO what is 0?
-                    selectExpression = SyntaxFactory.AnonymousObjectCreationExpression(
-                            SyntaxFactory.SeparatedList(identifiers.Select(identifier => SyntaxFactory.AnonymousObjectMemberDeclarator(SyntaxFactory.IdentifierName(identifier)))));
-                }
-
-                return CreateQueryExpression(queryClauses, selectExpression);
+                // TODO add a unit tests with no identifiers used in the bottom loop
+                // List? or What?
+                return identifiers.Where(identifier => symbols.Contains(identifier.ValueText)).ToList();
             }
 
             private QueryExpressionSyntax CreateQueryExpression(
-                List<QueryClauseSyntax> queryClauses,
+                IEnumerable<QueryClauseSyntax> queryClauses,
                 ExpressionSyntax selectExpression)
             {
                 // TODO should be generate continuation in some cases?
@@ -458,61 +446,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         SyntaxFactory.List(queryClauses),
                         SyntaxFactory.SelectClause(selectExpression), continuation: null))
                         .WithAdditionalAnnotations(Formatter.Annotation);
-            }
-
-            // TODO replace List<statementSyntax> with???
-            // Should not we create last statements earlier when creating the queue?
-            private bool TryCreateQueryClauses(Queue<StatementSyntax> queue, out List<QueryClauseSyntax> queryClauses, List<SyntaxToken> identifiers, out List<StatementSyntax> lastStatements)
-            {
-                queryClauses = new List<QueryClauseSyntax>();
-                lastStatements = _forEachStatement.Statement is BlockSyntax block ? block.Statements.ToList() : new List<StatementSyntax> { _forEachStatement.Statement }; // TODO test case
-
-                while (queue.Any())
-                {
-                    var node = queue.Dequeue();
-                    switch (node.Kind())
-                    {
-                        case SyntaxKind.ForEachStatement:
-                            var forEachStatement = node as ForEachStatementSyntax;
-                            var fromClause = CreateFromClause(forEachStatement);
-                            identifiers.Add(forEachStatement.Identifier);
-                            queryClauses.Add(fromClause);
-                            lastStatements = new List<StatementSyntax> { forEachStatement.Statement };
-                            break;
-
-                        case SyntaxKind.IfStatement:
-                            // TODO check either here or somewhere else that there is no else
-                            // TODO may consdier if () break; else {}
-                            var ifStatement = node as IfStatementSyntax;
-                            // TODO may consider join for some cases
-                            var whereClause = SyntaxFactory.WhereClause(ifStatement.Condition);
-                            queryClauses.Add(whereClause);
-                            lastStatements = new List<StatementSyntax> { ifStatement.Statement };
-                            break;
-
-                        case SyntaxKind.LocalDeclarationStatement:
-                            var localDeclaration = node as LocalDeclarationStatementSyntax;
-                            foreach (var variable in localDeclaration.Declaration.Variables)
-                            {
-                                queryClauses.Add(SyntaxFactory.LetClause(variable.Identifier, variable.Initializer.Value));
-                                identifiers.Add(variable.Identifier);
-                            }
-
-                            // TODO need to check if it belongs
-                            lastStatements.Remove(localDeclaration);
-
-                            // TODO The lastbody should be updated by removing the localdeclaration statement from the current lastbody
-                            // TODO what if there were no last body set above???
-                            break;
-
-                        default:
-                            // TODO should crash here?
-                            identifiers = default;
-                            return false;
-                    }
-                }
-
-                return true;
             }
 
             private static FromClauseSyntax CreateFromClause(ForEachStatementSyntax forEachStatement)
@@ -553,12 +486,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 }
             }
 
+            private static BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
+                => (statements.Count() == 1 && statements.Single() is BlockSyntax block) ? block : SyntaxFactory.Block(statements);
+
             private SyntaxToken GetFreeSymbolNameAndMarkUsed(string prefix)
-            {
-                var freeToken = _semanticFacts.GenerateUniqueName(_semanticModel, _forEachStatement, containerOpt: null, baseName: prefix, _introducedLocalNames, _cancellationToken);
-                _introducedLocalNames.Add(freeToken.ValueText);
-                return freeToken;
-            }
+                => _semanticFacts.GenerateUniqueName(_semanticModel, _forEachStatement, containerOpt: null, baseName: prefix, Enumerable.Empty<string>(), _cancellationToken);
 
             // Borrowed from another provider. Share?
             // We may assume that the query is defined within a method, field, property and so on and it is declare just once.
