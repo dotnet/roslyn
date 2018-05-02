@@ -588,7 +588,7 @@ function Test-XUnit() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*netcoreapp.*") }
 
     # Exclude out assemblies that have too many AVs in Jenkins
-    $dlls = $dlls | ?{ -not ($_.FullName -match ".*Roslyn.Compilers.CSharp.Semantic.UnitTests.dll") }
+    $dlls = $dlls | ?{ $_.FullName -match ".*ExpressionEvaluator.*" }
 
     # Exclude out the ref assemblies
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
