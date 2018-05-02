@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var result = new Dictionary<OptionKey, object>();
             foreach (var option in options)
             {
-                result[option.key] = option.value;
+                result.Add(option.key, option.value);
             }
 
             return result;
