@@ -3572,6 +3572,12 @@ oneMoreTime:
             return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, childrenBuilder.ToImmutableAndFree(), operation.IsImplicit);
         }
 
+        public override IOperation VisitNameOf(INameOfOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(operation.ConstantValue.HasValue);
+            return new LiteralExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
         private T Visit<T>(T node) where T : IOperation
         {
             return (T)Visit(node, argument: null);
@@ -3735,11 +3741,6 @@ oneMoreTime:
         public override IOperation VisitAwait(IAwaitOperation operation, int? captureIdForResult)
         {
             return new AwaitExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitNameOf(INameOfOperation operation, int? captureIdForResult)
-        {
-            return new NameOfExpression(Visit(operation.Argument), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
