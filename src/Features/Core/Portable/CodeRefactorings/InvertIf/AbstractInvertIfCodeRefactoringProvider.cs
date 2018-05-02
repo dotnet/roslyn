@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 var newBinaryExpressionSyntax = NewBinaryOperation(binaryOperation, newLeftOperand, negatedKind, newRightOperand, generator, syntaxFacts, cancellationToken)
                     .WithTriviaFrom(expressionNode);
 
-                syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax, out var newToken);
+                var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
                 var newTokenWithTrivia = newToken.WithTriviaFrom(operatorToken);
                 return newBinaryExpressionSyntax.ReplaceToken(newToken, newTokenWithTrivia);
             }
