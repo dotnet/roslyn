@@ -3114,8 +3114,8 @@ oneMoreTime:
                             break;
                         }
 
-                        // A switch section with a relational case other than equality must have 
-                        // condition assosiated with it. This point should not be reachable.
+                        // A switch section with a relational case other than an equality must have 
+                        // a condition associated with it. This point should not be reachable.
                         throw ExceptionUtilities.UnexpectedValue(relationalValueClause.Relation);
 
                     case CaseKind.Default:
@@ -3132,9 +3132,11 @@ oneMoreTime:
                         _currentBasicBlock = null;
                         break;
 
+                    case CaseKind.Range:
+                        // A switch section with a range case must have a condition associated with it.
+                        // This point should not be reachable.
                     default:
-                        // PROTOTYPE(dataflow): TODO. See VisitRangeCaseClause
-                        throw new NotImplementedException();
+                        throw ExceptionUtilities.UnexpectedValue(caseClause.CaseKind);
                 }
             }
 
@@ -3167,7 +3169,6 @@ oneMoreTime:
         public override IOperation VisitRangeCaseClause(IRangeCaseClauseOperation operation, int? captureIdForResult)
         {
             throw ExceptionUtilities.Unreachable;
-            //return new RangeCaseClause(Visit(operation.MinimumValue), Visit(operation.MaximumValue), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitPatternCaseClause(IPatternCaseClauseOperation operation, int? captureIdForResult)

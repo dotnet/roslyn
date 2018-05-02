@@ -5399,6 +5399,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._UpperBoundOpt = upperBoundOpt
             Me._LowerBoundConditionOpt = lowerBoundConditionOpt
             Me._UpperBoundConditionOpt = upperBoundConditionOpt
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
         End Sub
 
 
