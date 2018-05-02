@@ -380,13 +380,13 @@ public class Point
 {
     public static void Main()
     {
-        var r = 1 switch { _ => 0 };
+        var r = 1 switch { _: 0 };
     }
 }";
             CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithoutRecursivePatterns).VerifyDiagnostics(
                 // (5,17): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         var r = 1 switch { _ => 0 };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _ => 0 }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
+                //         var r = 1 switch { _: 0 };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch { _: 0 }").WithArguments("recursive patterns", "8.0").WithLocation(5, 17)
                 );
         }
 
@@ -400,8 +400,8 @@ public class Point
 {
     public static void Main()
     {
-        var r1 = (1, null) switch { _ => 0 };
-        var r2 = System.Console.Write(1) switch { _ => 0 };
+        var r1 = (1, null) switch { _: 0 };
+        var r2 = System.Console.Write(1) switch { _: 0 };
     }
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
@@ -417,7 +417,7 @@ public class Point
         [Fact]
         public void SwitchExpression_03()
         {
-            // test that a ternary expression is not at an appropriate precedence
+            // test that a ternary expression is at an appropriate precedence
             // for the constant expression of a constant pattern in a switch expression arm.
             var source =
 @"class Program
@@ -425,62 +425,11 @@ public class Point
     public static void Main()
     {
         bool b = true;
-        var r1 = b switch { true ? true : true => true, false => false };
-        var r2 = b switch { (true ? true : true) => true, false => false };
+        var r1 = b switch { true ? true : true: true, false: false };
+        var r2 = b switch { (true ? true : true): true, false: false };
     }
 }";
-            // PROTOTYPE(patterns2): This is admittedly poor syntax error recovery (for the line declaring r2),
-            // but this test demonstrates that it is a syntax error.
-            CreatePatternCompilation(source).VerifyDiagnostics(
-                // (6,34): error CS1003: Syntax error, '=>' expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments("=>", "?").WithLocation(6, 34),
-                // (6,34): error CS1525: Invalid expression term '?'
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(6, 34),
-                // (6,48): error CS1513: } expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 48),
-                // (6,48): error CS1003: Syntax error, ',' expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 48),
-                // (6,51): error CS1002: ; expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "true").WithLocation(6, 51),
-                // (6,55): error CS1002: ; expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 55),
-                // (6,55): error CS1513: } expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 55),
-                // (6,63): error CS1002: ; expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(6, 63),
-                // (6,63): error CS1513: } expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 63),
-                // (6,72): error CS1002: ; expected
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 72),
-                // (6,73): error CS1597: Semicolon after method or accessor block is not valid
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(6, 73),
-                // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1),
-                // (7,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
-                //         var r2 = b switch { (true ? true : true) => true, false => false };
-                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 9),
-                // (7,18): error CS0103: The name 'b' does not exist in the current context
-                //         var r2 = b switch { (true ? true : true) => true, false => false };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(7, 18),
-                // (7,20): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
-                //         var r2 = b switch { (true ? true : true) => true, false => false };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 20),
-                // (6,20): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
-                //         var r1 = b switch { true ? true : true => true, false => false };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 20)
-                );
+            CreatePatternCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -493,7 +442,7 @@ public class Point
     public static void Main()
     {
         var b = (true, false);
-        var r1 = b switch { (true ? true : true, _) => true, _ => false };
+        var r1 = b switch { (true ? true : true, _): true, _: false };
         var r2 = b is (true ? true : true, _);
         switch (b.Item1) { case true ? true : true: break; }
     }
@@ -511,7 +460,7 @@ public class Point
 {
     public static void Main()
     {
-        var x = 1 switch { 1 => 1, _ => throw null };
+        var x = 1 switch { 1: 1, _: throw null };
     }
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
@@ -527,7 +476,7 @@ public class Point
 {
     public static void Main()
     {
-        var x = 1 switch { 0 => M, 1 => new D(M), 2 => M };
+        var x = 1 switch { 0: M, 1: new D(M), 2: M };
         x();
     }
     public static void M() {}
@@ -551,7 +500,7 @@ public class Point
     {
         int q = 1;
         int u;
-        var x = q switch { 0 => u=0, 1 => u=1, _ => u=2 };
+        var x = q switch { 0: u=0, 1: u=1, _: u=2 };
         System.Console.WriteLine(u);
     }
 }";
@@ -570,7 +519,7 @@ public class Point
     {
         int q = 1;
         int u;
-        var x = q switch { 0 => u=0, 1 => 1, _ => u=2 };
+        var x = q switch { 0: u=0, 1: 1, _: u=2 };
         System.Console.WriteLine(u);
     }
     static int M(int i) => i;
@@ -593,15 +542,15 @@ public class Point
     {
         int q = 1;
         int u;
-        var x = q switch { 0 => u=0, 1 => u=M(u), _ => u=2 };
+        var x = q switch { 0: u=0, 1: u=M(u), _: u=2 };
         System.Console.WriteLine(u);
     }
     static int M(int i) => i;
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
-                // (7,47): error CS0165: Use of unassigned local variable 'u'
-                //         var x = q switch { 0 => u=0, 1 => u=M(u), _ => u=2 };
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "u").WithArguments("u").WithLocation(7, 47)
+                // (7,43): error CS0165: Use of unassigned local variable 'u'
+                //         var x = q switch { 0: u=0, 1: u=M(u), _: u=2 };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "u").WithArguments("u").WithLocation(7, 43)
                 );
         }
 
@@ -617,9 +566,9 @@ public class Point
     public static void Main()
     {
         int a = 1;
-        var b = a switch { var x1 => x1 };
-        var c = a switch { var x2 when x2 is var x3 => x3 };
-        var d = a switch { var x4 => x4 is var x5 ? x5 : 1 };
+        var b = a switch { var x1: x1 };
+        var c = a switch { var x2 when x2 is var x3: x3 };
+        var d = a switch { var x4: x4 is var x5 ? x5 : 1 };
     }
     static int M(int i) => i;
 }";
@@ -681,7 +630,7 @@ class Program
         var t = new System.ValueTuple<int>(1);
         if (t is (int x)) { }                           // error 1
         switch (t) { case (_): break; }                 // error 2
-        var u = t switch { (int y) => y, _ => 2 };      // error 3
+        var u = t switch { (int y): y, _: 2 };      // error 3
         if (t is (int z1) _) { }                        // error 4
         if (t is (Item1: int z2)) { }                   // error 5
         if (t is (int z3) { }) { }                      // error 6
@@ -702,7 +651,7 @@ class Program
                 //         switch (t) { case (_): break; }                 // error 2
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(_)").WithLocation(9, 27),
                 // (10,28): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
-                //         var u = t switch { (int y) => y, _ => 2 };      // error 3
+                //         var u = t switch { (int y): y, _: 2 };      // error 3
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int y)").WithLocation(10, 28),
                 // (11,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
                 //         if (t is (int z1) _) { }                        // error 4
@@ -713,9 +662,9 @@ class Program
                 // (13,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
                 //         if (t is (int z3) { }) { }                      // error 6
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int z3) { }").WithLocation(13, 18),
-                // (10,42): error CS8410: The pattern has already been handled by a previous arm of the switch expression.
-                //         var u = t switch { (int y) => y, _ => 2 };      // error 3
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(10, 42)
+                // (10,40): error CS8410: The pattern has already been handled by a previous arm of the switch expression.
+                //         var u = t switch { (int y): y, _: 2 };      // error 3
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(10, 40)
                 );
         }
 
@@ -916,10 +865,10 @@ class Program
     private static int M((bool, bool) t)
     {
         return t switch {
-            (false, false) => 0,
-            (false, _) => 1,
-            (_, false) => 2,
-            _ => 3
+            (false, false): 0,
+            (false, _): 1,
+            (_, false): 2,
+            _: 3
         };
     }
 }
@@ -953,14 +902,14 @@ namespace System
     public static void Main()
     {
         string s = string.Empty;
-        string s2 = s switch { null => null, string t => t, ""foo"" => null };
+        string s2 = s switch { null: null, string t: t, ""foo"": null };
     }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (6,61): error CS8410: The pattern has already been handled by a previous arm of the switch expression.
-                //         string s2 = s switch { null => null, string t => t, "foo" => null };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""foo""").WithLocation(6, 61)
+                // (6,57): error CS8410: The pattern has already been handled by a previous arm of the switch expression.
+                //         string s2 = s switch { null: null, string t: t, "foo": null };
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""foo""").WithLocation(6, 57)
                 );
         }
 
@@ -985,7 +934,7 @@ public class X
                 break;
         }
         // PROTOTYPE(patterns2): Lowering and code gen not yet supported for switch expression
-        //Console.WriteLine(t switch { (_, _, _, _, _, _, _, _, var t9) => t9 });
+        //Console.WriteLine(t switch { (_, _, _, _, _, _, _, _, var t9): t9 });
     }
 }";
             var compilation = CreatePatternCompilation(source);
@@ -1098,29 +1047,29 @@ class Program2
     static int Main() => 0;
     private const int _ = 1;
     bool M1(object o) => o is _;                             // error: cannot use _ as a constant
-    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+    bool M2(object o) => o switch { 1: true, _: false }; // error: _ in scope
 }
 class Program1
 {
     class _ {}
     bool M1(object o) => o is _;                             // error: is type named _
-    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+    bool M2(object o) => o switch { 1: true, _: false }; // error: _ in scope
 }
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (11,31): error CS8413: The name '_' refers to the type 'Program1._', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
+                // (11,31): warning CS8413: The name '_' refers to the type 'Program1._', not the discard pattern. Use '@_' for the type, or 'var _' to discard.
                 //     bool M1(object o) => o is _;                             // error: is type named _
                 Diagnostic(ErrorCode.WRN_IsTypeNamedUnderscore, "_").WithArguments("Program1._").WithLocation(11, 31),
                 // (5,31): error CS8412: A constant named '_' cannot be used as a pattern.
                 //     bool M1(object o) => o is _;                             // error: cannot use _ as a constant
                 Diagnostic(ErrorCode.ERR_ConstantPatternNamedUnderscore, "_").WithLocation(5, 31),
-                // (12,48): error CS8411: The discard pattern '_' cannot be used where 'Program1._' is in scope.
-                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
-                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program1._").WithLocation(12, 48),
-                // (6,48): error CS8411: The discard pattern '_' cannot be used where 'Program0._' is in scope.
-                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
-                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program0._").WithLocation(6, 48)
+                // (12,46): error CS8411: The discard pattern '_' cannot be used where 'Program1._' is in scope.
+                //     bool M2(object o) => o switch { 1: true, _: false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program1._").WithLocation(12, 46),
+                // (6,46): error CS8411: The discard pattern '_' cannot be used where 'Program0._' is in scope.
+                //     bool M2(object o) => o switch { 1: true, _: false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program0._").WithLocation(6, 46)
                 );
         }
 
@@ -1135,7 +1084,7 @@ class Program1
 }
 class Program1 : Program0
 {
-    bool M2(object o) => o switch { 1 => true, _ => false }; // ok, private member not inherited
+    bool M2(object o) => o switch { 1: true, _: false }; // ok, private member not inherited
 }
 ";
             var compilation = CreatePatternCompilation(source);
@@ -1154,22 +1103,22 @@ class Program1 : Program0
 }
 class Program1 : Program0
 {
-    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+    bool M2(object o) => o switch { 1: true, _: false }; // error: _ in scope
 }
 class Program2
 {
     bool _(object q) => true;
-    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+    bool M2(object o) => o switch { 1: true, _: false }; // error: _ in scope
 }
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,48): error CS8411: The discard pattern '_' cannot be used where 'Program0._' is in scope.
-                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
-                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program0._").WithLocation(8, 48),
-                // (13,48): error CS8411: The discard pattern '_' cannot be used where 'Program2._(object)' is in scope.
-                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
-                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program2._(object)").WithLocation(13, 48)
+                // (13,46): error CS8411: The discard pattern '_' cannot be used where 'Program2._(object)' is in scope.
+                //     bool M2(object o) => o switch { 1: true, _: false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program2._(object)").WithLocation(13, 46),
+                // (8,46): error CS8411: The discard pattern '_' cannot be used where 'Program0._' is in scope.
+                //     bool M2(object o) => o switch { 1: true, _: false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("Program0._").WithLocation(8, 46)
                 );
         }
 
@@ -1181,14 +1130,14 @@ class Program2
 class Program
 {
     static int Main() => 0;
-    bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
+    bool M2(object o) => o switch { 1: true, _: false }; // error: _ in scope
 }
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (5,48): error CS8411: The discard pattern '_' cannot be used where '_' is in scope.
-                //     bool M2(object o) => o switch { 1 => true, _ => false }; // error: _ in scope
-                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("_").WithLocation(5, 48)
+                // (5,46): error CS8411: The discard pattern '_' cannot be used where '_' is in scope.
+                //     bool M2(object o) => o switch { 1: true, _: false }; // error: _ in scope
+                Diagnostic(ErrorCode.ERR_UnderscoreDeclaredAndDiscardPattern, "_").WithArguments("_").WithLocation(5, 46)
                 );
         }
 
@@ -1201,7 +1150,7 @@ class Program
     static int Main() => 0;
     private const int _ = 2;
     bool M1(object o) => o is @_;
-    int M2(object o) => o switch { 1 => 1, @_ => 2, var _ => 3 };
+    int M2(object o) => o switch { 1: 1, @_: 2, var _: 3 };
 }
 class Program1
 {
@@ -1225,15 +1174,15 @@ class Program1
     public static void M(string s)
     {
         int i;
-        int j = s switch { ""frog"" => 1, 0 => i, _ => 2 };
+        int j = s switch { ""frog"": 1, 0: i, _: 2 };
     }
 }
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (7,41): error CS0029: Cannot implicitly convert type 'int' to 'string'
-                //         int j = s switch { "frog" => 1, 0 => i, _ => 2 };
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "string").WithLocation(7, 41)
+                // (7,39): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         int j = s switch { "frog": 1, 0: i, _: 2 };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "string").WithLocation(7, 39)
                 );
         }
 

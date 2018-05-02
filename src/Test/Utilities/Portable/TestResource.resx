@@ -188,7 +188,7 @@ namespace My
         void Patterns(object o, object p)
         {
             var b = o is string s;
-            var c = o switch { "a" => 1, "b" => 2, _ => 3 };
+            var c = o switch { "a": 1, "b": 2, _: 3 };
             switch (o, p)
             {
                 case (2, 1): break;
@@ -358,7 +358,7 @@ namespace My
                         return;
                     }
             }
-            var z7 = 1 switch { 1 => 1 };
+            var z7 = 1 switch { 1: 1 };
             while (i &lt; 10)
             {
                 ++i;

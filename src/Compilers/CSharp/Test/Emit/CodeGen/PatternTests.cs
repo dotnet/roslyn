@@ -1169,11 +1169,11 @@ public class Door
 
     public static DoorState ChangeState1(DoorState state, Action action, bool haveKey = false) =>
         (state, action) switch {
-            (DoorState.Opened, Action.Close) => DoorState.Closed,
-            (DoorState.Closed, Action.Open) => DoorState.Opened,
-            (DoorState.Closed, Action.Lock) when haveKey => DoorState.Locked,
-            (DoorState.Locked, Action.Unlock) when haveKey => DoorState.Closed,
-            _ => state };
+            (DoorState.Opened, Action.Close): DoorState.Closed,
+            (DoorState.Closed, Action.Open): DoorState.Opened,
+            (DoorState.Closed, Action.Lock) when haveKey: DoorState.Locked,
+            (DoorState.Locked, Action.Unlock) when haveKey: DoorState.Closed,
+            _: state };
 }
 
 class Program
@@ -1634,8 +1634,8 @@ False
     public override bool Equals(object obj) =>
         obj switch
         {
-            C x1 when x1 is var x2 => x2 is var x3 && x3 is {},
-            _ => false
+            C x1 when x1 is var x2: x2 is var x3 && x3 is {},
+            _: false
         };
     public override int GetHashCode() => 1;
     public static void Main()

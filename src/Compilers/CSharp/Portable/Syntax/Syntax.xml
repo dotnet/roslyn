@@ -2558,8 +2558,8 @@
     <Kind Name="SwitchExpressionArm"/>
     <Field Name="Pattern" Type="PatternSyntax"/>
     <Field Name="WhenClause" Type="WhenClauseSyntax" Optional="true"/>
-    <Field Name="EqualsGreaterThanToken" Type="SyntaxToken">
-      <Kind Name="EqualsGreaterThanToken"/>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax"/>
   </Node>

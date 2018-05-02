@@ -11714,9 +11714,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
     }
 
-    public SyntaxToken EqualsGreaterThanToken 
+    public SyntaxToken ColonToken 
     {
-      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionArmSyntax)this.Green).equalsGreaterThanToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
+      get { return new SyntaxToken(this, ((Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionArmSyntax)this.Green).colonToken, this.GetChildPosition(2), this.GetChildIndex(2)); }
     }
 
     public ExpressionSyntax Expression 
@@ -11758,11 +11758,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         visitor.VisitSwitchExpressionArm(this);
     }
 
-    public SwitchExpressionArmSyntax Update(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
+    public SwitchExpressionArmSyntax Update(PatternSyntax pattern, WhenClauseSyntax whenClause, SyntaxToken colonToken, ExpressionSyntax expression)
     {
-        if (pattern != this.Pattern || whenClause != this.WhenClause || equalsGreaterThanToken != this.EqualsGreaterThanToken || expression != this.Expression)
+        if (pattern != this.Pattern || whenClause != this.WhenClause || colonToken != this.ColonToken || expression != this.Expression)
         {
-            var newNode = SyntaxFactory.SwitchExpressionArm(pattern, whenClause, equalsGreaterThanToken, expression);
+            var newNode = SyntaxFactory.SwitchExpressionArm(pattern, whenClause, colonToken, expression);
             var annotations = this.GetAnnotations();
             if (annotations != null && annotations.Length > 0)
                return newNode.WithAnnotations(annotations);
@@ -11774,22 +11774,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     public SwitchExpressionArmSyntax WithPattern(PatternSyntax pattern)
     {
-        return this.Update(pattern, this.WhenClause, this.EqualsGreaterThanToken, this.Expression);
+        return this.Update(pattern, this.WhenClause, this.ColonToken, this.Expression);
     }
 
     public SwitchExpressionArmSyntax WithWhenClause(WhenClauseSyntax whenClause)
     {
-        return this.Update(this.Pattern, whenClause, this.EqualsGreaterThanToken, this.Expression);
+        return this.Update(this.Pattern, whenClause, this.ColonToken, this.Expression);
     }
 
-    public SwitchExpressionArmSyntax WithEqualsGreaterThanToken(SyntaxToken equalsGreaterThanToken)
+    public SwitchExpressionArmSyntax WithColonToken(SyntaxToken colonToken)
     {
-        return this.Update(this.Pattern, this.WhenClause, equalsGreaterThanToken, this.Expression);
+        return this.Update(this.Pattern, this.WhenClause, colonToken, this.Expression);
     }
 
     public SwitchExpressionArmSyntax WithExpression(ExpressionSyntax expression)
     {
-        return this.Update(this.Pattern, this.WhenClause, this.EqualsGreaterThanToken, expression);
+        return this.Update(this.Pattern, this.WhenClause, this.ColonToken, expression);
     }
   }
 
