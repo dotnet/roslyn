@@ -228,11 +228,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static readonly CodeStyleOption<ParenthesesPreference> s_defaultOtherOperatorsParenthesesPreference =
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.None);
 
-        private const string s_isOtherName = "other_operations";
+        private const string s_otherOperatorsName = "other_operators";
         private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
             string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, string styleName)
         {
-            var isOther = s_isOtherName == styleName;
+            var isOther = s_otherOperatorsName == styleName;
             return new PerLanguageOption<CodeStyleOption<ParenthesesPreference>>(
                 nameof(CodeStyleOptions), fieldName, defaultValue,
                 storageLocations: new OptionStorageLocation[]{
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CreateParenthesesOption(
                 nameof(OtherParentheses),
                 s_defaultOtherOperatorsParenthesesPreference,
-                "other_operators");
+                s_otherOperatorsName);
 
         private static Optional<CodeStyleOption<ParenthesesPreference>> ParseParenthesesPreference(
             string optionString, Optional<CodeStyleOption<ParenthesesPreference>> defaultValue, bool isOther)
