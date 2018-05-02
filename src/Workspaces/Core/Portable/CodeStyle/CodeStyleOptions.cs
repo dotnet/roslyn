@@ -232,10 +232,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
             string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, string styleName)
         {
-            const string suffix = "Parentheses";
-
-            Debug.Assert(fieldName.EndsWith(suffix));
-
             var isOther = s_isOtherName == styleName;
             return new PerLanguageOption<CodeStyleOption<ParenthesesPreference>>(
                 nameof(CodeStyleOptions), fieldName, defaultValue,
