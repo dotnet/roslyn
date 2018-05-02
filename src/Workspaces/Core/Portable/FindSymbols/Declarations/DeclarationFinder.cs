@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var isExactNameSearch = query.Kind == SearchKind.Exact ||
                     (query.Kind == SearchKind.ExactIgnoreCase && !syntaxFacts.IsCaseSensitive);
 
-
                 // Note: we first call through the project.  This has an optimization where it will
                 // use the DeclarationOnlyCompilation if we have one, avoiding needing to build the
                 // full compilation if we don't have that.
