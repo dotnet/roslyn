@@ -213,6 +213,96 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return result.ToImmutableAndFree();
         }
 
+        public async Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, string diagnosticId, TextSpan range, CancellationToken cancellationToken)
+        {
+            var diagnostics = (await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, diagnosticId, cancellationToken: cancellationToken).ConfigureAwait(false)).ToList();
+            if (diagnostics.Count == 0)
+            {
+                return ImmutableArray<CodeFixCollection>.Empty;
+            }
+
+            bool hasAnySharedFixer = _workspaceFixersMap.TryGetValue(document.Project.Language, out var fixerMap);
+
+            var projectFixersMap = GetProjectFixers(document.Project);
+            var hasAnyProjectFixer = projectFixersMap.Any();
+
+            if (!hasAnySharedFixer && !hasAnyProjectFixer)
+            {
+                return ImmutableArray<CodeFixCollection>.Empty;
+            }
+
+            var allFixers = new List<CodeFixProvider>();
+
+            // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
+            bool isInteractive = document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive;
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (hasAnySharedFixer && fixerMap.Value.TryGetValue(diagnosticId, out var workspaceFixers))
+            {
+                if (isInteractive)
+                {
+                    allFixers.AddRange(workspaceFixers.Where(IsInteractiveCodeFixProvider));
+                }
+                else
+                {
+                    allFixers.AddRange(workspaceFixers);
+                }
+            }
+
+            if (hasAnyProjectFixer && projectFixersMap.TryGetValue(diagnosticId, out var projectFixers))
+            {
+                Debug.Assert(!isInteractive);
+                allFixers.AddRange(projectFixers);
+            }
+
+            var primaryDiagnostic = await diagnostics[0].ToDiagnosticAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+
+            var result = ArrayBuilder<CodeFixCollection>.GetInstance();
+
+            foreach (var fixer in allFixers.Distinct())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var fixes = await extensionManager.PerformFunctionAsync(fixer,
+                    () => GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, ImmutableArray.Create(primaryDiagnostic), cancellationToken),
+                    defaultValue: ImmutableArray<CodeFix>.Empty).ConfigureAwait(false);
+
+                if (fixes.IsDefaultOrEmpty)
+                {
+                    continue;
+                }
+
+                // If the fix provider supports fix all occurrences, then get the corresponding FixAllProviderInfo and fix all context.
+                var fixAllProviderInfo = extensionManager.PerformFunction(fixer, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, fixer, FixAllProviderInfo.Create), defaultValue: null);
+                if (fixAllProviderInfo == null)
+                {
+                    // for now, we don't care about fixer that doesn't have fix all implementation
+                    return ImmutableArray<CodeFixCollection>.Empty;
+                }
+
+                var diagnosticProvider = new FixAllPredefinedDiagnosticProvider(await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false));
+                var fixAllState = new FixAllState(
+                    fixAllProvider: fixAllProviderInfo.FixAllProvider,
+                    document: document,
+                    codeFixProvider: fixer,
+                    scope: FixAllScope.Document,
+                    codeActionEquivalenceKey: fixes.First().Action.EquivalenceKey,
+                    diagnosticIds: SpecializedCollections.SingletonEnumerable(diagnosticId),
+                    fixAllDiagnosticProvider: diagnosticProvider);
+
+                var codeFix = new CodeFixCollection(
+                    fixer, primaryDiagnostic.Location.SourceSpan, fixes, fixAllState,
+                    fixAllProviderInfo.SupportedScopes, primaryDiagnostic);
+
+                result.Add(codeFix);
+                break;
+            }
+
+            return result.ToImmutableAndFree();
+        }
+
         private async Task AppendFixesAsync(
             Document document,
             TextSpan span,
@@ -352,8 +442,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((ISuppressionFixProvider)fixer, diagnostics.Select(d => d.Id));
                 fixAllState = CreateFixAllState(
                     fixAllProviderInfo.FixAllProvider,
-                    document, fixAllProviderInfo, codeFixProvider, diagnostics,
-                    this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync);
+                    document, fixAllProviderInfo, codeFixProvider, diagnostics);
                 supportedScopes = fixAllProviderInfo.SupportedScopes;
             }
 
@@ -368,13 +457,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document,
             FixAllProviderInfo fixAllProviderInfo,
             CodeFixProvider originalFixProvider,
-            IEnumerable<Diagnostic> originalFixDiagnostics,
-            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
-            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync)
+            IEnumerable<Diagnostic> originalFixDiagnostics)
         {
             var diagnosticIds = originalFixDiagnostics.Where(fixAllProviderInfo.CanBeFixed)
                                                       .Select(d => d.Id)
                                                       .ToImmutableHashSet();
+
             var diagnosticProvider = new FixAllDiagnosticProvider(this, diagnosticIds);
             return new FixAllState(
                 fixAllProvider: fixAllProvider,
