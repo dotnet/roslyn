@@ -567,11 +567,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invert if statement.
+        ///   Looks up a localized string similar to Invert if.
         /// </summary>
-        internal static string Invert_if_statement {
+        internal static string Invert_if {
             get {
-                return ResourceManager.GetString("Invert_if_statement", resourceCulture);
+                return ResourceManager.GetString("Invert_if", resourceCulture);
             }
         }
         

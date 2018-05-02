@@ -46,5 +46,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsWhitespaceOrEndOfLineTrivia(this ISyntaxFactsService syntaxFacts, SyntaxTrivia trivia)
             => syntaxFacts.IsWhitespaceTrivia(trivia) || syntaxFacts.IsEndOfLineTrivia(trivia);
+
+        public static void GetPartsOfBinaryExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node, out SyntaxNode left, out SyntaxNode right)
+        {
+            syntaxFacts.GetPartsOfBinaryExpression(node, out left, out _, out right);
+        }
+
+        public static void GetOperatorTokenOfBinaryExpression(this ISyntaxFactsService syntaxFacts, SyntaxNode node, out SyntaxToken token)
+        {
+            syntaxFacts.GetPartsOfBinaryExpression(node, out _, out token, out _);
+        }
     }
 }

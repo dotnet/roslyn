@@ -11,8 +11,18 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         public static SnapshotPoint GetPoint(this ITextSnapshot snapshot, int position)
             => new SnapshotPoint(snapshot, position);
 
-        public static SnapshotPoint GetPoint(this ITextSnapshot snapshot, int lineNumber, int columnIndex)
-            => new SnapshotPoint(snapshot, snapshot.GetPosition(lineNumber, columnIndex));
+        public static SnapshotPoint? TryGetPoint(this ITextSnapshot snapshot, int lineNumber, int columnIndex)
+        {
+            var position = snapshot.TryGetPosition(lineNumber, columnIndex);
+            if (position.HasValue)
+            {
+                return new SnapshotPoint(snapshot, position.Value);
+            }
+            else
+            {
+                return null;
+            }
+        }
 
         /// <summary>
         /// Convert a <see cref="LinePositionSpan"/> to <see cref="TextSpan"/>.
