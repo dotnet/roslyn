@@ -9,22 +9,23 @@ namespace Microsoft.CodeAnalysis
     public static partial class ISymbolExtensions
     {
         /// <summary>
-        /// Checks if 'symbol' is accessible from within 'within', with
-        /// an optional qualifier of type 'throughTypeOpt' to be used to resolve
-        /// protected access.
+        /// Checks if 'symbol' would be accessible from within 'within' when loaded
+        /// into the same program. An optional qualifier of type 'throughType' is used to resolve
+        /// protected access for instance members.
         /// </summary>
         /// <remarks>
-        /// The following areas of imprecision may exist in the results of this API:
-        /// <para>For assembly identity, we depend on Equals <see cref="IEquatable{T}.Equals(T)"/>/>.
-        /// Assembly symbols that represent the same assembly imported into different language compilers
-        /// may not compare equal, and this may prevent them from appearing to be related through
-        /// this API. See https://github.com/dotnet/roslyn/issues/26542 .</para>
+        /// <para>The following areas of imprecision may exist in the results of this API:</para>
+        /// <para>For assembly identity, we depend on equality of the assembly's <see cref="IAssemblySymbol.Identity"/>.
+        /// This corresponds to the compiler and CLR notions of the identity of assemblies. It is possible
+        /// to produce distinct assemblies that share the same assembly identity, though it is not possible
+        /// to load such symbols into the same CLR instance.</para>
         /// <para>We compare <see cref="INamedTypeSymbol"/> based on the identity of the containing
         /// assembly (see above) and their metadata name, which includes the metadata name of the enclosing
-        /// namespaces. Due to the behavior of the VB compiler (https://github.com/dotnet/roslyn/issues/26546)
-        /// it merges namespaces when importing an assembly. Consequently, the metadata name of the namespace
+        /// namespaces. This may produce incorrect results for symbols loaded by the VB compiler,
+        /// which merges namespaces when importing an assembly. Consequently, the metadata name of the namespace
         /// may not be correct for some of the contained types, and types that are distinct
-        /// may appear to have the same fully-qualified name. In that case this API may treat them as the same type.</para>
+        /// may appear to have the same fully-qualified name (see https://github.com/dotnet/roslyn/issues/26546).
+        /// In that case this API may treat them as the same type.</para>
         /// <para>It is advised to avoid the use of this API within the compilers, as the compilers have additional
         /// requirements for access checking that are not satisfied by this implementation, including the
         /// avoidance of infinite recursion that would result from the use of the ISymbol APIs here,
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         public static bool IsAccessibleWithin(
             this ISymbol symbol,
             ISymbol within,
-            ITypeSymbol throughTypeOpt = null)
+            ITypeSymbol throughType = null)
         {
             if (symbol == null)
             {
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                 case SymbolKind.Property:
                 case SymbolKind.Event:
                 case SymbolKind.Field:
-                    return isMemberAccessible(symbol.ContainingType, symbol.DeclaredAccessibility, within, symbol.IsStatic ? null : throughTypeOpt);
+                    return isMemberAccessible(symbol.ContainingType, symbol.DeclaredAccessibility, within, symbol.IsStatic ? null : throughType);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis
 
             bool hasInternalAccessTo(IAssemblySymbol assemblyWantingAccess, IAssemblySymbol declaringAssembly)
             {
-                if (assemblyWantingAccess.Equals(declaringAssembly))
+                if (sameAssembly(assemblyWantingAccess, declaringAssembly))
                 {
                     return true;
                 }
@@ -304,6 +305,11 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
+            bool sameAssembly(IAssemblySymbol a1, IAssemblySymbol a2)
+            {
+                return a2 != null && a1.Identity.Equals(a2.Identity);
+            }
+
             bool sameOriginalNamedType(INamedTypeSymbol t1, INamedTypeSymbol t2)
             {
                 Debug.Assert(t1 != null);
@@ -311,8 +317,8 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(t2?.IsDefinition != false);
 
                 // We expect a given named type definition to satisfy reference identity.
-                // But we relax this to permit a type to be represented by multiple symbols (e.g. separate compilations).
-                // Note that the same symbol is expected to have the identical name as itself, despite VB language rules.
+                // But we relax this to permit a type to be represented by multiple symbols (e.g. separate compilations,
+                // or in "hypothetical" scenarios used by the IDE).
                 return t1 == t2 || t2 != null && t1.MetadataName == t2.MetadataName && t1.Arity == t2.Arity && sameOriginalSymbol(t1.ContainingSymbol, t2.ContainingSymbol);
 
                 bool sameOriginalSymbol(ISymbol s1, ISymbol s2)
@@ -347,11 +353,6 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(m1 != null);
                     // We don't need to check the module name, as modules are effectively merged in the containing assembly.
                     return m2 != null && sameOriginalSymbol(m1.ContainingSymbol, m2.ContainingSymbol);
-                }
-
-                bool sameAssembly(IAssemblySymbol a1, IAssemblySymbol a2)
-                {
-                    return a1.Equals(a2);
                 }
 
                 bool sameNamespace(INamespaceSymbol n1, INamespaceSymbol n2)

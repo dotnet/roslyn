@@ -225,9 +225,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestIsAccessibleWithin_UsingMockSymbols_04()
+        public void TestIsAccessibleWithin_EquivalentAssemblies_01()
         {
-            // check that equivalent symbols are treated as equal.
+            // check that equivalent assembly symbols are treated as equal.
 
             IAssemblySymbol mscorlibAssem1 = new AssemblySymbol(new AssemblyIdentity("mscorlib"));
             INamespaceSymbol mscorlibGlobalNS1 = new NamespaceSymbol("", mscorlibAssem1);
@@ -245,8 +245,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             INamedTypeSymbol intType2 = new NamedTypeSymbol("Int32", mscorlibSystemNS2, Accessibility.Public, valueType2);
             IFieldSymbol field2 = new FieldSymbol("Field", intType2, Accessibility.Private);
 
-            Assert.False(field1.IsAccessibleWithin(intType2));
-            Assert.False(field2.IsAccessibleWithin(intType1));
+            Assert.True(field1.IsAccessibleWithin(intType2));
+            Assert.True(field2.IsAccessibleWithin(intType1));
 
             IAssemblySymbol mscorlibAssem3 = new AssemblySymbol(new AssemblyIdentity("mscorlib3")); // note different identity
             INamespaceSymbol mscorlibGlobalNS3 = new NamespaceSymbol("", mscorlibAssem3);
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestIsAccessibleWithin_CrossCompilerEquivalence()
+        public void TestIsAccessibleWithin_EquivalentAssemblies_02()
         {
             var csharpTree = CSharpSyntaxTree.ParseText(@"
 internal class A
@@ -300,7 +300,7 @@ Friend Class C
 End Class
 ");
             var assemblyName = "MyAssembly";
-            // Note that these two compilations claim to have the same assembly identity, but are distinct assemblies
+            // Note that these two compilations claim to have the same assembly identity
             var csc = CSharpCompilation.Create(assemblyName, new[] { csharpTree }, new MetadataReference[] { TestBase.MscorlibRef });
             var Ac = csc.GlobalNamespace.GetMembers("A")[0] as INamedTypeSymbol;
             var APc = Ac.GetMembers("P")[0];
@@ -321,22 +321,22 @@ End Class
             var Cv = vbc.GlobalNamespace.GetMembers("C")[0] as INamedTypeSymbol;
 
             Assert.True(APc.IsAccessibleWithin(Bc, Cc));
-            Assert.False(APc.IsAccessibleWithin(Bc, Cv));
-            Assert.False(APc.IsAccessibleWithin(Bv, Cc));
-            Assert.False(APc.IsAccessibleWithin(Bv, Cv));
-            Assert.False(APv.IsAccessibleWithin(Bc, Cc));
-            Assert.False(APv.IsAccessibleWithin(Bc, Cv));
-            Assert.False(APv.IsAccessibleWithin(Bv, Cc));
+            Assert.True(APc.IsAccessibleWithin(Bc, Cv));
+            Assert.True(APc.IsAccessibleWithin(Bv, Cc));
+            Assert.True(APc.IsAccessibleWithin(Bv, Cv));
+            Assert.True(APv.IsAccessibleWithin(Bc, Cc));
+            Assert.True(APv.IsAccessibleWithin(Bc, Cv));
+            Assert.True(APv.IsAccessibleWithin(Bv, Cc));
             Assert.True(APv.IsAccessibleWithin(Bv, Cv));
 
             Assert.True(AIc.IsAccessibleWithin(Bc));
-            Assert.False(AIc.IsAccessibleWithin(Bv));
-            Assert.False(AIv.IsAccessibleWithin(Bc));
+            Assert.True(AIc.IsAccessibleWithin(Bv));
+            Assert.True(AIv.IsAccessibleWithin(Bc));
             Assert.True(AIv.IsAccessibleWithin(Bv));
 
             Assert.True(ARc.IsAccessibleWithin(ANc));
-            Assert.False(ARc.IsAccessibleWithin(ANv));
-            Assert.False(ARv.IsAccessibleWithin(ANc));
+            Assert.True(ARc.IsAccessibleWithin(ANv));
+            Assert.True(ARv.IsAccessibleWithin(ANc));
             Assert.True(ARv.IsAccessibleWithin(ANv));
 
             // A VB assembly with a different identity
