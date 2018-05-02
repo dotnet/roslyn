@@ -294,10 +294,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Shared Function ContainsName(
-             mergedRoot As MergedNamespaceDeclaration,
-             predicate As Func(Of String, Boolean),
-             filter As SymbolFilter,
-             cancellationToken As CancellationToken) As Boolean
+            mergedRoot As MergedNamespaceDeclaration,
+            predicate As Func(Of String, Boolean),
+            filter As SymbolFilter,
+            cancellationToken As CancellationToken) As Boolean
 
             Return ContainsNameHelper(
                 mergedRoot,
