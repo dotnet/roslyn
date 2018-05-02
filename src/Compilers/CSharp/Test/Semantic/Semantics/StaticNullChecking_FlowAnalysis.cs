@@ -1983,40 +1983,40 @@ class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
-                // (14,10): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'B<object>'.
+                // (14,10): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'B<object?>'.
                 //         (x1 ?? y1)/*T:B<object?>*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("A<object>", "B<object?>").WithLocation(14, 10),
                 // (14,9): warning CS8602: Possible dereference of a null reference.
                 //         (x1 ?? y1)/*T:B<object?>*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(x1 ?? y1)/*T:B<object?>*/.F").WithLocation(14, 9),
-                // (18,10): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'B<object>'.
+                // (18,10): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'B<object>'.
                 //         (x2 ?? y2)/*T:B<object!>*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("A<object?>", "B<object>").WithLocation(18, 10),
-                // (22,16): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'B<object>'.
+                // (22,16): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'B<object?>'.
                 //         (y3 ?? x3)/*T:B<object?>*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3").WithArguments("B<object>", "B<object?>").WithLocation(22, 16),
                 // (22,9): warning CS8602: Possible dereference of a null reference.
                 //         (y3 ?? x3)/*T:B<object?>*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(y3 ?? x3)/*T:B<object?>*/.F").WithLocation(22, 9),
-                // (26,16): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'B<object>'.
+                // (26,16): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'B<object>'.
                 //         (y4 ?? x4)/*T:B<object!>*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x4").WithArguments("B<object?>", "B<object>").WithLocation(26, 16),
-                // (30,10): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'B<object>?'.
+                // (30,10): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'B<object?>?'.
                 //         (x5 ?? y5)/*T:B<object?>?*/.Value.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x5").WithArguments("A<object>", "B<object?>?").WithLocation(30, 10),
                 // (30,9): warning CS8602: Possible dereference of a null reference.
                 //         (x5 ?? y5)/*T:B<object?>?*/.Value.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(x5 ?? y5)/*T:B<object?>?*/.Value.F").WithLocation(30, 9),
-                // (31,16): warning CS8619: Nullability of reference types in value of type 'B<object>?' doesn't match target type 'B<object>?'.
+                // (31,16): warning CS8619: Nullability of reference types in value of type 'B<object>?' doesn't match target type 'B<object?>?'.
                 //         (y5 ?? x5)/*T:B<object?>?*/.Value.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x5").WithArguments("B<object>?", "B<object?>?").WithLocation(31, 16),
                 // (31,9): warning CS8602: Possible dereference of a null reference.
                 //         (y5 ?? x5)/*T:B<object?>?*/.Value.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(y5 ?? x5)/*T:B<object?>?*/.Value.F").WithLocation(31, 9),
-                // (35,10): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'B<object>?'.
+                // (35,10): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'B<object>?'.
                 //         (x6 ?? y6)/*T:B<object!>?*/.Value.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x6").WithArguments("A<object?>", "B<object>?").WithLocation(35, 10),
-                // (36,16): warning CS8619: Nullability of reference types in value of type 'B<object>?' doesn't match target type 'B<object>?'.
+                // (36,16): warning CS8619: Nullability of reference types in value of type 'B<object?>?' doesn't match target type 'B<object>?'.
                 //         (y6 ?? x6)/*T:B<object!>?*/.Value.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x6").WithArguments("B<object?>?", "B<object>?").WithLocation(36, 16));
         }
