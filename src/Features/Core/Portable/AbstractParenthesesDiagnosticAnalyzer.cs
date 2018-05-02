@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 case PrecedenceKind.Logical:
                 case PrecedenceKind.Coalesce:
                     return CodeStyleOptions.OtherBinaryParentheses;
-                case PrecedenceKind.Other: return CodeStyleOptions.OtherParentheses;
+                case PrecedenceKind.Other:
+                    return CodeStyleOptions.OtherParentheses;
             }
 
             throw ExceptionUtilities.UnexpectedValue(precedenceKind);
