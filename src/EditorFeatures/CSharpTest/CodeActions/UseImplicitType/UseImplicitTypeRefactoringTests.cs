@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExp
         private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
         private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
 
+        private IDictionary<OptionKey, object> PreferExplicitTypeWithInfo() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
+
         private IDictionary<OptionKey, object> PreferImplicitTypeWithInfo() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
@@ -61,6 +66,7 @@ class C
 
             await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithNone());
             await TestInRegularAndScriptAsync(code, expected, options: PreferExplicitTypeWithNone());
+            await TestInRegularAndScriptAsync(code, expected, options: PreferExplicitTypeWithInfo());
             await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithInfo());
         }
 
@@ -102,6 +108,7 @@ class C
 
             await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithNone());
             await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithNone());
+            await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithInfo());
             await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithInfo());
         }
 
@@ -120,6 +127,7 @@ class C
 
             await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithNone());
             await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithNone());
+            await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithInfo());
             await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithInfo());
         }
 
