@@ -5,6 +5,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    // PROTOTYPE: add tests for when either operands of range is optimized using NullableAlwaysHasValue
+    // PROTOTYPE: add tests for when either operands of range is optimized using NullableNeverHasValue (not implemented yet)
+
     public class IndexAndRangeTests : CSharpTestBase
     {
         [Fact]
@@ -699,6 +702,80 @@ public static class Program
 [0] -- [0, 1, 2, 3, 4, 5]
 [1, 2, 3, 4, 5, 6] -- [4, 5, 6]
 [0, 1, 2, 3, 4, 5, 6]");
+        }
+
+        [Fact(Skip = "PROTOTYPE: fix ordering")]
+        public void LowerRange_OrderOfEvaluation_Index_NullableIndex()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+using System;
+public static class Util
+{
+    static void Main()
+    {
+        var x = Create();
+    }
+
+    public static Range? Create()
+    {
+        return GetIndex1() .. GetIndex2();
+    }
+
+    static Index GetIndex1()
+    {
+        System.Console.WriteLine(""1"");
+        return default;
+    }
+
+    static Index? GetIndex2()
+    {
+        System.Console.WriteLine(""2"");
+        return new Index(1, true);
+    }
+}", options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"
+1
+2").VerifyIL("Util.Create", @"
+{
+}");
+        }
+
+        [Fact(Skip = "PROTOTYPE: fix ordering")]
+        public void LowerRange_OrderOfEvaluation_Index_Null()
+        {
+            var compilation = CreateCompilationWithIndexAndRange(@"
+using System;
+public static class Util
+{
+    static void Main()
+    {
+        var x = Create();
+    }
+
+    public static Range? Create()
+    {
+        return GetIndex1() .. GetIndex2();
+    }
+
+    static Index GetIndex1()
+    {
+        System.Console.WriteLine(""1"");
+        return default;
+    }
+
+    static Index? GetIndex2()
+    {
+        System.Console.WriteLine(""2"");
+        return null;
+    }
+}", options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"
+1
+2").VerifyIL("Util.Create", @"
+{
+}");
         }
     }
 }
