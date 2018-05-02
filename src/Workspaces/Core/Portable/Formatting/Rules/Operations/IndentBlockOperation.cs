@@ -64,9 +64,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
 #if DEBUG
         public override string ToString()
-        {
-            return $"Indent {TextSpan} from '{StartToken}' to '{EndToken}', by {IndentationDeltaOrPosition}, with base token '{BaseToken}'";
-        }
+            => $"Indent {TextSpan} from '{StartToken}' to '{EndToken}', by {IndentationDeltaOrPosition}, with base token '{BaseToken}'";
 #endif
     }
 }

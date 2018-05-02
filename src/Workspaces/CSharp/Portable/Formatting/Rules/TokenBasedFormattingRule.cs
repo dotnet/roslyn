@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ```
             // e switch
             // {
-            //     pattern1: expression1, // request newline
+            //     pattern1: expression1, // newline with minimum of 1 line (each arm must be on its own line)
             //     pattern2: expression2 ...
             // ```
             if (previousToken.IsCommaInSwitchExpression())
@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ```
             // e is
             // {
-            //     property1: pattern1, // next line should be indented same as this one
-            //     property2: pattern2 ...
+            //     property1: pattern1, // newline so the next line should be indented same as this one
+            //     property2: pattern2, property3: pattern3, ... // but with minimum 0 lines so each property isn't forced to its own line
             // ```
             if (previousToken.IsCommaInPropertySubpattern())
             {

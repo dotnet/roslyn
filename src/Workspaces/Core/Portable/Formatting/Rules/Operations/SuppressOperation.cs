@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
 #if DEBUG
         public override string ToString()
-        {
-            return $"Suppress {TextSpan} from '{StartToken}' to '{EndToken}' with '{Option}'";
-        }
+            => $"Suppress {TextSpan} from '{StartToken}' to '{EndToken}' with '{Option}'";
 #endif
     }
 }
