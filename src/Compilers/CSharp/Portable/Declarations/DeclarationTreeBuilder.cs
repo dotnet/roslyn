@@ -448,17 +448,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var cnt = members.Count;
 
-            ImmutableHashSet<string>.Builder memberNames = s_memberNameBuilderPool.Allocate();
+            var memberNamesBuilder = s_memberNameBuilderPool.Allocate();
             if (cnt != 0)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
-            int i = 0;
             bool anyMemberHasAttributes = false;
             foreach (var member in members)
             {
-                memberNames.Add(member.Identifier.ValueText);
+                memberNamesBuilder.Add(member.Identifier.ValueText);
                 if (!anyMemberHasAttributes && member.AttributeLists.Any())
                 {
                     anyMemberHasAttributes = true;
@@ -470,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes;
             }
 
-            return ToImmutableAndFree(memberNames);
+            return ToImmutableAndFree(memberNamesBuilder);
         }
 
         private static ImmutableHashSet<string> GetNonTypeMemberNames(
@@ -480,11 +479,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
 
-            var set = s_memberNameBuilderPool.Allocate();
+            var memberNameBuilder = s_memberNameBuilderPool.Allocate();
 
             foreach (var member in members)
             {
-                AddNonTypeMemberNames(member, set, ref anyNonTypeMembers);
+                AddNonTypeMemberNames(member, memberNameBuilder, ref anyNonTypeMembers);
 
                 // Check to see if any method contains a 'this' modifier on its first parameter.
                 // This data is used to determine if a type needs to have its members materialized
@@ -515,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
-            return ToImmutableAndFree(set);
+            return ToImmutableAndFree(memberNameBuilder);
         }
 
         private static bool CheckMethodMemberForExtensionSyntax(Syntax.InternalSyntax.CSharpSyntaxNode member)
@@ -592,7 +591,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static void AddNonTypeMemberNames(Syntax.InternalSyntax.CSharpSyntaxNode member, ImmutableHashSet<string>.Builder set, ref bool anyNonTypeMembers)
+        private static void AddNonTypeMemberNames(
+            Syntax.InternalSyntax.CSharpSyntaxNode member, ImmutableHashSet<string>.Builder set, ref bool anyNonTypeMembers)
         {
             switch (member.Kind)
             {
