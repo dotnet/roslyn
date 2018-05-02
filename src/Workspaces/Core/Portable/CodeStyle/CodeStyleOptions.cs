@@ -271,10 +271,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
                 switch (value)
                 {
-                // 'ignore' is only allowed for the "dotnet_style_parenthese_in_other_expressions"
+                // 'ignore' is only allowed for the "dotnet_style_parenthese_in_other_operators"
                 case "ignore" when isOther:
                     return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, NotificationOption.None);
-                // 'always_for_clarity' is not allowed for "dotnet_style_parenthese_in_other_expressions";
+                // 'always_for_clarity' is not allowed for "dotnet_style_parenthese_in_other_operators";
                 case "always_for_clarity" when !isOther:
                     return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, notificationOpt);
                 case "never_if_unnecessary":
