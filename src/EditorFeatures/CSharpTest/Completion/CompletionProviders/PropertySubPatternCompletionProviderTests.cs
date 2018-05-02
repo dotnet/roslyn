@@ -43,6 +43,48 @@ class Program
         }
 
         [Fact]
+        public async Task PropertiesInRecursivePattern_WithPositional()
+        {
+            var markup =
+@"
+public class Program
+{
+    public int P1 { get; set; }
+    public int P2 { get; set; }
+
+    void M()
+    {
+        _ = this is Program (1, 2) { $$ }
+    }
+    public void Deconstruct(out int x, out int y) => throw null;
+}
+";
+            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemExistsAsync(markup, "P2");
+        }
+
+        [Fact]
+        public async Task PropertiesInRecursivePattern_WithPositional_UsingStaticType()
+        {
+            var markup =
+@"
+public class Program
+{
+    public int P1 { get; set; }
+    public int P2 { get; set; }
+
+    void M()
+    {
+        _ = this is (1, 2) { $$ }
+    }
+    public void Deconstruct(out int x, out int y) => throw null;
+}
+";
+            await VerifyItemExistsAsync(markup, "P1");
+            await VerifyItemExistsAsync(markup, "P2");
+        }
+
+        [Fact]
         public async Task PropertiesInRecursivePattern_WithEscapedKeyword()
         {
             var markup =
@@ -235,10 +277,9 @@ class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2)")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_InSwitchExpression()
         {
-            // PROTOTYPE(patterns2): I think this will be fixed by using GetTypeInfo (once merged)
             var markup =
 @"
 class Program
@@ -256,10 +297,9 @@ class Program
             await VerifyItemExistsAsync(markup, "P2");
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2)")]
+        [Fact]
         public async Task PropertiesInRecursivePattern_WithPositionalPattern()
         {
-            // PROTOTYPE(patterns2): I think this will be fixed by using GetTypeInfo (once merged)
             var markup =
 @"
 class Program
@@ -506,6 +546,67 @@ class D
 }
 ";
             await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
+        public async Task PropertiesInRecursivePattern_InPositional_Incomplete()
+        {
+            var markup =
+@"
+public class Program
+{
+    public int P1 { get; set; }
+
+    void M()
+    {
+        _ = this is ({ $$ }) // no deconstruction into 1 element
+    }
+
+    public void Deconstruct(out Program x, out Program y) => throw null;
+}
+";
+            // PROTOTYPE(patterns2): Like for typing arguments in methods, we should fall back to best overload resolution candidate
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
+        public async Task PropertiesInRecursivePattern_InPositional_Complete_BeforeComma()
+        {
+            var markup =
+@"
+public class Program
+{
+    public int P1 { get; set; }
+
+    void M()
+    {
+        _ = this is ({ $$ }, )
+    }
+
+    public void Deconstruct(out Program x, out Program y) => throw null;
+}
+";
+            await VerifyItemExistsAsync(markup, "P1");
+        }
+
+        [Fact]
+        public async Task PropertiesInRecursivePattern_InPositional_Complete_AfterComma()
+        {
+            var markup =
+@"
+public class Program
+{
+    public int P1 { get; set; }
+
+    void M()
+    {
+        _ = this is ( , { $$ })
+    }
+
+    public void Deconstruct(out Program x, out Program y) => throw null;
+}
+";
+            await VerifyItemExistsAsync(markup, "P1");
         }
 
         [Fact]

@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var type = TryGetPatternType(token, semanticModel, cancellationToken);
+            var pattern = (PatternSyntax)token.Parent.Parent;
+            var type = semanticModel.GetTypeInfo(pattern).ConvertedType;
             if (type == null)
             {
                 return;
@@ -99,81 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return default;
             }
 
-            if (token.Parent.IsKind(SyntaxKind.PropertySubpattern) == false ||
-                token.Parent.Parent.IsKind(SyntaxKind.PropertyPattern) == false)
-            {
-                return default;
-            }
-
-            return token;
-        }
-
-        private static ITypeSymbol TryGetPatternType(
-            SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            // is Goo { $$
-            // is Goo { P1: 0, $$
-            var propertyPattern = (PropertyPatternSyntax)token.Parent.Parent;
-            var patternType = propertyPattern.Type;
-            if (patternType != null)
-            {
-                var typeSymbol = (ITypeSymbol)semanticModel.GetSymbolInfo(patternType, cancellationToken).Symbol;
-                return typeSymbol;
-            }
-
-            // e is { $$
-            // e is { P1: 0, $$
-            if (propertyPattern.IsParentKind(SyntaxKind.IsPatternExpression))
-            {
-                var isPattern = (IsPatternExpressionSyntax)propertyPattern.Parent;
-                var typeSymbol = semanticModel.GetTypeInfo(isPattern.Expression, cancellationToken).Type;
-                if (typeSymbol != null)
-                {
-                    return typeSymbol;
-                }
-            }
-
-            // switch (e) { case { $$
-            // switch (e) { case { P1: 0, $$
-            if (propertyPattern.IsParentKind(SyntaxKind.CasePatternSwitchLabel))
-            {
-                var casePattern = (CasePatternSwitchLabelSyntax)propertyPattern.Parent;
-                var switchStatment = casePattern.Parent?.Parent as SwitchStatementSyntax;
-                if (switchStatment != null && switchStatment.Expression != null)
-                {
-                    var typeSymbol = semanticModel.GetTypeInfo(switchStatment.Expression).Type;
-                    if (typeSymbol != null)
-                    {
-                        return typeSymbol;
-                    }
-                }
-            }
-
-            // e is { P1: { $$
-            // e is { P1: { P2: 2, $$
-            if (propertyPattern.IsParentKind(SyntaxKind.SubpatternElement))
-            {
-                var containingProperty = ((SubpatternElementSyntax)propertyPattern.Parent).NameColon?.Name;
-                if (containingProperty != null)
-                {
-                    var symbol = semanticModel.GetSymbolInfo(containingProperty).Symbol;
-
-                    switch (symbol)
-                    {
-                        case null:
-                            break;
-                        case IPropertySymbol propertySymbol:
-                            return propertySymbol.Type;
-                        case IFieldSymbol fieldSymbol:
-                            return fieldSymbol.Type;
-                    }
-                }
-            }
-
-            // PROTOTYPE(patterns2):
-            // All the cases above should be replaced by using the semantic model's GetTypeInfo (ConvertedType) once that is integrated
-
-            return default;
+            return (token.Parent.IsKind(SyntaxKind.PropertySubpattern) == true) ? token : default;
         }
 
         // List the members that are already tested in this property sub-pattern
