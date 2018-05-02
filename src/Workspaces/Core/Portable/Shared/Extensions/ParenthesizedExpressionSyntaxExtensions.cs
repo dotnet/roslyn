@@ -5,7 +5,8 @@ namespace Microsoft.CodeAnalysis.Extensions
     internal static class CommonParenthesizedExpressionSyntaxExtensions
     {
         public static bool IsSafeToChangeAssociativity(
-            this SyntaxNode parenthesizedExpression, SyntaxNode innerExpression, SemanticModel semanticModel)
+            this SyntaxNode parenthesizedExpression, SyntaxNode innerExpression, 
+            SyntaxNode parentBinaryLeft, SyntaxNode parentBinaryRight, SemanticModel semanticModel)
         {
             // Now we'll perform a few semantic checks to determine whether removal 
             // of the parentheses might break semantics. Note that we'll try and be 
@@ -31,6 +32,21 @@ namespace Microsoft.CodeAnalysis.Extensions
                 {
                     return false;
                 }
+            }
+
+            // Only allow us to change associativity if all the types are the same.
+            // for example, if we have: int + (int + long)  then we don't want to
+            // change things such that we effectively have (int + int) + long
+            if (!Equals(semanticModel.GetTypeInfo(parentBinaryLeft).Type,
+                        semanticModel.GetTypeInfo(parentBinaryRight).Type))
+            {
+                return false;
+            }
+
+            if (!Equals(semanticModel.GetTypeInfo(parentBinaryLeft).ConvertedType,
+                        semanticModel.GetTypeInfo(parentBinaryRight).ConvertedType))
+            {
+                return false;
             }
 
             // Floating point is not safe to change associativity of.  For example,

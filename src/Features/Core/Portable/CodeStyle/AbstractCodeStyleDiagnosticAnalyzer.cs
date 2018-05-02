@@ -62,10 +62,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor(DiagnosticSeverity.Hidden);
 
-            UnnecessaryWithoutSuggestionDescriptor = CreateDescriptorWithId(
-                descriptorId + "WithoutSuggestion",
-                _localizableTitle, _localizableMessage,
-                DiagnosticSeverity.Hidden, DiagnosticCustomTags.Unnecessary);
+            UnnecessaryWithoutSuggestionDescriptor = CreateUnnecessaryDescriptor(
+                descriptorId + "WithoutSuggestion", DiagnosticSeverity.Hidden);
 
             SupportedDiagnostics = ImmutableArray.Create(
                 HiddenDescriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);

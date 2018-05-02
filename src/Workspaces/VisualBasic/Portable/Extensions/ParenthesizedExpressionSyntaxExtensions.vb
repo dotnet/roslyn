@@ -387,7 +387,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             If IsAssociative(parentBinaryExpression.Kind) AndAlso
                                expression.Kind = parentExpression.Kind Then
 
-                                Return node.IsSafeToChangeAssociativity(node.Expression, semanticModel)
+                                Return node.IsSafeToChangeAssociativity(
+                                    node.Expression, parentBinaryExpression.Left,
+                                    parentBinaryExpression.Right, semanticModel)
                             End If
                         End If
 
