@@ -388,6 +388,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.AddressOfExpression;
                 case SyntaxKind.AsteriskToken:
                     return SyntaxKind.PointerIndirectionExpression;
+                case SyntaxKind.CaretToken:
+                    return SyntaxKind.IndexExpression;
                 default:
                     return SyntaxKind.None;
             }
@@ -1329,6 +1331,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "^=";
                 case SyntaxKind.PercentEqualsToken:
                     return "%=";
+                case SyntaxKind.DotDotToken:
+                    return "..";
 
                 // Keywords
                 case SyntaxKind.BoolKeyword:

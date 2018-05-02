@@ -1122,240 +1122,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 #endregion
 
 #region Span
-
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
-            var reference = CreateEmptyCompilation(
-                spanSource,
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
-                options: TestOptions.UnsafeReleaseDll);
+            var reference = CreateCompilationWithMscorlibAndSpanSrc("").VerifyDiagnostics();
 
-            reference.VerifyDiagnostics();
-
-            var comp = CreateEmptyCompilation(
+            return CreateEmptyCompilation(
                 text,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: options,
                 parseOptions: parseOptions);
-
-
-            return comp;
         }
 
         protected static CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
-            var textWitSpan = new string[] { text, spanSource };
-            var comp = CreateEmptyCompilation(
-                textWitSpan,
+            return CreateEmptyCompilation(
+                source: new string[] { text, TestSources.Span },
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: options ?? TestOptions.UnsafeReleaseDll,
                 parseOptions: parseOptions);
-
-            return comp;
         }
+        #endregion
 
-        private static string spanSource = @"
-namespace System
-    {
-        public readonly ref struct Span<T>
+        #region Index and Range
+        protected static CSharpCompilation CreateCompilationWithIndex(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
-            private readonly T[] arr;
+            var reference = CreateCompilation(TestSources.Index).VerifyDiagnostics();
 
-            public ref T this[int i] => ref arr[i];
-            public override int GetHashCode() => 1;
-            public int Length { get; }
-
-            unsafe public Span(void* pointer, int length)
-            {
-                this.arr = Helpers.ToArray<T>(pointer, length);
-                this.Length = length;
-            }
-
-            public Span(T[] arr)
-            {
-                this.arr = arr;
-                this.Length = arr.Length;
-            }
-
-            public void CopyTo(Span<T> other) { }
-
-            /// <summary>Gets an enumerator for this span.</summary>
-            public Enumerator GetEnumerator() => new Enumerator(this);
-
-            /// <summary>Enumerates the elements of a <see cref=""Span{T}""/>.</summary>
-            public ref struct Enumerator
-            {
-                /// <summary>The span being enumerated.</summary>
-                private readonly Span<T> _span;
-                /// <summary>The next index to yield.</summary>
-                private int _index;
-
-                /// <summary>Initialize the enumerator.</summary>
-                /// <param name=""span"">The span to enumerate.</param>
-                internal Enumerator(Span<T> span)
-                {
-                    _span = span;
-                    _index = -1;
-                }
-
-                /// <summary>Advances the enumerator to the next element of the span.</summary>
-                public bool MoveNext()
-                {
-                    int index = _index + 1;
-                    if (index < _span.Length)
-                    {
-                        _index = index;
-                        return true;
-                    }
-
-                    return false;
-                }
-
-                /// <summary>Gets the element at the current position of the enumerator.</summary>
-                public ref T Current
-                {
-                    get => ref _span[_index];
-                }
-            }
-
-            public static implicit operator Span<T>(T[] array) => new Span<T>(array);
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
         }
 
-        public readonly ref struct ReadOnlySpan<T>
+        protected static CSharpCompilation CreateCompilationWithIndexAndRange(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
-            private readonly T[] arr;
+            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range }).VerifyDiagnostics();
 
-            public ref readonly T this[int i] => ref arr[i];
-            public override int GetHashCode() => 2;
-            public int Length { get; }
-
-            unsafe public ReadOnlySpan(void* pointer, int length)
-            {
-                this.arr = Helpers.ToArray<T>(pointer, length);
-                this.Length = length;
-            }
-
-            public ReadOnlySpan(T[] arr)
-            {
-                this.arr = arr;
-                this.Length = arr.Length;
-            }
-
-            public void CopyTo(Span<T> other) { }
-
-            /// <summary>Gets an enumerator for this span.</summary>
-            public Enumerator GetEnumerator() => new Enumerator(this);
-
-            /// <summary>Enumerates the elements of a <see cref=""Span{T}""/>.</summary>
-            public ref struct Enumerator
-            {
-                /// <summary>The span being enumerated.</summary>
-                private readonly ReadOnlySpan<T> _span;
-                /// <summary>The next index to yield.</summary>
-                private int _index;
-
-                /// <summary>Initialize the enumerator.</summary>
-                /// <param name=""span"">The span to enumerate.</param>
-                internal Enumerator(ReadOnlySpan<T> span)
-                {
-                    _span = span;
-                    _index = -1;
-                }
-
-                /// <summary>Advances the enumerator to the next element of the span.</summary>
-                public bool MoveNext()
-                {
-                    int index = _index + 1;
-                    if (index < _span.Length)
-                    {
-                        _index = index;
-                        return true;
-                    }
-
-                    return false;
-                }
-
-                /// <summary>Gets the element at the current position of the enumerator.</summary>
-                public ref readonly T Current
-                {
-                    get => ref _span[_index];
-                }
-            }
-
-            public static implicit operator ReadOnlySpan<T>(T[] array) => array == null ? default : new ReadOnlySpan<T>(array);
-
-            public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
         }
 
-        public readonly ref struct SpanLike<T>
+        protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpan(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
-            public readonly Span<T> field;
+            var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range, TestSources.Span }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+            return CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                options: options,
+                parseOptions: parseOptions);
         }
-
-        public enum Color: sbyte
-        {
-            Red,
-            Green,
-            Blue
-        }
-
-        public static unsafe class Helpers
-        {
-            public static T[] ToArray<T>(void* ptr, int count)
-            {
-                if (ptr == null)
-                {
-                    return null;
-                }
-
-                if (typeof(T) == typeof(int))
-                {
-                    var arr = new int[count];
-                    for(int i = 0; i < count; i++)
-                    {
-                        arr[i] = ((int*)ptr)[i];
-                    }
-
-                    return (T[])(object)arr;
-                }
-
-                if (typeof(T) == typeof(byte))
-                {
-                    var arr = new byte[count];
-                    for(int i = 0; i < count; i++)
-                    {
-                        arr[i] = ((byte*)ptr)[i];
-                    }
-
-                    return (T[])(object)arr;
-                }
-
-                if (typeof(T) == typeof(char))
-                {
-                    var arr = new char[count];
-                    for(int i = 0; i < count; i++)
-                    {
-                        arr[i] = ((char*)ptr)[i];
-                    }
-
-                    return (T[])(object)arr;
-                }
-
-                if (typeof(T) == typeof(Color))
-                {
-                    var arr = new Color[count];
-                    for(int i = 0; i < count; i++)
-                    {
-                        arr[i] = ((Color*)ptr)[i];
-                    }
-
-                    return (T[])(object)arr;
-                }
-
-                throw new Exception(""add a case for: "" + typeof(T));
-            }
-        }
-    }";
-#endregion
+        #endregion
     }
 }

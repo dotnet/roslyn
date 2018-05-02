@@ -245,6 +245,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateMethodBodyOperation((BoundNonConstructorMethodBody)boundNode);
                 case BoundKind.DiscardExpression:
                     return CreateBoundDiscardExpressionOperation((BoundDiscardExpression)boundNode);
+                case BoundKind.RangeExpression:
+                    return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
 
                 default:
                     Optional<object> constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
@@ -1892,6 +1894,19 @@ namespace Microsoft.CodeAnalysis.Operations
                                         boundNode.InputType,
                                         null,
                                         isImplicit: boundNode.WasCompilerGenerated);
+        }
+
+        private IOperation CreateRangeExpressionOperation(BoundRangeExpression boundRange)
+        {
+            bool isLifted = boundRange.Type.IsNullableType();
+            return new RangeOperation(
+                isLifted,
+                isImplicit: boundRange.WasCompilerGenerated,
+                _semanticModel,
+                boundRange.Syntax,
+                boundRange.Type,
+                leftOperand: Create(boundRange.LeftOperand),
+                rightOperand: Create(boundRange.RightOperand));
         }
     }
 }
