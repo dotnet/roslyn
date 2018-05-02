@@ -465,6 +465,27 @@ namespace NS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task SwitchExpression()
+        {
+            var code = @"
+class Class
+{
+    void Method()
+    {
+        _ = switch
+        {
+true
+";
+            // PROTOTYPE(patterns2): Indenter should place cursor appropriately for switch expression arms and property patterns
+            await AssertIndentUsingSmartTokenFormatterAsync(
+                code,
+                'e',
+                indentationLine: 7,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public async Task Block()
         {
             var code = @"using System;

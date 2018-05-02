@@ -68,7 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
                             !currentToken.IsCloseParenInStatement() &&
-                            !currentToken.IsEqualsTokenInAutoPropertyInitializers())
+                            !currentToken.IsEqualsTokenInAutoPropertyInitializers() &&
+                            !currentToken.IsColonInCasePatternSwitchLabel() && // no newline required before colon in pattern-switch-label (ex: `case {<pattern>}:`)
+                            !currentToken.IsColonInSwitchExpressionArm())  // no newline required before colon in switch-expression-arm (ex: `{<pattern>}: expression`)
                         {
                             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                         }
@@ -91,6 +93,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (previousToken.IsCommaInInitializerExpression())
             {
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+            }
+
+            // , * in switch expression arm
+            // ```
+            // e switch
+            // {
+            //     pattern1: expression1, // request newline
+            //     pattern2: expression2 ...
+            // ```
+            if (previousToken.IsCommaInSwitchExpression())
+            {
+                return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+            }
+
+            // , * in property sub-pattern
+            // ```
+            // e is
+            // {
+            //     property1: pattern1, // next line should be indented same as this one
+            //     property2: pattern2 ...
+            // ```
+            if (previousToken.IsCommaInPropertySubpattern())
+            {
+                return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
             }
 
             // else * except else if case
@@ -276,7 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                SyntaxKind.DefaultSwitchLabel,
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,
-                                               SyntaxKind.NameColon))
+                                               SyntaxKind.NameColon,
+                                               SyntaxKind.SwitchExpressionArm))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }

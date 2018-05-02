@@ -61,5 +61,12 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         public bool IsRelativeIndentation { get; }
         public int IndentationDeltaOrPosition { get; }
+
+#if DEBUG
+        public override string ToString()
+        {
+            return $"Indent {TextSpan} from '{StartToken}' to '{EndToken}', by {IndentationDeltaOrPosition}, with base token '{BaseToken}'";
+        }
+#endif
     }
 }

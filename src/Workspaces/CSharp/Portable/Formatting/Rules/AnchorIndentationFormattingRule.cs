@@ -68,6 +68,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case AccessorDeclarationSyntax accessorDeclNode:
                     AddAnchorIndentationOperation(list, accessorDeclNode);
                     return;
+                case SwitchExpressionArmSyntax switchExpressionArm:
+                    // The expression in a switch expression arm should be anchored to the beginning of the arm
+                    // ```
+                    // e switch
+                    // {
+                    // pattern:
+                    //         expression,
+                    // ```
+                    // We will keep the relative position of `expression` relative to `pattern:`. It will format to:
+                    // ```
+                    // e switch
+                    // {
+                    //     pattern:
+                    //             expression,
+                    // ```
+                    AddAnchorIndentationOperation(list, switchExpressionArm);
+                    return;
             }
         }
 

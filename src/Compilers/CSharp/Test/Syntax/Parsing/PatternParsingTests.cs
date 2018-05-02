@@ -2277,6 +2277,27 @@ case KeyValuePair<String, DateTime>[] pairs2:
         }
 
         [Fact]
+        public void EmptySwitchExpression()
+        {
+            UsingExpression("1 switch {}", TestOptions.RegularWithoutRecursivePatterns,
+                // (1,1): error CS8370: Feature 'recursive patterns' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // 1 switch {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1 switch {}").WithArguments("recursive patterns", "8.0").WithLocation(1, 1)
+                );
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void SwitchExpression01()
         {
             UsingExpression("1 switch {a => b, c => d}", TestOptions.RegularWithoutRecursivePatterns,
