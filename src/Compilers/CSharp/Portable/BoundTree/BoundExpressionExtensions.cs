@@ -243,15 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     return ((BoundCall)expr).Method.ReturnType.IsNullable;
                 case BoundKind.Conversion:
-                    {
-                        var conversion = (BoundConversion)expr;
-                        if (conversion.ExplicitCastInCode)
-                        {
-                            return conversion.IsExplicitlyNullable;
-                        }
-                        Debug.Assert(!conversion.IsExplicitlyNullable);
-                        return null;
-                    }
+                    return ((BoundConversion)expr).ConversionGroup?.ExplicitType?.IsNullable;
                 case BoundKind.BinaryOperator:
                     return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.IsNullable;
                 case BoundKind.NullCoalescingOperator:

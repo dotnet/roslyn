@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isBaseConversion: false,
                 @checked: false,
                 explicitCastInCode: false,
-                isExplicitlyNullable: false,
+                conversionGroup: null,
                 constantValueOpt: constantValueOpt,
                 type: type)
             { WasCompilerGenerated = true };
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             bool @checked,
             bool explicitCastInCode,
-            bool isExplicitlyNullable,
+            ConversionGroup conversionGroup,
             ConstantValue constantValueOpt,
             TypeSymbol type,
             bool hasErrors = false)
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion,
                 @checked,
                 explicitCastInCode: explicitCastInCode,
-                isExplicitlyNullable: isExplicitlyNullable,
+                conversionGroup,
                 constantValueOpt,
                 type,
                 hasErrors || !conversion.IsValid)
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             bool @checked,
             bool explicitCastInCode,
-            bool isExplicitlyNullable,
+            ConversionGroup conversionGroup,
             ConstantValue constantValueOpt,
             TypeSymbol type,
             bool hasErrors = false)
@@ -256,14 +256,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isBaseConversion: false,
                 @checked: @checked,
                 explicitCastInCode: explicitCastInCode,
-                isExplicitlyNullable: isExplicitlyNullable,
                 constantValueOpt: constantValueOpt,
+                conversionGroup,
                 type: type,
                 hasErrors: hasErrors || !conversion.IsValid)
         {
             // PROTOTYPE(NullableReferenceTypes): Move assert to Validate method
             // (add HasValidate="true" in BoundNodes.xml).
-            Debug.Assert(explicitCastInCode || !isExplicitlyNullable);
+            Debug.Assert(!explicitCastInCode || conversionGroup != null);
             OriginalUserDefinedConversionsOpt = conversion.OriginalUserDefinedConversions;
         }
     }

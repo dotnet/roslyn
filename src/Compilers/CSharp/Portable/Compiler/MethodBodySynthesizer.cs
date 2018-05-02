@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Conversion.ExplicitReference,
                                 false,
                                 explicitCastInCode: true,
-                                isExplicitlyNullable: true,
+                                new ConversionGroup(hostObjectField.Type),
                                 ConstantValue.NotAvailable,
                                 hostObjectField.Type.TypeSymbol 
                             ),
@@ -134,8 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var field in synthesizedFields.FieldSymbols)
             {
-                var targetScriptType = (ImplicitNamedTypeSymbol)field.Type.TypeSymbol;
-                var targetSubmissionIndex = targetScriptType.DeclaringCompilation.GetSubmissionSlotIndex();
+                var targetScriptType = field.Type;
+                var targetSubmissionIndex = targetScriptType.TypeSymbol.DeclaringCompilation.GetSubmissionSlotIndex();
                 Debug.Assert(targetSubmissionIndex >= 0);
 
                 // this.<field> = (<target_script_type>)<submission_array>[<target_submission_index>];
@@ -152,11 +152,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Conversion.ExplicitReference,
                                 false,
                                 explicitCastInCode: true,
-                                isExplicitlyNullable: true,
+                                new ConversionGroup(targetScriptType),
                                 ConstantValue.NotAvailable,
-                                targetScriptType
+                                targetScriptType.TypeSymbol
                             ),
-                            targetScriptType
+                            targetScriptType.TypeSymbol
                         )
                         { WasCompilerGenerated = true })
                     { WasCompilerGenerated = true });

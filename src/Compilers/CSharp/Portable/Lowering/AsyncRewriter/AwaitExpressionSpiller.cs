@@ -900,7 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: node.IsBaseConversion,
                     @checked: node.Checked,
                     explicitCastInCode: node.ExplicitCastInCode,
-                    isExplicitlyNullable: node.IsExplicitlyNullable,
+                    conversionGroup: node.ConversionGroup,
                     constantValueOpt: node.ConstantValueOpt,
                     type: node.Type));
         }

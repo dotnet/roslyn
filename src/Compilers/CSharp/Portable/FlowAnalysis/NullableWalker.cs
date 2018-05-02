@@ -1907,9 +1907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundExpression RemoveImplicitConversions(BoundExpression expr)
         {
-            // PROTOTYPE(NullableReferenceTypes): The loop is necessary to handle
-            // implicit conversions that have multiple parts (for instance, user-defined
-            // conversions). Should check for those cases explicitly.
+            ConversionGroup group = null;
             while (true)
             {
                 if (expr.Kind != BoundKind.Conversion)
@@ -1917,11 +1915,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
                 var conversion = (BoundConversion)expr;
-                if (conversion.ExplicitCastInCode || !conversion.Conversion.Exists)
+                if (group != conversion.ConversionGroup && group != null)
+                {
+                    break;
+                }
+                group = conversion.ConversionGroup;
+                Debug.Assert(group == null || !conversion.ExplicitCastInCode); // Explicit conversions should include a group.
+                if ((object)group?.ExplicitType != null)
                 {
                     break;
                 }
                 expr = conversion.Operand;
+                if (group == null)
+                {
+                    // Ungrouped conversion should not be followed by another ungrouped
+                    // conversion. Otherwise, the conversions should have been grouped.
+                    Debug.Assert(expr.Kind != BoundKind.Conversion || ((BoundConversion)expr).ConversionGroup != null);
+                    break;
+                }
             }
             return expr;
         }
@@ -2059,7 +2070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
 
-                if (node.ExplicitCastInCode && !node.IsExplicitlyNullable)
+                if (node.ExplicitCastInCode && node.ConversionGroup.ExplicitType.IsNullable != true)
                 {
                     bool reportNullable = false;
                     if (targetType.IsReferenceType && IsUnconstrainedTypeParameter(operandType?.TypeSymbol))

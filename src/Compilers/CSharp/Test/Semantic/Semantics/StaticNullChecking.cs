@@ -18833,6 +18833,8 @@ class C
     {
         var b = (B)s;
         b.F();
+        A a = (B)s;
+        a.F();
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
