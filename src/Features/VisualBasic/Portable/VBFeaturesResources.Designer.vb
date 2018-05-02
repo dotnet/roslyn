@@ -1494,11 +1494,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Invert If statement.
+        '''  Looks up a localized string similar to Invert If.
         '''</summary>
-        Friend ReadOnly Property Invert_If_statement() As String
+        Friend ReadOnly Property Invert_If() As String
             Get
-                Return ResourceManager.GetString("Invert_If_statement", resourceCulture)
+                Return ResourceManager.GetString("Invert_If", resourceCulture)
             End Get
         End Property
         

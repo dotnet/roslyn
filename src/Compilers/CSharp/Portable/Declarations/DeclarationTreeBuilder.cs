@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations;
             }
 
-            string[] memberNames = GetEnumMemberNames(members, ref declFlags);
+            ImmutableHashSet<string> memberNames = GetEnumMemberNames(members, ref declFlags);
 
             var diagnostics = DiagnosticBag.GetInstance();
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
@@ -433,11 +433,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
-        private static string[] GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+        private static readonly ObjectPool<ImmutableHashSet<string>.Builder> s_memberNameBuilderPool =
+            new ObjectPool<ImmutableHashSet<string>.Builder>(() => ImmutableHashSet.CreateBuilder<string>());
+
+        private static ImmutableHashSet<string> ToImmutableAndFree(ImmutableHashSet<string>.Builder builder)
+        {
+            var result = builder.ToImmutable();
+            builder.Clear();
+            s_memberNameBuilderPool.Free(builder);
+            return result;
+        }
+
+        private static ImmutableHashSet<string> GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             var cnt = members.Count;
 
-            string[] memberNames = new string[cnt];
+            ImmutableHashSet<string>.Builder memberNames = s_memberNameBuilderPool.Allocate();
             if (cnt != 0)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
@@ -447,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool anyMemberHasAttributes = false;
             foreach (var member in members)
             {
-                memberNames[i++] = member.Identifier.ValueText;
+                memberNames.Add(member.Identifier.ValueText);
                 if (!anyMemberHasAttributes && member.AttributeLists.Any())
                 {
                     anyMemberHasAttributes = true;
@@ -459,17 +470,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes;
             }
 
-            return memberNames;
+            return ToImmutableAndFree(memberNames);
         }
 
-        private static string[] GetNonTypeMemberNames(
+        private static ImmutableHashSet<string> GetNonTypeMemberNames(
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             bool anyMethodHadExtensionSyntax = false;
             bool anyMemberHasAttributes = false;
             bool anyNonTypeMembers = false;
 
-            var set = PooledHashSet<string>.GetInstance();
+            var set = s_memberNameBuilderPool.Allocate();
 
             foreach (var member in members)
             {
@@ -504,21 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
-            // PERF: The member names collection tends to be long-lived. Use a string array since
-            // that uses less memory than a HashSet<string>.
-            string[] result;
-            if (set.Count == 0)
-            {
-                result = Array.Empty<string>();
-            }
-            else
-            {
-                result = new string[set.Count];
-                set.CopyTo(result);
-            }
-
-            set.Free();
-            return result;
+            return ToImmutableAndFree(set);
         }
 
         private static bool CheckMethodMemberForExtensionSyntax(Syntax.InternalSyntax.CSharpSyntaxNode member)
@@ -595,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static void AddNonTypeMemberNames(Syntax.InternalSyntax.CSharpSyntaxNode member, HashSet<string> set, ref bool anyNonTypeMembers)
+        private static void AddNonTypeMemberNames(Syntax.InternalSyntax.CSharpSyntaxNode member, ImmutableHashSet<string>.Builder set, ref bool anyNonTypeMembers)
         {
             switch (member.Kind)
             {
