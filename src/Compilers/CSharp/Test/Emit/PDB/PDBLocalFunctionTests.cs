@@ -350,6 +350,7 @@ class C
         <entry offset=""0xf"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""15"" document=""1"" />
         <entry offset=""0x22"" hidden=""true"" document=""1"" />
         <entry offset=""0x2f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x31"" hidden=""true"" document=""1"" />
         <entry offset=""0x3d"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""28"" document=""1"" />
         <entry offset=""0x45"" startLine=""21"" startColumn=""17"" endLine=""21"" endColumn=""23"" document=""1"" />
         <entry offset=""0x58"" startLine=""22"" startColumn=""17"" endLine=""22"" endColumn=""23"" document=""1"" />

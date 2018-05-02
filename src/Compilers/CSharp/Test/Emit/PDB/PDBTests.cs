@@ -2802,6 +2802,7 @@ class Program
         <entry offset=""0x1b"" startLine=""13"" startColumn=""13"" endLine=""13"" endColumn=""14"" document=""1"" />
         <entry offset=""0x1c"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""33"" document=""1"" />
         <entry offset=""0x23"" hidden=""true"" document=""1"" />
+        <entry offset=""0x25"" hidden=""true"" document=""1"" />
         <entry offset=""0x2b"" startLine=""17"" startColumn=""25"" endLine=""17"" endColumn=""31"" document=""1"" />
         <entry offset=""0x2d"" startLine=""20"" startColumn=""25"" endLine=""20"" endColumn=""42"" document=""1"" />
         <entry offset=""0x38"" hidden=""true"" document=""1"" />
@@ -3029,9 +3030,13 @@ class Student : Person { public double GPA; }
         <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" document=""1"" />
         <entry offset=""0x4"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
         <entry offset=""0x1d"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
+        <entry offset=""0x2e"" hidden=""true"" document=""1"" />
         <entry offset=""0x30"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" document=""1"" />
+        <entry offset=""0x4f"" hidden=""true"" document=""1"" />
         <entry offset=""0x53"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" document=""1"" />
+        <entry offset=""0x72"" hidden=""true"" document=""1"" />
         <entry offset=""0x74"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" document=""1"" />
         <entry offset=""0x8e"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" document=""1"" />
         <entry offset=""0xa2"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""1"" />
@@ -3125,9 +3130,13 @@ class Student : Person { public double GPA; }
         <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
         <entry offset=""0xe"" hidden=""true"" document=""1"" />
         <entry offset=""0x1b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1d"" hidden=""true"" document=""1"" />
         <entry offset=""0x47"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
+        <entry offset=""0x5d"" hidden=""true"" document=""1"" />
         <entry offset=""0x5f"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""63"" document=""1"" />
+        <entry offset=""0x6f"" hidden=""true"" document=""1"" />
         <entry offset=""0x7d"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""63"" document=""1"" />
+        <entry offset=""0x8d"" hidden=""true"" document=""1"" />
         <entry offset=""0x8f"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""65"" document=""1"" />
         <entry offset=""0x9f"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""49"" document=""1"" />
         <entry offset=""0xaf"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""1"" />
@@ -3220,10 +3229,15 @@ class Student : Person { public double GPA; }
         <entry offset=""0xd"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
         <entry offset=""0xe"" hidden=""true"" document=""1"" />
         <entry offset=""0x1b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1d"" hidden=""true"" document=""1"" />
         <entry offset=""0x47"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
+        <entry offset=""0x5d"" hidden=""true"" document=""1"" />
         <entry offset=""0x60"" startLine=""24"" startColumn=""17"" endLine=""24"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x70"" hidden=""true"" document=""1"" />
         <entry offset=""0x7f"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x8f"" hidden=""true"" document=""1"" />
         <entry offset=""0x92"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""27"" document=""1"" />
+        <entry offset=""0xa2"" hidden=""true"" document=""1"" />
         <entry offset=""0xa3"" startLine=""33"" startColumn=""17"" endLine=""33"" endColumn=""27"" document=""1"" />
         <entry offset=""0xb3"" startLine=""35"" startColumn=""5"" endLine=""35"" endColumn=""6"" document=""1"" />
       </sequencePoints>
@@ -3300,6 +3314,7 @@ expectedIL: @"{
   IL_0002:  stloc.1
   IL_0003:  ldc.i4.1
   IL_0004:  stloc.0
+  // sequence point: <hidden>
   IL_0005:  br.s       IL_0007
   // sequence point: Console.Write(1);
   IL_0007:  ldc.i4.1
@@ -3323,6 +3338,7 @@ expectedIL: @"{
   IL_0006:  stloc.1
   IL_0007:  ldstr      ""M2""
   IL_000c:  stloc.0
+  // sequence point: <hidden>
   IL_000d:  br.s       IL_000f
   // sequence point: Console.Write(nameof(M2));
   IL_000f:  ldstr      ""M2""
@@ -3420,6 +3436,7 @@ expectedIL: @"{
   IL_0002:  stloc.2
   IL_0003:  ldc.i4.1
   IL_0004:  stloc.1
+  // sequence point: <hidden>
   IL_0005:  ldloc.1
   IL_0006:  box        ""int""
   IL_000b:  isinst     ""T""
@@ -3429,7 +3446,9 @@ expectedIL: @"{
   IL_0018:  isinst     ""T""
   IL_001d:  unbox.any  ""T""
   IL_0022:  stloc.0
+  // sequence point: <hidden>
   IL_0023:  br.s       IL_0025
+  // sequence point: <hidden>
   IL_0025:  br.s       IL_0027
   // sequence point: Console.Write(1);
   IL_0027:  ldc.i4.1
@@ -3437,6 +3456,7 @@ expectedIL: @"{
   IL_002d:  nop
   // sequence point: break;
   IL_002e:  br.s       IL_003b
+  // sequence point: <hidden>
   IL_0030:  br.s       IL_0032
   // sequence point: Console.Write(2);
   IL_0032:  ldc.i4.2
@@ -3461,6 +3481,7 @@ expectedIL: @"{
   IL_0006:  stloc.2
   IL_0007:  ldstr      ""M2""
   IL_000c:  stloc.1
+  // sequence point: <hidden>
   IL_000d:  ldloc.1
   IL_000e:  isinst     ""T""
   IL_0013:  brfalse.s  IL_002e
@@ -3468,7 +3489,9 @@ expectedIL: @"{
   IL_0016:  isinst     ""T""
   IL_001b:  unbox.any  ""T""
   IL_0020:  stloc.0
+  // sequence point: <hidden>
   IL_0021:  br.s       IL_0023
+  // sequence point: <hidden>
   IL_0023:  br.s       IL_0025
   // sequence point: Console.Write(3);
   IL_0025:  ldc.i4.3
@@ -3476,6 +3499,7 @@ expectedIL: @"{
   IL_002b:  nop
   // sequence point: break;
   IL_002c:  br.s       IL_0039
+  // sequence point: <hidden>
   IL_002e:  br.s       IL_0030
   // sequence point: Console.Write(4);
   IL_0030:  ldc.i4.4
@@ -3578,6 +3602,7 @@ expectedIL: @"{
   IL_0002:  stloc.3
   IL_0003:  ldnull
   IL_0004:  stloc.2
+  // sequence point: <hidden>
   IL_0005:  br.s       IL_0007
   // sequence point: Console.Write(6);
   IL_0007:  ldc.i4.6
@@ -8401,20 +8426,29 @@ partial class C
         <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" document=""1"" />
         <entry offset=""0x3"" hidden=""true"" document=""1"" />
+        <entry offset=""0x5"" hidden=""true"" document=""1"" />
+        <entry offset=""0x14"" hidden=""true"" document=""1"" />
         <entry offset=""0x32"" startLine=""7"" startColumn=""20"" endLine=""7"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x35"" hidden=""true"" document=""1"" />
         <entry offset=""0x37"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x3a"" hidden=""true"" document=""1"" />
         <entry offset=""0x3c"" startLine=""10"" startColumn=""17"" endLine=""10"" endColumn=""23"" document=""1"" />
         <entry offset=""0x3e"" startLine=""11"" startColumn=""20"" endLine=""11"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x41"" hidden=""true"" document=""1"" />
         <entry offset=""0x43"" startLine=""13"" startColumn=""20"" endLine=""13"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x46"" hidden=""true"" document=""1"" />
         <entry offset=""0x48"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""23"" document=""1"" />
         <entry offset=""0x4a"" startLine=""16"" startColumn=""17"" endLine=""16"" endColumn=""23"" document=""1"" />
         <entry offset=""0x4c"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""23"" document=""1"" />
         <entry offset=""0x4e"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" document=""1"" />
         <entry offset=""0x51"" hidden=""true"" document=""1"" />
+        <entry offset=""0x54"" hidden=""true"" document=""1"" />
+        <entry offset=""0x64"" hidden=""true"" document=""1"" />
         <entry offset=""0x6b"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" document=""1"" />
         <entry offset=""0x6d"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""23"" document=""1"" />
         <entry offset=""0x6f"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""19"" document=""1"" />
         <entry offset=""0x72"" hidden=""true"" document=""1"" />
+        <entry offset=""0x76"" hidden=""true"" document=""1"" />
         <entry offset=""0x78"" startLine=""30"" startColumn=""17"" endLine=""30"" endColumn=""23"" document=""1"" />
         <entry offset=""0x7a"" startLine=""32"" startColumn=""5"" endLine=""32"" endColumn=""6"" document=""1"" />
       </sequencePoints>
@@ -8544,6 +8578,7 @@ class Program
     // sequence point: <hidden>
     IL_0017:  ldloc.1
     IL_0018:  stfld      ""int Program.<Test>d__0.<>s__2""
+    // sequence point: <hidden>
     IL_001d:  ldc.i4.1
     IL_001e:  ldarg.0
     IL_001f:  ldfld      ""int Program.<Test>d__0.<>s__2""

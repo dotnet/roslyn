@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SwitchExpressionArmSyntax GenerateSwitchExpressionArm()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchExpressionArm(GenerateDiscardPattern(), null, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), GenerateIdentifierName());
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SwitchExpressionArm(GenerateDiscardPattern(), null, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.ColonToken), GenerateIdentifierName());
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TryStatementSyntax GenerateTryStatement()
@@ -2572,7 +2572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.NotNull(node.Pattern);
             Assert.Null(node.WhenClause);
-            Assert.Equal(SyntaxKind.EqualsGreaterThanToken, node.EqualsGreaterThanToken.Kind);
+            Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind);
             Assert.NotNull(node.Expression);
             
             AttachAndCheckDiagnostics(node);
@@ -9936,7 +9936,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static SwitchExpressionArmSyntax GenerateSwitchExpressionArm()
         {
-            return SyntaxFactory.SwitchExpressionArm(GenerateDiscardPattern(), default(WhenClauseSyntax), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), GenerateIdentifierName());
+            return SyntaxFactory.SwitchExpressionArm(GenerateDiscardPattern(), default(WhenClauseSyntax), SyntaxFactory.Token(SyntaxKind.ColonToken), GenerateIdentifierName());
         }
         
         private static TryStatementSyntax GenerateTryStatement()
@@ -11882,9 +11882,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.NotNull(node.Pattern);
             Assert.Null(node.WhenClause);
-            Assert.Equal(SyntaxKind.EqualsGreaterThanToken, node.EqualsGreaterThanToken.Kind());
+            Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
             Assert.NotNull(node.Expression);
-            var newNode = node.WithPattern(node.Pattern).WithWhenClause(node.WhenClause).WithEqualsGreaterThanToken(node.EqualsGreaterThanToken).WithExpression(node.Expression);
+            var newNode = node.WithPattern(node.Pattern).WithWhenClause(node.WhenClause).WithColonToken(node.ColonToken).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
         }
         

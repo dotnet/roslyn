@@ -117,10 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sectionBuilder.Add(_factory.Label(switchLabel.Label));
                     }
 
-                    // Lifetime of these locals is expanded to the entire switch body, as it is possible to capture
-                    // them in a different section by using a local function as an intermediary.
-                    outerVariables.AddRange(section.Locals);
-
                     // Add the translated body of the switch section
                     sectionBuilder.AddRange(_localRewriter.VisitList(section.Statements));
 
@@ -134,6 +130,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        // Lifetime of these locals is expanded to the entire switch body, as it is possible to capture
+                        // them in a different section by using a local function as an intermediary.
+                        outerVariables.AddRange(section.Locals);
+
                         // Note the language scope of the locals, even though they are included for the purposes of
                         // lifetime analysis in the enclosing scope.
                         result.Add(new BoundScope(section.Syntax, section.Locals, statements));
