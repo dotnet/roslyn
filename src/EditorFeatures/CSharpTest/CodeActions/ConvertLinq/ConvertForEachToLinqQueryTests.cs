@@ -410,7 +410,7 @@ partial class C
 {
     partial IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return from int n1 in nums 
+        return from int n1 in nums
                from int n2 in nums
                select n1;
     }
@@ -456,7 +456,9 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        foreach (A a in from B a in nums from A c in nums select a)
+        foreach (var a in from B a in nums
+                from A c in nums
+                select a)
         {
             Console.Write(a.ToString());
         }
@@ -499,7 +501,9 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        foreach (A a in from A a in nums from A c in nums select a)
+        foreach (var a in from A a in nums
+                from A c in nums
+                select a)
         {
             Console.Write(a.ToString());
         }
@@ -677,7 +681,8 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return from int n1 in nums.AsQueryable() select n1;
+        return from int n1 in nums.AsQueryable()
+               select n1;
     }
 }";
             await TestInRegularAndScriptAsync(source, output);
@@ -875,41 +880,28 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-        public async Task ToListAssignToObject()
+        public async Task ToListHashSetNoConversion()
         {
             string source = @"
 using System.Collections.Generic;
-using System.Linq;
 class C
 {
     void M(IEnumerable<int> nums)
     {
-        object list = new List<int>();
+        var hashSet = new HashSet<int>();
         [|foreach (int n1 in nums)
         {
             foreach (int n2 in nums)
             {
-                list.Add(n1);
+                hashSet.Add(n1);
             }
         }|]
     }
 }
 ";
-            string output = @"
-using System.Collections.Generic;
-using System.Linq;
-class C
-{
-    void M(IEnumerable<int> nums)
-    {
-        object list = (from int n1 in nums
-                       from int n2 in nums
-                       select n1).ToList();
-    }
-}
-";
 
-            await TestInRegularAndScriptAsync(source, output);
+
+            await TestMissingAsync(source);
         }
 
         // TODO consider assgiment and merge
@@ -1152,6 +1144,47 @@ public class Test
 }";
             await TestInRegularAndScriptAsync(source, output);
         }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task ToListNoInitialization()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public List<int> A { get; set; }
+
+    void M()
+    {
+        [|foreach (var x in new int[] { 1, 2, 3, 4 })
+        {
+            A.Add(x + 1);
+        }|]
+    }
+}";
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public List<int> A { get; set; }
+
+    void M()
+    {
+        A.AddRange(from x in nums
+                   select x + 1);
+    }
+}";
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+
+        // TODO consider cases:
+        // var list = new ...; foreach
+        // list = new ... ; foreach
+        // var a = ..., list = new list; foreach
 
         #endregion
 
