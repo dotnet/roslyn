@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             internal static bool IsPostfixIncrementOrDecrement(CSharp.UnaryOperatorKind operatorKind)
             {
-                switch (operatorKind & CSharp.UnaryOperatorKind.OpMask)
+                switch (operatorKind.Operator())
                 {
                     case CSharp.UnaryOperatorKind.PostfixIncrement:
                     case CSharp.UnaryOperatorKind.PostfixDecrement:
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             internal static bool IsDecrement(CSharp.UnaryOperatorKind operatorKind)
             {
-                switch (operatorKind & CSharp.UnaryOperatorKind.OpMask)
+                switch (operatorKind.Operator())
                 {
                     case CSharp.UnaryOperatorKind.PrefixDecrement:
                     case CSharp.UnaryOperatorKind.PostfixDecrement:
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             internal static UnaryOperatorKind DeriveUnaryOperatorKind(CSharp.UnaryOperatorKind operatorKind)
             {
-                switch (operatorKind & CSharp.UnaryOperatorKind.OpMask)
+                switch (operatorKind.Operator())
                 {
                     case CSharp.UnaryOperatorKind.UnaryPlus:
                         return UnaryOperatorKind.Plus;
@@ -286,6 +286,9 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     case CSharp.UnaryOperatorKind.False:
                         return UnaryOperatorKind.False;
+
+                    case CSharp.UnaryOperatorKind.Index:
+                        return UnaryOperatorKind.Index;
                 }
 
                 return UnaryOperatorKind.None;
@@ -293,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             internal static BinaryOperatorKind DeriveBinaryOperatorKind(CSharp.BinaryOperatorKind operatorKind)
             {
-                switch (operatorKind & CSharp.BinaryOperatorKind.OpMask)
+                switch (operatorKind.Operator())
                 {
                     case CSharp.BinaryOperatorKind.Addition:
                         return BinaryOperatorKind.Add;

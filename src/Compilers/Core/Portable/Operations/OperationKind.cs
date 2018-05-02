@@ -189,6 +189,8 @@ namespace Microsoft.CodeAnalysis
         ConstructorBodyOperation = 0x59,
         /// <summary>Indicates an <see cref="IDiscardOperation"/>.</summary>
         Discard = 0x5A,
+        /// <summary>Indicates an <see cref="IRangeOperation"/>.</summary>
+        Range = 0x5B,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281

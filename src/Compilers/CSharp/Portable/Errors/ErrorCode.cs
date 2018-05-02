@@ -1577,6 +1577,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExprCannotBeFixed = 8385,
         ERR_InvalidObjectCreation = 8386,
         #endregion diagnostics introduced for C# 7.3
+
+        #region diagnostics introduced for C# 8.0
+        ERR_TripleDotNotAllowed = 8401,
+        ERR_FeatureNotAvailableInVersion8 = 8402,
+        #endregion diagnostics introduced for C# 8.0
     }
     // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }

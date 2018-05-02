@@ -5324,4 +5324,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureIndexingMovableFixedBuffers" xml:space="preserve">
     <value>indexing movable fixed buffers</value>
   </data>
+  <data name="ERR_TripleDotNotAllowed" xml:space="preserve">
+    <value>Unexpected character sequence '...'</value>
+  </data>
+  <data name="ERR_FeatureNotAvailableInVersion8" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 8. Please use language version {1} or greater.</value>
+  </data>
+  <data name="IDS_FeatureIndexOperator" xml:space="preserve">
+    <value>index operator</value>
+  </data>
+  <data name="IDS_FeatureRangeOperator" xml:space="preserve">
+    <value>range operator</value>
+  </data>
 </root>

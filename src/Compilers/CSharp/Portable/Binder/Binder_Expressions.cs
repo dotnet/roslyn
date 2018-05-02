@@ -449,6 +449,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BitwiseNotExpression:
                     return BindUnaryOperator((PrefixUnaryExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.IndexExpression:
+                    return BindIndexExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.RangeExpression:
+                    return BindRangeExpression((RangeExpressionSyntax)node, diagnostics);
+
                 case SyntaxKind.AddressOfExpression:
                     return BindAddressOfExpression((PrefixUnaryExpressionSyntax)node, diagnostics);
 
@@ -1877,6 +1883,79 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
+        }
+
+        private BoundExpression BindIndexExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            // PROTOTYPE: move this check to parser?
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureIndexOperator, diagnostics);
+
+            GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__ctor, diagnostics, syntax: node);
+
+            return BindUnaryOperator(node, diagnostics);
+        }
+
+        private BoundExpression BindRangeExpression(RangeExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            // PROTOTYPE: move this check to parser?
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureRangeOperator, diagnostics);
+
+            TypeSymbol rangeType = GetWellKnownType(WellKnownType.System_Range, diagnostics, node);
+
+            if (!rangeType.IsErrorType())
+            {
+                WellKnownMember requiredRangeMethod;
+
+                if (node.LeftOperand is null)
+                {
+                    requiredRangeMethod = node.RightOperand is null ? WellKnownMember.System_Range__All : WellKnownMember.System_Range__ToEnd;
+                }
+                else
+                {
+                    requiredRangeMethod = node.RightOperand is null ? WellKnownMember.System_Range__FromStart : WellKnownMember.System_Range__Create;
+                }
+
+                GetWellKnownTypeMember(Compilation, requiredRangeMethod, diagnostics, syntax: node);
+            }
+
+            BoundExpression left = BindRangeExpressionOperand(node.LeftOperand, diagnostics);
+            BoundExpression right = BindRangeExpressionOperand(node.RightOperand, diagnostics);
+
+            if (left?.Type.IsNullableType() == true || right?.Type.IsNullableType() == true)
+            {
+                // PROTOTYPE: check if range type is nonnullable struct, and if it can be used here. report accordingly.
+                rangeType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(rangeType);
+            }
+
+            return new BoundRangeExpression(node, left, right, rangeType);
+        }
+
+        private BoundExpression BindRangeExpressionOperand(ExpressionSyntax operand, DiagnosticBag diagnostics)
+        {
+            if (operand is null)
+            {
+                return null;
+            }
+
+            BoundExpression boundOperand = BindValue(operand, diagnostics, BindValueKind.RValue);
+            TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, operand);
+
+            if (boundOperand.Type.IsNullableType())
+            {
+                // PROTOTYPE: check if index type is nonnullable struct, and if it can be used here. report accordingly.
+                indexType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, operand).Construct(indexType);
+            }
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(boundOperand, indexType, ref useSiteDiagnostics);
+            diagnostics.Add(operand, useSiteDiagnostics);
+
+            if (!conversion.IsValid)
+            {
+                GenerateImplicitConversionError(diagnostics, operand, conversion, boundOperand, indexType);
+            }
+
+            return CreateConversion(boundOperand, conversion, indexType, diagnostics);
         }
 
         private BoundExpression BindCastCore(ExpressionSyntax node, BoundExpression operand, TypeSymbol targetType, bool wasCompilerGenerated, DiagnosticBag diagnostics)
@@ -6559,6 +6638,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expr != null);
             Debug.Assert(arguments != null);
 
+            BoundExpression prototypeExtensionIndexerAccess = GetPrototypeExtensionIndexerOpt(node, expr, arguments, diagnostics);
+            if (prototypeExtensionIndexerAccess != null)
+            {
+                return prototypeExtensionIndexerAccess;
+            }
+
             // For an array access, the primary-no-array-creation-expression of the element-access
             // must be a value of an array-type. Furthermore, the argument-list of an array access
             // is not allowed to contain named arguments.The number of expressions in the
@@ -6740,8 +6825,77 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        /// <summary>
+        /// PROTOTYPE: remove this method before shipping (this is for demo purposes only)
+        /// </summary>
+        private BoundExpression GetPrototypeExtensionIndexerOpt(ExpressionSyntax syntax, BoundExpression receiver, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
+        {
+            // can only have one unnamed argument, with no ref kind.
+            if (analyzedArguments.Arguments.Count != 1
+                || analyzedArguments.Argument(0).Type is null
+                || analyzedArguments.RefKinds.Any()
+                || analyzedArguments.Names.Any())
+            {
+                return null;
+            }
+
+            HashSet<DiagnosticInfo> unused = null;
+            BoundExpression argument = analyzedArguments.Argument(0);
+
+            // argument must be a range or an index
+            if (argument.Type != GetWellKnownType(WellKnownType.System_Index,ref unused)
+                && argument.Type != GetWellKnownType(WellKnownType.System_Range, ref unused))
+            {
+                return null;
+            }
+
+            // receiver must be a string, a span, or an array
+            if (!receiver.Type.IsStringType()
+                && !receiver.Type.IsArray()
+                && receiver.Type.ConstructedFrom() != GetWellKnownType(WellKnownType.System_Span_T, ref unused))
+            {
+                return null;
+            }
+
+            const string methodName = "get_IndexerExtension";
+
+            var resolution = BindExtensionMethod(syntax, methodName, analyzedArguments, receiver, typeArguments: default, isMethodGroupConversion: false, returnRefKind: RefKind.None, returnType: null);
+            if (resolution.IsExtensionMethodGroup && resolution.OverloadResolutionResult.Succeeded)
+            {
+                MethodSymbol method = resolution.OverloadResolutionResult.BestResult.Member;
+
+                if (method.Arity == 0 && method.Parameters.All(p => p.RefKind == RefKind.None))
+                {
+                    diagnostics.AddRange(resolution.Diagnostics);
+
+                    return new BoundCall(
+                        syntax,
+                        receiver,
+                        method,
+                        arguments: ImmutableArray.Create(receiver, argument),
+                        argumentNamesOpt: default,
+                        argumentRefKindsOpt: default,
+                        isDelegateCall: false,
+                        expanded: false,
+                        invokedAsExtensionMethod: true,
+                        argsToParamsOpt: default,
+                        resultKind: LookupResultKind.Viable,
+                        binderOpt: default,
+                        type: method.ReturnType);
+                }
+            }
+
+            return null;
+        }
+
         private BoundExpression BindIndexerAccess(ExpressionSyntax node, BoundExpression expr, AnalyzedArguments analyzedArguments, DiagnosticBag diagnostics)
         {
+            BoundExpression prototypeExtensionIndexerAccess = GetPrototypeExtensionIndexerOpt(node, expr, analyzedArguments, diagnostics);
+            if (prototypeExtensionIndexerAccess != null)
+            {
+                return prototypeExtensionIndexerAccess;
+            }
+
             Debug.Assert(node != null);
             Debug.Assert(expr != null);
             Debug.Assert((object)expr.Type != null);

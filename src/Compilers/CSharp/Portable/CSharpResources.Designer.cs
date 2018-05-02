@@ -4661,6 +4661,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 8. Please use language version {1} or greater..
+        /// </summary>
+        internal static string ERR_FeatureNotAvailableInVersion8 {
+            get {
+                return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion8", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_FeatureNotValidInExpressionTree {
@@ -9449,6 +9458,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unexpected character sequence &apos;...&apos;.
+        /// </summary>
+        internal static string ERR_TripleDotNotAllowed {
+            get {
+                return ResourceManager.GetString("ERR_TripleDotNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tuple element names must be unique..
         /// </summary>
         internal static string ERR_TupleDuplicateElementName {
@@ -10656,6 +10674,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to index operator.
+        /// </summary>
+        internal static string IDS_FeatureIndexOperator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureIndexOperator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to interpolated strings.
         /// </summary>
         internal static string IDS_FeatureInterpolatedStrings {
@@ -10832,6 +10859,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureQueryExpression {
             get {
                 return ResourceManager.GetString("IDS_FeatureQueryExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to range operator.
+        /// </summary>
+        internal static string IDS_FeatureRangeOperator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRangeOperator", resourceCulture);
             }
         }
         

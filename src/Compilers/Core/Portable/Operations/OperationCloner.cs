@@ -505,5 +505,10 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return new DiscardOperation(operation.DiscardSymbol, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
+
+        public override IOperation VisitRangeOperation(IRangeOperation operation, object argument)
+        {
+            return new RangeOperation(operation.IsLifted, operation.IsImplicit, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.LeftOperand, operation.RightOperand);
+        }
     }
 }

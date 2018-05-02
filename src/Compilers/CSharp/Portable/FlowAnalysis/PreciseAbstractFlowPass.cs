@@ -2059,6 +2059,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitRangeExpression(BoundRangeExpression node)
+        {
+            if (node.RightOperand != null)
+            {
+                VisitRvalue(node.RightOperand);
+            }
+
+            if (node.LeftOperand != null)
+            {
+                VisitRvalue(node.LeftOperand);
+            }
+
+            return null;
+        }
+
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             VisitRvalue(node.Expression);

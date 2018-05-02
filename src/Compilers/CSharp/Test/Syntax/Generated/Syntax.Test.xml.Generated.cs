@@ -124,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ElementBindingExpression(GenerateBracketedArgumentList());
         }
         
+        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.RangeExpressionSyntax GenerateRangeExpression()
+        {
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RangeExpression(null, Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.DotDotToken), null);
+        }
+        
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.ImplicitElementAccessSyntax GenerateImplicitElementAccess()
         {
             return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.ImplicitElementAccess(GenerateBracketedArgumentList());
@@ -1291,6 +1296,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateElementBindingExpression();
             
             Assert.NotNull(node.ArgumentList);
+            
+            AttachAndCheckDiagnostics(node);
+        }
+        
+        [Fact]
+        public void TestRangeExpressionFactoryAndProperties()
+        {
+            var node = GenerateRangeExpression();
+            
+            Assert.Null(node.LeftOperand);
+            Assert.Equal(SyntaxKind.DotDotToken, node.OperatorToken.Kind);
+            Assert.Null(node.RightOperand);
             
             AttachAndCheckDiagnostics(node);
         }
@@ -4230,6 +4247,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestElementBindingExpressionIdentityRewriter()
         {
             var oldNode = GenerateElementBindingExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestRangeExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateRangeExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestRangeExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateRangeExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -9088,6 +9131,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ElementBindingExpression(GenerateBracketedArgumentList());
         }
         
+        private static RangeExpressionSyntax GenerateRangeExpression()
+        {
+            return SyntaxFactory.RangeExpression(default(ExpressionSyntax), SyntaxFactory.Token(SyntaxKind.DotDotToken), default(ExpressionSyntax));
+        }
+        
         private static ImplicitElementAccessSyntax GenerateImplicitElementAccess()
         {
             return SyntaxFactory.ImplicitElementAccess(GenerateBracketedArgumentList());
@@ -10256,6 +10304,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             
             Assert.NotNull(node.ArgumentList);
             var newNode = node.WithArgumentList(node.ArgumentList);
+            Assert.Equal(node, newNode);
+        }
+        
+        [Fact]
+        public void TestRangeExpressionFactoryAndProperties()
+        {
+            var node = GenerateRangeExpression();
+            
+            Assert.Null(node.LeftOperand);
+            Assert.Equal(SyntaxKind.DotDotToken, node.OperatorToken.Kind());
+            Assert.Null(node.RightOperand);
+            var newNode = node.WithLeftOperand(node.LeftOperand).WithOperatorToken(node.OperatorToken).WithRightOperand(node.RightOperand);
             Assert.Equal(node, newNode);
         }
         
@@ -13194,6 +13254,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestElementBindingExpressionIdentityRewriter()
         {
             var oldNode = GenerateElementBindingExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            Assert.Same(oldNode, newNode);
+        }
+        
+        [Fact]
+        public void TestRangeExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateRangeExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+            
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+            
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+        
+        [Fact]
+        public void TestRangeExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateRangeExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             

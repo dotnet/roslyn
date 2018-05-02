@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -3925,7 +3926,7 @@ class Program
 
         [WorkItem(545217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545217")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestGenerateLocalNameSimplification()
+        public async Task TestGenerateLocalNameSimplification_CSharp7()
         {
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -3948,6 +3949,46 @@ class Program
     void goo()
     {
         sfoo xyz = default(sfoo);
+        bar(xyz);
+    }
+
+    struct sfoo
+    {
+    }
+
+    void bar(sfoo x)
+    {
+    }
+}",
+parseOptions: TestOptions.Regular7,
+index: 3);
+        }
+
+        [WorkItem(545217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545217")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateLocalNameSimplification()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    void goo()
+    {
+        bar([|xyz|]);
+    }
+
+    struct sfoo
+    {
+    }
+
+    void bar(sfoo x)
+    {
+    }
+}",
+@"class Program
+{
+    void goo()
+    {
+        sfoo xyz = default;
         bar(xyz);
     }
 

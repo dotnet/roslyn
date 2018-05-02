@@ -1175,5 +1175,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var discardSymbol = operation.DiscardSymbol;
             Assert.Equal(operation.Type, discardSymbol.Type);
         }
+
+        public override void VisitRangeOperation(IRangeOperation operation)
+        {
+            Assert.Equal(OperationKind.Range, operation.Kind);
+
+            IOperation[] children = operation.Children.ToArray();
+
+            int index = 0;
+
+            if (operation.LeftOperand != null)
+            {
+                Assert.Same(operation.LeftOperand, children[index++]);
+            }
+
+            if (operation.RightOperand != null)
+            {
+                Assert.Same(operation.RightOperand, children[index++]);
+            }
+
+            Assert.Equal(index, children.Length);
+        }
     }
 }

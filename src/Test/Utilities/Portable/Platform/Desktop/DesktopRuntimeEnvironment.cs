@@ -307,11 +307,11 @@ namespace Roslyn.Test.Utilities.Desktop
                     throw new Exception("Verification succeeded unexpectedly");
                 }
             }
-            catch (RuntimePeVerifyException)
+            catch (RuntimePeVerifyException ex)
             {
                 if (shouldSucceed)
                 {
-                    throw new Exception("Verification failed");
+                    throw new Exception("Verification failed", ex);
                 }
             }
         }
