@@ -83,7 +83,7 @@
     <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerMetadataVersion>
 >>>>>>> 80763b15c7... Update Editor NuGet references
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
-    <MicrosoftVisualStudioCoreUtilityVersion>15.7.404-preview-g605488d753</MicrosoftVisualStudioCoreUtilityVersion>
+    <MicrosoftVisualStudioCoreUtilityVersion>15.7.413-preview-gfe081ad9e1</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerInterop100Version>10.0.30319</MicrosoftVisualStudioDebuggerInterop100Version>
     <MicrosoftVisualStudioDesignerInterfacesVersion>1.1.4322</MicrosoftVisualStudioDesignerInterfacesVersion>
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>15.0.26730-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
@@ -94,6 +94,7 @@
     <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>15.0.25726-Preview5</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.3.1710.203</MicrosoftVisualStudioLanguageCallHierarchyVersion>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -122,6 +123,10 @@
     <MicrosoftVisualStudioLanguageVersion>15.7.404-preview-g605488d753</MicrosoftVisualStudioLanguageVersion>
     <MicrosoftVisualStudioLanguageIntellisenseVersion>15.7.404-preview-g605488d753</MicrosoftVisualStudioLanguageIntellisenseVersion>
 >>>>>>> ed39043344... Update NuGets
+=======
+    <MicrosoftVisualStudioLanguageVersion>15.7.413-preview-gfe081ad9e1</MicrosoftVisualStudioLanguageVersion>
+    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.7.413-preview-gfe081ad9e1</MicrosoftVisualStudioLanguageIntellisenseVersion>
+>>>>>>> abf091d306... Newer NuGets
     <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>15.7.153-preview-g7d0635149a</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>15.7.153-preview-g7d0635149a</MicrosoftVisualStudioLanguageStandardClassificationVersion>
 >>>>>>> 80763b15c7... Update Editor NuGet references
@@ -153,11 +158,11 @@
     <MicrosoftVisualStudioShellInterop90Version>9.0.30729</MicrosoftVisualStudioShellInterop90Version>
     <MicrosoftVisualStudioTelemetryVersion>15.0.26730-alpha</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>
-    <MicrosoftVisualStudioTextDataVersion>15.7.404-preview-g605488d753</MicrosoftVisualStudioTextDataVersion>
+    <MicrosoftVisualStudioTextDataVersion>15.7.413-preview-gfe081ad9e1</MicrosoftVisualStudioTextDataVersion>
     <MicrosoftVisualStudioTextInternalVersion>15.7.153-preview-g7d0635149a</MicrosoftVisualStudioTextInternalVersion>
-    <MicrosoftVisualStudioTextLogicVersion>15.7.404-preview-g605488d753</MicrosoftVisualStudioTextLogicVersion>
-    <MicrosoftVisualStudioTextUIVersion>15.7.404-preview-g605488d753</MicrosoftVisualStudioTextUIVersion>
-    <MicrosoftVisualStudioTextUIWpfVersion>15.7.404-preview-g605488d753</MicrosoftVisualStudioTextUIWpfVersion>
+    <MicrosoftVisualStudioTextLogicVersion>15.7.413-preview-gfe081ad9e1</MicrosoftVisualStudioTextLogicVersion>
+    <MicrosoftVisualStudioTextUIVersion>15.7.413-preview-gfe081ad9e1</MicrosoftVisualStudioTextUIVersion>
+    <MicrosoftVisualStudioTextUIWpfVersion>15.7.413-preview-gfe081ad9e1</MicrosoftVisualStudioTextUIWpfVersion>
     <MicrosoftVisualStudioTextManagerInteropVersion>7.10.6070</MicrosoftVisualStudioTextManagerInteropVersion>
     <MicrosoftVisualStudioTextManagerInterop100Version>10.0.30319</MicrosoftVisualStudioTextManagerInterop100Version>
     <MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>
