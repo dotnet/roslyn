@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations
             End If
 
-            Dim memberNames As String() = GetMemberNames(enumBlockSyntax, declFlags)
+            Dim memberNames = GetMemberNames(enumBlockSyntax, declFlags)
 
             Return New SingleTypeDeclaration(
                 kind:=GetKind(declarationSyntax.Kind),
@@ -656,14 +656,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return ToImmutableAndFree(results)
         End Function
 
-        Private Function GetMemberNames(enumBlockSyntax As EnumBlockSyntax, ByRef declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As String()
+        Private Function GetMemberNames(enumBlockSyntax As EnumBlockSyntax, ByRef declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As ImmutableHashSet(Of String)
             Dim members = enumBlockSyntax.Members
 
             If (members.Count <> 0) Then
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers
             End If
 
-            Dim results As New List(Of String)()
+            Dim results = s_memberNameBuilderPool.Allocate()
             Dim anyMemberHasAttributes As Boolean = False
 
             For Each member In enumBlockSyntax.Members
@@ -682,7 +682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes
             End If
 
-            Return results.ToArray
+            Return ToImmutableAndFree(results)
         End Function
 
         Private Sub AddMemberNames(methodDecl As MethodBaseSyntax, results As ImmutableHashSet(Of String).Builder)
@@ -705,7 +705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 declFlags:=declFlags,
                 syntaxReference:=_syntaxTree.GetReference(node),
                 nameLocation:=_syntaxTree.GetLocation(node.Identifier.Span),
-                memberNames:=SpecializedCollections.EmptySet(Of String),
+                memberNames:=ImmutableHashSet(Of String).Empty,
                 children:=ImmutableArray(Of SingleTypeDeclaration).Empty)
         End Function
 
@@ -729,7 +729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 declFlags:=declFlags,
                 syntaxReference:=_syntaxTree.GetReference(node),
                 nameLocation:=_syntaxTree.GetLocation(node.Identifier.Span),
-                memberNames:=SpecializedCollections.EmptySet(Of String),
+                memberNames:=ImmutableHashSet(Of String).Empty,
                 children:=ImmutableArray(Of SingleTypeDeclaration).Empty)
         End Function
 

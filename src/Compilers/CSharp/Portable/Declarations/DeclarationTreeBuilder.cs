@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return childrenBuilder.ToImmutableAndFree();
         }
 
-        private static SingleNamespaceOrTypeDeclaration CreateImplicitClass(ICollection<string> memberNames, SyntaxReference container, SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+        private static SingleNamespaceOrTypeDeclaration CreateImplicitClass(ImmutableHashSet<string> memberNames, SyntaxReference container, SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.ImplicitClass,
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SingleNamespaceOrTypeDeclaration CreateScriptClass(
             CompilationUnitSyntax parent,
             ImmutableArray<SingleTypeDeclaration> children,
-            ICollection<string> memberNames,
+            ImmutableHashSet<string> memberNames,
             SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             Debug.Assert(parent.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind != SourceCodeKind.Regular);
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arity: node.Arity,
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
-                memberNames: SpecializedCollections.EmptyCollection<string>(),
+                memberNames: ImmutableHashSet<string>.Empty,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
                 diagnostics: diagnostics.ToReadOnlyAndFree());
         }

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _flags As TypeDeclarationFlags
         Private ReadOnly _arity As UShort
         Private ReadOnly _modifiers As DeclarationModifiers
-        Private ReadOnly _memberNames As ICollection(Of String)
+        Private ReadOnly _memberNames As ImmutableHashSet(Of String)
 
         Friend Enum TypeDeclarationFlags As Byte
             None = 0
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                        declFlags As TypeDeclarationFlags,
                        syntaxReference As SyntaxReference,
                        nameLocation As Location,
-                       memberNames As ICollection(Of String),
+                       memberNames As ImmutableHashSet(Of String),
                        children As ImmutableArray(Of SingleTypeDeclaration))
             MyBase.New(name, syntaxReference, nameLocation)
 
