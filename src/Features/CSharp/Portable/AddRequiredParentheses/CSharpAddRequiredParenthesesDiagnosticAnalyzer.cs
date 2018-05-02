@@ -56,27 +56,19 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
             => node is BinaryExpressionSyntax ||
                node is IsPatternExpressionSyntax isPattern && isPattern.Pattern is ConstantPatternSyntax;
 
-        protected override void GetPartsOfBinaryLike(
-            ExpressionSyntax binaryLikeOpt,
-            out ExpressionSyntax left, out SyntaxToken operatorToken, out ExpressionSyntax right)
+        protected override (ExpressionSyntax, SyntaxToken, ExpressionSyntax) GetPartsOfBinaryLike(ExpressionSyntax binaryLikeOpt)
         {
             Debug.Assert(IsBinaryLike(binaryLikeOpt));
             switch (binaryLikeOpt)
             {
-            case BinaryExpressionSyntax binaryExpression:
-                left = binaryExpression.Left;
-                operatorToken = binaryExpression.OperatorToken;
-                right = binaryExpression.Right;
-                return;
+                case BinaryExpressionSyntax binaryExpression:
+                    return (binaryExpression.Left, binaryExpression.OperatorToken, binaryExpression.Right);
 
-            case IsPatternExpressionSyntax isPatternExpression:
-                left = isPatternExpression.Expression;
-                operatorToken = isPatternExpression.IsKeyword;
-                right = ((ConstantPatternSyntax)isPatternExpression.Pattern).Expression;
-                return;
+                case IsPatternExpressionSyntax isPatternExpression:
+                    return (isPatternExpression.Expression, isPatternExpression.IsKeyword, ((ConstantPatternSyntax)isPatternExpression.Pattern).Expression);
 
-            default:
-                throw ExceptionUtilities.UnexpectedValue(binaryLikeOpt);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(binaryLikeOpt);
             }
         }
 
