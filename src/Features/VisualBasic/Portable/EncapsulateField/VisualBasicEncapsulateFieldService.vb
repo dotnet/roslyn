@@ -87,14 +87,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
             Return TypeOf field.Parent Is TypeBlockSyntax
         End Function
 
-        Private Shared Function GetNamingRules(document As Document, cancelationToken As CancellationToken) As ImmutableArray(Of NamingRule)
-            Return document.GetNamingRulesAsync(cancelationToken).GetAwaiter().GetResult() _
-                .AddRange(DefaultNamingRules.FieledAndPropertyRules)
+        Private Shared Async Function GetNamingRules(document As Document, cancelationToken As CancellationToken) As Task(Of ImmutableArray(Of NamingRule))
+            Dim namingRules = Await document.GetNamingRulesAsync(cancelationToken).ConfigureAwait(False)
+            Return namingRules.AddRange(DefaultNamingRules.FieldAndPropertyRules)
         End Function
 
-        Protected Overrides Function GeneratePropertyAndFieldNames(field As IFieldSymbol, document As Document, cancellationToken As CancellationToken) As Tuple(Of String, String)
+        Protected Overrides Async Function GeneratePropertyAndFieldNames(
+            field As IFieldSymbol,
+            document As Document,
+            cancellationToken As CancellationToken) As Task(Of Tuple(Of String, String))
+
             ' If the field is marked shadows, it will keep its name.
-            Dim namingRules = GetNamingRules(document, cancellationToken)
+            Dim namingRules = Await GetNamingRules(document, cancellationToken).ConfigureAwait(False)
             If field.DeclaredAccessibility = Accessibility.Private OrElse IsShadows(field) Then
                 Dim propertyName = GeneratePropertyName(field.Name)
                 propertyName = MakeUnique(propertyName, field, namingRules, SymbolKind.Property, Accessibility.Public)

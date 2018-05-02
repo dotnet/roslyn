@@ -100,11 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         {
             var propertyName = property.Name;
             var fieldName = "";
+            var newFieldModifiers = property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None;
             foreach (var rule in rules)
             {
                 if (rule.SymbolSpecification.AppliesTo(
                     new SymbolKindOrTypeKind(SymbolKind.Field),
-                    property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None,
+                    newFieldModifiers,
                     Accessibility.Private))
                 {
                     fieldName = rule.NamingStyle.MakeCompliant(propertyName).First();
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return NameGenerator.GenerateUniqueName(
                 fieldName, 
                 n => !property.ContainingType.GetMembers(n).Any(),
-                name => NameGenerator.GenerateName(name, rules, new SymbolKindOrTypeKind(SymbolKind.Field), property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None, Accessibility.Private));
+                rules, SymbolKind.Field, Accessibility.Private, newFieldModifiers);
         }
 
         internal override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(

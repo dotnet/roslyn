@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         private static ImmutableArray<NamingRule> GetNamingRules(Document document, CancellationToken cancellationToken)
         {
             return document.GetNamingRulesAsync(cancellationToken).GetAwaiter().GetResult()
-                .AddRange(DefaultNamingRules.FieledAndPropertyRules);
+                .AddRange(DefaultNamingRules.FieldAndPropertyRules);
         }
 
         private async Task<Solution> ReplacePropertyWithMethodsAsync(
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             var uniqueName = NameGenerator.GenerateUniqueName(
                 property.Name.ToCamelCase(),
                 n => !property.ContainingType.GetMembers(n).Any(),
-                n => NameGenerator.GenerateName(n, rules, SymbolKind.Field, Accessibility.Private));
+                rules, SymbolKind.Field, Accessibility.Private);
 
             return CodeGenerationSymbolFactory.CreateFieldSymbol(
                 attributes: default,

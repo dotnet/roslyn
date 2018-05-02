@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var uniqueName = NameGenerator.GenerateUniqueName(
                 parameter.Name,
                 n => parameter.ContainingType.GetMembers(n).IsEmpty,
-                name => NameGenerator.GenerateName(name, rules, SymbolKind.Field, Accessibility.Private));
+                rules, SymbolKind.Field, Accessibility.Private);
 
             return CodeGenerationSymbolFactory.CreateFieldSymbol(
                 default,
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var uniqueName = NameGenerator.GenerateUniqueName(
                 parameter.Name,
                 n => parameter.ContainingType.GetMembers(n).IsEmpty,
-                name => NameGenerator.GenerateName(name, rules, SymbolKind.Property, Accessibility.Public));
+                rules, SymbolKind.Property, Accessibility.Public);
 
             var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         default,
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // Add our built-in-rules at the end so that we always respect user naming rules 
             // first, but we always have something to fall-back upon if there are no matches.
-            var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(DefaultNamingRules.FieledAndPropertyRules);
+            var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(DefaultNamingRules.FieldAndPropertyRules);
             return rules;
         }
 

@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal static class DefaultNamingRules
     {
-        public static ImmutableArray<NamingRule> FieledAndPropertyRules { get; } = ImmutableArray.Create(
+        public static ImmutableArray<NamingRule> FieldAndPropertyRules { get; } = ImmutableArray.Create(
                new NamingRule(new SymbolSpecification(
                    Guid.NewGuid(), "Property",
                    ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property))),

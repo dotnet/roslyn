@@ -131,6 +131,26 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return collisionIndices;
         }
 
+        public static string GenerateUniqueName(string baseName, Func<string, bool> canUse, ImmutableArray<NamingRule> rules, 
+            SymbolKind symbolKind, Accessibility accessibility, DeclarationModifiers declarationModifiers = default)
+        {
+            return GenerateUniqueName(
+                baseName, 
+                string.Empty, 
+                canUse, 
+                n => GenerateName(n, rules, symbolKind, accessibility, declarationModifiers));
+        }
+
+        public static string GenerateUniqueName(string baseName, Func<string, bool> canUse, ImmutableArray<NamingRule> rules, 
+            TypeKind typeKind, Accessibility accessibility, DeclarationModifiers declarationModifiers = default)
+        {
+            return GenerateUniqueName(
+                baseName, 
+                string.Empty, 
+                canUse, 
+                n => GenerateName(n, rules, typeKind, accessibility, declarationModifiers));
+        }
+
         public static string GenerateUniqueName(string baseName, Func<string, bool> canUse, Func<string, string> generateNewName)
         {
             return GenerateUniqueName(baseName, string.Empty, canUse, generateNewName);
@@ -148,13 +168,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 extension = "." + extension;
             }
 
-            var name = generateNewName == null ? baseName + extension : generateNewName(baseName + extension);
+            generateNewName = generateNewName ?? (n => n);
+            var name = generateNewName(baseName + extension);
             var index = 1;
 
             // Check for collisions
             while (!canUse(name))
             {
-                name = generateNewName == null ? baseName + index + extension : generateNewName(baseName + index + extension);
+                name = generateNewName(baseName + index + extension);
                 index++;
             }
 
@@ -174,10 +195,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return baseName;
         }
 
-        public static string GenerateName(string baseName, ImmutableArray<NamingRule> rules, SymbolKind symbolKind, Accessibility accessibility)
-            => GenerateName(baseName, rules, new SymbolKindOrTypeKind(symbolKind), DeclarationModifiers.None, accessibility);
+        public static string GenerateName(string baseName, ImmutableArray<NamingRule> rules, SymbolKind symbolKind, Accessibility accessibility, DeclarationModifiers declarationModifiers = default)
+            => GenerateName(baseName, rules, new SymbolKindOrTypeKind(symbolKind), declarationModifiers, accessibility);
 
-        public static string GenerateName(string baseName, ImmutableArray<NamingRule> rules, TypeKind typeKind, Accessibility accessibility)
-            => GenerateName(baseName, rules, new SymbolKindOrTypeKind(typeKind), DeclarationModifiers.None, accessibility);
+        public static string GenerateName(string baseName, ImmutableArray<NamingRule> rules, TypeKind typeKind, Accessibility accessibility, DeclarationModifiers declarationModifiers = default)
+            => GenerateName(baseName, rules, new SymbolKindOrTypeKind(typeKind), declarationModifiers, accessibility);
     }
 }

@@ -142,20 +142,23 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             return field.Parent is TypeDeclarationSyntax;
         }
 
-        private static ImmutableArray<NamingRule> GetNamingRules(Document document, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<NamingRule>> GetNamingRules(Document document, CancellationToken cancellationToken)
         {
-            return document.GetNamingRulesAsync(cancellationToken).GetAwaiter().GetResult()
-                .AddRange(DefaultNamingRules.FieledAndPropertyRules);
+            var namingRules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
+            return namingRules.AddRange(DefaultNamingRules.FieldAndPropertyRules);
         }
 
-        protected override Tuple<string, string> GeneratePropertyAndFieldNames(IFieldSymbol field, Document document, CancellationToken cancellationToken)
+        protected override async Task<Tuple<string, string>> GeneratePropertyAndFieldNames(
+            IFieldSymbol field, Document document, CancellationToken cancellationToken)
         {
-            var namingRules = GetNamingRules(document, cancellationToken);
+            var namingRules = await GetNamingRules(document, cancellationToken).ConfigureAwait(false);
             // Special case: if the field is "new", we will preserve its original name and the new keyword.
             if (field.DeclaredAccessibility == Accessibility.Private || IsNew(field))
             {
                 // Create some capitalized version of the field name for the property
-                return Tuple.Create(field.Name, MakeUnique(GeneratePropertyName(field.Name), field.ContainingType, namingRules, SymbolKind.Property, Accessibility.Public));
+                return Tuple.Create(
+                    field.Name, 
+                    MakeUnique(GeneratePropertyName(field.Name), field.ContainingType, namingRules, SymbolKind.Property, Accessibility.Public));
             }
             else
             {
@@ -173,7 +176,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
 
                 // Otherwise, ensure the property's name is unique.
                 newPropertyName = MakeUnique(newPropertyName, field.ContainingType, namingRules, SymbolKind.Property, Accessibility.Public);
-                var newFieldName = NameGenerator.GenerateName(GenerateFieldName(field, basePropertyName), namingRules, SymbolKind.Field, Accessibility.Private);
+                var newFieldName = NameGenerator.GenerateName(
+                    GenerateFieldName(field, basePropertyName), 
+                    namingRules, 
+                    SymbolKind.Field, 
+                    Accessibility.Private);
 
                 // If converting the new property's name into a field name results in the old field name, we're done.
                 if (newFieldName == field.Name)
@@ -182,7 +189,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
                 }
 
                 // Otherwise, ensure the new field name is unique.
-                return Tuple.Create(MakeUnique(newFieldName, field.ContainingType, namingRules, SymbolKind.Field, Accessibility.Private), newPropertyName);
+                var uniqueFieldName = 
+                    MakeUnique(newFieldName, field.ContainingType, namingRules, SymbolKind.Field, Accessibility.Private);
+
+                return Tuple.Create(uniqueFieldName, newPropertyName);
             }
         }
 
@@ -196,7 +206,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             return char.ToLower(correspondingPropertyName[0]).ToString() + correspondingPropertyName.Substring(1);
         }
 
-        protected string MakeUnique(string baseName, INamedTypeSymbol containingType, ImmutableArray<NamingRule> rules, SymbolKind symbolKind, Accessibility accessibility, bool considerBaseMembers = true)
+        protected string MakeUnique(
+            string baseName, 
+            INamedTypeSymbol containingType, 
+            ImmutableArray<NamingRule> rules, 
+            SymbolKind symbolKind, 
+            Accessibility accessibility, 
+            bool considerBaseMembers = true)
         {
             var containingTypeMemberNames = containingType.GetAccessibleMembersInThisAndBaseTypes<ISymbol>(containingType).Select(m => m.Name);
             return NameGenerator.GenerateUniqueName(

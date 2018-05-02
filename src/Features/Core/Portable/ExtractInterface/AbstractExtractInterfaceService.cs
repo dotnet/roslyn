@@ -234,7 +234,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             var defaultInterfaceName = NameGenerator.GenerateUniqueName(
                 type.Name, 
                 name => !conflictingTypeNames.Contains(name),
-                name => NameGenerator.GenerateName(name, namingRules, TypeKind.Interface, Accessibility.NotApplicable));
+                namingRules, TypeKind.Interface, Accessibility.NotApplicable);
+
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
             var generatedNameTypeParameterSuffix = GetGeneratedNameTypeParameterSuffix(GetTypeParameters(type, extractableMembers), document.Project.Solution.Workspace);

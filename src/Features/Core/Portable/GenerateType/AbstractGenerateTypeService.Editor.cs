@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private readonly bool _fromDialog;
             private readonly GenerateTypeOptionsResult _generateTypeOptionsResult;
             private readonly CancellationToken _cancellationToken;
-            private readonly Lazy<ImmutableArray<NamingRule>> _namingRulesLazy;
 
             public Editor(
                 TService service,
@@ -53,7 +52,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 _intoNamespace = intoNamespace;
                 _inNewFile = inNewFile;
                 _cancellationToken = cancellationToken;
-                _namingRulesLazy = new Lazy<ImmutableArray<NamingRule>>(() => GetNamingRules(_document.Document, _cancellationToken));
             }
 
             public Editor(
@@ -70,13 +68,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 _fromDialog = fromDialog;
                 _generateTypeOptionsResult = generateTypeOptionsResult;
                 _cancellationToken = cancellationToken;
-                _namingRulesLazy = new Lazy<ImmutableArray<NamingRule>>(() => GetNamingRules(_document.Document, _cancellationToken));
             }
 
-            private static ImmutableArray<NamingRule> GetNamingRules(Document document, CancellationToken cancellationToken)
+            private static async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(Document document, CancellationToken cancellationToken)
             {
                 return document.GetNamingRulesAsync(cancellationToken).GetAwaiter().GetResult()
-                    .AddRange(DefaultNamingRules.FieledAndPropertyRules);
+                    .AddRange(DefaultNamingRules.FieldAndPropertyRules);
             }
 
             private enum TargetProjectChangeInLanguage
@@ -92,7 +89,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (!_fromDialog)
                 {
                     // Generate the actual type declaration.
-                    var namedType = GenerateNamedType();
+                    var namedType = await GenerateNamedTypeAsync().ConfigureAwait(false);
 
                     if (_intoNamespace)
                     {
@@ -123,7 +120,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
                 else
                 {
-                    var namedType = GenerateNamedType(_generateTypeOptionsResult);
+                    var namedType = await GenerateNamedTypeAsync(_generateTypeOptionsResult).ConfigureAwait(false);
 
                     // Honor the options from the dialog
                     // Check to see if the type is requested to be generated in cross language Project

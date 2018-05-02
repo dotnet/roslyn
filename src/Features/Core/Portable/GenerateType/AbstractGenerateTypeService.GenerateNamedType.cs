@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
         private partial class Editor
         {
-            private INamedTypeSymbol GenerateNamedType()
+            private async Task<INamedTypeSymbol> GenerateNamedTypeAsync()
             {
                 return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                     DetermineAttributes(),
@@ -39,10 +40,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     DetermineTypeParameters(),
                     DetermineBaseType(),
                     DetermineInterfaces(),
-                    members: DetermineMembers());
+                    members: await DetermineMembersAsync().ConfigureAwait(false));
             }
 
-            private INamedTypeSymbol GenerateNamedType(GenerateTypeOptionsResult options)
+            private async Task<INamedTypeSymbol> GenerateNamedTypeAsync(GenerateTypeOptionsResult options)
             {
                 if (options.TypeKind == TypeKind.Delegate)
                 {
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     DetermineTypeParameters(),
                     DetermineBaseType(),
                     DetermineInterfaces(),
-                    members: DetermineMembers(options));
+                    members: await DetermineMembersAsync(options).ConfigureAwait(false));
             }
 
             private ITypeSymbol DetermineReturnType(GenerateTypeOptionsResult options)
@@ -105,10 +106,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return default;
             }
 
-            private ImmutableArray<ISymbol> DetermineMembers(GenerateTypeOptionsResult options = null)
+            private async Task<ImmutableArray<ISymbol>> DetermineMembersAsync(GenerateTypeOptionsResult options = null)
             {
                 var members = ArrayBuilder<ISymbol>.GetInstance();
-                AddMembers(members, options);
+                await AddMembersAsync(members, options).ConfigureAwait(false);
 
                 if (_state.IsException)
                 {
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return members.ToImmutableAndFree();
             }
 
-            private void AddMembers(ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
+            private async Task AddMembersAsync(ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
             {
                 AddProperties(members);
                 if (!_service.TryGetArgumentList(_state.ObjectCreationExpressionOpt, out var argumentList))
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
-                AddFieldDelegatingConstructor(argumentList, members, options);
+                await AddFieldDelegatingConstructorAsync(argumentList, members, options).ConfigureAwait(false);
             }
 
             private void AddProperties(ArrayBuilder<ISymbol> members)
@@ -202,11 +203,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     methodSymbol, DetermineName()));
             }
 
-            private void AddFieldDelegatingConstructor(
+            private async Task AddFieldDelegatingConstructorAsync(
                 IList<TArgumentSyntax> argumentList, ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
             {
                 var factory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
                 var syntaxFactsService = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var namingRules = await GetNamingRulesAsync(_document.Document, _cancellationToken).ConfigureAwait(false);
 
                 var availableTypeParameters = _service.GetAvailableTypeParameters(_state, _document.SemanticModel, _intoNamespace, _cancellationToken);
                 var parameterTypes = GetArgumentTypes(argumentList);
@@ -231,7 +233,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         if (!TryFindMatchingField(parameterName, parameterType, parameterToExistingFieldMap, caseSensitive: false))
                         {
                             parameterToNewFieldMap[parameterName.BestNameForParameter] = 
-                                NameGenerator.GenerateName(parameterName.NameBasedOnArgument, _namingRulesLazy.Value, SymbolKind.Field, Accessibility.Private);
+                                NameGenerator.GenerateName(parameterName.NameBasedOnArgument, namingRules, SymbolKind.Field, Accessibility.Private);
                         }
                     }
 
