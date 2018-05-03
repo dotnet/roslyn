@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis
                 parameterOptions:
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
                     SymbolDisplayParameterOptions.IncludeType,
+                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier,
                 // Not showing the name is important because we visit parameters to display their
                 // types.  If we visited their types directly, we wouldn't get ref/out/params.
                 miscellaneousOptions:
