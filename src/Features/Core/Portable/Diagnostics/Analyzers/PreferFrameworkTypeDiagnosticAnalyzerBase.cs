@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
                      preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
         }
+
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
