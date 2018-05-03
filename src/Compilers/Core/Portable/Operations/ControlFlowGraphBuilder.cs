@@ -3557,6 +3557,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
 
+            formatBuilderOpt?.Free();
             return new InterpolatedStringExpression(partsBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
