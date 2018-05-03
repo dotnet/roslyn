@@ -162,16 +162,6 @@
         <target state="translated">Corregir tipo devuelto de función incorrecto</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Quitar conversión innecesaria</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">Cast es redundante</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
         <target state="translated">Simplificar nombre '{0}'</target>

@@ -216,15 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cast is redundant.
-        /// </summary>
-        internal static string Cast_is_redundant {
-            get {
-                return ResourceManager.GetString("Cast_is_redundant", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to catch clause.
         /// </summary>
         internal static string catch_clause {
@@ -833,15 +824,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Remove_this_qualification {
             get {
                 return ResourceManager.GetString("Remove_this_qualification", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove Unnecessary Cast.
-        /// </summary>
-        internal static string Remove_Unnecessary_Cast {
-            get {
-                return ResourceManager.GetString("Remove_Unnecessary_Cast", resourceCulture);
             }
         }
         

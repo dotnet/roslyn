@@ -59,7 +59,7 @@ class Program
     {
         int x = 2;
         int i = 1;
-        Goo((x < i), x > (2 + 3));
+        Goo(x < (i), x > (2 + 3));
     }
  
     static void Goo(bool a, bool b) { }
@@ -3550,7 +3550,7 @@ class C
 {
     void Goo(Task<Action> x)
     {
-        x.Result();
+        (x.Result)();
     }
 }
 ");
