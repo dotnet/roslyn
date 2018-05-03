@@ -486,6 +486,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;if&apos; statement can be simplified.
+        /// </summary>
+        internal static string if_statement_can_be_simplified {
+            get {
+                return ResourceManager.GetString("if_statement_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to indexer.
         /// </summary>
         internal static string indexer {

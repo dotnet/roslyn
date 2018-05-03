@@ -527,4 +527,7 @@
   <data name="Convert_to_for" xml:space="preserve">
     <value>Convert to 'for'</value>
   </data>
+  <data name="if_statement_can_be_simplified" xml:space="preserve">
+    <value>'if' statement can be simplified</value>
+  </data>
 </root>
