@@ -7818,5 +7818,39 @@ class C
     }
 }");
         }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInIsSwitchExpression1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        _ = o switch { Blah { [|X|]: int i } => 0, _ => 0 };
+    }
+
+    class Blah
+    {
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        _ = o switch { Blah { X: int i } => 0, _ => 0 };
+    }
+
+    class Blah
+    {
+        public int X { get; internal set; }
+    }
+}");
+        }
     }
 }
