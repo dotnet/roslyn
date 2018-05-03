@@ -45,6 +45,23 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
+        Public Async Function TestSingleGetter3() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    shared dim i as Integer
+    [|shared property P as integer
+        get
+            return i
+        end get
+    end property|]
+end class",
+"class Class1
+    shared ReadOnly property P as integer
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestSingleSetter() As Task
             Await TestMissingInRegularAndScriptAsync(
 "class Class1

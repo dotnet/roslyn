@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             Dim statement = propertyDeclaration.PropertyStatement
             If Not isWrittenToOutsideOfConstructor AndAlso Not propertyDeclaration.Accessors.Any(SyntaxKind.SetAccessorBlock) Then
                 Dim generator = SyntaxGenerator.GetGenerator(propertyDocument.Project)
-                statement = DirectCast(generator.WithModifiers(statement, DeclarationModifiers.ReadOnly), PropertyStatementSyntax)
+                statement = DirectCast(generator.WithModifiers(statement, generator.GetModifiers(propertyDeclaration).WithIsReadOnly(True)), PropertyStatementSyntax)
             End If
 
             Dim initializer = Await GetFieldInitializer(fieldSymbol, cancellationToken).ConfigureAwait(False)
