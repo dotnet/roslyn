@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 methodGroup = methodGroup.Where(m => m.IsStatic);
             }
 
-            var accessibleMethods = methodGroup.Where(m => m.IsAccessibleWithin(within, throughTypeOpt: throughType)).ToList();
+            var accessibleMethods = methodGroup.Where(m => m.IsAccessibleWithin(within, throughType: throughType)).ToList();
             if (accessibleMethods.Count == 0)
             {
                 return null;
