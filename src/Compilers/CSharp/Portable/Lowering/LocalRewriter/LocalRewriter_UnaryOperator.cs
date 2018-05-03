@@ -158,15 +158,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (kind == UnaryOperatorKind.IntIndex)
-            {
-                MethodSymbol indexCtor = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Index__ctor);
-                NamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
-                BoundExpression fromEnd = MakeLiteral(syntax, ConstantValue.Create(true), booleanType);
-
-                return new BoundObjectCreationExpression(syntax, indexCtor, binderOpt: null, loweredOperand, fromEnd);
-            }
-
             return (oldNode != null) ?
                 oldNode.Update(kind, loweredOperand, oldNode.ConstantValueOpt, method, oldNode.ResultKind, type) :
                 new BoundUnaryOperator(syntax, kind, loweredOperand, null, method, LookupResultKind.Viable, type);

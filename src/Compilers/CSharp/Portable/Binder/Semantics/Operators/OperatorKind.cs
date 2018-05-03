@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         BitwiseComplement = 0x00001700,
         True = 0x00001800,
         False = 0x00001900,
-        Index = 0x00001A00,
 
         Lifted = 0x00010000,
         _Logical = 0x00020000, // reserved for binary op              
@@ -257,9 +256,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Used during lowering of dynamic logical operators.
         DynamicFalse = Dynamic | False,
-
-        IntIndex = Int | Index,
-        LiftedIntIndex = Lifted | Int | Index,
     }
 
     [Flags]

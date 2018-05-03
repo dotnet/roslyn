@@ -511,6 +511,11 @@ namespace Microsoft.CodeAnalysis.Operations
             return new DiscardOperation(operation.DiscardSymbol, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
+        public override IOperation VisitIndexOperation(IIndexOperation operation, object argument)
+        {
+            return new IndexOperation(operation.IsLifted, operation.IsImplicit, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.Operand);
+        }
+
         public override IOperation VisitRangeOperation(IRangeOperation operation, object argument)
         {
             return new RangeOperation(operation.IsLifted, operation.IsImplicit, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.LeftOperand, operation.RightOperand);

@@ -28,7 +28,10 @@ class Test
 }").VerifyDiagnostics(
                 // (6,17): error CS0656: Missing compiler required member 'System.Index..ctor'
                 //         var x = ^arg;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^arg").WithArguments("System.Index", ".ctor").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^arg").WithArguments("System.Index", ".ctor").WithLocation(6, 17),
+                // (6,17): error CS0518: Predefined type 'System.Index' is not defined or imported
+                //         var x = ^arg;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "^arg").WithArguments("System.Index").WithLocation(6, 17));
         }
 
         [Fact]
@@ -49,6 +52,7 @@ class Test
             var expression = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
             Assert.Equal("^", expression.OperatorToken.ToFullString());
             Assert.Equal("System.Index", model.GetTypeInfo(expression).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expression).Symbol);
         }
 
         [Fact]
@@ -69,6 +73,7 @@ class Test
             var expression = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
             Assert.Equal("^", expression.OperatorToken.ToFullString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expression).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expression).Symbol);
         }
 
         [Fact]
@@ -84,15 +89,15 @@ class Test
         var z = ^true;
     }
 }").VerifyDiagnostics(
-                // (6,17): error CS0023: Operator '^' cannot be applied to operand of type 'string'
+                //(6,17): error CS0029: Cannot implicitly convert type 'string' to 'int' [g:\ranges.xml]
                 //         var x = ^"string";
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, @"^""string""").WithArguments("^", "string").WithLocation(6, 17),
-                // (7,17): error CS0023: Operator '^' cannot be applied to operand of type 'double'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"^""string""").WithArguments("string", "int").WithLocation(6, 17),
+                //(7,17): error CS0029: Cannot implicitly convert type 'double' to 'int' [g:\ranges.xml]
                 //         var y = ^1.5;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "^1.5").WithArguments("^", "double").WithLocation(7, 17),
-                // (8,17): error CS0023: Operator '^' cannot be applied to operand of type 'bool'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "^1.5").WithArguments("double", "int").WithLocation(7, 17),
+                //(8,17): error CS0029: Cannot implicitly convert type 'bool' to 'int' [g:\ranges.xml]
                 //         var z = ^true;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "^true").WithArguments("^", "bool").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "^true").WithArguments("bool", "int").WithLocation(8, 17));
         }
 
         [Fact]
@@ -291,18 +296,22 @@ class Test
             Assert.Equal(4, expressions.Length);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[0]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[0]).Symbol);
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].RightOperand).Type.ToTestDisplayString());
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[1]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[1]).Symbol);
             Assert.Null(expressions[1].RightOperand);
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[1].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[2]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[2]).Symbol);
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[2].RightOperand).Type.ToTestDisplayString());
             Assert.Null(expressions[2].LeftOperand);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[3]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[3]).Symbol);
             Assert.Null(expressions[3].RightOperand);
             Assert.Null(expressions[3].LeftOperand);
         }
@@ -330,18 +339,22 @@ class Test
             Assert.Equal(4, expressions.Length);
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[0]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[0]).Symbol);
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].RightOperand).Type.ToTestDisplayString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[1]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[1]).Symbol);
             Assert.Null(expressions[1].RightOperand);
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[1].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[2]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[2]).Symbol);
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[2].RightOperand).Type.ToTestDisplayString());
             Assert.Null(expressions[2].LeftOperand);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[3]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[3]).Symbol);
             Assert.Null(expressions[3].RightOperand);
             Assert.Null(expressions[3].LeftOperand);
         }

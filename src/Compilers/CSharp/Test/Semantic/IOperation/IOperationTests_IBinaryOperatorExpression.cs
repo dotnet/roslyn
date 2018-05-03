@@ -483,7 +483,7 @@ IRangeOperation (OperationKind.Range, Type: System.Range, Constant: null) (Synta
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
   RightOperand: 
-    IUnaryOperation (UnaryOperatorKind.Index) (OperationKind.UnaryOperator, Type: System.Index) (Syntax: '^1')
+    IIndexOperation (OperationKind.Index, Type: System.Index, Constant: null) (Syntax: '^1')
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
@@ -620,7 +620,7 @@ IRangeOperation (IsLifted) (OperationKind.Range, Type: System.Range?, Constant: 
       Operand: 
         IParameterReferenceOperation: start (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'start')
   RightOperand: 
-    IUnaryOperation (UnaryOperatorKind.Index, IsLifted) (OperationKind.UnaryOperator, Type: System.Index?) (Syntax: '^end')
+    IIndexOperation (IsLifted) (OperationKind.Index, Type: System.Index?, Constant: null) (Syntax: '^end')
       Operand: 
         IParameterReferenceOperation: end (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'end')
 ";

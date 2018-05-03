@@ -3434,7 +3434,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IUnaryOperation (UnaryOperatorKind.Index) (OperationKind.UnaryOperator, Type: System.Index) (Syntax: '^arg')
+IIndexOperation (OperationKind.Index, Type: System.Index, Constant: null) (Syntax: '^arg')
   Operand: 
     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'arg')
 ";
@@ -3456,7 +3456,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IUnaryOperation (UnaryOperatorKind.Index, IsLifted) (OperationKind.UnaryOperator, Type: System.Index?) (Syntax: '^arg')
+IIndexOperation (IsLifted) (OperationKind.Index, Type: System.Index?, Constant: null) (Syntax: '^arg')
   Operand: 
     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'arg')
 ";

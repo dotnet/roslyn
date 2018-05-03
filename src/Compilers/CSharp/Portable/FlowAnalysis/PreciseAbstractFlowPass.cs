@@ -2010,6 +2010,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitIndexExpression(BoundIndexExpression node)
+        {
+            VisitRvalue(node.Operand);
+            return null;
+        }
+
         public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
         {
             VisitRvalue(node.Expression);

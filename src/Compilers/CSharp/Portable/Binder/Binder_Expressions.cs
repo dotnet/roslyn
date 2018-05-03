@@ -1899,12 +1899,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindIndexExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
+            Debug.Assert(node.OperatorToken.IsKind(SyntaxKind.CaretToken));
+
             // PROTOTYPE: move this check to parser?
             CheckFeatureAvailability(node, MessageID.IDS_FeatureIndexOperator, diagnostics);
 
+            // Used in lowering
+            GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
             GetWellKnownTypeMember(Compilation, WellKnownMember.System_Index__ctor, diagnostics, syntax: node);
 
-            return BindUnaryOperator(node, diagnostics);
+            BoundExpression boundOperand = BindValue(node.Operand, diagnostics, BindValueKind.RValue);
+            TypeSymbol intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
+            TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, node);
+
+            if (boundOperand.Type.IsNullableType())
+            {
+                NamedTypeSymbol nullableType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node);
+
+                intType = nullableType.Construct(intType);
+                indexType = nullableType.Construct(indexType);
+            }
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromExpression(boundOperand, intType, ref useSiteDiagnostics);
+            diagnostics.Add(node, useSiteDiagnostics);
+
+            if (!conversion.IsValid)
+            {
+                GenerateImplicitConversionError(diagnostics, node, conversion, boundOperand, intType);
+            }
+
+            return new BoundIndexExpression(node, boundOperand, indexType);
         }
 
         private BoundExpression BindRangeExpression(RangeExpressionSyntax node, DiagnosticBag diagnostics)
