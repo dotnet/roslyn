@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
+using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
 {
@@ -62,28 +63,49 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         /// <summary>
         /// Mostly taken from <see cref="Controller.Session.FilterModelInBackgroundWorker(Document, Model, int, SnapshotPoint, CodeAnalysis.Completion.CompletionFilterReason, ImmutableDictionary{CompletionItemFilter, bool})"/>
         /// </summary>
-        public Task<FilteredCompletionModel> UpdateCompletionListAsync(
+        public async Task<FilteredCompletionModel> UpdateCompletionListAsync(
             ImmutableArray<EditorCompletion.CompletionItem> sortedList, 
-            CompletionTriggerReason triggerReason, 
-            EditorCompletion.CompletionFilterReason filterReason, 
+            EditorCompletion.CompletionTrigger initialTrigger, 
+            UpdateTrigger updateTrigger, 
+            bool isSoftSelected, 
+            bool isUnavailable, 
             ITextSnapshot snapshot, 
-            ITrackingSpan applicableToSpan, 
+            ITrackingSpan applicableSpan, 
             ImmutableArray<CompletionFilterWithState> filters, 
             ITextView view, 
             CancellationToken cancellationToken)
         {
-            //if (_broker.GetSession(view).)
-            //if (true /* current selection is NoSelection */)
-            //{
-            //    //  Mimic GetCompletionContext
-            //    if (filterReason == EditorCompletion.CompletionFilterReason.Insertion)
-            //    {
+            var mustSetSelection = false;
 
-            //    }
-            //}
+            if (isUnavailable && 
+                (updateTrigger.Reason == EditorCompletion.CompletionFilterReason.Insertion || updateTrigger.Reason == EditorCompletion.CompletionFilterReason.Deletion))
+            {
+                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
+                {
+                    // Uhh...
+                    return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0);
+                }
 
+                var completionService = document.GetLanguageService<CompletionService>();
+                var completionList = await completionService.GetCompletionsAsync(
+                    document,
+                    applicableSpan.GetEndPoint(snapshot),
+                    GetRoslynTrigger(updateTrigger)).ConfigureAwait(false);
 
-            var filterText = applicableToSpan.GetText(snapshot);
+                if (completionList != null && completionList.Items.Length > 0)
+                {
+                    // Okay, we want completion. How do I communicate that?
+                    mustSetSelection = true;
+                }
+                else
+                {
+                    // Still don't want completion. 
+                    return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0);
+                }
+            }
+
+            var filterText = applicableSpan.GetText(snapshot);
 
             // Check if the user is typing a number. If so, only proceed if it's a number
             // directly after a <dot>. That's because it is actually reasonable for completion
@@ -98,9 +120,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             // If the user then types '3', we don't want to match against Int32.
             if (filterText.Length > 0 && char.IsNumber(filterText[0]))
             {
-                if (!IsAfterDot(snapshot, applicableToSpan))
+                if (!IsAfterDot(snapshot, applicableSpan))
                 {
-                    return Task.FromResult(new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0));
+                    return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0);
                 }
             }
 
@@ -118,14 +140,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                     continue;
                 }
 
-                if (MatchesFilterText(item, filterText, triggerReason, filterReason))
+                if (MatchesFilterText(item, filterText, initialTrigger.Reason, updateTrigger.Reason))
                 {
                     initialListOfItemsToBeIncluded.Add(new FilterResult(item, filterText, matchedFilterText: true));
                 }
                 else
                 {
-                    if (triggerReason == CompletionTriggerReason.Deletion ||
-                        triggerReason == CompletionTriggerReason.Invoke ||
+                    if (initialTrigger.Reason == CompletionTriggerReason.Deletion ||
+                        initialTrigger.Reason == CompletionTriggerReason.Invoke ||
                         filterText.Length <= 1)
                     {
                         initialListOfItemsToBeIncluded.Add(new FilterResult(item, filterText, matchedFilterText: false));
@@ -135,14 +157,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             if (initialListOfItemsToBeIncluded.Count == 0)
             {
-                return Task.FromResult(HandleAllItemsFilteredOut(triggerReason, filters, selectedFilters));
+                return HandleAllItemsFilteredOut(initialTrigger.Reason, filters, selectedFilters, mustSetSelection);
             }
 
             // If this was deletion, then we control the entire behavior of deletion
             // ourselves.
-            if (triggerReason == CompletionTriggerReason.Deletion)
+            if (initialTrigger.Reason == CompletionTriggerReason.Deletion)
             {
-                return HandleDeletionTrigger(sortedList, triggerReason, filters, filterReason, filterText, initialListOfItemsToBeIncluded);
+                return HandleDeletionTrigger(sortedList, initialTrigger.Reason, filters, updateTrigger.Reason, filterText, initialListOfItemsToBeIncluded, mustSetSelection);
             }
 
             var caretPoint = view.GetCaretPoint(snapshot.TextBuffer);
@@ -156,18 +178,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 caretPosition,
                 filterText,
                 filters,
-                filterReason,
+                updateTrigger.Reason,
                 initialListOfItemsToBeIncluded,
-                triggerReason);
+                initialTrigger.Reason,
+                mustSetSelection);
         }
 
-        private Task<FilteredCompletionModel> HandleDeletionTrigger(
+        private static RoslynTrigger GetRoslynTrigger(EditorCompletion.UpdateTrigger trigger)
+        {
+            RoslynTrigger roslynTrigger = default;
+            switch (trigger.Reason)
+            {
+                case EditorCompletion.CompletionFilterReason.Insertion:
+                    roslynTrigger = RoslynTrigger.CreateInsertionTrigger(trigger.Character);
+                    break;
+                case EditorCompletion.CompletionFilterReason.Deletion:
+                    roslynTrigger = RoslynTrigger.CreateDeletionTrigger(trigger.Character);
+                    break;
+            }
+
+            return roslynTrigger;
+        }
+
+        private FilteredCompletionModel HandleDeletionTrigger(
             ImmutableArray<EditorCompletion.CompletionItem> sortedList,
             CompletionTriggerReason triggerReason,
             ImmutableArray<CompletionFilterWithState> filters,
             EditorCompletion.CompletionFilterReason filterReason,
             string filterText,
-            List<FilterResult> filterResults)
+            List<FilterResult> filterResults,
+            bool mustSetSelection)
         {
             if (filterReason == EditorCompletion.CompletionFilterReason.Insertion && !filterResults.Any(r => r.MatchedFilterText))
             {
@@ -177,7 +217,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 // to help them when they typed delete (in case they wanted to pick another
                 // item).  However, they're typing something that doesn't seem to match at all
                 // The completion list is just distracting at this point.
-                return Task.FromResult(new FilteredCompletionModel(ImmutableArray<EditorCompletion.CompletionItemWithHighlight>.Empty, 0));
+                return new FilteredCompletionModel(ImmutableArray<EditorCompletion.CompletionItemWithHighlight>.Empty, 0, filters, mustSetSelection ? CompletionItemSelection.SoftSelected : CompletionItemSelection.NoChange,
+                    centerSelection: true, uniqueItem: default);
             }
 
             FilterResult? bestFilterResult = null;
@@ -212,11 +253,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 // This also preserves the behavior the VB had through Dev12.
                 var hardSelect = bestFilterResult.Value.CompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
 
-                return Task.FromResult(new FilteredCompletionModel(highlightedList, filteredItems.IndexOf(bestFilterResult.Value.CompletionItem), updatedFilters, matchCount == 1 ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem: null));
+                return new FilteredCompletionModel(highlightedList, filteredItems.IndexOf(bestFilterResult.Value.CompletionItem), updatedFilters, matchCount == 1 ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem: null);
             }
             else
             {
-                return Task.FromResult(new FilteredCompletionModel(highlightedList, 0, updatedFilters, CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem: null));
+                return new FilteredCompletionModel(highlightedList, 0, updatedFilters, CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem: null);
             }
         }
 
@@ -265,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
         }
 
-        private Task<FilteredCompletionModel> HandleNormalFiltering(
+        private FilteredCompletionModel HandleNormalFiltering(
             ImmutableArray<EditorCompletion.CompletionItem> sortedList,
             ITextSnapshot snapshot,
             int? caretPosition,
@@ -273,20 +314,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             ImmutableArray<CompletionFilterWithState> filters,
             EditorCompletion.CompletionFilterReason filterReason,
             List<FilterResult> itemsInList,
-            CompletionTriggerReason triggerReason)
+            CompletionTriggerReason triggerReason,
+            bool mustSetSelection)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 var listWithSelections = GetHighlightedList(itemsInList, filterText);
-                return Task.FromResult(new FilteredCompletionModel(listWithSelections.ToImmutableArray(), 0));
+                return new FilteredCompletionModel(listWithSelections.ToImmutableArray(), 0, filters, mustSetSelection ? CompletionItemSelection.SoftSelected : CompletionItemSelection.NoChange,
+                    centerSelection: true, uniqueItem: default);
             }
 
             var completionService = document.GetLanguageService<CompletionService>();
             if (completionService == null)
             {
                 var listWithSelections = GetHighlightedList(itemsInList, filterText);
-                return Task.FromResult(new FilteredCompletionModel(listWithSelections.ToImmutableArray(), 0));
+                return new FilteredCompletionModel(listWithSelections.ToImmutableArray(), 0, filters, mustSetSelection ? CompletionItemSelection.SoftSelected : CompletionItemSelection.NoChange,
+                    centerSelection: true, uniqueItem: default);
             }
 
             var matchingItems = itemsInList
@@ -301,11 +345,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var highlightedList = GetHighlightedList(itemsInList, filterText).ToImmutableArray();
             var updatedFilters = GetUpdatedFilters(sortedList, itemsInList, filters, filterText);
 
+            // TODO: Can we get away with less complexity here by only doing hard select on preselection and not on regular filter text matching / etc...
             var isHardSelection = IsHardSelection(bestItem, snapshot, caretPosition, filterReason, filterText, triggerReason);
 
             if (bestItem == null)
             {
-                return Task.FromResult(new FilteredCompletionModel(highlightedList, 0, updatedFilters, isHardSelection ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem: null));
+                return new FilteredCompletionModel(highlightedList, 0, updatedFilters, isHardSelection ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem: null);
             }
 
             // TODO: Better conversion between Roslyn/Editor completion items
@@ -317,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 uniqueItem = highlightedList[selectedItemIndex].CompletionItem;
             }
 
-            return Task.FromResult(new FilteredCompletionModel(highlightedList, selectedItemIndex, updatedFilters, isHardSelection ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem));
+            return new FilteredCompletionModel(highlightedList, selectedItemIndex, updatedFilters, isHardSelection ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem);
         }
 
         private RoslynCompletionItem GetOrCreateRoslynItem(EditorCompletion.CompletionItem item)
@@ -520,7 +565,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         private FilteredCompletionModel HandleAllItemsFilteredOut
             (EditorCompletion.CompletionTriggerReason triggerReason,
             ImmutableArray<CompletionFilterWithState> filters,
-            ImmutableArray<CompletionFilter> activeFilters)
+            ImmutableArray<CompletionFilter> activeFilters,
+            bool mustSetSelection)
         {
             // TODO: DismissIfEmpty?
             // If the user was just typing, and the list went to empty *and* this is a 
@@ -530,7 +576,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             if (triggerReason == CompletionTriggerReason.Insertion)
             {
                 // TODO: Stop completion when that API is available
-                return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0, filters);
+                return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0, filters, mustSetSelection ? CompletionItemSelection.SoftSelected : CompletionItemSelection.NoChange, centerSelection: true, uniqueItem: default);
             }
 
             if (activeFilters.Length > 0)
@@ -539,7 +585,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 // nothing, then we do want the UI to show that to them.  That way the user
                 // can turn off filters they don't want and get the right set of items.
 
-                return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0, filters);
+                return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0, filters, mustSetSelection ? CompletionItemSelection.SoftSelected : CompletionItemSelection.NoChange, centerSelection: true, uniqueItem: default);
             }
             else
             {
