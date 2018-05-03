@@ -1522,14 +1522,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetTypes(deconstructionPattern.Type);
                 }
 
-                // If it's of the form (...) then infer that the type shoudl be a 
+                // If it's of the form (...) then infer that the type should be a 
                 // tuple, whose elements are inferred from the individual patterns
-                // in teh deconstruction.
-                if (deconstructionPattern.SubPatterns.Count >= 2)
+                // in the deconstruction.
+                var subPatternCount = deconstructionPattern.SubPatterns.Count;
+                if (subPatternCount >= 2)
                 {
                     // infer a tuple type for this deconstruction.
-                    var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance();
-                    var elementNamesBuilder = ArrayBuilder<string>.GetInstance();
+                    var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance(subPatternCount);
+                    var elementNamesBuilder = ArrayBuilder<string>.GetInstance(subPatternCount);
 
                     foreach (var subPattern in deconstructionPattern.SubPatterns)
                     {
