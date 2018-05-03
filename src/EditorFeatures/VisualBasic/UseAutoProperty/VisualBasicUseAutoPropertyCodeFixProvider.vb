@@ -46,7 +46,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
         Private Async Function GetFieldInitializer(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of ExpressionSyntax)
             Dim identifier = TryCast(Await fieldSymbol.DeclaringSyntaxReferences(0).GetSyntaxAsync(cancellationToken).ConfigureAwait(False), ModifiedIdentifierSyntax)
             Dim declarator = TryCast(identifier?.Parent, VariableDeclaratorSyntax)
-            Return declarator?.Initializer?.Value
+            Dim initializer = declarator?.Initializer?.Value
+            If initializer Is Nothing Then
+                initializer = TryCast(declarator.AsClause, AsNewClauseSyntax)?.NewExpression
+            End If
+
+            Return initializer
         End Function
     End Class
 End Namespace

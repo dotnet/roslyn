@@ -106,6 +106,24 @@ New TestParameters(VisualBasicParseOptions.Default.WithLanguageVersion(LanguageV
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
+        Public Async Function TestInitializer_AsNew() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    dim i as new Guid(""{00000000-0000-0000-0000-000000000000}"")
+    [|readonly property P as Guid
+        get
+            return i
+        end get
+    end property|]
+end class",
+"class Class1
+    readonly property P as Guid
+= new Guid(""{00000000-0000-0000-0000-000000000000}"")
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
         Public Async Function TestReadOnlyField() As Task
             Await TestInRegularAndScriptAsync(
 "class Class1
