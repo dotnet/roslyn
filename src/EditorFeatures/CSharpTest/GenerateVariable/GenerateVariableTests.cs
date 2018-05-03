@@ -23,10 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpGenerateVariableCodeFixProvider());
 
-        private static readonly CSharpParseOptions WithPatternsEnabled = 
-            CSharpParseOptions.Default.WithFeatures(
-                new Dictionary<string, string> { { "patterns2", "true" } });
-
         private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
         // specify all options explicitly to override defaults.
@@ -7743,7 +7739,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern1()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -7778,14 +7774,14 @@ class C
     {
         public int X { get; internal set; }
     }
-}", parseOptions: WithPatternsEnabled);
+}");
         }
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"
 class C
 {
@@ -7820,7 +7816,7 @@ class C
     {
         public int X { get; internal set; }
     }
-}", parseOptions: WithPatternsEnabled);
+}");
         }
     }
 }
