@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -396,6 +397,36 @@ public class C
     void M()
     {
         var v = ""A"" + 1 + [||]""B"" + @""C"";
+    }
+}");
+        }
+
+        [WorkItem(20943, "https://github.com/dotnet/roslyn/issues/20943")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestMissingWithDynamic1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        dynamic a = ""b"";
+        string c = [||]""d"" + a + ""e"";
+    }
+}");
+        }
+
+        [WorkItem(20943, "https://github.com/dotnet/roslyn/issues/20943")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestMissingWithDynamic2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        dynamic dynamic = null;
+        var x = dynamic.someVal + [||]"" $"";
     }
 }");
         }

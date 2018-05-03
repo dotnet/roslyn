@@ -1,14 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UpgradeProject;
 using Roslyn.Utilities;
 
@@ -38,19 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;
         public override string UpgradeAllProjectsResource => CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0;
 
-        public override ImmutableArray<string> SuggestedVersions(ImmutableArray<Diagnostic> diagnostics)
+        public override string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics)
         {
-            var required = RequiredVersion(diagnostics);
-            var builder = ArrayBuilder<string>.GetInstance(1);
-
-            var generic = required <= LanguageVersion.Default.MapSpecifiedToEffectiveVersion()
-               ? LanguageVersion.Default // for all versions prior to current Default
-               : LanguageVersion.Latest; // for more recent versions
-
-            builder.Add(generic.ToDisplayString());
-            builder.Add(required.ToDisplayString()); // also suggest the specific required version
-
-            return builder.ToImmutableAndFree();
+            return RequiredVersion(diagnostics).ToDisplayString();
         }
 
         private static LanguageVersion RequiredVersion(ImmutableArray<Diagnostic> diagnostics)

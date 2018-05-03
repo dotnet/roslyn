@@ -363,9 +363,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 (receiverType.IsNullableType() && expression.HasValueMethodOpt != null), "conditional receiver cannot be a struct");
 
             var receiverConstant = receiver.ConstantValue;
-            if (receiverConstant != null)
+            if (receiverConstant?.IsNull == false)
             {
-                // const but not default, must be a reference type
+                // const but not null, must be a reference type
                 Debug.Assert(receiverType.IsVerifierReference());
                 // receiver is a reference type, so addresskind does not matter, but we do not intend to write.
                 receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly);
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var temp = EmitAddress(expression.Operand, AddressKind.ReadOnlyStrict);
             Debug.Assert(temp == null, "If the operand is addressable, then a temp shouldn't be required.");
 
-            if (used)
+            if (used && !expression.IsManaged)
             {
                 // When computing an address to be used to initialize a fixed-statement variable, we have to be careful
                 // not to convert the managed reference to an unmanaged pointer before storing it.  Otherwise the GC might
@@ -827,34 +827,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                RefKind argRefKind;
+                RefKind argRefKind = GetArgumentRefKind(arguments, parameters, argRefKindsOpt, i);
+                EmitArgument(arguments[i], argRefKind);
+            }
+        }
 
-                if (i < parameters.Length)
+        /// <summary>
+        /// Computes the desired refkind of the argument.
+        /// Considers all the cases - where ref kinds are explicit, omitted, vararg cases.
+        /// </summary>
+        internal static RefKind GetArgumentRefKind(ImmutableArray<BoundExpression> arguments, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<RefKind> argRefKindsOpt, int i)
+        {
+            RefKind argRefKind;
+            if (i < parameters.Length)
+            {
+                if (!argRefKindsOpt.IsDefault && i < argRefKindsOpt.Length)
                 {
-                    if (!argRefKindsOpt.IsDefault && i < argRefKindsOpt.Length)
-                    {
-                        // if we have an explicit refKind for the given argument, use that
-                        argRefKind = argRefKindsOpt[i];
+                    // if we have an explicit refKind for the given argument, use that
+                    argRefKind = argRefKindsOpt[i];
 
-                        Debug.Assert(argRefKind == parameters[i].RefKind ||
-                                argRefKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In,
-                                "in Emit the argument RefKind must be compatible with the corresponding parameter");
-                    }
-                    else
-                    {
-                        // otherwise fallback to the refKind of the parameter
-                        argRefKind = parameters[i].RefKind;
-                    }
+                    Debug.Assert(argRefKind == parameters[i].RefKind ||
+                            argRefKind == RefKindExtensions.StrictIn && parameters[i].RefKind == RefKind.In,
+                            "in Emit the argument RefKind must be compatible with the corresponding parameter");
                 }
                 else
                 {
-                    // vararg case
-                    Debug.Assert(arguments[i].Kind == BoundKind.ArgListOperator);
-                    argRefKind = RefKind.None;
+                    // otherwise fallback to the refKind of the parameter
+                    argRefKind = parameters[i].RefKind;
                 }
-
-                EmitArgument(arguments[i], argRefKind);
             }
+            else
+            {
+                // vararg case
+                Debug.Assert(arguments[i].Kind == BoundKind.ArgListOperator);
+                argRefKind = RefKind.None;
+            }
+
+            return argRefKind;
         }
 
         private void EmitArrayElementLoad(BoundArrayAccess arrayAccess, bool used)

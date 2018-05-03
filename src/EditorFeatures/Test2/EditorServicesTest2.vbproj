@@ -68,7 +68,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />
     <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
-    <PackageReference Include="Microsoft.Build.Runtime" Version="$(MicrosoftBuildRuntimeVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
@@ -87,23 +86,13 @@
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Editor" />
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
+    <Import Include="Microsoft.CodeAnalysis.Test.Utilities" />
     <Import Include="Roslyn.Test.Utilities" />
     <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\Compilers\Core\MSBuildTask\Microsoft.Managed.Core.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\..\Compilers\Core\MSBuildTask\Microsoft.CSharp.Core.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\..\Compilers\Core\MSBuildTask\Microsoft.VisualBasic.Core.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

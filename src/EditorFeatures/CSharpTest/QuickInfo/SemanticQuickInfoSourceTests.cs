@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -5906,6 +5907,21 @@ class X
             await TestAsync(
                 "delegate void $$D<T>() where T : unmanaged;",
                 MainDescription("delegate void D<T>() where T : unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task UnmanagedConstraint_LocalFunction()
+        {
+            await TestAsync(
+@"
+class X
+{
+    void N()
+    {
+        void $$M<T>() where T : unmanaged { }
+    }
+}",
+                MainDescription("void M<T>() where T : unmanaged"));
         }
     }
 }

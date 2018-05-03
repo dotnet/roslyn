@@ -82,7 +82,7 @@ commitPullList.each { isPr ->
 
 // Windows Spanish image
 commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "windows_debug_es_unit32", isPr)
+  def jobName = Utilities.getFullJobName(projectName, "windows_debug_spanish_unit32", isPr)
   def myJob = job(jobName) {
     description("Windows debug unit tests on unit32 using Spanish language")
           steps {
@@ -199,22 +199,6 @@ commitPullList.each { isPr ->
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
 
-// Perf Correctness
-commitPullList.each { isPr ->
-  def jobName = Utilities.getFullJobName(projectName, "perf_correctness", isPr)
-  def myJob = job(jobName) {
-    description('perf test correctness')
-    steps {
-      batchFile(""".\\build\\scripts\\cibuild.cmd -testPerfCorrectness""")
-    }
-  }
-
-  def triggerPhraseOnly = false
-  def triggerPhraseExtra = "perf-correctness"
-  Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
-  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
-
 // Microbuild
 commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "microbuild", isPr)
@@ -229,6 +213,27 @@ commitPullList.each { isPr ->
   def triggerPhraseExtra = "microbuild"
   Utilities.setMachineAffinity(myJob, 'Windows_NT', windowsUnitTestMachine)
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// VS Integration Tests
+commitPullList.each { isPr ->
+  ['debug', 'release'].each { configuration ->
+    ['vs-integration'].each { buildTarget ->
+      def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
+      def myJob = job(jobName) {
+        description("Windows ${configuration} tests on ${buildTarget}")
+        steps {
+          batchFile(""".\\build\\scripts\\cibuild.cmd -${configuration} -testVsi""")
+        }
+      }
+
+      def triggerPhraseOnly = false
+      def triggerPhraseExtra = ""
+      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS3.DevEx.Open')
+      Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+      addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+    }
+  }
 }
 
 JobReport.Report.generateJobReport(out)

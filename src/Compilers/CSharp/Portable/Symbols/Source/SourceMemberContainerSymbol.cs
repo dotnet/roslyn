@@ -482,15 +482,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         foreach (var typeParameter in this.TypeParameters)
                         {
                             typeParameter.ForceComplete(locationOpt, cancellationToken);
-                            var diagnostics = DiagnosticBag.GetInstance();
-
-                            if (typeParameter.HasUnmanagedTypeConstraint)
-                            {
-                                this.DeclaringCompilation.EnsureIsUnmanagedAttributeExists(diagnostics, typeParameter.GetNonNullSyntaxNode().Location, modifyCompilationForIsUnmanaged: true);
-                            }
-
-                            AddDeclarationDiagnostics(diagnostics);
-                            diagnostics.Free();
                         }
 
                         state.NotePartComplete(CompletionPart.TypeParameters);
@@ -2448,7 +2439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             //key and value will be the same object
-            var methodsBySignature = new Dictionary<MethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
+            var methodsBySignature = new Dictionary<MethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.PartialMethodsComparer);
 
             foreach (var name in memberNames)
             {

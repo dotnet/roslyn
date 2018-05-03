@@ -2125,13 +2125,9 @@ namespace System.ServiceModel
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,13): error CS1740: Named argument 'arg' cannot be specified multiple times
-                //             arg: null);
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "arg").WithArguments("arg").WithLocation(7, 13),
                 // (5,9): error CS1501: No overload for method 'M' takes 3 arguments
                 //         M("",
-                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "3").WithLocation(5, 9)
-                );
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "3").WithLocation(5, 9));
         }
 
         [WorkItem(543820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543820")]
@@ -3593,6 +3589,33 @@ static class E
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.ToString() == "G").First();
             var info = model.GetSymbolInfo(node);
             Assert.Equal("System.Object A.G(System.String s)", info.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void BindingLambdaArguments_DuplicateNamedArguments()
+        {
+            var compilation = CreateCompilation(@"
+using System;
+class X
+{
+    void M<T>(T arg1, Func<T, T> arg2)
+    {
+    }
+    void N()
+    {
+        M(arg1: 5, arg2: x => x, arg2: y => y);
+    }
+}").VerifyDiagnostics(
+                // (10,34): error CS1740: Named argument 'arg2' cannot be specified multiple times
+                //         M(arg1: 5, arg2: x => 0, arg2: y => 0);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "arg2").WithArguments("arg2").WithLocation(10, 34));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var lambda = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single(s => s.Parameter.Identifier.Text == "x");
+            var typeInfo = model.GetTypeInfo(lambda.Body);
+            Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
         }
     }
 }

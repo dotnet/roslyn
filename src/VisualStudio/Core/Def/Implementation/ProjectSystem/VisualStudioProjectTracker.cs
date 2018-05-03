@@ -316,10 +316,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         if (document.IsOpen)
                         {
                             NotifyWorkspace(workspace =>
+                            {
                                 workspace.OnDocumentOpened(
                                     document.Id,
                                     document.GetOpenTextBuffer().AsTextContainer(),
-                                    isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, _runningDocumentTable)));
+                                    isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, _runningDocumentTable));
+                                (workspace as VisualStudioWorkspaceImpl)?.ConnectToSharedHierarchyEvents(document);
+                            });
                         }
                     }
                 }

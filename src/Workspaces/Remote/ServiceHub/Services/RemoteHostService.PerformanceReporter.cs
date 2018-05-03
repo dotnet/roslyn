@@ -28,10 +28,12 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly IPerformanceTrackerService _diagnosticAnalyzerPerformanceTracker;
             private readonly TraceSource _logger;
 
-            public PerformanceReporter(TraceSource logger, IPerformanceTrackerService diagnosticAnalyzerPerformanceTracker, TimeSpan reportingInterval, CancellationToken shutdownToken) : base(
-                AsynchronousOperationListenerProvider.NullListener,
-                SolutionService.PrimaryWorkspace.Services.GetService<IGlobalOperationNotificationService>(),
-                (int)reportingInterval.TotalMilliseconds, shutdownToken)
+            public PerformanceReporter(TraceSource logger, IPerformanceTrackerService diagnosticAnalyzerPerformanceTracker, IGlobalOperationNotificationService globalOperationNotificationService, TimeSpan reportingInterval, CancellationToken shutdownToken)
+                : base(
+                    AsynchronousOperationListenerProvider.NullListener,
+                    globalOperationNotificationService,
+                    (int)reportingInterval.TotalMilliseconds,
+                    shutdownToken)
             {
                 _event = new SemaphoreSlim(initialCount: 0);
                 _reported = new HashSet<string>();

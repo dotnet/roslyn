@@ -12,11 +12,6 @@
         <target state="translated">偵測到衝突。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_if_statement">
-        <source>Invert if statement</source>
-        <target state="translated">反轉 if 陳述式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
         <target state="translated">簡化 Lambda 運算式</target>
@@ -30,6 +25,11 @@
       <trans-unit id="Remove_Unnecessary_Usings">
         <source>Remove Unnecessary Usings</source>
         <target state="translated">移除不必要的 Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement_can_be_simplified">
+        <source>'if' statement can be simplified</source>
+        <target state="new">'if' statement can be simplified</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -592,11 +592,6 @@
         <target state="translated">新增 'this.'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_if_to_switch">
-        <source>Convert 'if' to 'switch'</source>
-        <target state="translated">將 'if' 轉換為 'switch'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Warning_Extracting_a_local_function_reference_may_produce_invalid_code">
         <source>Warning: Extracting a local function reference may produce invalid code</source>
         <target state="translated">警告: 擷取本機函式參考可能會產生無效的程式碼</target>
@@ -629,7 +624,27 @@
       </trans-unit>
       <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
         <source>Add parentheses</source>
-        <target state="new">Add parentheses</target>
+        <target state="translated">新增括弧</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_switch">
+        <source>Convert to 'switch'</source>
+        <target state="new">Convert to 'switch'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_foreach">
+        <source>Convert to 'foreach'</source>
+        <target state="new">Convert to 'foreach'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_for">
+        <source>Convert to 'for'</source>
+        <target state="new">Convert to 'for'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_if">
+        <source>Invert if</source>
+        <target state="new">Invert if</target>
         <note />
       </trans-unit>
     </body>

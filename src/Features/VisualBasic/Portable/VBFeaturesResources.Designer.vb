@@ -477,11 +477,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Convert &apos;If&apos; to &apos;Select Case&apos;.
+        '''  Looks up a localized string similar to Convert  to &apos;For&apos;.
         '''</summary>
-        Friend ReadOnly Property Convert_If_to_Select_Case() As String
+        Friend ReadOnly Property Convert_to_For() As String
             Get
-                Return ResourceManager.GetString("Convert_If_to_Select_Case", resourceCulture)
+                Return ResourceManager.GetString("Convert_to_For", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Convert to &apos;For Each&apos;.
+        '''</summary>
+        Friend ReadOnly Property Convert_to_For_Each() As String
+            Get
+                Return ResourceManager.GetString("Convert_to_For_Each", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Convert to &apos;Select Case&apos;.
+        '''</summary>
+        Friend ReadOnly Property Convert_to_Select_Case() As String
+            Get
+                Return ResourceManager.GetString("Convert_to_Select_Case", resourceCulture)
             End Get
         End Property
         
@@ -1161,6 +1179,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;If&apos; statement can be simplified.
+        '''</summary>
+        Friend ReadOnly Property If_statement_can_be_simplified() As String
+            Get
+                Return ResourceManager.GetString("If_statement_can_be_simplified", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Implicit member access can&apos;t be included in the selection without containing statement.
         '''</summary>
         Friend ReadOnly Property Implicit_member_access_can_t_be_included_in_the_selection_without_containing_statement() As String
@@ -1476,11 +1503,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Invert If statement.
+        '''  Looks up a localized string similar to Invert If.
         '''</summary>
-        Friend ReadOnly Property Invert_If_statement() As String
+        Friend ReadOnly Property Invert_If() As String
             Get
-                Return ResourceManager.GetString("Invert_If_statement", resourceCulture)
+                Return ResourceManager.GetString("Invert_If", resourceCulture)
             End Get
         End Property
         
@@ -3353,7 +3380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
                 Return ResourceManager.GetString("Using_statement", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to When a run-time error occurs, execution transfers to the statement following the statement or procedure call that resulted in the error..
         '''</summary>

@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text.PatternMatching;
@@ -1016,7 +1018,7 @@ class D
         </Document>
     </Project>
 </Workspace>
-", exportProvider: s_exportProvider))
+", exportProvider: TestExportProvider.ExportProviderWithCSharpAndVisualBasic))
             {
                 _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
                 _aggregator = new NavigateToTestAggregator(_provider);
