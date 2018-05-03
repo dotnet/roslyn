@@ -36,22 +36,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             End If
 
             Dim initializer = Await GetFieldInitializer(fieldSymbol, cancellationToken).ConfigureAwait(False)
-            If initializer IsNot Nothing Then
-                statement = statement.WithInitializer(SyntaxFactory.EqualsValue(initializer))
+            If initializer.equalsValue IsNot Nothing Then
+                statement = statement.WithInitializer(initializer.equalsValue)
+            End If
+
+            If initializer.asNewClause IsNot Nothing Then
+                statement = statement.WithAsClause(initializer.asNewClause)
             End If
 
             Return statement
         End Function
 
-        Private Async Function GetFieldInitializer(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of ExpressionSyntax)
+        Private Async Function GetFieldInitializer(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of (equalsValue As EqualsValueSyntax, asNewClause As AsNewClauseSyntax))
             Dim identifier = TryCast(Await fieldSymbol.DeclaringSyntaxReferences(0).GetSyntaxAsync(cancellationToken).ConfigureAwait(False), ModifiedIdentifierSyntax)
             Dim declarator = TryCast(identifier?.Parent, VariableDeclaratorSyntax)
-            Dim initializer = declarator?.Initializer?.Value
-            If initializer Is Nothing Then
-                initializer = TryCast(declarator.AsClause, AsNewClauseSyntax)?.NewExpression
-            End If
-
-            Return initializer
+            Dim initializer = declarator?.Initializer
+            Dim asNewClause = TryCast(declarator.AsClause, AsNewClauseSyntax)
+            Return (initializer, asNewClause)
         End Function
     End Class
 End Namespace
