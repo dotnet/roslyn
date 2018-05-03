@@ -1179,6 +1179,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;If&apos; statement can be simplified.
+        '''</summary>
+        Friend ReadOnly Property If_statement_can_be_simplified() As String
+            Get
+                Return ResourceManager.GetString("If_statement_can_be_simplified", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Implicit member access can&apos;t be included in the selection without containing statement.
         '''</summary>
         Friend ReadOnly Property Implicit_member_access_can_t_be_included_in_the_selection_without_containing_statement() As String
