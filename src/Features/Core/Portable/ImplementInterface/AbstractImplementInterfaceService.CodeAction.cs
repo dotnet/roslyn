@@ -266,7 +266,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                         string.Format("{0}_{1}", member.ContainingType.Name, member.Name),
                         n => !memberNames.Contains(n) &&
                             !implementedVisibleMembers.Any(m => IdentifiersMatch(m.Name, n)) &&
-                            !IsReservedName(n));
+                            !IsReservedName(n),
+                        generateNewName: null);
                 }
 
                 return member.Name;

@@ -129,14 +129,14 @@ End Class</File>.ConvertTestSourceTag()
 
             Dim expected = <File>
 Class C
-    Private _x As Integer
+    Private x1 As Integer
 
     Public Property X As Integer
         Get
-            Return _x
+            Return x1
         End Get
         Set(value As Integer)
-            _x = value
+            x1 = value
         End Set
     End Property
 
@@ -161,14 +161,14 @@ End Class</File>.ConvertTestSourceTag()
 
             Dim expected = <File>
 Class C
-    Private _x As Integer
+    Private x1 As Integer
 
     Public Property X As Integer
         Get
-            Return _x
+            Return x1
         End Get
         Set(value As Integer)
-            _x = value
+            x1 = value
         End Set
     End Property
 
@@ -238,24 +238,24 @@ End Class</File>.ConvertTestSourceTag()
 
             Dim expected = <File>
 Class C
-    Private _x As String
-    Private _y As Integer
+    Private x1 As String
+    Private y1 As Integer
 
     Public Property X As String
         Get
-            Return _x
+            Return x1
         End Get
         Set(value As String)
-            _x = value
+            x1 = value
         End Set
     End Property
 
     Public Property Y As Integer
         Get
-            Return _y
+            Return y1
         End Get
         Set(value As Integer)
-            _y = value
+            y1 = value
         End Set
     End Property
 
@@ -375,14 +375,14 @@ End Class
 
             Dim expected = <File>
 Class D
-    Private ___ As Integer
+    Private __1 As Integer
 
     Public Property __ As Integer
         Get
-            Return ___
+            Return __1
         End Get
         Set(value As Integer)
-            ___ = value
+            __1 = value
         End Set
     End Property
 End Class
@@ -402,14 +402,14 @@ End Class
 
             Dim expected = <File>
 Class AA
-    Private name As String : Private _dsds As Integer
+    Private name As String : Private dsds1 As Integer
 
     Public Property Dsds As Integer
         Get
-            Return _dsds
+            Return dsds1
         End Get
         Set(value As Integer)
-            _dsds = value
+            dsds1 = value
         End Set
     End Property
 End Class
@@ -482,14 +482,14 @@ End Class</File>.ConvertTestSourceTag()
 
             Dim expected = <File>
 Class C
-    Private _x As Integer
+    Private x1 As Integer
 
     Protected Property X As Integer
         Get
-            Return _x
+            Return x1
         End Get
         Set(value As Integer)
-            _x = value
+            x1 = value
         End Set
     End Property
 End Class</File>.ConvertTestSourceTag()
@@ -511,14 +511,14 @@ End Class
 
             Dim expected = <File>
 Public Class Class1
-    Private _name As String
+    Private name1 As String
 
     Public Property Name As String
         Get
-            Return _name
+            Return name1
         End Get
         Set(value As String)
-            _name = value
+            name1 = value
         End Set
     End Property
 

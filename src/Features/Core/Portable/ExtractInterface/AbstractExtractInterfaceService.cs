@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
 {
@@ -227,9 +229,12 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             string containingNamespace,
             CancellationToken cancellationToken)
         {
+            var namingRules = GetNamingRules(document, cancellationToken);
             var conflictingTypeNames = type.ContainingNamespace.GetAllTypes(cancellationToken).Select(t => t.Name);
-            var candidateInterfaceName = type.TypeKind == TypeKind.Interface ? type.Name : "I" + type.Name;
-            var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
+            var defaultInterfaceName = NameGenerator.GenerateUniqueName(
+                type.Name, 
+                name => !conflictingTypeNames.Contains(name),
+                name => NameGenerator.GenerateName(name, namingRules, TypeKind.Interface, Accessibility.NotApplicable));
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
             var generatedNameTypeParameterSuffix = GetGeneratedNameTypeParameterSuffix(GetTypeParameters(type, extractableMembers), document.Project.Solution.Workspace);
@@ -244,6 +249,12 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 containingNamespace,
                 generatedNameTypeParameterSuffix,
                 document.Project.Language);
+        }
+
+        private static ImmutableArray<NamingRule> GetNamingRules(Document document, CancellationToken cancellationToken)
+        {
+            return document.GetNamingRulesAsync(cancellationToken).GetAwaiter().GetResult()
+                .AddRange(DefaultNamingRules.InterfaceNameRule);
         }
 
         private Document GetUnformattedInterfaceDocument(

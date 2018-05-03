@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         private async Task<Result> EncapsulateFieldAsync(IFieldSymbol field, Document document, bool updateReferences, CancellationToken cancellationToken)
         {
             var originalField = field;
-            var finalNames = GeneratePropertyAndFieldNames(field);
+            var finalNames = GeneratePropertyAndFieldNames(field, document, cancellationToken);
             var finalFieldName = finalNames.Item1;
             var generatedPropertyName = finalNames.Item2;
 
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 Formatter.Annotation.AddAnnotationToSymbol(propertySymbol));
         }
 
-        protected abstract Tuple<string, string> GeneratePropertyAndFieldNames(IFieldSymbol field);
+        protected abstract Tuple<string, string> GeneratePropertyAndFieldNames(IFieldSymbol field, Document document, CancellationToken cancellationToken);
 
         protected Accessibility ComputeAccessibility(Accessibility accessibility, ITypeSymbol type)
         {

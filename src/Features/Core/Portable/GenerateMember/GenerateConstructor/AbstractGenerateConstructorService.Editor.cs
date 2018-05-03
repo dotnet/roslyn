@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             private readonly State _state;
             private readonly bool _withFields;
             private readonly CancellationToken _cancellationToken;
+            private readonly Lazy<ImmutableArray<NamingRule>> _namingRulesLazy;
 
             public Editor(
                 TService service,
@@ -75,6 +77,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 _state = state;
                 _withFields = withFields;
                 _cancellationToken = cancellationToken;
+                _namingRulesLazy = new Lazy<ImmutableArray<NamingRule>>(() => GetNamingRules(_document.Document, _cancellationToken));
+            }
+
+            private static ImmutableArray<NamingRule> GetNamingRules(Document document, CancellationToken cancellationToken)
+            {
+                return document
+                    .GetNamingRulesAsync(cancellationToken).GetAwaiter().GetResult()
+                    .AddRange(DefaultNamingRules.FieledAndPropertyRules);
             }
 
             internal async Task<(Document, bool addedFields)> GetEditAsync()
@@ -293,7 +303,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                 parameterToNewFieldMap, caseSensitive: false, newParameterNames: out parameterNames))
                         {
                             parameterToNewFieldMap[parameterNames[i].BestNameForParameter] =
-                                parameterNames[i].NameBasedOnArgument;
+                                NameGenerator.GenerateName(parameterNames[i].NameBasedOnArgument, _namingRulesLazy.Value, SymbolKind.Field, Accessibility.Private);
                         }
                     }
 
@@ -328,6 +338,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var parameterType = parameterTypes[index];
                 var isFixed = _service.IsNamedArgument(arguments[index]);
                 var newParameterNamesList = parameterNames.ToList();
+                var fildName = NameGenerator.GenerateName(parameterName.NameBasedOnArgument, _namingRulesLazy.Value, SymbolKind.Field, Accessibility.Private);
 
                 // For non-out parameters, see if there's already a field there with the same name.
                 // If so, and it has a compatible type, then we can just assign to that field.
@@ -340,7 +351,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 {
                     var ignoreAccessibility = type.Equals(_state.TypeToGenerateIn);
                     var symbol = type.GetMembers()
-                                     .FirstOrDefault(s => s.Name.Equals(parameterName.NameBasedOnArgument, comparison));
+                                     .FirstOrDefault(s => s.Name.Equals(fildName, comparison));
 
                     if (symbol != null)
                     {
@@ -356,11 +367,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                 // Uh-oh.  Now we have a problem.  We can't assign this parameter to
                                 // this field.  So we need to create a new field.  Find a name not in
                                 // use so we can assign to that.  
-                                var newFieldName = NameGenerator.EnsureUniqueness(
+                                // use so we can assign to that.
+                                var names = GetUnavailableMemberNames().Concat(parameterToNewFieldMap.Values).ToImmutableHashSet();
+                                var newFieldName = NameGenerator.GenerateUniqueName(
                                     attributeArguments != null
                                         ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArguments.Value[index], _cancellationToken)
                                         : _service.GenerateNameForArgument(_document.SemanticModel, arguments[index], _cancellationToken),
-                                    GetUnavailableMemberNames().Concat(parameterToNewFieldMap.Values));
+                                    canUse: name => !names.Contains(name, caseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase),
+                                    generateNewName: name => NameGenerator.GenerateName(name, _namingRulesLazy.Value, SymbolKind.Field, Accessibility.Private));
 
                                 if (isFixed)
                                 {

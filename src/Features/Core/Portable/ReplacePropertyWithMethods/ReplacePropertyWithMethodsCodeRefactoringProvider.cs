@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -74,13 +75,21 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 propertyName));
         }
 
+        private static ImmutableArray<NamingRule> GetNamingRules(Document document, CancellationToken cancellationToken)
+        {
+            return document.GetNamingRulesAsync(cancellationToken).GetAwaiter().GetResult()
+                .AddRange(DefaultNamingRules.FieledAndPropertyRules);
+        }
+
         private async Task<Solution> ReplacePropertyWithMethodsAsync(
            Document document,
            IPropertySymbol propertySymbol,
            CancellationToken cancellationToken)
         {
+            var namingRules = GetNamingRules(document, cancellationToken);
             var desiredMethodSuffix = NameGenerator.GenerateUniqueName(propertySymbol.Name,
-                n => !HasAnyMatchingGetOrSetMethods(propertySymbol, n));
+                n => !HasAnyMatchingGetOrSetMethods(propertySymbol, n),
+                generateNewName: null);
 
             var desiredGetMethodName = GetPrefix + desiredMethodSuffix;
             var desiredSetMethodName = SetPrefix + desiredMethodSuffix;
@@ -92,7 +101,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             // Get the warnings we'd like to put at the definition site.
             var definitionWarning = GetDefinitionIssues(propertyReferences);
-            var definitionToBackingField = CreateDefinitionToBackingFieldMap(propertyReferences);
+            var definitionToBackingField = CreateDefinitionToBackingFieldMap(propertyReferences, namingRules);
 
             var q = from r in propertyReferences
                     where r.Definition is IPropertySymbol
@@ -118,7 +127,9 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             return updatedSolution;
         }
 
-        private static Dictionary<IPropertySymbol, IFieldSymbol> CreateDefinitionToBackingFieldMap(IEnumerable<ReferencedSymbol> propertyReferences)
+        private static Dictionary<IPropertySymbol, IFieldSymbol> CreateDefinitionToBackingFieldMap(
+            IEnumerable<ReferencedSymbol> propertyReferences,
+            ImmutableArray<NamingRule> rules)
         {
             var definitionToBackingField = new Dictionary<IPropertySymbol, IFieldSymbol>(SymbolEquivalenceComparer.Instance);
 
@@ -126,7 +137,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             {
                 if (reference.Definition is IPropertySymbol property)
                 {
-                    var backingField = GetBackingField(property);
+                    var backingField = GetBackingField(property, rules);
                     definitionToBackingField[property] = backingField;
                 }
             }
@@ -159,7 +170,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                                     comparer.Equals(m.Parameters[0].Type, property.Type));
         }
 
-        private static IFieldSymbol GetBackingField(IPropertySymbol property)
+        private static IFieldSymbol GetBackingField(IPropertySymbol property, ImmutableArray<NamingRule> rules)
         {
             var field = property.GetBackingFieldIfAny();
             if (field == null)
@@ -180,7 +191,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             // actually usable in code.
             var uniqueName = NameGenerator.GenerateUniqueName(
                 property.Name.ToCamelCase(),
-                n => !property.ContainingType.GetMembers(n).Any());
+                n => !property.ContainingType.GetMembers(n).Any(),
+                n => NameGenerator.GenerateName(n, rules, SymbolKind.Field, Accessibility.Private));
 
             return CodeGenerationSymbolFactory.CreateFieldSymbol(
                 attributes: default,

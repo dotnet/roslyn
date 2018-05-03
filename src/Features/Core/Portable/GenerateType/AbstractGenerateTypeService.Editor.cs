@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private readonly bool _fromDialog;
             private readonly GenerateTypeOptionsResult _generateTypeOptionsResult;
             private readonly CancellationToken _cancellationToken;
+            private readonly Lazy<ImmutableArray<NamingRule>> _namingRulesLazy;
 
             public Editor(
                 TService service,
@@ -50,6 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 _intoNamespace = intoNamespace;
                 _inNewFile = inNewFile;
                 _cancellationToken = cancellationToken;
+                _namingRulesLazy = new Lazy<ImmutableArray<NamingRule>>(() => GetNamingRules(_document.Document, _cancellationToken));
             }
 
             public Editor(
@@ -66,6 +70,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 _fromDialog = fromDialog;
                 _generateTypeOptionsResult = generateTypeOptionsResult;
                 _cancellationToken = cancellationToken;
+                _namingRulesLazy = new Lazy<ImmutableArray<NamingRule>>(() => GetNamingRules(_document.Document, _cancellationToken));
+            }
+
+            private static ImmutableArray<NamingRule> GetNamingRules(Document document, CancellationToken cancellationToken)
+            {
+                return document.GetNamingRulesAsync(cancellationToken).GetAwaiter().GetResult()
+                    .AddRange(DefaultNamingRules.FieledAndPropertyRules);
             }
 
             private enum TargetProjectChangeInLanguage

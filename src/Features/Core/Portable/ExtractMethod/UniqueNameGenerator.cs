@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             Contract.ThrowIfNull(baseName);
 
             return NameGenerator.GenerateUniqueName(baseName, string.Empty,
-               n => _semanticModel.LookupSymbols(contextNode.SpanStart, /*container*/null, n).Length == 0);
+               n => _semanticModel.LookupSymbols(contextNode.SpanStart, /*container*/null, n).Length == 0,
+               generateNewName: null);
         }
     }
 }

@@ -2,7 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -125,34 +131,53 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return collisionIndices;
         }
 
-        public static string GenerateUniqueName(string baseName, Func<string, bool> canUse)
+        public static string GenerateUniqueName(string baseName, Func<string, bool> canUse, Func<string, string> generateNewName)
         {
-            return GenerateUniqueName(baseName, string.Empty, canUse);
+            return GenerateUniqueName(baseName, string.Empty, canUse, generateNewName);
         }
 
-        public static string GenerateUniqueName(string baseName, ISet<string> names, StringComparer comparer)
+        public static string GenerateUniqueName(string baseName, ISet<string> names, StringComparer comparer, Func<string, string> generateNewName)
         {
-            return GenerateUniqueName(baseName, x => !names.Contains(x, comparer));
+            return GenerateUniqueName(baseName, x => !names.Contains(x, comparer), generateNewName);
         }
 
-        public static string GenerateUniqueName(string baseName, string extension, Func<string, bool> canUse)
+        public static string GenerateUniqueName(string baseName, string extension, Func<string, bool> canUse, Func<string, string> generateNewName)
         {
             if (!string.IsNullOrEmpty(extension) && extension[0] != '.')
             {
                 extension = "." + extension;
             }
 
-            var name = baseName + extension;
+            var name = generateNewName == null ? baseName + extension : generateNewName(baseName + extension);
             var index = 1;
 
             // Check for collisions
             while (!canUse(name))
             {
-                name = baseName + index + extension;
+                name = generateNewName == null ? baseName + index + extension : generateNewName(baseName + index + extension);
                 index++;
             }
 
             return name;
         }
+
+        public static string GenerateName(string baseName, ImmutableArray<NamingRule> rules, SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility accessibility)
+        {
+            foreach (var rule in rules)
+            {
+                if (rule.SymbolSpecification.AppliesTo(kind, modifiers, accessibility))
+                {
+                    return rule.NamingStyle.MakeCompliant(baseName).First();
+                }
+            }
+
+            return baseName;
+        }
+
+        public static string GenerateName(string baseName, ImmutableArray<NamingRule> rules, SymbolKind symbolKind, Accessibility accessibility)
+            => GenerateName(baseName, rules, new SymbolKindOrTypeKind(symbolKind), DeclarationModifiers.None, accessibility);
+
+        public static string GenerateName(string baseName, ImmutableArray<NamingRule> rules, TypeKind typeKind, Accessibility accessibility)
+            => GenerateName(baseName, rules, new SymbolKindOrTypeKind(typeKind), DeclarationModifiers.None, accessibility);
     }
 }

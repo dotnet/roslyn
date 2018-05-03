@@ -6,10 +6,13 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateType
@@ -227,7 +230,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     {
                         if (!TryFindMatchingField(parameterName, parameterType, parameterToExistingFieldMap, caseSensitive: false))
                         {
-                            parameterToNewFieldMap[parameterName.BestNameForParameter] = parameterName.NameBasedOnArgument;
+                            parameterToNewFieldMap[parameterName.BestNameForParameter] = 
+                                NameGenerator.GenerateName(parameterName.NameBasedOnArgument, _namingRulesLazy.Value, SymbolKind.Field, Accessibility.Private);
                         }
                     }
 

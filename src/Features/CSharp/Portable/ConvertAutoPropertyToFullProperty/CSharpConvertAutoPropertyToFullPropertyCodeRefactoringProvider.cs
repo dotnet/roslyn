@@ -112,7 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 }
             }
 
-            return NameGenerator.GenerateUniqueName(fieldName, n => !property.ContainingType.GetMembers(n).Any());
+            return NameGenerator.GenerateUniqueName(
+                fieldName, 
+                n => !property.ContainingType.GetMembers(n).Any(),
+                name => NameGenerator.GenerateName(name, rules, new SymbolKindOrTypeKind(SymbolKind.Field), property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None, Accessibility.Private));
         }
 
         internal override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(

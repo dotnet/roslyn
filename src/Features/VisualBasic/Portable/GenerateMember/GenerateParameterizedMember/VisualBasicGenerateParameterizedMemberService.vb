@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 Dim methodTypeParameter = GetMethodTypeParameter(type, cancellationToken)
                 Return If(methodTypeParameter IsNot Nothing,
                            methodTypeParameter,
-                           CodeGenerationSymbolFactory.CreateTypeParameterSymbol(NameGenerator.GenerateUniqueName("T", isUnique)))
+                           CodeGenerationSymbolFactory.CreateTypeParameterSymbol(NameGenerator.GenerateUniqueName("T", isUnique, generateNewName:=Nothing)))
             End Function
 
             Private Function GetMethodTypeParameter(type As TypeSyntax, cancellationToken As CancellationToken) As ITypeParameterSymbol

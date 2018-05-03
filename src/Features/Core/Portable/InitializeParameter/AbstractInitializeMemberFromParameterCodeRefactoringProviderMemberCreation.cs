@@ -38,27 +38,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        // Standard field/property names we look for when we have a parameter with a given name.
-        // We also use the rules to help generate fresh fields/properties.  Note that we always
-        // look at these rules *after* the user's own rules.  That way we respect user naming, but
-        // also have a reasonably fallback if they don't have any specified preferences.
-        private static readonly ImmutableArray<NamingRule> s_builtInRules = ImmutableArray.Create(
-                new NamingRule(new SymbolSpecification(
-                    Guid.NewGuid(), "Property",
-                    ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property))),
-                    new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.PascalCase),
-                    enforcementLevel: DiagnosticSeverity.Hidden),
-                new NamingRule(new SymbolSpecification(
-                    Guid.NewGuid(), "Field",
-                    ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field))),
-                    new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.CamelCase),
-                    enforcementLevel: DiagnosticSeverity.Hidden),
-                new NamingRule(new SymbolSpecification(
-                    Guid.NewGuid(), "FieldWithUnderscore",
-                    ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field))),
-                    new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "_", capitalizationScheme: Capitalization.CamelCase),
-                    enforcementLevel: DiagnosticSeverity.Hidden));
-
         protected abstract SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
@@ -112,11 +91,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                 // Get the parts of the parameter name and the appropriate naming rules so
                 // that we can name the field/property accordingly.
-                var parameterNameParts = this.GetParameterWordParts(parameter);
                 var rules = await this.GetNamingRulesAsync(document, cancellationToken).ConfigureAwait(false);
 
-                var field = CreateField(parameter, rules, parameterNameParts);
-                var property = CreateProperty(parameter, rules, parameterNameParts);
+                var field = CreateField(parameter, rules);
+                var property = CreateProperty(parameter, rules);
 
                 // Offer to generate either a property or a field.  Currently we place the property
                 // suggestion first (to help users with the immutable object+property pattern). But
@@ -130,71 +108,44 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private IFieldSymbol CreateField(
-            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts)
+            IParameterSymbol parameter, ImmutableArray<NamingRule> rules)
         {
-            foreach (var rule in rules)
-            {
-                if (rule.SymbolSpecification.AppliesTo(SymbolKind.Field, Accessibility.Private))
-                {
-                    var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
-
-                    return CodeGenerationSymbolFactory.CreateFieldSymbol(
-                        default,
-                        Accessibility.Private,
-                        DeclarationModifiers.ReadOnly,
-                        parameter.Type, uniqueName);
-                }
-            }
-
-            // We place a special rule in s_builtInRules that matches all fields.  So we should 
-            // always find a matching rule.
-            throw ExceptionUtilities.Unreachable;
-        }
-
-        private static string GenerateUniqueName(IParameterSymbol parameter, ImmutableArray<string> parameterNameParts, NamingRule rule)
-        {
-            // Determine an appropriate name to call the new field.
-            var containingType = parameter.ContainingType;
-            var baseName = rule.NamingStyle.CreateName(parameterNameParts);
-
-            // Ensure that the name is unique in the containing type so we
-            // don't stomp on an existing member.
             var uniqueName = NameGenerator.GenerateUniqueName(
-                baseName, n => containingType.GetMembers(n).IsEmpty);
-            return uniqueName;
+                parameter.Name,
+                n => parameter.ContainingType.GetMembers(n).IsEmpty,
+                name => NameGenerator.GenerateName(name, rules, SymbolKind.Field, Accessibility.Private));
+
+            return CodeGenerationSymbolFactory.CreateFieldSymbol(
+                default,
+                Accessibility.Private,
+                DeclarationModifiers.ReadOnly,
+                parameter.Type, uniqueName);
         }
 
         private IPropertySymbol CreateProperty(
-            IParameterSymbol parameter, ImmutableArray<NamingRule> rules, ImmutableArray<string> parameterNameParts)
+            IParameterSymbol parameter, ImmutableArray<NamingRule> rules)
         {
-            foreach (var rule in rules)
-            {
-                if (rule.SymbolSpecification.AppliesTo(SymbolKind.Property, Accessibility.Public))
-                {
-                    var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
+            var uniqueName = NameGenerator.GenerateUniqueName(
+                parameter.Name,
+                n => parameter.ContainingType.GetMembers(n).IsEmpty,
+                name => NameGenerator.GenerateName(name, rules, SymbolKind.Property, Accessibility.Public));
 
-                    var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
+            var getMethod = CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         default,
                         Accessibility.Public,
                         default);
 
-                    return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                        default,
-                        Accessibility.Public,
-                        new DeclarationModifiers(),
-                        parameter.Type,
-                        RefKind.None,
-                        explicitInterfaceImplementations: default,
-                        name: uniqueName,
-                        parameters: default,
-                        getMethod: getMethod,
-                        setMethod: null);
-                }
-            }
-
-            // We place a special rule in s_builtInRules that matches all properties.  So we should 
-            // always find a matching rule.
-            throw ExceptionUtilities.Unreachable;
+            return CodeGenerationSymbolFactory.CreatePropertySymbol(
+                default,
+                Accessibility.Public,
+                new DeclarationModifiers(),
+                parameter.Type,
+                RefKind.None,
+                explicitInterfaceImplementations: default,
+                name: uniqueName,
+                parameters: default,
+                getMethod: getMethod,
+                setMethod: null);
         }
 
         private async Task<Document> AddSymbolInitializationAsync(
@@ -483,7 +434,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // Add our built-in-rules at the end so that we always respect user naming rules 
             // first, but we always have something to fall-back upon if there are no matches.
-            var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(s_builtInRules);
+            var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(DefaultNamingRules.FieledAndPropertyRules);
             return rules;
         }
 

@@ -882,10 +882,10 @@ End Class",
     End Sub
 End Class
 Class A
-    Private P1 As Integer
+    Private p1 As Integer
 
     Public Sub New(P As Integer)
-        P1 = P
+        p1 = P
     End Sub
 
     Shared Property P As Integer
@@ -1315,12 +1315,12 @@ Public Class MyAttribute
 
     Private v1 As Boolean
     Private v2 As Integer
-    Private Topic As String
+    Private topic As String
 
     Public Sub New(v1 As Boolean, v2 As Integer, Topic As String)
         Me.v1 = v1
         Me.v2 = v2
-        Me.Topic = Topic
+        Me.topic = Topic
     End Sub
 End Class
 <MyAttribute(true, 1, Topic:=""hello"")>
