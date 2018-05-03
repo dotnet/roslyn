@@ -1516,11 +1516,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> GetTypesForDeconstructionPattern(DeconstructionPatternSyntax deconstructionPattern)
             {
+                // if it's of the for "X (...)" then just infer 'X' as the type.
                 if (deconstructionPattern.Type != null)
                 {
                     return GetTypes(deconstructionPattern.Type);
                 }
 
+                // If it's of the form (...) then infer that the type shoudl be a 
+                // tuple, whose elements are inferred from the individual patterns
+                // in teh deconstruction.
                 if (deconstructionPattern.SubPatterns.Count >= 2)
                 {
                     // infer a tuple type for this deconstruction.
