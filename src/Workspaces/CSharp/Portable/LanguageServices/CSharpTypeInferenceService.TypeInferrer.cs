@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -9,10 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -167,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression: return InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression);
                     case PostfixUnaryExpressionSyntax postfixUnary: return InferTypeInPostfixUnaryExpression(postfixUnary);
                     case PrefixUnaryExpressionSyntax prefixUnary: return InferTypeInPrefixUnaryExpression(prefixUnary);
-                    case PropertyPatternSyntax propertyPattern: return InferTypeInPropertyPattern(propertyPattern, node);
+                    case PropertyPatternSyntax propertyPattern: return InferTypeInPropertyPattern(propertyPattern);
                     case PropertySubpatternSyntax propertySubpattern: return InferTypeInPropertySubpattern(propertySubpattern, node);
                     case RefExpressionSyntax refExpression: return InferTypeInRefExpression(refExpression);
                     case ReturnStatementSyntax returnStatement: return InferTypeForReturnStatement(returnStatement);
@@ -1430,9 +1429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInPropertyPattern(
-                PropertyPatternSyntax propertyPattern,
-                SyntaxNode child)
+            private IEnumerable<TypeInferenceInfo> InferTypeInPropertyPattern(PropertyPatternSyntax propertyPattern)
             {
                 // something like: { ... sub patterns ... } or like: Blah { ... sub patterns ... }
                 // in the latter case, we know the type, because it's explicitly stated.  In the former
