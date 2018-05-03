@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (operatorToken.Kind() == SyntaxKind.AmpersandAmpersandToken ||
                     operatorToken.Kind() == SyntaxKind.BarBarToken)
                 {
-                    return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
+                    return CreateResult(SpecialType.System_Boolean);
                 }
 
                 // Infer type for deconstruction
@@ -1033,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // NOTE(cyrusn): |= and &= can be used for both ints and bools  However, in the
                         // case where there isn't enough information to determine which the user wanted,
                         // I'm just defaulting to bool based on personal preference.
-                        return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
+                        return CreateResult(SpecialType.System_Boolean);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -1074,7 +1074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
+                return CreateResult(SpecialType.System_Boolean);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInCoalesceExpression(
@@ -1099,7 +1099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var rightTypes = GetTypes(coalesceExpression.Right);
                 if (!rightTypes.Any())
                 {
-                    return CreateResult(Compilation.GetSpecialType(SpecialType.System_Object));
+                    return CreateResult(SpecialType.System_Object);
                 }
 
                 return rightTypes
@@ -1118,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (expressionOpt != null && conditional.Condition == expressionOpt)
                 {
                     // Goo() ? a : b
-                    return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
+                    return CreateResult(SpecialType.System_Boolean);
                 }
 
                 // a ? Goo() : b
@@ -1156,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
+                return CreateResult(SpecialType.System_Boolean);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInEqualsValueClause(EqualsValueClauseSyntax equalsValue, SyntaxToken? previousToken = null)
@@ -1211,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Void));
+                return CreateResult(SpecialType.System_Void);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInForEachStatement(ForEachStatementSyntax forEachStatementSyntax, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)
@@ -1253,7 +1253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
+                return CreateResult(SpecialType.System_Boolean);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInIfStatement(IfStatementSyntax ifStatement, SyntaxToken? previousToken = null)
@@ -1264,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
+                return CreateResult(SpecialType.System_Boolean);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInImplicitArrayCreation(ImplicitArrayCreationExpressionSyntax implicitArray, SyntaxToken previousToken)
@@ -1555,7 +1555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Object));
+                return CreateResult(SpecialType.System_Object);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax lambdaExpression, SyntaxToken? previousToken = null)
@@ -1880,7 +1880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.LogicalNotExpression:
                         // !Goo()
-                        return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
+                        return CreateResult(SpecialType.System_Boolean);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -2121,7 +2121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_IDisposable));
+                return CreateResult(SpecialType.System_IDisposable);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInVariableDeclarator(VariableDeclaratorSyntax variableDeclarator)
@@ -2141,7 +2141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (variableDeclaration.IsParentKind(SyntaxKind.UsingStatement))
                         {
                             // using (var v = Goo())
-                            return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_IDisposable));
+                            return CreateResult(SpecialType.System_IDisposable);
                         }
 
                         if (variableDeclaration.IsParentKind(SyntaxKind.ForStatement))
@@ -2284,7 +2284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
+                return CreateResult(SpecialType.System_Boolean);
             }
 
             private IEnumerable<TypeInferenceInfo> GetCollectionElementType(INamedTypeSymbol type, int parameterIndex)

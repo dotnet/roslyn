@@ -539,7 +539,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         SyntaxKind.AndAlsoKeyword,
                         SyntaxKind.OrKeyword,
                         SyntaxKind.OrElseKeyword
-                        Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
+                        Return CreateResult(SpecialType.System_Boolean)
                 End Select
 
                 Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
@@ -559,18 +559,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
-                Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
+                Return CreateResult(SpecialType.System_Boolean)
             End Function
 
             Private Function InferTypeInDoStatement(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
-                Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
+                Return CreateResult(SpecialType.System_Boolean)
             End Function
 
             Private Function InferTypeInEqualsValue(equalsValue As EqualsValueSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
                 If equalsValue.IsParentKind(SyntaxKind.VariableDeclarator) Then
                     Dim variableDeclarator = DirectCast(equalsValue.Parent, VariableDeclaratorSyntax)
                     If variableDeclarator.AsClause Is Nothing AndAlso variableDeclarator.IsParentKind(SyntaxKind.UsingStatement) Then
-                        Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_IDisposable))
+                        Return CreateResult(SpecialType.System_IDisposable)
                     End If
 
                     If variableDeclarator.Names.Count >= 1 Then
@@ -612,7 +612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInCallStatement() As IEnumerable(Of TypeInferenceInfo)
-                Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Void))
+                Return CreateResult(SpecialType.System_Void)
             End Function
 
             Private Function InferTypeInForEachStatement(forEachStatement As ForEachStatementSyntax,
@@ -660,7 +660,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInIfOrElseIfStatement(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
-                Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
+                Return CreateResult(SpecialType.System_Boolean)
             End Function
 
             Private Function InferTypeInLambda(lambda As ExpressionSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
@@ -777,7 +777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.OpenParenToken AndAlso previousToken.Kind <> SyntaxKind.CommaToken Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 ElseIf previousToken = conditional.OpenParenToken Then
-                    Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
+                    Return CreateResult(SpecialType.System_Boolean)
                 ElseIf previousToken = conditional.FirstCommaToken Then
                     Return GetTypes(conditional.WhenTrue)
                 ElseIf previousToken = conditional.SecondCommaToken Then
@@ -785,7 +785,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If conditional.Condition Is expressionOpt Then
-                    Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
+                    Return CreateResult(SpecialType.System_Boolean)
                 Else
                     Return If(conditional.WhenTrue Is expressionOpt, GetTypes(conditional.WhenFalse), GetTypes(conditional.WhenTrue))
                 End If
@@ -810,7 +810,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return types.Where(Function(t) t.InferredType.IsNumericType)
                         End If
 
-                        Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
+                        Return CreateResult(SpecialType.System_Boolean)
                     Case SyntaxKind.AddressOfExpression
                         Return InferTypes(unaryExpressionSyntax)
                 End Select
@@ -819,7 +819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInUsingStatement(usingStatement As UsingStatementSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
-                Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_IDisposable))
+                Return CreateResult(SpecialType.System_IDisposable)
             End Function
 
             Private Function InferTypeInVariableDeclarator(expression As ExpressionSyntax,
@@ -833,11 +833,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInWhileStatement(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
-                Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
+                Return CreateResult(SpecialType.System_Boolean)
             End Function
 
             Private Function InferTypeInWhileOrUntilClause(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
-                Return CreateResult(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
+                Return CreateResult(SpecialType.System_Boolean)
             End Function
 
             Private Function InferTypeInMemberAccessExpression(
