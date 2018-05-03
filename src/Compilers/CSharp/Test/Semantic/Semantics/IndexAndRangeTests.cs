@@ -10,9 +10,17 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    /// <summary>
-    /// Tests related to binding index/range expressions.
-    /// </summary>
+    /* PROTOTYPE: add assignment tests:
+     *  object x, y;
+     *  str = str[(x = F()).Start..x.End];
+     *  str = str[(y).Start..(y = F()).End];
+     *
+     *  str = str[F(out var x)..G(x)];
+     *  str = str[G(y)..F(out var y)];
+     *
+     * if (str[F(out var x)..F(out var y)] || x == null || y == null) { }
+     */
+
     public class IndexAndRangeTests : CompilingTestBase
     {
         [Fact]
@@ -89,13 +97,13 @@ class Test
         var z = ^true;
     }
 }").VerifyDiagnostics(
-                //(6,17): error CS0029: Cannot implicitly convert type 'string' to 'int' [g:\ranges.xml]
+                //(6,17): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         var x = ^"string";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"^""string""").WithArguments("string", "int").WithLocation(6, 17),
-                //(7,17): error CS0029: Cannot implicitly convert type 'double' to 'int' [g:\ranges.xml]
+                //(7,17): error CS0029: Cannot implicitly convert type 'double' to 'int'
                 //         var y = ^1.5;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "^1.5").WithArguments("double", "int").WithLocation(7, 17),
-                //(8,17): error CS0029: Cannot implicitly convert type 'bool' to 'int' [g:\ranges.xml]
+                //(8,17): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                 //         var z = ^true;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "^true").WithArguments("bool", "int").WithLocation(8, 17));
         }
@@ -428,6 +436,58 @@ class Test
                 // (9,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         var d = ..;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..").WithArguments("range operator", "8.0").WithLocation(9, 17));
+        }
+
+        [Fact]
+        public void IndexOnNonTypedNodes()
+        {
+            CreateCompilationWithIndex(@"
+class Test
+{
+    void M()
+    {
+        var a = ^M;
+        var b = ^null;
+        var c = ^default;
+    }
+}").VerifyDiagnostics(
+                // (6,17): error CS0428: Cannot convert method group 'M' to non-delegate type 'int'. Did you intend to invoke the method?
+                //         var a = ^M;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "^M").WithArguments("M", "int").WithLocation(6, 17),
+                // (7,17): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         var b = ^null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "^null").WithArguments("int").WithLocation(7, 17));
+        }
+
+        [Fact]
+        public void RangeOnNonTypedNodes()
+        {
+            CreateCompilationWithIndexAndRange(@"
+class Test
+{
+    void M()
+    {
+        var a = 0..M;
+        var b = 0..null;
+        var c = 0..default;
+
+        var d = M..0;
+        var e = null..0;
+        var f = default..0;
+    }
+}").VerifyDiagnostics(
+                // (6,20): error CS0428: Cannot convert method group 'M' to non-delegate type 'Index'. Did you intend to invoke the method?
+                //         var a = 0..M;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "System.Index").WithLocation(6, 20),
+                // (7,20): error CS0037: Cannot convert null to 'Index' because it is a non-nullable value type
+                //         var b = 0..null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.Index").WithLocation(7, 20),
+                // (10,17): error CS0428: Cannot convert method group 'M' to non-delegate type 'Index'. Did you intend to invoke the method?
+                //         var d = M..0;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M").WithArguments("M", "System.Index").WithLocation(10, 17),
+                // (11,17): error CS0037: Cannot convert null to 'Index' because it is a non-nullable value type
+                //         var e = null..0;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.Index").WithLocation(11, 17));
         }
     }
 }

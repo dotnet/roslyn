@@ -121,9 +121,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression condition = null;
             foreach (var operand in operands)
             {
-                if (operand.Type.IsNullableType())
+                BoundExpression tempOperand = CaptureExpressionInTempIfNeeded(operand, sideeffects, locals);
+
+                if (tempOperand.Type.IsNullableType())
                 {
-                    BoundExpression tempOperand = CaptureExpressionInTempIfNeeded(operand, sideeffects, locals);
                     BoundExpression operandHasValue = MakeOptimizedHasValue(tempOperand.Syntax, tempOperand);
 
                     if (condition is null)
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    arguments.Add(operand);
+                    arguments.Add(tempOperand);
                 }
             }
 
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!TryGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
             {
                 // PROTOTYPE: make sure this ctor exists in binding
-                return BadExpression(syntax, type, operands.ToImmutableArray());
+                return BadExpression(syntax, type, arguments.ToImmutableArray());
             }
 
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, nullableCtor, binderOpt: null, rangeCall);

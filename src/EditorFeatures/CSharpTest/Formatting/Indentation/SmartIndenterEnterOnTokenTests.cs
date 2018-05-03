@@ -481,7 +481,7 @@ true
                 code,
                 'e',
                 indentationLine: 7,
-                expectedIndentation: 12);
+                expectedIndentation: 8);
         }
 
         [WpfFact]

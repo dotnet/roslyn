@@ -1912,7 +1912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
             TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, node);
 
-            if (boundOperand.Type.IsNullableType())
+            if (boundOperand.Type != null && boundOperand.Type.IsNullableType())
             {
                 NamedTypeSymbol nullableType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node);
 
@@ -1929,7 +1929,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, node, conversion, boundOperand, intType);
             }
 
-            return new BoundIndexExpression(node, boundOperand, indexType);
+            BoundExpression boundConversion = CreateConversion(boundOperand, conversion, intType, diagnostics);
+            return new BoundIndexExpression(node, boundConversion, indexType);
         }
 
         private BoundExpression BindRangeExpression(RangeExpressionSyntax node, DiagnosticBag diagnostics)
@@ -1977,7 +1978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundOperand = BindValue(operand, diagnostics, BindValueKind.RValue);
             TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, operand);
 
-            if (boundOperand.Type.IsNullableType())
+            if (boundOperand.Type != null && boundOperand.Type.IsNullableType())
             {
                 // PROTOTYPE: check if index type is nonnullable struct, and if it can be used here. report accordingly.
                 indexType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, operand).Construct(indexType);
