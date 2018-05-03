@@ -51,6 +51,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             Dim identifier = TryCast(Await fieldSymbol.DeclaringSyntaxReferences(0).GetSyntaxAsync(cancellationToken).ConfigureAwait(False), ModifiedIdentifierSyntax)
             Dim declarator = TryCast(identifier?.Parent, VariableDeclaratorSyntax)
             Dim initializer = declarator?.Initializer
+
+            ' We are only interested in the AsClause if it's being used as an initializer:
+            '  Dim x As String -- no need to preserve the clause since it will already be the same on the property
+            '  Dim x As New Guid("...") -- need to preserve the clause since it's being used as an initializer
             Dim asNewClause = TryCast(declarator.AsClause, AsNewClauseSyntax)
             Return (initializer, asNewClause)
         End Function
