@@ -1636,9 +1636,15 @@ class C : I
 }
 ")
                 .VerifyDiagnostics(
-                    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "I").WithArguments("NS.C", "I").WithLocation(6, 15),
-                    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("NS.C", "S").WithLocation(8, 15),
-                    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("NS.C", "E").WithLocation(10, 19));
+                    // (6,15): error CS0102: The type 'C' already contains a definition for 'I'
+                    //         class I<U> { }
+                    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "I").WithArguments("C", "I").WithLocation(6, 15),
+                    // (8,15): error CS0102: The type 'C' already contains a definition for 'S'
+                    //         class S { }
+                    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(8, 15),
+                    // (10,19): error CS0102: The type 'C' already contains a definition for 'E'
+                    //         interface E { }
+                    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "E").WithArguments("C", "E").WithLocation(10, 19));
         }
 
         [Fact]
@@ -2316,18 +2322,18 @@ class B : A
 }";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (7,18): error CS0118: 'Goo' is a namespace but is used like a type
-                //         void Goo(Goo f) {}
-                Diagnostic(ErrorCode.ERR_BadSKknown, "Goo").WithArguments("Goo", "namespace", "type"),
                 // (12,9): error CS0118: 'Goo' is a namespace but is used like a type
                 //         Goo foundNamespaceInsteadOfType;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "Goo").WithArguments("Goo", "namespace", "type"),
+                Diagnostic(ErrorCode.ERR_BadSKknown, "Goo").WithArguments("Goo", "namespace", "type").WithLocation(12, 9),
                 // (15,22): error CS0118: 'Goo' is a namespace but is used like a type
                 //     public class A : Goo {}
-                Diagnostic(ErrorCode.ERR_BadSKknown, "Goo").WithArguments("Goo", "namespace", "type"),
-                // (12,13): warning CS0169: The field 'NS.Bar.foundNamespaceInsteadOfType' is never used
+                Diagnostic(ErrorCode.ERR_BadSKknown, "Goo").WithArguments("Goo", "namespace", "type").WithLocation(15, 22),
+                // (7,18): error CS0118: 'Goo' is a namespace but is used like a type
+                //         void Goo(Goo f) {}
+                Diagnostic(ErrorCode.ERR_BadSKknown, "Goo").WithArguments("Goo", "namespace", "type").WithLocation(7, 18),
+                // (12,13): warning CS0169: The field 'Bar.foundNamespaceInsteadOfType' is never used
                 //         Goo foundNamespaceInsteadOfType;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "foundNamespaceInsteadOfType").WithArguments("NS.Bar.foundNamespaceInsteadOfType")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "foundNamespaceInsteadOfType").WithArguments("Bar.foundNamespaceInsteadOfType").WithLocation(12, 13)
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -2384,12 +2390,12 @@ class Test
     }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-    // (10,31): error CS0119: 'NS.Test.F()' is a method, which is not valid in the given context
-    //             Console.WriteLine(F.x);
-    Diagnostic(ErrorCode.ERR_BadSKunknown, "F").WithArguments("NS.Test.F()", "method"),
-    // (11,20): error CS0118: 'NS' is a namespace but is used like a variable
-    //             return NS();
-    Diagnostic(ErrorCode.ERR_BadSKknown, "NS").WithArguments("NS", "namespace", "variable")
+                // (10,31): error CS0119: 'Test.F()' is a method, which is not valid in the given context
+                //             Console.WriteLine(F.x);
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "F").WithArguments("Test.F()", "method").WithLocation(10, 31),
+                // (11,20): error CS0118: 'NS' is a namespace but is used like a variable
+                //             return NS();
+                Diagnostic(ErrorCode.ERR_BadSKknown, "NS").WithArguments("NS", "namespace", "variable").WithLocation(11, 20)
            );
         }
 
@@ -4352,31 +4358,31 @@ static class S
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(7, 15),
                 // (8,15): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         new C<ArgIterator>();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(8, 15),
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "ArgIterator").WithArguments("ArgIterator").WithLocation(8, 15),
                 // (9,15): error CS0306: The type 'RuntimeArgumentHandle' may not be used as a type argument
                 //         new C<RuntimeArgumentHandle>();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(9, 15),
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "RuntimeArgumentHandle").WithArguments("RuntimeArgumentHandle").WithLocation(9, 15),
                 // (10,15): error CS0306: The type 'TypedReference' may not be used as a type argument
                 //         new C<TypedReference>();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(10, 15),
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("TypedReference").WithLocation(10, 15),
                 // (11,9): error CS0306: The type 'int*' may not be used as a type argument
                 //         F<int*>();
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(11, 9),
                 // (12,11): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         o.E<object, ArgIterator>();
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E<object, ArgIterator>").WithArguments("System.ArgIterator").WithLocation(12, 11),
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E<object, ArgIterator>").WithArguments("ArgIterator").WithLocation(12, 11),
                 // (14,13): error CS0306: The type 'RuntimeArgumentHandle' may not be used as a type argument
                 //         a = F<RuntimeArgumentHandle>;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<RuntimeArgumentHandle>").WithArguments("System.RuntimeArgumentHandle").WithLocation(14, 13),
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<RuntimeArgumentHandle>").WithArguments("RuntimeArgumentHandle").WithLocation(14, 13),
                 // (15,13): error CS0306: The type 'TypedReference' may not be used as a type argument
                 //         a = o.E<T, TypedReference>;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "o.E<T, TypedReference>").WithArguments("System.TypedReference").WithLocation(15, 13),
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "o.E<T, TypedReference>").WithArguments("TypedReference").WithLocation(15, 13),
                 // (16,34): error CS0306: The type 'TypedReference' may not be used as a type argument
                 //         Console.WriteLine(typeof(TypedReference?));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference?").WithArguments("System.TypedReference").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference?").WithArguments("TypedReference").WithLocation(16, 34),
                 // (17,43): error CS0306: The type 'TypedReference' may not be used as a type argument
                 //         Console.WriteLine(typeof(Nullable<TypedReference>));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(17, 43));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("TypedReference").WithLocation(17, 43));
         }
 
         /// <summary>
@@ -5418,9 +5424,9 @@ namespace NS
                 });
 
             comp.VerifyDiagnostics(
-                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+                // (9,38): error CS0438: The type 'Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
                 //             Console.WriteLine(typeof(Util.A));   // CS0438
-                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util"));
+                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "Util", "ErrTestMod02.netmodule", "NS.Util").WithLocation(9, 38));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -5919,9 +5925,9 @@ namespace NS
                 }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
-    // (9,38): warning CS0437: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
-    //             Console.WriteLine(typeof(Util.A).Module);   
-    Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
+                // (9,38): warning CS0437: The type 'Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
+                //             Console.WriteLine(typeof(Util.A).Module);   
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "Util").WithArguments("ErrTestMod01.netmodule", "Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util").WithLocation(9, 38)
                 );
 
             comp = CreateCompilation(text,
@@ -5932,9 +5938,9 @@ namespace NS
                 }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
-    // (9,38): warning CS0437: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
-    //             Console.WriteLine(typeof(Util.A).Module);   
-    Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
+                // (9,38): warning CS0437: The type 'Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
+                //             Console.WriteLine(typeof(Util.A).Module);   
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "Util").WithArguments("ErrTestMod01.netmodule", "Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util").WithLocation(9, 38)
                 );
         }
 
@@ -6624,12 +6630,12 @@ namespace NS
                 }, sourceFileName: "Test.cs");
 
             comp.VerifyDiagnostics(
-    // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-    //         public class A {}
-    Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "A").WithArguments("A", "NS.Util"),
-    // Test.cs(9,38): warning CS0435: The namespace 'NS.Util' in 'Test.cs' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'Test.cs'.
-    //             Console.WriteLine(typeof(Util.A));   // CS0101
-    Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "Util").WithArguments("Test.cs", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
+                // Test.cs(15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+                //         public class A {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "A").WithArguments("A", "NS.Util").WithLocation(15, 22),
+                // Test.cs(9,38): warning CS0435: The namespace 'NS.Util' in 'Test.cs' conflicts with the imported type 'Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'Test.cs'.
+                //             Console.WriteLine(typeof(Util.A));   // CS0101
+                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "Util").WithArguments("Test.cs", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Util").WithLocation(9, 38)
                 );
 
             comp = CreateCompilation(text,
@@ -6640,12 +6646,12 @@ namespace NS
                 }, sourceFileName: "Test.cs");
 
             comp.VerifyDiagnostics(
-    // (15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-    //         public class A {}
-    Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "A").WithArguments("A", "NS.Util"),
-    // Test.cs(9,38): warning CS0435: The namespace 'NS.Util' in 'Test.cs' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'Test.cs'.
-    //             Console.WriteLine(typeof(Util.A));   // CS0101
-    Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "Util").WithArguments("Test.cs", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
+                // Test.cs(15,22): error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+                //         public class A {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "A").WithArguments("A", "NS.Util").WithLocation(15, 22),
+                // Test.cs(9,38): warning CS0435: The namespace 'NS.Util' in 'Test.cs' conflicts with the imported type 'Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'Test.cs'.
+                //             Console.WriteLine(typeof(Util.A));   // CS0101
+                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "Util").WithArguments("Test.cs", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Util").WithLocation(9, 38)
                 );
         }
 
@@ -6761,11 +6767,11 @@ namespace NS
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
             comp.VerifyDiagnostics(
-                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util"),
-                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+                // error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util").WithLocation(1, 1),
+                // (9,38): error CS0438: The type 'Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
                 //             Console.WriteLine(typeof(Util.A));   // CS0101
-                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util"));
+                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "Util", "ErrTestMod02.netmodule", "NS.Util").WithLocation(9, 38));
 
             comp = CreateCompilation(text,
                 new List<MetadataReference>()
@@ -6780,11 +6786,11 @@ namespace NS
             //ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
             comp.VerifyDiagnostics(
-                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util"),
-                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+                // error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util").WithLocation(1, 1),
+                // (9,38): error CS0438: The type 'Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
                 //             Console.WriteLine(typeof(Util.A));   // CS0101
-                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util"));
+                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "Util", "ErrTestMod02.netmodule", "NS.Util").WithLocation(9, 38));
 
             comp = CreateCompilation(text,
                 new List<MetadataReference>()
@@ -6799,11 +6805,11 @@ namespace NS
             //ErrTestMod01.netmodule: error CS0101: The namespace 'NS' already contains a definition for 'Util'
             //ErrTestMod02.netmodule: (Location of symbol related to previous error)
             comp.VerifyDiagnostics(
-                // ErrTestMod03.netmodule: error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util"),
-                // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+                // error CS0101: The namespace 'NS.Util' already contains a definition for 'A'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("A", "NS.Util").WithLocation(1, 1),
+                // (9,38): error CS0438: The type 'Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
                 //             Console.WriteLine(typeof(Util.A));   // CS0101
-                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util"));
+                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "Util", "ErrTestMod02.netmodule", "NS.Util").WithLocation(9, 38));
         }
 
         [Fact()]
@@ -8420,7 +8426,7 @@ namespace N2
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M3").WithArguments("NS.clx.M3(sbyte)", "NS.clx").WithLocation(7, 42),
                 // (5,30): error CS0513: 'clx.M1()' is abstract but it is contained in non-abstract type 'clx'
                 //         abstract public void M1();
-                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M1").WithArguments("NS.clx.M1()", "NS.clx").WithLocation(5, 30));
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M1").WithArguments("clx.M1()", "clx").WithLocation(5, 30));
         }
 
         [Fact]
@@ -11475,7 +11481,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, "AllowMultiple = false").WithArguments("AllowMultiple").WithLocation(2, 39),
                 // (2,2): error CS76: There is no argument given that corresponds to the required formal parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(2, 2)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)").WithLocation(2, 2)
                 );
         }
 
@@ -12381,12 +12387,12 @@ class CExample : IExample
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (7,10): error CS0685: Conditional member 'NS.Test.Debug(out int)' cannot have an out parameter
-                //         [Conditional("DEBUG")]
-                Diagnostic(ErrorCode.ERR_ConditionalWithOutParam, @"Conditional(""DEBUG"")").WithArguments("NS.Test.Debug(out int)").WithLocation(7, 10),
-                // (13,10): error CS0685: Conditional member 'NS.Test.Trace(ref string, out string)' cannot have an out parameter
+                // (13,10): error CS0685: Conditional member 'Test.Trace(ref string, out string)' cannot have an out parameter
                 //         [Conditional("TRACE")]
-                Diagnostic(ErrorCode.ERR_ConditionalWithOutParam, @"Conditional(""TRACE"")").WithArguments("NS.Test.Trace(ref string, out string)").WithLocation(13, 10));
+                Diagnostic(ErrorCode.ERR_ConditionalWithOutParam, @"Conditional(""TRACE"")").WithArguments("Test.Trace(ref string, out string)").WithLocation(13, 10),
+                // (7,10): error CS0685: Conditional member 'Test.Debug(out int)' cannot have an out parameter
+                //         [Conditional("DEBUG")]
+                Diagnostic(ErrorCode.ERR_ConditionalWithOutParam, @"Conditional(""DEBUG"")").WithArguments("Test.Debug(out int)").WithLocation(7, 10));
         }
 
         [Fact]
@@ -12772,42 +12778,42 @@ public partial class C
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (5,13): error CS0708: 'NS.Goo.i': cannot declare instance members in a static class
+                // (5,13): error CS0708: 'Goo.i': cannot declare instance members in a static class
                 //         int i;
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "i").WithArguments("NS.Goo.i"),
-                // (7,25): error CS0708: 'NS.Goo.P': cannot declare instance members in a static class
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "i").WithArguments("Goo.i").WithLocation(5, 13),
+                // (7,25): error CS0708: 'Goo.P': cannot declare instance members in a static class
                 //         internal object P { get; set; }
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "P").WithArguments("NS.Goo.P"),
-                // (8,29): error CS0708: 'E': cannot declare instance members in a static class
-                //         event System.Action E;
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "E").WithArguments("E"),
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "P").WithArguments("Goo.P").WithLocation(7, 25),
+                // (13,11): error CS0708: 'Bar<T>.field': cannot declare instance members in a static class
+                //         T field;
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "field").WithArguments("Bar<T>.field").WithLocation(13, 11),
+                // (15,13): error CS0708: 'Bar<T>.Q': cannot declare instance members in a static class
+                //         int Q { get { return 0; } }
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "Q").WithArguments("Bar<T>.Q").WithLocation(15, 13),
                 // (6,14): error CS0708: 'M': cannot declare instance members in a static class
                 //         void M() { }
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "M").WithArguments("M"),
-                // (13,11): error CS0708: 'NS.Bar<T>.field': cannot declare instance members in a static class
-                //         T field;
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "field").WithArguments("NS.Bar<T>.field"),
-                // (15,13): error CS0708: 'NS.Bar<T>.Q': cannot declare instance members in a static class
-                //         int Q { get { return 0; } }
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "Q").WithArguments("NS.Bar<T>.Q"),
-                // (16,32): error CS0708: 'E': cannot declare instance members in a static class
-                //         event System.Action<T> E;
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "E").WithArguments("E"),
-                // (16,32): warning CS0067: The event 'NS.Bar<T>.E' is never used
-                //         event System.Action<T> E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("NS.Bar<T>.E"),
-                // (8,29): warning CS0067: The event 'NS.Goo.E' is never used
-                //         event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("NS.Goo.E"),
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "M").WithArguments("M").WithLocation(6, 14),
                 // (14,11): error CS0708: 'M': cannot declare instance members in a static class
                 //         T M(T x) { return x; }
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "M").WithArguments("M"),
-                // (5,13): warning CS0169: The field 'NS.Goo.i' is never used
-                //         int i;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("NS.Goo.i"),
-                // (13,11): warning CS0169: The field 'NS.Bar<T>.field' is never used
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "M").WithArguments("M").WithLocation(14, 11),
+                // (16,32): error CS0708: 'E': cannot declare instance members in a static class
+                //         event System.Action<T> E;
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "E").WithArguments("E").WithLocation(16, 32),
+                // (8,29): error CS0708: 'E': cannot declare instance members in a static class
+                //         event System.Action E;
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "E").WithArguments("E").WithLocation(8, 29),
+                // (16,32): warning CS0067: The event 'Bar<T>.E' is never used
+                //         event System.Action<T> E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Bar<T>.E").WithLocation(16, 32),
+                // (13,11): warning CS0169: The field 'Bar<T>.field' is never used
                 //         T field;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("NS.Bar<T>.field"));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("Bar<T>.field").WithLocation(13, 11),
+                // (5,13): warning CS0169: The field 'Goo.i' is never used
+                //         int i;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("Goo.i").WithLocation(5, 13),
+                // (8,29): warning CS0067: The event 'Goo.E' is never used
+                //         event System.Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Goo.E").WithLocation(8, 29));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -13674,10 +13680,10 @@ using System.Runtime.CompilerServices;
             CreateCompilation(csharp).VerifyDiagnostics(
                 // (6,12): error CS0739: 'int' duplicate TypeForwardedToAttribute
                 // [assembly: TypeForwardedTo(typeof(int))]
-                Diagnostic(ErrorCode.ERR_DuplicateTypeForwarder, "TypeForwardedTo(typeof(int))").WithArguments("int"),
-                // (9,12): error CS0739: 'System.Collections.Generic.List<string>' duplicate TypeForwardedToAttribute
+                Diagnostic(ErrorCode.ERR_DuplicateTypeForwarder, "TypeForwardedTo(typeof(int))").WithArguments("int").WithLocation(6, 12),
+                // (9,12): error CS0739: 'List<string>' duplicate TypeForwardedToAttribute
                 // [assembly: TypeForwardedTo(typeof(List<System.String>))]
-                Diagnostic(ErrorCode.ERR_DuplicateTypeForwarder, "TypeForwardedTo(typeof(List<System.String>))").WithArguments("System.Collections.Generic.List<string>"));
+                Diagnostic(ErrorCode.ERR_DuplicateTypeForwarder, "TypeForwardedTo(typeof(List<System.String>))").WithArguments("List<string>").WithLocation(9, 12));
         }
 
         [Fact]
@@ -15034,21 +15040,21 @@ class MyClass
 }
 ";
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-// (6,23): error CS1601: Cannot make reference to variable of type 'System.TypedReference'
-//     public void Test1(ref TypedReference t2, RuntimeArgumentHandle r3)   // CS1601
-Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference t2").WithArguments("System.TypedReference"),
-// (11,23): error CS1601: Cannot make reference to variable of type 'System.ArgIterator'
-//     public void Test2(out ArgIterator t4)   // CS1601
-Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out ArgIterator t4").WithArguments("System.ArgIterator"),
-// (16,13): error CS1601: Cannot make reference to variable of type 'System.RuntimeArgumentHandle'
-//     MyClass(ref RuntimeArgumentHandle r5) {} // CS1601
-Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref RuntimeArgumentHandle r5").WithArguments("System.RuntimeArgumentHandle"),
-// (5,21): error CS1601: Cannot make reference to variable of type 'System.TypedReference'
-//     delegate void D(ref TypedReference t1); // CS1601
-Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference t1").WithArguments("System.TypedReference"),
-// (8,17): error CS1601: Cannot make reference to variable of type 'System.RuntimeArgumentHandle'
-//         var x = __makeref(r3); // CS1601
-Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "__makeref(r3)").WithArguments("System.RuntimeArgumentHandle")
+                // (11,23): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //     public void Test2(out ArgIterator t4)   // CS1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out ArgIterator t4").WithArguments("ArgIterator").WithLocation(11, 23),
+                // (6,23): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //     public void Test1(ref TypedReference t2, RuntimeArgumentHandle r3)   // CS1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference t2").WithArguments("TypedReference").WithLocation(6, 23),
+                // (16,13): error CS1601: Cannot make reference to variable of type 'RuntimeArgumentHandle'
+                //     MyClass(ref RuntimeArgumentHandle r5) {} // CS1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref RuntimeArgumentHandle r5").WithArguments("RuntimeArgumentHandle").WithLocation(16, 13),
+                // (5,21): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //     delegate void D(ref TypedReference t1); // CS1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference t1").WithArguments("TypedReference").WithLocation(5, 21),
+                // (8,17): error CS1601: Cannot make reference to variable of type 'RuntimeArgumentHandle'
+                //         var x = __makeref(r3); // CS1601
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "__makeref(r3)").WithArguments("RuntimeArgumentHandle").WithLocation(8, 17)
                  );
         }
 
@@ -16404,8 +16410,9 @@ public interface ISomeInterface
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,17): error CS1910: Argument of type 'System.Type' is not applicable for the DefaultValue attribute
-                Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("System.Type"));
+                // (4,17): error CS1910: Argument of type 'Type' is not applicable for the DefaultParameterValue attribute
+                //     void Test1([DefaultParameterValue(typeof(int))]object t);   // CS1910
+                Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("Type").WithLocation(4, 17));
         }
 
         [Fact]
@@ -17581,8 +17588,9 @@ namespace System
             // We should report a path to an assembly rather than the assembly name when reporting an error.
 
             CreateCompilation(new SyntaxTree[] { Parse(text, "goo.cs") }).VerifyDiagnostics(
-                // goo.cs(11,17): warning CS0436: The type 'System.Object' in 'goo.cs' conflicts with the imported type 'object' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'goo.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Object").WithArguments("goo.cs", "System.Object", RuntimeCorLibName.FullName, "object"));
+                // goo.cs(11,17): warning CS0436: The type 'Object' in 'goo.cs' conflicts with the imported type 'object' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'goo.cs'.
+                //     class Bar : Object {}
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Object").WithArguments("goo.cs", "Object", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "object").WithLocation(11, 17));
         }
 
         /// <summary>
@@ -19136,17 +19144,16 @@ namespace NS
 }
 ";
             var comp = CreateCompilation(text).VerifyDiagnostics(
-                // (8,21): error CS0102: The type 'NS.MyType' already contains a definition for 'MyMeth'
+                // (8,21): error CS0102: The type 'MyType' already contains a definition for 'MyMeth'
                 //         public void MyMeth() { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "MyMeth").WithArguments("NS.MyType", "MyMeth"),
-                // (9,20): error CS0102: The type 'NS.MyType' already contains a definition for 'MyMeth'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "MyMeth").WithArguments("MyType", "MyMeth").WithLocation(8, 21),
+                // (9,20): error CS0102: The type 'MyType' already contains a definition for 'MyMeth'
                 //         public int MyMeth;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "MyMeth").WithArguments("NS.MyType", "MyMeth"),
-                // (9,20): warning CS0649: Field 'NS.MyType.MyMeth' is never assigned to, and will always have its default value 0
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "MyMeth").WithArguments("MyType", "MyMeth").WithLocation(9, 20),
+                // (9,20): warning CS0649: Field 'MyType.MyMeth' is never assigned to, and will always have its default value 0
                 //         public int MyMeth;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "MyMeth").WithArguments("NS.MyType.MyMeth", "0")
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "MyMeth").WithArguments("MyType.MyMeth", "0").WithLocation(9, 20)
                 );
-
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetMembers("MyType").Single() as NamedTypeSymbol;
@@ -19336,22 +19343,22 @@ class A<T>
             .VerifyDiagnostics(
                 // (8,15): error CS0101: The namespace 'N' already contains a definition for 'I'
                 //     interface I // CS0101
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "I").WithArguments("I", "N"),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "I").WithArguments("I", "N").WithLocation(8, 15),
                 // (17,12): error CS0101: The namespace 'N' already contains a definition for 'S'
                 //     struct S // CS0101
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "S").WithArguments("S", "N"),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "S").WithArguments("S", "N").WithLocation(17, 12),
                 // (22,11): error CS0101: The namespace 'N' already contains a definition for 'S'
                 //     class S // CS0101
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "S").WithArguments("S", "N"),
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "S").WithArguments("S", "N").WithLocation(22, 11),
                 // (27,18): error CS0101: The namespace 'N' already contains a definition for 'D'
                 //     delegate int D(int i);
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "D").WithArguments("D", "N"),
-                // (24,16): warning CS0169: The field 'N.S.T' is never used
-                //         object T;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "T").WithArguments("N.S.T"),
-                // (20,13): warning CS0169: The field 'N.S.I' is never used
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "D").WithArguments("D", "N").WithLocation(27, 18),
+                // (20,13): warning CS0169: The field 'S.I' is never used
                 //         int I;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "I").WithArguments("N.S.I")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "I").WithArguments("S.I").WithLocation(20, 13),
+                // (24,16): warning CS0169: The field 'S.T' is never used
+                //         object T;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "T").WithArguments("S.T").WithLocation(24, 16)
                 );
         }
 
