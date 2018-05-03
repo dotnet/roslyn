@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
                             .ToImmutableArray();
             }
 
+            protected IEnumerable<TypeInferenceInfo> CreateResult(ITypeSymbol type)
+                => type == null
+                    ? SpecializedCollections.EmptyCollection<TypeInferenceInfo>()
+                    : SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(type));
+
             protected IEnumerable<ITypeSymbol> ExpandParamsParameter(IParameterSymbol parameterSymbol)
             {
                 var result = new List<ITypeSymbol>();
