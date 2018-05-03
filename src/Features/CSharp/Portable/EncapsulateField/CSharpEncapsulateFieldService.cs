@@ -217,9 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
             var containingTypeMemberNames = containingType.GetAccessibleMembersInThisAndBaseTypes<ISymbol>(containingType).Select(m => m.Name);
             return NameGenerator.GenerateUniqueName(
                 baseName,
-                containingTypeMemberNames.ToSet(),
-                StringComparer.Ordinal,
-                name => NameGenerator.GenerateName(name, rules, symbolKind, accessibility));
+                name => !containingTypeMemberNames.ToSet().Contains(name, StringComparer.Ordinal),
+                rules, symbolKind, accessibility);
         }
 
         internal override IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType)

@@ -317,7 +317,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 Formatter.Annotation.AddAnnotationToSymbol(propertySymbol));
         }
 
-        protected abstract Task<Tuple<string, string>> GeneratePropertyAndFieldNames(IFieldSymbol field, Document document, CancellationToken cancellationToken);
+        protected abstract Task<Tuple<string, string>> GeneratePropertyAndFieldNames(
+            IFieldSymbol field, Document document, CancellationToken cancellationToken);
 
         protected Accessibility ComputeAccessibility(Accessibility accessibility, ITypeSymbol type)
         {

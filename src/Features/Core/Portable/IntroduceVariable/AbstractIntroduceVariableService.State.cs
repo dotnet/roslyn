@@ -160,7 +160,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     if (IsInParameterContext(cancellationToken))
                     {
                         this.InParameterContext = true;
-                        return true;
+                        var typeInfo = Document.SemanticModel.GetTypeInfo(Expression, cancellationToken);
+                        return !(typeInfo.Type.IsStructType() && !typeInfo.Type.IsSpecialType());
                     }
                     else if (IsInFieldContext(cancellationToken))
                     {

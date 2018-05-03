@@ -87,7 +87,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
             Return TypeOf field.Parent Is TypeBlockSyntax
         End Function
 
-        Private Shared Async Function GetNamingRules(document As Document, cancelationToken As CancellationToken) As Task(Of ImmutableArray(Of NamingRule))
+        Private Shared Async Function GetNamingRules(
+            document As Document,
+            cancelationToken As CancellationToken) As Task(Of ImmutableArray(Of NamingRule))
+
             Dim namingRules = Await document.GetNamingRulesAsync(cancelationToken).ConfigureAwait(False)
             Return namingRules.AddRange(DefaultNamingRules.FieldAndPropertyRules)
         End Function
@@ -123,8 +126,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
             Return field.DeclaringSyntaxReferences.Any(Function(d) d.GetSyntax().GetAncestor(Of FieldDeclarationSyntax)().Modifiers.Any(SyntaxKind.ShadowsKeyword))
         End Function
 
-        Private Function MakeUnique(propertyName As String, field As IFieldSymbol, rules As ImmutableArray(Of NamingRule), symbolKind As SymbolKind, accessibility As Accessibility) As String
-            Dim containingTypeMemberNames = field.ContainingType.GetAccessibleMembersInThisAndBaseTypes(Of ISymbol)(field.ContainingType).Select(Function(s) s.Name)
+        Private Function MakeUnique(
+            propertyName As String, field As IFieldSymbol,
+            rules As ImmutableArray(Of NamingRule),
+            symbolKind As SymbolKind, accessibility As Accessibility) As String
+
+            Dim containingTypeMemberNames = field.ContainingType _
+                .GetAccessibleMembersInThisAndBaseTypes(Of ISymbol)(field.ContainingType).Select(Function(s) s.Name)
             Return NameGenerator.GenerateUniqueName(
                 propertyName,
                 containingTypeMemberNames.ToSet(),

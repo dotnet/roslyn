@@ -100,7 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         {
             var propertyName = property.Name;
             var fieldName = "";
-            var newFieldModifiers = property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None;
+            var newFieldModifiers = property.IsStatic 
+                ? DeclarationModifiers.Static 
+                : DeclarationModifiers.None;
+
             foreach (var rule in rules)
             {
                 if (rule.SymbolSpecification.AppliesTo(
