@@ -3487,11 +3487,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
         {
-            var partsBuilder = ArrayBuilder<IInterpolatedStringContentOperation>.GetInstance(operation.Parts.Length);
-            ArrayBuilder<IOperation> formatBuilderOpt = null;
+            // We visit and rewrite the interpolation parts in two phases:
+            //  1. Visit all the non-literal parts of the interpolation and push them onto the eval stack.
+            //  2. Traverse the parts in reverse order, popping the non-literal values from the eval stack and visiting the literal values.
+
             foreach (IInterpolatedStringContentOperation element in operation.Parts)
             {
-                IInterpolatedStringContentOperation rewrittenElement;
                 if (element.Kind == OperationKind.Interpolation)
                 {
                     var interpolation = (IInterpolationOperation)element;
@@ -3501,45 +3502,23 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         _evalStack.Push(Visit(interpolation.Alignment));
                     }
-
-                    if (interpolation.FormatString != null)
-                    {
-                        Debug.Assert(interpolation.FormatString.Kind == OperationKind.Literal);
-                        var rewrittenFormatString = VisitLiteral((ILiteralOperation)interpolation.FormatString, captureIdForResult);
-                        formatBuilderOpt = formatBuilderOpt ?? ArrayBuilder<IOperation>.GetInstance(operation.Parts.Length);
-                        formatBuilderOpt.Add(Visit(interpolation.FormatString));
-                    }
-
-                    // We generate the rewritten IInterpolationOperation after visiting all interpolations.
-                    // Add null as a placeholder.
-                    rewrittenElement = null;
                 }
-                else
-                {
-                    var interpolatedStringText = (IInterpolatedStringTextOperation)element;
-                    Debug.Assert(interpolatedStringText.Text.Kind == OperationKind.Literal);
-                    var rewrittenInterpolationText = VisitLiteral((ILiteralOperation)interpolatedStringText.Text, captureIdForResult);
-                    rewrittenElement = new InterpolatedStringText(rewrittenInterpolationText, semanticModel: null, element.Syntax, element.Type, element.ConstantValue, element.IsImplicit);
-                }
-
-                partsBuilder.Add(rewrittenElement);
             }
 
+            var partsBuilder = ArrayBuilder<IInterpolatedStringContentOperation>.GetInstance(operation.Parts.Length);
             for (int i = operation.Parts.Length - 1; i >= 0; i--)
             {
                 IInterpolatedStringContentOperation element = operation.Parts[i];
+                IInterpolatedStringContentOperation rewrittenElement;
                 if (element.Kind == OperationKind.Interpolation)
                 {
-                    Debug.Assert(partsBuilder[i] == null);
-
                     var interpolation = (IInterpolationOperation)element;
 
                     IOperation rewrittenFormatString;
                     if (interpolation.FormatString != null)
                     {
                         Debug.Assert(interpolation.FormatString.Kind == OperationKind.Literal);
-                        rewrittenFormatString = formatBuilderOpt[formatBuilderOpt.Count - 1];
-                        formatBuilderOpt.RemoveLast();
+                        rewrittenFormatString = VisitLiteral((ILiteralOperation)interpolation.FormatString, captureIdForResult: null);
                     }
                     else
                     {
@@ -3548,16 +3527,20 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     var rewrittenAlignment = interpolation.Alignment != null ? _evalStack.Pop() : null;
                     var rewrittenExpression = _evalStack.Pop();
-                    var rewrittenInterpolation = new Interpolation(rewrittenExpression, rewrittenAlignment, rewrittenFormatString, semanticModel: null, element.Syntax, element.Type, element.ConstantValue, element.IsImplicit);
-                    partsBuilder[i] = rewrittenInterpolation;
+                    rewrittenElement = new Interpolation(rewrittenExpression, rewrittenAlignment, rewrittenFormatString, semanticModel: null, element.Syntax, element.Type, element.ConstantValue, element.IsImplicit);
                 }
                 else
                 {
-                    Debug.Assert(partsBuilder[i] != null);
+                    var interpolatedStringText = (IInterpolatedStringTextOperation)element;
+                    Debug.Assert(interpolatedStringText.Text.Kind == OperationKind.Literal);
+                    var rewrittenInterpolationText = VisitLiteral((ILiteralOperation)interpolatedStringText.Text, captureIdForResult: null);
+                    rewrittenElement = new InterpolatedStringText(rewrittenInterpolationText, semanticModel: null, element.Syntax, element.Type, element.ConstantValue, element.IsImplicit);
                 }
+
+                partsBuilder.Add(rewrittenElement);
             }
 
-            formatBuilderOpt?.Free();
+            partsBuilder.ReverseContents();
             return new InterpolatedStringExpression(partsBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 

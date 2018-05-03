@@ -1631,7 +1631,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IInterpolatedStringTextOperation));
             LogCommonPropertiesAndNewLine(operation);
 
-            Debug.Assert(operation.Text.Kind == OperationKind.Literal);
+            Assert.Equal(OperationKind.Literal, operation.Text.Kind);
             Visit(operation.Text, "Text");
         }
 
@@ -1642,7 +1642,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.Expression, "Expression");
             Visit(operation.Alignment, "Alignment");
-            Debug.Assert(operation.FormatString == null || operation.FormatString.Kind == OperationKind.Literal);
+            Assert.True(operation.FormatString == null || operation.FormatString.Kind == OperationKind.Literal);
             Visit(operation.FormatString, "FormatString");
         }
 
