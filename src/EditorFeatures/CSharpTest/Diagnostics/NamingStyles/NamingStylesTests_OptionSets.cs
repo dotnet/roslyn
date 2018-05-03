@@ -15,6 +15,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         private IDictionary<OptionKey, object> ClassNamesArePascalCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), ClassNamesArePascalCaseOption());
 
+        private IDictionary<OptionKey, object> FieldNamesAreCamelCase =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), FieldNamesAreCamelCaseOption());
+
+        private IDictionary<OptionKey, object> FieldNamesAreCamelCaseWithUnderscore =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), FieldNamesAreCamelCaseWithUnderscoreOption());
+
         private IDictionary<OptionKey, object> MethodNamesArePascalCase =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp), MethodNamesArePascalCaseOption());
 
@@ -50,6 +56,66 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 capitalizationScheme: Capitalization.PascalCase,
                 name: "Name",
                 prefix: "",
+                suffix: "",
+                wordSeparator: "");
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = DiagnosticSeverity.Error
+            };
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+
+            return info;
+        }
+
+        private NamingStylePreferences FieldNamesAreCamelCaseOption()
+        {
+            var symbolSpecification = new SymbolSpecification(
+                null,
+                "Name",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
+                ImmutableArray<Accessibility>.Empty,
+                ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
+
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.CamelCase,
+                name: "Name",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = DiagnosticSeverity.Error
+            };
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+
+            return info;
+        }
+
+        private NamingStylePreferences FieldNamesAreCamelCaseWithUnderscoreOption()
+        {
+            var symbolSpecification = new SymbolSpecification(
+                null,
+                "Name",
+                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
+                ImmutableArray<Accessibility>.Empty,
+                ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
+
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.CamelCase,
+                name: "Name",
+                prefix: "_",
                 suffix: "",
                 wordSeparator: "");
             var namingRule = new SerializableNamingRule()
