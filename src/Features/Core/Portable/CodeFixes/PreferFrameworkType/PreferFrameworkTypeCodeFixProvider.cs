@@ -61,11 +61,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
         protected override bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic)
             => diagnostic.Properties[EquivalenceKey] == state.CodeActionEquivalenceKey;
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-        {
-            return base.IncludeDiagnosticDuringFixAll(diagnostic);
-        }
-
         private class PreferFrameworkTypeCodeAction : CodeAction.DocumentChangeAction
         {
             public PreferFrameworkTypeCodeAction(
