@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private IDictionary<OptionKey, object> GetSingleRequireOption(PerLanguageOption<CodeStyleOption<ParenthesesPreference>> option)
             => OptionsSet(GetAllParenthesesOptions()
+                    .Where(o => o != option)
                     .Select(o => SingleOption(o, RemoveIfUnnecessaryPreference))
                     .Concat(SingleOption(option, RequireForPrecedenceClarityPreference)).ToArray());
 
