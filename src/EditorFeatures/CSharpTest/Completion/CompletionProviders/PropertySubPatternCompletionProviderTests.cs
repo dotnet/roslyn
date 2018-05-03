@@ -10,15 +10,15 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
     [Trait(Traits.Feature, Traits.Features.Completion)]
-    public class PropertySubPatternCompletionProviderTests : AbstractCSharpCompletionProviderTests
+    public class PropertySubpatternCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public PropertySubPatternCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        public PropertySubpatternCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
         {
         }
 
         internal override CompletionProvider CreateCompletionProvider()
         {
-            return new PropertySubPatternCompletionProvider();
+            return new PropertySubpatternCompletionProvider();
         }
 
         [Fact]
@@ -298,27 +298,6 @@ class Program
         }
 
         [Fact]
-        public async Task PropertiesInRecursivePattern_WithPositionalPattern()
-        {
-            var markup =
-@"
-class Program
-{
-    public int P1 { get; set; }
-    public int P2 { get; set; }
-
-    void M()
-    {
-        _ = this is (1, 2) { $$ }
-    }
-    void Deconstruct(out int x, out int y) => throw null;
-}
-";
-            await VerifyItemExistsAsync(markup, "P1");
-            await VerifyItemExistsAsync(markup, "P2");
-        }
-
-        [Fact]
         public async Task PropertiesInRecursivePattern_NestedInProperty()
         {
             var markup =
@@ -563,6 +542,29 @@ public class Program
     }
 
     public void Deconstruct(out Program x, out Program y) => throw null;
+}
+";
+            // PROTOTYPE(patterns2): Like for typing arguments in methods, we should fall back to best overload resolution candidate
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
+        public async Task PropertiesInRecursivePattern_InPositional_Incomplete_WithTwoTypes()
+        {
+            var markup =
+@"
+public class Program
+{
+    void M()
+    {
+        _ = this is ({ $$ }) // no deconstruction into 1 element
+    }
+
+    public void Deconstruct(out D x, out Program y) => throw null;
+}
+public class D
+{
+    public int P2 { get; set; }
 }
 ";
             // PROTOTYPE(patterns2): Like for typing arguments in methods, we should fall back to best overload resolution candidate

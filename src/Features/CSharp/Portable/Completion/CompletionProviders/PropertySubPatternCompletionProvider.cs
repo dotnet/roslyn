@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,24 +16,24 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class PropertySubPatternCompletionProvider : CommonCompletionProvider
+    internal class PropertySubpatternCompletionProvider : CommonCompletionProvider
     {
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
-            var workspace = document.Project.Solution.Workspace;
-            var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, length: 0), cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-            var token = TryGetOpenBraceOrCommaInPropertyPattern(document, semanticModel, position, cancellationToken);
+            var token = TryGetOpenBraceOrCommaInPropertySubpattern(tree, position, cancellationToken);
             if (token == default)
             {
                 return;
             }
 
+            var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, length: 0), cancellationToken).ConfigureAwait(false);
             var pattern = (PatternSyntax)token.Parent.Parent;
-            var type = semanticModel.GetTypeInfo(pattern).ConvertedType;
+            var type = semanticModel.GetTypeInfo(pattern, cancellationToken).ConvertedType;
             if (type == null)
             {
                 return;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 !m.IsImplicitlyDeclared);
 
             // Filter out those members that have already been typed
-            var alreadyTestedMembers = GetTestedMembers(semanticModel.SyntaxTree, position, cancellationToken);
+            var alreadyTestedMembers = GetTestedMembers((PropertySubpatternSyntax)token.Parent);
             var untestedMembers = members.Where(m => !alreadyTestedMembers.Contains(m.Name) &&
                 m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
 
@@ -83,10 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
 
-        private static SyntaxToken TryGetOpenBraceOrCommaInPropertyPattern(
-            Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private static SyntaxToken TryGetOpenBraceOrCommaInPropertySubpattern(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {
-            var tree = semanticModel.SyntaxTree;
             if (tree.IsInNonUserCode(position, cancellationToken))
             {
                 return default;
@@ -100,26 +99,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return default;
             }
 
-            return (token.Parent.IsKind(SyntaxKind.PropertySubpattern) == true) ? token : default;
+            return token.Parent.IsKind(SyntaxKind.PropertySubpattern) ? token : default;
         }
 
         // List the members that are already tested in this property sub-pattern
-        private static HashSet<string> GetTestedMembers(SyntaxTree tree, int position, CancellationToken cancellationToken)
+        private static HashSet<string> GetTestedMembers(PropertySubpatternSyntax propertySubpattern)
         {
-            var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
-                .GetPreviousTokenIfTouchingWord(position);
-
-            // We should have gotten back a { or ,
-            if (token.IsKind(SyntaxKind.CommaToken, SyntaxKind.OpenBraceToken))
-            {
-                if (token.Parent is PropertySubpatternSyntax subpattern)
-                {
-                    return new HashSet<string>(subpattern.SubPatterns.Select(
-                        p => p.NameColon?.Name?.Identifier.ValueText).Where(s => !string.IsNullOrEmpty(s)));
-                }
-            }
-
-            return new HashSet<string>();
+            return new HashSet<string>(propertySubpattern.SubPatterns.Select(
+                p => p.NameColon?.Name.Identifier.ValueText).Where(s => !string.IsNullOrEmpty(s)));
         }
     }
 }
