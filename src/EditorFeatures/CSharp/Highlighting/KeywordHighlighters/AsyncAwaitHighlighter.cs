@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,9 +11,20 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters
 {
-    internal abstract class AbstractAsyncHighlighter<TNode> : AbstractKeywordHighlighter<TNode> where TNode : SyntaxNode
+    [ExportHighlighter(LanguageNames.CSharp)]
+    internal class AsyncAwaitHighlighter : AbstractKeywordHighlighter
     {
-        protected void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans)
+        protected override bool IsHighlightableNode(SyntaxNode node)
+            => node.IsReturnableConstruct();
+
+        protected override IEnumerable<TextSpan> GetHighlightsForNode(SyntaxNode node, CancellationToken cancellationToken)
+        {
+            var spans = new List<TextSpan>();
+            HighlightRelatedKeywords(node, spans);
+            return spans;
+        }
+
+        private static void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans)
         {
             // Highlight async keyword
             switch (node)

@@ -3906,8 +3906,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
-        <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="translated">'Element „{0}” nie zawiera definicji „{1}”, a nie odnaleziono metody rozszerzenia „{1}”, która przyjmuje pierwszy argument typu „{0}” (czy nie brakuje dyrektywy using lub odwołania do zestawu?).</target>
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="needs-review-translation">'Element „{0}” nie zawiera definicji „{1}”, a nie odnaleziono metody rozszerzenia „{1}”, która przyjmuje pierwszy argument typu „{0}” (czy nie brakuje dyrektywy using lub odwołania do zestawu?).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">

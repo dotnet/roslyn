@@ -577,6 +577,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // the parent is the member
                 // the grandparent is the container of the member
                 var container = token.Parent.GetParent();
+
+                // ref $$
+                // readonly ref $$
+                if (container.IsKind(SyntaxKind.IncompleteMember))
+                {
+                    return ((IncompleteMemberSyntax)container).Type.IsKind(SyntaxKind.RefType);
+                }
+
                 if (container.IsKind(SyntaxKind.CompilationUnit) ||
                     container.IsKind(SyntaxKind.NamespaceDeclaration) ||
                     container.IsKind(SyntaxKind.ClassDeclaration) ||

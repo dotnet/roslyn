@@ -289,23 +289,5 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 ? SyntaxFacts.IsPredefinedType(predefinedType.Keyword.Kind())
                 : false;
         }
-
-        /// <summary>
-        /// Return type syntax following code style options for the given type
-        /// </summary>
-        public static TypeSyntax GetTypeExpression(
-            this SyntaxGenerator generator, OptionSet options, ITypeSymbol type)
-        {
-            // types are not apparent in foreach statements.
-            var isBuiltInTypeContext = IsBuiltInType(type);
-            if (IsImplicitStylePreferred(options, isBuiltInTypeContext, isTypeApparentContext: false))
-            {
-                return SyntaxFactory.IdentifierName("var");
-            }
-            else
-            {
-                return type.GenerateTypeSyntax(allowVar: false);
-            }
-        }
     }
 }

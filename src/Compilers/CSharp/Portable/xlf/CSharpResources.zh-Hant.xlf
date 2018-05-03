@@ -3906,8 +3906,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
-        <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="translated">'{0}' 未包含 '{1}' 的定義，也找不到擴充方法 '{1}' 可接受類型 '{0}' 的第一個引數 (是否遺漏 using 指示詞或組件參考?)</target>
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="needs-review-translation">'{0}' 未包含 '{1}' 的定義，也找不到擴充方法 '{1}' 可接受類型 '{0}' 的第一個引數 (是否遺漏 using 指示詞或組件參考?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">

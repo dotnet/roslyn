@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExplicitType
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
-    public class UseExplicitTypeTests : AbstractCSharpCodeActionTest
+    public class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new UseExplicitTypeCodeRefactoringProvider();
@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExp
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
-
 
         [Fact]
         public async Task TestIntLocalDeclaration()

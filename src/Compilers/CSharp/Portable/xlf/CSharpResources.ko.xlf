@@ -3906,8 +3906,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
-        <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="translated">'{0}'에는 '{1}'에 대한 정의가 포함되어 있지 않고, '{0}' 형식의 첫 번째 인수를 허용하는 확장 메서드 '{1}'이(가) 없습니다. using 지시문 또는 어셈블리 참조가 있는지 확인하세요.</target>
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="needs-review-translation">'{0}'에는 '{1}'에 대한 정의가 포함되어 있지 않고, '{0}' 형식의 첫 번째 인수를 허용하는 확장 메서드 '{1}'이(가) 없습니다. using 지시문 또는 어셈블리 참조가 있는지 확인하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DeclarationInfoTests
         protected CSharpTestWorkspaceFixture fixture = new CSharpTestWorkspaceFixture();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void AfterTypeInClass1()
+        public async Task AfterTypeInClass1()
         {
             var markup = @"
 class C
@@ -31,7 +31,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void AfterTypeInClassWithAccessibility()
+        public async Task AfterTypeInClassWithAccessibility()
         {
             var markup = @"
 class C
@@ -46,7 +46,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void AfterTypeInClassVirtual()
+        public async Task AfterTypeInClassVirtual()
         {
             var markup = @"
 class C
@@ -61,7 +61,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void AfterTypeInClassStatic()
+        public async Task AfterTypeInClassStatic()
         {
             var markup = @"
 class C
@@ -76,7 +76,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void AfterTypeInClassConst()
+        public async Task AfterTypeInClassConst()
         {
             var markup = @"
 class C
@@ -91,7 +91,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void VariableDeclaration1()
+        public async Task VariableDeclaration1()
         {
             var markup = @"
 class C
@@ -109,7 +109,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void VariableDeclaration2()
+        public async Task VariableDeclaration2()
         {
             var markup = @"
 class C
@@ -127,7 +127,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ReadonlyVariableDeclaration1()
+        public async Task ReadonlyVariableDeclaration1()
         {
             var markup = @"
 class C
@@ -145,7 +145,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ReadonlyVariableDeclaration2()
+        public async Task ReadonlyVariableDeclaration2()
         {
             var markup = @"
 class C
@@ -163,7 +163,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void UsingVariableDeclaration1()
+        public async Task UsingVariableDeclaration1()
         {
             var markup = @"
 class C
@@ -181,7 +181,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void UsingVariableDeclaration2()
+        public async Task UsingVariableDeclaration2()
         {
             var markup = @"
 class C
@@ -199,7 +199,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ForVariableDeclaration1()
+        public async Task ForVariableDeclaration1()
         {
             var markup = @"
 class C
@@ -217,7 +217,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ForVariableDeclaration2()
+        public async Task ForVariableDeclaration2()
         {
             var markup = @"
 class C
@@ -235,7 +235,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ForEachVariableDeclaration()
+        public async Task ForEachVariableDeclaration()
         {
             var markup = @"
 class C
@@ -253,7 +253,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void Parameter1()
+        public async Task Parameter1()
         {
             var markup = @"
 class C
@@ -269,7 +269,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void Parameter2()
+        public async Task Parameter2()
         {
             var markup = @"
 class C
@@ -285,7 +285,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ParameterAfterPredefinedType1()
+        public async Task ParameterAfterPredefinedType1()
         {
             var markup = @"
 class C
@@ -301,7 +301,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ParameterAfterPredefinedType2()
+        public async Task ParameterAfterPredefinedType2()
         {
             var markup = @"
 class C
@@ -317,7 +317,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ParameterAfterGeneric()
+        public async Task ParameterAfterGeneric()
         {
             var markup = @"
 using System.Collections.Generic;
@@ -334,7 +334,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ClassTypeParameter1()
+        public async Task ClassTypeParameter1()
         {
             var markup = @"
 class C<$$
@@ -345,7 +345,7 @@ class C<$$
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ClassTypeParameter2()
+        public async Task ClassTypeParameter2()
         {
             var markup = @"
 class C<T1, $$
@@ -356,7 +356,7 @@ class C<T1, $$
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ModifierExclusion1()
+        public async Task ModifierExclusion1()
         {
             var markup = @"
 class C
@@ -368,7 +368,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ModifierExclusion2()
+        public async Task ModifierExclusion2()
         {
             var markup = @"
 class C
@@ -380,7 +380,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ModifierExclusion3()
+        public async Task ModifierExclusion3()
         {
             var markup = @"
 class C
@@ -392,7 +392,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ModifierExclusion4()
+        public async Task ModifierExclusion4()
         {
             var markup = @"
 class C
@@ -404,7 +404,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ModifierExclusion5()
+        public async Task ModifierExclusion5()
         {
             var markup = @"
 class C
@@ -416,7 +416,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ModifierExclusion6()
+        public async Task ModifierExclusion6()
         {
             var markup = @"
 class C
@@ -428,7 +428,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ModifierExclusion7()
+        public async Task ModifierExclusion7()
         {
             var markup = @"
 class C
@@ -440,7 +440,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void ModifierExclusion8()
+        public async Task ModifierExclusion8()
         {
             // Note that the async is not included in the incomplete member syntax
             var markup = @"
@@ -453,7 +453,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void LocalInsideMethod1()
+        public async Task LocalInsideMethod1()
         {
             var markup = @"
 namespace ConsoleApp1
@@ -471,7 +471,7 @@ namespace ConsoleApp1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void LocalInsideMethod2()
+        public async Task LocalInsideMethod2()
         {
             var markup = @"
 namespace ConsoleApp1
@@ -489,7 +489,7 @@ namespace ConsoleApp1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void LocalInsideMethodAfterPredefinedTypeKeyword()
+        public async Task LocalInsideMethodAfterPredefinedTypeKeyword()
         {
             var markup = @"
 namespace ConsoleApp1
@@ -507,7 +507,7 @@ namespace ConsoleApp1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void LocalInsideMethodAfterArray()
+        public async Task LocalInsideMethodAfterArray()
         {
             var markup = @"
 namespace ConsoleApp1

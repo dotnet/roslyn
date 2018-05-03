@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -44,25 +45,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression;
         }
 
-        public static ExpressionSyntax Parenthesize(this ExpressionSyntax expression, bool includeElasticTrivia = true)
+        public static ExpressionSyntax Parenthesize(
+            this ExpressionSyntax expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         {
-            if (includeElasticTrivia)
-            {
-                return SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia())
-                                    .WithTriviaFrom(expression)
-                                    .WithAdditionalAnnotations(Simplifier.Annotation);
-            }
-            else
-            {
-                return SyntaxFactory.ParenthesizedExpression
-                (
+            var result = ParenthesizeWorker(expression, includeElasticTrivia);
+            return addSimplifierAnnotation
+                ? result.WithAdditionalAnnotations(Simplifier.Annotation)
+                : result;
+        }
+
+        private static ExpressionSyntax ParenthesizeWorker(
+            this ExpressionSyntax expression, bool includeElasticTrivia)
+        {
+            var withoutTrivia = expression.WithoutTrivia();
+            var parenthesized = includeElasticTrivia
+                ? SyntaxFactory.ParenthesizedExpression(withoutTrivia)
+                : SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
-                    expression.WithoutTrivia(),
-                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty)
-                )
-                .WithTriviaFrom(expression)
-                .WithAdditionalAnnotations(Simplifier.Annotation);
-            }
+                    withoutTrivia,
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
+
+            return parenthesized.WithTriviaFrom(expression);
         }
 
         public static CastExpressionSyntax Cast(
@@ -325,12 +328,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInInContext(this ExpressionSyntax expression)
             => (expression?.Parent as ArgumentSyntax)?.RefKindKeyword.Kind() == SyntaxKind.InKeyword;
 
-        public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
+        private static ExpressionSyntax GetExpressionToAnalyzeForWrites(ExpressionSyntax expression)
         {
             if (expression.IsRightSideOfDotOrArrow())
             {
                 expression = expression.Parent as ExpressionSyntax;
             }
+
+            expression = expression.WalkUpParentheses();
+
+            return expression;
+        }
+
+        public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
+        {
+            expression = GetExpressionToAnalyzeForWrites(expression);
 
             if (expression != null)
             {
@@ -351,27 +363,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         return true;
                     }
                 }
+
+                if (IsExpressionOfArgumentInDeconstruction(expression))
+                {
+                    return true;
+                }
             }
 
             return false;
         }
 
-        public static bool IsAttributeNamedArgumentIdentifier(this ExpressionSyntax expression)
+        /// <summary>
+        /// If this declaration or identifier is part of a deconstruction, find the deconstruction.
+        /// If found, returns either an assignment expression or a foreach variable statement.
+        /// Returns null otherwise.
+        /// 
+        /// copied from SyntaxExtensions.GetContainingDeconstruction
+        /// </summary>
+        private static bool IsExpressionOfArgumentInDeconstruction(ExpressionSyntax expr)
         {
-            var nameEquals = expression?.Parent as NameEqualsSyntax;
-            return nameEquals.IsParentKind(SyntaxKind.AttributeArgument);
+            if (!expr.IsParentKind(SyntaxKind.Argument))
+            {
+                return false;
+            }
+
+            while (true)
+            {
+                var parent = expr.Parent;
+                if (parent == null)
+                {
+                    return false;
+                }
+
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.Argument:
+                        if (parent.Parent?.Kind() == SyntaxKind.TupleExpression)
+                        {
+                            expr = (TupleExpressionSyntax)parent.Parent;
+                            continue;
+                        }
+
+                        return false;
+                    case SyntaxKind.SimpleAssignmentExpression:
+                        if (((AssignmentExpressionSyntax)parent).Left == expr)
+                        {
+                            return true;
+                        }
+
+                        return false;
+                    case SyntaxKind.ForEachVariableStatement:
+                        if (((ForEachVariableStatementSyntax)parent).Variable == expr)
+                        {
+                            return true;
+                        }
+
+                        return false;
+
+                    default:
+                        return false;
+                }
+            }
         }
 
         public static bool IsWrittenTo(this ExpressionSyntax expression)
         {
+            expression = GetExpressionToAnalyzeForWrites(expression);
+
             if (expression.IsOnlyWrittenTo())
             {
                 return true;
-            }
-
-            if (expression.IsRightSideOfDotOrArrow())
-            {
-                expression = expression.Parent as ExpressionSyntax;
             }
 
             if (expression.IsInRefContext())
@@ -391,6 +452,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsAttributeNamedArgumentIdentifier(this ExpressionSyntax expression)
+        {
+            var nameEquals = expression?.Parent as NameEqualsSyntax;
+            return nameEquals.IsParentKind(SyntaxKind.AttributeArgument);
         }
 
         public static bool IsOperandOfIncrementOrDecrementExpression(this ExpressionSyntax expression)
@@ -2556,6 +2623,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.CheckedExpression:
                 case SyntaxKind.UncheckedExpression:
                 case SyntaxKind.AnonymousMethodExpression:
+                // unsafe code
+                case SyntaxKind.SizeOfExpression:
+                case SyntaxKind.PointerMemberAccessExpression:
                     // From C# spec, 7.3.1:
                     // Primary: x.y  x?.y  x?[y]  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate
 
@@ -2569,6 +2639,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.PreDecrementExpression:
                 case SyntaxKind.CastExpression:
                 case SyntaxKind.AwaitExpression:
+                // unsafe code.
+                case SyntaxKind.PointerIndirectionExpression:
+                case SyntaxKind.AddressOfExpression:
+
                     // From C# spec, 7.3.1:
                     // Unary: +  -  !  ~  ++x  --x  (T)x  await Task
 
