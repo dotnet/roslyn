@@ -102,7 +102,7 @@ namespace RunTests
                 Logger.Log($"Create xunit process with id {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName}");
 
                 // Now that xunit is running we should kick off a procDump process if it was specified
-                if (_options.ProcDumpInfo != null)
+                if (_options.ProcDumpInfo != null && assemblyInfo.AssemblyPath.IndexOf("ExpressionEval", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     var procDumpInfo = _options.ProcDumpInfo.Value;
                     var procDumpStartInfo = ProcessRunner.CreateProcessStartInfo(
