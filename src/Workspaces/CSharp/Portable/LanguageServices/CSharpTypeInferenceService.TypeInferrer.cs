@@ -1460,35 +1460,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (child == subpatternElement.Pattern &&
                     subpatternElement.NameColon.Name is IdentifierNameSyntax identifier)
                 {
-                    var parentTypes = this.InferTypes(subpatternElement);
-                    var memberTypes = 
-                        parentTypes.SelectMany(ti => GetMemberReturnTypes(ti.InferredType, identifier.Identifier.ValueText))
-                                   .SelectAsArray(t => new TypeInferenceInfo(t));
+                    var result = ArrayBuilder<TypeInferenceInfo>.GetInstance();
 
-                    return memberTypes;
+                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpatternElement.NameColon.Name).GetAllSymbols())
+                    {
+                        switch (symbol)
+                        {
+                            case IFieldSymbol field:
+                                result.Add(new TypeInferenceInfo(field.Type));
+                                break;
+                            case IPropertySymbol property:
+                                result.Add(new TypeInferenceInfo(property.Type));
+                                break;
+                        }
+                    }
+
+                    return result.ToImmutableAndFree();
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-            }
-
-            private ImmutableArray<ITypeSymbol> GetMemberReturnTypes(ITypeSymbol type, string memberName)
-            {
-                var result = ArrayBuilder<ITypeSymbol>.GetInstance();
-                var members = type.GetMembers(memberName);
-                foreach (var member in members)
-                {
-                    switch (member)
-                    {
-                        case IFieldSymbol field:
-                            result.Add(field.Type);
-                            continue;
-                        case IPropertySymbol property:
-                            result.Add(property.Type);
-                            continue;
-                    }
-                }
-
-                return result.ToImmutableAndFree();
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInIsPatternExpression(
