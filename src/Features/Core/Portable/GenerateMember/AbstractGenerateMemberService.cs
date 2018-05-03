@@ -181,8 +181,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
             var semanticInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 
-            typeToGenerateIn = typeInfo.Type is ITypeParameterSymbol
-                ? ((ITypeParameterSymbol)typeInfo.Type).GetNamedTypeSymbolConstraint()
+            typeToGenerateIn = typeInfo.Type is ITypeParameterSymbol typeParameter
+                ? typeParameter.GetNamedTypeSymbolConstraint()
                 : typeInfo.Type as INamedTypeSymbol;
 
             isStatic = semanticInfo.Symbol is INamedTypeSymbol;
