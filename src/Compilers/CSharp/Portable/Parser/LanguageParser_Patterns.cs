@@ -674,7 +674,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             // PROTOTYPE(patterns2): Error recovery here leaves much to be desired.
             var arms = _pool.AllocateSeparated<SwitchExpressionArmSyntax>();
-            do
+
+            while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
                 // Use a precedence that excludes lambdas, assignments, and a ternary which could have a
                 // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
@@ -701,7 +702,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
                 }
             }
-            while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken);
 
             SeparatedSyntaxList<SwitchExpressionArmSyntax> result = arms;
             _pool.Free(arms);
