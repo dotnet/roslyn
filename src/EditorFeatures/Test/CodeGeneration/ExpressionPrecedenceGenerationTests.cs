@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
     [Trait(Traits.Feature, Traits.Features.CodeGeneration)]
     public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
     {
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestAddMultiplyPrecedence1()
         {
             Test(
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "(1 + 2) * 3");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestAddMultiplyPrecedence2()
         {
             Test(
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "1 * 2 + 3");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestAddMultiplyPrecedence3()
         {
             Test(
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "1 * (2 + 3)");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestAddMultiplyPrecedence4()
         {
             Test(
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "1 + 2 * 3");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestBitwiseAndOrPrecedence1()
         {
             Test(
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "(1 Or 2) And 3");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestBitwiseAndOrPrecedence2()
         {
             Test(
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "1 And 2 Or 3");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestBitwiseAndOrPrecedence3()
         {
             Test(
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "1 And (2 Or 3)");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestBitwiseAndOrPrecedence4()
         {
             Test(
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "1 Or 2 And 3");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestLogicalAndOrPrecedence1()
         {
             Test(
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "(1 OrElse 2) AndAlso 3");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestLogicalAndOrPrecedence2()
         {
             Test(
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "1 AndAlso 2 OrElse 3");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestLogicalAndOrPrecedence3()
         {
             Test(
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "1 AndAlso (2 OrElse 3)");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestLogicalAndOrPrecedence4()
         {
             Test(
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "1 OrElse 2 AndAlso 3");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestMemberAccessOffOfAdd1()
         {
             Test(
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "(1 + 2).M");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestConditionalExpression1()
         {
             Test(
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: null);
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestConditionalExpression2()
         {
             Test(
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: null);
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestMemberAccessOffOfElementAccess()
         {
             Test(
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "(1 + 2)(M)");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestMemberAccessOffOfIsExpression()
         {
             Test(
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "(TypeOf a Is SomeType).M");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestIsOfMemberAccessExpression()
         {
             Test(
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "TypeOf a.M Is SomeType");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestMemberAccessOffOfAsExpression()
         {
             Test(
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "TryCast(a, SomeType).M");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestAsOfMemberAccessExpression()
         {
             Test(
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "TryCast(a.M, SomeType)");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestMemberAccessOffOfNotExpression()
         {
             Test(
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "(Not a).M");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestNotOfMemberAccessExpression()
         {
             Test(
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "Not a.M");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestMemberAccessOffOfCastExpression()
         {
             Test(
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "DirectCast(a, SomeType).M");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestCastOfAddExpression()
         {
             Test(
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "DirectCast(a + b, SomeType)");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestNegateOfAddExpression()
         {
             Test(
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "-(a + b)");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestMemberAccessOffOfNegate()
         {
             Test(
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 vb: "(-a).M");
         }
 
-        [Fact(Skip = "parens")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26586")]
         public void TestNegateOfMemberAccess()
         {
             Test(f =>
