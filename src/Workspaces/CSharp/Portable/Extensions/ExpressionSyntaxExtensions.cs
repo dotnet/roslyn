@@ -310,7 +310,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            // TODO(cyrusn): Add more cases.
+            // note: the above list is not intended to be exhaustive.  If more cases
+            // are discovered that should be considered 'constant' contexts in the 
+            // language, then this should be updated accordingly.
             return false;
         }
 
