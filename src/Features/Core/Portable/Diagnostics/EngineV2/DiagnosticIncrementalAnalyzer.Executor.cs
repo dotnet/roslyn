@@ -107,9 +107,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                         var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
 
-                        // we can't return here if we have open file only analyzers sine saved data for open file only analyzer
-                        // is wrong. (since it only contains info on open files rather than whole project)
-                        if (existingData.Version == version && !analyzerDriverOpt.ContainsOpenFileOnlyAnalyzers(project.Solution.Workspace))
+                        if (existingData.Version == version)
                         {
                             return existingData;
                         }
@@ -298,15 +296,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 foreach (var analyzer in existingAnalyzers)
                 {
                     if (existing.TryGetValue(analyzer, out var analysisResult) &&
-                        analysisResult.Version == version &&
-                        !analyzer.IsOpenFileOnly(project.Solution.Workspace))
+                        analysisResult.Version == version)
                     {
                         // we already have up to date result.
                         continue;
                     }
 
                     // analyzer that is out of date.
-                    // open file only analyzer is always out of date for project wide data
                     builder.Add(analyzer);
                 }
 

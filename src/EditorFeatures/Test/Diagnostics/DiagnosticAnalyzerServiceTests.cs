@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private class OpenFileOnlyAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
         {
-            internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+            internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Hidden, isEnabledByDefault: true, customTags: new[] { WellKnownDiagnosticTags.NotConfigurable });
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_syntaxRule);
 
@@ -430,11 +430,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             {
                 return DiagnosticAnalyzerCategory.SyntaxAnalysis;
-            }
-
-            public bool OpenFileOnly(Workspace workspace)
-            {
-                return true;
             }
         }
 

@@ -78,13 +78,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project).ToList();
 
-                // PERF: get analyzers that are not suppressed and marked as open file only
+                // PERF: get analyzers that are not suppressed
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
-                                        .Where(a => !Owner.IsAnalyzerSuppressed(a, project) &&
-                                                    !a.IsOpenFileOnly(project.Solution.Workspace));
+                                        .Where(a => !Owner.IsAnalyzerSuppressed(a, project));
 
                 // get driver only with active analyzers.
                 var includeSuppressedDiagnostics = true;

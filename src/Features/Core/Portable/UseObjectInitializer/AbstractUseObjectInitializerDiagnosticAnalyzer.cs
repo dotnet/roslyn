@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
     {
         protected abstract bool FadeOutOperatorToken { get; }
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_object_initialization), FeaturesResources.ResourceManager, typeof(FeaturesResources)),

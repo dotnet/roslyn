@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
@@ -18,8 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 

@@ -66,20 +66,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
                 }
 
-                // due to OpenFileOnly analyzer, we need to run inproc as well for such analyzers
-                var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.IsOpenFileOnly(project.Solution.Workspace)), project, remoteHostClient, cancellationToken);
-                var outOfProcResultTask = AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, forcedAnalysis, cancellationToken);
-
-                // run them concurrently in vs and remote host
-                await Task.WhenAll(inProcResultTask, outOfProcResultTask).ConfigureAwait(false);
+                var outOfProcResult = await AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, forcedAnalysis, cancellationToken).ConfigureAwait(false);
 
                 // make sure things are not cancelled
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // merge 2 results
-                return DiagnosticAnalysisResultMap.Create(
-                    inProcResultTask.Result.AnalysisResult.AddRange(outOfProcResultTask.Result.AnalysisResult),
-                    inProcResultTask.Result.TelemetryInfo.AddRange(outOfProcResultTask.Result.TelemetryInfo));
+                return outOfProcResult;
             }
 
             private Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
@@ -148,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analyzerMap = pooledObject.Object;
 
-                    analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.IsOpenFileOnly(project.Solution.Workspace)));
+                    analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers);
                     if (analyzerMap.Count == 0)
                     {
                         return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
@@ -180,18 +172,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return result;
                     }
                 }
-            }
-
-            private CompilationWithAnalyzers CreateAnalyzerDriver(CompilationWithAnalyzers analyzerDriver, Func<DiagnosticAnalyzer, bool> predicate)
-            {
-                var analyzers = analyzerDriver.Analyzers.Where(predicate).ToImmutableArray();
-                if (analyzers.Length == 0)
-                {
-                    // return null since we can't create CompilationWithAnalyzers with 0 analyzers
-                    return null;
-                }
-
-                return analyzerDriver.Compilation.WithAnalyzers(analyzers, analyzerDriver.AnalysisOptions);
             }
 
             private CustomAsset GetOptionsAsset(Solution solution, string language, CancellationToken cancellationToken)

@@ -52,35 +52,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
         }
 
-        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, Workspace workspace)
-        {
-            if (analyzer is IBuiltInAnalyzer builtInAnalyzer)
-            {
-                return builtInAnalyzer.OpenFileOnly(workspace);
-            }
-
-            return false;
-        }
-
-        public static bool ContainsOpenFileOnlyAnalyzers(this CompilationWithAnalyzers analyzerDriverOpt, Workspace workspace)
-        {
-            if (analyzerDriverOpt == null)
-            {
-                // not Roslyn. no open file only analyzers
-                return false;
-            }
-
-            foreach (var analyzer in analyzerDriverOpt.Analyzers)
-            {
-                if (analyzer.IsOpenFileOnly(workspace))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         public static bool HasNonHiddenDescriptor(this DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, Project project)
         {
             // most of analyzers, number of descriptor is quite small, so this should be cheap.
