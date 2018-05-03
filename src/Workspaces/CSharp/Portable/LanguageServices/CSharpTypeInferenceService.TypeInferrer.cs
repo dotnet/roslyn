@@ -1437,12 +1437,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // something like: { ... sub patterns ... } or like: Blah { ... sub patterns ... }
                 // in the latter case, we know the type, because it's explicitly stated.  In the former
                 // we have to walk higher to figure it out.
-                if (propertyPattern.Type != null)
-                {
-                    return GetTypes(propertyPattern.Type);
-                }
-
-                return InferTypes(propertyPattern);
+                var type = this.SemanticModel.GetTypeInfo(propertyPattern).ConvertedType;
+                return type == null
+                    ? SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>()
+                    : SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(type));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInPropertySubpattern(
