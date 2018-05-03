@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 // If we're in a type context then we shouldn't offer to generate a field or
                 // property.
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
                 if (syntaxFacts.IsInNamespaceOrTypeContext(this.SimpleNameOrMemberAccessExpressionOpt))
                 {
                     return false;
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 DetermineFieldType(document, cancellationToken);
 
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
                 this.IsInRefContext = semanticFacts.IsInRefContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 this.IsInInContext = semanticFacts.IsInInContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 this.IsInOutContext = semanticFacts.IsInOutContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);

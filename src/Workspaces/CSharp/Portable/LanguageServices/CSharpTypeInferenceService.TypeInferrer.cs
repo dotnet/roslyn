@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CheckedExpressionSyntax checkedExpression: return InferTypes(checkedExpression);
                     case ConditionalAccessExpressionSyntax conditionalAccessExpression: return InferTypeInConditionalAccessExpression(conditionalAccessExpression);
                     case ConditionalExpressionSyntax conditionalExpression: return InferTypeInConditionalExpression(conditionalExpression, expression);
+                    case ConstantPatternSyntax constantPattern: return InferTypeInConstantPattern(constantPattern);
                     case DoStatementSyntax doStatement: return InferTypeInDoStatement(doStatement);
                     case EqualsValueClauseSyntax equalsValue: return InferTypeInEqualsValueClause(equalsValue);
                     case ExpressionStatementSyntax expressionStatement: return InferTypeInExpressionStatement(expressionStatement);
@@ -1438,6 +1439,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return type == null
                     ? SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>()
                     : SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(type));
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInConstantPattern(
+                ConstantPatternSyntax constantPattern)
+            {
+                return InferTypes(constantPattern);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInPropertySubpattern(

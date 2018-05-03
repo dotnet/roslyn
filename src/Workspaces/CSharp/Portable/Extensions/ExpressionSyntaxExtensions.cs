@@ -305,6 +305,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            if (expression.IsParentKind(SyntaxKind.ConstantPattern))
+            {
+                return true;
+            }
+
             // TODO(cyrusn): Add more cases.
             return false;
         }

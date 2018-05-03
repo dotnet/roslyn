@@ -7852,5 +7852,41 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternGenerateConstant()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        _ = o switch { Blah { X: [|Y|] } => 0, _ => 0 };
+    }
+
+    class Blah
+    {
+        public int X;
+    }
+}",
+@"
+class C
+{
+    private const object Y;
+
+    void M2()
+    {
+        object o = null;
+        _ = o switch { Blah { X: Y } => 0, _ => 0 };
+    }
+
+    class Blah
+    {
+        public int X;
+    }
+}");
+        }
     }
 }
