@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -8,8 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PreferFrame
 {
     public partial class PreferFrameworkTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        private readonly string _fixAllActionId = FeaturesResources.Use_framework_type;
-
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
@@ -115,7 +114,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: _fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: PreferFrameworkTypeCodeFixProvider.DeclarationsEquivalenceKey);
         }
 
         [Fact]
@@ -223,7 +222,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: _fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: PreferFrameworkTypeCodeFixProvider.DeclarationsEquivalenceKey);
         }
 
         [Fact]
@@ -331,7 +330,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: _fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: PreferFrameworkTypeCodeFixProvider.DeclarationsEquivalenceKey);
         }
 
         [Fact]
@@ -474,7 +473,7 @@ class ProgramA3
         </Document>
     </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: _fixAllActionId);
+            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: PreferFrameworkTypeCodeFixProvider.MemberAccessEquivalenceKey);
         }
     }
 }

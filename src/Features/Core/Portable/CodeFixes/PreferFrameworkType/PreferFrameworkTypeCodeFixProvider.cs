@@ -17,15 +17,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
         Name = PredefinedCodeFixProviderNames.PreferFrameworkType), Shared]
     internal class PreferFrameworkTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        public const string EquivalenceKey = nameof(EquivalenceKey);
+        public const string DeclarationsEquivalenceKey = nameof(DeclarationsEquivalenceKey);
+        public const string MemberAccessEquivalenceKey = nameof(MemberAccessEquivalenceKey);
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.PreferFrameworkTypeDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
+            var diagnostic = context.Diagnostics[0];
+            var equivalenceKey = diagnostic.Properties[EquivalenceKey];
             context.RegisterCodeFix(
                 new PreferFrameworkTypeCodeAction(
-                    FeaturesResources.Use_framework_type,
-                    c => this.FixAsync(context.Document, context.Diagnostics[0], c)),
+                    c => this.FixAsync(context.Document, context.Diagnostics[0], c),
+                    equivalenceKey),
                 context.Diagnostics);
 
             return SpecializedTasks.EmptyTask;
@@ -52,10 +58,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
             }
         }
 
+        protected override bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic)
+            => diagnostic.Properties[EquivalenceKey] == state.CodeActionEquivalenceKey;
+
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+        {
+            return base.IncludeDiagnosticDuringFixAll(diagnostic);
+        }
+
         private class PreferFrameworkTypeCodeAction : CodeAction.DocumentChangeAction
         {
-            public PreferFrameworkTypeCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(title, createChangedDocument, equivalenceKey: title)
+            public PreferFrameworkTypeCodeAction(
+                Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(FeaturesResources.Use_framework_type, createChangedDocument, equivalenceKey)
             {
             }
         }

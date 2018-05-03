@@ -59,6 +59,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// those, but we'll only want perform an edit for only one diagnostic for each of those sets
         /// of diagnostics.
         /// </summary>
-        protected virtual bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic) => true;
+        protected virtual bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic)
+            => IncludeDiagnosticDuringFixAll(diagnostic);
+
+        protected virtual bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+            => true;
     }
 }
