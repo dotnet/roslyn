@@ -9,42 +9,47 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeFixProviderNames.PreferFrameworkType), Shared]
-    internal class PreferFrameworkTypeCodeFixProvider : CodeFixProvider
+    internal class PreferFrameworkTypeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
-                IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId,
-                IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId);
-
-        public override FixAllProvider GetFixAllProvider() => BatchFixAllProvider.Instance;
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(IDEDiagnosticIds.PreferFrameworkTypeDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
                 new PreferFrameworkTypeCodeAction(
                     FeaturesResources.Use_framework_type,
-                    c => CreateChangedDocumentAsync(context.Document, context.Span, c)),
+                    c => this.FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
 
             return SpecializedTasks.EmptyTask;
         }
 
-        private async Task<Document> CreateChangedDocumentAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(span, findInsideTrivia: true, getInnermostNodeForTie: true);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = document.GetLanguageService<SyntaxGenerator>();
-            var typeSymbol = (ITypeSymbol)semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
-            var replacementNode = generator.TypeExpression(typeSymbol).WithTriviaFrom(node);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            return document.WithSyntaxRoot(root.ReplaceNode(node, replacementNode));
+            foreach (var diagnostic in diagnostics)
+            {
+                var node = diagnostic.Location.FindNode(
+                    findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken);
+
+                var typeSymbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol as ITypeSymbol;
+                if (typeSymbol != null)
+                {
+                    var replacementNode = generator.TypeExpression(typeSymbol).WithTriviaFrom(node);
+                    editor.ReplaceNode(node, replacementNode);
+                }
+            }
         }
 
         private class PreferFrameworkTypeCodeAction : CodeAction.DocumentChangeAction
