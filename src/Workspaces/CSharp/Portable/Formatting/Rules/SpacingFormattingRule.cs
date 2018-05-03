@@ -337,6 +337,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
+            // Index expressions
+            if (previousKind == SyntaxKind.CaretToken && previousParentKind == SyntaxKind.IndexExpression)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+            }
+
+            // Right of Range expressions
+            if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.RangeExpression)
+            {
+                RangeExpressionSyntax rangeExpression = (RangeExpressionSyntax)previousToken.Parent;
+                if (rangeExpression.RightOperand != null)
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
+            // Left of Range expressions
+            if (currentKind == SyntaxKind.DotDotToken && currentParentKind == SyntaxKind.RangeExpression)
+            {
+                RangeExpressionSyntax rangeExpression = (RangeExpressionSyntax)currentToken.Parent;
+                if (rangeExpression.LeftOperand != null)
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
             return nextOperation.Invoke();
         }
 

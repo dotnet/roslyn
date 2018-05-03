@@ -3322,6 +3322,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     {
+                        // PROTOTYPE: should we return the methods we lower into for indexes and ranges?
+
                         var symbol = boundNode.ExpressionSymbol;
                         if ((object)symbol != null)
                         {

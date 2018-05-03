@@ -520,6 +520,11 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        public virtual void VisitIndexOperation(IIndexOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitRangeOperation(IRangeOperation operation)
         {
             DefaultVisit(operation);
@@ -1046,6 +1051,11 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitDiscardOperation(IDiscardOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitIndexOperation(IIndexOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

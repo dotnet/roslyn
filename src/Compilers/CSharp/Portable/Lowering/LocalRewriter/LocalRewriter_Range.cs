@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class LocalRewriter
     {
+        // PROTOTYPE: optimize for case where first operand is a conditional access
+
         public override BoundNode VisitRangeExpression(BoundRangeExpression node)
         {
             Debug.Assert(node != null);
@@ -119,9 +121,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression condition = null;
             foreach (var operand in operands)
             {
-                if (operand.Type.IsNullableType())
+                BoundExpression tempOperand = CaptureExpressionInTempIfNeeded(operand, sideeffects, locals);
+
+                if (tempOperand.Type.IsNullableType())
                 {
-                    BoundExpression tempOperand = CaptureExpressionInTempIfNeeded(operand, sideeffects, locals);
                     BoundExpression operandHasValue = MakeOptimizedHasValue(tempOperand.Syntax, tempOperand);
 
                     if (condition is null)
@@ -139,18 +142,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    arguments.Add(operand);
+                    arguments.Add(tempOperand);
                 }
             }
 
             Debug.Assert(condition != null);
 
             // method(left.GetValueOrDefault(), right.GetValueOrDefault())
-            BoundExpression rangeCall = MakeCall(syntax, rewrittenReceiver: null, method, arguments.ToImmutableAndFree(), type);
+            BoundExpression rangeCall = MakeCall(syntax, rewrittenReceiver: null, method, arguments.ToImmutableAndFree(), method.ReturnType);
 
             // new Nullable(method(left.GetValueOrDefault(), right.GetValueOrDefault()))
-            // PROTOTYPE: make sure this ctor exists in binding
-            MethodSymbol nullableCtor = (MethodSymbol)_compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor).SymbolAsMember((NamedTypeSymbol)type);
+            if (!TryGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
+            {
+                // PROTOTYPE: make sure this ctor exists in binding
+                return BadExpression(syntax, type, arguments.ToImmutableArray());
+            }
+
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, nullableCtor, binderOpt: null, rangeCall);
 
             // default
@@ -166,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenType: type,
                 isRef: false);
 
+            // PROTOTYPE: comment from AlekseyTS: Because of this, lifted range operators should probably be disallowed in an expression tree context.
             return new BoundSequence(
                 syntax: syntax,
                 locals: locals.ToImmutableAndFree(),
