@@ -5922,7 +5922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundStringInsert : BoundExpression
     {
-        public BoundStringInsert(SyntaxNode syntax, BoundExpression value, BoundExpression alignment, BoundExpression format, TypeSymbol type, bool hasErrors = false)
+        public BoundStringInsert(SyntaxNode syntax, BoundExpression value, BoundExpression alignment, BoundLiteral format, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.StringInsert, syntax, type, hasErrors || value.HasErrors() || alignment.HasErrors() || format.HasErrors())
         {
 
@@ -5938,14 +5938,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Alignment { get; }
 
-        public BoundExpression Format { get; }
+        public BoundLiteral Format { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitStringInsert(this);
         }
 
-        public BoundStringInsert Update(BoundExpression value, BoundExpression alignment, BoundExpression format, TypeSymbol type)
+        public BoundStringInsert Update(BoundExpression value, BoundExpression alignment, BoundLiteral format, TypeSymbol type)
         {
             if (value != this.Value || alignment != this.Alignment || format != this.Format || type != this.Type)
             {
@@ -9546,7 +9546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression value = (BoundExpression)this.Visit(node.Value);
             BoundExpression alignment = (BoundExpression)this.Visit(node.Alignment);
-            BoundExpression format = (BoundExpression)this.Visit(node.Format);
+            BoundLiteral format = (BoundLiteral)this.Visit(node.Format);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(value, alignment, format, type);
         }

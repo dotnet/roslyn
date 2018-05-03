@@ -1619,7 +1619,7 @@
   <Node Name="BoundStringInsert" Base="BoundExpression">
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Alignment" Type="BoundExpression" Null="allow"/>
-    <Field Name="Format" Type="BoundExpression" Null="allow"/>
+    <Field Name="Format" Type="BoundLiteral" Null="allow"/>
   </Node>
   
   <Node Name="BoundIsPatternExpression" Base="BoundExpression">

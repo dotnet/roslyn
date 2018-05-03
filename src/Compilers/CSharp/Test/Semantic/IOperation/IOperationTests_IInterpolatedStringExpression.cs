@@ -607,7 +607,7 @@ Block[B5] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void InterpolatedStringExpression_TextAndInterpolationParts_Flow()
+        public void InterpolatedStringExpression_MultipleInterpolationParts_Flow()
         {
             string source = @"
 using System;
@@ -616,7 +616,7 @@ internal class Class
 {
     public void M(bool a, string b, string c)
     /*<bind>*/{
-        b = $""String1 {(b = a ? b : c)} and String2 {(a ? b : c)}"";
+        b = $""{(a ? b : c)}{c}"";
     }/*</bind>*/
 }
 ";
@@ -626,12 +626,8 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (2)
+    Statements (1)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
-          Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
-
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
 
@@ -642,7 +638,7 @@ Block[B1] - Block
 Block[B2] - Block
     Predecessors: [B1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
 
@@ -650,7 +646,7 @@ Block[B2] - Block
 Block[B3] - Block
     Predecessors: [B1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c')
 
@@ -658,14 +654,88 @@ Block[B3] - Block
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b = a ? b : c')
-          Value: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'b = a ? b : c')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = $""{(a ? b : c)}{c}"";')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'b = $""{(a ? b : c)}{c}""')
               Left: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
               Right: 
-                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a ? b : c')
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{(a ? b : c)}{c}""')
+                  Parts(2):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{(a ? b : c)}')
+                        Expression: 
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a ? b : c')
+                        Alignment: 
+                          null
+                        FormatString: 
+                          null
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{c}')
+                        Expression: 
+                          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c')
+                        Alignment: 
+                          null
+                        FormatString: 
+                          null
 
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void InterpolatedStringExpression_TextAndInterpolationParts_Flow()
+        {
+            string source = @"
+using System;
+
+internal class Class
+{
+    public void M(bool a, string b, string c)
+    /*<bind>*/{
+        b = $""String1 {(a ? b : c)} and String2 {(a ? b : c)}"";
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (0)
     Jump if False (Regular) to Block[B6]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
@@ -673,7 +743,7 @@ Block[B4] - Block
 Block[B5] - Block
     Predecessors: [B4]
     Statements (1)
-        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
 
@@ -681,7 +751,7 @@ Block[B5] - Block
 Block[B6] - Block
     Predecessors: [B4]
     Statements (1)
-        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c')
 
@@ -700,9 +770,9 @@ Block[B7] - Block
                       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String1 ')
                         Text: 
                           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""String1 "", IsImplicit) (Syntax: 'String1 ')
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{(b = a ? b : c)}')
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{(a ? b : c)}')
                         Expression: 
-                          IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b = a ? b : c')
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a ? b : c')
                         Alignment: 
                           null
                         FormatString: 
@@ -712,7 +782,7 @@ Block[B7] - Block
                           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" and String2 "", IsImplicit) (Syntax: ' and String2 ')
                       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{(a ? b : c)}')
                         Expression: 
-                          IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a ? b : c')
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a ? b : c')
                         Alignment: 
                           null
                         FormatString: 
@@ -805,19 +875,17 @@ Block[B5] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void InterpolatedStringExpression_NestedInterpolation_Flow()
+        public void InterpolatedStringExpression_FormatAndAlignment_Flow_02()
         {
             string source = @"
 using System;
 
 internal class Class
 {
-    public void M(string a, int? b, int c)
+    public void M(bool a, string b, string c)
     /*<bind>*/{
-        a = $""{M2($""{b ?? c}"")}"";
+        b = $""{b,20:D3}{(a ? b : c)}"";
     }/*</bind>*/
-
-    private int M2(string z) => Int32.Parse(z);
 }
 ";
             string expectedFlowGraph = @"
@@ -827,22 +895,20 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (3)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
-            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.String) (Syntax: 'a')
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'M2')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
-            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Class, IsImplicit) (Syntax: 'M2')
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
 
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '20')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'b')
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
 
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'b')
-          Operand: 
-            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'b')
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
     Next (Regular) Block[B2]
 Block[B2] - Block
@@ -850,10 +916,7 @@ Block[B2] - Block
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
-            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'b')
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'b')
-              Arguments(0)
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
 
     Next (Regular) Block[B4]
 Block[B3] - Block
@@ -861,38 +924,30 @@ Block[B3] - Block
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
-            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c')
 
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = $""{M2($ ...  ?? c}"")}"";')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = $""{b,20 ... ? b : c)}"";')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'a = $""{M2($""{b ?? c}"")}""')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'b = $""{b,20 ...  ? b : c)}""')
               Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
               Right: 
-                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{M2($""{b ?? c}"")}""')
-                  Parts(1):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{M2($""{b ?? c}"")}')
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{b,20:D3} ...  ? b : c)}""')
+                  Parts(2):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{b,20:D3}')
                         Expression: 
-                          IInvocationOperation ( System.Int32 Class.M2(System.String z)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M2($""{b ?? c}"")')
-                            Instance Receiver: 
-                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: Class, IsImplicit) (Syntax: 'M2')
-                            Arguments(1):
-                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: null) (Syntax: '$""{b ?? c}""')
-                                  IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{b ?? c}""')
-                                    Parts(1):
-                                        IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{b ?? c}')
-                                          Expression: 
-                                            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b ?? c')
-                                          Alignment: 
-                                            null
-                                          FormatString: 
-                                            null
-                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
+                        Alignment: 
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 20, IsImplicit) (Syntax: '20')
+                        FormatString: 
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{(a ? b : c)}')
+                        Expression: 
+                          IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a ? b : c')
                         Alignment: 
                           null
                         FormatString: 
@@ -910,16 +965,16 @@ Block[B5] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void InterpolatedStringExpression_InvalidExpressionInInterpolation_Flow()
+        public void InterpolatedStringExpression_NestedInterpolation_Flow()
         {
             string source = @"
 using System;
 
 internal class Class
 {
-    public void M(string x)
+    public void M(string a, int? b, int c)
     /*<bind>*/{
-        x = $""{x1 ?? x}"";
+        a = $""{$""{b ?? c}""}"";
     }/*</bind>*/
 }
 ";
@@ -930,53 +985,61 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (2)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
           Value: 
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.String) (Syntax: 'a')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'x1')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
-            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x1')
-              Children(0)
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'b')
 
     Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x1')
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'b')
           Operand: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x1')
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'b')
 
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'x1')
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
           Value: 
-            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x1')
-              Children(1):
-                  IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x1')
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'b')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'b')
+              Arguments(0)
 
     Next (Regular) Block[B4]
 Block[B3] - Block
     Predecessors: [B1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
-            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
 
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = $""{x1 ?? x}"";')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = $""{$""{b ?? c}""}"";')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: 'x = $""{x1 ?? x}""')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: 'a = $""{$""{b ?? c}""}""')
               Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'x')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a')
               Right: 
-                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$""{x1 ?? x}""')
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{$""{b ?? c}""}""')
                   Parts(1):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{x1 ?? x}')
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{$""{b ?? c}""}')
                         Expression: 
-                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x1 ?? x')
+                          IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{b ?? c}""')
+                            Parts(1):
+                                IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{b ?? c}')
+                                  Expression: 
+                                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b ?? c')
+                                  Alignment: 
+                                    null
+                                  FormatString: 
+                                    null
                         Alignment: 
                           null
                         FormatString: 
@@ -987,27 +1050,23 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,16): error CS0103: The name 'x1' does not exist in the current context
-                //         x = $"{x1 ?? x}";
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 16)
-            };
+            var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void InterpolatedStringExpression_NonConstantExpressionInFormat_Flow()
+        public void InterpolatedStringExpression_ConditionalCodeInAlignment_Flow()
         {
             string source = @"
 using System;
 
 internal class Class
 {
-    public void M(bool a, string b, string c, int d)
+    public void M(bool a, int b, int c, string d)
     /*<bind>*/{
-        b = $""{(a ? b : c),d:D3}"";
+        d = $""{d,(a ? b : c)}"";
     }/*</bind>*/
 }
 ";
@@ -1017,49 +1076,53 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+            IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.String) (Syntax: 'd')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd')
+          Value: 
+            IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.String) (Syntax: 'd')
 
     Jump if False (Regular) to Block[B3]
-        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'a')
 
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
     Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'b')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'b')
 
     Next (Regular) Block[B4]
 Block[B3] - Block
     Predecessors: [B1]
     Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c')
           Value: 
-            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c')
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'c')
 
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'b = $""{(a ? ...  c),d:D3}"";')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'd = $""{d,(a ? b : c)}"";')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: 'b = $""{(a ? ... : c),d:D3}""')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: 'd = $""{d,(a ? b : c)}""')
               Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'd')
               Right: 
-                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$""{(a ? b : c),d:D3}""')
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$""{d,(a ? b : c)}""')
                   Parts(1):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{(a ? b : c),d:D3}')
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{d,(a ? b : c)}')
                         Expression: 
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'a ? b : c')
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'd')
                         Alignment: 
-                          IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'd')
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a ? b : c')
                         FormatString: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""D3"", IsInvalid) (Syntax: ':D3')
+                          null
 
     Next (Regular) Block[B5]
 Block[B5] - Exit
@@ -1067,9 +1130,96 @@ Block[B5] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,28): error CS0150: A constant value is expected
-                //         b = $"{(a ? b : c),d:D3}";
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "d").WithLocation(8, 28)
+                // file.cs(8,18): error CS0150: A constant value is expected
+                //         d = $"{d,(a ? b : c)}";
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(a ? b : c)").WithLocation(8, 18)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void InterpolatedStringExpression_ConditionalCodeInAlignment_Flow_02()
+        {
+            string source = @"
+using System;
+
+internal class Class
+{
+    public void M(bool a, string b, string c)
+    /*<bind>*/{
+        b = $""{c,(a ? b : c):D3}"";
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c')
+
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String, IsInvalid) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.String, IsInvalid) (Syntax: 'c')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'b = $""{c,(a ...  : c):D3}"";')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: 'b = $""{c,(a ... b : c):D3}""')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
+              Right: 
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$""{c,(a ? b : c):D3}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{c,(a ? b : c):D3}')
+                        Expression: 
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'c')
+                        Alignment: 
+                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a ? b : c')
+                            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              (NoConversion)
+                            Operand: 
+                              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'a ? b : c')
+                        FormatString: 
+                          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(8,19): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         b = $"{c,(a ? b : c):D3}";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "a ? b : c").WithArguments("string", "int").WithLocation(8, 19)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
