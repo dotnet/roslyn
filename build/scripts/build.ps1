@@ -640,9 +640,9 @@ function Ensure-ProcDump() {
 
     # Jenkins images default to having procdump installed in the root.  Use that if available to avoid
     # an unnecessary download.
-    if (Test-Path "c:\SysInternals\procdump.exe") {
-        return "c:\SysInternals";
-    }    
+    # if (Test-Path "c:\SysInternals\procdump.exe") {
+        # return "c:\SysInternals";
+    # }    
 
     $toolsDir = Join-Path $binariesDir "Tools"
     $outDir = Join-Path $toolsDir "ProcDump"
