@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitGotoStatement(node);
         }
 
-        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
+        protected override void VisitPatternSwitchSection(BoundSwitchSection node, bool isLastSection)
         {
             base.VisitPatternSwitchSection(node, isLastSection);
 

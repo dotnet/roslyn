@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract partial class PreciseAbstractFlowPass<LocalState>
     {
-        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
+        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             // visit switch header
             VisitRvalue(node.Expression);
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitPatternSwitchBlock(BoundPatternSwitchStatement node)
+        private void VisitPatternSwitchBlock(BoundSwitchStatement node)
         {
             var initialState = State.Clone();
             HashSet<LabelSymbol> reachableLabels = node.DecisionDag.ReachableLabels;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ResolveBreaks(afterSwitchState, node.BreakLabel);
         }
 
-        protected virtual void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
+        protected virtual void VisitPatternSwitchSection(BoundSwitchSection node, bool isLastSection)
         {
             SetState(UnreachableState());
             foreach (var label in node.SwitchLabels)

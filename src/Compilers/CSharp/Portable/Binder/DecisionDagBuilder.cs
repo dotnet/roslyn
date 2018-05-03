@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <see cref="BoundDecisionDagNode"/> for each of them, containing
     /// the state transitions (including the test to perform at each node and the successor nodes) but
     /// not the state descriptions. A <see cref="BoundDecisionDag"/> containing this
-    /// set of nodes becomes part of the bound nodes (e.g. in <see cref="BoundPatternSwitchStatement"/> and
+    /// set of nodes becomes part of the bound nodes (e.g. in <see cref="BoundSwitchStatement"/> and
     /// <see cref="BoundSwitchExpression"/>) and is used for semantic analysis and lowering.
     /// </para>
     /// </summary>
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             SyntaxNode syntax,
             BoundExpression switchGoverningExpression,
-            ImmutableArray<BoundPatternSwitchSection> switchSections,
+            ImmutableArray<BoundSwitchSection> switchSections,
             LabelSymbol defaultLabel,
             DiagnosticBag diagnostics)
         {
@@ -128,12 +128,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundDecisionDag CreateDecisionDagForSwitchStatement(
             SyntaxNode syntax,
             BoundExpression switchGoverningExpression,
-            ImmutableArray<BoundPatternSwitchSection> switchSections)
+            ImmutableArray<BoundSwitchSection> switchSections)
         {
             var rootIdentifier = new BoundDagTemp(switchGoverningExpression.Syntax, switchGoverningExpression.Type, source: null, index: 0);
             int i = 0;
             var builder = ArrayBuilder<RemainingTestsForCase>.GetInstance(switchSections.Length);
-            foreach (BoundPatternSwitchSection section in switchSections)
+            foreach (BoundSwitchSection section in switchSections)
             {
                 foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
                 {
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundDagTest> tests,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
-            Debug.Assert(input.Type.IsErrorType() || input.Type == recursive.InputType);
+            Debug.Assert(input.Type.IsErrorType() || recursive.InputType.IsErrorType() || input.Type == recursive.InputType);
             if (recursive.DeclaredType != null)
             {
                 input = MakeConvertToType(input, recursive.Syntax, recursive.DeclaredType.Type, tests);
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int count = Math.Min(method.ParameterCount - extensionExtra, recursive.Deconstruction.Length);
                     for (int i = 0; i < count; i++)
                     {
-                        BoundPattern pattern = recursive.Deconstruction[i];
+                        BoundPattern pattern = recursive.Deconstruction[i].Pattern;
                         SyntaxNode syntax = pattern.Syntax;
                         var output = new BoundDagTemp(syntax, method.Parameters[i + extensionExtra].Type, evaluation, i);
                         MakeTestsAndBindings(output, pattern, tests, bindings);
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int count = Math.Min(elementTypes.Length, recursive.Deconstruction.Length);
                     for (int i = 0; i < count; i++)
                     {
-                        BoundPattern pattern = recursive.Deconstruction[i];
+                        BoundPattern pattern = recursive.Deconstruction[i].Pattern;
                         SyntaxNode syntax = pattern.Syntax;
                         FieldSymbol field = elements[i];
                         var evaluation = new BoundDagFieldEvaluation(syntax, field, input); // fetch the ItemN field
@@ -454,21 +454,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (recursive.PropertiesOpt != null)
+            if (!recursive.PropertiesOpt.IsDefault)
             {
                 // we have a "property" form
                 for (int i = 0; i < recursive.PropertiesOpt.Length; i++)
                 {
-                    (Symbol symbol, BoundPattern pattern) prop = recursive.PropertiesOpt[i];
-                    Symbol symbol = prop.symbol;
+                    var subPattern = recursive.PropertiesOpt[i];
+                    Symbol symbol = subPattern.Symbol;
+                    BoundPattern pattern = subPattern.Pattern;
                     BoundDagEvaluation evaluation;
                     switch (symbol)
                     {
                         case PropertySymbol property:
-                            evaluation = new BoundDagPropertyEvaluation(prop.pattern.Syntax, property, input);
+                            evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, input);
                             break;
                         case FieldSymbol field:
-                            evaluation = new BoundDagFieldEvaluation(prop.pattern.Syntax, field, input);
+                            evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, input);
                             break;
                         default:
                             Debug.Assert(recursive.HasAnyErrors);
@@ -477,8 +478,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     tests.Add(evaluation);
-                    var output = new BoundDagTemp(prop.pattern.Syntax, prop.symbol.GetTypeOrReturnType(), evaluation, index: 0);
-                    MakeTestsAndBindings(output, prop.pattern, tests, bindings);
+                    var output = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType(), evaluation, index: 0);
+                    MakeTestsAndBindings(output, pattern, tests, bindings);
                 }
             }
 

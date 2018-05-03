@@ -848,9 +848,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             stateChangedAfterUse |= ResolveBranches(label.Label, label);
                         }
                         break;
-                    case BoundKind.PatternSwitchSection:
+                    case BoundKind.SwitchSection:
                         {
-                            var sec = (BoundPatternSwitchSection)node;
+                            var sec = (BoundSwitchSection)node;
                             foreach (var label in sec.SwitchLabels)
                             {
                                 stateChangedAfterUse |= ResolveBranches(label.Label, sec);

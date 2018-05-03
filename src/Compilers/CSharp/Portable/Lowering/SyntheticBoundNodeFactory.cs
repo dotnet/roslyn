@@ -965,9 +965,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundSequencePointWithSpan(syntax, statement, span);
         }
 
-        public BoundStatement HiddenSequencePoint()
+        public BoundStatement HiddenSequencePoint(BoundStatement statementOpt = null)
         {
-            return new BoundSequencePoint(null, null) { WasCompilerGenerated = true };
+            return new BoundSequencePoint(null, statementOpt) { WasCompilerGenerated = true };
         }
 
         public BoundStatement ThrowNull()

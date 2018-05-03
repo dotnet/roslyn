@@ -1911,5 +1911,177 @@ class Blah
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "1").WithArguments("C<T>", "int").WithLocation(5, 21)
                 );
         }
+
+        [Fact]
+        [WorkItem(20724, "https://github.com/dotnet/roslyn/issues/20724")]
+        public void SpeculateWithNameConflict01()
+        {
+            var source =
+@"public class Class1
+    {
+        int i = 1;
+
+        public override int GetHashCode() => 1;
+        public override bool Equals(object obj)
+        {
+            return obj is global::Class1 @class && this.i == @class.i;
+        }
+    }
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
+            var returnStatement = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single();
+            Assert.Equal("return obj is global::Class1 @class && this.i == @class.i;", returnStatement.ToString());
+            var modifiedReturnStatement = (ReturnStatementSyntax)new RemoveAliasQualifiers().Visit(returnStatement);
+            Assert.Equal("return obj is Class1 @class && this.i == @class.i;", modifiedReturnStatement.ToString());
+            var gotModel = model.TryGetSpeculativeSemanticModel(returnStatement.Location.SourceSpan.Start, modifiedReturnStatement, out var speculativeModel);
+            Assert.True(gotModel);
+            Assert.NotNull(speculativeModel);
+            var typeInfo = speculativeModel.GetTypeInfo(modifiedReturnStatement.Expression);
+            Assert.Equal(SpecialType.System_Boolean, typeInfo.Type.SpecialType);
+        }
+
+        /// <summary>
+        /// Helper class to remove alias qualifications.
+        /// </summary>
+        class RemoveAliasQualifiers : CSharpSyntaxRewriter
+        {
+            public override SyntaxNode VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
+            {
+                return node.Name;
+            }
+        }
+
+        [Fact]
+        [WorkItem(20724, "https://github.com/dotnet/roslyn/issues/20724")]
+        public void SpeculateWithNameConflict02()
+        {
+            var source =
+@"public class Class1
+    {
+        public override int GetHashCode() => 1;
+        public override bool Equals(object obj)
+        {
+            return obj is global::Class1 @class;
+        }
+    }
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
+            var returnStatement = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single();
+            Assert.Equal("return obj is global::Class1 @class;", returnStatement.ToString());
+            var modifiedReturnStatement = (ReturnStatementSyntax)new RemoveAliasQualifiers().Visit(returnStatement);
+            Assert.Equal("return obj is Class1 @class;", modifiedReturnStatement.ToString());
+            var gotModel = model.TryGetSpeculativeSemanticModel(returnStatement.Location.SourceSpan.Start, modifiedReturnStatement, out var speculativeModel);
+            Assert.True(gotModel);
+            Assert.NotNull(speculativeModel);
+            var typeInfo = speculativeModel.GetTypeInfo(modifiedReturnStatement.Expression);
+            Assert.Equal(SpecialType.System_Boolean, typeInfo.Type.SpecialType);
+        }
+
+        [Fact]
+        public void WrongArity()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Point p = new Point() { X = 3, Y = 4 };
+        if (p is Point())
+        {
+        }
+    }
+}
+
+class Point
+{
+    public int X, Y;
+    public void Deconstruct(out int X, out int Y) => (X, Y) = (this.X, this.Y);
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'X' of 'Point.Deconstruct(out int, out int)'
+                //         if (p is Point())
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Point()").WithArguments("X", "Point.Deconstruct(out int, out int)").WithLocation(6, 18),
+                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Point', with 0 out parameters and a void return type.
+                //         if (p is Point())
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "Point()").WithArguments("Point", "0").WithLocation(6, 18)
+                );
+        }
+
+        [Fact]
+        public void GetTypeInfo_01()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        object o = null;
+        Point p = null;
+        if (o is Point(3, string { Length: 2 })) { }
+        if (p is (_, { })) { }
+        if (p is Point({ }, { }, { })) { }
+        if (p is Point(, { })) { }
+    }
+}
+
+class Point
+{
+    public object X, Y;
+    public void Deconstruct(out object X, out object Y) => (X, Y) = (this.X, this.Y);
+    public Point(object X, object Y) => (this.X, this.Y) = (X, Y);
+}
+";
+            var expected = new[]
+            {
+                new { Source = "Point(3, string { Length: 2 })", Type = "System.Object", ConvertedType = "Point" },
+                new { Source = "3", Type = "System.Object", ConvertedType = "System.Int32" },
+                new { Source = "string { Length: 2 }", Type = "System.Object", ConvertedType = "System.String" },
+                new { Source = "2", Type = "System.Int32", ConvertedType = "System.Int32" },
+                new { Source = "(_, { })", Type = "Point", ConvertedType = "Point" },
+                new { Source = "_", Type = "System.Object", ConvertedType = "System.Object" },
+                new { Source = "{ }", Type = "System.Object", ConvertedType = "System.Object" },
+                new { Source = "Point({ }, { }, { })", Type = "Point", ConvertedType = "Point" },
+                new { Source = "{ }", Type = "?", ConvertedType = "?" },
+                new { Source = "{ }", Type = "?", ConvertedType = "?" },
+                new { Source = "{ }", Type = "?", ConvertedType = "?" },
+                new { Source = "Point(, { })", Type = "Point", ConvertedType = "Point" },
+                new { Source = "", Type = "System.Object", ConvertedType = "System.Object" },
+                new { Source = "{ }", Type = "System.Object", ConvertedType = "System.Object" },
+            };
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (10,24): error CS8400: Pattern missing
+                //         if (p is Point(, { })) { }
+                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(10, 24),
+                // (9,18): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
+                //         if (p is Point({ }, { }, { })) { }
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Point({ }, { }, { })").WithArguments("Deconstruct", "3").WithLocation(9, 18),
+                // (9,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Point', with 3 out parameters and a void return type.
+                //         if (p is Point({ }, { }, { })) { }
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "Point({ }, { }, { })").WithArguments("Point", "3").WithLocation(9, 18)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            int i = 0;
+            foreach (var pat in tree.GetRoot().DescendantNodesAndSelf().OfType<PatternSyntax>())
+            {
+                var typeInfo = model.GetTypeInfo(pat);
+                var ex = expected[i++];
+                Assert.Equal(ex.Source, pat.ToString());
+                Assert.Equal(ex.Type, typeInfo.Type.ToTestDisplayString());
+                Assert.Equal(ex.ConvertedType, typeInfo.ConvertedType.ToTestDisplayString());
+            }
+            Assert.Equal(expected.Length, i);
+        }
     }
 }

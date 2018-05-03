@@ -779,13 +779,13 @@
     <Field Name="Label" Type="GeneratedLabelSymbol" />
   </Node>
 
-  <Node Name="BoundPatternSwitchStatement" Base="BoundStatement">
+  <Node Name="BoundSwitchStatement" Base="BoundStatement">
     <Field Name="Expression" Type="BoundExpression"/>
 
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
-    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundPatternSwitchSection&gt;"/>
+    <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>
     <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="DefaultLabel" Type="BoundPatternSwitchLabel" Null="allow"/>
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
@@ -1178,7 +1178,7 @@
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundPatternSwitchSection" Base="BoundStatementList">
+  <Node Name="BoundSwitchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundPatternSwitchLabel&gt;"/>
   </Node>
@@ -1758,8 +1758,8 @@
   <Node Name="BoundRecursivePattern" Base="BoundPattern">
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="allow"/>
     <Field Name="DeconstructMethodOpt" Type="MethodSymbol" Null="allow"/>
-    <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPattern&gt;" Null="allow"/>
-    <Field Name="PropertiesOpt" Type="ImmutableArray&lt;(Symbol symbol, BoundPattern pattern)&gt;" Null="allow"/>
+    <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
+    <Field Name="PropertiesOpt" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
          a field that is a member of the script class. Variable is null if `_` is used or if the identifier is omitted. -->
     <Field Name="Variable" Type="Symbol" Null="allow"/>
@@ -1771,6 +1771,13 @@
          https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression" Null="allow"/>
+  </Node>
+
+  <!-- A subpattern, either in a positional or property part of a recursive pattern. -->
+  <Node Name="BoundSubpattern" Base="BoundNode">
+    <!-- The tuple element or parameter in a positional pattern, or the property or field in a property pattern. -->
+    <Field Name="Symbol" Type="Symbol" Null="allow"/>
+    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
   </Node>
 
   <Node Name="BoundDiscardExpression" Base="BoundExpression">

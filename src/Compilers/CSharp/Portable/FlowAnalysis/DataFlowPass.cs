@@ -1546,14 +1546,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (var subpat in pat.Deconstruction)
                             {
-                                AssignPatternVariables(subpat);
+                                AssignPatternVariables(subpat.Pattern);
                             }
                         }
                         if (!pat.PropertiesOpt.IsDefaultOrEmpty)
                         {
-                            foreach (var (_, subpat) in pat.PropertiesOpt)
+                            foreach (BoundSubpattern sub in pat.PropertiesOpt)
                             {
-                                AssignPatternVariables(subpat);
+                                AssignPatternVariables(sub.Pattern);
                             }
                         }
                         Assign(pat, null, false, false);
@@ -1614,16 +1614,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
+        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             DeclareVariables(node.InnerLocals);
-            var result = base.VisitPatternSwitchStatement(node);
+            var result = base.VisitSwitchStatement(node);
             ReportUnusedVariables(node.InnerLocals);
             ReportUnusedVariables(node.InnerLocalFunctions);
             return result;
         }
 
-        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
+        protected override void VisitPatternSwitchSection(BoundSwitchSection node, bool isLastSection)
         {
             DeclareVariables(node.Locals);
             base.VisitPatternSwitchSection(node, isLastSection);
