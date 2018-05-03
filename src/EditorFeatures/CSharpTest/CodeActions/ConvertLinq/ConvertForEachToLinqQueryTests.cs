@@ -84,7 +84,7 @@ class C
                         {
                             if (object.Equals(num, x2))
                             {
-                                let n2 = x2 - 1;
+                                var n2 = x2 - 1;
                                 yield return n2 + n1;
                             }
                         }
@@ -155,75 +155,6 @@ class Query
     }
 }";
 
-            await TestInRegularAndScriptAsync(source, output);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-        public async Task QuerySelectFromType01()
-        {
-            string source = @"using System;
-using System.Collections.Generic;
- 
-class C
-{
-    IEnumerable<int> M()
-    {
-        [|foreach (var x in C)
-        {
-            yield return x;
-        }|]
-    }
-
-    static IEnumerable<int> Select<T>(Func<int, T> f) { return null; }
-}";
-            string output = @"using System;
-using System.Collections.Generic;
- 
-class C
-{
-    IEnumerable<int> M()
-    {
-        return from x in C
-               select x;
-    }
-
-    static IEnumerable<int> Select<T>(Func<int, T> f) { return null; }
-}";
-
-            await TestInRegularAndScriptAsync(source, output);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-        public async Task QuerySelectFromType02()
-        {
-            string source = @"using System;
-using System.Collections.Generic;
- 
-class C
-{
-    IEnumerable<C> M()
-    {
-        [|foreach (var x in C)
-        {
-            yield return x;
-        }|]
-    }
-
-    static Func<Func<int, object>, IEnumerable<object>> Select = null;
-}";
-            string output = @"using System;
-using System.Collections.Generic;
- 
-class C
-{
-    IEnumerable<C> M()
-    {
-        return from x in C
-               select x;
-    }
-
-    static Func<Func<int, object>, IEnumerable<object>> Select = null;
-}";
             await TestInRegularAndScriptAsync(source, output);
         }
 
@@ -430,7 +361,18 @@ partial class C
 using System;
 using System.Collections.Generic;
 using System.Linq;
-class A { }
+class A
+{
+    public static implicit operator int(A x)
+    {
+        throw null;
+    }
+
+    public static implicit operator A(int x)
+    {
+        throw null;
+    }
+}
 class B : A { }
 class C
 {
@@ -450,7 +392,18 @@ class C
 using System;
 using System.Collections.Generic;
 using System.Linq;
-class A { }
+class A
+{
+    public static implicit operator int(A x)
+    {
+        throw null;
+    }
+
+    public static implicit operator A(int x)
+    {
+        throw null;
+    }
+}
 class B : A { }
 class C
 {
@@ -475,8 +428,18 @@ class C
 using System;
 using System.Collections.Generic;
 using System.Linq;
-class A { }
-class B : A { }
+class A
+{
+    public static implicit operator int(A x)
+    {
+        throw null;
+    }
+
+    public static implicit operator A(int x)
+    {
+        throw null;
+    }
+}
 class C
 {
     void M(IEnumerable<int> nums)
@@ -495,8 +458,18 @@ class C
 using System;
 using System.Collections.Generic;
 using System.Linq;
-class A { }
-class B : A { }
+class A
+{
+    public static implicit operator int(A x)
+    {
+        throw null;
+    }
+
+    public static implicit operator A(int x)
+    {
+        throw null;
+    }
+}
 class C
 {
     void M(IEnumerable<int> nums)
@@ -537,20 +510,13 @@ class C
         throw null;
     }
 
-    void Test()
+    IEnumerable<C> Test()
     {
-        IEnumerable<C> enumerable()
+        [|foreach (var x in new[] { 1, 2, 3 })
         {
-            [|foreach (var x in new[] { 1, 2, 3, })
-            {
-                yield return x;
-            }|]
-        }
-
-        foreach (int x in enumerable())
-        {
-            Console.Write(x);
-        }
+            yield return x;
+        }|]
+    }
     }
 }
 ";
@@ -575,79 +541,10 @@ class C
         throw null;
     }
 
-    void Test()
+    IEnumerable<C> Test()
     {
-        foreach (int x in from x in new[] { 1, 2, 3, } select x)
-        {
-            Console.Write(x);
-        }
-    }
-}
-";
-            await TestAsync(source, output, parseOptions: null);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-        public async Task QueryInForEachWithSelectIdentifierButNotVariable()
-        {
-            string source = @"
-using System;
-using System.Collections.Generic;
-
-static class Extensions
-{
-    public static IEnumerable<C> Select(this int[] x, Func<int, Action> predicate) => throw null;
-}
-
-class C
-{
-    public static implicit operator int(C x)
-    {
-        throw null;
-    }
-
-    public static implicit operator C(int x)
-    {
-        throw null;
-    }
-
-    void Test()
-    {
-        [|foreach (var y in new[] { 1, 2, 3, })
-        {
-            int Test = Test;
-            Console.Write(Test);
-        }|]
-    }
-}
-";
-            string output = @"
-using System;
-using System.Collections.Generic;
-
-static class Extensions
-{
-    public static IEnumerable<C> Select(this int[] x, Func<int, Action> predicate) => throw null;
-}
-
-class C
-{
-    public static implicit operator int(C x)
-    {
-        throw null;
-    }
-
-    public static implicit operator C(int x)
-    {
-        throw null;
-    }
-
-    void Test()
-    {
-        foreach (int Test in from y in new[] { 1, 2, 3, } select Test)
-        {
-            Console.Write(Test);
-        }
+        return from x in new[] { 1, 2, 3 }
+               select x;
     }
 }
 ";
@@ -891,16 +788,11 @@ class C
         var hashSet = new HashSet<int>();
         [|foreach (int n1 in nums)
         {
-            foreach (int n2 in nums)
-            {
-                hashSet.Add(n1);
-            }
+            hashSet.Add(n1);
         }|]
     }
 }
 ";
-
-
             await TestMissingAsync(source);
         }
 
@@ -1173,7 +1065,7 @@ public class Test
 
     void M()
     {
-        A.AddRange(from x in nums
+        A.AddRange(from x in new int[] { 1, 2, 3, 4 }
                    select x + 1);
     }
 }";
@@ -1429,66 +1321,68 @@ class C
         #region Comments and Preprocessor directives
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-        public Task InlineComments()
+        public async Task NoConversionInlineComments()
         {
-//            string source = @"
-//using System.Collections.Generic;
-//using System.Linq;
-//class C
-//{
-//    IEnumerable<int> M(IEnumerable<int> nums)
-//    {
-//        return [|from int n1 in /* comment */ nums 
-//                 from int n2 in nums
-//                 select n1|];
-//    }
-//}";
-            throw new NotImplementedException();
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        [|foreach(var x in nums)
+        {
+            yield return /* comment */ x + 1;
+        }|]
+    }
+}";
+
             // Cannot convert expressions with comments
-            //await TestMissingAsync(source);
+            await TestMissingAsync(source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-        public Task Comments()
+        public async Task NoConversionComments()
         {
-//            string source = @"
-//using System.Collections.Generic;
-//using System.Linq;
-//class C
-//{
-//    IEnumerable<int> M(IEnumerable<int> nums)
-//    {
-//        return [|from int n1 in nums // comment
-//                 from int n2 in nums
-//                 select n1|];
-//    }
-//}";
-            throw new NotImplementedException();
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        [|foreach(var x in nums)
+        {
+            // comment
+            yield return x + 1;
+        }|]
+    }
+}";
             // Cannot convert expressions with comments
-            //ait TestMissingAsync(source);
+            await TestMissingAsync(source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-        public Task PreprocessorDirectives()
+        public async Task NoConversionPreprocessorDirectives()
         {
-//            string source = @"
-//using System.Collections.Generic;
-//using System.Linq;
-//class C
-//{
-//    IEnumerable<int> M(IEnumerable<int> nums)
-//    {
-//        return [|from int n1 in nums
-//#if (true)
-//                 from int n2 in nums
-//#endif
-//                 select n1|];
-//    }
-//}";
-
-            throw new NotImplementedException();
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        [|foreach(var x in nums)
+        {
+#if (true)
+            yield return x + 1;
+#endif
+        }|]
+    }
+}";
+            
             // Cannot convert expressions with preprocessor directives
-           //await TestMissingAsync(source);
+            await TestMissingAsync(source);
         }
 
         #endregion

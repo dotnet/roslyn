@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,10 +42,12 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             {
                 return;
             }
-            
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
-            if (TryConvert(forEachStatement, document, semanticModel, semanticFacts, cancellationToken, out SyntaxEditor editor))
+
+            if (TryConvert(forEachStatement, document, semanticModel, semanticFacts, cancellationToken, out SyntaxEditor editor) &&
+                !semanticModel.GetDiagnostics(forEachStatement.Span, cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
             {
                 context.RegisterRefactoring(
                     new ForEachToLinqQueryCodeAction(
