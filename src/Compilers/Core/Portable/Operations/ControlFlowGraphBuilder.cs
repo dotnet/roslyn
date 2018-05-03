@@ -3487,8 +3487,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
         {
+            var partsBuilder = ArrayBuilder<IInterpolatedStringContentOperation>.GetInstance(operation.Parts.Length);
             foreach (IInterpolatedStringContentOperation element in operation.Parts)
             {
+                IInterpolatedStringContentOperation rewrittenElement;
                 if (element.Kind == OperationKind.Interpolation)
                 {
                     var interpolation = (IInterpolationOperation)element;
@@ -3503,41 +3505,42 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         _evalStack.Push(Visit(interpolation.FormatString));
                     }
+
+                    // We generate the rewritten IInterpolationOperation after visiting all interpolations.
+                    // Add null as a placeholder.
+                    rewrittenElement = null;
                 }
                 else
                 {
                     var interpolatedStringText = (IInterpolatedStringTextOperation)element;
-                    // PROTOTYPE(DATAFLOW): Should we avoid flow captures for constant string literal "Text" by not pushing onto the eval stack?
-                    //                      Or should there be a separate optimization pass that removes all constant valued flow captures?
-                    _evalStack.Push(Visit(interpolatedStringText.Text));
-                }
-            }
-
-            var partsBuilder = ArrayBuilder<IInterpolatedStringContentOperation>.GetInstance();
-            for (int i = operation.Parts.Length - 1; i >= 0; i--)
-            {
-                IInterpolatedStringContentOperation element = operation.Parts[i];
-
-                IInterpolatedStringContentOperation rewrittenElement;
-                if (element.Kind == OperationKind.Interpolation)
-                {
-                    var interpolation = (IInterpolationOperation)element;
-                    var rewrittenFormatString = interpolation.FormatString != null ? _evalStack.Pop() : null;
-                    var rewrittenAlignment = interpolation.Alignment != null ? _evalStack.Pop() : null;
-                    var rewrittenExpression = _evalStack.Pop();
-                    rewrittenElement = new Interpolation(rewrittenExpression, rewrittenAlignment, rewrittenFormatString, semanticModel: null, element.Syntax, element.Type, element.ConstantValue, element.IsImplicit);
-                }
-                else
-                {
-                    var interpolatedStringText = (IInterpolatedStringTextOperation)element;
-                    var rewrittenText = _evalStack.Pop();
-                    rewrittenElement = new InterpolatedStringText(rewrittenText, semanticModel: null, element.Syntax, element.Type, element.ConstantValue, element.IsImplicit);
+                    Debug.Assert(interpolatedStringText.Text.Kind == OperationKind.Literal);
+                    var rewrittenInterpolationText = Visit(interpolatedStringText.Text);
+                    rewrittenElement = new InterpolatedStringText(rewrittenInterpolationText, semanticModel: null, element.Syntax, element.Type, element.ConstantValue, element.IsImplicit);
                 }
 
                 partsBuilder.Add(rewrittenElement);
             }
 
-            partsBuilder.ReverseContents();
+            for (int i = operation.Parts.Length - 1; i >= 0; i--)
+            {
+                IInterpolatedStringContentOperation element = operation.Parts[i];
+                if (element.Kind == OperationKind.Interpolation)
+                {
+                    Debug.Assert(partsBuilder[i] == null);
+
+                    var interpolation = (IInterpolationOperation)element;
+                    var rewrittenFormatString = interpolation.FormatString != null ? _evalStack.Pop() : null;
+                    var rewrittenAlignment = interpolation.Alignment != null ? _evalStack.Pop() : null;
+                    var rewrittenExpression = _evalStack.Pop();
+                    var rewrittenInterpolation = new Interpolation(rewrittenExpression, rewrittenAlignment, rewrittenFormatString, semanticModel: null, element.Syntax, element.Type, element.ConstantValue, element.IsImplicit);
+                    partsBuilder[i] = rewrittenInterpolation;
+                }
+                else
+                {
+                    Debug.Assert(partsBuilder[i] != null);
+                }
+            }
+
             return new InterpolatedStringExpression(partsBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
