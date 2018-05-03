@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1462,11 +1463,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // parent type.  So look up the parent type first, then find the X member in it
                 // and use that type.
                 if (child == subpatternElement.Pattern &&
-                    subpatternElement.NameColon.Name is IdentifierNameSyntax identifier)
+                    subpatternElement.NameColon?.Name is IdentifierNameSyntax identifier)
                 {
                     var result = ArrayBuilder<TypeInferenceInfo>.GetInstance();
 
-                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpatternElement.NameColon.Name).GetAllSymbols())
+                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(identifier).GetAllSymbols())
                     {
                         switch (symbol)
                         {
@@ -1505,10 +1506,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (pattern)
                 {
-                    case DeclarationPatternSyntax declarationPattern: return GetTypes(declarationPattern.Type);
                     case ConstantPatternSyntax constantPattern: return GetTypes(constantPattern.Expression);
+                    case DeclarationPatternSyntax declarationPattern: return GetTypes(declarationPattern.Type);
+                    case DeconstructionPatternSyntax deconstructionPattern: return GetTypesForDeconstructionPattern(deconstructionPattern);
+                    case PropertyPatternSyntax propertyPattern: return GetTypes(propertyPattern.Type);
                     default: return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
+            }
+
+            private IEnumerable<TypeInferenceInfo> GetTypesForDeconstructionPattern(DeconstructionPatternSyntax deconstructionPattern)
+            {
+                if (deconstructionPattern.Type != null)
+                {
+                    return GetTypes(deconstructionPattern.Type);
+                }
+
+                if (deconstructionPattern.SubPatterns.Count >= 2)
+                {
+                    // infer a tuple type for this deconstruction.
+                    var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance();
+                    var elementNamesBuilder = ArrayBuilder<string>.GetInstance();
+
+                    foreach (var subPattern in deconstructionPattern.SubPatterns)
+                    {
+                        elementNamesBuilder.Add(subPattern.NameColon?.Name is IdentifierNameSyntax identifier
+                            ? identifier.Identifier.ValueText
+                            : null);
+
+                        var patternType = GetPatternTypes(subPattern.Pattern).FirstOrDefault();
+                        if (patternType.InferredType == null)
+                        {
+                            return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                        }
+
+                        elementTypesBuilder.Add(patternType.InferredType);
+                    }
+
+                    var type = Compilation.CreateTupleTypeSymbol(
+                        elementTypesBuilder.ToImmutableAndFree(), elementNamesBuilder.ToImmutableAndFree());
+                    return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(type));
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInLockStatement(LockStatementSyntax lockStatement, SyntaxToken? previousToken = null)

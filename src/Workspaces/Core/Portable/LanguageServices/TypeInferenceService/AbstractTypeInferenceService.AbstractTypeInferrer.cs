@@ -58,9 +58,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices.TypeInferenceService
 
             protected IEnumerable<TypeInferenceInfo> GetTypes(SyntaxNode expression, bool objectAsDefault = false)
             {
-                if (_seenExpressionGetType.Add(expression))
+                if (expression != null)
                 {
-                    return GetTypes_DoNotCallDirectly(expression, objectAsDefault);
+                    if (_seenExpressionGetType.Add(expression))
+                    {
+                        return GetTypes_DoNotCallDirectly(expression, objectAsDefault);
+                    }
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();

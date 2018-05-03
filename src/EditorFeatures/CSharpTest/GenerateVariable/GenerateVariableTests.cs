@@ -7737,6 +7737,166 @@ class C
 
         [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInIsPattern4()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { [|X|]: })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { X: })
+        {
+        }
+    }
+
+    class Blah
+    {
+        public object X { get; internal set; }
+    }
+}");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInIsPattern5()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { [|X|]: Frob { } })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+
+    class Frob
+    {
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { X: Frob { } })
+        {
+        }
+    }
+
+    class Blah
+    {
+        public Frob X { get; internal set; }
+    }
+
+    class Frob
+    {
+    }
+}");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInIsPattern6()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { [|X|]: (1, 2) })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { X: (1, 2) })
+        {
+        }
+    }
+
+    class Blah
+    {
+        public (int, int) X { get; internal set; }
+    }
+}");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyPatternInIsPattern7()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { [|X|]: (y: 1, z: 2) })
+        {
+        }
+    }
+
+    class Blah
+    {
+    }
+}",
+@"
+class C
+{
+    void M2()
+    {
+        object o = null;
+        if (o is Blah { X: (y: 1, z: 2) })
+        {
+        }
+    }
+
+    class Blah
+    {
+        public (int y, int z) X { get; internal set; }
+    }
+}");
+        }
+
+        [WorkItem(9090, "https://github.com/dotnet/roslyn/issues/9090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestPropertyPatternInCasePattern1()
         {
             await TestInRegularAndScriptAsync(
