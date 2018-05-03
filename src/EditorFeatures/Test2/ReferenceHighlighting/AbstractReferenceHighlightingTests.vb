@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
         Private Async Function VerifyHighlightsAsync(test As XElement, optionIsEnabled As Boolean, outOfProcess As Boolean) As Tasks.Task
             Using workspace = TestWorkspace.Create(test)
-                WpfTestCase.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.VerifyHighlightsAsync creates asynchronous taggers")
+                WpfTestRunner.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
 
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess).
                                                       WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).

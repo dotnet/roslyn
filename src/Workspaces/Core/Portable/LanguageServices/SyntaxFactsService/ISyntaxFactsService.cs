@@ -351,6 +351,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         Location GetDeconstructionReferenceLocation(SyntaxNode node);
 
         SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token);
+
+        bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes);
     }
 
     [Flags]

@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseDeconstruction;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -470,7 +471,7 @@ class C
         }
 
         [WorkItem(25260, "https://github.com/dotnet/roslyn/issues/25260")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26115"), Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
         public async Task TestNotWithDefaultLiteralInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -481,7 +482,7 @@ class C
         (string name, int age) [|person|] = default;
         Console.WriteLine(person.name + "" "" + person.age);
     }
-}");
+}", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
@@ -606,6 +607,28 @@ class C
     {
         foreach ((string name, int age) in new Person[] { }.Cast<(string, int)>())
             Console.WriteLine(name + "" "" + age);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
+        public async Task TestWithTupleLiteralConversion()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        (object name, double age) [|person|] = (null, 0);
+        Console.WriteLine(person.name + "" "" + person.age);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        (object name, double age) = (null, 0);
+        Console.WriteLine(name + "" "" + age);
     }
 }");
         }

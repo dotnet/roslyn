@@ -1796,5 +1796,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return Nothing
         End Function
+
+        Public Function SpansPreprocessorDirective(nodes As IEnumerable(Of SyntaxNode)) As Boolean Implements ISyntaxFactsService.SpansPreprocessorDirective
+            Return nodes.SpansPreprocessorDirective()
+        End Function
     End Class
 End Namespace

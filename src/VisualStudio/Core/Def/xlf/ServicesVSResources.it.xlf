@@ -1507,7 +1507,7 @@ L'utente accetta le condizioni sopra riportate:</target>
         <source>Manage naming styles</source>
         <target state="new">Manage naming styles</target>
         <note />
-      </trans-unit>      
+      </trans-unit>
       <trans-unit id="Field_preferences_colon">
         <source>Field preferences:</source>
         <target state="new">Field preferences:</target>
