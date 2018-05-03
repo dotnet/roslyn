@@ -300,21 +300,25 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Shared Function GetSingleValueCaseClauseValue(clause As BoundSingleValueCaseClause) As BoundExpression
-            If clause.ValueOpt IsNot Nothing Then
-                Return clause.ValueOpt
+            Return GetCaseClauseValue(clause.ValueOpt, clause.ConditionOpt)
+        End Function
+
+        Private Shared Function GetCaseClauseValue(valueOpt As BoundExpression, conditionOpt As BoundExpression) As BoundExpression
+            If valueOpt IsNot Nothing Then
+                Return valueOpt
             End If
 
-            Select Case clause.ConditionOpt.Kind
+            Select Case conditionOpt.Kind
                 Case BoundKind.BinaryOperator
-                    Dim binaryOp As BoundBinaryOperator = DirectCast(clause.ConditionOpt, BoundBinaryOperator)
+                    Dim binaryOp As BoundBinaryOperator = DirectCast(conditionOpt, BoundBinaryOperator)
                     Return binaryOp.Right
 
                 Case BoundKind.UserDefinedBinaryOperator
-                    Dim binaryOp As BoundUserDefinedBinaryOperator = DirectCast(clause.ConditionOpt, BoundUserDefinedBinaryOperator)
+                    Dim binaryOp As BoundUserDefinedBinaryOperator = DirectCast(conditionOpt, BoundUserDefinedBinaryOperator)
                     Return GetUserDefinedBinaryOperatorChildBoundNode(binaryOp, 1)
 
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(clause.ConditionOpt.Kind)
+                    Throw ExceptionUtilities.UnexpectedValue(conditionOpt.Kind)
             End Select
         End Function
 

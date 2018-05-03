@@ -5999,5 +5999,2265 @@ Block[B6] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_083()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result as Boolean, input as Integer) 'BIND:"Sub M"
+        Select Case input
+            Case 1 To 3
+                result = false
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1 To 3')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1 To 3')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B4]
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_084()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result as Boolean, input as Integer) 'BIND:"Sub M"
+        Select Case input
+            Case 0 To 2
+                Dim x As Boolean = true
+                result = x
+            Case 5 To 7
+                result = false
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '0 To 2')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '0 To 2')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+    Next (Regular) Block[B3]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [x As System.Boolean]
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (2)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'x As Boolean = true')
+              Left: 
+                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = x')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = x')
+                  Left: 
+                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                  Right: 
+                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'x')
+
+        Next (Regular) Block[B7]
+            Leaving: {R1}
+}
+
+Block[B4] - Block
+    Predecessors: [B1] [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B7]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '5 To 7')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (0)
+    Jump if False (Regular) to Block[B7]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '5 To 7')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7) (Syntax: '7')
+
+    Next (Regular) Block[B6]
+Block[B6] - Block
+    Predecessors: [B5]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B7]
+Block[B7] - Exit
+    Predecessors: [B3] [B4] [B5] [B6]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_085()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result as Boolean, input as Integer) 'BIND:"Sub M"
+        Select Case input
+            Case 0 To 2, 5 To 7
+                result = false
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '0 To 2')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if True (Regular) to Block[B5]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '0 To 2')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B1] [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '5 To 7')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '5 To 7')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7) (Syntax: '7')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B2] [B4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B3] [B4] [B5]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_086()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result as Boolean, input as Integer) 'BIND:"Sub M"
+        Select Case input
+            Case 1L To 3L
+                result = false
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1L To 3L')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1L')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNumeric, InvolvesNarrowingFromNumericConstant)
+              Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int64, Constant: 1) (Syntax: '1L')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1L To 3L')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '3L')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNumeric, InvolvesNarrowingFromNumericConstant)
+              Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int64, Constant: 3) (Syntax: '3L')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B4]
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_087()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, input As C, other1 As C, other2 As C) 'BIND:"Sub M"
+        Select Case input
+            Case other1 To other2
+                result = False
+        End Select
+    End Sub
+
+    Public Shared Operator <=(x As C, y As C) As Boolean?
+        Return False
+    End Operator
+
+    Public Shared Operator >=(x As C, y As C) As Boolean?
+        Return True
+    End Operator
+End Class
+        ]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+
+            compilation.AssertNoDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of RangeCaseClauseSyntax)().Single()
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null) (Syntax: 'other1 To other2')
+  Min: 
+    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+  Max: 
+    IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
+]]>.Value)
+
+            Dim expectedGraph =
+            <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Instance Receiver: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalAnd, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Nullable(Of System.Boolean)) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As System.Nullable(Of System.Boolean)) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
+          Arguments(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_088()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, input As C, other1 as Integer, other2 as Integer) 'BIND:"Sub M"
+        Select Case input
+            Case other1 To other2
+                result = False
+        End Select
+    End Sub
+
+    Public Shared Operator <=(x As C, y As Short) As Object
+        Return False
+    End Operator
+
+    Public Shared Operator >=(x As C, y As Short) As Object
+        Return False
+    End Operator
+End Class
+         ]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+
+            compilation.AssertNoDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of RangeCaseClauseSyntax)().Single()
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null) (Syntax: 'other1 To other2')
+  Min: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, IsImplicit) (Syntax: 'other1')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'other1')
+  Max: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, IsImplicit) (Syntax: 'other2')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'other2')
+]]>.Value)
+
+            Dim expectedGraph =
+            <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As System.Int16) As System.Object) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, IsImplicit) (Syntax: 'other1')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (NarrowingNumeric)
+                      Operand: 
+                        IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'other1')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As System.Int16) As System.Object) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, IsImplicit) (Syntax: 'other2')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (NarrowingNumeric)
+                      Operand: 
+                        IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'other2')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_089()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, input1 As C, input2 As C, other as Integer) 'BIND:"Sub M"
+        Select Case other
+            Case input1 To input2
+                result = False
+        End Select
+    End Sub
+
+    Public Shared Operator >=(y As Short, x As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator <=(y As Short, x As C) As Boolean
+        Return False
+    End Operator
+End Class
+         ]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+
+            compilation.AssertNoDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of RangeCaseClauseSyntax)().Single()
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null) (Syntax: 'input1 To input2')
+  Min: 
+    IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: C) (Syntax: 'input1')
+  Max: 
+    IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: C) (Syntax: 'input2')
+]]>.Value)
+
+            Dim expectedGraph =
+            <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other')
+          Value: 
+            IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'other')
+
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(y As System.Int16, x As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'input1 To input2')
+          Left: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, IsImplicit) (Syntax: 'other')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (NarrowingNumeric)
+              Operand: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'other')
+          Right: 
+            IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: C) (Syntax: 'input1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(y As System.Int16, x As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'input1 To input2')
+          Left: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int16, IsImplicit) (Syntax: 'other')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (NarrowingNumeric)
+              Operand: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'other')
+          Right: 
+            IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: C) (Syntax: 'input2')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B4]
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_090()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, input As C) 'BIND:"Sub M"
+        Select Case input
+            Case 1 To 3
+                result = False
+        End Select
+    End Sub
+
+    Public Shared Widening Operator CType(x As Integer) As C
+        Return Nothing
+    End Operator
+End Class
+         ]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30452: Operator '<=' is not defined for types 'C' and 'Integer'.
+            Case 1 To 3
+                 ~~~~~~
+BC30452: Operator '>=' is not defined for types 'C' and 'Integer'.
+            Case 1 To 3
+                 ~~~~~~
+]]></expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of RangeCaseClauseSyntax)().Single()
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: '1 To 3')
+  Min: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+  Max: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+]]>.Value)
+
+            Dim expectedGraph =
+            <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1 To 3')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (DelegateRelaxationLevelNone)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid, IsImplicit) (Syntax: '1 To 3')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid, IsImplicit) (Syntax: '1 To 3')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid, IsImplicit) (Syntax: '1 To 3')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_091()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, input As C, other1 As C, other2 As C) 'BIND:"Sub M"
+        Select Case input
+            Case other1 To other2
+                result = False
+        End Select
+    End Sub
+
+    Public Shared Operator >=(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator <=(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return True
+    End Operator
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return False
+    End Operator
+End Class
+        ]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+
+            compilation.AssertNoDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of RangeCaseClauseSyntax)().Single()
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null) (Syntax: 'other1 To other2')
+  Min: 
+    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+  Max: 
+    IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
+]]>.Value)
+
+            Dim expectedGraph =
+            <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_092()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, input As C, other1 As C, other2 As C) 'BIND:"Sub M"
+        Select Case input
+            Case other1 To other2
+                result = False
+        End Select
+    End Sub
+
+    Public Shared Operator >=(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator <=(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return True
+    End Operator
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return False
+    End Operator
+End Class
+        ]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30452: Operator 'AndAlso' is not defined for types 'C' and 'C'.
+            Case other1 To other2
+                 ~~~~~~~~~~~~~~~~
+</expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of RangeCaseClauseSyntax)().Single()
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'other1 To other2')
+  Min: 
+    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other1')
+  Max: 
+    IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other2')
+]]>.Value)
+
+            Dim expectedGraph =
+            <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (DelegateRelaxationLevelNone)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other1')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other2')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_093()
+            Dim source = <![CDATA[
+Option Compare Text
+Imports System
+Public NotInheritable Class C
+    Sub M(result as Boolean, input as String, other1 As String, other2 As String) 'BIND:"Sub M"
+        Select Case input
+            Case other1 To other2
+                result = false
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.String) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked, CompareText) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'input')
+          Right: 
+            IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'other1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked, CompareText) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'input')
+          Right: 
+            IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'other2')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B4]
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_094()
+            Dim source = <![CDATA[
+Option Compare Binary
+Imports System
+Public NotInheritable Class C
+    Sub M(result as Boolean, input as String, other1 As String, other2 As String) 'BIND:"Sub M"
+        Select Case input
+            Case other1 To other2
+                result = false
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.String) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'input')
+          Right: 
+            IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'other1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'input')
+          Right: 
+            IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'other2')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B4]
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_095()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, other1 As C, other2 As C, input as Integer) 'BIND:"Sub M"
+        Select Case input
+            Case 1 To 3, other1 To other2
+                result = False
+        End Select
+    End Sub
+
+    Public Shared Operator <=(y As Integer, x As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator >=(y As integer, x As C) As Boolean
+        Return True
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1 To 3')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if True (Regular) to Block[B5]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1 To 3')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B1] [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(y As System.Int32, x As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(y As System.Int32, x As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+          Right: 
+            IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B2] [B4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B3] [B4] [B5]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_096()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, other1 As C, other2 As C, input as Object) 'BIND:"Sub M"
+        Select Case input
+            Case other1 To other2
+                result = False
+        End Select
+    End Sub
+
+    Public Shared Operator >=(y As Integer, x As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator <=(y As integer, x As C) As Boolean
+        Return True
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(y As System.Int32, x As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Left: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'input')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (NarrowingValue)
+              Operand: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+          Right: 
+            IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(y As System.Int32, x As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Left: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'input')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (NarrowingValue)
+              Operand: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+          Right: 
+            IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B4]
+Block[B4] - Exit
+    Predecessors: [B1] [B2] [B3]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_097()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(result As Boolean, other1 As C, other2 As C, input as Object) 'BIND:"Sub M"
+        Select Case input
+            Case other1 To other2
+                result = False
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'other1')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningReference)
+                      Operand: 
+                        IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'other2')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningReference)
+                      Operand: 
+                        IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_098()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, other1 As Integer, other2 As Integer, input as Object) 'BIND:"Sub M"
+        Select Case input
+            Case other1 To other2
+                result = False
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'other1')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningValue)
+                      Operand: 
+                        IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'other1')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'other2')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningValue)
+                      Operand: 
+                        IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'other2')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_099()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, input As Integer, other1 as Object, other2 as Object) 'BIND:"Sub M"
+        Select Case input
+            Case other1 To other2
+                result = False
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'input')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningValue)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other1')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'input')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningValue)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other2')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_100()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, input As Object, other1 as Object, other2 as Object) 'BIND:"Sub M"
+        Select Case input
+            Case other1 To other2
+                result = False
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other1')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other2')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_101()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, input As C, other1 As C, other2 As C, other3 As C, other4 As C) 'BIND:"Sub M"
+        Select Case input
+            Case other1 To other2, other3 To other4
+                result = False
+        End Select
+    End Sub
+
+    Public Shared Operator >=(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator <=(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return True
+    End Operator
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30452: Operator 'OrElse' is not defined for types 'C' and 'C'.
+            Case other1 To other2, other3 To other4
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'Case other1 ... 3 To other4')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (DelegateRelaxationLevelNone)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalOr, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Case other1 ... 3 To other4')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                      Right: 
+                        IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other1')
+                  Right: 
+                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                      Right: 
+                        IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other2')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
+                  Left: 
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                      Right: 
+                        IParameterReferenceOperation: other3 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other3')
+                  Right: 
+                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                      Right: 
+                        IParameterReferenceOperation: other4 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other4')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_102()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, input As C, other1 As C, other2 As C, other3 As C, other4 As C) 'BIND:"Sub M"
+        Select Case input
+            Case other1 To other2, other3 To other4
+                result = False
+        End Select
+    End Sub
+
+    Public Shared Operator >=(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator <=(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return True
+    End Operator
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As C
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'Case other1 ... 3 To other4')
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'Case other1 ... 3 To other4')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                      Right: 
+                        IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+                  Right: 
+                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                      Right: 
+                        IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other3 To other4')
+                  Left: 
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other3 To other4')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                      Right: 
+                        IParameterReferenceOperation: other3 (OperationKind.ParameterReference, Type: C) (Syntax: 'other3')
+                  Right: 
+                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other3 To other4')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                      Right: 
+                        IParameterReferenceOperation: other4 (OperationKind.ParameterReference, Type: C) (Syntax: 'other4')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_103()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result as Boolean, input as Integer?) 'BIND:"Sub M"
+        Select Case input
+            Case 1 To 3
+                result = false
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: '1 To 3')
+          Instance Receiver: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalAnd, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: '1 To 3')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: '1 To 3')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '1')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningNullable)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: '1 To 3')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '3')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningNullable)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+          Arguments(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_104()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result as Boolean, input as Integer?) 'BIND:"Sub M"
+        Select Case input
+            Case Nothing To 1
+                result = false
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Nothing To 1')
+          Instance Receiver: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalAnd, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'Nothing To 1')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'Nothing To 1')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'Nothing')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningNothingLiteral)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'Nothing To 1')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '1')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningNullable)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          Arguments(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_105()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result as Boolean, input as Integer?) 'BIND:"Sub M"
+        Select Case input
+            Case 1 To 3, 5 To Nothing
+                result = false
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'Case 1 To 3 ...  To Nothing')
+          Instance Receiver: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalOr, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'Case 1 To 3 ...  To Nothing')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.ConditionalAnd, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: '1 To 3')
+                  Left: 
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: '1 To 3')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
+                      Right: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '1')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (WideningNullable)
+                          Operand: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  Right: 
+                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: '1 To 3')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
+                      Right: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '3')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (WideningNullable)
+                          Operand: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.ConditionalAnd, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: '5 To Nothing')
+                  Left: 
+                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: '5 To Nothing')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
+                      Right: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '5')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (WideningNullable)
+                          Operand: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                  Right: 
+                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, IsLifted, Checked) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: '5 To Nothing')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input')
+                      Right: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'Nothing')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (WideningNothingLiteral)
+                          Operand: 
+                            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+          Arguments(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_106()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result as Boolean, other1 as Object, other2 as Object) 'BIND:"Sub M"
+        Select Case Function() 1
+            Case other1 To other2
+                result = false
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36635: Lambda expressions are not valid in the first expression of a 'Select Case' statement.
+        Select Case Function() 1
+                    ~~~~~~~~~~~~
+]]>.Value
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+          Value: 
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+              Target: 
+                IAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'Function() 1')
+                  IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+
+    Jump if False (Regular) to Block[B3]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ConditionalAnd, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningReference, DelegateRelaxationLevelWideningToNonLambda)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+                  Right: 
+                    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other1')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningReference, DelegateRelaxationLevelWideningToNonLambda)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+                  Right: 
+                    IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other2')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_107()
+            Dim source = <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result as Boolean, input1 as Integer?, input2 as Integer, input3 as Integer, input4 as Integer?, input5 as Integer) 'BIND:"Sub M"
+        Select Case input3 
+            Case If(input1, input2) To If(input4, input5)
+                result = false
+        End Select
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input3')
+          Value: 
+            IParameterReferenceOperation: input3 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input3')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input1')
+          Value: 
+            IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input1')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'input1')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input1')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input2')
+          Value: 
+            IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B10]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'If(input1,  ... t4, input5)')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input3')
+          Right: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(input1, input2)')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input4')
+          Value: 
+            IParameterReferenceOperation: input4 (OperationKind.ParameterReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'input4')
+
+    Jump if True (Regular) to Block[B7]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input4')
+          Operand: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input4')
+
+    Next (Regular) Block[B6]
+Block[B6] - Block
+    Predecessors: [B5]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input4')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'input4')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'input4')
+              Arguments(0)
+
+    Next (Regular) Block[B8]
+Block[B7] - Block
+    Predecessors: [B5]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input5')
+          Value: 
+            IParameterReferenceOperation: input5 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input5')
+
+    Next (Regular) Block[B8]
+Block[B8] - Block
+    Predecessors: [B6] [B7]
+    Statements (0)
+    Jump if False (Regular) to Block[B10]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'If(input1,  ... t4, input5)')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input3')
+          Right: 
+            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(input4, input5)')
+
+    Next (Regular) Block[B9]
+Block[B9] - Block
+    Predecessors: [B8]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B10]
+Block[B10] - Exit
+    Predecessors: [B4] [B8] [B9]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

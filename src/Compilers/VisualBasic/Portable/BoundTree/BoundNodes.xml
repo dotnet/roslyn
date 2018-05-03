@@ -1158,7 +1158,7 @@
     <Node Name="BoundSimpleCaseClause" Base="BoundSingleValueCaseClause" HasValidate="true">
     </Node>
   
-    <Node Name="BoundRangeCaseClause" Base="BoundCaseClause">
+    <Node Name="BoundRangeCaseClause" Base="BoundCaseClause" HasValidate="true">
         <Field Name="LowerBoundOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="UpperBoundOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="LowerBoundConditionOpt" Type="BoundExpression" Null="allow"/>

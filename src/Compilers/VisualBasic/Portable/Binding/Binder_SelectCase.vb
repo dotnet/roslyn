@@ -515,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     preliminaryOperatorKind:=BinaryOperatorKind.GreaterThanOrEqual,
                     isOperandOfConditionalBranch:=False,
                     diagnostics:=diagnostics,
-                    isSelectCase:=True)
+                    isSelectCase:=True).MakeCompilerGenerated()
             End If
 
             ' Exactly one of the UpperBoundOpt or UpperBoundConditionOpt must be non-null
@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     preliminaryOperatorKind:=BinaryOperatorKind.LessThanOrEqual,
                     isOperandOfConditionalBranch:=False,
                     diagnostics:=diagnostics,
-                    isSelectCase:=True)
+                    isSelectCase:=True).MakeCompilerGenerated()
             End If
 
             conditionOpt = BindBinaryOperator(
@@ -542,7 +542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 preliminaryOperatorKind:=BinaryOperatorKind.AndAlso,
                 isOperandOfConditionalBranch:=False,
                 diagnostics:=diagnostics,
-                isSelectCase:=True)
+                isSelectCase:=True).MakeCompilerGenerated()
 
             Return boundClause.Update(lowerBoundOpt:=Nothing, upperBoundOpt:=Nothing, lowerBoundConditionOpt:=lowerBoundConditionOpt, upperBoundConditionOpt:=upperBoundConditionOpt)
         End Function
