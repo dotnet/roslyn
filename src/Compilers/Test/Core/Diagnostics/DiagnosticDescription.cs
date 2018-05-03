@@ -157,7 +157,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (dinfo != null)
                 {
-                    _arguments = dinfo.Info.Arguments;
+                    // Use GetArgumentsToUse rather than Arguments so that ISymbol arguments are
+                    // formatted the same as from command-line compilers (using the MessageProvider).
+                    _arguments = dinfo.Info.GetArgumentsToUse(null);
                 }
                 else
                 {
