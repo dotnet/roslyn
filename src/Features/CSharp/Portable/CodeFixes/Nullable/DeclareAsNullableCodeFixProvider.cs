@@ -26,16 +26,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
             // warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-            get { return ImmutableArray.Create("CS8625"); }
+            // warning CS8600: Converting null literal or possible null value to non-nullable type.
+            get { return ImmutableArray.Create("CS8625", "CS8600"); }
         }
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            var diagnostic = context.Diagnostics.First();
+            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
 
-            return SpecializedTasks.EmptyTask;
+            var declarationTypeToFix = TryGetDeclarationTypeToFix(node);
+            if (declarationTypeToFix == null)
+            {
+                return;
+            }
+
+            context.RegisterCodeFix(new MyCodeAction(
+                c => FixAsync(context.Document, diagnostic, c)),
+                context.Diagnostics);
         }
 
         protected override Task FixAllAsync(
@@ -56,20 +65,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         internal static void MakeDeclarationNullable(Document document, SyntaxEditor editor, SyntaxNode node)
         {
             var declarationTypeToFix = TryGetDeclarationTypeToFix(node);
-            var fixedDeclaration = SyntaxFactory.NullableType(declarationTypeToFix);
-            editor.ReplaceNode(declarationTypeToFix, fixedDeclaration);
+            if (declarationTypeToFix != null)
+            {
+                var fixedDeclaration = SyntaxFactory.NullableType(declarationTypeToFix);
+                editor.ReplaceNode(declarationTypeToFix, fixedDeclaration);
+            }
         }
 
         private static TypeSyntax TryGetDeclarationTypeToFix(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.NullLiteralExpression) &&
-               node.IsParentKind(SyntaxKind.ReturnStatement))
+            if (!node.IsKind(SyntaxKind.NullLiteralExpression))
+            {
+                return null;
+            }
+
+            if (node.IsParentKind(SyntaxKind.ReturnStatement))
             {
                 var methodDeclaration = node.GetAncestors<MethodDeclarationSyntax>().FirstOrDefault();
                 if (methodDeclaration != null)
                 {
                     return methodDeclaration.ReturnType;
                 }
+            }
+
+            if (node.Parent?.Parent?.IsParentKind(SyntaxKind.VariableDeclaration) == true)
+            {
+                var variableDeclaration = (VariableDeclarationSyntax)node.Parent.Parent.Parent;
+                if (variableDeclaration.Variables.Count != 1)
+                {
+                    return null;
+                }
+
+                return variableDeclaration.Type;
             }
 
             return null;

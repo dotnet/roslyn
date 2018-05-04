@@ -50,5 +50,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
     }
 }", parameters: s_nullableFeature);
         }
+
+        [Fact]
+        public async Task FixLocalDeclaration()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+{
+    static void M()
+    {
+        string x = [|null|];
+    }
+}",
+@"class Program
+{
+    static void M()
+    {
+        string? x = null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task NoFixMultiDeclaration()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    static void M()
+    {
+        string x = [|null|], y = null;
+    }
+}", parameters: s_nullableFeature);
+        }
     }
 }
