@@ -63,6 +63,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax.WithSemicolonToke
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BranchingDirectiveTriviaSyntax.WithEndOfDirectiveToken(Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.BranchingDirectiveTriviaSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BranchingDirectiveTriviaSyntax.WithHashToken(Microsoft.CodeAnalysis.SyntaxToken hashToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.BranchingDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.WithAwaitKeyword(Microsoft.CodeAnalysis.SyntaxToken awaitKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.WithCloseParenToken(Microsoft.CodeAnalysis.SyntaxToken closeParenToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax.WithForEachKeyword(Microsoft.CodeAnalysis.SyntaxToken forEachKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CommonForEachStatementSyntax

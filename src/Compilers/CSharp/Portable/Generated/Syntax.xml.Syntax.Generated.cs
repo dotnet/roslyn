@@ -9465,6 +9465,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     internal abstract CommonForEachStatementSyntax WithForEachKeywordCore(SyntaxToken forEachKeyword);
 
     public abstract SyntaxToken AwaitKeyword { get; }
+    public CommonForEachStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword) => WithAwaitKeywordCore(awaitKeyword);
+    internal abstract CommonForEachStatementSyntax WithAwaitKeywordCore(SyntaxToken awaitKeyword);
 
     public abstract SyntaxToken OpenParenToken { get; }
     public CommonForEachStatementSyntax WithOpenParenToken(SyntaxToken openParenToken) => WithOpenParenTokenCore(openParenToken);
@@ -9611,7 +9613,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(forEachKeyword, this.AwaitKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
-    public ForEachStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
+    internal override CommonForEachStatementSyntax WithAwaitKeywordCore(SyntaxToken awaitKeyword) => WithAwaitKeyword(awaitKeyword);
+    public new ForEachStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
     {
         return this.Update(this.ForEachKeyword, awaitKeyword, this.OpenParenToken, this.Type, this.Identifier, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
@@ -9781,7 +9784,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         return this.Update(forEachKeyword, this.AwaitKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
 
-    public ForEachVariableStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
+    internal override CommonForEachStatementSyntax WithAwaitKeywordCore(SyntaxToken awaitKeyword) => WithAwaitKeyword(awaitKeyword);
+    public new ForEachVariableStatementSyntax WithAwaitKeyword(SyntaxToken awaitKeyword)
     {
         return this.Update(this.ForEachKeyword, awaitKeyword, this.OpenParenToken, this.Variable, this.InKeyword, this.Expression, this.CloseParenToken, this.Statement);
     }
