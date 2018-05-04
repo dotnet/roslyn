@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Completion
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
         private readonly bool _isCaseSensitive;
 
+        // Support for completion items with extra decorative characters in their DisplayText.
+        // This allows bolding and MRU to operate on the "real" display text (without text
+        // decorations). This should be a substring of the corresponding DisplayText.
+        private static string DisplayTextForMatching = nameof(DisplayTextForMatching);
+
         public CompletionHelper(bool isCaseSensitive)
         {
             _isCaseSensitive = isCaseSensitive;
@@ -252,5 +257,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return 0;
         }
+
+        internal static string GetDisplayTextForMatching(CompletionItem item)
+            => item.Properties.TryGetValue(DisplayTextForMatching, out var displayText) ? displayText : item.DisplayText;
     }
 }

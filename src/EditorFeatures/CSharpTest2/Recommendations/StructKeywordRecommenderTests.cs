@@ -136,6 +136,62 @@ $$");
 using Goo;");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterReadonly()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRef()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefReadonly()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"ref readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterPublicRefReadonly()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"public ref readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterReadonlyRef()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"readonly ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterInternalReadonlyRef()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"internal readonly ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterReadonlyInMethod()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"class C { void M() { readonly $$ } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterRefInMethod()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"class C { void M() { ref $$ } }");
+        }
+
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBeforeUsing_Interactive()
         {
