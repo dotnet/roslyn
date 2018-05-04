@@ -74,7 +74,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 {
                     "@(SourceRoot->'%(Identity): %(MappedPath)')",
                     "$(DeterministicSourcePaths)",
-                    "$(PathMap)"
+                    "$(PathMap)",
+                    "$(SourceRootMappedPathsFeatureSupported)"
                 },
                 expectedResults: new[] 
                 {
@@ -82,8 +83,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                     $@"{root1}: /_/",
                     $@"{root1}sub1\: /_/sub1/",
                     $@"{root1}sub2\: /_/sub2/",
-                    @"true",
-                    $@"{root2}=/_1/,{root1}=/_/,PreviousPathMap"
+                    "true",
+                    $@"{root2}=/_1/,{root1}=/_/,PreviousPathMap",
+                    "true"
                 });
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(

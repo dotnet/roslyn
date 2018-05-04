@@ -436,18 +436,16 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Adding_an_imported_method_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Alias ambiguous type &apos;{0}&apos;.
         /// </summary>
-        internal static string Alias_ambiguous_type_0
-        {
-            get
-            {
+        internal static string Alias_ambiguous_type_0 {
+            get {
                 return ResourceManager.GetString("Alias_ambiguous_type_0", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to All lowercase.
         /// </summary>
@@ -851,6 +849,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Convert_to_binary {
             get {
                 return ResourceManager.GetString("Convert_to_binary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to conditional expression.
+        /// </summary>
+        internal static string Convert_to_conditional_expression {
+            get {
+                return ResourceManager.GetString("Convert_to_conditional_expression", resourceCulture);
             }
         }
         
