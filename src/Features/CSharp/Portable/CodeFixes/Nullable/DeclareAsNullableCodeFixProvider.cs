@@ -10,12 +10,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
@@ -114,6 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             {
                 var parameter = (ParameterSyntax)node.Parent.Parent;
                 return parameter.Type;
+            }
+
+            // static string M() => null;
+            if (node.IsParentKind(SyntaxKind.ArrowExpressionClause) && node.Parent.IsParentKind(SyntaxKind.MethodDeclaration))
+            {
+                var arrowMethod = (MethodDeclarationSyntax)node.Parent.Parent;
+                return arrowMethod.ReturnType;
             }
 
             return null;

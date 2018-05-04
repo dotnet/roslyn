@@ -40,6 +40,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         }
 
         [Fact]
+        public async Task FixReturnType_ArrowBody()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+{
+    static string M() => [|null|];
+}",
+@"class Program
+{
+    static string? M() => null;
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
         public async Task NoFixAlreadyNullableReturnType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -93,6 +107,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
 @"class Program
 {
     string x { get; set; } = [|null|];
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixPropertyDeclaration_ArrowBody()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+{
+    string x => [|null|];
+}",
+@"class Program
+{
+    string? x => null;
 }", parameters: s_nullableFeature);
         }
 
