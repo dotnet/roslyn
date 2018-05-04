@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
             public const string CodeActionsUseCollectionInitializer = "CodeActions.UseCollectionInitializer";
+            public const string CodeActionsUseConditionalExpression = "CodeActions.UseConditionalExpression";
             public const string CodeActionsUseDeconstruction = "CodeActions.UseDeconstruction";
             public const string CodeActionsUseDefaultLiteral = "CodeActions.UseDefaultLiteral";
             public const string CodeActionsUseInferredMemberName = "CodeActions.UseInferredMemberName";

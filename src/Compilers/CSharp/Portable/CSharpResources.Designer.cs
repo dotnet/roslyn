@@ -7262,7 +7262,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and no extension method &apos;{1}&apos; accepting a first argument of type &apos;{0}&apos; could be found (are you missing a using directive or an assembly reference?).
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and no accessible extension method &apos;{1}&apos; accepting a first argument of type &apos;{0}&apos; could be found (are you missing a using directive or an assembly reference?).
         /// </summary>
         internal static string ERR_NoSuchMemberOrExtension {
             get {

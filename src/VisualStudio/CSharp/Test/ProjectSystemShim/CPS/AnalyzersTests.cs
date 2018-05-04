@@ -75,7 +75,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 // Verify SetRuleSetFile updates the ruleset.
                 File.WriteAllText(ruleSetFile.Path, ruleSetSource);
                 project.SetRuleSetFile(ruleSetFile.Path);
-                Assert.Equal(ruleSetFile.Path, project.RuleSetFile.FilePath);
+                Assert.Equal(ruleSetFile.Path, project.RuleSetFile.Target.FilePath);
 
                 // We need to explicitly update the command line arguments so the new ruleset is used to update options.
                 project.SetOptions($"/ruleset:{ruleSetFile.Path}");

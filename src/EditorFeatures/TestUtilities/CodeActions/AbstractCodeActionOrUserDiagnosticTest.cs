@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 var codeActions = await GetCodeActionsAsync(workspace, parameters);
                 await TestAddDocument(
-                    workspace, expectedMarkup, index, expectedContainers, 
+                    workspace, expectedMarkup, index, expectedContainers,
                     expectedDocumentName, codeActions);
             }
         }
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters)
         {
             MarkupTestFile.GetSpans(
-                expectedMarkup.NormalizeLineEndings(), 
+                expectedMarkup.NormalizeLineEndings(),
                 out var expected, out IDictionary<string, ImmutableArray<TextSpan>> spanMap);
 
             var conflictSpans = spanMap.GetOrAdd("Conflict", _ => ImmutableArray<TextSpan>.Empty);
@@ -431,7 +431,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 var annotatedItems = fixedRoot.GetAnnotatedNodesAndTokens(annotationKind).OrderBy(s => s.SpanStart).ToList();
 
-                Assert.Equal(expectedSpans.Length, annotatedItems.Count);
+                Assert.True(expectedSpans.Length == annotatedItems.Count,
+                    $"Annotations of kind '{annotationKind}' didn't match. Expected: {expectedSpans.Length}. Actual: {annotatedItems.Count}.");
 
                 for (var i = 0; i < Math.Min(expectedSpans.Length, annotatedItems.Count); i++)
                 {
@@ -449,6 +450,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (expectedChangedDocumentId == null)
             {
                 var projectDifferences = SolutionUtilities.GetSingleChangedProjectChanges(oldSolution, newSolution);
+
                 var documentId = projectDifferences.GetChangedDocuments().FirstOrDefault() ?? projectDifferences.GetAddedDocuments().FirstOrDefault();
                 Assert.NotNull(documentId);
                 document = newSolution.GetDocument(documentId);

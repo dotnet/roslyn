@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// <summary>
         /// This option says if we should simplify the Explicit Type in Local Declarations
         /// </summary>
-        public static Option<bool> PreferImplicitTypeInLocalDeclaration { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(PreferImplicitTypeInLocalDeclaration), false,
+        public static Option<bool> PreferImplicitTypeInLocalDeclaration { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(PreferImplicitTypeInLocalDeclaration), true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferImplicitTypeInLocalDeclaration"));
 
         /// <summary>

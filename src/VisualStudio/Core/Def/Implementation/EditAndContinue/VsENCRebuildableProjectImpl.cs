@@ -169,17 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 switch (projectReason)
                 {
                     case ProjectReadOnlyReason.MetadataNotAvailable:
-                        // TODO: Remove once https://github.com/dotnet/roslyn/issues/16657 is addressed
-                        bool deferredLoad = (_vsProject.ServiceProvider.GetService(typeof(SVsSolution)) as IVsSolution7)?.IsSolutionLoadDeferred() == true;
-                        if (deferredLoad)
-                        {
-                            message = ServicesVSResources.ChangesNotAllowedIfProjectWasntLoadedWhileDebugging;
-                            s_encDebuggingSessionInfo?.LogReadOnlyEditAttemptedProjectNotBuiltOrLoaded();
-                        }
-                        else
-                        {
-                            message = ServicesVSResources.ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted;
-                        }
+                        message = ServicesVSResources.ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted;
                         break;
 
                     case ProjectReadOnlyReason.NotLoaded:
@@ -236,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     _encService.StartDebuggingSession(_vsProject.Workspace.CurrentSolution);
                     s_encDebuggingSessionInfo = new EncDebuggingSessionInfo();
 
-                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService, _vsProject);
+                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService);
                 }
 
                 string outputPath = _vsProject.ObjOutputPath;
@@ -1174,7 +1164,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
 
             var symMethod = (ISymUnmanagedMethod2)_pdbReader.Value.GetMethodByVersion(MetadataTokens.GetToken(methodHandle), methodVersion: 1);
-            return MetadataTokens.StandaloneSignatureHandle(symMethod.GetLocalSignatureToken());
+
+            // Compiler generated methods (e.g. async kick-off methods) might not have debug information.
+            return symMethod == null ? default : MetadataTokens.StandaloneSignatureHandle(symMethod.GetLocalSignatureToken());
         }
 
         /// <summary>
