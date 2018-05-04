@@ -54,9 +54,13 @@ Warn if no best nullability between `expr1` and `expr2` (nested nullability)
 
 Ex: `(type)expr`
 
-TODO: review the cast section. I believe that LDM refined the behavior for `(Type)` and `(Type?)`, with some subtleties.
+Ex: `var x = (string)maybeNull; // var is a string?`
 
-Produce a `W` warning if top-level nullability of `expr` is `?` but `type` is `!`. 
+Ex: `var x = (string)notNull; // var is string`
+
+Ex: `var x = (string?)notNull; // var is a string?`
+
+Warning: Produce a `W` warning if top-level nullability of `expr` is `?` but `type` is `!`. 
 
 If `type` is nullable, then the top-level null-state is nullable. (This is useful if you use a method that returns a `string!` but did a lousy job)
 
