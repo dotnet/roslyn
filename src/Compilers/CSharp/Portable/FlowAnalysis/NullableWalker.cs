@@ -114,13 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var flags = ((CSharpParseOptions)node.SyntaxTree.Options).GetNullableReferenceFlags();
-            var walker = new NullableWalker(
-                compilation,
-                member,
-                node,
-                callbackOpt);
-
+            var walker = new NullableWalker(compilation, member, node, callbackOpt);
             try
             {
                 bool badRegion = false;
