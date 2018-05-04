@@ -1651,5 +1651,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     }
 }", offeredWhenRequireForClarityIsEnabled: true);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestIsPatternAndLogical_TestWithAllOptionsSetToIgnore()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(object expression)
+    {
+        if ($$(expression is bool b) && b) { }
+    }
+}",
+@"class C
+{
+    void M(object expression)
+    {
+        if (expression is bool b && b) { }
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: false);
+        }
     }
 }
