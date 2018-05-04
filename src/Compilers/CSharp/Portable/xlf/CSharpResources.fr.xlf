@@ -8727,12 +8727,12 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">Le nom de fichier '{0}' est vide, contient des caractères non valides, spécifie un lecteur sans chemin d'accès absolu ou est trop long</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
-        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <target state="translated">__arglist ne peut pas avoir un argument passé par 'in' ou 'out'</target>
         <note />
       </trans-unit>
     </body>

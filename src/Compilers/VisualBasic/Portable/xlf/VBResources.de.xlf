@@ -9083,7 +9083,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">Der Dateiname "{0}" ist leer, enthält ungültige Zeichen, weist eine Laufwerkangabe ohne absoluten Pfad auf oder ist zu lang.</target>
         <note />
       </trans-unit>
     </body>

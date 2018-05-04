@@ -1520,7 +1520,7 @@ Estoy de acuerdo con todo lo anterior:</target>
       </trans-unit>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
-        <target state="new">Live code analysis</target>
+        <target state="translated">Análisis de código activo</target>
         <note />
       </trans-unit>
     </body>
