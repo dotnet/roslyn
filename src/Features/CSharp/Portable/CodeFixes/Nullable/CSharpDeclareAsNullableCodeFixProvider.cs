@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -17,7 +18,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.DeclareAsNullable), Shared]
-    internal partial class DeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
@@ -49,22 +50,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         {
             var root = editor.OriginalRoot;
 
+            // a method can have multiple `return null;` statements, but we should only fix its return type once
+            var alreadyHandled = new HashSet<TypeSyntax>();
+
             foreach (var diagnostic in diagnostics)
             {
                 var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                MakeDeclarationNullable(document, editor, node);
+                MakeDeclarationNullable(document, editor, node, alreadyHandled);
             }
 
             return Task.CompletedTask;
         }
 
-        internal static void MakeDeclarationNullable(Document document, SyntaxEditor editor, SyntaxNode node)
+        private void MakeDeclarationNullable(Document document, SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled)
         {
             var declarationTypeToFix = TryGetDeclarationTypeToFix(node);
-            if (declarationTypeToFix != null)
+            if (declarationTypeToFix != null && !alreadyHandled.Contains(declarationTypeToFix))
             {
                 var fixedDeclaration = SyntaxFactory.NullableType(declarationTypeToFix);
                 editor.ReplaceNode(declarationTypeToFix, fixedDeclaration);
+                alreadyHandled.Add(declarationTypeToFix);
             }
         }
 
@@ -75,15 +80,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 return null;
             }
 
-            // return null;
             if (node.IsParentKind(SyntaxKind.ReturnStatement))
             {
-                var methodDeclaration = node.GetAncestors<MethodDeclarationSyntax>().FirstOrDefault();
-                if (methodDeclaration != null)
+                var containingMember = node.GetAncestors().FirstOrDefault(a => a.IsKind(SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration));
+                if (containingMember == null)
                 {
-                    return methodDeclaration.ReturnType;
+                    return null;
+                }
+
+                switch (containingMember.Kind())
+                {
+                    case SyntaxKind.MethodDeclaration:
+                        // string M() { return null; }
+                        return ((MethodDeclarationSyntax)containingMember).ReturnType;
+
+                    case SyntaxKind.PropertyDeclaration:
+                        // string x { get { return null; } }
+                        return ((PropertyDeclarationSyntax)containingMember).Type;
                 }
             }
+
 
             // string x = null;
             if (node.Parent?.Parent?.IsParentKind(SyntaxKind.VariableDeclaration) == true)
@@ -125,9 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.Declare_as_Nullable,
+                base(CSharpFeaturesResources.Declare_as_nullable,
                      createChangedDocument,
-                     CSharpFeaturesResources.Declare_as_Nullable)
+                     CSharpFeaturesResources.Declare_as_nullable)
             {
             }
         }

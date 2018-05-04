@@ -642,9 +642,9 @@
         <target state="new">Convert to 'for'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Declare_as_Nullable">
-        <source>Declare as Nullable</source>
-        <target state="new">Declare as Nullable</target>
+      <trans-unit id="Declare_as_nullable">
+        <source>Declare as nullable</source>
+        <target state="new">Declare as nullable</target>
         <note />
       </trans-unit>
     </body>
