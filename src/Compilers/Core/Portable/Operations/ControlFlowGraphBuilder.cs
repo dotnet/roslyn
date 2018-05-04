@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.Operations
         // being taken?
         private int _availableCaptureId = 0;
 
+        /// <summary>
+        /// Holds the current object being initialized if we're visiting an object initializer.
+        /// </summary>
+        private IOperation _currentInitializedInstance;
+
         private ControlFlowGraphBuilder()
         { }
 
@@ -1062,6 +1067,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation saveCurrentStatement = _currentStatement;
             _currentStatement = operation;
             Debug.Assert(_evalStack.Count == 0);
+            Debug.Assert(_currentInitializedInstance == null);
 
             AddStatement(Visit(operation, null));
             Debug.Assert(_evalStack.Count == 0);
@@ -2856,7 +2862,7 @@ oneMoreTime:
                 {
                     // This must be an error case
                     AddStatement(MakeInvalidOperation(type: null, Visit(operation.Collection)));
-                    return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Collection.Syntax, 
+                    return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Collection.Syntax,
                                                 type: null,constantValue: default, isImplicit: true);
                 }
             }
@@ -2909,12 +2915,12 @@ oneMoreTime:
                     case OperationKind.DeclarationExpression:
                         Debug.Assert(info.ElementConversion?.ToCommonConversion().IsIdentity != false);
 
-                        return new DeconstructionAssignmentExpression(VisitPreservingTupleOperations(operation.LoopControlVariable), 
+                        return new DeconstructionAssignmentExpression(VisitPreservingTupleOperations(operation.LoopControlVariable),
                                                                       current, semanticModel: null,
                                                                       operation.LoopControlVariable.Syntax, operation.LoopControlVariable.Type,
                                                                       constantValue: default, isImplicit: true);
                     default:
-                        return new SimpleAssignmentExpression(Visit(operation.LoopControlVariable), 
+                        return new SimpleAssignmentExpression(Visit(operation.LoopControlVariable),
                                                               isRef: false, // In C# this is an error case and VB doesn't support ref locals
                                                               current, semanticModel: null, operation.LoopControlVariable.Syntax,
                                                               operation.LoopControlVariable.Type,
@@ -3218,7 +3224,7 @@ oneMoreTime:
             }
 
             ImmutableArray<IOperation> initialization = operation.Before;
-            
+
             if (initialization.Length == 1 && initialization[0].Kind == OperationKind.VariableDeclarationGroup)
             {
                 HandleVariableDeclarations((VariableDeclarationGroupOperation)initialization.Single());
@@ -3228,7 +3234,7 @@ oneMoreTime:
                 VisitStatements(initialization);
             }
 
-            var start = new BasicBlock(BasicBlockKind.Block); 
+            var start = new BasicBlock(BasicBlockKind.Block);
             AppendNewBlock(start);
 
             bool haveConditionLocals = !operation.ConditionLocals.IsEmpty;
@@ -3356,8 +3362,6 @@ oneMoreTime:
                 assignmentSyntax = declaration.Syntax;
                 if (initializer != null)
                 {
-                    // PROTOTYPE(dataflow): Add a test with control flow in a shared initializer after
-                    // object creation support has been added
                     initializer = new InvalidOperation(ImmutableArray.Create(initializer, operationInitializer),
                                                         semanticModel: null,
                                                         declaration.Syntax,
@@ -3447,11 +3451,232 @@ oneMoreTime:
             ImmutableArray<IArgumentOperation> visitedArgs = VisitArguments(operation.Arguments);
 
             // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
-            var objectCreation = new ObjectCreationExpression(operation.Constructor, initializer: null, visitedArgs, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            IOperation initializedInstance = new ObjectCreationExpression(operation.Constructor, initializer: null, visitedArgs, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
 
-            // PROTOTYPE(dataflow): For a non-null initializer, we'll need to assign the created object to a flow reference and rewrite all initializers to assign to/call functions on it, then return return the flow reference
+            if (operation.Initializer != null)
+            {
+                SpillEvalStack();
 
-            return objectCreation;
+                int initializerCaptureId = _availableCaptureId++;
+                AddStatement(new FlowCapture(initializerCaptureId, initializedInstance.Syntax, initializedInstance));
+
+                initializedInstance = new FlowCaptureReference(initializerCaptureId, initializedInstance.Syntax, initializedInstance.Type, initializedInstance.ConstantValue);
+                HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
+            }
+
+            return initializedInstance;
+        }
+
+        private void HandleObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation initializer, IOperation initializedInstance)
+        {
+            // PROTOTYPE(dataflow): Handle collection initializers
+            IOperation previousInitializedInstance = _currentInitializedInstance;
+            _currentInitializedInstance = initializedInstance;
+
+            foreach (IOperation innerInitializer in initializer.Initializers)
+            {
+                handleInitializer(innerInitializer);
+            }
+
+            _currentInitializedInstance = previousInitializedInstance;
+            return;
+
+            void handleInitializer(IOperation innerInitializer)
+            {
+                switch (innerInitializer.Kind)
+                {
+                    case OperationKind.MemberInitializer:
+                        handleMemberInitializer((IMemberInitializerOperation)innerInitializer);
+                        return;
+
+                    case OperationKind.SimpleAssignment:
+                        AddStatement(handleSimpleAssignment((ISimpleAssignmentOperation)innerInitializer));
+                        return;
+
+                    case OperationKind.CollectionElementInitializer:
+                        // PROTOTYPE(dataflow): support collection initializers
+                        throw new NotImplementedException();
+
+                    case OperationKind.Invalid:
+                        AddStatement(Visit(innerInitializer));
+                        return;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(innerInitializer.Kind);
+                }
+            }
+
+            IOperation handleSimpleAssignment(ISimpleAssignmentOperation assignmentOperation)
+            {
+                (bool pushSuccess, ImmutableArray<IArgumentOperation> arguments) = tryPushTarget(assignmentOperation.Target);
+
+                if (!pushSuccess)
+                {
+                    // Error case. We don't try any error recovery here, just return whatever the default visit would.
+                    Debug.Assert(assignmentOperation.Target.Kind == OperationKind.Invalid);
+                    return Visit(assignmentOperation);
+                }
+
+                // We push the target, which effectively pushes individual components of the target (ie the instance, and arguments if present).
+                // After that has been pushed, we visit the value of the assignment, to ensure that the instance is captured if
+                // needed. Finally, we reassemble the target, which will pull the potentially captured instance from the stack
+                // and reassemble the member reference from the parts.
+                IOperation right = Visit(assignmentOperation.Value);
+                IOperation left = popTarget(assignmentOperation.Target, arguments);
+
+                return new SimpleAssignmentExpression(left, assignmentOperation.IsRef, right, semanticModel: null, assignmentOperation.Syntax,
+                                                      assignmentOperation.Type, assignmentOperation.ConstantValue, assignmentOperation.IsImplicit);
+            }
+
+            void handleMemberInitializer(IMemberInitializerOperation memberInitializer)
+            {
+                // We explicitly do not push the initialized member onto the stack here. We visit the initialized member to get the implicit receiver that will be substituted in when an
+                // IInstanceReferenceOperation with InstanceReferenceKind.ImplicitReceiver is encountered. If that receiver needs to be pushed onto the stack, its parent will handle it.
+                // In member initializers, the code generated will evaluate InitializedMember multiple times. For example, if you have the following:
+                //
+                // class C1
+                // {
+                //   public C2 C2 { get; set; } = new C2();
+                //   public void M()
+                //   {
+                //     var x = new C1 { C2 = { P1 = 1, P2 = 2 } };
+                //   }
+                // }
+                // class C2
+                // {
+                //   public int P1 { get; set; }
+                //   public int P2 { get; set; }
+                // }
+                //
+                // We generate the following code for C1.M(). Note the multiple calls to C1::get_C2().
+                //   IL_0000: nop
+                //   IL_0001: newobj instance void C1::.ctor()
+                //   IL_0006: dup
+                //   IL_0007: callvirt instance class C2 C1::get_C2()
+                //   IL_000c: ldc.i4.1
+                //   IL_000d: callvirt instance void C2::set_P1(int32)
+                //   IL_0012: nop
+                //   IL_0013: dup
+                //   IL_0014: callvirt instance class C2 C1::get_C2()
+                //   IL_0019: ldc.i4.2
+                //   IL_001a: callvirt instance void C2::set_P2(int32)
+                //   IL_001f: nop
+                //   IL_0020: stloc.0
+                //   IL_0021: ret
+                //
+                // We therefore visit the InitializedMember to get the implicit receiver for the contained initializer, and that implicit receiver will be cloned everywhere it encounters
+                // an IInstanceReferenceOperation with ReferenceKind InstanceReferenceKind.ImplicitReceiver
+
+                (bool pushSuccess, ImmutableArray<IArgumentOperation> arguments) = tryPushTarget(memberInitializer.InitializedMember);
+                IOperation instance = pushSuccess ? popTarget(memberInitializer.InitializedMember, arguments) : Visit(memberInitializer.InitializedMember);
+                HandleObjectOrCollectionInitializer(memberInitializer.Initializer, instance);
+            }
+
+            (bool success, ImmutableArray<IArgumentOperation> arguments) tryPushTarget(IOperation instance)
+            {
+                switch (instance.Kind)
+                {
+                    case OperationKind.FieldReference:
+                    case OperationKind.EventReference:
+                    case OperationKind.PropertyReference:
+                        var memberReference = (IMemberReferenceOperation)instance;
+                        IPropertyReferenceOperation propertyReference = null;
+                        ImmutableArray<IArgumentOperation> propertyArguments = ImmutableArray<IArgumentOperation>.Empty;
+
+                        if (memberReference.Kind == OperationKind.PropertyReference &&
+                            !(propertyReference = (IPropertyReferenceOperation)memberReference).Arguments.IsEmpty)
+                        {
+                            var propertyArgumentsBuilder = ArrayBuilder<IArgumentOperation>.GetInstance(propertyReference.Arguments.Length);
+                            foreach (IArgumentOperation arg in propertyReference.Arguments)
+                            {
+                                // We assume all arguments have side effects and spill them. We only avoid capturing literals, and
+                                // recapturing things that have already been captured once.
+                                IOperation value = arg.Value;
+                                int captureId = VisitAndCapture(value);
+                                IOperation capturedValue = new FlowCaptureReference(captureId, value.Syntax, value.Type, value.ConstantValue);
+                                BaseArgument baseArgument = (BaseArgument)arg;
+                                propertyArgumentsBuilder.Add(new ArgumentOperation(capturedValue, arg.ArgumentKind, arg.Parameter,
+                                                                                   baseArgument.InConversionConvertibleOpt,
+                                                                                   baseArgument.OutConversionConvertibleOpt,
+                                                                                   semanticModel: null, arg.Syntax, arg.IsImplicit));
+                            }
+
+                            propertyArguments = propertyArgumentsBuilder.ToImmutableAndFree();
+                        }
+
+                        Debug.Assert((propertyReference == null && propertyArguments.IsEmpty) ||
+                                     (propertyArguments.Length == propertyReference.Arguments.Length));
+
+                        // If there is control flow in the value being assigned, we want to make sure that
+                        // the instance is captured appropriately, but the setter/field load in the reference will only be evaluated after
+                        // the value has been evaluated. So we assemble the reference after visiting the value.
+
+                        _evalStack.Push(Visit(memberReference.Instance));
+                        return (success: true, propertyArguments);
+
+
+                    case OperationKind.ArrayElementReference:
+                    // PROTOTYPE(dataflow): Add support
+
+                    case OperationKind.Invalid:
+                        return (success: false, arguments: ImmutableArray<IArgumentOperation>.Empty);
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(instance.Kind);
+                }
+            }
+
+            IOperation popTarget(IOperation originalTarget, ImmutableArray<IArgumentOperation> arguments)
+            {
+                IOperation instance = _evalStack.Pop();
+                switch (originalTarget.Kind)
+                {
+                    case OperationKind.FieldReference:
+                        var fieldReference = (IFieldReferenceOperation)originalTarget;
+                        return new FieldReferenceExpression(fieldReference.Field, fieldReference.IsDeclaration, instance, semanticModel: null,
+                                                            fieldReference.Syntax, fieldReference.Type, fieldReference.ConstantValue, fieldReference.IsImplicit);
+                    case OperationKind.EventReference:
+                        var eventReference = (IEventReferenceOperation)originalTarget;
+                        return new EventReferenceExpression(eventReference.Event, instance, semanticModel: null, eventReference.Syntax,
+                                                            eventReference.Type, eventReference.ConstantValue, eventReference.IsImplicit);
+                    case OperationKind.PropertyReference:
+                        var propertyReference = (IPropertyReferenceOperation)originalTarget;
+                        Debug.Assert(propertyReference.Arguments.Length == arguments.Length);
+                        return new PropertyReferenceExpression(propertyReference.Property, instance, arguments, semanticModel: null, propertyReference.Syntax,
+                                                               propertyReference.Type, propertyReference.ConstantValue, propertyReference.IsImplicit);
+
+                    case OperationKind.ArrayElementReference:
+                    // PROTOTYPE(dataflow): add support
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(originalTarget.Kind);
+                }
+            }
+        }
+
+        public override IOperation VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitMemberInitializer(IMemberInitializerOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
+        {
+            if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
+            {
+                // When we're in an object or collection initializer, we need to replace the instance reference with a reference to the object being initialized
+                Debug.Assert(_currentInitializedInstance != null);
+                Debug.Assert(operation.IsImplicit);
+                return OperationCloner.CloneOperation(_currentInitializedInstance);
+            }
+            else
+            {
+                return new InstanceReferenceExpression(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            }
         }
 
         public override IOperation VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, int? captureIdForResult)
@@ -3657,11 +3882,6 @@ oneMoreTime:
             return new ParameterReferenceExpression(operation.Parameter, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
-        {
-            return new InstanceReferenceExpression(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
         public override IOperation VisitFieldReference(IFieldReferenceOperation operation, int? captureIdForResult)
         {
             // PROTOTYPE(dataflow): drop instance for a static field
@@ -3717,6 +3937,8 @@ oneMoreTime:
 
         public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
         {
+            // PROTOTYPE(dataflow): When implementing, consider when a lambda inside a VB initializer references the instance being initialized.
+            //                      https://github.com/dotnet/roslyn/pull/26389#issuecomment-386459324
             return new AnonymousFunctionExpression(operation.Symbol, 
                                                    // PROTOTYPE(dataflow): Drop lambda's body for now to enable some test scenarios
                                                    new BlockStatement(ImmutableArray<IOperation>.Empty,
@@ -3752,16 +3974,6 @@ oneMoreTime:
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
         {
             return new AnonymousObjectCreationExpression(VisitArray(operation.Initializers), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, int? captureIdForResult)
-        {
-            return new ObjectOrCollectionInitializerExpression(VisitArray(operation.Initializers), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitMemberInitializer(IMemberInitializerOperation operation, int? captureIdForResult)
-        {
-            return new MemberInitializerExpression(Visit(operation.InitializedMember), Visit(operation.Initializer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitCollectionElementInitializer(ICollectionElementInitializerOperation operation, int? captureIdForResult)

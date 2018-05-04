@@ -550,6 +550,10 @@ endRegion:
                             binary.OperatorMethod != null || // PROTOTYPE(dataflow): no proper support for user-defined operators yet.
                             binary.Type.SpecialType != SpecialType.System_Boolean; // PROTOTYPE(dataflow): no proper support for nullable conditional operators yet.
 
+                case OperationKind.InstanceReference:
+                    // Implicit instance receivers are expected to have been removed when dealing with creations.
+                    return ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
+
                 case OperationKind.None:
                 case OperationKind.Invalid:
                 case OperationKind.YieldReturn:
@@ -571,7 +575,6 @@ endRegion:
                 case OperationKind.ObjectCreation:
                 case OperationKind.TypeParameterObjectCreation:
                 case OperationKind.ArrayCreation:
-                case OperationKind.InstanceReference:
                 case OperationKind.IsType:
                 case OperationKind.Await:
                 case OperationKind.SimpleAssignment:
