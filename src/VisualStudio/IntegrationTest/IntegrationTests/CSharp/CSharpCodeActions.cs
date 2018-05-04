@@ -242,19 +242,21 @@ class Program
             VisualStudio.Editor.SelectTextInCurrentDocument("2");
 
             VisualStudio.Editor.InvokeCodeActionList();
+
+            var generateImplicitTitle = "Generate implicit conversion operator in 'C'";
             var expectedItems = new[]
             {
-                "Generate implicit conversion operator in 'C'",
                 "Introduce constant for '2'",
                 "Introduce constant for all occurrences of '2'",
                 "Introduce local constant for '2'",
                 "Introduce local constant for all occurrences of '2'",
                 "Extract Method",
+                generateImplicitTitle,
                 "Suppress CS0612",
                 "in Source",
             };
 
-            VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
+            VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: generateImplicitTitle, ensureExpectedItemsAreOrdered: true);
             VisualStudio.Editor.Verify.TextContains("implicit");
         }
 

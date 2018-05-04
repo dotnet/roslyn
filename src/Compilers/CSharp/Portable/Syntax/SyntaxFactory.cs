@@ -1878,16 +1878,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </param>
         public static bool AreEquivalent(SyntaxTree oldTree, SyntaxTree newTree, bool topLevel)
         {
-            var csOld = oldTree as SyntaxTree;
-            var csNew = newTree as SyntaxTree;
-
-            if (csOld == null && csNew == null)
+            if (oldTree == null && newTree == null)
+            {
                 return true;
+            }
 
-            if (csOld == null || csNew == null)
+            if (oldTree == null || newTree == null)
+            {
                 return false;
+            }
 
-            return SyntaxEquivalence.AreEquivalent(csOld, csNew, ignoreChildNode: null, topLevel: topLevel);
+            return SyntaxEquivalence.AreEquivalent(oldTree, newTree, ignoreChildNode: null, topLevel: topLevel);
         }
 
         /// <summary>

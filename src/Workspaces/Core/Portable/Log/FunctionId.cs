@@ -413,5 +413,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         ExternalErrorDiagnosticUpdateSource_AddError,
         DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync,
         Completion_ExecuteCommand_TypeChar,
+        RemoteHostService_SynchronizeTextAsync,
     }
 }

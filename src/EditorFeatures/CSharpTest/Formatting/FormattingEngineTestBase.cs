@@ -19,7 +19,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Moq;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -175,14 +174,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
         protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, bool debugMode = false)
         {
-            var editorOperations = new Mock<IEditorOperations>(MockBehavior.Strict);
-            var editorOperationsFactoryService = new Mock<IEditorOperationsFactoryService>(MockBehavior.Strict);
-
-            editorOperations.Setup(o => o.AddAfterTextBufferChangePrimitive());
-            editorOperations.Setup(o => o.AddBeforeTextBufferChangePrimitive());
-
-            editorOperationsFactoryService.Setup(s => s.GetEditorOperations(It.IsAny<ITextView>())).Returns(editorOperations.Object);
-
             using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker))
             {
                 // set up caret position
@@ -193,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 // get original buffer
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
-                var commandHandler = new FormatCommandHandler(workspace.GetService<ITextUndoHistoryRegistry>(), editorOperationsFactoryService.Object);
+                var commandHandler = workspace.GetService<FormatCommandHandler>();
 
                 var commandArgs = new FormatDocumentCommandArgs(view, view.TextBuffer);
                 commandHandler.ExecuteCommand(commandArgs, TestCommandExecutionContext.Create());
@@ -223,18 +214,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
                 if (isPaste)
                 {
-                    var commandHandler = new FormatCommandHandler(null, null);
+                    var commandHandler = workspace.GetService<FormatCommandHandler>();
                     var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
                     commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
                 }
                 else
                 {
                     // Return Key Command
-                    var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
-                    var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
-                    var editorOperations = new Mock<IEditorOperations>();
-                    editorOperationsFactory.Setup(x => x.GetEditorOperations(testDocument.GetTextView())).Returns(editorOperations.Object);
-                    var commandHandler = new FormatCommandHandler(textUndoHistory.Object, editorOperationsFactory.Object);
+                    var commandHandler = workspace.GetService<FormatCommandHandler>();
                     var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
                     commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
                 }

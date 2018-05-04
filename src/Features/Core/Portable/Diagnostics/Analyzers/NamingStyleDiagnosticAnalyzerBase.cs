@@ -110,6 +110,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
+            var sourceTree = symbol.Locations.FirstOrDefault()?.SourceTree;
+            if (sourceTree == null)
+            {
+                return null;
+            }
+
             var namingPreferences = GetNamingStylePreferencesAsync().GetAwaiter().GetResult();
             if (namingPreferences == null)
             {
@@ -159,12 +165,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             async Task<NamingStylePreferences> GetNamingStylePreferencesAsync()
             {
-                var sourceTree = symbol.Locations.FirstOrDefault()?.SourceTree;
-                if (sourceTree == null)
-                {
-                    return null;
-                }
-
                 var optionSet = await options.GetDocumentOptionSetAsync(sourceTree, cancellationToken).ConfigureAwait(false);
                 return optionSet?.GetOption(SimplificationOptions.NamingPreferences, compilation.Language);
             }
