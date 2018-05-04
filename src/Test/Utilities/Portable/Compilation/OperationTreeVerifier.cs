@@ -1642,8 +1642,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.Expression, "Expression");
             Visit(operation.Alignment, "Alignment");
-            Assert.True(operation.FormatString == null || operation.FormatString.Kind == OperationKind.Literal);
             Visit(operation.FormatString, "FormatString");
+
+            if (operation.FormatString != null)
+            {
+                Assert.Equal(OperationKind.Literal, operation.FormatString.Kind);
+            }
         }
 
         public override void VisitConstantPattern(IConstantPatternOperation operation)
