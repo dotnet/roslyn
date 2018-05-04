@@ -75,5 +75,8 @@
     <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.xml" target="lib\netstandard1.3" />
     <file src="Dlls\CodeAnalysis\Microsoft.CodeAnalysis.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\CodeAnalysis\**\Microsoft.CodeAnalysis.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>

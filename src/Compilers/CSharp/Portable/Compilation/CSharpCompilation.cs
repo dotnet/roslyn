@@ -1883,14 +1883,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void ReportUnusedImports(SyntaxTree filterTree, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
-            if (_lazyImportInfos != null)
+            if (_lazyImportInfos != null && filterTree?.Options.DocumentationMode != DocumentationMode.None)
             {
                 foreach (ImportInfo info in _lazyImportInfos)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     SyntaxTree infoTree = info.Tree;
-                    if (filterTree == null || filterTree == infoTree)
+                    if ((filterTree == null || filterTree == infoTree) && infoTree.Options.DocumentationMode != DocumentationMode.None)
                     {
                         TextSpan infoSpan = info.Span;
                         if (!this.IsImportDirectiveUsed(infoTree, infoSpan.Start))
