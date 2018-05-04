@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             var root = editor.OriginalRoot;
 
             // a method can have multiple `return null;` statements, but we should only fix its return type once
-            var alreadyHandled = new HashSet<TypeSyntax>();
+            var alreadyHandled = PooledHashSet<TypeSyntax>.GetInstance();
 
             foreach (var diagnostic in diagnostics)
             {
@@ -56,17 +57,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 MakeDeclarationNullable(document, editor, node, alreadyHandled);
             }
 
+            alreadyHandled.Free();
             return Task.CompletedTask;
         }
 
         private static void MakeDeclarationNullable(Document document, SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled)
         {
             var declarationTypeToFix = TryGetDeclarationTypeToFix(node);
-            if (declarationTypeToFix != null && !alreadyHandled.Contains(declarationTypeToFix))
+            if (declarationTypeToFix != null && alreadyHandled.Add(declarationTypeToFix))
             {
-                var fixedDeclaration = SyntaxFactory.NullableType(declarationTypeToFix);
+                var fixedDeclaration = SyntaxFactory.NullableType(declarationTypeToFix.WithoutTrivia()).WithTriviaFrom(declarationTypeToFix);
                 editor.ReplaceNode(declarationTypeToFix, fixedDeclaration);
-                alreadyHandled.Add(declarationTypeToFix);
             }
         }
 
@@ -111,14 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             // string x { get; set; } = null;
-            if (node.Parent?.IsParentKind(SyntaxKind.PropertyDeclaration) == true)
+            if (node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration) == true)
             {
                 var propertyDeclaration = (PropertyDeclarationSyntax)node.Parent.Parent;
                 return propertyDeclaration.Type;
             }
 
             // void M(string x = null) { }
-            if (node.Parent?.IsParentKind(SyntaxKind.Parameter) == true)
+            if (node.Parent.IsParentKind(SyntaxKind.Parameter) == true)
             {
                 var parameter = (ParameterSyntax)node.Parent.Parent;
                 return parameter.Type;
