@@ -1685,5 +1685,68 @@ offeredWhenRequireForClarityIsEnabled: false);
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundLValueMemberAccess()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        $$(this.Property) = Property;
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        this.Property = Property;
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundMultiplicationInAddEquals()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        x += $$(y * z)
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        x += y * z
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundAddInMultipleEquals()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        x *= $$(y + z)
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        x *= y + z
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
     }
 }
