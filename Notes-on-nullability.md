@@ -1,5 +1,6 @@
 Notation for null-state: `?` means top-level may be `null`, `!` means top-level isn't `null`, and `~` means oblivious.
 
+----
 
 ### Local declaration
 
@@ -16,6 +17,7 @@ Null-state of `local` is passed through from `expr`.
 Declared type of `local` has nullability from `expr`.
 
 
+----
 ### Assignment
 
 Ex: `local = expr2`
@@ -36,6 +38,7 @@ Produce a warning if top-level nullability of `expr2` is `?` but type is `!`:
 What about ref locals? They could be point to "an API".
 
 
+----
 ### Null-coalescing operator
 Ex: `expr1 ?? expr2`
 
@@ -46,6 +49,7 @@ Open issue: should this warn if `expr1` is declared with type non-nullable?
 Warn if no best nullability between `expr1` and `expr2` (nested nullability)
 
 
+----
 ### Cast and conversions
 
 Ex: `(type)expr`
@@ -61,6 +65,7 @@ Otherwise, the top-level nullability is passed through from `expr` and the type 
 You can only cast away nested nullability when there is an implicit conversion.
 
 
+----
 #### User-defined conversion operator
 
 If a conversion operator takes a `!` as input, but it receives a null-state `?` then produce a real warning.
@@ -70,6 +75,7 @@ If a conversion operator returns a `?`, but the cast uses a `!` type then produc
 We need to define the nullability of built-in operators (we should add the correct annotations).
 
 
+----
 ### Array creation
 
 Ex: `new[] { expr1, expr2 }`
@@ -77,6 +83,7 @@ Ex: `new[] { expr1, expr2 }`
 Null-state is a non-null array whose elements' nullability is the most relaxed from the expressions, with order: `?` > `~` > `!`.
 
 
+----
 ### Silencing operator
 
 Ex: `expr!`
@@ -93,6 +100,8 @@ Open issue: confirm null-state when `expr` is oblivious top-level null-state.
 
 Open issue: confirm warning on unnecessary `!`.
 
+
+----
 ### Generic types
 
 (See LDM notes 4/25/2018)
@@ -107,6 +116,8 @@ We will do some validation on constraints, so as to complain for nullability mis
 
 `T?` is disallowed for now.
 
+
+----
 ### Null tests
 
 We should list the expressions that inform the flow state.
