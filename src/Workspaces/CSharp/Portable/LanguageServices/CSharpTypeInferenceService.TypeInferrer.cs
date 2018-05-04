@@ -1455,11 +1455,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // parent type.  So look up the parent type first, then find the X member in it
                 // and use that type.
                 if (child == subpatternElement.Pattern &&
-                    subpatternElement.NameColon?.Name is IdentifierNameSyntax identifier)
+                    subpatternElement.NameColon != null)
                 {
                     var result = ArrayBuilder<TypeInferenceInfo>.GetInstance();
 
-                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(identifier).GetAllSymbols())
+                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpatternElement.NameColon.Name).GetAllSymbols())
                     {
                         switch (symbol)
                         {
@@ -1511,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // if it's of the for "X (...)" then just infer 'X' as the type.
                 if (deconstructionPattern.Type != null)
                 {
-                    return GetTypes(deconstructionPattern.Type);
+                    return CreateResult(SemanticModel.GetTypeInfo(deconstructionPattern).ConvertedType);
                 }
 
                 // If it's of the form (...) then infer that the type should be a 
@@ -1526,9 +1526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (var subPattern in deconstructionPattern.SubPatterns)
                     {
-                        elementNamesBuilder.Add(subPattern.NameColon?.Name is IdentifierNameSyntax identifier
-                            ? identifier.Identifier.ValueText
-                            : null);
+                        elementNamesBuilder.Add(subPattern.NameColon?.Name.Identifier.ValueText);
 
                         var patternType = GetPatternTypes(subPattern.Pattern).FirstOrDefault();
                         if (patternType.InferredType == null)
