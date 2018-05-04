@@ -14,7 +14,10 @@
       More details at https://aka.ms/roslyn-packages
 
       $commitPathMessage$
-      This depends on Microsoft.VisualStudio.CoreUtility version $MicrosoftVisualStudioCoreUtilityVersion$ or higher
+      This depends on:
+          Microsoft.VisualStudio.CoreUtility version $MicrosoftVisualStudioCoreUtilityVersion$ or higher
+          Microsoft.VisualStudio.Text.Data version $MicrosoftVisualStudioTextDataVersion$ or higher
+          Microsoft.VisualStudio.Text.Logic version $MicrosoftVisualStudioTextLogicVersion$ or higher
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />
