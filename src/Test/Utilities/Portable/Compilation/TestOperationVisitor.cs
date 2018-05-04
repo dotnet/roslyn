@@ -1046,6 +1046,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInterpolatedStringText(IInterpolatedStringTextOperation operation)
         {
             Assert.Equal(OperationKind.InterpolatedStringText, operation.Kind);
+            Assert.Equal(OperationKind.Literal, operation.Text.Kind);
             Assert.Same(operation.Text, operation.Children.Single());
         }
 
@@ -1060,6 +1061,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.FormatString != null)
             {
+                Assert.Equal(OperationKind.Literal, operation.FormatString.Kind);
                 children = children.Concat(new[] { operation.FormatString });
             }
 

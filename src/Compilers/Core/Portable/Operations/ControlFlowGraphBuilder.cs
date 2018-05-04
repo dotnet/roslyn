@@ -3798,6 +3798,75 @@ oneMoreTime:
             return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, childrenBuilder.ToImmutableAndFree(), operation.IsImplicit);
         }
 
+        public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
+        {
+            // We visit and rewrite the interpolation parts in two phases:
+            //  1. Visit all the non-literal parts of the interpolation and push them onto the eval stack.
+            //  2. Traverse the parts in reverse order, popping the non-literal values from the eval stack and visiting the literal values.
+
+            foreach (IInterpolatedStringContentOperation element in operation.Parts)
+            {
+                if (element.Kind == OperationKind.Interpolation)
+                {
+                    var interpolation = (IInterpolationOperation)element;
+                    _evalStack.Push(Visit(interpolation.Expression));
+
+                    if (interpolation.Alignment != null)
+                    {
+                        _evalStack.Push(Visit(interpolation.Alignment));
+                    }
+                }
+            }
+
+            var partsBuilder = ArrayBuilder<IInterpolatedStringContentOperation>.GetInstance(operation.Parts.Length);
+            for (int i = operation.Parts.Length - 1; i >= 0; i--)
+            {
+                IInterpolatedStringContentOperation element = operation.Parts[i];
+                IInterpolatedStringContentOperation rewrittenElement;
+                if (element.Kind == OperationKind.Interpolation)
+                {
+                    var interpolation = (IInterpolationOperation)element;
+
+                    IOperation rewrittenFormatString;
+                    if (interpolation.FormatString != null)
+                    {
+                        Debug.Assert(interpolation.FormatString.Kind == OperationKind.Literal);
+                        rewrittenFormatString = VisitLiteral((ILiteralOperation)interpolation.FormatString, captureIdForResult: null);
+                    }
+                    else
+                    {
+                        rewrittenFormatString = null;
+                    }
+
+                    var rewrittenAlignment = interpolation.Alignment != null ? _evalStack.Pop() : null;
+                    var rewrittenExpression = _evalStack.Pop();
+                    rewrittenElement = new Interpolation(rewrittenExpression, rewrittenAlignment, rewrittenFormatString, semanticModel: null, element.Syntax, element.Type, element.ConstantValue, element.IsImplicit);
+                }
+                else
+                {
+                    var interpolatedStringText = (IInterpolatedStringTextOperation)element;
+                    Debug.Assert(interpolatedStringText.Text.Kind == OperationKind.Literal);
+                    var rewrittenInterpolationText = VisitLiteral((ILiteralOperation)interpolatedStringText.Text, captureIdForResult: null);
+                    rewrittenElement = new InterpolatedStringText(rewrittenInterpolationText, semanticModel: null, element.Syntax, element.Type, element.ConstantValue, element.IsImplicit);
+                }
+
+                partsBuilder.Add(rewrittenElement);
+            }
+
+            partsBuilder.ReverseContents();
+            return new InterpolatedStringExpression(partsBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitInterpolation(IInterpolationOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override IOperation VisitNameOf(INameOfOperation operation, int? captureIdForResult)
         {
             Debug.Assert(operation.ConstantValue.HasValue);
@@ -4055,21 +4124,6 @@ oneMoreTime:
         public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, int? captureIdForResult)
         {
             return new LocalFunctionStatement(operation.Symbol, Visit(operation.Body), Visit(operation.IgnoredBody), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
-        {
-            return new InterpolatedStringExpression(VisitArray(operation.Parts), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, int? captureIdForResult)
-        {
-            return new InterpolatedStringText(Visit(operation.Text), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitInterpolation(IInterpolationOperation operation, int? captureIdForResult)
-        {
-            return new Interpolation(Visit(operation.Expression), Visit(operation.Alignment), Visit(operation.FormatString), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)

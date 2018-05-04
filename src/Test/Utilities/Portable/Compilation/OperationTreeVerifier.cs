@@ -1631,6 +1631,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IInterpolatedStringTextOperation));
             LogCommonPropertiesAndNewLine(operation);
 
+            Assert.Equal(OperationKind.Literal, operation.Text.Kind);
             Visit(operation.Text, "Text");
         }
 
@@ -1642,6 +1643,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Expression, "Expression");
             Visit(operation.Alignment, "Alignment");
             Visit(operation.FormatString, "FormatString");
+
+            if (operation.FormatString != null)
+            {
+                Assert.Equal(OperationKind.Literal, operation.FormatString.Kind);
+            }
         }
 
         public override void VisitConstantPattern(IConstantPatternOperation operation)
