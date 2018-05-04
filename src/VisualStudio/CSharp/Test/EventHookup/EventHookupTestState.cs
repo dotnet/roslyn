@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         private Mutex _testSessionHookupMutex;
 
         public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey, object> options)
-            : base(workspaceElement, GetExtraParts(), false)
+            : base(workspaceElement, excludedTypes: null, GetExtraParts(), false)
         {
 #pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
             _commandHandler = new EventHookupCommandHandler(Workspace.GetService<IInlineRenameService>(), Workspace.GetService<IQuickInfoBroker>(),

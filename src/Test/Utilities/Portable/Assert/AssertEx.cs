@@ -471,7 +471,7 @@ namespace Roslyn.Test.Utilities
                 }
                 else
                 {
-                    itemSeparator = ",\r\n";
+                    itemSeparator = "," + Environment.NewLine;
                 }
             }
 
@@ -485,7 +485,7 @@ namespace Roslyn.Test.Utilities
             message.AppendLine("Actual:");
             message.AppendLine(actualString);
             message.AppendLine("Differences:");
-            message.AppendLine(DiffUtil.DiffReport(expected, actual, comparer, itemInspector, itemSeparator));
+            message.AppendLine(DiffUtil.DiffReport(expected, actual, itemSeparator, comparer, itemInspector));
 
             if (TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out var link))
             {

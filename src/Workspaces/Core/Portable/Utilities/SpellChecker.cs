@@ -15,6 +15,7 @@ namespace Roslyn.Utilities
         private const string SerializationFormat = "3";
 
         public Checksum Checksum { get; }
+
         private readonly BKTree _bkTree;
 
         public SpellChecker(Checksum checksum, BKTree bKTree)
@@ -41,6 +42,8 @@ namespace Roslyn.Utilities
 
             return array;
         }
+
+        bool IObjectWritable.ShouldReuseInSerialization => true;
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
