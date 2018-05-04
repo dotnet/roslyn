@@ -574,11 +574,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Check that the given name is the same as the corresponding parameter of the method.
                         string name = subPattern.NameColon.Name.Identifier.ValueText;
                         int parameterIndex = i + skippedExtensionParameters;
-                        parameter = deconstructMethod.Parameters[parameterIndex];
-                        string parameterName = parameter.Name;
-                        if (name != parameterName)
+                        if (parameterIndex < deconstructMethod.ParameterCount)
                         {
-                            diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMismatch, subPattern.NameColon.Name.Location, name, parameterName);
+                            parameter = deconstructMethod.Parameters[parameterIndex];
+                            string parameterName = parameter.Name;
+                            if (name != parameterName)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMismatch, subPattern.NameColon.Name.Location, name, parameterName);
+                            }
+                        }
+                        else
+                        {
+                            Debug.Assert(deconstructMethod is ErrorMethodSymbol);
                         }
                     }
                     BoundSubpattern boundSubpattern = new BoundSubpattern(

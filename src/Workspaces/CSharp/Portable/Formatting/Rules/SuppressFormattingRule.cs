@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             AddStatementExceptBlockSuppressOperations(list, node);
 
-            AddSpecificNodesSuppressOperations(list, node);
+            AddSpecificNodesSuppressOperations(list, node, lastToken);
         }
 
-        private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+        private void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken)
         {
             if (node is IfStatementSyntax ifStatementNode)
             {
@@ -38,6 +38,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (ifStatementNode.Else != null)
                 {
                     AddSuppressWrappingIfOnSingleLineOperation(list, ifStatementNode.Else.ElseKeyword, ifStatementNode.Else.Statement.GetLastToken(includeZeroWidth: true));
+                }
+
+                return;
+            }
+
+            // ex: `e is Type ( /* positional */ )`
+            if (node is DeconstructionPatternSyntax deconstructionPattern)
+            {
+                // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                AddSuppressWrappingIfOnSingleLineOperation(list, deconstructionPattern.OpenParenToken, deconstructionPattern.CloseParenToken);
+
+                if (deconstructionPattern.PropertySubpattern != null)
+                {
+                    AddSuppressWrappingIfOnSingleLineOperation(list, deconstructionPattern.OpenParenToken, deconstructionPattern.PropertySubpattern.GetLastToken());
+                }
+                return;
+            }
+
+            // ex: `Property: <pattern>` inside a recursive pattern, such as `e is { Property: <pattern>, ... }`
+            if (node is PropertySubpatternSyntax propertySubpattern)
+            {
+                // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                AddSuppressWrappingIfOnSingleLineOperation(list, propertySubpattern.OpenBraceToken, propertySubpattern.CloseBraceToken);
+
+                return;
+            }
+
+            // ex: `<pattern>: expression` inside a switch expression, such as `e switch { <pattern>: expression, ... }`
+            if (node is SwitchExpressionArmSyntax switchExpressionArm)
+            {
+                // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                AddSuppressWrappingIfOnSingleLineOperation(list, switchExpressionArm.GetFirstToken(), switchExpressionArm.GetLastToken());
+                return;
+            }
+
+            // ex: `e switch { <pattern>: expression, ... }`
+            if (node is SwitchExpressionSyntax switchExpression)
+            {
+                // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                AddSuppressWrappingIfOnSingleLineOperation(list, switchExpression.GetFirstToken(), switchExpression.GetLastToken());
+                return;
+            }
+
+            // ex: `case <pattern>:` inside a switch statement
+            if (node is CasePatternSwitchLabelSyntax casePattern)
+            {
+                // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                AddSuppressWrappingIfOnSingleLineOperation(list, casePattern.GetFirstToken(), casePattern.GetLastToken());
+                return;
+            }
+
+            // ex: `expression is <pattern>`
+            if (node is IsPatternExpressionSyntax isPattern)
+            {
+                // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.GetFirstToken(), isPattern.GetLastToken());
+
+                if (isPattern.Pattern is DeconstructionPatternSyntax deconstructionInIsPattern)
+                {
+                    // ex:
+                    // ```
+                    // _ = expr is (1, 2) { }$$
+                    // M();
+                    // ```
+                    if (deconstructionInIsPattern.PropertySubpattern != null)
+                    {
+                        AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.IsKeyword, deconstructionInIsPattern.PropertySubpattern.GetLastToken());
+                    }
+                }
+
+                if (isPattern.Pattern is PropertyPatternSyntax propertyPattern)
+                {
+                    // ex:
+                    // ```
+                    // _ = expr is { }$$
+                    // M();
+                    // ```
+                    AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.IsKeyword, propertyPattern.PropertySubpattern.GetLastToken());
                 }
 
                 return;
