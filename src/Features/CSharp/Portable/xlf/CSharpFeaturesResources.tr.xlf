@@ -642,6 +642,11 @@
         <target state="new">Convert to 'for'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Declare_as_Nullable">
+        <source>Declare as Nullable</source>
+        <target state="new">Declare as Nullable</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
