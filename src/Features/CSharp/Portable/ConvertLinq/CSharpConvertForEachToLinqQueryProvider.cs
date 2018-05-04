@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
     {
         // TODO actually can consider conversion for ForEachVariableStatement, need to add as a separate requirement
         // TODO what if no using System.Linq; is it required?
+        // TODO what if comments are not in foreach but in related statements we're removing or modifying, e.g. return or list = new List<int>()
         protected override ForEachStatementSyntax FindNodeToRefactor(SyntaxNode root, TextSpan span)
             => root.FindNode(span) as ForEachStatementSyntax; // TODO depending on performance, consider using FirstAncestorOrSelf
 
@@ -252,15 +253,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 // var a = 0
                 // var a = 5
                 // var a = 4, b = 5
+                // var a = 4, b = a
+                // var a = 0, b = a
                 // var b = 5, a = 0
                 // a = 0
                 // a = 5
                 // double a = 0
-                var previous = FindPreviousStatement(_forEachStatement);
+                var previous = FindPreviousStatementInBlock(_forEachStatement);
 
                 switch (previous?.Kind())
                 {
-                    // TODO also need to check the variable name
                     // a.b.Add(...)
                     case SyntaxKind.LocalDeclarationStatement:
                         var lastDeclaration = ((LocalDeclarationStatementSyntax)previous).Declaration.Variables.Last();
@@ -269,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             (lastDeclaration.Initializer != null &&  // ignoring the case: int a; foreach(...); although it is not valid
                             (lastDeclaration.Initializer.Value is LiteralExpressionSyntax literalExpression1 && literalExpression1.Token.ValueText == "0")))// TODO better comparison
                         {
-                            return ConvertToToCount(lastDeclaration.Initializer.Value, queryExpression);
+                            return ConvertToCount(lastDeclaration.Initializer.Value, queryExpression);
                         }
 
                         break;
@@ -279,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             SymbolEquivalenceComparer.Instance.Equals(_semanticModel.GetSymbolInfo(assignmentExpression.Left, _cancellationToken).Symbol, _semanticModel.GetSymbolInfo(expressionToIncrement, _cancellationToken).Symbol) &&
                             assignmentExpression.Right is LiteralExpressionSyntax literalExpression2 && literalExpression2.Token.ValueText == "0")
                         {
-                            return ConvertToToCount(literalExpression2, queryExpression);
+                            return ConvertToCount(literalExpression2, queryExpression);
                         }
 
                         break;
@@ -301,25 +303,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 return editor;
             }
 
-            private SyntaxEditor ConvertToToCount(
-                 ExpressionSyntax expressionToReplace,
-                 QueryExpressionSyntax queryExpression)
-            {
-                var editor = CreateDefaultEditor();
-                editor.ReplaceNode(
-                    expressionToReplace,
-                    SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            SyntaxFactory.ParenthesizedExpression(queryExpression),
-                            SyntaxFactory.IdentifierName(nameof(Enumerable.Count)))).WithAdditionalAnnotations(Formatter.Annotation));
-                editor.RemoveNode(_forEachStatement);
-                return editor;
-            }
+            private SyntaxEditor ConvertToCount(ExpressionSyntax expressionToReplace, QueryExpressionSyntax queryExpression)
+                => ConvertToMemberAccess(expressionToReplace, queryExpression, nameof(Enumerable.Count));
 
             private SyntaxEditor ConvertToToList(ExpressionStatementSyntax expressionStatement, QueryExpressionSyntax queryExpression, ExpressionSyntax listExpression)
             {
-                var previous = FindPreviousStatement(_forEachStatement);
+                var previous = FindPreviousStatementInBlock(_forEachStatement);
 
                 switch (previous?.Kind())
                 {
@@ -331,6 +320,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             _semanticModel.GetSymbolInfo(objectCreationExpression1.Type, _cancellationToken).Symbol is ITypeSymbol typeSymbol1 &&
                             IsList(typeSymbol1))
                         {
+                            if (IsFollowedByReturnOfLocal(listExpression, out var returnStatement))
+                            {
+                                var editor1 = ConvertToListAndReturn(queryExpression, returnStatement);
+
+                                if (((LocalDeclarationStatementSyntax)previous).Declaration.Variables.Count == 1)
+                                {
+                                    editor1.RemoveNode(previous);
+                                }
+                                else
+                                {
+                                    editor1.RemoveNode(lastDeclaration);
+                                }
+
+                                return editor1;
+                            }
+
                             return ConvertToToList(objectCreationExpression1, queryExpression);
                         }
 
@@ -343,6 +348,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             _semanticModel.GetSymbolInfo(objectCreationExpression2.Type, _cancellationToken).Symbol is ITypeSymbol typeSymbol2 &&
                             IsList(typeSymbol2))
                         {
+                            var nextStatement = FindNextStatementInBlock(_forEachStatement);
+                            if (IsFollowedByReturnOfLocal(listExpression, out var returnStatement))
+                            {
+                                var editor2 = ConvertToListAndReturn(queryExpression, returnStatement);
+                                editor2.RemoveNode(previous);
+                                return editor2;
+                            }
+
                             return ConvertToToList(objectCreationExpression2, queryExpression);
                         }
 
@@ -363,7 +376,42 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 return editor;
             }
 
+            private SyntaxEditor ConvertToListAndReturn(QueryExpressionSyntax queryExpression, ReturnStatementSyntax returnStatement)
+            {
+                var editor = CreateDefaultEditor();
+                editor.RemoveNode(_forEachStatement);
+                editor.ReplaceNode(returnStatement.Expression,
+                                    SyntaxFactory.InvocationExpression(
+                                        SyntaxFactory.MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            SyntaxFactory.ParenthesizedExpression(queryExpression),
+                                            SyntaxFactory.IdentifierName(nameof(Enumerable.ToList)))).WithAdditionalAnnotations(Formatter.Annotation));
+                return editor;
+            }
+
+            private bool IsFollowedByReturnOfLocal(ExpressionSyntax expression, out ReturnStatementSyntax returnStatement)
+            {
+                var expresisonSymbol = _semanticModel.GetSymbolInfo(expression, _cancellationToken).Symbol;
+                if (expresisonSymbol is ILocalSymbol)
+                {
+                    var nextStatement = FindNextStatementInBlock(_forEachStatement);
+                    if (nextStatement is ReturnStatementSyntax returnStatementCandidate &&
+                        // TODO introduce a method to compare expressions
+                        SymbolEquivalenceComparer.Instance.Equals(expresisonSymbol, _semanticModel.GetSymbolInfo(returnStatementCandidate.Expression, _cancellationToken).Symbol))
+                    {
+                        returnStatement = returnStatementCandidate;
+                        return true;
+                    }
+                }
+
+                returnStatement = default;
+                return false;
+            }
+
             private SyntaxEditor ConvertToToList(ExpressionSyntax expressionToReplace, QueryExpressionSyntax queryExpression)
+                 => ConvertToMemberAccess(expressionToReplace, queryExpression, nameof(Enumerable.ToList));
+
+            private SyntaxEditor ConvertToMemberAccess(ExpressionSyntax expressionToReplace, QueryExpressionSyntax queryExpression, string memberName)
             {
                 var editor = CreateDefaultEditor();
                 editor.ReplaceNode(
@@ -372,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
                             SyntaxFactory.ParenthesizedExpression(queryExpression),
-                            SyntaxFactory.IdentifierName(nameof(Enumerable.ToList)))).WithAdditionalAnnotations(Formatter.Annotation));
+                            SyntaxFactory.IdentifierName(memberName))).WithAdditionalAnnotations(Formatter.Annotation));
                 editor.RemoveNode(_forEachStatement);
                 return editor;
             }
@@ -380,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             private SyntaxEditor ConvertToDefault(List<QueryClauseSyntax> queryClauses, List<SyntaxToken> identifiers, IEnumerable<StatementSyntax> lastStatements)
             {
                 var symbols = new HashSet<string>(lastStatements.SelectMany(statement => _semanticModel.AnalyzeDataFlow(statement).ReadInside).Select(symbol => symbol.Name));
-                identifiers =  identifiers.Where(identifier => symbols.Contains(identifier.ValueText)).ToList();
+                identifiers = identifiers.Where(identifier => symbols.Contains(identifier.ValueText)).ToList();
 
                 var editor = CreateDefaultEditor();
                 // TODO can there be identifiers.Count == 0; ??
@@ -440,9 +488,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 return SyntaxFactory.QueryExpression(
                     CreateFromClause(_forEachStatement),
                     SyntaxFactory.QueryBody(
-                        SyntaxFactory.List(queryClauses),
+                        SyntaxFactory.List(queryClauses.Select(qc => qc.WithoutTrivia())),
                         // The current coverage of foreach statements to support does not need to use query continuations.
-                        SyntaxFactory.SelectClause(selectExpression), continuation: null)) 
+                        SyntaxFactory.SelectClause(selectExpression), continuation: null).WithoutTrivia())
                         .WithAdditionalAnnotations(Formatter.Annotation);
             }
 
@@ -452,26 +500,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     forEachStatement.Identifier,
                     forEachStatement.Expression);
 
-            private static StatementSyntax FindPreviousStatement(StatementSyntax statement)
+            private static StatementSyntax FindPreviousStatementInBlock(StatementSyntax statement)
             {
                 if (statement.Parent is BlockSyntax block)
                 {
-                    StatementSyntax previous = null;
-                    foreach (var current in block.Statements)
+                    var index = block.Statements.IndexOf(statement);
+                    if (index > 0)
                     {
-                        if (current == statement)
-                        {
-                            return previous;
-                        }
-
-                        previous = current;
+                        return block.Statements[index - 1];
                     }
                 }
 
                 return null;
             }
 
-            // TODO copeid from CSharpConvertLinqQueryToForEachProvider. Share?
+            private static StatementSyntax FindNextStatementInBlock(StatementSyntax statement)
+            {
+                if (statement.Parent is BlockSyntax block)
+                {
+                    var index = block.Statements.IndexOf(statement);
+                    if (index >= 0 && index < block.Statements.Count - 1)
+                    {
+                        return block.Statements[index + 1];
+                    }
+                }
+
+                return null;
+            }
+
+            // TODO copied from CSharpConvertLinqQueryToForEachProvider. Share?
             private static BlockSyntax AddToBlockTop(StatementSyntax newStatement, StatementSyntax statement)
             {
                 if (statement is BlockSyntax block)

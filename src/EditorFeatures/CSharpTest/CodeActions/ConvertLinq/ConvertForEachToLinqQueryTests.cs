@@ -265,8 +265,6 @@ public class Test
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        // TODO similar test with yield break
-        // TODO similar test but selection is not for the internal for only
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
         public async Task ReturnIEnumerable()
         {
@@ -517,7 +515,6 @@ class C
             yield return x;
         }|]
     }
-    }
 }
 ";
             string output = @"
@@ -622,7 +619,7 @@ class C
         #region In ToList
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-        public async Task ToListDeclaration()
+        public async Task ToListLastDeclarationMerge()
         {
             string source = @"
 using System.Collections.Generic;
@@ -631,7 +628,7 @@ class C
 {
     List<int> M(IEnumerable<int> nums)
     {
-        var list = new List<int>();
+        List<int> list0 = new List<int>(), list = new List<int>();
         [|foreach (int n1 in nums)
         {
             foreach (int n2 in nums)
@@ -651,9 +648,51 @@ class C
 {
     List<int> M(IEnumerable<int> nums)
     {
-        var list = (from int n1 in nums
-                    from int n2 in nums
-                    select n1).ToList();
+        List<int> list0 = new List<int>();
+        return (from int n1 in nums
+                from int n2 in nums
+                select n1).ToList();
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task ToListNotLastDeclaration()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums)
+    {
+        List<int> list = new List<int>(), list1 = new List<int>();
+        [|foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                list.Add(n1);
+            }
+        }|]
+
+        return list;
+    }
+}
+";
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums)
+    {
+        List<int> list = new List<int>(), list1 = new List<int>();
+        list.AddRange(from int n1 in nums
+                      from int n2 in nums
+                      select n1);
         return list;
     }
 }
@@ -796,9 +835,8 @@ class C
             await TestMissingAsync(source);
         }
 
-        // TODO consider assgiment and merge
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-        public async Task ToList2()
+        public async Task ToListMergeWithReturn()
         {
             string source = @"
 using System.Collections.Generic;
@@ -827,14 +865,97 @@ class C
 {
     List<int> M(IEnumerable<int> nums)
     {
-        var list = (from int n1 in nums
-                    from int n2 in nums
-                    select n1).ToList();
-        return list;
+        return (from int n1 in nums
+                from int n2 in nums
+                select n1).ToList();
     }
 }
 ";
 
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task ToListSeparateDeclarationAndAssignmentMergeWithReturn()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums)
+    {
+        List<int> list;
+        list = new List<int>();
+        [|foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                list.Add(n1);
+            }
+        }|]
+
+        return list;
+    }
+}
+";
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums)
+    {
+        List<int> list;
+        return (from int n1 in nums
+                from int n2 in nums
+                select n1).ToList();
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task ToListSeparateDeclarationAndAssignment()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int M(IEnumerable<int> nums)
+    {
+        List<int> list;
+        list = new List<int>();
+        [|foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums)
+            {
+                list.Add(n1);
+            }
+        }|]
+
+        return list.Count();
+    }
+}
+";
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int M(IEnumerable<int> nums)
+    {
+        List<int> list;
+        list = (from int n1 in nums
+                from int n2 in nums
+                select n1).ToList();
+        return list.Count();
+    }
+}
+";
             await TestInRegularAndScriptAsync(source, output);
         }
 
@@ -1071,12 +1192,6 @@ public class Test
 }";
             await TestInRegularAndScriptAsync(source, output);
         }
-
-
-        // TODO consider cases:
-        // var list = new ...; foreach
-        // list = new ... ; foreach
-        // var a = ..., list = new list; foreach
 
         #endregion
 
