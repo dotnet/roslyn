@@ -2005,5 +2005,51 @@ offeredWhenRequireForClarityIsEnabled: true);
 }",
 offeredWhenRequireForClarityIsEnabled: true);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundPPDirective1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+#if$$(A || B)
+#endif
+    }
+}",
+@"class C
+{
+    void M()
+    {
+#if A || B
+#endif
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundPPDirective2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+#if($$(A || B) || C)
+#endif
+    }
+}",
+@"class C
+{
+    void M()
+    {
+#if(A || B || C)
+#endif
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
     }
 }
