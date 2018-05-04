@@ -5334,18 +5334,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-    Friend NotInheritable Partial Class BoundSimpleCaseClause
+    Friend MustInherit Partial Class BoundSingleValueCaseClause
         Inherits BoundCaseClause
 
-        Public Sub New(syntax As SyntaxNode, valueOpt As BoundExpression, conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
-            MyBase.New(BoundKind.SimpleCaseClause, syntax, hasErrors OrElse valueOpt.NonNullAndHasErrors() OrElse conditionOpt.NonNullAndHasErrors())
+        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, valueOpt As BoundExpression, conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
+            MyBase.New(kind, syntax, hasErrors)
             Me._ValueOpt = valueOpt
             Me._ConditionOpt = conditionOpt
-
-            Validate()
-        End Sub
-
-        Private Partial Sub Validate()
         End Sub
 
 
@@ -5362,6 +5357,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _ConditionOpt
             End Get
         End Property
+    End Class
+
+    Friend NotInheritable Partial Class BoundSimpleCaseClause
+        Inherits BoundSingleValueCaseClause
+
+        Public Sub New(syntax As SyntaxNode, valueOpt As BoundExpression, conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
+            MyBase.New(BoundKind.SimpleCaseClause, syntax, valueOpt, conditionOpt, hasErrors OrElse valueOpt.NonNullAndHasErrors() OrElse conditionOpt.NonNullAndHasErrors())
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
+        End Sub
+
 
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitSimpleCaseClause(Me)
@@ -5390,6 +5399,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._UpperBoundOpt = upperBoundOpt
             Me._LowerBoundConditionOpt = lowerBoundConditionOpt
             Me._UpperBoundConditionOpt = upperBoundConditionOpt
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
         End Sub
 
 
@@ -5440,13 +5454,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend NotInheritable Partial Class BoundRelationalCaseClause
-        Inherits BoundCaseClause
+        Inherits BoundSingleValueCaseClause
 
-        Public Sub New(syntax As SyntaxNode, operatorKind As BinaryOperatorKind, operandOpt As BoundExpression, conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
-            MyBase.New(BoundKind.RelationalCaseClause, syntax, hasErrors OrElse operandOpt.NonNullAndHasErrors() OrElse conditionOpt.NonNullAndHasErrors())
+        Public Sub New(syntax As SyntaxNode, operatorKind As BinaryOperatorKind, valueOpt As BoundExpression, conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
+            MyBase.New(BoundKind.RelationalCaseClause, syntax, valueOpt, conditionOpt, hasErrors OrElse valueOpt.NonNullAndHasErrors() OrElse conditionOpt.NonNullAndHasErrors())
             Me._OperatorKind = operatorKind
-            Me._OperandOpt = operandOpt
-            Me._ConditionOpt = conditionOpt
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
         End Sub
 
 
@@ -5457,27 +5474,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _OperandOpt As BoundExpression
-        Public ReadOnly Property OperandOpt As BoundExpression
-            Get
-                Return _OperandOpt
-            End Get
-        End Property
-
-        Private ReadOnly _ConditionOpt As BoundExpression
-        Public ReadOnly Property ConditionOpt As BoundExpression
-            Get
-                Return _ConditionOpt
-            End Get
-        End Property
-
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitRelationalCaseClause(Me)
         End Function
 
-        Public Function Update(operatorKind As BinaryOperatorKind, operandOpt As BoundExpression, conditionOpt As BoundExpression) As BoundRelationalCaseClause
-            If operatorKind <> Me.OperatorKind OrElse operandOpt IsNot Me.OperandOpt OrElse conditionOpt IsNot Me.ConditionOpt Then
-                Dim result = New BoundRelationalCaseClause(Me.Syntax, operatorKind, operandOpt, conditionOpt, Me.HasErrors)
+        Public Function Update(operatorKind As BinaryOperatorKind, valueOpt As BoundExpression, conditionOpt As BoundExpression) As BoundRelationalCaseClause
+            If operatorKind <> Me.OperatorKind OrElse valueOpt IsNot Me.ValueOpt OrElse conditionOpt IsNot Me.ConditionOpt Then
+                Dim result = New BoundRelationalCaseClause(Me.Syntax, operatorKind, valueOpt, conditionOpt, Me.HasErrors)
                 
                 If Me.WasCompilerGenerated Then
                     result.SetWasCompilerGenerated()
@@ -12030,7 +12033,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitRelationalCaseClause(node as BoundRelationalCaseClause) As BoundNode
-            Me.Visit(node.OperandOpt)
+            Me.Visit(node.ValueOpt)
             Me.Visit(node.ConditionOpt)
             Return Nothing
         End Function
@@ -13058,9 +13061,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitRelationalCaseClause(node As BoundRelationalCaseClause) As BoundNode
-            Dim operandOpt As BoundExpression = DirectCast(Me.Visit(node.OperandOpt), BoundExpression)
+            Dim valueOpt As BoundExpression = DirectCast(Me.Visit(node.ValueOpt), BoundExpression)
             Dim conditionOpt As BoundExpression = DirectCast(Me.Visit(node.ConditionOpt), BoundExpression)
-            Return node.Update(node.OperatorKind, operandOpt, conditionOpt)
+            Return node.Update(node.OperatorKind, valueOpt, conditionOpt)
         End Function
 
         Public Overrides Function VisitDoLoopStatement(node As BoundDoLoopStatement) As BoundNode
@@ -14356,7 +14359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitRelationalCaseClause(node As BoundRelationalCaseClause, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("relationalCaseClause", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("operatorKind", node.OperatorKind, Nothing),
-                New TreeDumperNode("operandOpt", Nothing, new TreeDumperNode() { Visit(node.OperandOpt, Nothing) }),
+                New TreeDumperNode("valueOpt", Nothing, new TreeDumperNode() { Visit(node.ValueOpt, Nothing) }),
                 New TreeDumperNode("conditionOpt", Nothing, new TreeDumperNode() { Visit(node.ConditionOpt, Nothing) })
             })
         End Function

@@ -1150,22 +1150,23 @@
     <AbstractNode Name="BoundCaseClause" Base="BoundNode">
     </AbstractNode>
 
-    <Node Name="BoundSimpleCaseClause" Base="BoundCaseClause" HasValidate="true">
+    <AbstractNode Name="BoundSingleValueCaseClause" Base="BoundCaseClause">
         <Field Name="ValueOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="ConditionOpt" Type="BoundExpression" Null="allow"/>
+    </AbstractNode>
+  
+    <Node Name="BoundSimpleCaseClause" Base="BoundSingleValueCaseClause" HasValidate="true">
     </Node>
   
-    <Node Name="BoundRangeCaseClause" Base="BoundCaseClause">
+    <Node Name="BoundRangeCaseClause" Base="BoundCaseClause" HasValidate="true">
         <Field Name="LowerBoundOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="UpperBoundOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="LowerBoundConditionOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="UpperBoundConditionOpt" Type="BoundExpression" Null="allow"/>
     </Node>
   
-    <Node Name="BoundRelationalCaseClause" Base="BoundCaseClause">
+    <Node Name="BoundRelationalCaseClause" Base="BoundSingleValueCaseClause" HasValidate="true">
         <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
-        <Field Name="OperandOpt" Type="BoundExpression" Null="allow"/>
-        <Field Name="ConditionOpt" Type="BoundExpression" Null="allow"/>
     </Node>
   
     <AbstractNode Name="BoundLoopStatement" Base="BoundStatement">

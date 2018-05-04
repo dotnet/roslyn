@@ -299,35 +299,27 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return builder.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetSingleValueCaseClauseValue(clause As BoundSimpleCaseClause) As BoundExpression
-            If clause.ValueOpt IsNot Nothing Then
-                Return clause.ValueOpt
+        Private Shared Function GetSingleValueCaseClauseValue(clause As BoundSingleValueCaseClause) As BoundExpression
+            Return GetCaseClauseValue(clause.ValueOpt, clause.ConditionOpt)
+        End Function
+
+        Private Shared Function GetCaseClauseValue(valueOpt As BoundExpression, conditionOpt As BoundExpression) As BoundExpression
+            If valueOpt IsNot Nothing Then
+                Return valueOpt
             End If
 
-            Select Case clause.ConditionOpt.Kind
+            Select Case conditionOpt.Kind
                 Case BoundKind.BinaryOperator
-                    Dim binaryOp As BoundBinaryOperator = DirectCast(clause.ConditionOpt, BoundBinaryOperator)
+                    Dim binaryOp As BoundBinaryOperator = DirectCast(conditionOpt, BoundBinaryOperator)
                     Return binaryOp.Right
 
                 Case BoundKind.UserDefinedBinaryOperator
-                    Dim binaryOp As BoundUserDefinedBinaryOperator = DirectCast(clause.ConditionOpt, BoundUserDefinedBinaryOperator)
+                    Dim binaryOp As BoundUserDefinedBinaryOperator = DirectCast(conditionOpt, BoundUserDefinedBinaryOperator)
                     Return GetUserDefinedBinaryOperatorChildBoundNode(binaryOp, 1)
 
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(clause.ConditionOpt.Kind)
+                    Throw ExceptionUtilities.UnexpectedValue(conditionOpt.Kind)
             End Select
-        End Function
-
-        Private Shared Function GetRelationalCaseClauseValue(clause As BoundRelationalCaseClause) As BoundExpression
-            If clause.OperandOpt IsNot Nothing Then
-                Return clause.OperandOpt
-            End If
-
-            If clause.ConditionOpt?.Kind = BoundKind.BinaryOperator Then
-                Return DirectCast(clause.ConditionOpt, BoundBinaryOperator).Right
-            End If
-
-            Return Nothing
         End Function
 
         Private Function GetVariableDeclarationStatementVariables(declarations As ImmutableArray(Of BoundLocalDeclarationBase)) As ImmutableArray(Of IVariableDeclarationOperation)

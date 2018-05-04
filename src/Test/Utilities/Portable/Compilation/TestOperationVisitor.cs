@@ -1142,18 +1142,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             VisitCaseClauseOperation(operation);
             Assert.Equal(CaseKind.Range, operation.CaseKind);
-            // operation.MinimumValue and operation.MaximumValue shouldn't be null. The following conditional logic is
-            // a work around for https://github.com/dotnet/roslyn/issues/23818 and should 
-            // be removed once the issue is fixed
-            if (operation.MinimumValue == null || operation.MaximumValue == null)
-            {
-                Assert.Equal(LanguageNames.VisualBasic, operation.Language);
-                AssertEx.Equal(new[] { operation.MinimumValue, operation.MaximumValue }.Where(o => o != null), operation.Children);
-            }
-            else
-            {
-                AssertEx.Equal(new[] { operation.MinimumValue, operation.MaximumValue }, operation.Children);
-            }
+            AssertEx.Equal(new[] { operation.MinimumValue, operation.MaximumValue }, operation.Children);
         }
 
         public override void VisitConstructorBodyOperation(IConstructorBodyOperation operation)

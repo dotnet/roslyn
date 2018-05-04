@@ -1028,33 +1028,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundRangeCaseClauseOperation(boundRangeCaseClause As BoundRangeCaseClause) As IRangeCaseClauseOperation
             Dim minimumValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(
                 Function()
-                    If boundRangeCaseClause.LowerBoundOpt IsNot Nothing Then
-                        Return Create(boundRangeCaseClause.LowerBoundOpt)
-                    End If
-
-                    If boundRangeCaseClause.LowerBoundConditionOpt.Kind = BoundKind.BinaryOperator Then
-                        Dim lowerBound As BoundBinaryOperator = DirectCast(boundRangeCaseClause.LowerBoundConditionOpt, BoundBinaryOperator)
-                        If lowerBound.OperatorKind = VisualBasic.BinaryOperatorKind.GreaterThanOrEqual Then
-                            Return Create(lowerBound.Right)
-                        End If
-                    End If
-
-                    Return Nothing
+                    Return Create(GetCaseClauseValue(boundRangeCaseClause.LowerBoundOpt, boundRangeCaseClause.LowerBoundConditionOpt))
                 End Function)
             Dim maximumValue As Lazy(Of IOperation) = New Lazy(Of IOperation)(
                 Function()
-                    If boundRangeCaseClause.UpperBoundOpt IsNot Nothing Then
-                        Return Create(boundRangeCaseClause.UpperBoundOpt)
-                    End If
-
-                    If boundRangeCaseClause.UpperBoundConditionOpt.Kind = BoundKind.BinaryOperator Then
-                        Dim upperBound As BoundBinaryOperator = DirectCast(boundRangeCaseClause.UpperBoundConditionOpt, BoundBinaryOperator)
-                        If upperBound.OperatorKind = VisualBasic.BinaryOperatorKind.LessThanOrEqual Then
-                            Return Create(upperBound.Right)
-                        End If
-                    End If
-
-                    Return Nothing
+                    Return Create(GetCaseClauseValue(boundRangeCaseClause.UpperBoundOpt, boundRangeCaseClause.UpperBoundConditionOpt))
                 End Function)
             Dim syntax As SyntaxNode = boundRangeCaseClause.Syntax
             Dim type As ITypeSymbol = Nothing
@@ -1064,7 +1042,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundRelationalCaseClauseOperation(boundRelationalCaseClause As BoundRelationalCaseClause) As IRelationalCaseClauseOperation
-            Dim valueExpression = GetRelationalCaseClauseValue(boundRelationalCaseClause)
+            Dim valueExpression = GetSingleValueCaseClauseValue(boundRelationalCaseClause)
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(valueExpression))
             Dim relation As BinaryOperatorKind = If(valueExpression IsNot Nothing, Helper.DeriveBinaryOperatorKind(boundRelationalCaseClause.OperatorKind, leftOpt:=Nothing), BinaryOperatorKind.None)
             Dim syntax As SyntaxNode = boundRelationalCaseClause.Syntax
