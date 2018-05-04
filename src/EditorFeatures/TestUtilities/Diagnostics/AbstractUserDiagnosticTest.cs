@@ -69,9 +69,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var hostDocument = workspace.Documents.FirstOrDefault(d => d.SelectedSpans.Any());
             if (hostDocument == null)
             {
-                document = null;
-                span = default(TextSpan);
-                return false;
+                // If there wasn't a span, see if there was a $$ caret.  we'll create an empty span
+                // there if so.
+                hostDocument = workspace.Documents.FirstOrDefault(d => d.CursorPosition != null);
+                if (hostDocument == null)
+                {
+                    document = null;
+                    span = default;
+                    return false;
+                }
+
+                span = new TextSpan(hostDocument.CursorPosition.Value, 0);
+                document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+                return true;
             }
 
             span = hostDocument.SelectedSpans.Single();

@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
         {
             var interfaces = _sourceTypeParameter.GetInterfaces(inProgress);
-            return this.TypeMap.SubstituteNamedTypes(InterfacesNoUseSiteDiagnostics()); // It looks like there is a bug on this line https://github.com/dotnet/roslyn/issues/23886
+            return this.TypeMap.SubstituteNamedTypes(interfaces);
         }
 
         private TypeMap TypeMap

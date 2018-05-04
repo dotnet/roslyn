@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 
                 ' Set up mocks. The IDocumentNavigationService should be called if there is one,
-                ' location and the INavigableItemsPresenter should be called if there are 
+                ' location and the INavigableItemsPresenter should be called if there are
                 ' multiple locations.
 
                 ' prepare a notification listener
@@ -34,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
                 Dim mockDocumentNavigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
+                Dim mockSymbolNavigationService = DirectCast(workspace.Services.GetService(Of ISymbolNavigationService)(), MockSymbolNavigationService)
 
                 Dim presenterCalled As Boolean = False
                 Dim presenter = New MockStreamingFindUsagesPresenter(Sub() presenterCalled = True)
@@ -54,38 +55,50 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                 Dim context = presenter.Context
                 If expectedResult Then
-                    If mockDocumentNavigationService._triedNavigationToSpan Then
-                        Dim definitionDocument = workspace.GetTestDocument(mockDocumentNavigationService._documentId)
-                        Assert.Single(definitionDocument.SelectedSpans)
-                        Assert.Equal(definitionDocument.SelectedSpans.Single(), mockDocumentNavigationService._span)
-
-                        ' The INavigableItemsPresenter should not have been called
+                    If expectedLocations.Count = 0 Then
+                        ' if there is not expected locations, it means symbol navigation is used
+                        Assert.True(mockSymbolNavigationService._triedNavigationToSymbol)
+                        Assert.Null(mockDocumentNavigationService._documentId)
                         Assert.False(presenterCalled)
                     Else
-                        Assert.False(mockDocumentNavigationService._triedNavigationToPosition)
-                        Assert.False(mockDocumentNavigationService._triedNavigationToLineAndOffset)
-                        Assert.True(presenterCalled)
+                        Assert.False(mockSymbolNavigationService._triedNavigationToSymbol)
 
-                        Dim actualLocations As New List(Of FilePathAndSpan)
+                        If mockDocumentNavigationService._triedNavigationToSpan Then
+                            Dim definitionDocument = workspace.GetTestDocument(mockDocumentNavigationService._documentId)
+                            Assert.Single(definitionDocument.SelectedSpans)
+                            Assert.Equal(definitionDocument.SelectedSpans.Single(), mockDocumentNavigationService._span)
 
-                        Dim items = context.GetDefinitions()
+                            ' The INavigableItemsPresenter should not have been called
+                            Assert.False(presenterCalled)
+                        Else
+                            Assert.False(mockDocumentNavigationService._triedNavigationToPosition)
+                            Assert.False(mockDocumentNavigationService._triedNavigationToLineAndOffset)
+                            Assert.True(presenterCalled)
 
-                        For Each location In items
-                            For Each docSpan In location.SourceSpans
-                                actualLocations.Add(New FilePathAndSpan(docSpan.Document.FilePath, docSpan.SourceSpan))
+                            Dim actualLocations As New List(Of FilePathAndSpan)
+
+                            Dim items = context.GetDefinitions()
+
+                            For Each location In items
+                                For Each docSpan In location.SourceSpans
+                                    actualLocations.Add(New FilePathAndSpan(docSpan.Document.FilePath, docSpan.SourceSpan))
+                                Next
                             Next
-                        Next
 
-                        actualLocations.Sort()
-                        Assert.Equal(expectedLocations, actualLocations)
+                            actualLocations.Sort()
+                            Assert.Equal(expectedLocations, actualLocations)
 
-                        ' The IDocumentNavigationService should not have been called
-                        Assert.Null(mockDocumentNavigationService._documentId)
+                            ' The IDocumentNavigationService should not have been called
+                            Assert.Null(mockDocumentNavigationService._documentId)
+                        End If
                     End If
                 Else
+                    Assert.False(mockSymbolNavigationService._triedNavigationToSymbol)
                     Assert.Null(mockDocumentNavigationService._documentId)
                     Assert.False(presenterCalled)
                 End If
+
+
             End Using
         End Sub
 
@@ -142,6 +155,36 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
         <Document>
             class [|SomeClass|] { }
             class OtherClass { Some$$Class obj; }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        Public Sub TestCSharpLiteralGoToDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            int x = 1$$23;
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        Public Sub TestCSharpStringLiteralGoToDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            string x = "wo$$ow";
         </Document>
     </Project>
 </Workspace>
@@ -755,8 +798,8 @@ class C
     <Project Language="C#" CommonReferences="true">
         <Document><![CDATA[
             /// <see cref="$$SomeClass"/>
-            class [|SomeClass|] 
-            { 
+            class [|SomeClass|]
+            {
             }]]>
         </Document>
     </Project>
@@ -1498,8 +1541,8 @@ namespace System
         <Document FilePath="Nongenerated.cs">
 partial class [|C|]
 {
-    void M() 
-    { 
+    void M()
+    {
         $$C c;
     }
 }
@@ -1561,6 +1604,36 @@ class D
             Test(workspace)
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        Public Sub TestVisualBasicLiteralGoToDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Dim x as Integer = 12$$3
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
+        Public Sub TestVisualBasicStringLiteralGoToDefinition()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Dim x as String = "wo$$ow"
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
         <WorkItem(541105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541105")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub TestVisualBasicPropertyBackingField()
@@ -1573,7 +1646,7 @@ Class C
     Sub M()
           Me.$$_P = 10
     End Sub
-End Class 
+End Class
         </Document>
     </Project>
 </Workspace>
@@ -1622,7 +1695,7 @@ End Class
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
             Class OtherClass
-                Dim obj As SomeClass 
+                Dim obj As SomeClass
             End Class
         </Document>
         <Document>
@@ -1631,7 +1704,7 @@ End Class
             End Class
         </Document>
         <Document>
-            Class [|SomeClass|] 
+            Class [|SomeClass|]
             End Class
         </Document>
     </Project>
@@ -1646,22 +1719,22 @@ End Class
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
-            DummyClass 
+            DummyClass
             End Class
         </Document>
         <Document>
             Partial Class [|OtherClass|]
-                Dim a As Integer 
+                Dim a As Integer
             End Class
         </Document>
         <Document>
             Partial Class [|OtherClass|]
-                Dim b As Integer 
+                Dim b As Integer
             End Class
         </Document>
         <Document>
             Class ConsumingClass
-                Dim obj As Other$$Class 
+                Dim obj As Other$$Class
             End Class
         </Document>
     </Project>
@@ -1677,7 +1750,7 @@ End Class
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
             Class [|SomeClass|]
-                Dim x As Integer 
+                Dim x As Integer
             End Class
         </Document>
         <Document>
@@ -1730,7 +1803,7 @@ End Class
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
             Class [|SomeClass|]
-                Dim x As Integer 
+                Dim x As Integer
             End Class
         </Document>
         <Document>
@@ -1753,7 +1826,7 @@ End Class
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
             Class [|SomeClass|]
-                Dim x As Integer 
+                Dim x As Integer
             End Class
         </Document>
         <Document>
@@ -1780,19 +1853,19 @@ Class B
     Sub New()
     End Sub
 End Class
- 
+
 Class [|C|]
     Inherits B
- 
+
     Sub New()
         MyBase.New()
         MyClass.Goo()
         $$Me.Bar()
     End Sub
- 
+
     Private Sub Bar()
     End Sub
- 
+
     Private Sub Goo()
     End Sub
 End Class
@@ -1814,19 +1887,19 @@ Class B
     Sub New()
     End Sub
 End Class
- 
+
 Class [|C|]
     Inherits B
- 
+
     Sub New()
         MyBase.New()
         $$MyClass.Goo()
         Me.Bar()
     End Sub
- 
+
     Private Sub Bar()
     End Sub
- 
+
     Private Sub Goo()
     End Sub
 End Class
@@ -1848,19 +1921,19 @@ Class [|B|]
     Sub New()
     End Sub
 End Class
- 
+
 Class C
     Inherits B
- 
+
     Sub New()
         $$MyBase.New()
         MyClass.Goo()
         Me.Bar()
     End Sub
- 
+
     Private Sub Bar()
     End Sub
- 
+
     Private Sub Goo()
     End Sub
 End Class
@@ -2014,7 +2087,7 @@ End Class
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
             Class [|SomeClass|]
-                Dim x As Integer 
+                Dim x As Integer
             End Class
         </Document>
         <Document>
@@ -2067,12 +2140,12 @@ End Module]]>]
     <Project Language="C#" CommonReferences="true">
         <Document>
 using [|AliasedSomething|] = X.Something;
- 
+
 namespace X
 {
     class Something { public Something() { } }
 }
- 
+
 class Program
 {
     static void Main(string[] args)
@@ -2096,12 +2169,12 @@ class Program
     <Project Language="C#" CommonReferences="true">
         <Document>
 using [|AliasedSomething|] = X.Something;
- 
+
 namespace X
 {
     class Something { public Something() { } }
 }
- 
+
 class Program
 {
     static void Main(string[] args)
@@ -2125,12 +2198,12 @@ class Program
     <Project Language="C#" CommonReferences="true">
         <Document>
 using AliasedSomething = X.Something;
- 
+
 namespace X
 {
     class [|Something|] { public Something() { } }
 }
- 
+
 class Program
 {
     static void Main(string[] args)
@@ -2154,12 +2227,12 @@ class Program
     <Project Language="C#" CommonReferences="true">
         <Document>
 using AliasedSomething = X.Something;
- 
+
 namespace X
 {
     class Something { public [|Something|]() { } }
 }
- 
+
 class Program
 {
     static void Main(string[] args)
@@ -2185,7 +2258,7 @@ class Program
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
- 
+
 Module Program
     Sub Main(args As String())
         Dim arr = New Integer() {4, 5}
@@ -2349,7 +2422,7 @@ Public Class Class2
     Sub Test()
         Dim var1 = New With {Key .var2 = "Bob", Class2.va$$r3}
     End Sub
- 
+
     Shared Property [|var3|]() As Integer
         Get
         End Get
