@@ -2104,5 +2104,46 @@ class Point
             }
             Assert.Equal(expected.Length, i);
         }
+
+        [Fact, WorkItem(26613, "https://github.com/dotnet/roslyn/issues/26613")]
+        public void MissingDeconstruct_01()
+        {
+            var source =
+@"using System;
+public class C {
+    public void M() {
+        _ = this is (a: 1);
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (4,21): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
+                //         _ = this is (a: 1);
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(a: 1)").WithLocation(4, 21)
+                );
+        }
+
+        [Fact, WorkItem(26613, "https://github.com/dotnet/roslyn/issues/26613")]
+        public void MissingDeconstruct_02()
+        {
+            var source =
+@"using System;
+public class C {
+    public void M() {
+        _ = this is C(a: 1);
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (4,21): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = this is C(a: 1);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "C(a: 1)").WithArguments("C", "Deconstruct").WithLocation(4, 21),
+                // (4,21): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 1 out parameters and a void return type.
+                //         _ = this is C(a: 1);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "C(a: 1)").WithArguments("C", "1").WithLocation(4, 21)
+                );
+        }
     }
 }
