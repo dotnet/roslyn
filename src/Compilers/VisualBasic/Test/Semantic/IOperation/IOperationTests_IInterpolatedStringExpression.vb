@@ -512,8 +512,8 @@ Block[B2] - Exit
 Imports System
 
 Friend Class [Class]
-    Public Sub M(a As Boolean, b As String, c As String)'BIND:"Public Sub M(a As Boolean, b As String, c As String)"
-        b = $"{If(a, b, c)}"
+    Public Sub M(a As Boolean, b As String, c As String, p As String)'BIND:"Public Sub M(a As Boolean, b As String, c As String, p As String)"
+        p = $"{If(a, b, c)}"
     End Sub
 End Class]]>.Value
 
@@ -524,9 +524,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.String) (Syntax: 'p')
 
     Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
@@ -551,11 +551,11 @@ Block[B3] - Block
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = $"{If(a, b, c)}"')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = $"{If(a, b, c)}"')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'b = $"{If(a, b, c)}"')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'p = $"{If(a, b, c)}"')
               Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'p')
               Right: 
                 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"{If(a, b, c)}"')
                   Parts(1):
@@ -585,8 +585,8 @@ Block[B5] - Exit
 Imports System
 
 Friend Class [Class]
-    Public Sub M(a As Boolean, b As String, c As String)'BIND:"Public Sub M(a As Boolean, b As String, c As String)"
-        b = $"{If(a, b, c)}{c}"
+    Public Sub M(a As Boolean, b As String, c As String, c2 As String, p As String)'BIND:"Public Sub M(a As Boolean, b As String, c As String, c2 As String, p As String)"
+        p = $"{If(a, b, c)}{c2}"
     End Sub
 End Class]]>.Value
 
@@ -597,9 +597,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.String) (Syntax: 'p')
 
     Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
@@ -624,13 +624,13 @@ Block[B3] - Block
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = $"{If(a, b, c)}{c}"')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = $"{If(a, b, c)}{c2}"')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'b = $"{If(a, b, c)}{c}"')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'p = $"{If(a, b, c)}{c2}"')
               Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'p')
               Right: 
-                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"{If(a, b, c)}{c}"')
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"{If(a, b, c)}{c2}"')
                   Parts(2):
                       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{If(a, b, c)}')
                         Expression: 
@@ -639,9 +639,9 @@ Block[B4] - Block
                           null
                         FormatString: 
                           null
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{c}')
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{c2}')
                         Expression: 
-                          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c')
+                          IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c2')
                         Alignment: 
                           null
                         FormatString: 
@@ -665,8 +665,8 @@ Block[B5] - Exit
 Imports System
 
 Friend Class [Class]
-    Public Sub M(a As Boolean, b As String, c As String)'BIND:"Public Sub M(a As Boolean, b As String, c As String)"
-        b = $"String1 {If(a, b, c)} and String2 {If(a, b, c)}"
+    Public Sub M(a As Boolean, b As String, c As String, a2 As Boolean, b2 As String, c2 As String, p As String)'BIND:"Public Sub M(a As Boolean, b As String, c As String, a2 As Boolean, b2 As String, c2 As String, p As String)"
+        p = $"String1 {If(a, b, c)} and String2 {If(a2, b2, c2)}"
     End Sub
 End Class]]>.Value
 
@@ -677,9 +677,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.String) (Syntax: 'p')
 
     Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
@@ -705,35 +705,35 @@ Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (0)
     Jump if False (Regular) to Block[B6]
-        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+        IParameterReferenceOperation: a2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a2')
 
     Next (Regular) Block[B5]
 Block[B5] - Block
     Predecessors: [B4]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b2')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+            IParameterReferenceOperation: b2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b2')
 
     Next (Regular) Block[B7]
 Block[B6] - Block
     Predecessors: [B4]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
           Value: 
-            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c')
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c2')
 
     Next (Regular) Block[B7]
 Block[B7] - Block
     Predecessors: [B5] [B6]
     Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = $"Strin ... (a, b, c)}"')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = $"Strin ... , b2, c2)}"')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'b = $"Strin ... (a, b, c)}"')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'p = $"Strin ... , b2, c2)}"')
               Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'p')
               Right: 
-                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"String1 { ... (a, b, c)}"')
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"String1 { ... , b2, c2)}"')
                   Parts(4):
                       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String1 ')
                         Text: 
@@ -748,9 +748,9 @@ Block[B7] - Block
                       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' and String2 ')
                         Text: 
                           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: " and String2 ", IsImplicit) (Syntax: ' and String2 ')
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{If(a, b, c)}')
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{If(a2, b2, c2)}')
                         Expression: 
-                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'If(a, b, c)')
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'If(a2, b2, c2)')
                         Alignment: 
                           null
                         FormatString: 
@@ -774,8 +774,8 @@ Block[B8] - Exit
 Imports System
 
 Friend Class [Class]
-    Public Sub M(a As Boolean, b As String, c As String)'BIND:"Public Sub M(a As Boolean, b As String, c As String)"
-        b = $"{If(a, b, c),20:D3}"
+    Public Sub M(a As Boolean, b As String, c As String, p As String)'BIND:"Public Sub M(a As Boolean, b As String, c As String, p As String)"
+        p = $"{If(a, b, c),20:D3}"
     End Sub
 End Class]]>.Value
 
@@ -786,9 +786,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.String) (Syntax: 'p')
 
     Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
@@ -813,11 +813,11 @@ Block[B3] - Block
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = $"{If(a ...  c),20:D3}"')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = $"{If(a ...  c),20:D3}"')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'b = $"{If(a ...  c),20:D3}"')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'p = $"{If(a ...  c),20:D3}"')
               Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'p')
               Right: 
                 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"{If(a, b, c),20:D3}"')
                   Parts(1):
@@ -847,8 +847,8 @@ Block[B5] - Exit
 Imports System
 
 Friend Class [Class]
-    Public Sub M(a As Boolean, b As String, c As String)'BIND:"Public Sub M(a As Boolean, b As String, c As String)"
-        b = $"{b,20:D3}{If(a, b, c)}"
+    Public Sub M(a As Boolean, b As String, b2 As String, c As String, p As String)'BIND:"Public Sub M(a As Boolean, b As String, b2 As String, c As String, p As String)"
+        p = $"{b2,20:D3}{If(a, b, c)}"
     End Sub
 End Class]]>.Value
 
@@ -859,13 +859,13 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (3)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.String) (Syntax: 'p')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b2')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+            IParameterReferenceOperation: b2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b2')
 
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '20')
           Value: 
@@ -894,17 +894,17 @@ Block[B3] - Block
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = $"{b,20 ... (a, b, c)}"')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = $"{b2,2 ... (a, b, c)}"')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'b = $"{b,20 ... (a, b, c)}"')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'p = $"{b2,2 ... (a, b, c)}"')
               Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'p')
               Right: 
-                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"{b,20:D3} ... (a, b, c)}"')
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"{b2,20:D3 ... (a, b, c)}"')
                   Parts(2):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{b,20:D3}')
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{b2,20:D3}')
                         Expression: 
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b2')
                         Alignment: 
                           IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 20, IsImplicit) (Syntax: '20')
                         FormatString: 
@@ -935,8 +935,8 @@ Block[B5] - Exit
 Imports System
 
 Friend Class [Class]
-    Public Sub M(a As Boolean, b As String, c As String)'BIND:"Public Sub M(a As Boolean, b As String, c As String)"
-        b = $"{b,20:D3}{b,21:D4}{If(a, b, c)}"
+    Public Sub M(a As Boolean, b As String, b2 As String, b3 As String, c As String, p As String)'BIND:"Public Sub M(a As Boolean, b As String, b2 As String, b3 As String, c As String, p As String)"
+        p = $"{b2,20:D3}{b3,21:D4}{If(a, b, c)}"
     End Sub
 End Class]]>.Value
 
@@ -947,21 +947,21 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (5)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.String) (Syntax: 'p')
 
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b2')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+            IParameterReferenceOperation: b2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b2')
 
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '20')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
 
-        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b3')
           Value: 
-            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+            IParameterReferenceOperation: b3 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b3')
 
         IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '21')
           Value: 
@@ -990,24 +990,24 @@ Block[B3] - Block
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = $"{b,20 ... (a, b, c)}"')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = $"{b2,2 ... (a, b, c)}"')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'b = $"{b,20 ... (a, b, c)}"')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'p = $"{b2,2 ... (a, b, c)}"')
               Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'p')
               Right: 
-                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"{b,20:D3} ... (a, b, c)}"')
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$"{b2,20:D3 ... (a, b, c)}"')
                   Parts(3):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{b,20:D3}')
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{b2,20:D3}')
                         Expression: 
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b2')
                         Alignment: 
                           IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 20, IsImplicit) (Syntax: '20')
                         FormatString: 
                           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "D3") (Syntax: ':D3')
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{b,21:D4}')
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{b3,21:D4}')
                         Expression: 
-                          IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b')
+                          IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'b3')
                         Alignment: 
                           IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 21, IsImplicit) (Syntax: '21')
                         FormatString: 
@@ -1128,8 +1128,8 @@ Block[B5] - Exit
 Imports System
 
 Friend Class [Class]
-    Public Sub M(a As Boolean, b As Integer, c As Integer, d As String)'BIND:"Public Sub M(a As Boolean, b As Integer, c As Integer, d As String)"
-        d = $"{d,If(a, b, c):D3}"
+    Public Sub M(a As Boolean, b As Integer, c As Integer, d As String, p As String)'BIND:"Public Sub M(a As Boolean, b As Integer, c As Integer, d As String, p As String)"
+        p = $"{d,If(a, b, c):D3}"
     End Sub
 End Class]]>.Value
 
@@ -1140,11 +1140,11 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'd = $"{d,If ...  b, c):D3}"')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'p = $"{d,If ...  b, c):D3}"')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'd = $"{d,If ...  b, c):D3}"')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'p = $"{d,If ...  b, c):D3}"')
               Left: 
-                IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.String) (Syntax: 'd')
+                IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.String) (Syntax: 'p')
               Right: 
                 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{d,If(a, b, c):D3}"')
                   Parts(2):
@@ -1167,13 +1167,13 @@ Block[B2] - Exit
 
             Dim expectedDiagnostics = <![CDATA[
 BC30204: Integer constant expected.
-        d = $"{d,If(a, b, c):D3}"
+        p = $"{d,If(a, b, c):D3}"
                  ~
 BC30370: '}' expected.
-        d = $"{d,If(a, b, c):D3}"
+        p = $"{d,If(a, b, c):D3}"
                  ~
 BC30035: Syntax error.
-        d = $"{d,If(a, b, c):D3}"
+        p = $"{d,If(a, b, c):D3}"
                                ~
 ]]>.Value
 
@@ -1187,8 +1187,8 @@ BC30035: Syntax error.
 Imports System
 
 Friend Class [Class]
-    Public Sub M(a As Boolean, b As String, c As String)'BIND:"Public Sub M(a As Boolean, b As String, c As String)"
-        b = $"{c,If(a, b, c):D3}"
+    Public Sub M(a As Boolean, b As String, c As String, c2 As String, p As String)'BIND:"Public Sub M(a As Boolean, b As String, c As String, c2 As String, p As String)"
+        p = $"{c2,If(a, b, c):D3}"
     End Sub
 End Class]]>.Value
 
@@ -1199,17 +1199,17 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'b = $"{c,If ...  b, c):D3}"')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'p = $"{c2,I ...  b, c):D3}"')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'b = $"{c,If ...  b, c):D3}"')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'p = $"{c2,I ...  b, c):D3}"')
               Left: 
-                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.String) (Syntax: 'b')
+                IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.String) (Syntax: 'p')
               Right: 
-                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{c,If(a, b, c):D3}"')
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{c2,If(a, b, c):D3}"')
                   Parts(2):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{c,')
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{c2,')
                         Expression: 
-                          IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c')
+                          IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: System.String) (Syntax: 'c2')
                         Alignment: 
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '')
                         FormatString: 
@@ -1226,14 +1226,14 @@ Block[B2] - Exit
 
             Dim expectedDiagnostics = <![CDATA[
 BC30204: Integer constant expected.
-        b = $"{c,If(a, b, c):D3}"
-                 ~
+        p = $"{c2,If(a, b, c):D3}"
+                  ~
 BC30370: '}' expected.
-        b = $"{c,If(a, b, c):D3}"
-                 ~
+        p = $"{c2,If(a, b, c):D3}"
+                  ~
 BC30035: Syntax error.
-        b = $"{c,If(a, b, c):D3}"
-                               ~
+        p = $"{c2,If(a, b, c):D3}"
+                                ~
 ]]>.Value
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
