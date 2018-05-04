@@ -1026,8 +1026,7 @@ class Program
 
     public override bool Equals(object obj)
     {
-        var program = obj as Program;
-        return program != null &&
+        return obj is Program program &&
                P == program.P;
     }
 }",
@@ -1054,8 +1053,7 @@ class Program
 
     public override bool Equals(object obj)
     {
-        var program = obj as Program;
-        return program != null &&
+        return obj is Program program &&
                P == program.P;
     }
 }",
