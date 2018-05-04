@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
@@ -1802,6 +1803,165 @@ offeredWhenRequireForClarityIsEnabled: true);
     }
 }",
 offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundNameof()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        string property = ""My "" + $$(nameof(property));
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        string property = ""My "" + nameof(property);
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensIsCheck()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        bool x = $$("""" is string);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        bool x = """" is string;
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestNecessaryParensAroundIs()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        string x = $$("""" is string).ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundAssignmentInInitialization()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        string y;
+        string x = $$(y = ""text"");
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        string y;
+        string x = y = ""text"";
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundLambda1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        Func<string, string> y2 = $$(v => v);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        Func<string, string> y2 = v => v;
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundLambda2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        Func<string, string> y2 = $$((v) => v);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        Func<string, string> y2 = (v) => v;
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundCastedLambda1()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        string y = ((Func<string, string>)$$((v) => v))(""text"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundCastedLambda2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        string y = ($$(Func<string, string>)((v) => v))(""text"");
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundCastedLambda3()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        string y = $$((Func<string, string>)((v) => v))(""text"");
+    }
+}");
         }
     }
 }
