@@ -3,11 +3,11 @@
 using System;
 using Microsoft.VisualStudio.OLE.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal static class ComEventSink
+    internal sealed class ComEventSink
     {
-        public static IComEventSink Advise<T>(object obj, T sink) where T : class
+        public static ComEventSink Advise<T>(object obj, T sink) where T : class
         {
             if (!typeof(T).IsInterface)
             {
@@ -28,31 +28,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             connectionPoint.Advise(sink, out var cookie);
 
-            return new ComEventSinkImpl(connectionPoint, cookie);
+            return new ComEventSink(connectionPoint, cookie);
         }
 
-        private class ComEventSinkImpl : IComEventSink
+        private readonly IConnectionPoint _connectionPoint;
+        private readonly uint _cookie;
+        private bool _unadvised;
+
+        public ComEventSink(IConnectionPoint connectionPoint, uint cookie)
         {
-            private IConnectionPoint _connectionPoint;
-            private uint _cookie;
-            private bool _unadvised;
+            _connectionPoint = connectionPoint;
+            _cookie = cookie;
+        }
 
-            public ComEventSinkImpl(IConnectionPoint connectionPoint, uint cookie)
+        public void Unadvise()
+        {
+            if (_unadvised)
             {
-                _connectionPoint = connectionPoint;
-                _cookie = cookie;
+                throw new InvalidOperationException("Already unadvised.");
             }
 
-            public void Unadvise()
-            {
-                if (_unadvised)
-                {
-                    throw new InvalidOperationException("Already unadvised.");
-                }
-
-                _connectionPoint.Unadvise(_cookie);
-                _unadvised = true;
-            }
+            _connectionPoint.Unadvise(_cookie);
+            _unadvised = true;
         }
     }
 }

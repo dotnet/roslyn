@@ -1052,4 +1052,10 @@ I agree to all of the foregoing:</value>
   <data name="Live_code_analysis" xml:space="preserve">
     <value>Live code analysis</value>
   </data>
+  <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with assignments</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_returns" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with returns</value>
+  </data>
 </root>
