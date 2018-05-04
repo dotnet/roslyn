@@ -27,7 +27,7 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
@@ -39,5 +39,8 @@
     <file src="Dlls\Workspaces.MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.xml" target="lib\net46" />
     <file src="Dlls\Workspaces.MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.pdb*" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\Workspaces.MSBuild\**\Microsoft.CodeAnalysis.Workspaces.MSBuild.resources.dll" target="lib\net46" />
   </files>
 </package>

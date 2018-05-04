@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class RelativePathResolverTests : TestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ResolveMetadataFile1()
         {
             string fileName = "f.dll";
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(filePath, path);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ResolveMetadataFile2()
         {
             string fileName = "f.dll";

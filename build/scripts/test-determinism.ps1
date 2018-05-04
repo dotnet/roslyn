@@ -29,7 +29,7 @@ function Run-Build([string]$rootDir, [switch]$restore = $false, [string]$logFile
             Restore-Project $dotnet "Roslyn.sln"
         }
 
-        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false Roslyn.sln"
+        $args = "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false /p:DeployExtension=false Roslyn.sln"
         if ($logFile -ne $null) {
             $logFile = Join-Path $binariesDir $logFile
             $args += " /bl:$logFile"

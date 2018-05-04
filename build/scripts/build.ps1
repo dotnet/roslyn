@@ -26,9 +26,12 @@ param (
     [switch]$bootstrap = $false,
     [switch]$sign = $false,
     [switch]$pack = $false,
+    [switch]$packAll = $false,
     [switch]$binaryLog = $false,
-    [switch]$noAnalyzers = $false,
+    [switch]$deployExtensions = $false,
     [string]$signType = "",
+    [switch]$skipBuildExtras = $false,
+    [switch]$skipAnalyzers = $false,
 
     # Test options 
     [switch]$test32 = $false,
@@ -42,8 +45,6 @@ param (
     # Special test options
     [switch]$testDeterminism = $false,
     [switch]$testBuildCorrectness = $false,
-    [switch]$testPerfCorrectness = $false,
-    [switch]$testPerfRun = $false,
 
     [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
@@ -60,7 +61,10 @@ function Print-Usage() {
     Write-Host "  -sign                     Sign our binaries"
     Write-Host "  -signType                 Type of sign: real, test, verify"
     Write-Host "  -pack                     Create our NuGet packages"
+    Write-Host "  -deployExtensions         Deploy built vsixes"
     Write-Host "  -binaryLog                Create binary log for every MSBuild invocation"
+    Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
+    Write-Host "  -skipBuildExtras          Do not build insertion items"
     Write-Host "" 
     Write-Host "Test options" 
     Write-Host "  -test32                   Run unit tests in the 32-bit runner"
@@ -74,8 +78,6 @@ function Print-Usage() {
     Write-Host "Special Test options" 
     Write-Host "  -testBuildCorrectness     Run build correctness tests"
     Write-Host "  -testDeterminism          Run determinism tests"
-    Write-Host "  -testPerfCorrectness      Run perf correctness tests"
-    Write-Host "  -testPerfCorrectness      Run perf tests"
 }
 
 # Process the command line arguments and establish defaults for the values which are not 
@@ -104,11 +106,19 @@ function Process-Arguments() {
         exit 1
     }
 
-    $script:isAnyTestSpecial = $testBuildCorrectness -or $testDeterminism -or $testPerfCorrectness -or $testPerfRun
+    if (($cibuild -and $anyVsi)) {
+        # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
+        $script:skipAnalyzers = $true
+    }
+
+    $script:isAnyTestSpecial = $testBuildCorrectness -or $testDeterminism 
     if ($isAnyTestSpecial -and ($anyUnit -or $anyVsi)) {
         Write-Host "Cannot combine special testing with any other action"
         exit 1
     }
+
+    $script:pack = $pack -or $packAll
+    $script:packAll = $packAll -or ($pack -and $official)
 
     if ($buildCoreClr) {
         $script:build = $true
@@ -129,8 +139,7 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
         $args += " /m"
     }
 
-    if ($noAnalyzers -or ($cibuild -and $testVsi)) {
-        # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
+    if ($skipAnalyzers) {
         $args += " /p:UseRoslynAnalyzers=false"
     }
 
@@ -214,13 +223,7 @@ function Make-BootstrapBuild() {
             Run-MSBuild $projectFilePath "/t:Publish /p:TargetFramework=netcoreapp2.0 $bootstrapArgs" -logFileName $logFileName -useDotnetBuild
         }
 
-        # The csi executable is only supported on desktop (even though we do multi-target it to 
-        # netcoreapp2.). Need to build the desktop version here in order to build our NuGet 
-        # packages below. 
-        Run-MSBuild "src/Interactive/csi/csi.csproj" -logFileName "BootstrapCsi" -useDotnetBuild
-
-        Ensure-NuGet | Out-Null
-        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 42.42.42.42-bootstrap $dir `"<developer build>`" Microsoft.NETCore.Compilers.nuspec"
+        Pack-One "Microsoft.NetCore.Compilers.nuspec" "Bootstrap" $dir
         Unzip-File "$dir\Microsoft.NETCore.Compilers.42.42.42.42-bootstrap.nupkg" "$dir\Microsoft.NETCore.Compilers\42.42.42.42"
 
         Write-Host "Cleaning Bootstrap compiler artifacts"
@@ -232,8 +235,7 @@ function Make-BootstrapBuild() {
         Remove-Item -re $dir -ErrorAction SilentlyContinue
         Create-Directory $dir
 
-        Ensure-NuGet | Out-Null
-        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 42.42.42.42-bootstrap $dir `"<developer build>`" Microsoft.Net.Compilers.nuspec"
+        Pack-One "Microsoft.Net.Compilers.nuspec" "Bootstrap" $dir
         Unzip-File "$dir\Microsoft.Net.Compilers.42.42.42.42-bootstrap.nupkg" "$dir\Microsoft.Net.Compilers\42.42.42.42"
 
         Write-Host "Cleaning Bootstrap compiler artifacts"
@@ -249,8 +251,10 @@ function Build-Artifacts() {
         Run-MSBuild "Compilers.sln" -useDotnetBuild
     }
     elseif ($build) {
-        Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false"
-        Build-ExtraSignArtifacts
+        Run-MSBuild "Roslyn.sln" "/p:DeployExtension=$deployExtensions"
+        if (-not $skipBuildExtras) {
+            Build-ExtraSignArtifacts
+        }
     }
 
     if ($pack) {
@@ -265,7 +269,7 @@ function Build-Artifacts() {
         Build-DeployToSymStore
     }
 
-    if ($build -and (-not $buildCoreClr)) {
+    if ($build -and (-not $skipBuildExtras) -and (-not $buildCoreClr)) {
         Build-InsertionItems
     }
 }
@@ -274,7 +278,6 @@ function Build-Artifacts() {
 # finish building these before we can run signing.
 function Build-ExtraSignArtifacts() { 
 
-    Ensure-NuGet | Out-Null
     Push-Location (Join-Path $repoDir "src\Setup")
     try {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
@@ -337,25 +340,91 @@ function Build-InsertionItems() {
             $extraArgs = " /p:FinalizeValidate=false /p:ManifestPublishUrl=https://vsdrop.corp.microsoft.com/file/v1/Products/DevDiv/dotnet/roslyn/master/20160729.6"
         }
 
-        Run-MSBuild "DevDivPackages\Roslyn.proj" -logFileName "RoslynPackagesProj"
+        $insertionDir = Join-Path $configDir "DevDivInsertionFiles"
+        $vsToolsDir = Join-Path $insertionDir "VS.Tools.Roslyn"
+        $packageOutDir = Join-Path $configDir "DevDivPackages\Roslyn"
+        $packArgs = "/p:NoPackageAnalysis=true"
+        Create-Directory $packageOutDir
+        Pack-One (Join-Path $insertionDir "VS.ExternalAPIs.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir $packArgs 
+        Pack-One (Join-Path $vsToolsDir "VS.Tools.Roslyn.nuspec") "PerBuildPreRelease" $packageOutDir $packArgs -basePath $vsToolsDir 
+
+        $netfx20Dir = Join-Path $repoDir "src\Dependencies\Microsoft.NetFX20"
+        Pack-One (Join-Path $netfx20Dir "Microsoft.NetFX20.nuspec") "PerBuildPreRelease" -packageOutDir (Join-Path $configDir "NuGet\NetFX20") -basePath $netfx20Dir -extraArgs "$packArgs /p:CurrentVersion=4.3.0" 
+
         Run-MSBuild "DevDivVsix\PortableFacades\PortableFacades.vsmanproj" -buildArgs $extraArgs
         Run-MSBuild "DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.vsmanproj" -buildArgs $extraArgs
         Run-MSBuild "DevDivVsix\MicrosoftCodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsmanproj" -buildArgs "$extraArgs"
-        Run-MSBuild "..\Dependencies\Microsoft.NetFX20\Microsoft.NetFX20.nuget.proj"
     }
     finally {
         Pop-Location
     }
 }
 
-function Build-NuGetPackages() {
-    $buildArgs = ""
-    if (-not $official) {
-        $buildArgs = '/p:SkipReleaseVersion=true /p:SkipPreReleaseVersion=true'
+function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packageOutDir = "", [string]$extraArgs = "", [string]$basePath = "", [switch]$useConsole = $true) { 
+    $nugetDir = Join-Path $repoDir "src\Nuget"
+    if ($packageOutDir -eq "") {
+        $packageOutDir = Join-Path $configDir "NuGet\$packageKind"
     }
 
-    Ensure-NuGet | Out-Null
-    Run-MSBuild "src\NuGet\NuGet.proj" $buildArgs
+    if ($basePath -eq "") { 
+        $basePath = $configDir
+    }
+    
+    if (-not ([IO.Path]::IsPathRooted($nuspecFilePath))) { 
+        $nuspecFilePath = Join-Path $nugetDir $nuspecFilePath
+    }
+
+    Create-Directory $packageOutDir
+    $nuspecFileName = Split-Path -leaf $nuspecFilePath
+    $projectFilePath = Join-Path $nugetDir "NuGetProjectPackUtil.csproj"
+    $packArgs = "pack -nologo --no-build $projectFilePath $extraArgs /p:NugetPackageKind=$packageKind /p:NuspecFile=$nuspecFilePath /p:NuspecBasePath=$basePath -o $packageOutDir" 
+
+    if ($official) {
+        $packArgs = "$packArgs /p:OfficialBuild=true"
+    }
+
+    if ($useConsole) { 
+        Exec-Console $dotnet $packArgs
+    }
+    else {
+        Exec-Command $dotnet $packArgs
+    }
+}
+
+function Build-NuGetPackages() {
+
+    function Pack-All([string]$packageKind, $extraArgs) {
+
+        Write-Host "Packing for $packageKind"
+        foreach ($item in Get-ChildItem *.nuspec) {
+            $name = Split-Path -leaf $item
+            Pack-One $name $packageKind -extraArgs $extraArgs
+        }
+    }
+
+    Push-Location (Join-Path $repoDir "src\NuGet")
+    try {
+        $extraArgs = ""
+
+        if ($official) {
+            $extraArgs += " /p:UseRealCommit=true"
+        }
+
+        # Empty directory for packing explicit empty items in the nuspec
+        $emptyDir = Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())
+        Create-Directory $emptyDir
+        New-Item -Path (Join-Path $emptyDir "_._") -Type File | Out-Null
+        $extraArgs += " /p:EmptyDir=$emptyDir"
+
+        Pack-All "PreRelease" $extraArgs
+        if ($packAll) {
+            Pack-All "Release" $extraArgs
+            Pack-All "PerBuildPreRelease" $extraArgs
+        }
+    }
+    finally {
+        Pop-Location
+    }
 }
 
 function Build-DeployToSymStore() {
@@ -373,50 +442,8 @@ function Test-Special() {
         $bootstrapDir = Make-BootstrapBuild
         Exec-Block { & ".\build\scripts\test-determinism.ps1" -bootstrapDir $bootstrapDir } | Out-Host
     } 
-    elseif ($testPerfCorrectness) {
-        Test-PerfCorrectness
-    }
-    elseif ($testPerfRun) {
-        Test-PerfRun
-    }
     else {
         throw "Not a special test"
-    }
-}
-
-function Test-PerfCorrectness() {
-    Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false" -logFileName "RoslynPerfCorrectness"
-    Exec-Block { & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe" --ci-test } | Out-Host
-}
-
-function Test-PerfRun() { 
-    Run-MSBuild "Roslyn.sln" "/p:DeployExtension=false" -logFileName "RoslynPerfRun"
-
-    # Check if we have credentials to upload to benchview
-    $extraArgs = @()
-    if ((Test-Path env:\GIT_BRANCH) -and (Test-Path env:\BV_UPLOAD_SAS_TOKEN)) {
-        $extraArgs += "--report-benchview"
-        $extraArgs += "--branch=$env:GIT_BRANCH"
-
-        # Check if we are in a PR or this is a rolling submission
-        if (Test-Path env:\ghprbPullTitle) {
-            $submissionName = $env:ghprbPullTitle.Replace(" ", "_")
-            $extraArgs += "--benchview-submission-name=""$submissionName"""
-            $extraArgs += "--benchview-submission-type=private"
-        } 
-        else {
-            $extraArgs += "--benchview-submission-type=rolling"
-        }
-
-        Create-Directory ".\Binaries\$buildConfiguration\tools\"
-        # Get the benchview tools - Place alongside Roslyn.Test.Performance.Runner.exe
-        Exec-Block { & ".\build\scripts\install_benchview_tools.cmd" ".\Binaries\$buildConfiguration\tools\" } | Out-Host
-    }
-
-    Stop-BuildProcesses
-    & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe"  $extraArgs --search-directory=".\\Binaries\\$buildConfiguration\\Dlls\\" --no-trace-upload
-    if (-not $?) { 
-        throw "Perf run failed"
     }
 }
 

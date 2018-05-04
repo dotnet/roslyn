@@ -55,13 +55,9 @@ namespace Microsoft.CodeAnalysis
             return DocumentState.Info.WithSourceCodeKind(DocumentState.SourceCodeKind);
         }
 
-        /// <summary>
-        /// True if the document content has potentially changed.
-        /// Does not compare actual text.
-        /// </summary>
-        internal bool HasContentChanged(Document otherDocument)
+        internal bool HasTextChanged(Document otherDocument)
         {
-            return DocumentState.HasContentChanged(otherDocument.DocumentState);
+            return DocumentState.HasTextChanged(otherDocument.DocumentState);
         }
 
         /// <summary>
@@ -179,7 +175,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // do it async for real.
-            return DocumentState.GetSyntaxTreeAsync(cancellationToken);
+            return DocumentState.GetSyntaxTreeAsync(cancellationToken).AsTask();
         }
 
         internal SyntaxTree GetSyntaxTreeSynchronously(CancellationToken cancellationToken)
@@ -411,7 +407,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the list of <see cref="DocumentId"/>s that are linked to this
         /// <see cref="Document" />. <see cref="Document"/>s are considered to be linked if they
-        /// share the same <see cref="TextDocument.FilePath" />. This <see cref="DocumentId"/> is excluded from the 
+        /// share the same <see cref="TextDocument.FilePath" />. This <see cref="DocumentId"/> is excluded from the
         /// result.
         /// </summary>
         public ImmutableArray<DocumentId> GetLinkedDocumentIds()
@@ -425,7 +421,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a branched version of this document that has its semantic model frozen in whatever state it is available at the time,
         /// assuming a background process is constructing the semantics asynchronously. Repeated calls to this method may return
         /// documents with increasingly more complete semantics.
-        /// 
+        ///
         /// Use this method to gain access to potentially incomplete semantics quickly.
         /// </summary>
         internal Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
@@ -433,8 +429,8 @@ namespace Microsoft.CodeAnalysis
             var solution = this.Project.Solution;
             var workspace = solution.Workspace;
 
-            // only produce doc with frozen semantics if this document is part of the workspace's 
-            // primary branch and there is actual background compilation going on, since w/o 
+            // only produce doc with frozen semantics if this document is part of the workspace's
+            // primary branch and there is actual background compilation going on, since w/o
             // background compilation the semantics won't be moving toward completeness.  Also,
             // ensure that the project that this document is part of actually supports compilations,
             // as partial semantics don't make sense otherwise.
