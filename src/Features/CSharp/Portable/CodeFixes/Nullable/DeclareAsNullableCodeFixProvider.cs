@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 return null;
             }
 
+            // return null;
             if (node.IsParentKind(SyntaxKind.ReturnStatement))
             {
                 var methodDeclaration = node.GetAncestors<MethodDeclarationSyntax>().FirstOrDefault();
@@ -88,15 +89,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 }
             }
 
+            // string x = null;
             if (node.Parent?.Parent?.IsParentKind(SyntaxKind.VariableDeclaration) == true)
             {
                 var variableDeclaration = (VariableDeclarationSyntax)node.Parent.Parent.Parent;
                 if (variableDeclaration.Variables.Count != 1)
                 {
+                    // string x = null, y = null;
                     return null;
                 }
 
                 return variableDeclaration.Type;
+            }
+
+            // string x { get; set; } = null;
+            if (node.Parent?.IsParentKind(SyntaxKind.PropertyDeclaration) == true)
+            {
+                var propertyDeclaration = (PropertyDeclarationSyntax)node.Parent.Parent;
+                return propertyDeclaration.Type;
+            }
+
+            // void M(string x = null) { }
+            if (node.Parent?.IsParentKind(SyntaxKind.Parameter) == true)
+            {
+                var parameter = (ParameterSyntax)node.Parent.Parent;
+                return parameter.Type;
             }
 
             return null;

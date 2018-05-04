@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNullable
@@ -81,6 +82,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
     {
         string x = [|null|], y = null;
     }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        [WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
+        public async Task FixPropertyDeclaration()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    string x { get; set; } = [|null|];
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
+        public async Task FixOptionalParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    static void M(string x = [|null|]) { }
 }", parameters: s_nullableFeature);
         }
     }
