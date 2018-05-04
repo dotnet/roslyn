@@ -59,55 +59,57 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 }");
         }
 
-        [Fact]
-        public void NopInTryCatchFinally()
+        [Theory, WorkItem(4729, "https://github.com/dotnet/roslyn/issues/4729")]
+        [InlineData("")]
+        [InlineData(";")]
+        public void NopInTryCatchFinally(string doNothingStatements)
         {
             var source =
-@"class C
-{
+$@"class C
+{{
     static void M1()
-    {
-        try { ; }
-        catch (System.Exception) { ; }
-        finally { ; }
-    }
+    {{
+        try {{ {doNothingStatements} }}
+        catch (System.Exception) {{ {doNothingStatements} }}
+        finally {{ {doNothingStatements} }}
+    }}
     static void M2()
-    {
-        try {
-            try { ; }
-            catch (System.Exception) { ; }
-            finally { ; }
-        }
-        catch (System.Exception) {
-            try { ; }
-            catch (System.Exception) { ; }
-            finally { ; }
-        }
-        finally {
-            try { ; }
-            catch (System.Exception) { ; }
-            finally { ; }
-        }
-    }
+    {{
+        try {{
+            try {{ {doNothingStatements} }}
+            catch (System.Exception) {{ {doNothingStatements} }}
+            finally {{ {doNothingStatements} }}
+        }}
+        catch (System.Exception) {{
+            try {{ {doNothingStatements} }}
+            catch (System.Exception) {{ {doNothingStatements} }}
+            finally {{ {doNothingStatements} }}
+        }}
+        finally {{
+            try {{ {doNothingStatements} }}
+            catch (System.Exception) {{ {doNothingStatements} }}
+            finally {{ {doNothingStatements} }}
+        }}
+    }}
     static void M3()
-    {
-        try { System.Console.WriteLine(1); }
-        catch (System.Exception) { ; }
-        finally { ; }
-    }
+    {{
+        try {{ System.Console.WriteLine(1); }}
+        catch (System.Exception) {{ {doNothingStatements} }}
+        finally {{ {doNothingStatements} }}
+    }}
     static void M4()
-    {
-        try { ; }
-        catch (System.Exception) { System.Console.WriteLine(1); }
-        finally { ; }
-    }
+    {{
+        try {{ {doNothingStatements} }}
+        catch (System.Exception) {{ System.Console.WriteLine(1); }}
+        finally {{ {doNothingStatements} }}
+    }}
     static void M5()
-    {
-        try { ; }
-        catch (System.Exception) { ; }
-        finally { System.Console.WriteLine(1); }
-    }
-}";
+    {{
+        try {{ {doNothingStatements} }}
+        catch (System.Exception) {{ {doNothingStatements} }}
+        finally {{ System.Console.WriteLine(1); }}
+    }}
+}}";
             var compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.M1",
 @"{
