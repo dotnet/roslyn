@@ -37,11 +37,6 @@
         <target state="translated">Konflikt(e) erkannt.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_If_statement">
-        <source>Invert If statement</source>
-        <target state="translated">Invert If-Anweisung</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">Verschieben Sie die "{0}"-Anweisung zu Zeile {1}.</target>
@@ -652,7 +647,7 @@ Iterator Function(&lt;Parameterliste&gt;) As IEnumerable(Of &lt;T&gt;)</target>
         <source>Compares a string against a pattern. Wildcards available include ? to match 1 character and * to match 0 or more characters.
 &lt;result&gt; = &lt;string&gt; Like &lt;pattern&gt;</source>
         <target state="translated">Vergleicht eine Zeichenfolge mit einem Muster. Die verfügbaren Platzhalter umfassen "?" für ein Zeichen und "*" für 0 oder mehrere Zeichen.
-&lt;Ergebnis&gt; = &lt;Zeichenfolge&gt; Like &lt;Muster&gt; </target>
+&lt;Ergebnis&gt; = &lt;Zeichenfolge&gt; Like &lt;Muster&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Returns_the_difference_between_two_numeric_expressions_or_the_negative_value_of_a_numeric_expression">
@@ -1802,11 +1797,6 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
         <target state="translated">"Me." hinzufügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_If_to_Select_Case">
-        <source>Convert 'If' to 'Select Case'</source>
-        <target state="translated">"If" in "Select Case" konvertieren</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">
         <source>Use 'Is Nothing' check</source>
         <target state="translated">Prüfung "Is Nothing" verwenden</target>
@@ -1815,6 +1805,26 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
       <trans-unit id="Use_IsNot_Nothing_check">
         <source>Use 'IsNot Nothing' check</source>
         <target state="translated">Prüfung "IsNot Nothing" verwenden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_Select_Case">
+        <source>Convert to 'Select Case'</source>
+        <target state="new">Convert to 'Select Case'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For_Each">
+        <source>Convert to 'For Each'</source>
+        <target state="new">Convert to 'For Each'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For">
+        <source>Convert  to 'For'</source>
+        <target state="new">Convert  to 'For'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_If">
+        <source>Invert If</source>
+        <target state="new">Invert If</target>
         <note />
       </trans-unit>
     </body>

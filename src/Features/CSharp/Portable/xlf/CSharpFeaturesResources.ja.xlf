@@ -12,11 +12,6 @@
         <target state="translated">競合が検出されました。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_if_statement">
-        <source>Invert if statement</source>
-        <target state="translated">If ステートメントの反転</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
         <target state="translated">ラムダ式の簡略化</target>
@@ -210,16 +205,6 @@
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
         <target state="translated">using の削除と並べ替え(&amp;E)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_potential_implicit_array_creation">
-        <source>Autoselect disabled due to potential implicit array creation.</source>
-        <target state="translated">暗黙的な配列作成が可能であるため、自動選択が無効になっています。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="implicit_array_creation">
-        <source>&lt;implicit array creation&gt;</source>
-        <target state="translated">&lt;暗黙的な配列の作成&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_await">
@@ -602,11 +587,6 @@
         <target state="translated">this' を追加します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_if_to_switch">
-        <source>Convert 'if' to 'switch'</source>
-        <target state="translated">if' を 'switch' に変換</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Warning_Extracting_a_local_function_reference_may_produce_invalid_code">
         <source>Warning: Extracting a local function reference may produce invalid code</source>
         <target state="translated">警告: ローカル関数参照を抽出すると無効なコードが生成される可能性があります</target>
@@ -635,6 +615,31 @@
       <trans-unit id="Use_is_null_check">
         <source>Use 'is null' check</source>
         <target state="translated">is null' チェックを使用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
+        <source>Add parentheses</source>
+        <target state="translated">括弧を追加します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_switch">
+        <source>Convert to 'switch'</source>
+        <target state="new">Convert to 'switch'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_foreach">
+        <source>Convert to 'foreach'</source>
+        <target state="new">Convert to 'foreach'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_for">
+        <source>Convert to 'for'</source>
+        <target state="new">Convert to 'for'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_if">
+        <source>Invert if</source>
+        <target state="new">Invert if</target>
         <note />
       </trans-unit>
     </body>

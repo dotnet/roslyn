@@ -26,7 +26,6 @@
     <ProjectReference Include="..\..\Source\ExpressionCompiler\BasicExpressionCompiler.vbproj" />
     <ProjectReference Include="..\..\..\..\Compilers\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj" />
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj" />
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -38,6 +37,7 @@
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

@@ -477,11 +477,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Convert &apos;If&apos; to &apos;Select Case&apos;.
+        '''  Looks up a localized string similar to Convert  to &apos;For&apos;.
         '''</summary>
-        Friend ReadOnly Property Convert_If_to_Select_Case() As String
+        Friend ReadOnly Property Convert_to_For() As String
             Get
-                Return ResourceManager.GetString("Convert_If_to_Select_Case", resourceCulture)
+                Return ResourceManager.GetString("Convert_to_For", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Convert to &apos;For Each&apos;.
+        '''</summary>
+        Friend ReadOnly Property Convert_to_For_Each() As String
+            Get
+                Return ResourceManager.GetString("Convert_to_For_Each", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Convert to &apos;Select Case&apos;.
+        '''</summary>
+        Friend ReadOnly Property Convert_to_Select_Case() As String
+            Get
+                Return ResourceManager.GetString("Convert_to_Select_Case", resourceCulture)
             End Get
         End Property
         
@@ -1476,11 +1494,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Invert If statement.
+        '''  Looks up a localized string similar to Invert If.
         '''</summary>
-        Friend ReadOnly Property Invert_If_statement() As String
+        Friend ReadOnly Property Invert_If() As String
             Get
-                Return ResourceManager.GetString("Invert_If_statement", resourceCulture)
+                Return ResourceManager.GetString("Invert_If", resourceCulture)
             End Get
         End Property
         

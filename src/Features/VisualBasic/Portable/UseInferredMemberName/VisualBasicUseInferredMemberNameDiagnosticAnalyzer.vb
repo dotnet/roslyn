@@ -62,6 +62,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
 
         Private Sub ReportDiagnosticsIfNeeded(fieldInitializer As NamedFieldInitializerSyntax, context As SyntaxNodeAnalysisContext,
                                               optionSet As OptionSet, syntaxTree As SyntaxTree)
+            If Not fieldInitializer.Parent.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression) Then
+                Return
+            End If
 
             If Not optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Value OrElse
                 Not VisualBasicInferredMemberNameReducer.CanSimplifyNamedFieldInitializer(fieldInitializer) Then

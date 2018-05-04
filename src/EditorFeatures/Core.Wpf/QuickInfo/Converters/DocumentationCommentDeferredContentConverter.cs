@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Text.Classification;
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo.Converters
 {
     [Export(typeof(IDeferredQuickInfoContentToFrameworkElementConverter))]
+    [QuickInfoConverterMetadata(typeof(DocumentationCommentDeferredContent))]
     internal sealed class DocumentationCommentDeferredContentConverter : IDeferredQuickInfoContentToFrameworkElementConverter
     {
         private readonly ClassificationTypeMap _typeMap;

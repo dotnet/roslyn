@@ -23,6 +23,7 @@ Param(
 )
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 function Get-PublishKey([string]$uploadUrl) {
     $url = New-Object Uri $uploadUrl
@@ -38,17 +39,16 @@ function Publish-NuGet([string]$packageDir, [string]$uploadUrl) {
     Push-Location $packageDir
     try {
         Write-Host "Publishing $(Split-Path -leaf $packageDir) to $uploadUrl"
-        $packages = [xml](Get-Content "$packageDir\myget_org-packages.config")
         $apiKey = Get-PublishKey $uploadUrl
-        foreach ($package in $packages.packages.package) {
-            $nupkg = $package.id + "." + $package.version + ".nupkg"
+        foreach ($package in Get-ChildItem *.nupkg) {
+            $nupkg = Split-Path -Leaf $package
             Write-Host "  Publishing $nupkg"
             if (-not (Test-Path $nupkg)) {
                 throw "$nupkg does not exist"
             }
 
             if (-not $test) {
-                Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --apiKey $apiKey -v q"
+                Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --api-key $apiKey"
             }
         }
     } 

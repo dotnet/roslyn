@@ -123,8 +123,8 @@
   <data name="Conflict_s_detected" xml:space="preserve">
     <value>Conflict(s) detected.</value>
   </data>
-  <data name="Invert_if_statement" xml:space="preserve">
-    <value>Invert if statement</value>
+  <data name="Invert_if" xml:space="preserve">
+    <value>Invert if</value>
   </data>
   <data name="Simplify_lambda_expression" xml:space="preserve">
     <value>Simplify lambda expression</value>
@@ -242,12 +242,6 @@
   </data>
   <data name="Remove_and_Sort_Usings" xml:space="preserve">
     <value>R&amp;emove and Sort Usings</value>
-  </data>
-  <data name="Autoselect_disabled_due_to_potential_implicit_array_creation" xml:space="preserve">
-    <value>Autoselect disabled due to potential implicit array creation.</value>
-  </data>
-  <data name="implicit_array_creation" xml:space="preserve">
-    <value>&lt;implicit array creation&gt;</value>
   </data>
   <data name="Insert_await" xml:space="preserve">
     <value>Insert 'await'.</value>
@@ -503,8 +497,8 @@
   <data name="Add_this" xml:space="preserve">
     <value>Add 'this.'</value>
   </data>
-  <data name="Convert_if_to_switch" xml:space="preserve">
-    <value>Convert 'if' to 'switch'</value>
+  <data name="Convert_to_switch" xml:space="preserve">
+    <value>Convert to 'switch'</value>
   </data>
   <data name="Warning_Extracting_a_local_function_reference_may_produce_invalid_code" xml:space="preserve">
     <value>Warning: Extracting a local function reference may produce invalid code</value>
@@ -523,5 +517,14 @@
   </data>
   <data name="Use_is_null_check" xml:space="preserve">
     <value>Use 'is null' check</value>
+  </data>
+  <data name="Add_parentheses_around_conditional_expression_in_interpolated_string" xml:space="preserve">
+    <value>Add parentheses</value>
+  </data>
+  <data name="Convert_to_foreach" xml:space="preserve">
+    <value>Convert to 'foreach'</value>
+  </data>
+  <data name="Convert_to_for" xml:space="preserve">
+    <value>Convert to 'for'</value>
   </data>
 </root>

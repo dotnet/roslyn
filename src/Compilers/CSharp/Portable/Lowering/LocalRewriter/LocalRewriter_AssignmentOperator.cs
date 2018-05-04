@@ -222,9 +222,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isRef: isRef);
                     }
 
+                case BoundKind.Parameter:
+                    {
+                        Debug.Assert(!isRef || rewrittenLeft.GetRefKind() != RefKind.None);
+                        return new BoundAssignmentOperator(
+                            syntax,
+                            rewrittenLeft,
+                            rewrittenRight,
+                            isRef,
+                            type);
+                    }
+
                 case BoundKind.DiscardExpression:
                     {
-                        return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenRight);
+                        return rewrittenRight;
                     }
 
                 default:

@@ -37,11 +37,6 @@
         <target state="translated">競合が検出されました。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_If_statement">
-        <source>Invert If statement</source>
-        <target state="translated">If ステートメントを反転します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">{0}' ステートメントを行 {1} に移動します。</target>
@@ -59,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
-        <target state="translated">新しいフィールドを宣言するには、ここに名前を入力します。 </target>
+        <target state="translated">新しいフィールドを宣言するには、ここに名前を入力します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab">
@@ -84,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Type_a_new_name_for_the_column_followed_by_Otherwise_the_original_column_name_with_be_used">
         <source>Type a new name for the column, followed by '='. Otherwise, the original column name with be used.</source>
-        <target state="translated">列の新しい名前 (名前の後に '=' が続く) を入力します。これを入力しない場合、元の列名が使用されます。 </target>
+        <target state="translated">列の新しい名前 (名前の後に '=' が続く) を入力します。これを入力しない場合、元の列名が使用されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Note_colon_Use_tab_for_automatic_completion_space_completion_is_disabled_to_avoid_interfering_with_a_new_name">
@@ -1215,7 +1210,7 @@ Do...Loop While &lt;condition&gt;</target>
       </trans-unit>
       <trans-unit id="Provides_a_way_to_refer_to_the_class_instance_members_as_originally_implemented_ignoring_any_derived_class_overrides">
         <source>Provides a way to refer to the class instance members as originally implemented, ignoring any derived class overrides.</source>
-        <target state="translated">最初に実装されたときの状態のクラスのインスタンス メンバーを参照する (派生クラスのオーバーライドをすべて無視する) 方法を提供します。 </target>
+        <target state="translated">最初に実装されたときの状態のクラスのインスタンス メンバーを参照する (派生クラスのオーバーライドをすべて無視する) 方法を提供します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Creates_a_new_object_instance">
@@ -1593,7 +1588,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Lambda">
         <source>Lambda</source>
-        <target state="translated">ラムダ </target>
+        <target state="translated">ラムダ</target>
         <note />
       </trans-unit>
       <trans-unit id="Where_clause">
@@ -1801,11 +1796,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Me' を追加します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_If_to_Select_Case">
-        <source>Convert 'If' to 'Select Case'</source>
-        <target state="translated">If' を 'Select Case' に変換する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">
         <source>Use 'Is Nothing' check</source>
         <target state="translated">Is Nothing' チェックを使用します</target>
@@ -1814,6 +1804,26 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Use_IsNot_Nothing_check">
         <source>Use 'IsNot Nothing' check</source>
         <target state="translated">IsNot Nothing' チェックを使用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_Select_Case">
+        <source>Convert to 'Select Case'</source>
+        <target state="new">Convert to 'Select Case'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For_Each">
+        <source>Convert to 'For Each'</source>
+        <target state="new">Convert to 'For Each'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For">
+        <source>Convert  to 'For'</source>
+        <target state="new">Convert  to 'For'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_If">
+        <source>Invert If</source>
+        <target state="new">Invert If</target>
         <note />
       </trans-unit>
     </body>

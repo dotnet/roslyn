@@ -37,11 +37,6 @@
         <target state="translated">Wykryto konflikty.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invert_If_statement">
-        <source>Invert If statement</source>
-        <target state="translated">Odwróć instrukcję If</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">Przenieś instrukcję „{0}” do wiersza {1}.</target>
@@ -1802,11 +1797,6 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
         <target state="translated">Dodaj „mnie”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Convert_If_to_Select_Case">
-        <source>Convert 'If' to 'Select Case'</source>
-        <target state="translated">Konwertuj wyrażenie „If” na „Select Case”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">
         <source>Use 'Is Nothing' check</source>
         <target state="translated">Użyj sprawdzania „Is Nothing”</target>
@@ -1815,6 +1805,26 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
       <trans-unit id="Use_IsNot_Nothing_check">
         <source>Use 'IsNot Nothing' check</source>
         <target state="translated">Użyj sprawdzania „IsNot Nothing”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_Select_Case">
+        <source>Convert to 'Select Case'</source>
+        <target state="new">Convert to 'Select Case'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For_Each">
+        <source>Convert to 'For Each'</source>
+        <target state="new">Convert to 'For Each'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_For">
+        <source>Convert  to 'For'</source>
+        <target state="new">Convert  to 'For'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_If">
+        <source>Invert If</source>
+        <target state="new">Invert If</target>
         <note />
       </trans-unit>
     </body>
