@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
@@ -58,6 +59,19 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             var resultNode = expression
                 .WithLeadingTrivia(leadingTrivia)
                 .WithTrailingTrivia(trailingTrivia);
+
+            // If there's no trivia between the original node and the tokens around it, then add
+            // elastic markers so the formatting engine will spaces if necessary to keep things
+            // parseable.
+            if (resultNode.GetLeadingTrivia().Count == 0 && node.GetFirstToken().GetPreviousToken().TrailingTrivia.Count == 0)
+            {
+                resultNode = resultNode.WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker);
+            }
+
+            if (resultNode.GetTrailingTrivia().Count == 0 && node.GetLastToken().GetNextToken().LeadingTrivia.Count == 0)
+            {
+                resultNode = resultNode.WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker);
+            }
 
             return resultNode;
         }

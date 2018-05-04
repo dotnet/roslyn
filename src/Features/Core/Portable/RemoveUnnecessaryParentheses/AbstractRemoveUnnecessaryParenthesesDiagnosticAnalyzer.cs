@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 parenthesizedExpression.GetFirstToken().GetLocation(), additionalLocations));
 
             context.ReportDiagnostic(Diagnostic.Create(
-                CreateUnnecessaryDescriptor(DiagnosticSeverity.Hidden),
+                UnnecessaryWithoutSuggestionDescriptor,
                 parenthesizedExpression.GetLastToken().GetLocation(), additionalLocations));
         }
     }
