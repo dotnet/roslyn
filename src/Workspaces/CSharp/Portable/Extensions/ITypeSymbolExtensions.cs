@@ -40,6 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static TypeSyntax GenerateTypeSyntax(
             INamespaceOrTypeSymbol symbol, bool nameSyntax, bool allowVar = true)
         {
+            if (symbol is ITypeSymbol type && type.ContainsAnonymousType())
+            {
+                // something with an anonymous type can only be represented with 'var', regardless
+                // of what the user's preferences might be.
+                return SyntaxFactory.IdentifierName("var");
+            }
+
             var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))
                                .WithAdditionalAnnotations(Simplifier.Annotation);
 
@@ -152,35 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 default:
                     return false;
             }
-        }
-
-        public static TypeSyntax GenerateTypeSyntaxOrVar(
-            this ITypeSymbol symbol, OptionSet options, bool typeIsApparent)
-        {
-            var useVar = IsVarDesired(symbol, options, typeIsApparent);
-
-            return useVar
-                ? SyntaxFactory.IdentifierName("var")
-                : symbol.GenerateTypeSyntax();
-        }
-
-        private static bool IsVarDesired(ITypeSymbol type, OptionSet options, bool typeIsApperant)
-        {
-            // If they want it for intrinsics, and this is an intrinsic, then use var.
-            if (type.IsSpecialType() == true)
-            {
-                return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
-            }
-
-            // If they want it only for apperant types, then only use "var" if the caller
-            // says the type was apperant.
-            if (typeIsApperant)
-            {
-                return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Value;
-            }
-
-            // If they want "var" whenever possible, then use "var".
-            return  options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Value;
         }
     }
 }

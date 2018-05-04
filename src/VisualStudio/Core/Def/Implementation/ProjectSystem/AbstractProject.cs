@@ -52,7 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, IVisualStudioHostDocument> _documentMonikers = new Dictionary<string, IVisualStudioHostDocument>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzers = new Dictionary<string, VisualStudioAnalyzer>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _additionalDocuments = new Dictionary<DocumentId, IVisualStudioHostDocument>();
-        private readonly Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>> _hierarchyEventSinks = new Dictionary<DocumentId, List<(IVsHierarchy hierarchy, uint cookie)>>();
 
         /// <summary>
         /// The list of files which have been added to the project but we aren't tracking since they
@@ -625,6 +624,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
+                if (_metadataReferences.Contains(r => StringComparer.OrdinalIgnoreCase.Equals(r.FilePath, reference.FilePath)))
+                {
+                    // TODO: Added in order to diagnose why duplicate references get added to the project. See https://github.com/dotnet/roslyn/issues/26437
+                    FatalError.ReportWithoutCrash(new InvalidOperationException($"Reference with path '{reference.FilePath}' already exists in project '{DisplayName}'."));
+                    return;
+                }
+
                 _metadataReferences.Add(reference);
             }
 
@@ -866,30 +872,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (project.PushingChangesToWorkspace)
             {
-                project.ProjectTracker.NotifyWorkspace(workspace => workspace.OnDocumentOpened(document.Id, document.GetOpenTextBuffer().AsTextContainer(), isCurrentContext));
+                project.ProjectTracker.NotifyWorkspace(workspace =>
+                {
+                    workspace.OnDocumentOpened(document.Id, document.GetOpenTextBuffer().AsTextContainer(), isCurrentContext);
+                    (workspace as VisualStudioWorkspaceImpl)?.ConnectToSharedHierarchyEvents(document);
+                });
             }
             else
             {
                 StartPushingToWorkspaceAndNotifyOfOpenDocuments(project);
-            }
-
-            var itemId = document.GetItemId();
-
-            if (itemId != (uint)VSConstants.VSITEMID.Nil)
-            {
-                var sharedHierarchy = LinkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
-
-                if (sharedHierarchy != null)
-                {
-                    project.ProjectTracker.NotifyWorkspace(workspace =>
-                    {
-                        var eventSink = new HierarchyEventsSink((VisualStudioWorkspaceImpl)workspace, sharedHierarchy, document.Id);
-                        if (ErrorHandler.Succeeded(sharedHierarchy.AdviseHierarchyEvents(eventSink, out var cookie)))
-                        {
-                            project._hierarchyEventSinks.MultiAdd(document.Id, (sharedHierarchy, cookie));
-                        }
-                    });
-                }
             }
         }
 
@@ -904,16 +895,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (project.PushingChangesToWorkspace)
             {
                 projectTracker.NotifyWorkspace(workspace => workspace.OnDocumentClosed(document.Id, document.Loader, updateActiveContext));
-            }
-
-            if (project._hierarchyEventSinks.TryGetValue(document.Id, out var subscribedSinks))
-            {
-                foreach (var subscribedSink in subscribedSinks)
-                {
-                    subscribedSink.hierarchy.UnadviseHierarchyEvents(subscribedSink.cookie);
-                }
-
-                project._hierarchyEventSinks.Remove(document.Id);
             }
         }
 
@@ -1067,7 +1048,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     if (document.IsOpen)
                     {
-                        this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnDocumentOpened(document.Id, document.GetOpenTextBuffer().AsTextContainer(), isCurrentContext));
+                        this.ProjectTracker.NotifyWorkspace(workspace =>
+                        {
+                            workspace.OnDocumentOpened(document.Id, document.GetOpenTextBuffer().AsTextContainer(), isCurrentContext);
+                            (workspace as VisualStudioWorkspaceImpl)?.ConnectToSharedHierarchyEvents(document);
+                        });
                     }
                 }
 

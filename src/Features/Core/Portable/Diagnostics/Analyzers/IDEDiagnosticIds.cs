@@ -66,7 +66,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string MakeFieldReadonlyDiagnosticId = "IDE0044";
 
-        public const string UseIsNullCheckForCastAndEqualityOperatorDiagnosticId = "IDE0045";
+        public const string UseConditionalExpressionForAssignmentDiagnosticId = "IDE0045";
+        public const string UseConditionalExpressionForReturnDiagnosticId = "IDE0046";
+
+        public const string UseIsNullCheckForCastAndEqualityOperatorDiagnosticId = "IDE0047";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
