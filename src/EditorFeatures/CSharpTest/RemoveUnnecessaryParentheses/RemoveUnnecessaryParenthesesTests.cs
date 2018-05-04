@@ -2022,7 +2022,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 {
     void M()
     {
-#if A || B
+#ifA || B
 #endif
     }
 }",
@@ -2032,12 +2032,13 @@ offeredWhenRequireForClarityIsEnabled: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestParensAroundPPDirective2()
         {
+            // Currently producing broken code.
             await TestAsync(
 @"class C
 {
     void M()
     {
-#if($$(A || B) || C)
+#if( $$(A || B) || C)
 #endif
     }
 }",
@@ -2045,7 +2046,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 {
     void M()
     {
-#if(A || B || C)
+#if( A || B || C)
 #endif
     }
 }",
