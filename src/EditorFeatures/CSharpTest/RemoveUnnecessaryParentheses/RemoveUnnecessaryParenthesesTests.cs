@@ -1963,5 +1963,47 @@ offeredWhenRequireForClarityIsEnabled: true);
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundReturnValue1()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        return$$(value);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        return value;
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundReturnValue2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        return $$(value);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        return value;
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
     }
 }
