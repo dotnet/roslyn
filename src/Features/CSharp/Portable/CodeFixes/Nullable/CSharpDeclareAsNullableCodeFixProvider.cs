@@ -20,12 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.DeclareAsNullable), Shared]
     internal class CSharpDeclareAsNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            // warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-            // warning CS8600: Converting null literal or possible null value to non-nullable type.
-            get { return ImmutableArray.Create("CS8625", "CS8600"); }
-        }
+        // warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+        // warning CS8600: Converting null literal or possible null value to non-nullable type.
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8625", "CS8600");
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -55,14 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
             foreach (var diagnostic in diagnostics)
             {
-                var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
+                var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
                 MakeDeclarationNullable(document, editor, node, alreadyHandled);
             }
 
             return Task.CompletedTask;
         }
 
-        private void MakeDeclarationNullable(Document document, SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled)
+        private static void MakeDeclarationNullable(Document document, SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled)
         {
             var declarationTypeToFix = TryGetDeclarationTypeToFix(node);
             if (declarationTypeToFix != null && !alreadyHandled.Contains(declarationTypeToFix))
@@ -99,7 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                         return ((PropertyDeclarationSyntax)containingMember).Type;
                 }
             }
-
 
             // string x = null;
             if (node.Parent?.Parent?.IsParentKind(SyntaxKind.VariableDeclaration) == true)
