@@ -1672,5 +1672,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 }",
 offeredWhenRequireForClarityIsEnabled: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestGuardPatternMissing()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(object expression)
+    {
+        if (!$$(expression is bool b)) { }
+    }
+}");
+        }
     }
 }
