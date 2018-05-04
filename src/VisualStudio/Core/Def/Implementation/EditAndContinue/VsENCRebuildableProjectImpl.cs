@@ -164,17 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 switch (projectReason)
                 {
                     case ProjectReadOnlyReason.MetadataNotAvailable:
-                        // TODO: Remove once https://github.com/dotnet/roslyn/issues/16657 is addressed
-                        bool deferredLoad = (_vsProject.ServiceProvider.GetService(typeof(SVsSolution)) as IVsSolution7)?.IsSolutionLoadDeferred() == true;
-                        if (deferredLoad)
-                        {
-                            message = ServicesVSResources.ChangesNotAllowedIfProjectWasntLoadedWhileDebugging;
-                            s_encDebuggingSessionInfo?.LogReadOnlyEditAttemptedProjectNotBuiltOrLoaded();
-                        }
-                        else
-                        {
-                            message = ServicesVSResources.ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted;
-                        }
+                        message = ServicesVSResources.ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted;
                         break;
 
                     case ProjectReadOnlyReason.NotLoaded:
@@ -232,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     _encService.StartDebuggingSession(_vsProject.Workspace.CurrentSolution);
                     s_encDebuggingSessionInfo = new EncDebuggingSessionInfo();
 
-                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService, _vsProject);
+                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService);
                 }
 
                 string outputPath = _vsProject.ObjOutputPath;

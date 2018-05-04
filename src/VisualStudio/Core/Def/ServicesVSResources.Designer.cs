@@ -1723,6 +1723,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer conditional expression over &apos;if&apos; with assignments.
+        /// </summary>
+        internal static string Prefer_conditional_expression_over_if_with_assignments {
+            get {
+                return ResourceManager.GetString("Prefer_conditional_expression_over_if_with_assignments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer conditional expression over &apos;if&apos; with returns.
+        /// </summary>
+        internal static string Prefer_conditional_expression_over_if_with_returns {
+            get {
+                return ResourceManager.GetString("Prefer_conditional_expression_over_if_with_returns", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Prefer deconstructed variable declaration.
         /// </summary>
         internal static string Prefer_deconstructed_variable_declaration {

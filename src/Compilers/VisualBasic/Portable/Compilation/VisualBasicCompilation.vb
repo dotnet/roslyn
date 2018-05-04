@@ -1578,14 +1578,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Friend Overrides Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
-            If _lazyImportInfos IsNot Nothing Then
+            If _lazyImportInfos IsNot Nothing AndAlso (filterTree Is Nothing OrElse filterTree.Options.DocumentationMode <> DocumentationMode.None) Then
                 Dim unusedBuilder As ArrayBuilder(Of TextSpan) = Nothing
 
                 For Each info As ImportInfo In _lazyImportInfos
                     cancellationToken.ThrowIfCancellationRequested()
 
                     Dim infoTree As SyntaxTree = info.Tree
-                    If filterTree Is Nothing OrElse filterTree Is infoTree Then
+                    If (filterTree Is Nothing OrElse filterTree Is infoTree) AndAlso infoTree.Options.DocumentationMode <> DocumentationMode.None Then
                         Dim clauseSpans = info.ClauseSpans
                         Dim numClauseSpans = clauseSpans.Length
 
@@ -2970,11 +2970,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Protected Overrides Function ShouldCheckTypeForMembers(current As MergedTypeDeclaration) As Boolean
                 For Each typeDecl In current.Declarations
-                    For Each name In typeDecl.MemberNames
-                        If IdentifierComparison.Equals(name, _name) Then
-                            Return True
-                        End If
-                    Next
+                    If typeDecl.MemberNames.Contains(_name) Then
+                        Return True
+                    End If
                 Next
 
                 Return False

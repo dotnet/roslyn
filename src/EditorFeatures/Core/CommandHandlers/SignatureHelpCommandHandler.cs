@@ -38,24 +38,15 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public string DisplayName => EditorFeaturesResources.Signature_Help;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SignatureHelpCommandHandler(
             [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : this(ExtensionOrderer.Order(signatureHelpPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                   signatureHelpProviders, listenerProvider)
-        {
-        }
-
-        // For testing purposes.
-        public SignatureHelpCommandHandler(
-            IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> signatureHelpPresenter,
-            [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
-            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _signatureHelpProviders = ExtensionOrderer.Order(signatureHelpProviders);
             _listener = listenerProvider.GetListener(FeatureAttribute.SignatureHelp);
-            _signatureHelpPresenter = signatureHelpPresenter;
+            _signatureHelpPresenter = ExtensionOrderer.Order(signatureHelpPresenters).Select(lazy => lazy.Value).FirstOrDefault();
         }
 
         private bool TryGetController(EditorCommandArgs args, out Controller controller)

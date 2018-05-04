@@ -40,7 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
             ' start debugging
             encService.StartDebuggingSession(workspace.CurrentSolution)
-            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService, Nothing)
+            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService)
             isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(1, mockVsBuffer._oldFlags) ' Read-Only
@@ -88,7 +88,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
             ' start debugging
             encService.StartDebuggingSession(workspace.CurrentSolution)
-            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService, Nothing)
+            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService)
             isReadOnly = encService.IsProjectReadOnly(project.Id, sessionReason, projectReason) AndAlso allowsReadOnly
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), isReadOnly)
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
@@ -131,7 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
             ' start debugging & readOnlyDocumentTracker
             encService.StartDebuggingSession(workspace.CurrentSolution)
-            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService, Nothing)
+            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService)
 
             ' valid document
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), False)
@@ -158,7 +158,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
             ' start debugging & readOnlyDocumentTracker
             encService.StartDebuggingSession(workspace.CurrentSolution)
-            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService, Nothing)
+            readOnlyDocumentTracker = New VsReadOnlyDocumentTracker(encService, mockEditorAdaptersFactoryService)
 
             ' valid document
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), False)

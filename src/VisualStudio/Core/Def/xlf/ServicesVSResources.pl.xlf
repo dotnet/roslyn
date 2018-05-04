@@ -1523,6 +1523,16 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
         <target state="translated">Analiza kodu na żywo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
+        <source>Prefer conditional expression over 'if' with assignments</source>
+        <target state="new">Prefer conditional expression over 'if' with assignments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
+        <source>Prefer conditional expression over 'if' with returns</source>
+        <target state="new">Prefer conditional expression over 'if' with returns</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

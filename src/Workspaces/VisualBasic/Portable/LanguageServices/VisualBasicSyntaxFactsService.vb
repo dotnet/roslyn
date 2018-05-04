@@ -659,6 +659,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, AttributeSyntax).Name
         End Function
 
+        Public Function IsParenthesizedExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsParenthesizedExpression
+            Return node.Kind() = SyntaxKind.ParenthesizedExpression
+        End Function
+
+        Public Function GetExpressionOfParenthesizedExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfParenthesizedExpression
+            Return DirectCast(node, ParenthesizedExpressionSyntax).Expression
+        End Function
+
+        Public Function IsIfStatement(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsIfStatement
+            Return (node.Kind() = SyntaxKind.IfStatement)
+        End Function
+
         Public Function IsAttribute(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttribute
             Return TypeOf node Is AttributeSyntax
         End Function
@@ -755,8 +767,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return name.ToIdentifierToken()
         End Function
 
-        Public Function Parenthesize(expression As SyntaxNode, Optional includeElasticTrivia As Boolean = True) As SyntaxNode Implements ISyntaxFactsService.Parenthesize
-            Return DirectCast(expression, ExpressionSyntax).Parenthesize()
+        Public Sub GetPartsOfParenthesizedExpression(
+            node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef expression As SyntaxNode, ByRef closeParen As SyntaxToken) Implements ISyntaxFactsService.GetPartsOfParenthesizedExpression
+
+            Dim parenthesizedExpression = DirectCast(node, ParenthesizedExpressionSyntax)
+            openParen = parenthesizedExpression.OpenParenToken
+            expression = parenthesizedExpression.Expression
+            closeParen = parenthesizedExpression.CloseParenToken
+        End Sub
+
+        Public Function Parenthesize(expression As SyntaxNode, Optional includeElasticTrivia As Boolean = True, Optional addSimplifierAnnotation As Boolean = True) As SyntaxNode Implements ISyntaxFactsService.Parenthesize
+            Return DirectCast(expression, ExpressionSyntax).Parenthesize(addSimplifierAnnotation)
         End Function
 
         Public Function IsTypeNamedVarInVariableOrFieldDeclaration(token As SyntaxToken, parent As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeNamedVarInVariableOrFieldDeclaration
@@ -1541,9 +1562,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is BinaryExpressionSyntax
         End Function
 
-        Public Sub GetPartsOfBinaryExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfBinaryExpression
+        Public Sub GetPartsOfBinaryExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfBinaryExpression
             Dim binaryExpression = DirectCast(node, BinaryExpressionSyntax)
             left = binaryExpression.Left
+            operatorToken = binaryExpression.OperatorToken
             right = binaryExpression.Right
         End Sub
 
@@ -1562,12 +1584,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.IsKind(SyntaxKind.AndAlsoExpression)
         End Function
 
+        Public Function IsLogicalOrExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalOrExpression
+            Return node.IsKind(SyntaxKind.OrElseExpression)
+        End Function
+
         Public Function IsLogicalNotExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLogicalNotExpression
             Return node.IsKind(SyntaxKind.NotExpression)
         End Function
 
+        Public Function IsConditionalAnd(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalAnd
+            Return node.Kind() = SyntaxKind.AndAlsoExpression
+        End Function
+
+        Public Function IsConditionalOr(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalOr
+            Return node.Kind() = SyntaxKind.OrElseExpression
+        End Function
+
         Public Function GetOperandOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetOperandOfPrefixUnaryExpression
             Return DirectCast(node, UnaryExpressionSyntax).Operand
+        End Function
+
+        Public Function GetOperatorTokenOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxToken Implements ISyntaxFactsService.GetOperatorTokenOfPrefixUnaryExpression
+            Return DirectCast(node, UnaryExpressionSyntax).OperatorToken
         End Function
 
         Public Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef name As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfMemberAccessExpression
@@ -1715,6 +1753,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLiteralExpression
             Return TypeOf node Is LiteralExpressionSyntax
+        End Function
+
+        Public Function IsFalseLiteralExpression(expression As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsFalseLiteralExpression
+            Return expression.IsKind(SyntaxKind.FalseLiteralExpression)
+        End Function
+
+        Public Function IsTrueLiteralExpression(expression As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTrueLiteralExpression
+            Return expression.IsKind(SyntaxKind.TrueLiteralExpression)
         End Function
 
         Public Function GetVariablesOfLocalDeclarationStatement(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetVariablesOfLocalDeclarationStatement

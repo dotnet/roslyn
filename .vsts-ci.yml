@@ -147,4 +147,3 @@ steps:
     TargetPath: '$(DropRoot)\Roslyn-Signed\$(Build.SourceBranchName)\$(BuildConfiguration)'
   condition: and(succeededOrFailed(), contains(variables['PB_PublishType'], 'vsts'))
 
-

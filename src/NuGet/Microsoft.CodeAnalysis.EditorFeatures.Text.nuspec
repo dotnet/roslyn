@@ -34,5 +34,8 @@
     <file src="Dlls\TextEditorFeatures\Microsoft.CodeAnalysis.EditorFeatures.Text.xml" target="lib\net46" />
     <file src="Dlls\TextEditorFeatures\Microsoft.CodeAnalysis.EditorFeatures.Text.pdb*" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\TextEditorFeatures\**\Microsoft.CodeAnalysis.EditorFeatures.Text.resources.dll" target="lib\net46" />
   </files>
 </package>

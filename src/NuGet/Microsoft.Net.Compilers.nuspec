@@ -54,6 +54,14 @@
     <file src="Dlls\MSbuildTask\net46\Microsoft.CSharp.Core.targets" target="tools" />
     <file src="Dlls\MSbuildTask\net46\Microsoft.VisualBasic.Core.targets" target="tools" />
 
+    <!-- Satellite assemblies -->
+    <file src="Dlls\CodeAnalysis\**\Microsoft.CodeAnalysis.resources.dll" target="tools" />
+    <file src="Dlls\CSharpCodeAnalysis\**\Microsoft.CodeAnalysis.CSharp.resources.dll" target="tools" />
+    <file src="Dlls\Scripting\**\Microsoft.CodeAnalysis.Scripting.resources.dll" target="tools" />
+    <file src="Dlls\CSharpScripting\**\Microsoft.CodeAnalysis.CSharp.Scripting.resources.dll" target="tools" />
+    <file src="Dlls\BasicCodeAnalysis\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" target="tools" />
+    <file src="Dlls\MSBuildTask\net46\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" target="tools" />
+
     <!-- The assemblies are not signed by us and any deployed copy can be used.
          The Exes\Toolset directory specifically has all of the assemblies we need.
 
