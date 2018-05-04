@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Private ReadOnly _tempPath As String
 
         Public Sub New()
-            _tempPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName())
+            _tempPath = Path.Combine(TempRoot.Root, Path.GetRandomFileName())
             Directory.CreateDirectory(_tempPath)
         End Sub
 
