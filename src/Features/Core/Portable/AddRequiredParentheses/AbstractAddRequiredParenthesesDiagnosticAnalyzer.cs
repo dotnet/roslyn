@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         where TBinaryLikeExpressionSyntax : TExpressionSyntax
         where TLanguageKindEnum : struct
     {
+        private static ImmutableDictionary<string, string> IncludeInFixAll =
+            ImmutableDictionary<string, string>.Empty.Add(AddRequiredParenthesesConstants.IncludeInFixAll, "");
+
         protected abstract int GetPrecedence(TBinaryLikeExpressionSyntax binaryLike);
         protected abstract PrecedenceKind GetPrecedenceKind(TBinaryLikeExpressionSyntax binaryLike);
         protected abstract TExpressionSyntax TryGetParentExpression(TBinaryLikeExpressionSyntax binaryLike);
@@ -76,25 +79,36 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             // To make this user experience more pleasant, we will place the diagnostic on
             // both *'s.
             AddDiagnostics(
-                context, binaryLike, precedence,
-                preference.Notification.Value, additionalLocations);
+                context, binaryLike, precedence, preference.Notification.Value,
+                additionalLocations, includeInFixAll: true);
         }
 
         private void AddDiagnostics(
-            SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax binaryLikeOpt,
-            int precedence, DiagnosticSeverity severity, ImmutableArray<Location> additionalLocations)
+            SyntaxNodeAnalysisContext context, TBinaryLikeExpressionSyntax binaryLikeOpt, int precedence,
+            DiagnosticSeverity severity, ImmutableArray<Location> additionalLocations, bool includeInFixAll)
         {
-            if (binaryLikeOpt != null && 
+            if (binaryLikeOpt != null &&
                 IsBinaryLike(binaryLikeOpt) &&
                 GetPrecedence(binaryLikeOpt) == precedence)
             {
                 var (left, operatorToken, right) = GetPartsOfBinaryLike(binaryLikeOpt);
 
-                context.ReportDiagnostic(
-                    Diagnostic.Create(GetDescriptorWithSeverity(severity), operatorToken.GetLocation(), additionalLocations));
+                var properties = includeInFixAll
+                    ? IncludeInFixAll
+                    : ImmutableDictionary<string, string>.Empty;
 
-                AddDiagnostics(context, left as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations);
-                AddDiagnostics(context, right as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations);
+                context.ReportDiagnostic(Diagnostic.Create(
+                    GetDescriptorWithSeverity(severity),
+                    operatorToken.GetLocation(),
+                    additionalLocations,
+                    properties));
+
+                // We're adding diagnostics for all subcomponents so that the user can get the
+                // lightbulb on any of the operator tokens.  However, we don't actually want to
+                // 'fix' all of these if the user does a fix-all.  if we did, we'd end up adding far
+                // too many parens to the same expr.
+                AddDiagnostics(context, left as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations, includeInFixAll: false);
+                AddDiagnostics(context, right as TBinaryLikeExpressionSyntax, precedence, severity, additionalLocations, includeInFixAll: false);
             }
         }
     }

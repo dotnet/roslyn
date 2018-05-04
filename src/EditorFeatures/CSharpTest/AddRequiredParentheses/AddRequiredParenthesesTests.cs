@@ -620,5 +620,131 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
     }
 }", RequireAllParenthesesForClarity);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestFixAll1()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        if (0 {|FixAllInDocument:>=|} 3 * 2 / 4)
+        {
+        }
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestFixAll2()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        if (0 >= 3 {|FixAllInDocument:*|} 2 / 4)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (0 >= (3 * 2 / 4))
+        {
+        }
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestFixAll3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        if (0 >= 3 * 2 {|FixAllInDocument:/|} 4)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (0 >= (3 * 2 / 4))
+        {
+        }
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestFixAll4()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        if (0 {|FixAllInDocument:>=|} 3 * 2 * 4)
+        {
+        }
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestFixAll5()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        if (0 >= 3 {|FixAllInDocument:*|} 2 * 4)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (0 >= (3 * 2 * 4))
+        {
+        }
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestFixAll6()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        if (0 >= 3 * 2 {|FixAllInDocument:*|} 4)
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (0 >= (3 * 2 * 4))
+        {
+        }
+    }
+}", RequireAllParenthesesForClarity);
+        }
     }
 }
