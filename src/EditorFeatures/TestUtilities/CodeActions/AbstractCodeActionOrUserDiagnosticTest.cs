@@ -450,6 +450,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (expectedChangedDocumentId == null)
             {
                 var projectDifferences = SolutionUtilities.GetSingleChangedProjectChanges(oldSolution, newSolution);
+
                 var documentId = projectDifferences.GetChangedDocuments().FirstOrDefault() ?? projectDifferences.GetAddedDocuments().FirstOrDefault();
                 Assert.NotNull(documentId);
                 document = newSolution.GetDocument(documentId);

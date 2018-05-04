@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         private Mutex _testSessionHookupMutex;
 
         public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey, object> options)
-            : base(workspaceElement, GetExtraParts(), false)
+            : base(workspaceElement, excludedTypes: null, GetExtraParts(), false)
         {
             _commandHandler = new EventHookupCommandHandler(Workspace.GetService<IInlineRenameService>(),
                 Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),

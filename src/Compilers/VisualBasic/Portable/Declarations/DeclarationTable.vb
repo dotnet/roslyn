@@ -285,17 +285,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             filter As SymbolFilter,
             cancellationToken As CancellationToken) As Boolean
 
-            ' note: because we want to do case-insensitive lookup, and because our decl tables
-            ' do not store members in a way that can lookup in a case-insensitive manner, we have
-            ' to defer to just calling the normal predicate version.
-            Return ContainsName(
-                mergedRoot, Function(n) IdentifierComparison.Equals(n, name), filter, cancellationToken)
+            Return ContainsNameHelper(
+                mergedRoot,
+                Function(n) IdentifierComparison.Equals(n, name),
+                filter,
+                Function(t) t.MemberNames.Contains(name),
+                cancellationToken)
         End Function
 
         Public Shared Function ContainsName(
             mergedRoot As MergedNamespaceDeclaration,
             predicate As Func(Of String, Boolean),
             filter As SymbolFilter,
+            cancellationToken As CancellationToken) As Boolean
+
+            Return ContainsNameHelper(
+                mergedRoot,
+                predicate,
+                filter,
+                Function(t)
+                    For Each name In t.MemberNames
+                        If predicate(name) Then
+                            Return True
+                        End If
+                    Next
+
+                    Return False
+                End Function,
+                cancellationToken)
+        End Function
+
+        Public Shared Function ContainsNameHelper(
+            mergedRoot As MergedNamespaceDeclaration,
+            predicate As Func(Of String, Boolean),
+            filter As SymbolFilter,
+            typePredicate As Func(Of SingleTypeDeclaration, Boolean),
             cancellationToken As CancellationToken) As Boolean
 
             Dim includeNamespace = (filter And SymbolFilter.Namespace) = SymbolFilter.Namespace
@@ -325,11 +349,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If includeMember Then
                         Dim mergedType = DirectCast(current, MergedTypeDeclaration)
                         For Each childType In mergedType.Declarations
-                            For Each name In childType.MemberNames
-                                If predicate(name) Then
-                                    Return True
-                                End If
-                            Next
+                            If typePredicate(childType) Then
+                                Return True
+                            End If
                         Next
                     End If
                 End If

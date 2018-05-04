@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         internal string BinOutputPath { get; private set; }
 
-        public IRuleSetFile RuleSetFile { get; private set; }
+        public IReferenceCountedDisposable<IRuleSetFile> RuleSetFile { get; private set; }
 
         protected VisualStudioProjectTracker ProjectTracker { get; }
 
