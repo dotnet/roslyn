@@ -63,18 +63,33 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             // If there's no trivia between the original node and the tokens around it, then add
             // elastic markers so the formatting engine will spaces if necessary to keep things
             // parseable.
-            if (resultNode.GetLeadingTrivia().Count == 0 && node.GetFirstToken().GetPreviousToken().TrailingTrivia.Count == 0)
+            if (resultNode.GetLeadingTrivia().Count == 0)
             {
-                resultNode = resultNode.WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker);
+                var previousToken = node.GetFirstToken().GetPreviousToken();
+                if (previousToken.TrailingTrivia.Count == 0 &&
+                    syntaxFacts.IsWordOrNumber(previousToken) &&
+                    syntaxFacts.IsWordOrNumber(resultNode.GetFirstToken()))
+                {
+                    resultNode = resultNode.WithPrependedLeadingTrivia(syntaxFacts.ElasticMarker);
+                }
             }
 
-            if (resultNode.GetTrailingTrivia().Count == 0 && node.GetLastToken().GetNextToken().LeadingTrivia.Count == 0)
+            if (resultNode.GetTrailingTrivia().Count == 0)
             {
-                resultNode = resultNode.WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker);
+                var nextToken = node.GetLastToken().GetNextToken();
+                if (nextToken.LeadingTrivia.Count == 0 &&
+                    syntaxFacts.IsWordOrNumber(nextToken) &&
+                    syntaxFacts.IsWordOrNumber(resultNode.GetLastToken()))
+                {
+                    resultNode = resultNode.WithAppendedTrailingTrivia(syntaxFacts.ElasticMarker);
+                }
             }
 
             return resultNode;
         }
+
+        private static bool IsWordOrNumber(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
+            => syntaxFacts.IsWord(token) || syntaxFacts.IsNumericLiteral(token);
 
         public static bool SpansPreprocessorDirective(this ISyntaxFactsService service, SyntaxNode node)
             => service.SpansPreprocessorDirective(SpecializedCollections.SingletonEnumerable(node));
