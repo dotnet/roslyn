@@ -52,6 +52,11 @@
         <target state="translated">{0}' ステートメントを削除します。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="new">&lt;Multiple Types&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">不要なインポートの削除</target>
@@ -1813,17 +1818,17 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>
-        <target state="new">Convert to 'Select Case'</target>
+        <target state="translated">'Select Case' に変換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_For_Each">
         <source>Convert to 'For Each'</source>
-        <target state="new">Convert to 'For Each'</target>
+        <target state="translated">'For Each' に変換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_For">
         <source>Convert  to 'For'</source>
-        <target state="new">Convert  to 'For'</target>
+        <target state="translated">'For' に変換する</target>
         <note />
       </trans-unit>
     </body>

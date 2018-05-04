@@ -125,30 +125,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsInInactiveRegion(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInInactiveRegion
-            Dim vbTree = TryCast(syntaxTree, SyntaxTree)
-            If vbTree Is Nothing Then
+            If syntaxTree Is Nothing Then
                 Return False
             End If
 
-            Return vbTree.IsInInactiveRegion(position, cancellationToken)
+            Return syntaxTree.IsInInactiveRegion(position, cancellationToken)
         End Function
 
         Public Function IsInNonUserCode(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInNonUserCode
-            Dim vbTree = TryCast(syntaxTree, SyntaxTree)
-            If vbTree Is Nothing Then
+            If syntaxTree Is Nothing Then
                 Return False
             End If
 
-            Return vbTree.IsInNonUserCode(position, cancellationToken)
+            Return syntaxTree.IsInNonUserCode(position, cancellationToken)
         End Function
 
         Public Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsEntirelyWithinStringOrCharOrNumericLiteral
-            Dim vbTree = TryCast(syntaxTree, SyntaxTree)
-            If vbTree Is Nothing Then
+            If syntaxTree Is Nothing Then
                 Return False
             End If
 
-            Return vbTree.IsEntirelyWithinStringOrCharOrNumericLiteral(position, cancellationToken)
+            Return syntaxTree.IsEntirelyWithinStringOrCharOrNumericLiteral(position, cancellationToken)
         End Function
 
         Public Function IsDirective(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsDirective
@@ -1787,6 +1784,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return Nothing
+        End Function
+
+        Public Function SpansPreprocessorDirective(nodes As IEnumerable(Of SyntaxNode)) As Boolean Implements ISyntaxFactsService.SpansPreprocessorDirective
+            Return nodes.SpansPreprocessorDirective()
         End Function
     End Class
 End Namespace

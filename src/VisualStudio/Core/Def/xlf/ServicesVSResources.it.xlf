@@ -1424,7 +1424,7 @@ L'opzione 'Caricamento leggero soluzioni' è abilitata per la soluzione corrente
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
-        <target state="needs-review-translation">Si è verificato un errore durante la lettura di un file</target>
+        <target state="translated">Si è verificato un errore durante la lettura del file '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1488,6 +1488,16 @@ L'utente accetta le condizioni sopra riportate:</target>
         <target state="translated">Le impostazioni configurate qui si applicano solo al computer locale. Per configurare queste impostazioni in modo che siano associate alla soluzione, usare file con estensione editorconfig.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="translated">Sincronizza visualizzazione classi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="translated">Non è possibile applicare le modifiche. Errore imprevisto: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Field_preferences_colon">
         <source>Field preferences:</source>
         <target state="translated">Preferenze campi:</target>
@@ -1505,17 +1515,7 @@ L'utente accetta le condizioni sopra riportate:</target>
       </trans-unit>
       <trans-unit id="Manage_naming_styles">
         <source>Manage naming styles</source>
-        <target state="new">Manage naming styles</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CantApplyChangesUnexpectedError">
-        <source>Can't apply changes -- unexpected error: '{0}'</source>
-        <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sync_Class_View">
-        <source>Sync Class View</source>
-        <target state="new">Sync Class View</target>
+        <target state="translated">Gestisci stili di denominazione</target>
         <note />
       </trans-unit>
       <trans-unit id="Live_code_analysis">

@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
@@ -29,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         protected Dictionary<CompletionItem, VSCompletion> CompletionItemMap;
         protected CompletionItem SuggestionModeItem;
+
+        private readonly Dictionary<string, string> _displayTextToBoldingTextMap = new Dictionary<string, string>();
 
         protected string FilterText;
 
@@ -90,6 +96,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             string filterText)
         {
             _foregroundThread.AssertIsForeground();
+
+            foreach (var item in completionItems)
+            {
+                if (!_displayTextToBoldingTextMap.ContainsKey(item.DisplayText))
+                {
+                    _displayTextToBoldingTextMap.Add(item.DisplayText, CompletionHelper.GetDisplayTextForMatching(item));
+                }
+            }
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
             CompletionItemMap = CompletionItemMap ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
@@ -216,6 +230,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return null;
             }
 
+            var textForBolding = _displayTextToBoldingTextMap.TryGetValue(displayText, out var matchingText) ? matchingText : displayText;
+            Debug.Assert(displayText.Contains(textForBolding));
+
             var pattern = this.FilterText;
             if (_highlightMatchingPortions && !string.IsNullOrWhiteSpace(pattern))
             {
@@ -223,9 +240,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 if (completionHelper != null)
                 {
                     var highlightedSpans = completionHelper.GetHighlightedSpans(
-                        displayText, pattern, CultureInfo.CurrentCulture);
+                        textForBolding, pattern, CultureInfo.CurrentCulture);
 
-                    return highlightedSpans.SelectAsArray(s => s.ToSpan());
+                    return highlightedSpans.SelectAsArray(s => new Span(s.Start + Math.Max(0, displayText.IndexOf(textForBolding)), s.Length));
                 }
             }
 

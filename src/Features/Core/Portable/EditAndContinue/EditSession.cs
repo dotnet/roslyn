@@ -281,33 +281,47 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return result;
         }
 
-        private async Task<HashSet<ISymbol>> GetAllAddedSymbols(CancellationToken cancellationToken)
+        private async Task<HashSet<ISymbol>> GetAllAddedSymbolsAsync(Project project, CancellationToken cancellationToken)
         {
-            Analysis[] analyses;
-            lock (_analysesGuard)
+            try
             {
-                analyses = _analyses.Values.ToArray();
-            }
-
-            HashSet<ISymbol> addedSymbols = null;
-            foreach (var analysis in analyses)
-            {
-                var results = await analysis.Results.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                foreach (var edit in results.SemanticEdits)
+                Analysis[] analyses;
+                lock (_analysesGuard)
                 {
-                    if (edit.Kind == SemanticEditKind.Insert)
-                    {
-                        if (addedSymbols == null)
-                        {
-                            addedSymbols = new HashSet<ISymbol>();
-                        }
+                    analyses = _analyses.Values.ToArray();
+                }
 
-                        addedSymbols.Add(edit.NewSymbol);
+                HashSet<ISymbol> addedSymbols = null;
+                foreach (var analysis in analyses)
+                {
+                    // Only consider analyses for documents that belong the currently analyzed project.
+                    if (analysis.Document.Project == project)
+                    {
+                        var results = await analysis.Results.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                        if (!results.HasChangesAndErrors)
+                        {
+                            foreach (var edit in results.SemanticEdits)
+                            {
+                                if (edit.Kind == SemanticEditKind.Insert)
+                                {
+                                    if (addedSymbols == null)
+                                    {
+                                        addedSymbols = new HashSet<ISymbol>();
+                                    }
+
+                                    addedSymbols.Add(edit.NewSymbol);
+                                }
+                            }
+                        }
                     }
                 }
-            }
 
-            return addedSymbols;
+                return addedSymbols;
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         public AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysis(Document document)
@@ -473,7 +487,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return new ProjectChanges(allEdits.ToImmutableAndFree(), allLineEdits.ToImmutableAndFree(), allActiveStatements.ToImmutableAndFree());
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -487,7 +501,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 var projectChanges = await GetProjectChangesAsync(project, cancellationToken).ConfigureAwait(false);
                 var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var allAddedSymbols = await GetAllAddedSymbols(cancellationToken).ConfigureAwait(false);
+                var allAddedSymbols = await GetAllAddedSymbolsAsync(project, cancellationToken).ConfigureAwait(false);
                 var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 var baseActiveExceptionRegions = await BaseActiveExceptionRegions.GetValueAsync(cancellationToken).ConfigureAwait(false);
 

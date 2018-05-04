@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
             }
         }
         
-         /// <summary>
+        /// <summary>
         ///   Looks up a localized string similar to is pattern.
         /// </summary>
         internal static string is_pattern {
