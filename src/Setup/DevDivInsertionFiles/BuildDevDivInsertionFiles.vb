@@ -1031,8 +1031,14 @@ Public Class BuildDevDivInsertionFiles
 
         ' First copy over all the files from the compilers toolset. 
         For Each fileRelativePath In GetCompilerToolsetNuspecFiles()
-            Dim filePath = Path.Combine(_binDirectory, fileRelativePath)
             Dim fileName = Path.GetFileName(fileRelativePath)
+
+            ' Skip satellite assemblies; we don't need these for the compiler insertion
+            If fileName.EndsWith(".resources.dll", StringComparison.OrdinalIgnoreCase) Then
+                Continue For
+            End If
+
+            Dim filePath = Path.Combine(_binDirectory, fileRelativePath)
             Dim destFilepath = Path.Combine(outputDir, fileName)
             File.Copy(filePath, destFilepath)
             nuspecFiles.Add(fileName)
@@ -1149,6 +1155,10 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
     Private Function GetCompilerInsertFiles() As IEnumerable(Of String)
         Return GetCompilerToolsetNuspecFiles().
             Select(AddressOf Path.GetFileName).
+            Where(Function(f)
+                      ' Skip satellite assemblies; we don't need these for the compiler insertion
+                      Return Not f.EndsWith(".resources.dll", StringComparison.OrdinalIgnoreCase)
+                  End Function).
             Where(Function(f)
                       Select Case f
                           ' These files are inserted by MSBuild setup 
