@@ -1748,5 +1748,60 @@ offeredWhenRequireForClarityIsEnabled: true);
 }",
 offeredWhenRequireForClarityIsEnabled: true);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestNecessaryCast()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        $$((short)3).ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundChecked()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = 3 * $$(checked(5));
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = 3 * checked(5);
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundUnchecked()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = 3 * $$(unchecked(5));
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = 3 * unchecked(5);
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
+        }
     }
 }
