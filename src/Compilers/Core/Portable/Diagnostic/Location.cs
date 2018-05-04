@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets the location in terms of path, line and column after applying source line mapping directives
-        /// (<code>#line</code> in C# or <code>#ExternalSource</code> in VB). 
+        /// (`#line` in C# or `#ExternalSource` in VB).
         /// </summary>
         /// <returns>
         /// <see cref="FileLinePositionSpan"/> that contains file, line and column information,
