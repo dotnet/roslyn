@@ -244,16 +244,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static readonly CodeStyleOption<ParenthesesPreference> s_defaultOtherOperatorsParenthesesPreference =
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.None);
 
-        private const string s_otherOperatorsName = "other_operators";
         private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
-            string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, string styleName)
+            string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, 
+            string styleName, bool isOther)
         {
-            var isOther = s_otherOperatorsName == styleName;
             return new PerLanguageOption<CodeStyleOption<ParenthesesPreference>>(
                 nameof(CodeStyleOptions), fieldName, defaultValue,
                 storageLocations: new OptionStorageLocation[]{
                     new EditorConfigStorageLocation<CodeStyleOption<ParenthesesPreference>>(
-                        $"dotnet_style_parentheses_in_{styleName}",
+                        styleName,
                         s => ParseParenthesesPreference(s, defaultValue, isOther)),
                     new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{fieldName}Preference")});
         }
@@ -262,19 +261,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CreateParenthesesOption(
                 nameof(ArithmeticBinaryParentheses),
                 s_defaultBinaryOperatorsParenthesesPreference,
-                "arithmetic_binary_operators");
+                "dotnet_style_parentheses_in_arithmetic_binary_operators", isOther: false);
 
         internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> OtherBinaryParentheses =
             CreateParenthesesOption(
                 nameof(OtherBinaryParentheses),
                 s_defaultBinaryOperatorsParenthesesPreference,
-                "other_binary_operators");
+                "dotnet_style_parentheses_in_other_binary_operators", isOther: false);
 
         internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> OtherParentheses =
             CreateParenthesesOption(
                 nameof(OtherParentheses),
                 s_defaultOtherOperatorsParenthesesPreference,
-                s_otherOperatorsName);
+                "dotnet_style_parentheses_in_other_operators", isOther: true);
 
         private static Optional<CodeStyleOption<ParenthesesPreference>> ParseParenthesesPreference(
             string optionString, Optional<CodeStyleOption<ParenthesesPreference>> defaultValue, bool isOther)
