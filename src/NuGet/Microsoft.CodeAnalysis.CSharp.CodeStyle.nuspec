@@ -33,6 +33,12 @@
     <file src="Dlls\CodeStyleFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll" target="analyzers\dotnet\cs" />
     <file src="$thirdPartyNoticesPath$" target="" />
 
+    <!-- Satellite assemblies -->
+    <file src="Dlls\CSharpCodeStyle\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.resources.dll" target="analyzers\dotnet\cs" />
+    <file src="Dlls\CSharpCodeStyleFixes\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.resources.dll" target="analyzers\dotnet\cs" />
+    <file src="Dlls\CodeStyle\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll" target="analyzers\dotnet\cs" />
+    <file src="Dlls\CodeStyleFixes\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll" target="analyzers\dotnet\cs" />
+
     <!-- Scripts -->
     <file src="..\..\src\Setup\PowerShell\install.ps1" target="tools\" />
     <file src="..\..\src\Setup\PowerShell\uninstall.ps1" target="tools\" />

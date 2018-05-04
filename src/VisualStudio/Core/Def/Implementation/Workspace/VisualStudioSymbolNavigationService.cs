@@ -308,13 +308,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             AssertIsForeground();
 
-            if (document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
+            if (document.Project.Solution.Workspace is VisualStudioWorkspace visualStudioWorkspace)
             {
-                var hostProject = visualStudioWorkspace.GetHostProject(document.Project.Id);
-                hierarchy = hostProject.Hierarchy;
-                itemID = hostProject.GetDocumentOrAdditionalDocument(document.Id).GetItemId();
-
-                return true;
+                hierarchy = visualStudioWorkspace.GetHierarchy(document.Project.Id);
+                if (ErrorHandler.Succeeded(hierarchy.ParseCanonicalName(document.FilePath, out itemID)))
+                {
+                    return true;
+                }
             }
 
             hierarchy = null;
