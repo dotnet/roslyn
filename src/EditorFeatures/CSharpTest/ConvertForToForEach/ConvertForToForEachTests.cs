@@ -1050,11 +1050,11 @@ class C
 
 class MyList
 {
-  public object this[int i] { get; }
+    public object this[int i] { get => default; }
 
-  public Enumerator GetEnumerator() { }
+    public Enumerator GetEnumerator() { return default; }
 
-  public struct Enumerator { public object Current { get; } }
+    public struct Enumerator { public object Current { get; } public bool MoveNext() => true; }
 }
 
 class C
@@ -1072,11 +1072,11 @@ class C
 
 class MyList
 {
-  public object this[int i] { get; }
+    public object this[int i] { get => default; }
 
-  public Enumerator GetEnumerator() { }
+    public Enumerator GetEnumerator() { return default; }
 
-  public struct Enumerator { public object Current { get; } }
+    public struct Enumerator { public object Current { get; } public bool MoveNext() => true; }
 }
 
 class C

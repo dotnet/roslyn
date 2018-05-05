@@ -81,7 +81,6 @@ End Class]]></document>
             Dim state = TestState.CreateVisualBasicTestState(
                 xElement,
                 New CompletionProvider() {New MockCompletionProvider()},
-                Nothing,
                 New List(Of Type) From {GetType(TestVisualBasicSnippetInfoService)})
 
             Dim testSnippetInfoService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ISnippetInfoService)(), TestVisualBasicSnippetInfoService)

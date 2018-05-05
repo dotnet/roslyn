@@ -148,16 +148,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             Contract.ThrowIfFalse(DocumentProvider == null);
             Contract.ThrowIfFalse(MetadataReferenceProvider == null);
-            Contract.ThrowIfFalse(RuleSetFileProvider == null);
+            Contract.ThrowIfFalse(RuleSetFileManager == null);
 
             DocumentProvider = documentProvider;
             MetadataReferenceProvider = metadataReferenceProvider;
-            RuleSetFileProvider = ruleSetFileProvider;
+            RuleSetFileManager = ruleSetFileProvider;
         }
 
         public DocumentProvider DocumentProvider { get; private set; }
         public VisualStudioMetadataReferenceManager MetadataReferenceProvider { get; private set; }
-        public VisualStudioRuleSetManager RuleSetFileProvider { get; private set; }
+        public VisualStudioRuleSetManager RuleSetFileManager { get; private set; }
 
         internal AbstractProject GetProject(ProjectId id)
         {
@@ -316,10 +316,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         if (document.IsOpen)
                         {
                             NotifyWorkspace(workspace =>
+                            {
                                 workspace.OnDocumentOpened(
                                     document.Id,
                                     document.GetOpenTextBuffer().AsTextContainer(),
-                                    isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, _runningDocumentTable)));
+                                    isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, _runningDocumentTable));
+                                (workspace as VisualStudioWorkspaceImpl)?.ConnectToSharedHierarchyEvents(document);
+                            });
                         }
                     }
                 }
@@ -584,8 +587,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _projectPathToIdMap.Clear();
             }
-
-            RuleSetFileProvider.ClearCachedRuleSetFiles();
 
             _solutionAdded = false;
             _pushedProjects.Clear();
