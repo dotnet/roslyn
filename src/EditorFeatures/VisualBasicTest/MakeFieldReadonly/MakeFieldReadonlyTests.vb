@@ -599,6 +599,30 @@ End Class")
 End Class")
         End Function
 
+        <WorkItem(26262, "https://github.com/dotnet/roslyn/issues/26262")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        Public Async Function CopyPassedAsByRefParameter() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private [|_goo|] As Integer = 0
+    Sub Goo()
+        ' Note: the parens cause a copy, so this is not an actual write into _goo
+        Bar((_goo))
+    End Sub
+    Sub Bar(ByRef value As Integer)
+    End Sub
+End Class",
+"Class C
+    Private ReadOnly _goo As Integer = 0
+    Sub Goo()
+        ' Note: the parens cause a copy, so this is not an actual write into _goo
+        Bar((_goo))
+    End Sub
+    Sub Bar(ByRef value As Integer)
+    End Sub
+End Class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
         Public Async Function PassedAsByRefParameterInCtor() As Task
             Await TestInRegularAndScriptAsync(
