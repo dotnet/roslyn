@@ -94,7 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 type.ToDisplayString(
                     SymbolDisplayFormat.CSharpErrorMessageFormat
                         .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+                        .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)
                         // displaying tuple syntax causes to load the members of ValueTuple, which can cause a cycle, so we use long-hand format instead
-                        .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayCompilerInternalOptions.UseValueTuple)));
+                        .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseValueTuple)));
     }
 }

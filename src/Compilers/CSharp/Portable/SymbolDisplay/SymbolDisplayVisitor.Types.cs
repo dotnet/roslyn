@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (isNullable)
                 {
                     case true:
-                        if (!typeSymbol.IsNullableType() && format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier))
+                        if (!typeSymbol.IsNullableType() && format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))
                         {
                             AddPunctuation(SyntaxKind.QuestionToken);
                         }
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (isNullable)
                 {
                     case true:
-                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier))
+                        if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))
                         {
                             AddPunctuation(SyntaxKind.QuestionToken);
                         }

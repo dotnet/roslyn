@@ -5841,11 +5841,11 @@ class B
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeModifiers,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-            var formatWithNonNullableModifier = formatWithoutNonNullableModifier.WithCompilerInternalOptions(
-                SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier | SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier);
+            var formatWithNonNullableModifier = formatWithoutNonNullableModifier
+                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             var method = comp.GetMember<MethodSymbol>("B.F1");
             Verify(
@@ -5916,8 +5916,7 @@ class B
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
             var formatWithNullableModifier = formatWithoutNullableModifier
-                .WithCompilerInternalOptions(
-                SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier);
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
             var method = comp.GetMember<MethodSymbol>("B.F1");
             Verify(
