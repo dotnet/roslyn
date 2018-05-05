@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         // 2. Extension method reducer may insert parentheses.  So run it before the parentheses remover.
         private static readonly ImmutableArray<AbstractReducer> s_reducers =
             ImmutableArray.Create<AbstractReducer>(
-                new CSharpCastReducer(),
                 new CSharpNameReducer(),
+                new CSharpCastReducer(),
                 new CSharpExtensionMethodReducer(),
                 new CSharpParenthesesReducer(),
                 new CSharpEscapingReducer(),
