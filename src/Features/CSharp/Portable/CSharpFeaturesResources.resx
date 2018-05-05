@@ -449,6 +449,9 @@
   <data name="Use_explicit_type_instead_of_var" xml:space="preserve">
     <value>Use explicit type instead of 'var'</value>
   </data>
+  <data name="Declare as nullable" xml:space="preserve">
+    <value>Declare as nullable</value>
+  </data>
   <data name="Use_explicit_type" xml:space="preserve">
     <value>Use explicit type</value>
   </data>
