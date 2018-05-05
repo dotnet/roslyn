@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal> _placeholderLocals;
 
+        private bool _disableDiagnostics = false;
+
         protected override void Free()
         {
             _variableTypes.Free();
@@ -464,7 +466,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportStaticNullCheckingDiagnostics(ErrorCode errorCode, SyntaxNode syntaxNode, params object[] arguments)
         {
-            Diagnostics.Add(errorCode, syntaxNode.GetLocation(), arguments);
+            if (!_disableDiagnostics)
+            {
+                Diagnostics.Add(errorCode, syntaxNode.GetLocation(), arguments);
+            }
         }
 
         private void InheritNullableStateOfTrackableStruct(TypeSymbol targetType, int targetSlot, int valueSlot, bool isByRefTarget, int slotWatermark)
@@ -1574,16 +1579,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE(NullableReferenceTypes): Can we handle some error cases?
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
+            ImmutableArray<BoundExpression> arguments = node.Arguments;
             if (!node.HasErrors)
             {
                 ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
-                ImmutableArray<BoundExpression> arguments = RemoveArgumentConversions(node.Arguments, refKindsOpt);
-                ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, node.Expanded);
+                ImmutableArray<BoundExpression> strippedArguments = RemoveArgumentConversions(arguments, refKindsOpt);
+                ImmutableArray<Result> results = VisitArgumentsEvaluate(strippedArguments, refKindsOpt, node.Expanded);
                 if (method.IsGenericMethod && HasImplicitTypeArguments(node))
                 {
                     method = InferMethod(node, method, results.SelectAsArray(r => r.Type));
                 }
-                VisitArgumentsWarn(arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt, node.Expanded, results);
+                VisitArgumentsWarn(strippedArguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt, node.Expanded, results);
             }
 
             UpdateStateForCall(node);
@@ -1594,6 +1600,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
 
+            if (MethodEnsuresTrueWhenExits(method) && arguments.Length > 0)
+            {
+                VisitTrueWhenExits(condition: arguments[0]);
+            }
+
             Debug.Assert(!IsConditionalState);
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
@@ -1601,6 +1612,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        private bool MethodEnsuresTrueWhenExits(MethodSymbol method)
+        {
+            return method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_Debug_Assert1)) ||
+                method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_Debug_Assert2)) ||
+                method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_Debug_Assert3)) ||
+                method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_Debug_Assert4));
+        }
+
+        private void VisitTrueWhenExits(BoundExpression condition)
+        {
+            // We only need to update the null-state, so we'll do the flow analysis without diagnostics
+
+            bool savedDisableDiagnostics = _disableDiagnostics;
+            _disableDiagnostics = true;
+
+            // if (!condition) throw;
+            VisitIfStatement(new BoundIfStatement(condition.Syntax, SyntheticBoundNodeFactory.NotCore(condition),
+                new BoundThrowStatement(condition.Syntax, expressionOpt: null), alternativeOpt: null));
+
+            _disableDiagnostics = savedDisableDiagnostics;
         }
 
         // PROTOTYPE(NullableReferenceTypes): Record in the node whether type

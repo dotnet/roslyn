@@ -5438,6 +5438,184 @@ class CL1<T>
         }
 
         [Fact]
+        public void Wellknown_Debug_Assert1_NotNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Main(C? c)
+    {
+        System.Diagnostics.Debug.Assert(c != null);
+        c.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Wellknown_Debug_Assert1_NotNullAndNotEmpty()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Main(string? c)
+    {
+        System.Diagnostics.Debug.Assert(c != null && c != """");
+        c.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Wellknown_Debug_Assert1_NotNullOrUnknown()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Main(string? c, bool b)
+    {
+        System.Diagnostics.Debug.Assert(c != null || b);
+        c.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         c.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void Wellknown_Debug_Assert2_NotNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Main(C? c)
+    {
+        System.Diagnostics.Debug.Assert(c != null, ""hello"");
+        c.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Wellknown_Debug_Assert3_NotNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Main(C? c)
+    {
+        System.Diagnostics.Debug.Assert(c != null, ""hello"", ""world"");
+        c.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Wellknown_Debug_Assert4_NotNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Main(C? c)
+    {
+        System.Diagnostics.Debug.Assert(c != null, ""hello"", ""world"", new object[] { });
+        c.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Wellknown_Debug_Assert_IsNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Main(C c)
+    {
+        System.Diagnostics.Debug.Assert(c == null, ""hello"");
+        c.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (6,41): hidden CS8606: Result of the comparison is possibly always false.
+                //         System.Diagnostics.Debug.Assert(c == null, "hello");
+                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "c == null").WithLocation(6, 41)
+                );
+        }
+
+        [Fact]
+        public void Wellknown_Debug_Assert_NoDuplicateDiagnostics()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Main(C? c)
+    {
+        System.Diagnostics.Debug.Assert(Method(null), ""hello"");
+        c.ToString();
+    }
+    bool Method(string x) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (6,48): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         System.Diagnostics.Debug.Assert(Method(null), "hello");
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 48),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         c.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void Wellknown_Debug_Assert_InTry()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Main(C? c)
+    {
+        try
+        {
+            System.Diagnostics.Debug.Assert(c != null, ""hello"");
+        }
+        catch { }
+
+        c.ToString();
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         c.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
         public void ConditionalBranching_01()
         {
             CSharpCompilation c = CreateCompilation(@"
