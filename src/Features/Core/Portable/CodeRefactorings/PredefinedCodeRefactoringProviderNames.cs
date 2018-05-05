@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string SplitIntoNestedIfStatements = "Split Into Nested If Statements Code Action Provider";
         public const string SyncNamespace = "Sync Namespace and Folder Name Code Action Provider";
         public const string UseExplicitType = "Use Explicit Type Code Action Provider";
+        public const string PossiblyDeclareAsNullable = "Possibly Declare As Nullable Code Action Provider";
         public const string UseExpressionBody = "Use Expression Body Code Action Provider";
         public const string UseImplicitType = "Use Implicit Type Code Action Provider";
         public const string Wrapping = "Wrapping Code Action Provider";
