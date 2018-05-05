@@ -5327,4 +5327,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CantUseInOrOutInArglist" xml:space="preserve">
     <value>__arglist cannot have an argument passed by 'in' or 'out'</value>
   </data>
+  <data name="SyntaxTreeNotFound" xml:space="preserve">
+    <value>SyntaxTree '{0}' not found</value>
+  </data>
 </root>

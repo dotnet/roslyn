@@ -372,6 +372,11 @@
         <target state="translated">variação de tipo</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTreeNotFound">
+        <source>SyntaxTree '{0}' not found</source>
+        <target state="new">SyntaxTree '{0}' not found</target>
+        <note />
+      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">O(s) caractere(s) "{0}" não pode(m) ser usado(s) neste local.</target>

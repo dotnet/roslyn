@@ -372,6 +372,11 @@
         <target state="translated">型分散</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTreeNotFound">
+        <source>SyntaxTree '{0}' not found</source>
+        <target state="new">SyntaxTree '{0}' not found</target>
+        <note />
+      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">文字 '{0}' はこの位置では使用できません。</target>

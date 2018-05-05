@@ -11565,6 +11565,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; not found.
+        /// </summary>
+        internal static string SyntaxTreeNotFound {
+            get {
+                return ResourceManager.GetString("SyntaxTreeNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; not found to remove.
         /// </summary>
         internal static string SyntaxTreeNotFoundTo {

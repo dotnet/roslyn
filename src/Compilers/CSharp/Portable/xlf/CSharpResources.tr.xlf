@@ -372,6 +372,11 @@
         <target state="translated">tür varyansı</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTreeNotFound">
+        <source>SyntaxTree '{0}' not found</source>
+        <target state="new">SyntaxTree '{0}' not found</target>
+        <note />
+      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">{0}' karakterleri bu konumda kullanılamaz.</target>
