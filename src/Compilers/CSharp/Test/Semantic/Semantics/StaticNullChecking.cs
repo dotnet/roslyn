@@ -5616,6 +5616,106 @@ class C
         }
 
         [Fact]
+        public void Wellknown_String_IsNullOrEmpty()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Main(string? s)
+    {
+        if (string.IsNullOrEmpty(s))
+        {
+            s.ToString(); // warn
+        }
+        else
+        {
+            s.ToString(); // ok
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        public void Wellknown_String_NotIsNullOrEmpty()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Main(string? s)
+    {
+        if (!string.IsNullOrEmpty(s))
+        {
+            s.ToString(); // ok
+        }
+        else
+        {
+            s.ToString(); // warn
+        }
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void Wellknown_String_NotIsNullOrEmpty_NoDuplicateWarnings()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        if (!string.IsNullOrEmpty(M2(null)))
+        {
+        }
+    }
+    string? M2(string s) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (6,38): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         if (!string.IsNullOrEmpty(M2(null)))
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 38)
+                );
+        }
+
+        [Fact]
+        public void Wellknown_String_NotIsNullOrEmpty_NotAString()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        if (!string.IsNullOrEmpty(M2(null)))
+        {
+        }
+    }
+    void M2(string s) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (6,35): error CS1503: Argument 1: cannot convert from 'void' to 'string'
+                //         if (!string.IsNullOrEmpty(M2(null)))
+                Diagnostic(ErrorCode.ERR_BadArgType, "M2(null)").WithArguments("1", "void", "string").WithLocation(6, 35)
+                );
+        }
+
+        [Fact]
         public void ConditionalBranching_01()
         {
             CSharpCompilation c = CreateCompilation(@"

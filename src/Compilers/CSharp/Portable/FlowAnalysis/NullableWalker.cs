@@ -1605,6 +1605,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitTrueWhenExits(condition: arguments[0]);
             }
 
+            if (MethodReturnsTrueWhenNotNull(method) && arguments.Length > 0)
+            {
+                VisitTrueWhenNotNull(arguments[0], method.ReturnType.TypeSymbol);
+                _result = method.ReturnType;
+                return null;
+            }
+
             Debug.Assert(!IsConditionalState);
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
@@ -1612,6 +1619,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        private bool MethodReturnsTrueWhenNotNull(MethodSymbol method)
+        {
+            if (method.ReturnType.SpecialType != SpecialType.System_Boolean)
+            {
+                return false;
+            }
+
+            return method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_String_IsNullOrEmpty));
+        }
+
+        private void VisitTrueWhenNotNull(BoundExpression operand, TypeSymbol boolType)
+        {
+            if (!operand.Type.IsReferenceType)
+            {
+                return;
+            }
+
+            // operand == null || someUnknownBoolean
+            BoundExpression equivalent = LogicalOr(
+                new BoundBinaryOperator(operand.Syntax, BinaryOperatorKind.Equal, operand,
+                    new BoundLiteral(operand.Syntax, ConstantValue.Null, operand.Type),
+                    constantValueOpt: null, methodOpt: null, LookupResultKind.Viable, boolType),
+                new BoundLiteral(operand.Syntax, constantValueOpt: null, boolType));
+
+            // We only need to update the null-state, so we'll do the flow analysis without diagnostics
+            bool savedDisableDiagnostics = _disableDiagnostics;
+            _disableDiagnostics = true;
+
+            Visit(equivalent);
+
+            _disableDiagnostics = savedDisableDiagnostics;
+        }
+
+        internal static BoundBinaryOperator LogicalOr(BoundExpression left, BoundExpression right)
+        {
+            return new BoundBinaryOperator(left.Syntax, BinaryOperatorKind.LogicalBoolOr, left, right, constantValueOpt: null, methodOpt: null, LookupResultKind.Viable, left.Type);
         }
 
         private bool MethodEnsuresTrueWhenExits(MethodSymbol method)

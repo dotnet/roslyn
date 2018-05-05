@@ -3028,6 +3028,15 @@ namespace Microsoft.CodeAnalysis
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                      (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
+
+                 // System_String_IsNullOrEmpty
+                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_String - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                     1,                                                                                                                                         // Method Signature
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3405,6 +3414,7 @@ namespace Microsoft.CodeAnalysis
                  "Assert",                                  // System_Diagnostics_Debug_Assert2
                  "Assert",                                  // System_Diagnostics_Debug_Assert3
                  "Assert",                                  // System_Diagnostics_Debug_Assert4
+                 "IsNullOrEmpty",                           // System_IsNullOrEmpty
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

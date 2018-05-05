@@ -439,6 +439,7 @@ namespace Microsoft.CodeAnalysis
         System_Diagnostics_Debug_Assert2,
         System_Diagnostics_Debug_Assert3,
         System_Diagnostics_Debug_Assert4,
+        System_String_IsNullOrEmpty,
 
         Count
     }
