@@ -4317,7 +4317,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="SubmissionCanHaveAtMostOne" xml:space="preserve">
     <value>Submission can have at most one syntax tree.</value>
   </data>
-  <data name="SyntaxTreeNotFoundTo" xml:space="preserve">
+  <data name="SyntaxTreeNotFoundToRemove" xml:space="preserve">
     <value>SyntaxTree '{0}' not found to remove</value>
   </data>
   <data name="TreeMustHaveARootNodeWith" xml:space="preserve">

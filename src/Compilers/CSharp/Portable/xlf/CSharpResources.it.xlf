@@ -377,6 +377,11 @@
         <target state="new">SyntaxTree '{0}' not found</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTreeNotFoundToRemove">
+        <source>SyntaxTree '{0}' not found to remove</source>
+        <target state="new">SyntaxTree '{0}' not found to remove</target>
+        <note />
+      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">Non è possibile usare il carattere o i caratteri '{0}' in questa posizione.</target>
@@ -6946,11 +6951,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="SubmissionCanHaveAtMostOne">
         <source>Submission can have at most one syntax tree.</source>
         <target state="translated">L'invio può avere al massimo un albero della sintassi.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SyntaxTreeNotFoundTo">
-        <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">Non è stato trovato nessun elemento SyntaxTree '{0}' da rimuovere</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeMustHaveARootNodeWith">

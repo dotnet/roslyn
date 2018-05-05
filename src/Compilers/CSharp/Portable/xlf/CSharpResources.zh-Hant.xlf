@@ -377,6 +377,11 @@
         <target state="new">SyntaxTree '{0}' not found</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTreeNotFoundToRemove">
+        <source>SyntaxTree '{0}' not found to remove</source>
+        <target state="new">SyntaxTree '{0}' not found to remove</target>
+        <note />
+      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">此位置不可使用字元 '{0}'。</target>
@@ -6946,11 +6951,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="SubmissionCanHaveAtMostOne">
         <source>Submission can have at most one syntax tree.</source>
         <target state="translated">提交最多可以有一個語法樹狀結構。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SyntaxTreeNotFoundTo">
-        <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">找不到要移除的語法樹狀結構 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeMustHaveARootNodeWith">

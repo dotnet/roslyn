@@ -377,6 +377,11 @@
         <target state="new">SyntaxTree '{0}' not found</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTreeNotFoundToRemove">
+        <source>SyntaxTree '{0}' not found to remove</source>
+        <target state="new">SyntaxTree '{0}' not found to remove</target>
+        <note />
+      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">O(s) caractere(s) "{0}" não pode(m) ser usado(s) neste local.</target>
@@ -6946,11 +6951,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       <trans-unit id="SubmissionCanHaveAtMostOne">
         <source>Submission can have at most one syntax tree.</source>
         <target state="translated">Envio pode ter no máximo uma árvore de sintaxe.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SyntaxTreeNotFoundTo">
-        <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">SyntaxTree "{0}" não encontrada para remover</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeMustHaveARootNodeWith">

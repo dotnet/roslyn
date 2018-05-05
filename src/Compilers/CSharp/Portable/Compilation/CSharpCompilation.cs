@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, tree), $"{nameof(trees)}[{i}]");
                     }
 
-                    throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, tree), $"{nameof(trees)}[{i}]");
+                    throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundToRemove, tree), $"{nameof(trees)}[{i}]");
                 }
 
                 removeSet.Add(tree);
@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, oldTree), nameof(oldTree));
                 }
 
-                throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, oldTree), nameof(oldTree));
+                throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundToRemove, oldTree), nameof(oldTree));
             }
 
             if (externalSyntaxTrees.Contains(newTree))

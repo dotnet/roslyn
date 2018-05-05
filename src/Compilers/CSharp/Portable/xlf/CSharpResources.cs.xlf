@@ -377,6 +377,11 @@
         <target state="new">SyntaxTree '{0}' not found</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTreeNotFoundToRemove">
+        <source>SyntaxTree '{0}' not found to remove</source>
+        <target state="new">SyntaxTree '{0}' not found to remove</target>
+        <note />
+      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">Znaky {0} se na tomto místě nedají použít.</target>
@@ -6946,11 +6951,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       <trans-unit id="SubmissionCanHaveAtMostOne">
         <source>Submission can have at most one syntax tree.</source>
         <target state="translated">Odeslání musí mít aspoň jeden strom syntaxe.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="SyntaxTreeNotFoundTo">
-        <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">Strom syntaxe {0} k odebrání se nenašel.</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeMustHaveARootNodeWith">
