@@ -19419,6 +19419,35 @@ class C
         public void ForEach_01()
         {
             var source =
+@"class Enumerable
+{
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class Enumerator
+{
+    public object Current => throw null;
+    public bool MoveNext() => false;
+}
+class C
+{
+    static void F(Enumerable e)
+    {
+        foreach (var x in e)
+            x.ToString();
+        foreach (string y in e)
+            y.ToString();
+        foreach (string? z in e)
+            z.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForEach_02()
+        {
+            var source =
 @"using System.Collections;
 using System.Collections.Generic;
 class C
@@ -19444,7 +19473,7 @@ class C
         }
 
         [Fact]
-        public void ForEach_02()
+        public void ForEach_03()
         {
             var source =
 @"class C
@@ -19462,7 +19491,7 @@ class C
         }
 
         [Fact]
-        public void ForEach_03()
+        public void ForEach_04()
         {
             var source =
 @"using System.Collections;
@@ -19503,7 +19532,7 @@ class P
         }
 
         [Fact]
-        public void ForEach_04()
+        public void ForEach_05()
         {
             var source =
 @"struct S<T> where T : class
