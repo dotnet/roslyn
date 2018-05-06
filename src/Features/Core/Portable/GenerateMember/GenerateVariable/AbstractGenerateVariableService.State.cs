@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 // If we're in a type context then we shouldn't offer to generate a field or
                 // property.
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 if (syntaxFacts.IsInNamespaceOrTypeContext(this.SimpleNameOrMemberAccessExpressionOpt))
                 {
                     return false;
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 DetermineFieldType(document, cancellationToken);
 
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
                 this.IsInRefContext = semanticFacts.IsInRefContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 this.IsInInContext = semanticFacts.IsInInContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
                 this.IsInOutContext = semanticFacts.IsInOutContext(semanticModel, this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 //
                 // Also, because users often like to keep members/assignments in the same order
                 // we can pick a good place for the new member based on the surrounding assignments.
-                var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 var simpleName = this.SimpleNameOrMemberAccessExpressionOpt;
 
                 if (syntaxFacts.IsLeftSideOfAssignment(simpleName))
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 ChildSyntaxList children, int index,
                 CancellationToken cancellationToken)
             {
-                var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 if (index >= 0 && index < children.Count)
                 {
                     var sibling = children[index];
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 SemanticDocument document,
                 CancellationToken cancellationToken)
             {
-                var typeInference = document.Project.LanguageServices.GetService<ITypeInferenceService>();
+                var typeInference = document.GetLanguageService<ITypeInferenceService>();
                 var inferredType = typeInference.InferType(
                     document.SemanticModel, this.SimpleNameOrMemberAccessExpressionOpt, objectAsDefault: true,
                     nameOpt: this.IdentifierToken.ValueText, cancellationToken: cancellationToken);
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     return false;
                 }
 
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 return syntaxFacts.IsInConstructor(this.SimpleNameOpt);
             }
         }

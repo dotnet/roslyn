@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     return false;
                 }
 
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
                 var classConstructors = this.ClassType.InstanceConstructors;
 
                 var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.ClassType.Language);

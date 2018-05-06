@@ -96,8 +96,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                 this.SimpleNameOrMemberAccessExpression = simpleNameOrMemberAccessExpression;
 
                 var semanticModel = document.SemanticModel;
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 if (semanticFacts.IsWrittenTo(semanticModel, this.SimpleNameOrMemberAccessExpression, cancellationToken) ||
                     syntaxFacts.IsInNamespaceOrTypeContext(this.SimpleNameOrMemberAccessExpression))
                 {

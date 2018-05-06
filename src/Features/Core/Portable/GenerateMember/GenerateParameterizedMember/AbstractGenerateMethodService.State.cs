@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
                 else
                 {
-                    var typeInference = document.Document.GetLanguageService<ITypeInferenceService>();
+                    var typeInference = document.GetLanguageService<ITypeInferenceService>();
                     var delegateType = typeInference.InferDelegateType(semanticModel, this.SimpleNameOrMemberAccessExpression, cancellationToken);
                     if (delegateType != null && delegateType.DelegateInvokeMethod != null)
                     {
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
                 this.IsWrittenTo = semanticFacts.IsWrittenTo(semanticModel, this.InvocationExpressionOpt ?? this.SimpleNameOrMemberAccessExpression, cancellationToken);
                 this.TypeToGenerateIn = typeToGenerateIn;
                 this.IsStatic = isStatic;

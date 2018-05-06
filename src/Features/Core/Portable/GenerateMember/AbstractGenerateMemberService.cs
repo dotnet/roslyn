@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             typeToGenerateIn = null;
             isStatic = false;
 
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = document.SemanticModel;
             if (syntaxFacts.IsSimpleMemberAccessExpression(expression))
             {

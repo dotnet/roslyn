@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private void AddProperties(ArrayBuilder<ISymbol> members)
             {
-                var typeInference = _document.Project.LanguageServices.GetService<ITypeInferenceService>();
+                var typeInference = _document.GetLanguageService<ITypeInferenceService>();
                 foreach (var property in _state.PropertiesToGenerate)
                 {
                     if (_service.TryGenerateProperty(property, _document.SemanticModel, typeInference, _cancellationToken, out var generatedProperty))
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return;
                 }
 
-                var factory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
+                var factory = _document.GetLanguageService<SyntaxGenerator>();
                 members.Add(factory.CreateBaseDelegatingConstructor(
                     methodSymbol, DetermineName()));
             }
@@ -202,8 +202,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private void AddFieldDelegatingConstructor(
                 IList<TArgumentSyntax> argumentList, ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
             {
-                var factory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
-                var syntaxFactsService = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var factory = _document.GetLanguageService<SyntaxGenerator>();
+                var syntaxFactsService = _document.GetLanguageService<ISyntaxFactsService>();
 
                 var availableTypeParameters = _service.GetAvailableTypeParameters(_state, _document.SemanticModel, _intoNamespace, _cancellationToken);
                 var parameterTypes = GetArgumentTypes(argumentList);
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var parameterToExistingFieldMap = new Dictionary<string, ISymbol>();
                 var parameterToNewFieldMap = new Dictionary<string, string>();
 
-                var syntaxFacts = _document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
                 for (var i = 0; i < parameterNames.Count; i++)
                 {
                     var refKind = syntaxFacts.GetRefKindOfArgument(argumentList[i]);
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private void AddExceptionConstructors(ArrayBuilder<ISymbol> members)
             {
-                var factory = _document.Project.LanguageServices.GetService<SyntaxGenerator>();
+                var factory = _document.GetLanguageService<SyntaxGenerator>();
                 var exceptionType = _document.SemanticModel.Compilation.ExceptionType();
                 var constructors =
                    exceptionType.InstanceConstructors

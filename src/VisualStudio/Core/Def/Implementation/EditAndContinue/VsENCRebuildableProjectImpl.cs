@@ -35,6 +35,7 @@ using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Reflection.PortableExecutable;
 using Microsoft.VisualStudio.LanguageServices.EditAndContinue;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 {
@@ -645,7 +646,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     SyntaxNode syntaxRoot = document.GetSyntaxRootAsync(default).Result;
 
-                    var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
+                    var analyzer = document.GetLanguageService<IEditAndContinueAnalyzer>();
 
                     s_pendingActiveStatements.Add(new VsActiveStatement(
                         this,

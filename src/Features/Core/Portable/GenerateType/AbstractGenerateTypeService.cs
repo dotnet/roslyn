@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             // Only allow if the containing namespace is one that can be generated
             // into.  
-            var declarationService = document.Project.LanguageServices.GetService<ISymbolDeclarationService>();
+            var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
             var decl = declarationService.GetDeclarations(containingNamespace)
                                          .Where(r => r.SyntaxTree == node.SyntaxTree)
                                          .Select(r => r.GetSyntax(cancellationToken))
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             return
                 decl != null &&
-                document.Project.LanguageServices.GetService<ICodeGenerationService>().CanAddTo(decl, document.Project.Solution, cancellationToken);
+                document.GetLanguageService<ICodeGenerationService>().CanAddTo(decl, document.Project.Solution, cancellationToken);
         }
 
         private bool IsGeneratingIntoContainingNamespace(

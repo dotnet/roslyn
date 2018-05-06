@@ -265,14 +265,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 return null;
             }
 
-            var typeInference = document.Project.LanguageServices.GetService<ITypeInferenceService>();
+            var typeInference = document.GetLanguageService<ITypeInferenceService>();
             var delegateType = typeInference.InferDelegateType(semanticModel, eventHookupExpression.Right, cancellationToken);
             if (delegateType == null || delegateType.DelegateInvokeMethod == null)
             {
                 return null;
             }
 
-            var syntaxFactory = document.Project.LanguageServices.GetService<SyntaxGenerator>();
+            var syntaxFactory = document.GetLanguageService<SyntaxGenerator>();
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: default(ImmutableArray<AttributeData>),

@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             bool isConstant,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var semanticModel = document.SemanticModel;
             var baseName = semanticFacts.GenerateNameForExpression(
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         {
             var semanticModel = document.SemanticModel;
 
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
 

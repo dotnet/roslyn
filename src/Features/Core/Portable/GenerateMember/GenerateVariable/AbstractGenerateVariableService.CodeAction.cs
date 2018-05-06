@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 // Otherwise, figure out what accessibility modifier to use and optionally mark
                 // it as static.
-                var syntaxFacts = _document.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
                 if (syntaxFacts.IsAttributeNamedArgumentIdentifier(state.SimpleNameOrMemberAccessExpressionOpt))
                 {
                     return Accessibility.Public;

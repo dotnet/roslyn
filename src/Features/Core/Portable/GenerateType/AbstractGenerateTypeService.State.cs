@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
 
                 this.SimpleName = (TSimpleNameSyntax)node;
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 syntaxFacts.GetNameAndArityOfSimpleName(this.SimpleName, out var name, out var arity);
 
                 this.Name = name;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return false;
                 }
 
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
                 if (!semanticFacts.IsTypeContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                     !semanticFacts.IsExpressionContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                     !semanticFacts.IsStatementContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // then we don't really want to infer a base type for 'Goo'.
 
                 // However, there are a few other cases were we can infer a base type.
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 if (service.IsInCatchDeclaration(this.NameOrMemberAccessExpression))
                 {
                     this.BaseTypeOrInterfaceOpt = document.SemanticModel.Compilation.ExceptionType();
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     this.ObjectCreationExpressionOpt != null)
                 {
                     var expr = this.ObjectCreationExpressionOpt ?? this.NameOrMemberAccessExpression;
-                    var typeInference = document.Project.LanguageServices.GetService<ITypeInferenceService>();
+                    var typeInference = document.GetLanguageService<ITypeInferenceService>();
                     var baseType = typeInference.InferType(document.SemanticModel, expr, objectAsDefault: true, cancellationToken: cancellationToken) as INamedTypeSymbol;
                     SetBaseType(baseType);
                 }

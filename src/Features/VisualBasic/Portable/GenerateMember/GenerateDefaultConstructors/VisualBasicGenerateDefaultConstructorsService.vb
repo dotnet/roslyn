@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateDefaultConst
             ' Offer the feature if we're on the header for the class/struct, or if we're on the 
             ' first base-type of a class.
 
-            Dim syntaxFacts = document.Document.GetLanguageService(Of ISyntaxFactsService)()
+            Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
             If syntaxFacts.IsOnTypeHeader(document.Root, textSpan.Start) Then
                 classType = AbstractGenerateFromMembersCodeRefactoringProvider.GetEnclosingNamedType(
                     document.SemanticModel, document.Root, textSpan.Start, cancellationToken)

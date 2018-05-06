@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
                 if (newDocument.Project.Language == _document.Document.Project.Language)
                 {
-                    var syntaxFacts = _document.Document.GetLanguageService<ISyntaxFactsService>();
+                    var syntaxFacts = _document.GetLanguageService<ISyntaxFactsService>();
                     var fileBanner = syntaxFacts.GetFileBanner(_document.Root);
                     newRoot = newRoot.WithPrependedLeadingTrivia(fileBanner);
                 }

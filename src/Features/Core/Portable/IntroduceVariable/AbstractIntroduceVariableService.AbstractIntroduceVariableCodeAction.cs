@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             private string CreateDisplayText(TExpressionSyntax expression)
             {
-                var singleLineExpression = _document.Project.LanguageServices.GetService<ISyntaxFactsService>().ConvertToSingleLine(expression);
+                var singleLineExpression = _document.GetLanguageService<ISyntaxFactsService>().ConvertToSingleLine(expression);
                 var nodeString = singleLineExpression.ToString();
 
                 // prevent the display string from being too long
