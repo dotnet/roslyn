@@ -11,6 +11,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -1600,16 +1601,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
 
-            if (MethodEnsuresTrueWhenExits(method) && arguments.Length > 0)
+            string key = ExtraAnnotations.MakeMethodKey(method);
+            ImmutableArray<AttributeDescription> extraAttributes = ExtraAnnotations.GetExtraAttributes(key);
+            if (MethodEnsuresTrueWhenExits(method, extraAttributes))
             {
-                VisitTrueWhenExits(condition: arguments[0]);
+                var condition = TryGetFirstArgument(method, arguments);
+                if (condition != null)
+                {
+                    VisitTrueWhenExits(condition);
+                }
             }
 
-            if (MethodReturnsTrueWhenNotNull(method) && arguments.Length > 0)
+            if (MethodReturnsTrueWhenNotNull(method, extraAttributes))
             {
-                VisitTrueWhenNotNull(arguments[0], method.ReturnType.TypeSymbol);
-                _result = method.ReturnType;
-                return null;
+                var condition = TryGetFirstArgument(method, arguments);
+                if (condition != null)
+                {
+                    VisitTrueWhenNotNull(condition, method.ReturnType.TypeSymbol);
+                    _result = method.ReturnType;
+                    return null;
+                }
             }
 
             Debug.Assert(!IsConditionalState);
@@ -1621,14 +1632,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private bool MethodReturnsTrueWhenNotNull(MethodSymbol method)
+        private BoundExpression TryGetFirstArgument(MethodSymbol method, ImmutableArray<BoundExpression> arguments)
+        {
+            if (method.IsExtensionMethod)
+            {
+                return (arguments.Length > 1) ? arguments[1] : null;
+            }
+
+            return (arguments.Length > 0) ? arguments[0] : null;
+        }
+
+        private bool MethodReturnsTrueWhenNotNull(MethodSymbol method, ImmutableArray<AttributeDescription> extraAttributes)
         {
             if (method.ReturnType.SpecialType != SpecialType.System_Boolean)
             {
                 return false;
             }
 
-            return method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_String_IsNullOrEmpty));
+            return MethodHasAttribute(method, extraAttributes, AttributeDescription.TrueWhenNotNullAttribute);
         }
 
         private void VisitTrueWhenNotNull(BoundExpression operand, TypeSymbol boolType)
@@ -1659,12 +1680,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBinaryOperator(left.Syntax, BinaryOperatorKind.LogicalBoolOr, left, right, constantValueOpt: null, methodOpt: null, LookupResultKind.Viable, left.Type);
         }
 
-        private bool MethodEnsuresTrueWhenExits(MethodSymbol method)
+        private bool MethodEnsuresTrueWhenExits(MethodSymbol method, ImmutableArray<AttributeDescription> extraAttributes)
         {
-            return method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_Debug_Assert1)) ||
-                method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_Debug_Assert2)) ||
-                method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_Debug_Assert3)) ||
-                method.Equals(compilation.GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_Debug_Assert4));
+            return MethodHasAttribute(method, extraAttributes, AttributeDescription.EnsuresTrueWhenExitsAttribute);
+        }
+
+        private bool MethodHasAttribute(MethodSymbol method, ImmutableArray<AttributeDescription> extraAttributes, AttributeDescription description)
+        {
+            foreach (var attribute in method.GetAttributes())
+            {
+                if (attribute.IsTargetAttribute(method, description))
+                {
+                    return true;
+                }
+            }
+
+            if (!extraAttributes.IsDefault)
+            {
+                foreach (var attribute in extraAttributes)
+                {
+                    if (attribute.Equals(description))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void VisitTrueWhenExits(BoundExpression condition)

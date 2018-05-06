@@ -435,12 +435,6 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
 
-        System_Diagnostics_Debug_Assert1,
-        System_Diagnostics_Debug_Assert2,
-        System_Diagnostics_Debug_Assert3,
-        System_Diagnostics_Debug_Assert4,
-        System_String_IsNullOrEmpty,
-
         Count
     }
 }

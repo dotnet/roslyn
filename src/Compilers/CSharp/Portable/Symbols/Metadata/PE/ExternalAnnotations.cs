@@ -31,6 +31,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 { "System.String System.String.Concat(System.String, System.String)", Parameters(Nullable(false), Nullable(true), Nullable(true)) },
             }.ToImmutableDictionary();
 
+        private static readonly ImmutableDictionary<string, ImmutableArray<AttributeDescription>> Attributes =
+            new Dictionary<string, ImmutableArray<AttributeDescription>>
+            {
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean)", Descriptions(AttributeDescription.EnsuresTrueWhenExitsAttribute) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String)", Descriptions(AttributeDescription.EnsuresTrueWhenExitsAttribute) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String)", Descriptions(AttributeDescription.EnsuresTrueWhenExitsAttribute) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String, System.Object[])", Descriptions(AttributeDescription.EnsuresTrueWhenExitsAttribute) },
+                { "System.Boolean System.String.IsNullOrEmpty(System.String)", Descriptions(AttributeDescription.TrueWhenNotNullAttribute) },
+                { "System.Boolean System.String.IsNullOrWhiteSpace(System.String)", Descriptions(AttributeDescription.TrueWhenNotNullAttribute) },
+            }.ToImmutableDictionary();
+
         internal static string MakeMethodKey(PEMethodSymbol method, ParamInfo<TypeSymbol>[] paramInfo)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
@@ -65,12 +76,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // use assembly qualified name format (used in metadata) rather than symbol display?
         }
 
+        internal static string MakeMethodKey(MethodSymbol method)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+
+            StringBuilder builder = pooledBuilder.Builder;
+            Add(method.ReturnType.TypeSymbol, builder);
+            builder.Append(' ');
+
+            Add(method.ContainingType, builder);
+            builder.Append('.');
+
+            builder.Append(method.Name);
+            builder.Append('(');
+
+            var parameterTypes = method.ParameterTypes;
+            for (int i = 0; i < parameterTypes.Length; i++)
+            {
+                Add(parameterTypes[i].TypeSymbol, builder);
+                if (i < parameterTypes.Length - 1)
+                {
+                    builder.Append(", ");
+                }
+            }
+
+            builder.Append(')');
+            return pooledBuilder.ToStringAndFree();
+
+            // PROTOTYPE(NullableReferenceTypes): Many cases are not yet handled
+            // generic type args
+            // ref kind
+            // 'this'
+            // static vs. instance
+            // use assembly qualified name format (used in metadata) rather than symbol display?
+        }
+
         /// <summary>
         /// All types in a member which can be annotated should be annotated. Value types and void can be skipped.
         /// </summary>
         private static readonly ImmutableArray<bool> skip = default;
 
         private static ImmutableArray<ImmutableArray<bool>> Parameters(params ImmutableArray<bool>[] values)
+            => values.ToImmutableArray();
+
+        private static ImmutableArray<AttributeDescription> Descriptions(params AttributeDescription[] values)
             => values.ToImmutableArray();
 
         private static ImmutableArray<bool> Nullable(params bool[] values)
@@ -96,6 +145,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
                         .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)
                         // displaying tuple syntax causes to load the members of ValueTuple, which can cause a cycle, so we use long-hand format instead
-                        .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseValueTuple)));
+                        .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayCompilerInternalOptions.UseValueTuple)));
+
+        internal static ImmutableArray<AttributeDescription> GetExtraAttributes(string key)
+        {
+            if (!Attributes.TryGetValue(key, out var descriptions))
+            {
+                return default;
+            }
+
+            return descriptions;
+        }
     }
 }

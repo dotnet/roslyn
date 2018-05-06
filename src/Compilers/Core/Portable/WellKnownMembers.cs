@@ -2991,52 +2991,6 @@ namespace Microsoft.CodeAnalysis
                      0,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
-                 // System_Diagnostics_Debug_Assert
-                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Diagnostics_Debug - WellKnownType.ExtSentinel),                                   // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
-                     1,                                                                                                                                         // Method Signature
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
-
-                 // System_Diagnostics_Debug_Assert
-                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Diagnostics_Debug - WellKnownType.ExtSentinel),                                   // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
-                     2,                                                                                                                                         // Method Signature
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-
-                 // System_Diagnostics_Debug_Assert
-                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Diagnostics_Debug - WellKnownType.ExtSentinel),                                   // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
-                     3,                                                                                                                                         // Method Signature
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-
-                 // System_Diagnostics_Debug_Assert
-                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Diagnostics_Debug - WellKnownType.ExtSentinel),                                   // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
-                     4,                                                                                                                                         // Method Signature
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
-
-                 // System_String_IsNullOrEmpty
-                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_String - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
-                 0,                                                                                                                                             // Arity
-                     1,                                                                                                                                         // Method Signature
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
-                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3410,11 +3364,6 @@ namespace Microsoft.CodeAnalysis
                 "get_Item",                                 // System_ReadOnlySpan__get_Item
                 "get_Length",                               // System_ReadOnlySpan__get_Length
                 ".ctor",                                    // System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
-                 "Assert",                                  // System_Diagnostics_Debug_Assert1
-                 "Assert",                                  // System_Diagnostics_Debug_Assert2
-                 "Assert",                                  // System_Diagnostics_Debug_Assert3
-                 "Assert",                                  // System_Diagnostics_Debug_Assert4
-                 "IsNullOrEmpty",                           // System_IsNullOrEmpty
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
