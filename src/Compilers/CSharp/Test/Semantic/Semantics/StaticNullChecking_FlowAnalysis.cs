@@ -1599,6 +1599,72 @@ class C
         }
 
         [Fact]
+        public void IdentityConversion_Return_01()
+        {
+            var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class C
+{
+    static I<object?> F(I<object> x) => x;
+    static IIn<object?> F(IIn<object> x) => x;
+    static IOut<object?> F(IOut<object> x) => x;
+    static I<object> G(I<object?> x) => x;
+    static IIn<object> G(IIn<object?> x) => x;
+    static IOut<object> G(IOut<object?> x) => x;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,41): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
+                //     static I<object?> F(I<object> x) => x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("I<object>", "I<object?>").WithLocation(6, 41),
+                // (7,45): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
+                //     static IIn<object?> F(IIn<object> x) => x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("IIn<object>", "IIn<object?>").WithLocation(7, 45),
+                // (9,41): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                //     static I<object> G(I<object?> x) => x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("I<object?>", "I<object>").WithLocation(9, 41),
+                // (11,47): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
+                //     static IOut<object> G(IOut<object?> x) => x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("IOut<object?>", "IOut<object>").WithLocation(11, 47));
+        }
+
+        [Fact]
+        public void IdentityConversion_Return_02()
+        {
+            var source =
+@"#pragma warning disable 1998
+using System.Threading.Tasks;
+interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class C
+{
+    static async Task<I<object?>> F(I<object> x) => x;
+    static async Task<IIn<object?>> F(IIn<object> x) => x;
+    static async Task<IOut<object?>> F(IOut<object> x) => x;
+    static async Task<I<object>> G(I<object?> x) => x;
+    static async Task<IIn<object>> G(IIn<object?> x) => x;
+    static async Task<IOut<object>> G(IOut<object?> x) => x;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,53): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
+                //     static async Task<I<object?>> F(I<object> x) => x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("I<object>", "I<object?>").WithLocation(8, 53),
+                // (9,57): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
+                //     static async Task<IIn<object?>> F(IIn<object> x) => x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("IIn<object>", "IIn<object?>").WithLocation(9, 57),
+                // (11,53): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                //     static async Task<I<object>> G(I<object?> x) => x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("I<object?>", "I<object>").WithLocation(11, 53),
+                // (13,59): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
+                //     static async Task<IOut<object>> G(IOut<object?> x) => x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("IOut<object?>", "IOut<object>").WithLocation(13, 59));
+        }
+
+        [Fact]
         public void IdentityConversion_Argument()
         {
             var source =

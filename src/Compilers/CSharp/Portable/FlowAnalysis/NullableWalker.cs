@@ -694,33 +694,65 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
         {
-            var result = base.VisitReturnStatementNoAdjust(node);
-
             Debug.Assert(!IsConditionalState);
-            if (node.ExpressionOpt != null && this.State.Reachable)
+
+            var expr = node.ExpressionOpt;
+            if (expr == null)
             {
-                TypeSymbolWithAnnotations returnType = this._currentMethodOrLambda?.ReturnType;
+                return null;
+            }
+
+            expr = RemoveImplicitConversions(expr);
+            var result = VisitRvalueWithResult(expr);
+
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            if (expr.Type?.IsErrorType() == true)
+            {
+                return null;
+            }
+
+            TypeSymbolWithAnnotations returnType = GetReturnType(compilation, _currentMethodOrLambda);
+            if ((object)returnType != null)
+            {
+                TypeSymbolWithAnnotations unconvertedType = result.Type;
+                Conversion conversion = GenerateConversion(_conversions, expr, unconvertedType?.TypeSymbol, returnType.TypeSymbol);
+                TypeSymbolWithAnnotations resultType = InferResultNullability(expr, conversion, returnType.TypeSymbol, unconvertedType);
+
                 bool returnTypeIsNonNullable = IsNonNullable(returnType);
-                bool returnTypeIsUnconstrainedTypeParameter = IsUnconstrainedTypeParameter(returnType?.TypeSymbol);
+                bool returnTypeIsUnconstrainedTypeParameter = IsUnconstrainedTypeParameter(returnType.TypeSymbol);
                 bool reportedNullable = false;
                 if (returnTypeIsNonNullable || returnTypeIsUnconstrainedTypeParameter)
                 {
                     reportedNullable = ReportNullAsNonNullableReferenceIfNecessary(node.ExpressionOpt);
                 }
+
                 if (!reportedNullable)
                 {
-                    TypeSymbolWithAnnotations resultType = _result.Type;
                     if (IsNullable(resultType) && (returnTypeIsNonNullable || returnTypeIsUnconstrainedTypeParameter) ||
                         IsUnconstrainedTypeParameter(resultType?.TypeSymbol) && returnTypeIsNonNullable)
                     {
                         ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, node.ExpressionOpt.Syntax);
                     }
+                    else if (!conversion.Exists)
+                    {
+                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, expr.Syntax, GetTypeAsDiagnosticArgument(unconvertedType?.TypeSymbol), returnType.TypeSymbol);
+                    }
                 }
-
-                ReportNullabilityMismatchInAssignmentIfNecessary(node.ExpressionOpt, node.ExpressionOpt.Type, returnType.TypeSymbol);
             }
 
-            return result;
+            return null;
+        }
+
+        private static TypeSymbolWithAnnotations GetReturnType(CSharpCompilation compilation, MethodSymbol method)
+        {
+            var returnType = method.ReturnType;
+            if (returnType is null)
+            {
+                return null;
+            }
+            return method.IsGenericTaskReturningAsync(compilation) ?
+                ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0] :
+                returnType;
         }
 
         private static bool IsNullable(TypeSymbolWithAnnotations typeOpt)
