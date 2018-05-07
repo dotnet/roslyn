@@ -278,6 +278,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public Function GetHostAnalyzerReferences() As IEnumerable(Of AnalyzerReference) Implements IDiagnosticAnalyzerService.GetHostAnalyzerReferences
                 Throw New NotImplementedException()
             End Function
+
+            Public Function GetDiagnosticsForSpanAsync(document As Document, range As TextSpan, diagnosticId As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of IEnumerable(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
+                Throw New NotImplementedException()
+            End Function
         End Class
     End Class
 End Namespace

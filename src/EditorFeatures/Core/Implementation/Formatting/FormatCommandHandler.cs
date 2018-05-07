@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly ICodeFixService _codeFixService;
 
         public string DisplayName => EditorFeaturesResources.Format_Command_Handler;
 
@@ -45,10 +48,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FormatCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            ICodeFixService codeFixService)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _codeFixService = codeFixService;
         }
 
         private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
@@ -59,28 +64,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             using (var transaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Formatting, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
                 var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
+                if (changes.Count > 0)
+                {
+                    ApplyChanges(document, changes, selectionOpt, cancellationToken);
+                    transaction.Complete();
+                }
+            }
+        }
+
+        private void ApplyChanges(Document document, IList<TextChange> changes, TextSpan? selectionOpt, CancellationToken cancellationToken)
+        {
+            if (selectionOpt.HasValue)
+            {
+                var ruleFactory = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+
+                changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
                 if (changes.Count == 0)
                 {
                     return;
                 }
+            }
 
-                if (selectionOpt.HasValue)
-                {
-                    var ruleFactory = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-
-                    changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
-                    if (changes.Count == 0)
-                    {
-                        return;
-                    }
-                }
-
-                using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
-                {
-                    document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
-                }
-
-                transaction.Complete();
+            using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
+            {
+                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
             }
         }
 

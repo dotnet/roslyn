@@ -37,6 +37,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return list;
         }
 
+        public async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string diagnosticId, CancellationToken cancellationToken = default)
+        {
+            var blockForData = true;
+            var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(this, document, range, blockForData, diagnosticId, cancellationToken).ConfigureAwait(false);
+
+            var list = new List<DiagnosticData>();
+            var result = await getter.TryGetAsync(list, cancellationToken).ConfigureAwait(false);
+            Contract.Requires(result);
+
+            return list;
+        }
+
         /// <summary>
         /// Get diagnostics for given span either by using cache or calculating it on the spot.
         /// </summary>
@@ -59,13 +71,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken);
 
-            public static async Task<LatestDiagnosticsForSpanGetter> CreateAsync(
+            public static Task<LatestDiagnosticsForSpanGetter> CreateAsync(
                 DiagnosticIncrementalAnalyzer owner, Document document, TextSpan range, bool blockForData, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            {
+                return CreateAsync(owner, document, range, blockForData, includeSuppressedDiagnostics, diagnosticIdOpt: null, cancellationToken);
+            }
+
+            public static Task<LatestDiagnosticsForSpanGetter> CreateAsync(
+                DiagnosticIncrementalAnalyzer owner, Document document, TextSpan range, bool blockForData, string diagnosticId, CancellationToken cancellationToken)
+            {
+                return CreateAsync(owner, document, range, blockForData, includeSuppressedDiagnostics: false, diagnosticId, cancellationToken);
+            }
+
+            private static async Task<LatestDiagnosticsForSpanGetter> CreateAsync(
+                DiagnosticIncrementalAnalyzer owner, Document document, TextSpan range, bool blockForData, bool includeSuppressedDiagnostics, string diagnosticIdOpt, CancellationToken cancellationToken)
             {
                 // REVIEW: IsAnalyzerSuppressed can be quite expensive in some cases. try to find a way to make it cheaper
                 //         Here we don't filter out hidden diagnostic only analyzer since such analyzer can produce hidden diagnostic
                 //         on active file (non local diagnostic)
-                var stateSets = owner._stateManager.GetOrCreateStateSets(document.Project).Where(s => !owner.Owner.IsAnalyzerSuppressed(s.Analyzer, document.Project));
+                var stateSets = owner._stateManager
+                                     .GetOrCreateStateSets(document.Project).Where(s => !owner.Owner.IsAnalyzerSuppressed(s.Analyzer, document.Project));
+
+                // filter to specific diagnostic it is looking for
+                if (diagnosticIdOpt != null)
+                {
+                    stateSets = stateSets.Where(s => owner.Owner.GetDiagnosticDescriptors(s.Analyzer).Any(d => d.Id == diagnosticIdOpt)).ToList();
+                }
+
                 var analyzerDriverOpt = await owner._compilationManager.CreateAnalyzerDriverAsync(document.Project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 return new LatestDiagnosticsForSpanGetter(owner, analyzerDriverOpt, document, stateSets, range, blockForData, includeSuppressedDiagnostics);

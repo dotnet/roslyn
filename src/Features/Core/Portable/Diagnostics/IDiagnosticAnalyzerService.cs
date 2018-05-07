@@ -69,6 +69,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// return up to date diagnostics for the given span for the document
+        /// 
+        /// this can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
+        /// </summary>
+        Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string diagnosticId, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Gets a list of the diagnostics that are provided by this service.
         /// If the given <paramref name="projectOpt"/> is non-null, then gets the diagnostics for the project.
         /// Otherwise, returns the global set of diagnostics enabled for the workspace.

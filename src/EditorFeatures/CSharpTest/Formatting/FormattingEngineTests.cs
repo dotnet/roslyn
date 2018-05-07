@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.Options;
@@ -21,6 +24,85 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     public class FormattingEngineTests : FormattingEngineTestBase
     {
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatDocumentRemoveUsings()
+        {
+            var code = @"using System;
+using System.Collections.Generic;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine();$$
+    }
+}
+";
+
+            var expected = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine();$$
+    }
+}
+";
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatDocumentSortUsings()
+        {
+            var code = @"using System.Collections.Generic;
+using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var list = new List<int>();$$
+        Console.WriteLine(list.Count);
+    }
+}
+";
+
+            var expected = @"using System;
+using System.Collections.Generic;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var list = new List<int>();$$
+        Console.WriteLine(list.Count);
+    }
+}
+";
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact(Skip = "skip until figuring out how to get the CodeFixService")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatDocumentRemoveUnusedVariable()
+        {
+            var code = @"class Program
+{
+    void Method($$)
+    {
+        [|int a = 3;|]
+    }
+}
+";
+            var expected = @"class Program
+{
+    void Method($$)
+    {
+    }
+}
+";
+            AssertFormatWithView(expected, code);
+        }
+
         [WpfFact]
         [WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1202,7 +1284,7 @@ class C : Attribute
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void KeepTabsInCommentsWhenFormattingIsOff()
         {
-            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should
             // not remove these as we are explicitly testing tab behavior.
             var code =
 @"class Program
@@ -1234,7 +1316,7 @@ class C : Attribute
         [WpfFact, Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void DoNotKeepTabsInCommentsWhenFormattingIsOn()
         {
-            // There are tabs in this test case.  Tools that touch the Roslyn repo should 
+            // There are tabs in this test case.  Tools that touch the Roslyn repo should
             // not remove these as we are explicitly testing tab behavior.
             var code = @"class Program
 {
@@ -1650,7 +1732,7 @@ class C
             await AssertFormatOnArbitraryNodeAsync(node, expected);
         }
 
-        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
+        private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code))
             {
