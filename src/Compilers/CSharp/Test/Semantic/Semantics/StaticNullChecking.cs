@@ -5484,6 +5484,23 @@ class C
         }
 
         [Fact]
+        public void MakeMethodKeyForWhereMethod()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class Test
+{
+    public void SimpleWhere()
+    {
+        int[] numbers = { 1, 2, 3 };
+        var lowNums = from n in numbers
+                      where n < 5
+                      select n;
+    }
+}", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+        [Fact]
         public void EnsuresTrueWhenExits_Null()
         {
             CSharpCompilation c = CreateCompilation(@"

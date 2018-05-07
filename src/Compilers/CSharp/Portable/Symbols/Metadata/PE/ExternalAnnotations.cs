@@ -78,13 +78,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal static string MakeMethodKey(MethodSymbol method)
         {
+            var containingType = method.ContainingSymbol as TypeSymbol;
+            if (containingType is null)
+            {
+                return null;
+            }
+
             var pooledBuilder = PooledStringBuilder.GetInstance();
 
             StringBuilder builder = pooledBuilder.Builder;
             Add(method.ReturnType.TypeSymbol, builder);
             builder.Append(' ');
 
-            Add(method.ContainingType, builder);
+            Add(containingType, builder);
             builder.Append('.');
 
             builder.Append(method.Name);
@@ -130,6 +136,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal static ImmutableArray<ImmutableArray<bool>> GetExtraAnnotations(string key)
         {
+            if (key is null)
+            {
+                return default;
+            }
+
             if (!Annotations.TryGetValue(key, out var flags))
             {
                 return default;
@@ -149,6 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal static ImmutableArray<AttributeDescription> GetExtraAttributes(string key)
         {
+            if (key is null)
+            {
+                return default;
+            }
+
             if (!Attributes.TryGetValue(key, out var descriptions))
             {
                 return default;
