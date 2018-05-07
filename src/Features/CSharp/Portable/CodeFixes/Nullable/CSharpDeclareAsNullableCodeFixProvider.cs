@@ -80,8 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
             if (node.IsParentKind(SyntaxKind.ReturnStatement))
             {
-                var containingMember = node.GetAncestors().FirstOrDefault(a => a.IsKind(SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration,
-                    SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression, SyntaxKind.LocalFunctionStatement, SyntaxKind.AnonymousMethodExpression));
+                var containingMember = node.GetAncestors().FirstOrDefault(a => a.IsReturnableConstruct());
 
                 if (containingMember == null)
                 {
