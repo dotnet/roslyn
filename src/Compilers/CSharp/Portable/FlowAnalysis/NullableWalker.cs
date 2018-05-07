@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
             return method.IsGenericTaskReturningAsync(compilation) ?
-                ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0] :
+                ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single() :
                 returnType;
         }
 

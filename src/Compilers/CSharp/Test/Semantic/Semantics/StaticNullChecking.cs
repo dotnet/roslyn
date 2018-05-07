@@ -18008,6 +18008,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw new System.Exception()").WithArguments("throw").WithLocation(3, 38));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullabilityMismatchInAssignment.
         [Fact]
         public void UnboxingConversion()
         {
@@ -18543,6 +18544,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 48));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullAsNonNullable for F0.
         [WorkItem(23275, "https://github.com/dotnet/roslyn/issues/23275")]
         [Fact]
         public void AsyncTaskMethodReturningNull()
