@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis
             string tempDirectory)
         {
             bool fallback =
-                !CoreClrShim.IsRunningOnCoreClr ||
+                !(CoreClrShim.IsRunningOnCoreClr || Type.GetType("Mono.Runtime") != null) ||
                 ParseOptionsCore.Features.ContainsKey("UseLegacyStrongNameProvider") ||
                 CompilationOptionsCore.CryptoKeyContainer != null;
             return fallback ?
