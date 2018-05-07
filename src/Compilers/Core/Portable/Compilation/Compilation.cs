@@ -1026,7 +1026,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a new anonymous type symbol with the given member types member names.
         /// Anonymous type members will be readonly by default.  Writable properties are
-        /// supported in VB and can be created by passing in <code>false</code> in the
+        /// supported in VB and can be created by passing in <see langword="false"/> in the
         /// appropriate locations in <paramref name="memberIsReadOnly"/>.
         ///
         /// Source locations can also be provided through <paramref name="memberLocations"/>

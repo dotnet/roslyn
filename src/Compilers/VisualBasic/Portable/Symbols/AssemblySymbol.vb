@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
         ''' 
-        ''' Otherwise, this returns <code>nothing</code>.
+        ''' Otherwise, this returns <see langword="Nothing"/>.
         ''' </summary>
         Public MustOverride Function GetMetadata() As AssemblyMetadata Implements IAssemblySymbol.GetMetadata
 
