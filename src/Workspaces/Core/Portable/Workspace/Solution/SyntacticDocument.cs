@@ -32,8 +32,5 @@ namespace Microsoft.CodeAnalysis
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return new SyntacticDocument(document, text, root.SyntaxTree, root);
         }
-
-        public TService GetLanguageService<TService>() where TService : class, ILanguageService
-            => this.Document.GetLanguageService<TService>();
     }
 }
