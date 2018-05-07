@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact>
         Public Sub TestGetType()
             Dim source = <![CDATA[
