@@ -127,6 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                   && !HasCallerFilePathAttribute
                                                   && HasCallerMemberNameAttribute;
 
+        internal override bool NotNullWhenFalse
+            => GetEarlyDecodedWellKnownAttributeData()?.HasNotNullWhenFalseAttribute == true ||
+            HasExtraAttribute(AttributeDescription.NotNullWhenFalseAttribute);
+
+        internal override bool EnsuresNotNull
+            => GetEarlyDecodedWellKnownAttributeData()?.HasEnsuresNotNullAttribute == true ||
+            HasExtraAttribute(AttributeDescription.EnsuresNotNullAttribute);
+
         private ConstantValue DefaultSyntaxValue
         {
             get
@@ -472,6 +480,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerMemberNameAttribute))
                 {
                     arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasCallerMemberNameAttribute = true;
+                }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.NotNullWhenFalseAttribute))
+                {
+                    arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasNotNullWhenFalseAttribute = true;
+                }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.EnsuresNotNullAttribute))
+                {
+                    arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
                 }
             }
 

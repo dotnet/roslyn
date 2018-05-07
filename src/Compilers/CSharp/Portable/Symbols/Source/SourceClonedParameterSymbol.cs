@@ -151,6 +151,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.IsCallerMemberName; }
         }
 
+        internal override bool NotNullWhenFalse
+        {
+            get { return _originalParam.NotNullWhenFalse; }
+        }
+
+        internal override bool EnsuresNotNull
+        {
+            get { return _originalParam.EnsuresNotNull; }
+        }
+
         #endregion
     }
 }

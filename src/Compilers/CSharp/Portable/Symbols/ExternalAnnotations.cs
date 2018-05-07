@@ -4,42 +4,45 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
     //  If we choose to stick with an ad-hoc key (rather than annotations as source or as PE/ref assembly),
     //  we should consider the assembly qualified name format used in metadata (with backticks and such).
     internal static class ExtraAnnotations
     {
+        private static readonly ImmutableArray<AttributeDescription> EnsuresNotNull = ImmutableArray.Create(AttributeDescription.EnsuresNotNullAttribute);
+
+        private static readonly ImmutableArray<AttributeDescription> NotNullWhenFalse = ImmutableArray.Create(AttributeDescription.NotNullWhenFalseAttribute);
+
         // APIs that are useful to annotate:
         //   1) don't accept null input
         //   2) return a reference type
+        // All types in a member which can be annotated should be annotated. Value types and void can be skipped (with a `default`)
         private static readonly ImmutableDictionary<string, ImmutableArray<ImmutableArray<bool>>> Annotations =
             new Dictionary<string, ImmutableArray<ImmutableArray<bool>>>
             {
-                { "System.Boolean System.Boolean.Parse(System.String)", Parameters(skip, Nullable(false)) },
-                { "System.Void System.Buffer.BlockCopy(System.Array, System.Int32, System.Array, System.Int32, System.Int32)", Parameters(skip, Nullable(false), skip, Nullable(false), skip, skip) },
-                { "System.Int32 System.Buffer.ByteLength(System.Array)", Parameters(skip, Nullable(false)) },
-                { "System.Byte System.Buffer.GetByte(System.Array, System.Int32)", Parameters(skip, Nullable(false), skip) },
-                { "System.Void System.Buffer.SetByte(System.Array, System.Int32, System.Byte)", Parameters(skip, Nullable(false), skip, skip) },
-                { "System.Byte System.Byte.Parse(System.String)", Parameters(skip, Nullable(false)) },
-                { "System.Byte System.Byte.Parse(System.String, System.IFormatProvider)", Parameters(skip, Nullable(false), skip) },
-                { "System.Byte System.Byte.Parse(System.String, System.Globalization.NumberStyles)", Parameters(skip, Nullable(false), Nullable(false)) },
-                { "System.Byte System.Byte.Parse(System.String, System.Globalization.NumberStyles, System.IFormatProvider)", Parameters(skip, Nullable(false), Nullable(false), skip) },
-                { "System.String System.String.Concat(System.String, System.String)", Parameters(Nullable(false), Nullable(true), Nullable(true)) },
+                { "System.Boolean System.Boolean.Parse(System.String)", Array(default, Nullable(false)) },
+                { "System.Void System.Buffer.BlockCopy(System.Array, System.Int32, System.Array, System.Int32, System.Int32)", Array(default, Nullable(false), default, Nullable(false), default, default) },
+                { "System.Int32 System.Buffer.ByteLength(System.Array)", Array(default, Nullable(false)) },
+                { "System.Byte System.Buffer.GetByte(System.Array, System.Int32)", Array(default, Nullable(false), default) },
+                { "System.Void System.Buffer.SetByte(System.Array, System.Int32, System.Byte)", Array(default, Nullable(false), default, default) },
+                { "System.Byte System.Byte.Parse(System.String)", Array(default, Nullable(false)) },
+                { "System.Byte System.Byte.Parse(System.String, System.IFormatProvider)", Array(default, Nullable(false), default) },
+                { "System.Byte System.Byte.Parse(System.String, System.Globalization.NumberStyles)", Array(default, Nullable(false), Nullable(false)) },
+                { "System.Byte System.Byte.Parse(System.String, System.Globalization.NumberStyles, System.IFormatProvider)", Array(default, Nullable(false), Nullable(false), default) },
+                { "System.String System.String.Concat(System.String, System.String)", Array(Nullable(false), Nullable(true), Nullable(true)) },
             }.ToImmutableDictionary();
 
-        private static readonly ImmutableDictionary<string, ImmutableArray<AttributeDescription>> Attributes =
-            new Dictionary<string, ImmutableArray<AttributeDescription>>
+        private static readonly ImmutableDictionary<string, ImmutableArray<ImmutableArray<AttributeDescription>>> Attributes =
+            new Dictionary<string, ImmutableArray<ImmutableArray<AttributeDescription>>>
             {
-                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean)", Descriptions(AttributeDescription.EnsuresTrueWhenExitsAttribute) },
-                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String)", Descriptions(AttributeDescription.EnsuresTrueWhenExitsAttribute) },
-                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String)", Descriptions(AttributeDescription.EnsuresTrueWhenExitsAttribute) },
-                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String, System.Object[])", Descriptions(AttributeDescription.EnsuresTrueWhenExitsAttribute) },
-                { "System.Boolean System.String.IsNullOrEmpty(System.String)", Descriptions(AttributeDescription.TrueWhenNotNullAttribute) },
-                { "System.Boolean System.String.IsNullOrWhiteSpace(System.String)", Descriptions(AttributeDescription.TrueWhenNotNullAttribute) },
+                { "System.Boolean System.String.IsNullOrEmpty(System.String)", Array(default, NotNullWhenFalse) },
+                { "System.Boolean System.String.IsNullOrWhiteSpace(System.String)", Array(default, NotNullWhenFalse) },
+                { "System.Boolean System.String.Contains(System.String)", Array(default, EnsuresNotNull) },
             }.ToImmutableDictionary();
 
         internal static string MakeMethodKey(PEMethodSymbol method, ParamInfo<TypeSymbol>[] paramInfo)
@@ -117,15 +120,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // use assembly qualified name format (used in metadata) rather than symbol display?
         }
 
-        /// <summary>
-        /// All types in a member which can be annotated should be annotated. Value types and void can be skipped.
-        /// </summary>
-        private static readonly ImmutableArray<bool> skip = default;
-
-        private static ImmutableArray<ImmutableArray<bool>> Parameters(params ImmutableArray<bool>[] values)
+        private static ImmutableArray<ImmutableArray<bool>> Array(params ImmutableArray<bool>[] values)
             => values.ToImmutableArray();
 
-        private static ImmutableArray<AttributeDescription> Descriptions(params AttributeDescription[] values)
+        private static ImmutableArray<ImmutableArray<AttributeDescription>> Array(params ImmutableArray<AttributeDescription>[] values)
             => values.ToImmutableArray();
 
         private static ImmutableArray<bool> Nullable(params bool[] values)
@@ -158,19 +156,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         // displaying tuple syntax causes to load the members of ValueTuple, which can cause a cycle, so we use long-hand format instead
                         .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayCompilerInternalOptions.UseValueTuple)));
 
-        internal static ImmutableArray<AttributeDescription> GetExtraAttributes(string key)
+        internal static ImmutableArray<AttributeDescription> GetExtraAttributes(string key, int index)
         {
             if (key is null)
             {
                 return default;
             }
 
-            if (!Attributes.TryGetValue(key, out var descriptions))
+            _ = Attributes.TryGetValue(key, out var extraAttributes);
+            if (extraAttributes.IsDefault)
             {
                 return default;
             }
 
-            return descriptions;
+            return extraAttributes[index];
         }
     }
 }

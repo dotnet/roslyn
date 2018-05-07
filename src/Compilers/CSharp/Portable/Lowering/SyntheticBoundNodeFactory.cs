@@ -1252,12 +1252,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeSymbol.IsReferenceType ? Null(typeSymbol, syntax) : Default(typeSymbol, syntax);
         }
 
-        internal BoundExpression Not(BoundExpression expression)
-        {
-            return NotCore(expression);
-        }
-
-        internal static BoundUnaryOperator NotCore(BoundExpression expression)
+        internal BoundExpression Not(
+            BoundExpression expression)
         {
             return new BoundUnaryOperator(expression.Syntax, UnaryOperatorKind.BoolLogicalNegation, expression, null, null, LookupResultKind.Viable, expression.Type);
         }

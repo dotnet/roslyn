@@ -72,30 +72,29 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        private const string EnsuresTrueWhenExitsAttributeDefinition = @"
+        private const string NotNullWhenFalseAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Method,
+    [AttributeUsage(AttributeTargets.Parameter,
                    AllowMultiple = false)]
-    public class EnsuresTrueWhenExitsAttribute : Attribute
+    public class NotNullWhenFalseAttribute : Attribute
     {
-        public EnsuresTrueWhenExitsAttribute () { }
+        public NotNullWhenFalseAttribute() { }
     }
 }
 ";
 
-        private const string TrueWhenNotNullAttributeDefinition = @"
+        private const string EnsuresNotNullAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Method,
+    [AttributeUsage(AttributeTargets.Parameter,
                    AllowMultiple = false)]
-    public class TrueWhenNotNullAttribute : Attribute
+    public class EnsuresNotNullAttribute : Attribute
     {
-        public TrueWhenNotNullAttribute() { }
+        public EnsuresNotNullAttribute() { }
     }
 }
 ";
-
 
         [Fact]
         public void Test0()
@@ -5463,29 +5462,9 @@ class CL1<T>
         }
 
         [Fact]
-        public void EnsuresTrueWhenExits_NotNull()
-        {
-            CSharpCompilation c = CreateCompilation(@"
-using System.Runtime.CompilerServices;
-class C
-{
-    void Main(C? c)
-    {
-        MyAssert(c != null);
-        c.ToString();
-    }
-
-    [EnsuresTrueWhenExits]
-    void MyAssert(bool condition) => throw null;
-}
-" + EnsuresTrueWhenExitsAttributeDefinition, parseOptions: TestOptions.Regular8);
-
-            c.VerifyDiagnostics();
-        }
-
-        [Fact]
         public void MakeMethodKeyForWhereMethod()
         {
+            // this test verifies that a bad method symbol doesn't crash when generating a key for external annotations
             CSharpCompilation c = CreateCompilation(@"
 class Test
 {
@@ -5498,240 +5477,15 @@ class Test
     }
 }", parseOptions: TestOptions.Regular8);
 
-            c.VerifyDiagnostics();
-        }
-        [Fact]
-        public void EnsuresTrueWhenExits_Null()
-        {
-            CSharpCompilation c = CreateCompilation(@"
-using System.Runtime.CompilerServices;
-class C
-{
-    void Main(C? c)
-    {
-        MyAssert(c == null);
-        c.ToString();
-    }
-
-    [EnsuresTrueWhenExits]
-    void MyAssert(bool condition) => throw null;
-}
-" + EnsuresTrueWhenExitsAttributeDefinition, parseOptions: TestOptions.Regular8);
-
             c.VerifyDiagnostics(
-                // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         c.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(8, 9)
+                // (7,33): error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Where' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?
+                //         var lowNums = from n in numbers
+                Diagnostic(ErrorCode.ERR_QueryNoProviderStandard, "numbers").WithArguments("int[]", "Where").WithLocation(7, 33)
                 );
         }
 
         [Fact]
-        public void EnsuresTrueWhenExits_MethodWithReturnType()
-        {
-            CSharpCompilation c = CreateCompilation(@"
-using System.Runtime.CompilerServices;
-class C
-{
-    void Main(C? c)
-    {
-        if (MyAssert(c != null))
-        {
-            c.ToString();
-        }
-        else
-        {
-            c.ToString();
-        }
-    }
-
-    [EnsuresTrueWhenExits]
-    bool MyAssert(bool condition) => throw null;
-}
-" + EnsuresTrueWhenExitsAttributeDefinition, parseOptions: TestOptions.Regular8);
-
-            c.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void EnsuresTrueWhenExits_Debug_Assert1_NotNull()
-        {
-            CSharpCompilation c = CreateCompilation(@"
-class C
-{
-    void Main(C? c)
-    {
-        System.Diagnostics.Debug.Assert(c != null);
-        c.ToString();
-    }
-}
-", parseOptions: TestOptions.Regular8);
-
-            c.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void EnsuresTrueWhenExits_Debug_Assert1_NotNullAndNotEmpty()
-        {
-            CSharpCompilation c = CreateCompilation(@"
-class C
-{
-    void Main(string? c)
-    {
-        System.Diagnostics.Debug.Assert(c != null && c != """");
-        c.ToString();
-    }
-}
-", parseOptions: TestOptions.Regular8);
-
-            c.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void EnsuresTrueWhenExits_Debug_Assert1_NotNullOrUnknown()
-        {
-            CSharpCompilation c = CreateCompilation(@"
-class C
-{
-    void Main(string? c, bool b)
-    {
-        System.Diagnostics.Debug.Assert(c != null || b);
-        c.ToString();
-    }
-}
-", parseOptions: TestOptions.Regular8);
-
-            c.VerifyDiagnostics(
-                // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         c.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void EnsuresTrueWhenExits_Debug_Assert2_NotNull()
-        {
-            CSharpCompilation c = CreateCompilation(@"
-class C
-{
-    void Main(C? c)
-    {
-        System.Diagnostics.Debug.Assert(c != null, ""hello"");
-        c.ToString();
-    }
-}
-", parseOptions: TestOptions.Regular8);
-
-            c.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void EnsuresTrueWhenExits_Debug_Assert3_NotNull()
-        {
-            CSharpCompilation c = CreateCompilation(@"
-class C
-{
-    void Main(C? c)
-    {
-        System.Diagnostics.Debug.Assert(c != null, ""hello"", ""world"");
-        c.ToString();
-    }
-}
-", parseOptions: TestOptions.Regular8);
-
-            c.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void EnsuresTrueWhenExits_Debug_Assert4_NotNull()
-        {
-            CSharpCompilation c = CreateCompilation(@"
-class C
-{
-    void Main(C? c)
-    {
-        System.Diagnostics.Debug.Assert(c != null, ""hello"", ""world"", new object[] { });
-        c.ToString();
-    }
-}
-", parseOptions: TestOptions.Regular8);
-
-            c.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void EnsuresTrueWhenExits_Debug_Assert_IsNull()
-        {
-            CSharpCompilation c = CreateCompilation(@"
-class C
-{
-    void Main(C c)
-    {
-        System.Diagnostics.Debug.Assert(c == null, ""hello"");
-        c.ToString();
-    }
-}
-", parseOptions: TestOptions.Regular8);
-
-            c.VerifyDiagnostics(
-                // (6,41): hidden CS8606: Result of the comparison is possibly always false.
-                //         System.Diagnostics.Debug.Assert(c == null, "hello");
-                Diagnostic(ErrorCode.HDN_NullCheckIsProbablyAlwaysFalse, "c == null").WithLocation(6, 41)
-                );
-        }
-
-        [Fact]
-        public void EnsuresTrueWhenExits_Debug_Assert_NoDuplicateDiagnostics()
-        {
-            CSharpCompilation c = CreateCompilation(@"
-class C
-{
-    void Main(C? c)
-    {
-        System.Diagnostics.Debug.Assert(Method(null), ""hello"");
-        c.ToString();
-    }
-    bool Method(string x) => throw null;
-}
-", parseOptions: TestOptions.Regular8);
-
-            c.VerifyDiagnostics(
-                // (6,48): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //         System.Diagnostics.Debug.Assert(Method(null), "hello");
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 48),
-                // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         c.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
-        public void EnsuresTrueWhenExits_Debug_Assert_InTry()
-        {
-            CSharpCompilation c = CreateCompilation(@"
-class C
-{
-    void Main(C? c)
-    {
-        try
-        {
-            System.Diagnostics.Debug.Assert(c != null, ""hello"");
-        }
-        catch { }
-
-        c.ToString();
-    }
-}
-", parseOptions: TestOptions.Regular8);
-
-            c.VerifyDiagnostics(
-                // (12,9): warning CS8602: Possible dereference of a null reference.
-                //         c.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(12, 9)
-                );
-        }
-
-        [Fact]
-        public void TrueWhenNotNull()
+        public void NotNullWhenFalse()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -5747,21 +5501,231 @@ class C
         {
             s.ToString(); // ok
         }
+
+        s.ToString(); // warn 2
     }
-    [TrueWhenNotNull]
-    static bool MyIsNullOrEmpty(string? s) => throw null;
+    static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-" + TrueWhenNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(16, 9)
+                );
+
+            VerifyNotNullWhenFalse(c, "C.Main", false);
+            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true);
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_OnTwoParameters()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s, string? s2)
+    {
+        if (MyIsNullOrEmpty(s, s2))
+        {
+            s.ToString(); // warn 1
+            s2.ToString(); // warn 2
+        }
+        else
+        {
+            s.ToString(); // ok
+            s2.ToString(); // ok
+        }
+
+        s.ToString(); // warn 3
+        s2.ToString(); // warn 4
+    }
+    static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s, [NotNullWhenFalse] string? s2) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13),
+                // (10,13): warning CS8602: Possible dereference of a null reference.
+                //             s2.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(10, 13),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 9),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         s2.ToString(); // warn 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(19, 9)
+                );
+
+            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true, true);
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_OnIndexer()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s, int x)
+    {
+        if (this[s, x])
+        {
+            s.ToString(); // warn
+        }
+        else
+        {
+            s.ToString(); // ok
+        }
+
+        s.ToString(); // warn 2
+    }
+    public bool this[[NotNullWhenFalse] string? s, int x] => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_SecondArgumentDereferences()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        if (Method(s, s.ToString())) // warn 1
+        {
+            s.ToString(); // warn 2
+        }
+        else
+        {
+            s.ToString(); // ok
+        }
+    }
+    static bool Method([NotNullWhenFalse] string? s, string s2) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (7,23): warning CS8602: Possible dereference of a null reference.
+                //         if (Method(s, s.ToString())) // warn 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 23),
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
                 );
         }
 
         [Fact]
-        public void TrueWhenNotNull_BadAttribute()
+        public void NotNullWhenFalse_SecondArgumentAssigns()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        if (Method(s, s = null))
+        {
+            s.ToString(); // warn 1
+        }
+        else
+        {
+            s.ToString(); // warn 2
+        }
+    }
+    static bool Method([NotNullWhenFalse] string? s, string? s2) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13),
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13)
+                );
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_MissingAttribute()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Main(string? s)
+    {
+        if (MyIsNullOrEmpty(s))
+        {
+            s.ToString(); // warn
+        }
+        else
+        {
+            s.ToString(); // ok
+        }
+
+        s.ToString(); // warn 2
+    }
+    static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (17,34): error CS0246: The type or namespace name 'NotNullWhenFalseAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(17, 34),
+                // (17,34): error CS0246: The type or namespace name 'NotNullWhenFalse' could not be found (are you missing a using directive or an assembly reference?)
+                //     static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NotNullWhenFalse").WithArguments("NotNullWhenFalse").WithLocation(17, 34),
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13),
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // ok
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(12, 13),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(15, 9)
+                );
+
+            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", false);
+        }
+
+        private void VerifyNotNullWhenFalse(Compilation compilation, string memberName, params bool[] hasNotNullWhenFalse)
+        {
+            var method = compilation.GetMember<MethodSymbol>(memberName);
+            Assert.True((object)method != null, $"Could not find method '{memberName}'");
+            var actual = method.Parameters.Select(p => p.NotNullWhenFalse);
+            Assert.Equal(hasNotNullWhenFalse, actual);
+        }
+
+        private void VerifyEnsuresNotNull(Compilation compilation, string memberName, params bool[] hasEnsuresNotNull)
+        {
+            var method = compilation.GetMember<MethodSymbol>(memberName);
+            Assert.True((object)method != null, $"Could not find method '{memberName}'");
+            var actual = method.Parameters.Select(p => p.EnsuresNotNull);
+            Assert.Equal(hasEnsuresNotNull, actual);
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_BadAttribute()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -5778,16 +5742,15 @@ class C
             s.ToString(); // warn 2
         }
     }
-    [TrueWhenNotNull(true)]
-    static bool MyIsNullOrEmpty(string? s) => throw null;
+    static bool MyIsNullOrEmpty([NotNullWhenFalse(true)] string? s) => throw null;
 }
 namespace System.Runtime.CompilerServices
 {
-    [AttributeUsage(AttributeTargets.Method,
+    [AttributeUsage(AttributeTargets.Parameter,
                    AllowMultiple = false)]
-    public class TrueWhenNotNullAttribute : Attribute
+    public class NotNullWhenFalseAttribute : Attribute
     {
-        public TrueWhenNotNullAttribute(bool bad) { }
+        public NotNullWhenFalseAttribute(bool bad) { }
     }
 }
 ", parseOptions: TestOptions.Regular8);
@@ -5800,10 +5763,12 @@ namespace System.Runtime.CompilerServices
                 //             s.ToString(); // warn 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13)
                 );
+
+            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", false);
         }
 
         [Fact]
-        public void TrueWhenNotNull_InvertIf()
+        public void NotNullWhenFalse_InvertIf()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -5820,20 +5785,21 @@ class C
             s.ToString(); // warn
         }
     }
-    [TrueWhenNotNull]
-    static bool MyIsNullOrEmpty(string? s) => throw null;
+    static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-" + TrueWhenNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (13,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13)
                 );
+
+            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true);
         }
 
         [Fact]
-        public void TrueWhenNotNull_InstanceMethod()
+        public void NotNullWhenFalse_InstanceMethod()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -5850,20 +5816,21 @@ class C
             s.ToString(); // ok
         }
     }
-    [TrueWhenNotNull]
-    bool MyIsNullOrEmpty(string? s) => throw null;
+    bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
-" + TrueWhenNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
                 );
+
+            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true);
         }
 
         [Fact]
-        public void TrueWhenNotNull_ExtensionMethod()
+        public void NotNullWhenFalse_ExtensionMethod()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -5883,20 +5850,21 @@ public class C
 }
 public static class Extension
 {
-    [TrueWhenNotNull]
-    public static bool MyIsNullOrEmpty(this C c, string? s) => throw null;
+    public static bool MyIsNullOrEmpty(this C c, [NotNullWhenFalse] string? s) => throw null;
 }
-" + TrueWhenNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
                 );
+
+            VerifyNotNullWhenFalse(c, "Extension.MyIsNullOrEmpty", false, true);
         }
 
         [Fact]
-        public void TrueWhenNotNull_String_IsNullOrEmpty()
+        public void NotNullWhenFalse_String_IsNullOrEmpty()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -5920,10 +5888,98 @@ class C
                 //             s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
                 );
+
+            VerifyNotNullWhenFalse(c, "System.String.IsNullOrEmpty", true);
         }
 
         [Fact]
-        public void TrueWhenNotNull_String_NotIsNullOrEmpty()
+        public void NotNullWhenFalse_String_IsNullOrEmpty_WithoutCorlib()
+        {
+            CSharpCompilation c = CreateEmptyCompilation(@"
+class C
+{
+    void Main(string? s)
+    {
+        if (string.IsNullOrEmpty(s))
+        {
+            s.ToString(); // warn
+        }
+        else
+        {
+            s.ToString(); // ok
+        }
+    }
+}
+namespace System
+{
+    public class Object
+    {
+        public virtual string ToString() => throw null;
+    }
+    public class String
+    {
+        public static bool IsNullOrEmpty(string? s) => throw null;
+    }
+    public struct Void { }
+    public struct Boolean { }
+    public class ValueType { }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
+                );
+
+            VerifyNotNullWhenFalse(c, "System.String.IsNullOrEmpty", true);
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_String_IsNullOrWhiteSpace_WithoutCorlib()
+        {
+            CSharpCompilation c = CreateEmptyCompilation(@"
+class C
+{
+    void Main(string? s)
+    {
+        if (string.IsNullOrWhiteSpace(s))
+        {
+            s.ToString(); // warn
+        }
+        else
+        {
+            s.ToString(); // ok
+        }
+    }
+}
+namespace System
+{
+    public class Object
+    {
+        public virtual string ToString() => throw null;
+    }
+    public class String
+    {
+        public static bool IsNullOrWhiteSpace(string? s) => throw null;
+    }
+    public struct Void { }
+    public struct Boolean { }
+    public class ValueType { }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
+                );
+
+            VerifyNotNullWhenFalse(c, "System.String.IsNullOrWhiteSpace", true);
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_String_NotIsNullOrEmpty()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -5947,10 +6003,12 @@ class C
                 //             s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(12, 13)
                 );
+
+            VerifyNotNullWhenFalse(c, "System.String.IsNullOrEmpty", true);
         }
 
         [Fact]
-        public void TrueWhenNotNull_String_NotIsNullOrEmpty_NoDuplicateWarnings()
+        public void NotNullWhenFalse_String_NotIsNullOrEmpty_NoDuplicateWarnings()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -5973,7 +6031,7 @@ class C
         }
 
         [Fact]
-        public void TrueWhenNotNull_String_NotIsNullOrEmpty_NotAString()
+        public void NotNullWhenFalse_String_NotIsNullOrEmpty_NotAString()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -5996,7 +6054,7 @@ class C
         }
 
         [Fact]
-        public void TrueWhenNotNull_String_IsNullOrWhiteSpace()
+        public void NotNullWhenFalse_String_IsNullOrWhiteSpace()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -6020,6 +6078,258 @@ class C
                 //             s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
                 );
+
+            VerifyNotNullWhenFalse(c, "System.String.IsNullOrWhiteSpace", true);
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_PartialMethod()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public partial class C
+{
+    partial void M1(string? s);
+    partial void M1([NotNullWhenFalse] string? s) => throw null;
+
+    partial void M2([NotNullWhenFalse] string? s);
+    partial void M2(string? s) => throw null;
+
+    partial void M3([NotNullWhenFalse] string? s);
+    partial void M3([NotNullWhenFalse] string? s) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (11,22): error CS0579: Duplicate 'NotNullWhenFalse' attribute
+                //     partial void M3([NotNullWhenFalse] string? s);
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "NotNullWhenFalse").WithArguments("NotNullWhenFalse").WithLocation(11, 22)
+                );
+
+            VerifyNotNullWhenFalse(c, "C.M1", false);
+            VerifyNotNullWhenFalse(c, "C.M2", true);
+            VerifyNotNullWhenFalse(c, "C.M3", true);
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_ReturningDynamic()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        if (string.IsNullOrWhiteSpace(s))
+        {
+            s.ToString(); // warn
+        }
+        else
+        {
+            s.ToString(); // ok
+        }
+    }
+    dynamic MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
+                );
+
+            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true);
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_ReturningObject()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        string.IsNullOrWhiteSpace(s);
+        s.ToString(); // warn
+    }
+    object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_FollowedByEnsuresNotNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        if (MyIsNullOrEmpty(s, s))
+        {
+            s.ToString(); // ok
+        }
+        else
+        {
+            s.ToString(); // ok
+        }
+
+        s.ToString(); // ok
+    }
+    static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s, [EnsuresNotNull] string? s2) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+
+            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true, false);
+            VerifyEnsuresNotNull(c, "C.MyIsNullOrEmpty", false, true);
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_AndEnsuresNotNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        if (MyIsNullOrEmpty(s))
+        {
+            s.ToString(); // ok
+        }
+        else
+        {
+            s.ToString(); // ok
+        }
+
+        s.ToString(); // ok
+    }
+    static bool MyIsNullOrEmpty([NotNullWhenFalse, EnsuresNotNull] string? s) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+
+            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true);
+            VerifyEnsuresNotNull(c, "C.MyIsNullOrEmpty", true);
+        }
+
+        [Fact]
+        public void EnsuresNotNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        ThrowIfNull(42, s);
+        s.ToString(); // ok
+    }
+    static void ThrowIfNull(int x, [EnsuresNotNull] string? s) => throw null;
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+
+            VerifyEnsuresNotNull(c, "C.ThrowIfNull", false, true);
+        }
+
+        [Fact]
+        public void EnsuresNotNull_SecondArgumentDereferences()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        ThrowIfNull(s, s.ToString()); // warn
+        s.ToString(); // ok
+    }
+    static void ThrowIfNull([EnsuresNotNull] string? s, string s2) => throw null;
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (7,24): warning CS8602: Possible dereference of a null reference.
+                //         ThrowIfNull(s, s.ToString()); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 24)
+                );
+
+            VerifyEnsuresNotNull(c, "C.ThrowIfNull", true, false);
+        }
+
+        [Fact]
+        public void EnsuresNotNull_SecondArgumentAssigns()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        ThrowIfNull(s, s = null);
+        s.ToString(); // warn
+    }
+    static void ThrowIfNull([EnsuresNotNull] string? s, string? s2) => throw null;
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void EnsuresNotNull_String_Contains()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+class C
+{
+    void Main(string? s)
+    {
+        ""hello"".Contains(s);
+        s.ToString(); // ok
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+
+            VerifyEnsuresNotNull(c, "System.String.Contains", true);
+        }
+
+        [Fact]
+        public void EnsuresNotNull_Indexer()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        _ = this[42, s];
+        s.ToString(); // ok
+    }
+    public int this[int x, [EnsuresNotNull] string? s] => throw null;
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
         }
 
         [Fact]

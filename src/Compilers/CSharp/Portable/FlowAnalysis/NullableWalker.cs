@@ -11,7 +11,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -60,6 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private PooledDictionary<BoundExpression, ObjectCreationPlaceholderLocal> _placeholderLocals;
 
+        /// <summary>
+        /// For methods with annotations, we'll need to visit the arguments twice.
+        /// Once for diagnostics and once for result state (but disabling diagnostics).
+        /// </summary>
         private bool _disableDiagnostics = false;
 
         protected override void Free()
@@ -1580,17 +1583,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE(NullableReferenceTypes): Can we handle some error cases?
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
-            ImmutableArray<BoundExpression> arguments = node.Arguments;
             if (!node.HasErrors)
             {
                 ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
-                ImmutableArray<BoundExpression> strippedArguments = RemoveArgumentConversions(arguments, refKindsOpt);
-                ImmutableArray<Result> results = VisitArgumentsEvaluate(strippedArguments, refKindsOpt, node.Expanded);
+                ImmutableArray<BoundExpression> arguments = RemoveArgumentConversions(node.Arguments, refKindsOpt);
+                ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
+                ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded);
+
                 if (method.IsGenericMethod && HasImplicitTypeArguments(node))
                 {
                     method = InferMethod(node, method, results.SelectAsArray(r => r.Type));
                 }
-                VisitArgumentsWarn(strippedArguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt, node.Expanded, results);
+                VisitArgumentsWarn(arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, results);
             }
 
             UpdateStateForCall(node);
@@ -1601,29 +1605,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
 
-            string key = ExtraAnnotations.MakeMethodKey(method);
-            ImmutableArray<AttributeDescription> extraAttributes = ExtraAnnotations.GetExtraAttributes(key);
-            if (MethodEnsuresTrueWhenExits(method, extraAttributes))
-            {
-                var condition = TryGetFirstArgument(method, arguments);
-                if (condition != null)
-                {
-                    VisitTrueWhenExits(condition);
-                }
-            }
-
-            if (MethodReturnsTrueWhenNotNull(method, extraAttributes))
-            {
-                var condition = TryGetFirstArgument(method, arguments);
-                if (condition != null)
-                {
-                    VisitTrueWhenNotNull(condition, method.ReturnType.TypeSymbol);
-                    _result = method.ReturnType;
-                    return null;
-                }
-            }
-
-            Debug.Assert(!IsConditionalState);
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
                 _result = method.ReturnType;
@@ -1632,95 +1613,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private BoundExpression TryGetFirstArgument(MethodSymbol method, ImmutableArray<BoundExpression> arguments)
+        /// <summary>
+        /// For each argument, figure out if its corresponding parameter is annotated with NotNullWhenFalse or
+        /// EnsuresNotNull.
+        /// </summary>
+        private ImmutableArray<(bool notNullWhenFalse, bool ensuresNotNull)> GetAnnotations(int numArguments,
+            bool expanded, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt)
         {
-            if (method.IsExtensionMethod)
+            ArrayBuilder<(bool notNullWhenFalse, bool ensuresNotNull)> builder = null;
+
+            for (int i = 0; i < numArguments; i++)
             {
-                return (arguments.Length > 1) ? arguments[1] : null;
-            }
+                (ParameterSymbol parameter, _) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
 
-            return (arguments.Length > 0) ? arguments[0] : null;
-        }
+                bool notNullWhenFalse = parameter?.NotNullWhenFalse == true;
+                bool ensuresNotNull = parameter?.EnsuresNotNull == true;
 
-        private bool MethodReturnsTrueWhenNotNull(MethodSymbol method, ImmutableArray<AttributeDescription> extraAttributes)
-        {
-            if (method.ReturnType.SpecialType != SpecialType.System_Boolean)
-            {
-                return false;
-            }
-
-            return MethodHasAttribute(method, extraAttributes, AttributeDescription.TrueWhenNotNullAttribute);
-        }
-
-        private void VisitTrueWhenNotNull(BoundExpression operand, TypeSymbol boolType)
-        {
-            if (!operand.Type.IsReferenceType)
-            {
-                return;
-            }
-
-            // operand == null || someUnknownBoolean
-            BoundExpression equivalent = LogicalOr(
-                new BoundBinaryOperator(operand.Syntax, BinaryOperatorKind.Equal, operand,
-                    new BoundLiteral(operand.Syntax, ConstantValue.Null, operand.Type),
-                    constantValueOpt: null, methodOpt: null, LookupResultKind.Viable, boolType),
-                new BoundLiteral(operand.Syntax, constantValueOpt: null, boolType));
-
-            // We only need to update the null-state, so we'll do the flow analysis without diagnostics
-            bool savedDisableDiagnostics = _disableDiagnostics;
-            _disableDiagnostics = true;
-
-            Visit(equivalent);
-
-            _disableDiagnostics = savedDisableDiagnostics;
-        }
-
-        internal static BoundBinaryOperator LogicalOr(BoundExpression left, BoundExpression right)
-        {
-            return new BoundBinaryOperator(left.Syntax, BinaryOperatorKind.LogicalBoolOr, left, right, constantValueOpt: null, methodOpt: null, LookupResultKind.Viable, left.Type);
-        }
-
-        private bool MethodEnsuresTrueWhenExits(MethodSymbol method, ImmutableArray<AttributeDescription> extraAttributes)
-        {
-            return MethodHasAttribute(method, extraAttributes, AttributeDescription.EnsuresTrueWhenExitsAttribute);
-        }
-
-        private bool MethodHasAttribute(MethodSymbol method, ImmutableArray<AttributeDescription> extraAttributes, AttributeDescription description)
-        {
-            foreach (var attribute in method.GetAttributes())
-            {
-                if (attribute.IsTargetAttribute(method, description))
+                if ((notNullWhenFalse || ensuresNotNull) && builder == null)
                 {
-                    return true;
+                    builder = ArrayBuilder<(bool, bool)>.GetInstance(numArguments);
+                    builder.AddMany((false, false), i);
+                }
+
+                if (builder != null)
+                {
+                    builder.Add((notNullWhenFalse, ensuresNotNull));
                 }
             }
 
-            if (!extraAttributes.IsDefault)
-            {
-                foreach (var attribute in extraAttributes)
-                {
-                    if (attribute.Equals(description))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private void VisitTrueWhenExits(BoundExpression condition)
-        {
-            // We only need to update the null-state, so we'll do the flow analysis without diagnostics
-
-            bool savedDisableDiagnostics = _disableDiagnostics;
-            _disableDiagnostics = true;
-
-            // if (!condition) throw;
-            VisitIfStatement(new BoundIfStatement(condition.Syntax, SyntheticBoundNodeFactory.NotCore(condition),
-                new BoundThrowStatement(condition.Syntax, expressionOpt: null), alternativeOpt: null));
-
-            _disableDiagnostics = savedDisableDiagnostics;
+            return builder == null ? default : builder.ToImmutableAndFree();
         }
 
         // PROTOTYPE(NullableReferenceTypes): Record in the node whether type
@@ -1781,13 +1702,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded)
         {
             Debug.Assert(!arguments.IsDefault);
-            ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, expanded);
+            ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, parameters, argsToParamsOpt, expanded);
             // PROTOTYPE(NullableReferenceTypes): Can we handle some error cases?
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
             if (!node.HasErrors && !parameters.IsDefault)
             {
                 VisitArgumentsWarn(arguments, refKindsOpt, parameters, argsToParamsOpt, expanded, results);
             }
+        }
+
+        private ImmutableArray<Result> VisitArgumentsEvaluate(
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> refKindsOpt,
+            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<int> argsToParamsOpt,
+            bool expanded)
+        {
+            var savedState = this.State.Clone();
+            // We do a first pass to work through the arguments without making any assumptions
+            var results = VisitArgumentsEvaluate(arguments, refKindsOpt, expanded);
+
+            // We do a second pass through the arguments, ignoring any diagnostics produced, but honoring the annotations,
+            // to get the proper result state.
+            this.SetState(savedState);
+            VisitArgumentsEvaluateHonoringAnnotations(arguments, refKindsOpt, parameters, argsToParamsOpt, expanded);
+
+            return results;
         }
 
         private ImmutableArray<Result> VisitArgumentsEvaluate(
@@ -1804,22 +1744,134 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<Result>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
-                RefKind refKind = GetRefKind(refKindsOpt, i);
+                VisitArgumentEvaluate(arguments, refKindsOpt, i);
+                builder.Add(_result);
+            }
+
+            _result = _invalidType;
+            return builder.ToImmutableAndFree();
+        }
+
+        private void VisitArgumentEvaluate(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, int i)
+        {
+            RefKind refKind = GetRefKind(refKindsOpt, i);
+            var argument = arguments[i];
+            if (refKind != RefKind.Out)
+            {
+                // PROTOTYPE(NullReferenceTypes): `ref` arguments should be treated as l-values
+                // for assignment. See `ref x3` in StaticNullChecking.PassingParameters_01.
+                VisitRvalue(argument);
+            }
+            else
+            {
+                VisitLvalue(argument);
+            }
+        }
+
+        /// <summary>
+        /// Visit all the arguments for the purpose of computing the exit state of the method,
+        /// given the annotations, but disabling warnings.
+        /// </summary>
+        private void VisitArgumentsEvaluateHonoringAnnotations(
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> refKindsOpt,
+            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<int> argsToParamsOpt,
+            bool expanded)
+        {
+            Debug.Assert(!IsConditionalState);
+
+            ImmutableArray<(bool notNullWhenFalse, bool ensuresNotNull)> annotations = GetAnnotations(arguments.Length,
+               expanded, parameters, argsToParamsOpt);
+
+            if (annotations.IsDefault)
+            {
+                return;
+            }
+
+            bool saveDisableDiagnostics = _disableDiagnostics;
+            _disableDiagnostics = true;
+
+            Debug.Assert(annotations.Length == arguments.Length);
+
+            // Since we may be splitting states to represent the method returning true/false,
+            // we'll prepare all the slots ahead of time.
+            var slots = ArrayBuilder<int?>.GetInstance(arguments.Length);
+            for (int i = 0; i < arguments.Length; i++)
+            {
                 var argument = arguments[i];
-                if (refKind != RefKind.Out)
+                int slot = MakeSlot(argument);
+                if (slot <= 0)
                 {
-                    // PROTOTYPE(NullReferenceTypes): `ref` arguments should be treated as l-values
-                    // for assignment. See `ref x3` in StaticNullChecking.PassingParameters_01.
-                    VisitRvalue(argument);
+                    slots.Add(null);
+                    continue;
+                }
+                if (slot >= this.State.Capacity) Normalize(ref this.State);
+                slots.Add(slot);
+            }
+
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                if (this.IsConditionalState)
+                {
+                    // We could be in a conditional state because of NotNullWhenFalse annotation
+                    // Then WhenTrue/False states correspond to the invocation returning true/false
+
+                    // We'll successively assume that we're in the unconditional state where the method returns true,
+                    // then we'll repeat assuming the method returns false.
+
+                    LocalState whenTrue = this.StateWhenTrue.Clone();
+                    LocalState whenFalse = this.StateWhenFalse.Clone();
+
+                    this.SetState(whenTrue);
+                    VisitArgumentEvaluate(arguments, refKindsOpt, i);
+                    Debug.Assert(!IsConditionalState);
+
+                    this.SetState(whenFalse);
+                    VisitArgumentEvaluate(arguments, refKindsOpt, i);
+                    Debug.Assert(!IsConditionalState);
+
+                    this.SetConditionalState(whenTrue, whenFalse);
                 }
                 else
                 {
-                    VisitLvalue(argument);
+                    VisitArgumentEvaluate(arguments, refKindsOpt, i);
                 }
-                builder.Add(_result);
+
+                var argument = arguments[i];
+                if (argument.Type?.IsReferenceType != true || slots[i] == null)
+                {
+                    continue;
+                }
+
+                int slot = slots[i].Value;
+                (bool notNullWhenFalse, bool ensuresNotNull) = annotations[i];
+
+                if (ensuresNotNull)
+                {
+                    // The variable in this slot is not null
+                    if (this.IsConditionalState)
+                    {
+                        this.StateWhenTrue[slot] = true;
+                        this.StateWhenFalse[slot] = true;
+                    }
+                    else
+                    {
+                        this.State[slot] = true;
+                    }
+                }
+                else if (notNullWhenFalse)
+                {
+                    // We'll use the WhenTrue/False states to represent whether the invocation returns true/false
+                    Split();
+
+                    // The variable in this slot is not null when the method returns false
+                    this.StateWhenFalse[slot] = true;
+                }
             }
-            _result = _invalidType;
-            return builder.ToImmutableAndFree();
+
+            slots.Free();
+            _disableDiagnostics = saveDisableDiagnostics;
         }
 
         private void VisitArgumentsWarn(
@@ -1933,7 +1985,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static (ParameterSymbol, TypeSymbolWithAnnotations) GetCorrespondingParameter(int argumentOrdinal, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt, bool expanded)
         {
-            Debug.Assert(!parameters.IsDefault);
+            if (parameters.IsDefault)
+            {
+                return (null, null);
+            }
 
             int n = parameters.Length;
             ParameterSymbol parameter;
@@ -3188,7 +3243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
         {
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, expanded: false);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
             Debug.Assert((object)node.Type == null);
             SetResult(node);
             return null;
@@ -3268,7 +3323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
         {
             VisitRvalue(node.Expression);
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, expanded: false);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
 
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(node.Type.IsReferenceType);
@@ -3296,7 +3351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, expanded: false);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
             VisitObjectOrDynamicObjectCreation(node, node.InitializerExpressionOpt);
             return null;
         }
@@ -3375,7 +3430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiver = node.ReceiverOpt;
             VisitRvalue(receiver);
             CheckPossibleNullReceiver(receiver);
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, expanded: false);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
 
             Debug.Assert(node.Type.IsDynamic());
 
@@ -3693,6 +3748,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _knownNullState.Capacity > 0;
                 }
             }
+
+#if DEBUG
+            public override string ToString()
+            {
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var builder = pooledBuilder.Builder;
+                builder.Append(" ");
+                for (int i = this.Capacity - 1; i >= 0; i--)
+                {
+                    builder.Append(_knownNullState[i] ? (_notNull[i] ? "! " : "? ") : ". ");
+                }
+
+                return pooledBuilder.ToStringAndFree();
+            }
+#endif
         }
     }
 }

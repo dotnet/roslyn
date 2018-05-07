@@ -385,6 +385,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsCallerMemberName { get; }
 
+        /// <summary>
+        /// If the method returns false, then we can infer that the argument used for this parameter was not null.
+        /// </summary>
+        internal abstract bool NotNullWhenFalse { get; }
+
+        /// <summary>
+        /// When the method returns, then we can infer that the argument used for this parameter was not null.
+        /// </summary>
+        internal abstract bool EnsuresNotNull { get; }
+
+        protected bool HasExtraAttribute(AttributeDescription description)
+        {
+            ParameterSymbol originalParameter = this.OriginalDefinition;
+            var containingMethod = originalParameter.ContainingSymbol as MethodSymbol;
+
+            if (containingMethod is null)
+            {
+                return false;
+            }
+
+            string key = ExtraAnnotations.MakeMethodKey(containingMethod);
+
+            // index 0 is used for return type
+            // `this` parameter is at index 1
+            // other parameters follow
+            int index = this.Ordinal + (containingMethod.IsExtensionMethod ? 2 : 1);
+            ImmutableArray<AttributeDescription> extraAttributes = ExtraAnnotations.GetExtraAttributes(key, index);
+
+            if (!extraAttributes.IsDefault)
+            {
+                foreach (var attribute in extraAttributes)
+                {
+                    if (equals(attribute, description))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+
+            bool equals(AttributeDescription first, AttributeDescription second)
+            {
+                return first.Namespace == second.Namespace &&
+                    first.Name == second.Name &&
+                    ReferenceEquals(first.Signatures, second.Signatures) &&
+                    first.MatchIgnoringCase == second.MatchIgnoringCase;
+            }
+        }
+
         protected sealed override int HighestPriorityUseSiteError
         {
             get

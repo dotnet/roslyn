@@ -82,6 +82,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override bool NotNullWhenFalse
+        {
+            get { return HasExtraAttribute(AttributeDescription.NotNullWhenFalseAttribute); }
+        }
+
+        internal override bool EnsuresNotNull
+        {
+            get { return HasExtraAttribute(AttributeDescription.EnsuresNotNullAttribute); }
+        }
+
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
         {
             get { return null; }

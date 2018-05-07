@@ -115,6 +115,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override bool NotNullWhenFalse
+        {
+            get { return false; }
+        }
+
+        internal override bool EnsuresNotNull
+        {
+            get { return false; }
+        }
+
         public override Symbol ContainingSymbol
         {
             get { return _container; }

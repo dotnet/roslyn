@@ -153,7 +153,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.IsCallerMemberName; }
         }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        internal override bool NotNullWhenFalse
+        {
+            get { return _underlyingParameter.NotNullWhenFalse; }
+        }
+
+        internal override bool EnsuresNotNull
+        {
+            get { return _underlyingParameter.EnsuresNotNull; }
+        }
+
+        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
             return _underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
