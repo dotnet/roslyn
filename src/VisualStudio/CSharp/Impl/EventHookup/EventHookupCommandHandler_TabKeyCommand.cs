@@ -275,14 +275,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             var syntaxFactory = semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 accessibility: Accessibility.Private,
                 modifiers: new DeclarationModifiers(isStatic: eventHookupExpression.IsInStaticContext()),
                 returnType: delegateType.DelegateInvokeMethod.ReturnType,
                 refKind: delegateType.DelegateInvokeMethod.RefKind,
                 explicitInterfaceImplementations: default,
                 name: eventHandlerMethodName,
-                typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
+                typeParameters: default,
                 parameters: delegateType.DelegateInvokeMethod.Parameters,
                 statements: ImmutableArray.Create(
                     CodeGenerationHelpers.GenerateThrowStatement(syntaxFactory, semanticDocument, "System.NotImplementedException", cancellationToken)));

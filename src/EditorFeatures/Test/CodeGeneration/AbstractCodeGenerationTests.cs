@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         protected static ITypeSymbol CreateClass(string name)
         {
             return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                default(ImmutableArray<AttributeData>), default(Accessibility), default(DeclarationModifiers), TypeKind.Class, name);
+                default, default, default, TypeKind.Class, name);
         }
     }
 }

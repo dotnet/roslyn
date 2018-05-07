@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             // appear to consume this information, so we'll just return the simplest thing (no location).
             if ((memberDeclaration == null) || (memberDeclaration.Kind() == SyntaxKind.GlobalStatement))
             {
-                return default(DebugLocationInfo);
+                return default;
             }
 
             // field or event field declarations may contain multiple variable declarators. Try finding the correct one.

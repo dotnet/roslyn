@@ -374,9 +374,9 @@ End Class";
                     return ImmutableArray.Create<IEventSymbol>(
                         new CodeGenerationEventSymbol(
                             GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel), 
-                            default(ImmutableArray<AttributeData>),
+                            default,
                             Accessibility.Public,
-                            default(DeclarationModifiers),
+                            default,
                             GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
                             default,
                             nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null));

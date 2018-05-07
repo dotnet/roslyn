@@ -795,7 +795,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 var keyedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element);
                 if (keyedElement != null)
                 {
-                    keyedElement.ReacquireNodeKey(globalNodeKey.Path, default(CancellationToken));
+                    keyedElement.ReacquireNodeKey(globalNodeKey.Path, default);
                 }
             }
         }
