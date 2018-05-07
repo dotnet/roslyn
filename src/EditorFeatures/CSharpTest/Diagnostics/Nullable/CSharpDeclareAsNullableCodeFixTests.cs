@@ -109,6 +109,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
 
         [Fact]
         [WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
+        public async Task FixReturnType_LocalFunction_ArrowBody()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Program
+{
+    static void M()
+    {
+        string local() => [|null|];
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        [WorkItem(26639, "https://github.com/dotnet/roslyn/issues/26639")]
         public async Task FixLocalFunctionReturnType()
         {
             await TestMissingInRegularAndScriptAsync(
