@@ -2203,6 +2203,30 @@ class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(26648, "https://github.com/dotnet/roslyn/issues/26648")]
+        public async Task NullableReference_InMethod()
+        {
+            var code = @"
+class G
+{
+    void M()
+    {
+        C c;
+        c.Go$$o();
+    }
+}
+public class C
+{
+    public string? Goo(IEnumerable<object?> arg)
+    {
+    }
+}";
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp8),
+                code, MainDescription("string? C.Goo(IEnumerable<object?> arg)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task NestedInGeneric()
         {
             await TestInMethodAsync(
