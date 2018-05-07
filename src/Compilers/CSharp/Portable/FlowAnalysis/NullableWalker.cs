@@ -2791,40 +2791,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             var result = base.VisitUnaryOperator(node);
+            TypeSymbolWithAnnotations resultType = null;
 
             // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
-            if (node.OperatorKind.IsUserDefined() && (object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
-            {
-                ReportArgumentWarnings(node.Operand, _result.Type, node.MethodOpt.Parameters[0]);
-            }
-
-            _result = InferResultNullability(node);
-            return null;
-        }
-
-        private TypeSymbolWithAnnotations InferResultNullability(BoundUnaryOperator node)
-        {
             if (node.OperatorKind.IsUserDefined())
             {
                 if (node.OperatorKind.IsLifted())
                 {
                     // PROTOTYPE(NullableReferenceTypes): Conversions: Lifted operator
-                    return TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
                 }
-                // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
-                if ((object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
+                else if ((object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
                 {
-                    return GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.MethodOpt);
-                }
-                else
-                {
-                    return null;
+                    ReportArgumentWarnings(node.Operand, _result.Type, node.MethodOpt.Parameters[0]);
+                    resultType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.MethodOpt);
                 }
             }
-            else
-            {
-                return TypeSymbolWithAnnotations.Create(node.Type);
-            }
+
+            _result = resultType ?? TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
+            return null;
         }
 
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
