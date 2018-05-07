@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.CodingConventions;
 
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         private readonly ICodingConventionsManager _codingConventionsManager;
 
         [ImportingConstructor]
-        [Obsolete("Never call this directly")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorConfigDocumentOptionsProviderFactory(ICodingConventionsManager codingConventionsManager)
         {
             _codingConventionsManager = codingConventionsManager;
