@@ -3877,6 +3877,11 @@ oneMoreTime:
         {
             return new LiteralExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
+        
+        public override IOperation VisitTypeOf(ITypeOfOperation operation, int? captureIdForResult)
+        {
+            return new TypeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
 
         private T Visit<T>(T node) where T : IOperation
         {
@@ -4002,11 +4007,6 @@ oneMoreTime:
         public override IOperation VisitSizeOf(ISizeOfOperation operation, int? captureIdForResult)
         {
             return new SizeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitTypeOf(ITypeOfOperation operation, int? captureIdForResult)
-        {
-            return new TypeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
