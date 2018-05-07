@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (isVar)
                         {
-                            declType = inferredType ?? TypeSymbolWithAnnotations.Create(CreateErrorType("var"));
+                            declType = inferredType ?? TypeSymbolWithAnnotations.Create(CreateErrorType("var"), isNullableIfReferenceType: null);
                         }
                         else
                         {
