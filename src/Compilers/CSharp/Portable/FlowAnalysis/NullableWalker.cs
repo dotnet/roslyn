@@ -2821,10 +2821,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
             }
-            else if (node.OperatorKind.IsDynamic())
-            {
-                return null;
-            }
             else
             {
                 return TypeSymbolWithAnnotations.Create(node.Type);
