@@ -2577,9 +2577,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns a tuple of streams where
-        /// * `peStream` is a stream which will carry the output PE bits
-        /// * `signingStream` is the stream which will be signed by the legacy strong name signer, or null if we aren't using the legacy signer
-        /// * `selectedStream` is an alias of either peStream or signingStream, and is the stream that will be written to by the emitter.
+        /// * <c>peStream</c> is a stream which will carry the output PE bits
+        /// * <c>signingStream</c> is the stream which will be signed by the legacy strong name signer, or null if we aren't using the legacy signer
+        /// * <c>selectedStream</c> is an alias of either peStream or signingStream, and is the stream that will be written to by the emitter.
         /// </summary>
         private (Stream peStream, Stream signingStream, Stream selectedStream) GetPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider peStreamProvider, bool metadataOnly)
         {
