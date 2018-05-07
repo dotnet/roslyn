@@ -80,22 +80,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
             if (node.IsParentKind(SyntaxKind.ReturnStatement))
             {
-                var containingMember = node.GetAncestors().FirstOrDefault(a => a.IsReturnableConstruct());
+                var containingMember = node.GetAncestors().FirstOrDefault(a => a.IsKind(
+                    SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression,
+                    SyntaxKind.LocalFunctionStatement, SyntaxKind.AnonymousMethodExpression, SyntaxKind.ConstructorDeclaration, SyntaxKind.DestructorDeclaration,
+                    SyntaxKind.OperatorDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.EventDeclaration));
 
                 if (containingMember == null)
                 {
                     return null;
                 }
 
-                switch (containingMember.Kind())
+                switch (containingMember)
                 {
-                    case SyntaxKind.MethodDeclaration:
+                    case MethodDeclarationSyntax method:
                         // string M() { return null; }
-                        return ((MethodDeclarationSyntax)containingMember).ReturnType;
+                        return method.ReturnType;
 
-                    case SyntaxKind.PropertyDeclaration:
+                    case PropertyDeclarationSyntax property:
                         // string x { get { return null; } }
-                        return ((PropertyDeclarationSyntax)containingMember).Type;
+                        return property.Type;
 
                     default:
                         return null;
