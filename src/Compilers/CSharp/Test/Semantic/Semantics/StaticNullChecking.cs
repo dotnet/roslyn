@@ -19448,6 +19448,104 @@ class C
         public void ForEach_02()
         {
             var source =
+@"class Enumerable
+{
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class Enumerator
+{
+    public object? Current => throw null;
+    public bool MoveNext() => false;
+}
+class C
+{
+    static void F(Enumerable e)
+    {
+        foreach (var x in e)
+            x.ToString();
+        foreach (object y in e)
+            y.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (15,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(15, 13),
+                // (17,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(17, 13));
+        }
+
+        [Fact]
+        public void ForEach_03()
+        {
+            var source =
+@"using System.Collections;
+namespace System
+{
+    public class Object
+    {
+        public string ToString() => throw null;
+    }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public class String { }
+}
+namespace System.Collections
+{
+    public interface IEnumerable
+    {
+        IEnumerator GetEnumerator();
+    }
+    public interface IEnumerator
+    {
+        object? Current { get; }
+        bool MoveNext();
+    }
+}
+class Enumerable : IEnumerable
+{
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+class C
+{
+    static void F(Enumerable e)
+    {
+        foreach (var x in e)
+            x.ToString();
+        foreach (object y in e)
+            y.ToString();
+    }
+    static void G(IEnumerable e)
+    {
+        foreach (var z in e)
+            z.ToString();
+        foreach (object w in e)
+            w.ToString();
+    }
+}";
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (34,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(34, 13),
+                // (36,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(36, 13),
+                // (41,13): warning CS8602: Possible dereference of a null reference.
+                //             z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(41, 13),
+                // (43,13): warning CS8602: Possible dereference of a null reference.
+                //             w.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w").WithLocation(43, 13));
+        }
+
+        [Fact]
+        public void ForEach_04()
+        {
+            var source =
 @"using System.Collections;
 using System.Collections.Generic;
 class C
@@ -19473,7 +19571,7 @@ class C
         }
 
         [Fact]
-        public void ForEach_03()
+        public void ForEach_05()
         {
             var source =
 @"class C
@@ -19491,7 +19589,7 @@ class C
         }
 
         [Fact]
-        public void ForEach_04()
+        public void ForEach_06()
         {
             var source =
 @"using System.Collections;
@@ -19532,7 +19630,7 @@ class P
         }
 
         [Fact]
-        public void ForEach_05()
+        public void ForEach_07()
         {
             var source =
 @"struct S<T> where T : class

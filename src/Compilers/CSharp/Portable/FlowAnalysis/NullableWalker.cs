@@ -2718,15 +2718,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var iterationVariable in node.IterationVariables)
             {
                 int slot = GetOrCreateSlot(iterationVariable);
-                var sourceType = node.EnumeratorInfoOpt?.ElementType;
+                TypeSymbolWithAnnotations sourceType = node.EnumeratorInfoOpt?.ElementType;
                 bool? isNullableIfReferenceType = null;
                 if ((object)sourceType != null)
                 {
-                    var destinationType = iterationVariable.Type;
+                    TypeSymbolWithAnnotations destinationType = iterationVariable.Type;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var conversion = _conversions.ClassifyImplicitConversionFromType(sourceType.TypeSymbol, destinationType.TypeSymbol, ref useSiteDiagnostics);
+                    Conversion conversion = _conversions.ClassifyImplicitConversionFromType(sourceType.TypeSymbol, destinationType.TypeSymbol, ref useSiteDiagnostics);
                     // PROTOTYPE(NullableReferenceTypes): Report nullability mismatch if any.
-                    var result = InferResultNullability(operand: null, conversion, destinationType.TypeSymbol, sourceType);
+                    TypeSymbolWithAnnotations result = InferResultNullability(operand: null, conversion, destinationType.TypeSymbol, sourceType);
                     isNullableIfReferenceType = result.IsNullable;
                 }
                 this.State[slot] = !isNullableIfReferenceType;
