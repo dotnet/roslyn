@@ -696,14 +696,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
-            var expr = node.ExpressionOpt;
+            BoundExpression expr = node.ExpressionOpt;
             if (expr == null)
             {
                 return null;
             }
 
             expr = RemoveImplicitConversions(expr);
-            var result = VisitRvalueWithResult(expr);
+            Result result = VisitRvalueWithResult(expr);
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             if (expr.Type?.IsErrorType() == true)
