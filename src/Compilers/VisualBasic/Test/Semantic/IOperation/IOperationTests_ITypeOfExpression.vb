@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
-        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub TestGetType()
             Dim source = <![CDATA[
@@ -155,7 +155,7 @@ BC30182: Type expected.
             VerifyOperationTreeAndDiagnosticsForTest(Of GetTypeExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact>
         Public Sub TypeOfFlow_01()
             Dim source = <![CDATA[
