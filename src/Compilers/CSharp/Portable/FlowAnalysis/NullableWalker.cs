@@ -694,33 +694,65 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
         {
-            var result = base.VisitReturnStatementNoAdjust(node);
-
             Debug.Assert(!IsConditionalState);
-            if (node.ExpressionOpt != null && this.State.Reachable)
+
+            BoundExpression expr = node.ExpressionOpt;
+            if (expr == null)
             {
-                TypeSymbolWithAnnotations returnType = this._currentMethodOrLambda?.ReturnType;
+                return null;
+            }
+
+            expr = RemoveImplicitConversions(expr);
+            Result result = VisitRvalueWithResult(expr);
+
+            //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
+            if (expr.Type?.IsErrorType() == true)
+            {
+                return null;
+            }
+
+            TypeSymbolWithAnnotations returnType = GetReturnType(compilation, _currentMethodOrLambda);
+            if ((object)returnType != null)
+            {
+                TypeSymbolWithAnnotations unconvertedType = result.Type;
+                Conversion conversion = GenerateConversion(_conversions, expr, unconvertedType?.TypeSymbol, returnType.TypeSymbol);
+                TypeSymbolWithAnnotations resultType = InferResultNullability(expr, conversion, returnType.TypeSymbol, unconvertedType);
+
                 bool returnTypeIsNonNullable = IsNonNullable(returnType);
-                bool returnTypeIsUnconstrainedTypeParameter = IsUnconstrainedTypeParameter(returnType?.TypeSymbol);
+                bool returnTypeIsUnconstrainedTypeParameter = IsUnconstrainedTypeParameter(returnType.TypeSymbol);
                 bool reportedNullable = false;
                 if (returnTypeIsNonNullable || returnTypeIsUnconstrainedTypeParameter)
                 {
                     reportedNullable = ReportNullAsNonNullableReferenceIfNecessary(node.ExpressionOpt);
                 }
+
                 if (!reportedNullable)
                 {
-                    TypeSymbolWithAnnotations resultType = _result.Type;
                     if (IsNullable(resultType) && (returnTypeIsNonNullable || returnTypeIsUnconstrainedTypeParameter) ||
                         IsUnconstrainedTypeParameter(resultType?.TypeSymbol) && returnTypeIsNonNullable)
                     {
                         ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, node.ExpressionOpt.Syntax);
                     }
+                    else if (!conversion.Exists)
+                    {
+                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, expr.Syntax, GetTypeAsDiagnosticArgument(unconvertedType?.TypeSymbol), returnType.TypeSymbol);
+                    }
                 }
-
-                ReportNullabilityMismatchInAssignmentIfNecessary(node.ExpressionOpt, node.ExpressionOpt.Type, returnType.TypeSymbol);
             }
 
-            return result;
+            return null;
+        }
+
+        private static TypeSymbolWithAnnotations GetReturnType(CSharpCompilation compilation, MethodSymbol method)
+        {
+            var returnType = method.ReturnType;
+            if (returnType is null)
+            {
+                return null;
+            }
+            return method.IsGenericTaskReturningAsync(compilation) ?
+                ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single() :
+                returnType;
         }
 
         private static bool IsNullable(TypeSymbolWithAnnotations typeOpt)
@@ -2759,44 +2791,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             var result = base.VisitUnaryOperator(node);
+            TypeSymbolWithAnnotations resultType = null;
 
             // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
-            if (node.OperatorKind.IsUserDefined() && (object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
-            {
-                ReportArgumentWarnings(node.Operand, _result.Type, node.MethodOpt.Parameters[0]);
-            }
-
-            _result = InferResultNullability(node);
-            return null;
-        }
-
-        private TypeSymbolWithAnnotations InferResultNullability(BoundUnaryOperator node)
-        {
             if (node.OperatorKind.IsUserDefined())
             {
                 if (node.OperatorKind.IsLifted())
                 {
                     // PROTOTYPE(NullableReferenceTypes): Conversions: Lifted operator
-                    return TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
                 }
-                // PROTOTYPE(NullableReferenceTypes): Update method based on inferred operand type.
-                if ((object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
+                else if ((object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1)
                 {
-                    return GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.MethodOpt);
-                }
-                else
-                {
-                    return null;
+                    ReportArgumentWarnings(node.Operand, _result.Type, node.MethodOpt.Parameters[0]);
+                    resultType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(node.MethodOpt);
                 }
             }
-            else if (node.OperatorKind.IsDynamic())
-            {
-                return null;
-            }
-            else
-            {
-                return TypeSymbolWithAnnotations.Create(node.Type);
-            }
+
+            _result = resultType ?? TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
+            return null;
         }
 
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)

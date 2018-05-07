@@ -18008,6 +18008,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw new System.Exception()").WithArguments("throw").WithLocation(3, 38));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullabilityMismatchInAssignment.
         [Fact]
         public void UnboxingConversion()
         {
@@ -18023,7 +18024,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (4,37): error CS0266: Cannot implicitly convert type 'T' to 'System.Collections.Generic.IEnumerator<T>'. An explicit conversion exists (are you missing a cast?)
                 //     static IEnumerator<T> M<T>() => default(T);
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "default(T)").WithArguments("T", "System.Collections.Generic.IEnumerator<T>").WithLocation(4, 37));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "default(T)").WithArguments("T", "System.Collections.Generic.IEnumerator<T>").WithLocation(4, 37),
+                // (4,37): warning CS8619: Nullability of reference types in value of type 'T' doesn't match target type 'IEnumerator<T>'.
+                //     static IEnumerator<T> M<T>() => default(T);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "default(T)").WithArguments("T", "System.Collections.Generic.IEnumerator<T>").WithLocation(4, 37));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullabilityMismatchInAssignment.
@@ -18494,6 +18498,103 @@ namespace System
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TaskMethodReturningNull()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class C
+{
+    static Task F0() => null;
+    static Task<string> F1() => null;
+    static Task<string?> F2() { return null; }
+    static Task<T> F3<T>() { return default; }
+    static Task<T> F4<T>() { return default(Task<T>); }
+    static Task<T> F5<T>() where T : class { return null; }
+    static Task<T?> F6<T>() where T : class => null;
+    static Task? G0() => null;
+    static Task<string>? G1() => null;
+    static Task<T>? G3<T>() { return default; }
+    static Task<T?>? G6<T>() where T : class => null;
+}";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,25): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task F0() => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 25),
+                // (5,33): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task<string> F1() => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 33),
+                // (6,40): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task<string?> F2() { return null; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 40),
+                // (7,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task<T> F3<T>() { return default; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(7, 37),
+                // (8,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task<T> F4<T>() { return default(Task<T>); }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(Task<T>)").WithLocation(8, 37),
+                // (9,53): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task<T> F5<T>() where T : class { return null; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 53),
+                // (10,48): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task<T?> F6<T>() where T : class => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 48));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullAsNonNullable for F0.
+        [WorkItem(23275, "https://github.com/dotnet/roslyn/issues/23275")]
+        [Fact]
+        public void AsyncTaskMethodReturningNull()
+        {
+            var source =
+@"#pragma warning disable 1998
+using System.Threading.Tasks;
+class C
+{
+    static async Task F0() { return null; }
+    static async Task<string> F1() => null;
+    static async Task<string?> F2() { return null; }
+    static async Task<T> F3<T>() { return default; }
+    static async Task<T> F4<T>() { return default(T); }
+    static async Task<T> F5<T>() where T : class { return null; }
+    static async Task<T?> F6<T>() where T : class => null;
+    static async Task? G0() { return null; }
+    static async Task<string>? G1() => null;
+    static async Task<T>? G3<T>() { return default; }
+    static async Task<T?>? G6<T>() where T : class => null;
+}";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,30): error CS1997: Since 'C.F0()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+                //     static async Task F0() { return null; }
+                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F0()").WithLocation(5, 30),
+                // (5,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task F0() { return null; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 37),
+                // (6,39): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task<string> F1() => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 39),
+                // (8,43): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task<T> F3<T>() { return default; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(8, 43),
+                // (9,43): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task<T> F4<T>() { return default(T); }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T)").WithLocation(9, 43),
+                // (10,59): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task<T> F5<T>() where T : class { return null; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 59),
+                // (12,31): error CS1997: Since 'C.G0()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+                //     static async Task? G0() { return null; }
+                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.G0()").WithLocation(12, 31),
+                // (13,40): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task<string>? G1() => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 40),
+                // (14,44): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task<T>? G3<T>() { return default; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(14, 44));
         }
 
         [Fact]
