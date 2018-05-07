@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // you need to know all bases before you can ask this question... (asking this causes a cycle)
-            if (this.DeclaringCompilation.LanguageVersion < LanguageVersion.Latest && this.IsGenericType && !localBase.IsErrorType() && this.DeclaringCompilation.IsAttributeType(localBase))
+            if (this.DeclaringCompilation.LanguageVersion < LanguageVersion.CSharp7_3 && this.IsGenericType && !localBase.IsErrorType() && this.DeclaringCompilation.IsAttributeType(localBase))
             {
                 var baseLocation = FindBaseRefSyntax(localBase);
                 Debug.Assert(baseLocation != null);

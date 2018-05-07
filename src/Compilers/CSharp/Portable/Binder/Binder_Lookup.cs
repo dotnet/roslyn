@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbolWithoutSuffix;
             bool resultWithoutSuffixIsViable = IsSingleViableAttributeType(result, out symbolWithoutSuffix);
 
-            if (qualifierOpt.DeclaringCompilation.LanguageVersion < LanguageVersion.Latest)
+            if (Compilation.LanguageVersion < LanguageVersion.CSharp7_3)
             {
                 // Generic types are not allowed.
                 Debug.Assert(arity == 0 || !result.IsMultiViable);
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.LookupSymbolsOrMembersInternal(resultWithSuffix, qualifierOpt, name + "Attribute", arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
                 resultWithSuffixIsViable = IsSingleViableAttributeType(resultWithSuffix, out symbolWithSuffix);
 
-                if (qualifierOpt.DeclaringCompilation.LanguageVersion < LanguageVersion.Latest)
+                if (Compilation.LanguageVersion < LanguageVersion.CSharp7_3)
                 {
                     // Generic types are not allowed.
                     Debug.Assert(arity == 0 || !result.IsMultiViable);
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.Kind == SymbolKind.NamedType)
             {
                 var namedType = (NamedTypeSymbol)symbol;
-                if (namedType.IsGenericType && symbol.DeclaringCompilation.LanguageVersion < LanguageVersion.Latest)
+                if (namedType.IsGenericType && Compilation.LanguageVersion < LanguageVersion.CSharp7_3)
                 {
                     // Attribute classes cannot be generic.
                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, symbol) : null;
@@ -1246,7 +1246,7 @@ symIsHidden:;
             {
                 return LookupResult.Empty();
             }
-            else if (WrongArity(symbol, arity, diagnose, options, out diagInfo))
+            else if (WrongArity(symbol, arity, diagnose, options, Compilation, out diagInfo))
             {
                 return LookupResult.WrongArity(symbol, diagInfo);
             }
@@ -1585,7 +1585,7 @@ symIsHidden:;
         // Check if the given symbol can be accessed with the given arity. If OK, return false.
         // If not OK, return true and return a diagnosticinfo. Note that methods with type arguments
         // can be accesses with arity zero due to type inference (but non types).
-        private static bool WrongArity(Symbol symbol, int arity, bool diagnose, LookupOptions options, out DiagnosticInfo diagInfo)
+        private static bool WrongArity(Symbol symbol, int arity, bool diagnose, LookupOptions options, CSharpCompilation compilation, out DiagnosticInfo diagInfo)
         {
             switch (symbol.Kind)
             {
@@ -1595,7 +1595,7 @@ symIsHidden:;
                         NamedTypeSymbol namedType = (NamedTypeSymbol)symbol;
                         // non-declared types only appear as using aliases (aliases are arity 0)
                         Debug.Assert(object.ReferenceEquals(namedType.ConstructedFrom, namedType));
-                        if (namedType.Arity != arity || options.IsAttributeTypeLookup() && arity != 0)
+                        if (namedType.Arity != arity || (options.IsAttributeTypeLookup() && compilation.LanguageVersion < LanguageVersion.CSharp7_3) && arity != 0)
                         {
                             if (namedType.Arity == 0)
                             {
