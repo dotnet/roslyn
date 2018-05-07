@@ -2,6 +2,7 @@
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Typescript
@@ -14,7 +15,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Typescript
         {
         }
 
-        [Fact]
+        [WpfFact]
         public void FormatAssignment()
         {
             VisualStudio.Editor.SetText("var   v =   0;");

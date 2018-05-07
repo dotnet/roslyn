@@ -2,6 +2,7 @@
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Typescript
@@ -14,7 +15,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Typescript
         {
         }
 
-        [Fact]
+        [WpfFact]
         public void CompleteNumberMethod()
         {
             VisualStudio.Editor.SetText(@"var v = 0;
@@ -26,7 +27,7 @@ v");
             VisualStudio.Editor.Verify.CurrentLineText("v.toExponential$$", assertCaretPosition: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void CompleteImportPath()
         {
             VisualStudio.Editor.SetText("import * as lib from '.';");
@@ -36,7 +37,7 @@ v");
             VisualStudio.Editor.Verify.CompletionItemsExist("Lib");
         }
 
-        [Fact]
+        [WpfFact]
         public void CompleteExportedFunction()
         {
             VisualStudio.Editor.SetText(@"import * as lib from './Lib';

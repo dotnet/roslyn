@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -12,6 +13,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.Typescript
         public AbstractTypescriptIntegrationTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
             : base(instanceFactory, solutionName)
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
+
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "Lib.ts", contents:
 @"export function foo(): string {
@@ -26,7 +33,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Typescript
         }
 
         /// <remarks>
-        /// For <see cref="TypescriptCommonTest"/> a typescript file is created
+        /// For <see cref="AbstractTypescriptIntegrationTest"/> a typescript file is created
         /// inside of a CSharp project. Thus the project's language name is CSharp.
         /// </remarks>
         protected override string LanguageName => LanguageNames.CSharp;
