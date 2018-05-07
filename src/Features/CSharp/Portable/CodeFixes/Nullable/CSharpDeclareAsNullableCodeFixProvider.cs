@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             if (node.IsParentKind(SyntaxKind.ReturnStatement))
             {
                 var containingMember = node.GetAncestors().FirstOrDefault(a => a.IsKind(SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration,
-                    SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression, SyntaxKind.LocalFunctionStatement));
+                    SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression, SyntaxKind.LocalFunctionStatement, SyntaxKind.AnonymousMethodExpression));
 
                 if (containingMember == null)
                 {
@@ -98,9 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                         // string x { get { return null; } }
                         return ((PropertyDeclarationSyntax)containingMember).Type;
 
-                    case SyntaxKind.ParenthesizedLambdaExpression:
-                    case SyntaxKind.SimpleLambdaExpression:
-                    case SyntaxKind.LocalFunctionStatement:
+                    default:
                         return null;
                 }
             }
