@@ -3089,6 +3089,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new NameSymbolSearcher(this, filter, name, cancellationToken).GetSymbolsWithName();
         }
 
+        /// <summary>
+        /// Returns true if there is an implicit conversion from
+        /// <paramref name="fromType"/> to <paramref name="toType"/>.
+        /// </summary>
+        public override bool IsAssignableTo(ITypeSymbol fromType, ITypeSymbol toType)
+        {
+            return fromType != null && toType != null && this.ClassifyConversion(fromType, toType).IsImplicit;
+        }
+
         #endregion
 
         /// <summary>

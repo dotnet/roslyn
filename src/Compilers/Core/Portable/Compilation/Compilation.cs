@@ -1092,6 +1092,12 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<Location> memberLocations,
             ImmutableArray<bool> memberIsReadOnly);
 
+        /// <summary>
+        /// Returns true if there is an implicit (C#) or widening (VB) conversion from
+        /// <paramref name="fromType"/> to <paramref name="toType"/>.
+        /// </summary>
+        public abstract bool IsAssignableTo(ITypeSymbol fromType, ITypeSymbol toType);
+
         #endregion
 
         #region Diagnostics

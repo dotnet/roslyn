@@ -1846,6 +1846,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return diagnostic Is Nothing OrElse diagnostic.Severity <> DiagnosticSeverity.Error
         End Function
 
+        ''' <summary>
+        ''' Returns true if there is a widening conversion from
+        ''' <paramref name="fromType"/> to <paramref name="toType"/>.
+        ''' </summary>
+        Public Overrides Function IsAssignableTo(fromType As ITypeSymbol, toType As ITypeSymbol) As Boolean
+            Return fromType IsNot Nothing AndAlso toType IsNot Nothing AndAlso Me.ClassifyConversion(fromType, toType).IsWidening
+        End Function
+
 #End Region
 
 #Region "Binding"

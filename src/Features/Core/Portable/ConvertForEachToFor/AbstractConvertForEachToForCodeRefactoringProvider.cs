@@ -338,8 +338,8 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         private static bool IsExchangable(
             ISemanticFactsService semanticFact, ITypeSymbol type1, ITypeSymbol type2, Compilation compilation)
         {
-            return semanticFact.IsAssignableTo(type1, type2, compilation) ||
-                   semanticFact.IsAssignableTo(type2, type1, compilation);
+            return compilation.IsAssignableTo(type1, type2) ||
+                   compilation.IsAssignableTo(type2, type1);
         }
 
         private static bool IsNullOrErrorType(ITypeSymbol type)
