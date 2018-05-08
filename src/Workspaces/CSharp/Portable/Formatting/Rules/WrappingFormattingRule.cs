@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class WrappingFormattingRule : BaseFormattingRule
     {
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
         {
             nextOperation.Invoke(list);
 
-            AddBraceSuppressOperations(list, node, lastToken);
+            AddBraceSuppressOperations(list, node);
 
             AddStatementExceptBlockSuppressOperations(list, node);
 
