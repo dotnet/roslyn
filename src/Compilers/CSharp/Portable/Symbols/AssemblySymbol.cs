@@ -967,11 +967,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitAssembly(this);
         }
 
-        AssemblyMetadata IAssemblySymbol.GetMetadata()
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion
     }
 }
