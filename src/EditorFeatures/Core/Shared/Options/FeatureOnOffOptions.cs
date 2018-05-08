@@ -56,20 +56,84 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnSemicolon), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon"));
 
+        public static readonly PerLanguageOption<bool> AllFormattingRules = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(AllFormattingRules), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.All Formatting Rules"));
+
+        public static readonly PerLanguageOption<bool> RemoveUnusedUsings = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(RemoveUnusedUsings), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Remove Unused Usings"));
+
+        public static readonly PerLanguageOption<bool> SortUsings = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(SortUsings), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Sort Usings"));
+
+        public static readonly PerLanguageOption<bool> FixImplicitExplicitType = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(FixImplicitExplicitType), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Fix Implicit Explicit Type"));
+
+        public static readonly PerLanguageOption<bool> FixThisQualification = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(FixThisQualification), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Fix This Qualification"));
+
+        public static readonly PerLanguageOption<bool> FixFrameworkTypes = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(FixFrameworkTypes), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Fix Framework Types"));
+
+        public static readonly PerLanguageOption<bool> FixAddRemoveBraces = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(FixAddRemoveBraces), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Fix Add Remove Braces"));
+
+        public static readonly PerLanguageOption<bool> FixAccessibilityModifiers = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(FixAccessibilityModifiers), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Fix Accessibility Modifiers"));
+
+        public static readonly PerLanguageOption<bool> SortAccessibilityModifiers = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(SortAccessibilityModifiers), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Sort Accessibility Modifiers"));
+
+        public static readonly PerLanguageOption<bool> MakeReadonly = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(MakeReadonly), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Make Readonly"));
+
+        public static readonly PerLanguageOption<bool> RemoveUnnecessaryCasts = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(RemoveUnnecessaryCasts), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Remove Unnecessary Casts"));
+
+        public static readonly PerLanguageOption<bool> FixExpressionBodiedMembers = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(FixExpressionBodiedMembers), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Fix Expression Bodied Members"));
+
+        public static readonly PerLanguageOption<bool> FixInlineVariableDeclarations = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(FixInlineVariableDeclarations), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Fix Inline Variable Declarations"));
+
+        public static readonly PerLanguageOption<bool> RemoveUnusedVariables = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(RemoveUnusedVariables), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Remove Unused Variables"));
+
+        public static readonly PerLanguageOption<bool> FixObjectCollectionInitialization = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(FixObjectCollectionInitialization), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Fix Object Collection Initialization"));
+
+        public static readonly PerLanguageOption<bool> FixLanguageFeatures = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(FixLanguageFeatures), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Fix Language Features"));
+
         public static readonly PerLanguageOption<bool> RenameTrackingPreview = new PerLanguageOption<bool>(nameof(FeatureOnOffOptions), nameof(RenameTrackingPreview), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.RenameTrackingPreview" : "TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview"));
 
         /// <summary>
-        /// This option is currently used by Roslyn, but we might want to implement it in the 
-        /// future. Keeping the option while it's unimplemented allows all upgrade paths to 
+        /// This option is currently used by Roslyn, but we might want to implement it in the
+        /// future. Keeping the option while it's unimplemented allows all upgrade paths to
         /// maintain any customized value for this setting, even through versions that have not
         /// implemented this feature yet.
         /// </summary>
         public static readonly PerLanguageOption<bool> RenameTracking = new PerLanguageOption<bool>(nameof(FeatureOnOffOptions), nameof(RenameTracking), defaultValue: true);
 
         /// <summary>
-        /// This option is currently used by Roslyn, but we might want to implement it in the 
-        /// future. Keeping the option while it's unimplemented allows all upgrade paths to 
+        /// This option is currently used by Roslyn, but we might want to implement it in the
+        /// future. Keeping the option while it's unimplemented allows all upgrade paths to
         /// maintain any customized value for this setting, even through versions that have not
         /// implemented this feature yet.
         /// </summary>
