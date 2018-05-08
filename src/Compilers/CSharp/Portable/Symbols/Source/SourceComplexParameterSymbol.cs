@@ -143,7 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return AttributeAnnotations.None
                     .With(notNullWhenTrue: hasEnsuresNotNull || attributeData?.HasNotNullWhenTrueAttribute == true,
-                        notNullWhenFalse: hasEnsuresNotNull || attributeData?.HasNotNullWhenFalseAttribute == true);
+                        notNullWhenFalse: hasEnsuresNotNull || attributeData?.HasNotNullWhenFalseAttribute == true,
+                        ensuresTrue: attributeData?.HasEnsuresTrueAttribute == true,
+                        ensuresFalse: attributeData?.HasEnsuresFalseAttribute == true);
             }
         }
 
@@ -636,6 +638,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.EnsuresNotNullAttribute))
             {
                 arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.EnsuresTrueAttribute))
+            {
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresTrueAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.EnsuresFalseAttribute))
+            {
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresFalseAttribute = true;
             }
         }
 

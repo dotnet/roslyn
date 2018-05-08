@@ -33,27 +33,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             IsCallerMemberName = 0x1 << 7,
             NotNullWhenTrue = 0x1 << 8,
             NotNullWhenFalse = 0x1 << 9,
+            EnsuresTrue = 0x1 << 10,
+            EnsuresFalse = 0x1 << 11,
         }
 
         private struct PackedFlags
         {
             // Layout:
-            // |.........|n|rr|cccccccccc|vvvvvvvvvv|
+            // |.....|n|rr|cccccccccccc|vvvvvvvvvvvv|
             // 
-            // v = decoded well known attribute values. 10 bits.
-            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 10 bits.
+            // v = decoded well known attribute values. 12 bits.
+            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 12 bits.
             // r = RefKind. 2 bits.
             // n = hasNameInMetadata. 1 bit.
 
             private const int WellKnownAttributeDataOffset = 0;
-            private const int WellKnownAttributeCompletionFlagOffset = 10;
-            private const int RefKindOffset = 20;
+            private const int WellKnownAttributeCompletionFlagOffset = 12;
+            private const int RefKindOffset = 24;
 
             private const int RefKindMask = 0x3;
-            private const int WellKnownAttributeDataMask = 0x3FF;
+            private const int WellKnownAttributeDataMask = 0xFFF;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
 
-            private const int HasNameInMetadataBit = 0x1 << 22;
+            private const int HasNameInMetadataBit = 0x1 << 26;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
@@ -653,10 +655,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 const WellKnownAttributeFlags notNullWhenTrue = WellKnownAttributeFlags.NotNullWhenTrue;
                 const WellKnownAttributeFlags notNullWhenFalse = WellKnownAttributeFlags.NotNullWhenFalse;
+                const WellKnownAttributeFlags ensuresTrue = WellKnownAttributeFlags.EnsuresTrue;
+                const WellKnownAttributeFlags ensuresFalse = WellKnownAttributeFlags.EnsuresFalse;
 
                 // PROTOTYPE(NullableReferenceTypes): the flags could be packed more
                 if (!_packedFlags.TryGetWellKnownAttribute(notNullWhenTrue, out bool hasNotNullWhenTrue) ||
-                    !_packedFlags.TryGetWellKnownAttribute(notNullWhenFalse, out bool hasNotNullWhenFalse))
+                    !_packedFlags.TryGetWellKnownAttribute(notNullWhenFalse, out bool hasNotNullWhenFalse) ||
+                    !_packedFlags.TryGetWellKnownAttribute(ensuresTrue, out bool hasEnsuresTrue) ||
+                    !_packedFlags.TryGetWellKnownAttribute(ensuresFalse, out bool hasEnsuresFalse))
                 {
                     AttributeAnnotations? annotations = TryGetExtraAttributeAnnotations();
 
@@ -665,16 +671,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         // External annotations win, if any is present on the member
                         hasNotNullWhenTrue = (annotations & AttributeAnnotations.NotNullWhenTrue) != 0;
                         hasNotNullWhenFalse = (annotations & AttributeAnnotations.NotNullWhenFalse) != 0;
+                        hasEnsuresTrue = (annotations & AttributeAnnotations.EnsuresTrue) != 0;
+                        hasEnsuresFalse = (annotations & AttributeAnnotations.EnsuresFalse) != 0;
                     }
                     else
                     {
                         bool hasEnsuresNotNull = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.EnsuresNotNullAttribute);
                         hasNotNullWhenTrue = hasEnsuresNotNull || _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.NotNullWhenTrueAttribute);
                         hasNotNullWhenFalse = hasEnsuresNotNull || _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.NotNullWhenFalseAttribute);
+                        hasEnsuresTrue = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.EnsuresTrueAttribute);
+                        hasEnsuresFalse = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.EnsuresFalseAttribute);
                     }
 
                     _packedFlags.SetWellKnownAttribute(notNullWhenTrue, hasNotNullWhenTrue);
                     _packedFlags.SetWellKnownAttribute(notNullWhenFalse, hasNotNullWhenFalse);
+                    _packedFlags.SetWellKnownAttribute(ensuresTrue, hasEnsuresTrue);
+                    _packedFlags.SetWellKnownAttribute(ensuresFalse, hasEnsuresFalse);
 
                     if (annotations.HasValue)
                     {
@@ -682,7 +694,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                return AttributeAnnotations.None.With(notNullWhenTrue: hasNotNullWhenTrue, notNullWhenFalse: hasNotNullWhenFalse);
+                return AttributeAnnotations.None.With(notNullWhenTrue: hasNotNullWhenTrue, notNullWhenFalse: hasNotNullWhenFalse,
+                    ensuresTrue: hasEnsuresTrue, ensuresFalse: hasEnsuresFalse);
             }
         }
 

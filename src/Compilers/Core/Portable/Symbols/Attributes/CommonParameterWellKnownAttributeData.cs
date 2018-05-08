@@ -158,5 +158,37 @@ namespace Microsoft.CodeAnalysis
                 SetDataStored();
             }
         }
+
+        private bool _hasEnsuresTrueAttribute;
+        public bool HasEnsuresTrueAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasEnsuresTrueAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasEnsuresTrueAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private bool _hasEnsuresFalseAttribute;
+        public bool HasEnsuresFalseAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasEnsuresFalseAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasEnsuresFalseAttribute = value;
+                SetDataStored();
+            }
+        }
     }
 }

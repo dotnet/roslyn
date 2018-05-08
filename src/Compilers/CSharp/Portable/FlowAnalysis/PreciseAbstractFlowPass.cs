@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // no need for it to be previously assigned: it is on the left.
         }
-        
+
         /// <summary>
         /// Visit a boolean condition expression.
         /// </summary>
@@ -597,15 +597,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Visit a general expression, where we will only need to determine if variables are
-        /// assigned (or not). That is, we will not be needing AssignedWhenTrue and
-        /// AssignedWhenFalse.
+        /// assigned (or not).
+        /// If you will be needing WhenTrue and WhenFalse states, set `keepSplit` to `true`.
         /// </summary>
         /// <param name="node"></param>
-        protected BoundNode VisitRvalue(BoundExpression node)
+        protected BoundNode VisitRvalue(BoundExpression node, bool keepSplit = false)
         {
             Debug.Assert(!_trackExceptions || this.PendingBranches.Count > 0 && this.PendingBranches[0].Branch == null);
             var result = Visit(node);
-            Unsplit();
+
+            if (!keepSplit)
+            {
+                Unsplit();
+            }
+
             return result;
         }
 
@@ -899,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             else
-            { 
+            {
                 oldPending.PendingBranches.AddRange(this.PendingBranches);
             }
 
@@ -2843,7 +2848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void VisitMethodBodies(BoundBlock blockBody, BoundBlock expressionBody)
-        { 
+        {
             if (blockBody == null)
             {
                 Visit(expressionBody);
