@@ -30,7 +30,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Throw New NotSupportedException()
+            ' This is used by inherited tests to ensure the properties of diagnostic analyzers are correct. It's not
+            ' needed by the tests in this class, but can't throw an exception.
+            Return (Nothing, Nothing)
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, parameters As TestParameters) As (DiagnosticAnalyzer, CodeFixProvider)

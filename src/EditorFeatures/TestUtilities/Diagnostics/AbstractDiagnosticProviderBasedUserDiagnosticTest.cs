@@ -41,16 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = new AdhocWorkspace())
             {
-                DiagnosticAnalyzer diagnosticAnalyzer;
-                try
-                {
-                    diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
-                }
-                catch (NotSupportedException)
-                {
-                    return;
-                }
-
+                var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
                 if (diagnosticAnalyzer == null)
                 {
                     return;
@@ -74,16 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = new AdhocWorkspace())
             {
-                DiagnosticAnalyzer diagnosticAnalyzer;
-                try
-                {
-                    diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
-                }
-                catch (NotSupportedException)
-                {
-                    return;
-                }
-
+                var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
                 if (diagnosticAnalyzer == null)
                 {
                     return;
@@ -110,16 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = new AdhocWorkspace())
             {
-                DiagnosticAnalyzer diagnosticAnalyzer;
-                try
-                {
-                    diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
-                }
-                catch (NotSupportedException)
-                {
-                    return;
-                }
-
+                var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
                 if (diagnosticAnalyzer == null)
                 {
                     return;
