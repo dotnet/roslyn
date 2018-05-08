@@ -64,9 +64,16 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 return;
             }
 
-            var precedenceKind = GetPrecedenceKind(parentBinaryLike);
+            var childPrecedence = GetLanguageOption(GetPrecedenceKind(binaryLike));
+            var parentPrecedence = GetLanguageOption(GetPrecedenceKind(parentBinaryLike));
+            
+            // only add parentheses within the same precedence band.
+            if (parentPrecedence != childPrecedence)
+            {
+                return;
+            }
 
-            var preference = optionSet.GetOption(GetLanguageOption(precedenceKind), binaryLike.Language);
+            var preference = optionSet.GetOption(parentPrecedence, binaryLike.Language);
             if (preference.Value != ParenthesesPreference.AlwaysForClarity)
             {
                 return;

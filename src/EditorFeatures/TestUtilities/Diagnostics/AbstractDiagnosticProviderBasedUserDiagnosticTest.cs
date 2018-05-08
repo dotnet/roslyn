@@ -146,11 +146,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private static IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()
         {
             yield return CodeStyleOptions.ArithmeticBinaryParentheses;
+            yield return CodeStyleOptions.RelationalBinaryParentheses;
             yield return CodeStyleOptions.OtherBinaryParentheses;
         }
 
         protected IDictionary<OptionKey, object> RequireArithmeticBinaryParenthesesForClarity
             => GetSingleRequireOption(CodeStyleOptions.ArithmeticBinaryParentheses);
+
+        protected IDictionary<OptionKey, object> RequireRelationalBinaryParenthesesForClarity
+            => GetSingleRequireOption(CodeStyleOptions.RelationalBinaryParentheses);
 
         protected IDictionary<OptionKey, object> RequireOtherBinaryParenthesesForClarity
             => GetSingleRequireOption(CodeStyleOptions.OtherBinaryParentheses);

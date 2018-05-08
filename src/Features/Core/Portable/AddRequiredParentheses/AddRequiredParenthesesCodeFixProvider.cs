@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             => ImmutableArray.Create(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId);
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => diagnostic.Properties.ContainsKey(AddRequiredParenthesesConstants.IncludeInFixAll);
+            => diagnostic.Properties.ContainsKey(AddRequiredParenthesesConstants.IncludeInFixAll) &&
+               diagnostic.Severity != DiagnosticSeverity.Hidden;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -47,7 +48,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 // Do not add the simplifier annotation.  We do not want the simplifier undoing the 
                 // work we just did.
                 editor.ReplaceNode(node,
-                    (current, _) => syntaxFacts.Parenthesize(current, includeElasticTrivia: false, addSimplifierAnnotation: false));
+                    (current, _) => syntaxFacts.Parenthesize(
+                        current, includeElasticTrivia: false, addSimplifierAnnotation: false));
             }
 
             return SpecializedTasks.EmptyTask;

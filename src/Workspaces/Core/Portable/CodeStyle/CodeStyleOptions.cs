@@ -238,10 +238,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return s_requireAccessibilityModifiersDefault;
         }
 
-        private static readonly CodeStyleOption<ParenthesesPreference> s_defaultBinaryOperatorsParenthesesPreference =
+        private static readonly CodeStyleOption<ParenthesesPreference> s_alwaysForClarityPreference =
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption.None);
 
-        private static readonly CodeStyleOption<ParenthesesPreference> s_defaultOtherOperatorsParenthesesPreference =
+        private static readonly CodeStyleOption<ParenthesesPreference> s_neverIfUnnecessaryPreference =
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.None);
 
         private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
@@ -260,19 +260,25 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> ArithmeticBinaryParentheses =
             CreateParenthesesOption(
                 nameof(ArithmeticBinaryParentheses),
-                s_defaultBinaryOperatorsParenthesesPreference,
+                s_alwaysForClarityPreference,
                 "dotnet_style_parentheses_in_arithmetic_binary_operators", isOther: false);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> RelationalBinaryParentheses =
+            CreateParenthesesOption(
+                nameof(RelationalBinaryParentheses),
+                s_neverIfUnnecessaryPreference,
+                "dotnet_style_parentheses_in_relational_binary_operators", isOther: false);
 
         internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> OtherBinaryParentheses =
             CreateParenthesesOption(
                 nameof(OtherBinaryParentheses),
-                s_defaultBinaryOperatorsParenthesesPreference,
+                s_alwaysForClarityPreference,
                 "dotnet_style_parentheses_in_other_binary_operators", isOther: false);
 
         internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> OtherParentheses =
             CreateParenthesesOption(
                 nameof(OtherParentheses),
-                s_defaultOtherOperatorsParenthesesPreference,
+                s_neverIfUnnecessaryPreference,
                 "dotnet_style_parentheses_in_other_operators", isOther: true);
 
         private static Optional<CodeStyleOption<ParenthesesPreference>> ParseParenthesesPreference(

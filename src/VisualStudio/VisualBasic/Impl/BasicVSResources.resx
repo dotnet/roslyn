@@ -280,9 +280,12 @@
     <value>Separate import directive groups</value>
   </data>
   <data name="In_arithmetic_binary_operators" xml:space="preserve">
-    <value>In arithmetic expressions:  ^  *  /  \  Mod  +  -  &amp;  &lt;&lt;  &gt;&gt;</value>
+    <value>In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</value>
   </data>
   <data name="In_other_binary_operators" xml:space="preserve">
-    <value>In other binary operators:  =  &lt;&gt;  &lt;  &gt;  &lt;=  &gt;=  Like Is  And  Or  </value>
+    <value>In other binary operators:  And   AndAlso   Or   OrElse</value>
+  </data>
+  <data name="In_relational_binary_operators" xml:space="preserve">
+    <value>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</value>
   </data>
 </root>

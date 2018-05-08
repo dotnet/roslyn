@@ -961,6 +961,42 @@ class C
 
         #endregion
 
+        #region relational binary parentheses
+
+        private readonly string s_relationalBinaryAlwaysForClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = (a < b) == (c > d);
+
+        // {ServicesVSResources.Over_colon}
+        var v = a < b == c > d;
+//]
+    }}
+}}
+";
+
+        private readonly string s_relationalBinaryNeverIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a < b == c > d;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a < b) == (c > d);
+//]
+    }}
+}}
+";
+
+        #endregion
+
         #region other binary parentheses
 
         private readonly string s_otherBinaryAlwaysForClarity = $@"
@@ -970,10 +1006,10 @@ class C
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
-        var v = ((a <= b) || (c && d)) == (e is f);
+        var v = a || (b && c);
 
         // {ServicesVSResources.Over_colon}
-        var v = a <= b || c && d == e is f;
+        var v = a || b && c;
 //]
     }}
 }}
@@ -986,10 +1022,10 @@ class C
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
-        var v = a <= b || c && d == e is f;
+        var v = a || b && c;
 
         // {ServicesVSResources.Over_colon}
-        var v = ((a <= b) || (c && d)) == (e is f);
+        var v = a || (b && c);
 //]
     }}
 }}
@@ -1119,6 +1155,12 @@ class C
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.ArithmeticBinaryParentheses,
                 CSharpVSResources.In_arithmetic_binary_operators,
                 new[] { s_arithmeticBinaryAlwaysForClarity, s_arithmeticBinaryNeverIfUnnecessary },
+                isOther: false);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.RelationalBinaryParentheses,
+                CSharpVSResources.In_relational_binary_operators,
+                new[] { s_relationalBinaryAlwaysForClarity, s_relationalBinaryNeverIfUnnecessary },
                 isOther: false);
 
             AddParenthesesOption(
