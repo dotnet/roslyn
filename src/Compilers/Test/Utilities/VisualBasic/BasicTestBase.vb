@@ -829,7 +829,7 @@ Public MustInherit Class BasicTestBase
         Dim model = compilation.GetSemanticModel(tree)
         Dim syntaxNode As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, tree.FilePath, which, prefixMatch:=True)
 
-        Dim graph As Operations.ControlFlowGraph = SemanticModel.GetControlFlowGraph(DirectCast(model.GetOperation(syntaxNode), Operations.IBlockOperation))
+        Dim graph As Operations.ControlFlowGraph = ControlFlowGraphVerifier.GetControlFlowGraph(syntaxNode, model)
         ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph)
     End Sub
 
