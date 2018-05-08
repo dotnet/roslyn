@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -196,6 +197,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //A name w/o a key is represented by a list with an entry that is empty
             IEnumerable<ImmutableArray<byte>> publicKeys = potentialGiverOfAccess.GetInternalsVisibleToPublicKeys(this.Name);
 
+            // We have an easy out here. Suppose the assembly wanting access is 
+            // being compiled as a module. You can only strong-name an assembly. So we are going to optimistically 
+            // assume that it is going to be compiled into an assembly with a matching strong name, if necessary.
+            if (publicKeys.Any() && DeclaringCompilation?.Options.OutputKind.IsNetModule() == true)
+            {
+                return IVTConclusion.Match;
+            }
+
             //EDMAURER look for one that works, if none work, then return the failure for the last one examined.
             foreach (var key in publicKeys)
             {
@@ -203,7 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     break;
                 }
-                result = PerformIVTCheck(key, potentialGiverOfAccess.Identity);
+
+                // We pass the public key of this assembly explicitly so PerformIVTCheck does not need
+                // to get it from this.Identity, which would trigger an infinite recursion.
+                result = this.PerformIVTCheck(this.PublicKey, key, potentialGiverOfAccess.Identity);
                 Debug.Assert(result != IVTConclusion.NoRelationshipClaimed);
             }
 

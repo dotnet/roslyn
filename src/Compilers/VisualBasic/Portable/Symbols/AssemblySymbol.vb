@@ -576,48 +576,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride ReadOnly Property PublicKey As ImmutableArray(Of Byte)
 
-        Protected Enum IVTConclusion
-            Match
-            OneSignedOneNot
-            PublicKeyDoesntMatch
-            NoRelationshipClaimed
-        End Enum
-
-        Protected Function PerformIVTCheck(key As ImmutableArray(Of Byte), otherIdentity As AssemblyIdentity) As IVTConclusion
-            ' Implementation of this function in C# compiler is somewhat different, but we believe
-            ' that the difference doesn't affect any real world scenarios that we know/care about.
-            ' At the moment we don't feel it is worth porting the logic, but we might reconsider in the future. 
-
-            ' We also have an easy out here. Suppose Smith names Jones as a friend, And Jones Is 
-            ' being compiled as a module, Not as an assembly. You can only strong-name an assembly. So if this module
-            ' Is named Jones, And Smith Is extending friend access to Jones, then we are going to optimistically 
-            ' assume that Jones Is going to be compiled into an assembly with a matching strong name, if necessary.
-            Dim compilation As Compilation = Me.DeclaringCompilation
-            If compilation IsNot Nothing AndAlso compilation.Options.OutputKind.IsNetModule() Then
-                Return IVTConclusion.Match
-            End If
-
-            Dim result As IVTConclusion
-
-            If Me.PublicKey.IsDefaultOrEmpty OrElse key.IsDefaultOrEmpty Then
-                If Me.PublicKey.IsDefaultOrEmpty AndAlso key.IsDefaultOrEmpty Then
-                    'we are not signed, therefore the other assembly shouldn't be signed
-                    result = If(otherIdentity.IsStrongName, IVTConclusion.OneSignedOneNot, IVTConclusion.Match)
-                ElseIf Me.PublicKey.IsDefaultOrEmpty Then
-                    result = IVTConclusion.PublicKeyDoesntMatch
-                Else
-                    ' key is NullOrEmpty, Me.PublicKey is not.
-                    result = IVTConclusion.NoRelationshipClaimed
-                End If
-            ElseIf ByteSequenceComparer.Equals(key, Me.PublicKey) Then
-                result = If(otherIdentity.IsStrongName, IVTConclusion.Match, IVTConclusion.OneSignedOneNot)
-            Else
-                result = IVTConclusion.PublicKeyDoesntMatch
-            End If
-
-            Return result
-        End Function
-
         Friend Function IsValidWellKnownType(result As NamedTypeSymbol) As Boolean
             If result Is Nothing OrElse result.TypeKind = TypeKind.Error Then
                 Return False
@@ -643,13 +601,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim assembly = TryCast(toAssembly, AssemblySymbol)
-            If assembly Is Nothing Then
-                Return False
+            Dim myKeys = Me.GetInternalsVisibleToPublicKeys(toAssembly.Name)
+
+            ' We have an easy out here. Suppose the assembly wanting access is
+            ' being compiled as a module. You can only strong-name an assembly. So we are going to optimistically
+            ' assume that it Is going to be compiled into an assembly with a matching strong name, if necessary
+            If myKeys.Any() AndAlso assembly?.DeclaringCompilation IsNot Nothing AndAlso assembly.DeclaringCompilation.Options.OutputKind.IsNetModule() Then
+                Return True
             End If
 
-            Dim myKeys = Me.GetInternalsVisibleToPublicKeys(assembly.Identity.Name)
             For Each key In myKeys
-                If assembly.PerformIVTCheck(key, Me.Identity) = IVTConclusion.Match Then
+                If toAssembly.PerformIVTCheck(toAssembly.Identity.PublicKey, key, Me.Identity) = IVTConclusion.Match Then
                     Return True
                 End If
             Next
