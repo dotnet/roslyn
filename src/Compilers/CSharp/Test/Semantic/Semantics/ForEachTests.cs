@@ -3049,7 +3049,7 @@ namespace System.Collections
                     Assert.Null(statementInfo.DisposeMethod);
                 }
 
-                Assert.Equal(enumeratorInfo.ElementType, statementInfo.ElementType);
+                Assert.Equal(enumeratorInfo.ElementType.TypeSymbol, statementInfo.ElementType);
                 Assert.Equal(boundNode.ElementConversion, statementInfo.ElementConversion);
                 Assert.Equal(enumeratorInfo.CurrentConversion, statementInfo.CurrentConversion);
             }

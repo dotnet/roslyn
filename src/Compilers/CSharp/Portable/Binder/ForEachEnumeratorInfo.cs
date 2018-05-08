@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Types identified by the algorithm in the spec (8.8.4).
         public readonly TypeSymbol CollectionType;
         // public readonly TypeSymbol EnumeratorType; // redundant - return type of GetEnumeratorMethod
-        public readonly TypeSymbol ElementType;
+        public readonly TypeSymbolWithAnnotations ElementType;
 
         // Members required by the "pattern" based approach.  Also populated for other approaches.
         public readonly MethodSymbol GetEnumeratorMethod;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ForEachEnumeratorInfo(
             TypeSymbol collectionType,
-            TypeSymbol elementType,
+            TypeSymbolWithAnnotations elementType,
             MethodSymbol getEnumeratorMethod,
             MethodSymbol currentPropertyGetter,
             MethodSymbol moveNextMethod,
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct Builder
         {
             public TypeSymbol CollectionType;
-            public TypeSymbol ElementType;
+            public TypeSymbolWithAnnotations ElementType;
 
             public MethodSymbol GetEnumeratorMethod;
             public MethodSymbol CurrentPropertyGetter;

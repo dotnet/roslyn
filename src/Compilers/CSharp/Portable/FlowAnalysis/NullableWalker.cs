@@ -2749,7 +2749,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // declare and assign all iteration variables
             foreach (var iterationVariable in node.IterationVariables)
             {
-                // PROTOTYPE(NullableReferenceTypes): Mark as assigned.
+                int slot = GetOrCreateSlot(iterationVariable);
+                TypeSymbolWithAnnotations sourceType = node.EnumeratorInfoOpt?.ElementType;
+                bool? isNullableIfReferenceType = null;
+                if ((object)sourceType != null)
+                {
+                    TypeSymbolWithAnnotations destinationType = iterationVariable.Type;
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    Conversion conversion = _conversions.ClassifyImplicitConversionFromType(sourceType.TypeSymbol, destinationType.TypeSymbol, ref useSiteDiagnostics);
+                    // PROTOTYPE(NullableReferenceTypes): Report nullability mismatch if any.
+                    TypeSymbolWithAnnotations result = InferResultNullability(operand: null, conversion, destinationType.TypeSymbol, sourceType);
+                    isNullableIfReferenceType = result.IsNullable;
+                }
+                this.State[slot] = !isNullableIfReferenceType;
             }
         }
 

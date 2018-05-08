@@ -19517,6 +19517,275 @@ class C
         }
 
         [Fact]
+        public void ForEach_01()
+        {
+            var source =
+@"class Enumerable
+{
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class Enumerator
+{
+    public object Current => throw null;
+    public bool MoveNext() => false;
+}
+class C
+{
+    static void F(Enumerable e)
+    {
+        foreach (var x in e)
+            x.ToString();
+        foreach (string y in e)
+            y.ToString();
+        foreach (string? z in e)
+            z.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForEach_02()
+        {
+            var source =
+@"class Enumerable
+{
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class Enumerator
+{
+    public object? Current => throw null;
+    public bool MoveNext() => false;
+}
+class C
+{
+    static void F(Enumerable e)
+    {
+        foreach (var x in e)
+            x.ToString();
+        foreach (object y in e)
+            y.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (15,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(15, 13),
+                // (17,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(17, 13));
+        }
+
+        [Fact]
+        public void ForEach_03()
+        {
+            var source =
+@"using System.Collections;
+namespace System
+{
+    public class Object
+    {
+        public string ToString() => throw null;
+    }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public class String { }
+}
+namespace System.Collections
+{
+    public interface IEnumerable
+    {
+        IEnumerator GetEnumerator();
+    }
+    public interface IEnumerator
+    {
+        object? Current { get; }
+        bool MoveNext();
+    }
+}
+class Enumerable : IEnumerable
+{
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+class C
+{
+    static void F(Enumerable e)
+    {
+        foreach (var x in e)
+            x.ToString();
+        foreach (object y in e)
+            y.ToString();
+    }
+    static void G(IEnumerable e)
+    {
+        foreach (var z in e)
+            z.ToString();
+        foreach (object w in e)
+            w.ToString();
+    }
+}";
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (34,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(34, 13),
+                // (36,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(36, 13),
+                // (41,13): warning CS8602: Possible dereference of a null reference.
+                //             z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(41, 13),
+                // (43,13): warning CS8602: Possible dereference of a null reference.
+                //             w.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w").WithLocation(43, 13));
+        }
+
+        // z.ToString() should warn if IEnumerator.Current is annotated as `object?`.
+        [Fact]
+        public void ForEach_04()
+        {
+            var source =
+@"using System.Collections;
+using System.Collections.Generic;
+class C
+{
+    static void F(IEnumerable<object?> cx, object?[] cy)
+    {
+        foreach (var x in cx)
+            x.ToString();
+        foreach (object? y in cy)
+            y.ToString();
+        foreach (object? z in (IEnumerable)cx)
+            z.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
+                // (10,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(10, 13));
+        }
+
+        [Fact]
+        public void ForEach_05()
+        {
+            var source =
+@"class C
+{
+    static void F1(dynamic c)
+    {
+        foreach (var x in c)
+            x.ToString();
+        foreach (object? y in c)
+            y.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForEach_06()
+        {
+            var source =
+@"using System.Collections;
+using System.Collections.Generic;
+class C<T> : IEnumerable<T> where T : class
+{
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+class P
+{
+    static void F<T>(C<T?> c) where T : class
+    {
+        foreach (var x in c)
+            x.ToString();
+        foreach (T? y in c)
+            y.ToString();
+        foreach (T z in c)
+            z.ToString();
+        foreach (object w in c)
+            w.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13),
+                // (15,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(15, 13),
+                // (17,13): warning CS8602: Possible dereference of a null reference.
+                //             z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(17, 13),
+                // (19,13): warning CS8602: Possible dereference of a null reference.
+                //             w.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w").WithLocation(19, 13));
+        }
+
+        [Fact]
+        public void ForEach_07()
+        {
+            var source =
+@"struct S<T> where T : class
+{
+    public E<T> GetEnumerator() => new E<T>();
+}
+struct E<T> where T : class
+{
+    public T Current => throw null;
+    public bool MoveNext() => false;
+}
+class P
+{
+    static void F1<T>() where T : class
+    {
+        foreach (var x1 in new S<T>())
+            x1.ToString();
+        foreach (T y1 in new S<T>())
+            y1.ToString();
+        foreach (T? z1 in new S<T>())
+            z1.ToString();
+        foreach (object? w1 in new S<T>())
+            w1.ToString();
+    }
+    static void F2<T>() where T : class
+    {
+        foreach (var x2 in new S<T?>())
+            x2.ToString();
+        foreach (T y2 in new S<T?>())
+            y2.ToString();
+        foreach (T? z2 in new S<T?>())
+            z2.ToString();
+        foreach (object? w2 in new S<T?>())
+            w2.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (26,13): warning CS8602: Possible dereference of a null reference.
+                //             x2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(26, 13),
+                // (28,13): warning CS8602: Possible dereference of a null reference.
+                //             y2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2").WithLocation(28, 13),
+                // (30,13): warning CS8602: Possible dereference of a null reference.
+                //             z2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2").WithLocation(30, 13),
+                // (32,13): warning CS8602: Possible dereference of a null reference.
+                //             w2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w2").WithLocation(32, 13));
+        }
+
+        [Fact]
         public void UnconstrainedTypeParameter_MayBeNonNullable()
         {
             var source =
