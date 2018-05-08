@@ -19542,6 +19542,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w").WithLocation(43, 13));
         }
 
+        // z.ToString() should warn if IEnumerator.Current is annotated as `object?`.
         [Fact]
         public void ForEach_04()
         {
