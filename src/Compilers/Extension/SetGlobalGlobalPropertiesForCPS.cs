@@ -22,6 +22,8 @@ namespace Roslyn.Compilers.Extension
 
         public override Task<IImmutableDictionary<string, string>> GetGlobalPropertiesAsync(CancellationToken cancellationToken)
         {
+            // Currently the SolutionExists context will always occur before CPS calls this class
+            // If this behavior ever changes we will need to modify this class.
             return CompilerPackage.RoslynHive != null
                 ? Task.FromResult<IImmutableDictionary<string, string>>(Empty.PropertiesMap.Add("RoslynHive", CompilerPackage.RoslynHive))
                 : Task.FromResult<IImmutableDictionary<string, string>>(Empty.PropertiesMap);
