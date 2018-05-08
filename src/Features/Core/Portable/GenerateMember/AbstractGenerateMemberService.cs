@@ -154,6 +154,20 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 isStatic = false;
                 return;
             }
+            else if (syntaxFacts.IsNameOfSubpatternElement(expression))
+            {
+                var propertySubpattern = expression.Ancestors().FirstOrDefault(syntaxFacts.IsPropertySubpattern); ;
+
+                if (propertySubpattern != null)
+                {
+                    // something like: { [|X|]: int i } or like: Blah { [|X|]: int i }
+                    var inferenceService = document.Document.GetLanguageService<ITypeInferenceService>();
+                    typeToGenerateIn = inferenceService.InferType(semanticModel, propertySubpattern, objectAsDefault: true, cancellationToken) as INamedTypeSymbol;
+
+                    isStatic = false;
+                    return;
+                }
+            }
 
             // Generating into the containing type.
             typeToGenerateIn = containingType;
@@ -170,8 +184,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
             var semanticInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 
-            typeToGenerateIn = typeInfo.Type is ITypeParameterSymbol
-                ? ((ITypeParameterSymbol)typeInfo.Type).GetNamedTypeSymbolConstraint()
+            typeToGenerateIn = typeInfo.Type is ITypeParameterSymbol typeParameter
+                ? typeParameter.GetNamedTypeSymbolConstraint()
                 : typeInfo.Type as INamedTypeSymbol;
 
             isStatic = semanticInfo.Symbol is INamedTypeSymbol;
