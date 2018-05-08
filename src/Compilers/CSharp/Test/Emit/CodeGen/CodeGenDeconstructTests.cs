@@ -5743,6 +5743,7 @@ class C
             var discards = GetDiscardIdentifiers(tree).ToArray();
             Assert.Equal(4, discards.Length);
             var symbol0 = (IDiscardSymbol)model.GetSymbolInfo(discards[0]).Symbol;
+            Assert.Equal(symbol0, symbol0);
             var set = new HashSet<ISymbol>();
             foreach (var discard in discards)
             {
@@ -5751,6 +5752,8 @@ class C
                 Assert.Equal(SymbolKind.Discard, symbol.Kind);
                 Assert.Equal("int _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
                 Assert.Equal(symbol0, symbol);
+                Assert.Equal(symbol, symbol);
+                Assert.Equal(symbol.GetHashCode(), symbol0.GetHashCode());
             }
 
             Assert.Equal(1, set.Count);
@@ -5786,12 +5789,13 @@ class C
             foreach (var discard in discards)
             {
                 var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
-                set.Add(symbol);
                 Assert.Equal(SymbolKind.Discard, symbol.Kind);
+                set.Add(symbol);
                 if (discard == discards[0])
                 {
                     Assert.Equal("double _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
                     Assert.Equal(symbol0, symbol);
+                    Assert.Equal(symbol0.GetHashCode(), symbol.GetHashCode());
                 }
                 else
                 {
