@@ -5754,6 +5754,16 @@ class C
                 Assert.Equal(symbol0, symbol);
                 Assert.Equal(symbol, symbol);
                 Assert.Equal(symbol.GetHashCode(), symbol0.GetHashCode());
+
+                // Test to show that reference-unequal discards are equal by type.
+                IDiscardSymbol symbolClone = DiscardSymbol.CreateForTest(symbol.Type);
+                Assert.True(symbol != (object)symbolClone);
+                Assert.Equal(SymbolKind.Discard, symbolClone.Kind);
+                Assert.Equal("int _", symbolClone.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                Assert.Equal(symbol.Type, symbolClone.Type);
+                Assert.Equal(symbol0, symbolClone);
+                Assert.Equal(symbol, symbolClone);
+                Assert.Equal(symbol.GetHashCode(), symbolClone.GetHashCode());
             }
 
             Assert.Equal(1, set.Count);

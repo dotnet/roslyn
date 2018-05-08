@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ITypeSymbol IDiscardSymbol.Type => Type;
         public TypeSymbol Type { get; }
 
+        /// <summary>
+        /// Produce a fresh discard symbol for testing.
+        /// </summary>
+        internal static DiscardSymbol CreateForTest(ITypeSymbol type) => new DiscardSymbol((TypeSymbol)type);
+
         public override Symbol ContainingSymbol => null;
         public override Accessibility DeclaredAccessibility => Accessibility.NotApplicable;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
