@@ -107,25 +107,19 @@ End Class
                                                         Dim attrs = p.GetAttributes()
                                                         AssertEx.SetEqual(expected, GetAttributeNames(attrs))
                                                         If optimizationLevel = OptimizationLevel.Debug Then
-                                                            Assert.Equal(
-                                                                DirectCast(DebuggerBrowsableState.Never, Integer),
-                                                                attrs.Single(Function(a) a.AttributeClass.Name = "DebuggerBrowsableAttribute").ConstructorArguments(0).Value())
+                                                            Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs))
                                                         End If
 
                                                         attrs = e.GetAttributes()
                                                         AssertEx.SetEqual(expected, GetAttributeNames(attrs))
                                                         If optimizationLevel = OptimizationLevel.Debug Then
-                                                            Assert.Equal(
-                                                                DirectCast(DebuggerBrowsableState.Never, Integer),
-                                                                attrs.Single(Function(a) a.AttributeClass.Name = "DebuggerBrowsableAttribute").ConstructorArguments(0).Value())
+                                                            Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs))
                                                         End If
 
                                                         attrs = we.GetAttributes()
                                                         AssertEx.SetEqual(expected.Concat("AccessedThroughPropertyAttribute"), GetAttributeNames(attrs))
                                                         If optimizationLevel = OptimizationLevel.Debug Then
-                                                            Assert.Equal(
-                                                                DirectCast(DebuggerBrowsableState.Never, Integer),
-                                                                attrs.Single(Function(a) a.AttributeClass.Name = "DebuggerBrowsableAttribute").ConstructorArguments(0).Value())
+                                                            Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs))
                                                         End If
                                                     End Sub)
         End Sub
@@ -233,11 +227,11 @@ End Class
                                                         Dim cAttrs = GetAttributeNames(c.InstanceConstructors.Single().GetAttributes())
 
                                                         ' constructors that doesn't contain user code 
-                                                        Assert.Equal(0, aAttrs.Count())
+                                                        Assert.Empty(aAttrs)
 
                                                         ' constructors that contain user code 
-                                                        Assert.Equal(0, bAttrs.Count())
-                                                        Assert.Equal(0, cAttrs.Count())
+                                                        Assert.Empty(bAttrs)
+                                                        Assert.Empty(cAttrs)
                                                     End Sub)
         End Sub
 
@@ -618,24 +612,24 @@ BC30662: Attribute 'DebuggerHiddenAttribute' cannot be applied to 'WE' because t
 #Region "CompilationRelaxationsAttribute, RuntimeCompatibilityAttribute"
 
         Private Sub VerifyCompilationRelaxationsAttribute(attribute As VisualBasicAttributeData, isSynthesized As Boolean)
-            Assert.Equal("CompilationRelaxationsAttribute", attribute.AttributeClass.Name)
+            Assert.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute", attribute.AttributeClass.ToTestDisplayString())
 
             Dim expectedArgValue As Integer = If(isSynthesized, CInt(CompilationRelaxations.NoStringInterning), 0)
             Assert.Equal(1, attribute.CommonConstructorArguments.Length)
             attribute.VerifyValue(Of Integer)(0, TypedConstantKind.Primitive, expectedArgValue)
 
-            Assert.Equal(0, attribute.CommonNamedArguments.Length)
+            Assert.Empty(attribute.CommonNamedArguments)
         End Sub
 
         Private Sub VerifyRuntimeCompatibilityAttribute(attribute As VisualBasicAttributeData, isSynthesized As Boolean)
-            Assert.Equal("RuntimeCompatibilityAttribute", attribute.AttributeClass.Name)
-            Assert.Equal(0, attribute.CommonConstructorArguments.Length)
+            Assert.Equal("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute", attribute.AttributeClass.ToTestDisplayString())
+            Assert.Empty(attribute.CommonConstructorArguments)
 
             If isSynthesized Then
                 Assert.Equal(1, attribute.CommonNamedArguments.Length)
                 attribute.VerifyNamedArgumentValue(Of Boolean)(0, "WrapNonExceptionThrows", TypedConstantKind.Primitive, True)
             Else
-                Assert.Equal(0, attribute.CommonNamedArguments.Length)
+                Assert.Empty(attribute.CommonNamedArguments)
             End If
         End Sub
 
@@ -669,7 +663,7 @@ End Class
                                          VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
                                          VerifyDebuggableAttribute(attributes(2), DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)
                                      Else
-                                         Assert.Equal(0, attributes.Length)
+                                         Assert.Empty(attributes)
                                      End If
                                  End Sub)
         End Sub
@@ -920,13 +914,13 @@ BC35000: Requested operation is not available because the runtime library functi
             Else
 
                 CompileAndVerify(
-                CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(outputKind, optimizationLevel:=OptimizationLevel.Release)),
-                verify:=If(outputKind.IsNetModule(), Verification.Skipped, Verification.Passes),
-                symbolValidator:=Sub(m As ModuleSymbol)
-                                     ' Verify no synthesized assembly 
-                                     Dim attributes = m.ContainingAssembly.GetAttributes()
-                                     Assert.Empty(attributes)
-                                 End Sub)
+                    CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(outputKind, optimizationLevel:=OptimizationLevel.Release)),
+                    verify:=If(outputKind.IsNetModule(), Verification.Skipped, Verification.Passes),
+                    symbolValidator:=Sub(m As ModuleSymbol)
+                                         ' Verify no synthesized assembly 
+                                         Dim attributes = m.ContainingAssembly.GetAttributes()
+                                         Assert.Empty(attributes)
+                                     End Sub)
             End If
         End Sub
 
@@ -934,11 +928,11 @@ BC35000: Requested operation is not available because the runtime library functi
 
 #Region "DebuggableAttribute"
         Private Sub VerifyDebuggableAttribute(attribute As VisualBasicAttributeData, expectedDebuggingMode As DebuggableAttribute.DebuggingModes)
-            Assert.Equal("DebuggableAttribute", attribute.AttributeClass.Name)
+            Assert.Equal("System.Diagnostics.DebuggableAttribute", attribute.AttributeClass.ToTestDisplayString())
             Assert.Equal(1, attribute.ConstructorArguments.Count)
             attribute.VerifyValue(0, TypedConstantKind.Enum, CInt(expectedDebuggingMode))
 
-            Assert.Equal(0, attribute.NamedArguments.Count)
+            Assert.Empty(attribute.NamedArguments)
         End Sub
 
         Private Sub VerifySynthesizedDebuggableAttribute(attribute As VisualBasicAttributeData, optimizations As OptimizationLevel)
@@ -979,7 +973,7 @@ End Class
                         VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
                         VerifySynthesizedDebuggableAttribute(attributes(2), optimizationLevel)
                     Else
-                        Assert.Equal(0, attributes.Length)
+                        Assert.Empty(attributes)
                     End If
                 End Sub
 
@@ -1017,7 +1011,7 @@ End Class
                         VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
                         VerifyDebuggableAttribute(attributes(2), DebuggableAttribute.DebuggingModes.Default)
                     Else
-                        Assert.Equal(0, attributes.Length)
+                        Assert.Empty(attributes)
                     End If
                 End Sub
 
@@ -1054,7 +1048,7 @@ End Class
                         VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
                         VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
                     Else
-                        Assert.Equal(0, attributes.Length)
+                        Assert.Empty(attributes)
                     End If
                 End Sub
 
@@ -1094,7 +1088,7 @@ End Class
                         VerifyRuntimeCompatibilityAttribute(assemblyAttributes(1), isSynthesized:=True)
                         VerifyDebuggableAttribute(assemblyAttributes(2), DebuggableAttribute.DebuggingModes.None)
                     Else
-                        Assert.Equal(0, assemblyAttributes.Length)
+                        Assert.Empty(assemblyAttributes)
                     End If
 
                     ' Verify applied module Debuggable attribute
@@ -1173,7 +1167,7 @@ BC30002: Type 'System.Void' is not defined.
                         VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
                         VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
                     Else
-                        Assert.Equal(0, attributes.Length)
+                        Assert.Empty(attributes)
                     End If
                 End Sub
 
@@ -1225,7 +1219,7 @@ BC30002: Type 'System.Void' is not defined.
                         VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
                         VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
                     Else
-                        Assert.Equal(0, attributes.Length)
+                        Assert.Empty(attributes)
                     End If
                 End Sub
 
@@ -1272,7 +1266,7 @@ BC30002: Type 'System.Void' is not defined.
                         VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
                         VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
                     Else
-                        Assert.Equal(0, attributes.Length)
+                        Assert.Empty(attributes)
                     End If
                 End Sub
 
@@ -1321,7 +1315,7 @@ BC30002: Type 'System.Void' is not defined.
                         VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
                         VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
                     Else
-                        Assert.Equal(0, attributes.Length)
+                        Assert.Empty(attributes)
                     End If
                 End Sub
 
@@ -1329,6 +1323,10 @@ BC30002: Type 'System.Void' is not defined.
             Dim comp = VisualBasicCompilation.Create("comp", {Parse(source)}, {MscorlibRef}, compOptions)
             CompileAndVerify(comp, verify:=If(outputKind <> OutputKind.NetModule, Verification.Passes, Verification.Skipped), symbolValidator:=validator)
         End Sub
+
+        Private Shared Function GetDebuggerBrowsableState(attributes As ImmutableArray(Of VisualBasicAttributeData)) As DebuggerBrowsableState
+            Return DirectCast(attributes.Single(Function(a) a.AttributeClass.Name = "DebuggerBrowsableAttribute").ConstructorArguments(0).Value(), DebuggerBrowsableState)
+        End Function
 #End Region
 
 #Region "AsyncStateMachineAttribute"
