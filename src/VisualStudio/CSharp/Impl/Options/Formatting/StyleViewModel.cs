@@ -963,17 +963,14 @@ class C
 
         #region relational binary parentheses
 
-        private readonly string s_relationalBinaryAlwaysForClarity = $@"
+        private readonly string s_relationalBinaryIgnore = $@"
 class C
 {{
     void M()
     {{
 //[
-        // {ServicesVSResources.Prefer_colon}
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
         var v = (a < b) == (c > d);
-
-        // {ServicesVSResources.Over_colon}
-        var v = a < b == c > d;
 //]
     }}
 }}
@@ -1155,25 +1152,25 @@ class C
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.ArithmeticBinaryParentheses,
                 CSharpVSResources.In_arithmetic_binary_operators,
                 new[] { s_arithmeticBinaryAlwaysForClarity, s_arithmeticBinaryNeverIfUnnecessary },
-                isOther: false);
-
-            AddParenthesesOption(
-                LanguageNames.CSharp, optionSet, CodeStyleOptions.RelationalBinaryParentheses,
-                CSharpVSResources.In_relational_binary_operators,
-                new[] { s_relationalBinaryAlwaysForClarity, s_relationalBinaryNeverIfUnnecessary },
-                isOther: false);
+                isIgnoreOption: false);
 
             AddParenthesesOption(
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.OtherBinaryParentheses,
                 CSharpVSResources.In_other_binary_operators,
                 new[] { s_otherBinaryAlwaysForClarity, s_otherBinaryNeverIfUnnecessary },
-                isOther: false);
+                isIgnoreOption: false);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.RelationalBinaryParentheses,
+                CSharpVSResources.In_relational_binary_operators,
+                new[] { s_relationalBinaryIgnore, s_relationalBinaryNeverIfUnnecessary },
+                isIgnoreOption: true);
 
             AddParenthesesOption(
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.OtherParentheses,
                 ServicesVSResources.In_other_operators,
                 new[] { s_otherParenthesesIgnore, s_otherParenthesesNeverIfUnnecessary },
-                isOther: true);
+                isIgnoreOption: true);
         }
 
         private void AddExpressionBodyOptions(OptionSet optionSet, string expressionPreferencesGroupTitle)
