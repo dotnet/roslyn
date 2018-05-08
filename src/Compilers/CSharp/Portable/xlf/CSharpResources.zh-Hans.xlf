@@ -373,13 +373,13 @@
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
-        <source>SyntaxTree '{0}' not found</source>
-        <target state="new">SyntaxTree '{0}' not found</target>
+        <source>SyntaxTree is not part of the compilation</source>
+        <target state="new">SyntaxTree is not part of the compilation</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFoundToRemove">
-        <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">未找到要删除的 SyntaxTree“{0}”。</target>
+        <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
+        <target state="needs-review-translation">未找到要删除的 SyntaxTree“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -7811,8 +7811,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note>File path referenced in source (#load) could not be resolved.</note>
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
-        <source>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="translated">#load 指令生成了 SyntaxTree“{0}”，并且无法直接移除或替代此 SyntaxTree。</target>
+        <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
+        <target state="needs-review-translation">#load 指令生成了 SyntaxTree“{0}”，并且无法直接移除或替代此 SyntaxTree。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">

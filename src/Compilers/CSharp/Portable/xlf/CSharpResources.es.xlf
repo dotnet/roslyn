@@ -373,13 +373,13 @@
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
-        <source>SyntaxTree '{0}' not found</source>
-        <target state="new">SyntaxTree '{0}' not found</target>
+        <source>SyntaxTree is not part of the compilation</source>
+        <target state="new">SyntaxTree is not part of the compilation</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFoundToRemove">
-        <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">No se encontró SyntaxTree '{0}' para quitarlo</target>
+        <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
+        <target state="needs-review-translation">No se encontró SyntaxTree '{0}' para quitarlo</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -7811,8 +7811,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note>File path referenced in source (#load) could not be resolved.</note>
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
-        <source>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="translated">SyntaxTree '{0}' se obtuvo de una directiva #load y no se puede quitar ni reemplazar directamente.</target>
+        <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
+        <target state="needs-review-translation">SyntaxTree '{0}' se obtuvo de una directiva #load y no se puede quitar ni reemplazar directamente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">
