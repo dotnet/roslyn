@@ -724,9 +724,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionExprType.IsDynamic())
             {
-                builder.ElementType = TypeSymbolWithAnnotations.Create(((_syntax as ForEachStatementSyntax)?.Type.IsVar == true) ?
-                    (TypeSymbol)DynamicTypeSymbol.Instance :
-                    GetSpecialType(SpecialType.System_Object, diagnostics, _syntax),
+                builder.ElementType = TypeSymbolWithAnnotations.Create(
+                    ((_syntax as ForEachStatementSyntax)?.Type.IsVar == true) ?
+                        (TypeSymbol)DynamicTypeSymbol.Instance :
+                        GetSpecialType(SpecialType.System_Object, diagnostics, _syntax),
                     isNullableIfReferenceType: null);
             }
             else
