@@ -587,6 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
 
+                // Because of target-typing, stackalloc conversions are handled separately
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
                     return false;
