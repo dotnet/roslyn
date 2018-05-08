@@ -3873,6 +3873,11 @@ oneMoreTime:
             return new LiteralExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
+        public override IOperation VisitLiteral(ILiteralOperation operation, int? captureIdForResult)
+        {
+            return new LiteralExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+        
         public override IOperation VisitTypeOf(ITypeOfOperation operation, int? captureIdForResult)
         {
             return new TypeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -4023,11 +4028,6 @@ oneMoreTime:
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
         {
             return new DelegateCreationExpression(Visit(operation.Target), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitLiteral(ILiteralOperation operation, int? captureIdForResult)
-        {
-            return new LiteralExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitAwait(IAwaitOperation operation, int? captureIdForResult)
