@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> RelationalBinaryParentheses =
             CreateParenthesesOption(
                 nameof(RelationalBinaryParentheses),
-                s_neverIfUnnecessaryPreference,
+                s_alwaysForClarityPreference,
                 "dotnet_style_parentheses_in_relational_binary_operators", isOther: false);
 
         internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> OtherBinaryParentheses =
