@@ -36,6 +36,102 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 : CreateDiagnosticProviderAndFixer(workspace, parameters);
         }
 
+        [Fact]
+        public void TestSupportedDiagnosticsMessageTitle()
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                DiagnosticAnalyzer diagnosticAnalyzer;
+                try
+                {
+                    diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
+                }
+                catch (NotSupportedException)
+                {
+                    return;
+                }
+
+                if (diagnosticAnalyzer == null)
+                {
+                    return;
+                }
+
+                foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
+                {
+                    if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                    {
+                        // The title only displayed for rule configuration
+                        continue;
+                    }
+
+                    Assert.NotEqual("", descriptor.Title?.ToString() ?? "");
+                }
+            }
+        }
+
+        [Fact]
+        public void TestSupportedDiagnosticsMessageDescription()
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                DiagnosticAnalyzer diagnosticAnalyzer;
+                try
+                {
+                    diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
+                }
+                catch (NotSupportedException)
+                {
+                    return;
+                }
+
+                if (diagnosticAnalyzer == null)
+                {
+                    return;
+                }
+
+                foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
+                {
+                    if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                    {
+                        if (!descriptor.IsEnabledByDefault || descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)
+                        {
+                            // The message only displayed if either enabled and not hidden, or configurable
+                            continue;
+                        }
+                    }
+
+                    Assert.NotEqual("", descriptor.MessageFormat?.ToString() ?? "");
+                }
+            }
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26717")]
+        public void TestSupportedDiagnosticsMessageHelpLinkUri()
+        {
+            using (var workspace = new AdhocWorkspace())
+            {
+                DiagnosticAnalyzer diagnosticAnalyzer;
+                try
+                {
+                    diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
+                }
+                catch (NotSupportedException)
+                {
+                    return;
+                }
+
+                if (diagnosticAnalyzer == null)
+                {
+                    return;
+                }
+
+                foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
+                {
+                    Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
+                }
+            }
+        }
+
         internal async override Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
