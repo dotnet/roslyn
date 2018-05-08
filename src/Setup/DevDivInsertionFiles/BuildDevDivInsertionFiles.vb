@@ -531,7 +531,8 @@ Public Class BuildDevDivInsertionFiles
                 If packageName.StartsWith("Microsoft.VisualStudio.") OrElse
                    packageName = "EnvDTE" OrElse
                    packageName = "stdole" OrElse
-                   packageName.StartsWith("Microsoft.Build") Then
+                   packageName.StartsWith("Microsoft.Build") OrElse
+                   packageName = "Microsoft.Composition" Then
                     Continue For
                 End If
 
