@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId);
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
+        protected override bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic)
             => diagnostic.Properties.ContainsKey(AddRequiredParenthesesConstants.IncludeInFixAll) &&
-               diagnostic.Severity != DiagnosticSeverity.Hidden;
+               diagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey] == state.CodeActionEquivalenceKey;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

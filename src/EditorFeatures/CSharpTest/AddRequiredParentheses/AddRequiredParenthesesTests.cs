@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddRequiredParentheses;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -644,7 +645,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
         public async Task TestFixAll2()
         {
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -662,7 +663,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         {
         }
     }
-}", RequireAllParenthesesForClarity);
+}", options: RequireAllParenthesesForClarity, fixAllActionEquivalenceKey: CodeStyleOptions.ArithmeticBinaryParentheses.Name);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -697,27 +698,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
     {
         int x = 1 + (2 * 3) == 1 + (2 * 3);
     }
-}", options: RequireAllParenthesesForClarity, fixAllActionEquivalenceKey: FeaturesResources.Add_parentheses_for_clarity);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestSeams2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
-    {
-        int x = a {|FixAllInDocument:<|} b == c && d < e == f;
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        int x = (a < b) == c && (d < e) == f;
-    }
-}", options: RequireAllParenthesesForClarity, fixAllActionEquivalenceKey: FeaturesResources.Add_parentheses_for_clarity);
+}", options: RequireAllParenthesesForClarity, fixAllActionEquivalenceKey: CodeStyleOptions.ArithmeticBinaryParentheses.Name);
         }
     }
 }
