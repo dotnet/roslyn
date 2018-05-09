@@ -29,6 +29,8 @@ namespace BuildBoss
 
         private bool CheckDesktop(TextWriter textWriter)
         {
+            // TODO: MSBuild task dependencies need to be checked here as well since they are included in
+            // the same directory
             var (allGood, dllFileNames) = GetDllFileNames(
                 textWriter,
                 @"Exes\Csc\net46",
@@ -41,12 +43,23 @@ namespace BuildBoss
             }
 
             allGood &= VerifySwrFile(textWriter, dllFileNames);
+
+            var ignoreExtraDllFileNames = new[] { "Microsoft.Build.Tasks.CodeAnalysis.dll" };
+
+            // TODO: Don't hard code the nupkg names
             allGood &= VerifyNuPackage(
                         textWriter,
                         Path.Combine(ConfigDirectory, @"NuGet\PreRelease\Microsoft.Net.Compilers.2.9.0-dev.nupkg"),
-                        "/tools",
+                        @"tools",
                         dllFileNames,
-                        ignoreExtraDllFileNames: new[] { "Microsoft.Build.Tasks.CodeAnalysis.dll" });
+                        ignoreExtraDllFileNames: ignoreExtraDllFileNames);
+
+            allGood &= VerifyNuPackage(
+                        textWriter,
+                        Path.Combine(ConfigDirectory, @"DevDivPackages\Roslyn\VS.Tools.Roslyn.2.9.0-dev-65535-01.nupkg"),
+                        string.Empty,
+                        dllFileNames,
+                        ignoreExtraDllFileNames: ignoreExtraDllFileNames);
             return allGood;
         }
 
@@ -65,7 +78,7 @@ namespace BuildBoss
             return VerifyNuPackage(
                         textWriter,
                         Path.Combine(ConfigDirectory, @"NuGet\PreRelease\Microsoft.NETCore.Compilers.2.9.0-dev.nupkg"),
-                        "/tools/bincore",
+                        @"tools\bincore",
                         dllFileNames);
         }
 
@@ -133,38 +146,35 @@ namespace BuildBoss
         private static bool VerifyNuPackage(
             TextWriter textWriter, 
             string nupkgFilePath, 
-            string folderRelativeUri, 
+            string folderRelativePath, 
             IEnumerable<string> dllFileNames,
             IEnumerable<string> ignoreExtraDllFileNames = null)
         {
-            Debug.Assert(!string.IsNullOrEmpty(folderRelativeUri) && folderRelativeUri[0] == '/');
-
+            Debug.Assert(string.IsNullOrEmpty(folderRelativePath) || folderRelativePath[0] != '\\');
             ignoreExtraDllFileNames = ignoreExtraDllFileNames ?? Array.Empty<string>();
 
             // Get all of the DLL parts that are in the specified folder. Will exclude items that
             // are in any child folder
             IEnumerable<string> getPartsInFolder()
             {
-                int getPartDepth(string partUri) => partUri.Count(x => x == '/');
-                var depth = getPartDepth(folderRelativeUri) + 1;
                 using (var package = Package.Open(nupkgFilePath, FileMode.Open, FileAccess.Read))
                 {
                     foreach (var part in package.GetParts())
                     {
-                        var relativeName = part.Uri.ToString();
+                        var relativeName = part.Uri.ToString().Replace('/', '\\');
                         if (string.IsNullOrEmpty(relativeName))
                         {
                             continue;
                         }
 
-                        if (relativeName[0] != '/')
+                        if (relativeName[0] == '\\')
                         {
-                            relativeName = '/' + relativeName;
+                            relativeName = relativeName.Substring(1);
                         }
 
-                        if (getPartDepth(relativeName) != depth ||
-                            !relativeName.StartsWith(folderRelativeUri, StringComparison.OrdinalIgnoreCase) ||
-                            !StringComparer.OrdinalIgnoreCase.Equals(".dll", Path.GetExtension(relativeName)))
+                        var comparer = StringComparer.OrdinalIgnoreCase;
+                        if (!comparer.Equals(folderRelativePath, Path.GetDirectoryName(relativeName)) ||
+                            !comparer.Equals(".dll", Path.GetExtension(relativeName)))
                         {
                             continue;
                         }
@@ -174,12 +184,11 @@ namespace BuildBoss
                 }
             }
 
-            var map = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-            foreach (var name in dllFileNames)
-            {
-                map.Add($"{folderRelativeUri}/{name}", false);
-            }
-
+            var map = dllFileNames
+                .ToDictionary(
+                    keySelector: x => Path.Combine(folderRelativePath, x),
+                    elementSelector: _ => false,
+                    comparer: StringComparer.OrdinalIgnoreCase);
             var allGood = true;
             var nupkgFileName = Path.GetFileName(nupkgFilePath);
 
