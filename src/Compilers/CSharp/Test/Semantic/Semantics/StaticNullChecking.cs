@@ -17280,9 +17280,9 @@ class B5 : A<int>
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,11): error CS1503: Argument 1: cannot convert from 'method group!' to 'object'
+                // (5,11): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
                 //         G(F!);
-                Diagnostic(ErrorCode.ERR_BadArgType, "F!").WithArguments("1", "method group!", "object").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_BadArgType, "F!").WithArguments("1", "method group", "object").WithLocation(5, 11),
                 // (6,11): error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor
                 //         G(c.P!);
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c.P").WithArguments("C.P").WithLocation(6, 11));
