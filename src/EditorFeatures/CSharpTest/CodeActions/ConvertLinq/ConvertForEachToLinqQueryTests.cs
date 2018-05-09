@@ -218,9 +218,9 @@ class C
 {
     void M()
     {
-        foreach (var anonymous in from a in new[] { 1 }
-                       from b in new[] { 2 }
-                       select new { })
+        foreach (var _ in from a in new[] { 1 }
+               from b in new[] { 2 }
+               select new { })
         {
             System.Console.Write(0);
         }
@@ -284,11 +284,11 @@ class C
 {
     void M()
     {
-        foreach (var anonymous in from a in new[] { 1 }
-                       from b in new[] { 2 }
-                       select a + b)
+        foreach (var (a, b) in from a in new[] { 1 }
+                     from b in new[] { 2 }
+                     select (a, b))
         {
-            Console.Write(anonymous);
+            Console.Write(a + b);
         }
     }
 }";
@@ -320,12 +320,10 @@ class C
 {
     void M()
     {
-        foreach (var anonymous in from a in new[] { 1 }
-                       from b in new[] { 2 }
-                       select new { a, b })
+        foreach (var (a, b) in from a in new[] { 1 }
+                     from b in new[] { 2 }
+                     select (a, b))
         {
-            var a = anonymous.a;
-            var b = anonymous.b;
             Console.Write(a + b);
             Console.Write(a * b);
         }

@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
         // TODO actually can consider conversion for ForEachVariableStatement, need to add as a separate requirement
         // TODO what if no using System.Linq; is it required?
         // TODO what if comments are not in foreach but in related statements we're removing or modifying, e.g. return or list = new List<int>()
+        // TODO test: foreach(var q in largequeryexpression1) { foreach(var q1 in largequeryexpression2) {....}}
         protected override ForEachStatementSyntax FindNodeToRefactor(SyntaxNode root, TextSpan span)
             => root.FindNode(span) as ForEachStatementSyntax; // TODO depending on performance, consider using FirstAncestorOrSelf
 
@@ -246,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 identifiers = identifiers.Where(identifier => symbolNames.Contains(identifier.ValueText)).ToList();
 
                 var editor = CreateDefaultEditor();
-                if (identifiers.Count() == 1)
+                if (identifiers.Count == 1)
                 {
                     editor.ReplaceNode(
                         _forEachStatement,
@@ -256,115 +257,33 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             CreateQueryExpression(queryClauses, SyntaxFactory.IdentifierName(identifiers.Single())),
                             WrapWithBlockIfNecessary(lastStatements)));
                 }
+                else if (identifiers.Count == 0)
+                {
+                    // This supports the case with no variables used.
+                    // In this case, it generates:
+                    // foreach(var _ ... select (a,b))
+                    var queryExpression1 = CreateQueryExpression(queryClauses, SyntaxFactory.AnonymousObjectCreationExpression());
+                    var block1 = WrapWithBlockIfNecessary(lastStatements.Select(statement => statement.WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticEndOfLine(Environment.NewLine))));
+                    editor.ReplaceNode(_forEachStatement, SyntaxFactory.ForEachStatement(VarNameIdentifier, SyntaxFactory.Identifier("_"), queryExpression1, block1));
+                }
                 else
                 {
-                    // TODO check that 0 expressions is processed properly
-                    if (identifiers.Count >= 2 && CanReplaceExpressions(lastStatements, identifiers, out var replacingExpressions))
-                    {
-                        var queryExpression1 = CreateQueryExpression(queryClauses, replacingExpressions.First());
-                        // TODO naming
-                        var anonymousTypeName1 = "anonymous";
-                        var freeName = GetFreeSymbolName(anonymousTypeName1);
-                        var block1 = WrapWithBlockIfNecessary(lastStatements.Select(statement => statement.WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticEndOfLine(Environment.NewLine))));
-                        editor.ReplaceNode(_forEachStatement, SyntaxFactory.ForEachStatement(VarNameIdentifier, freeName, queryExpression1, block1));
-                        foreach(var replacingExpression in replacingExpressions)
-                        {
-                            // TODO reuse
-                            // TODO unit test
-                            editor.ReplaceNode(replacingExpression, SyntaxFactory.IdentifierName(freeName));
-                        }
-                    }
-                    else
-                    {
-                        // This supports the case with no variables used.
-                        // In this case, it generates:
-                        // foreach(var anonymous ... select new {})
-                        var selectExpression = SyntaxFactory.AnonymousObjectCreationExpression(
-                                SyntaxFactory.SeparatedList(identifiers.Select(identifier => SyntaxFactory.AnonymousObjectMemberDeclarator(SyntaxFactory.IdentifierName(identifier)))));
-                        var queryExpression = CreateQueryExpression(queryClauses, selectExpression);
+                    var selectExpression = SyntaxFactory.TupleExpression(
+                            SyntaxFactory.SeparatedList(identifiers.Select(identifier => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(identifier)))));
+                    var queryExpression = CreateQueryExpression(queryClauses, selectExpression);
 
-                        var anonymousTypeName = "anonymous";
-                        var freeName = GetFreeSymbolName(anonymousTypeName);
-                        var block = WrapWithBlockIfNecessary(lastStatements.Select(statement => statement.WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticEndOfLine(Environment.NewLine))));
+                    var declaration = SyntaxFactory.DeclarationExpression(VarNameIdentifier, SyntaxFactory.ParenthesizedVariableDesignation(
+                        SyntaxFactory.SeparatedList<VariableDesignationSyntax>(identifiers.Select(identifier => SyntaxFactory.SingleVariableDesignation(identifier)))));
 
-                        // Reversing identifiers because adding declarations from bottom to top.
-                        identifiers.Reverse();
-                        foreach (var identifier in identifiers)
-                        {
-                            var localDeclaration =
-                                SyntaxFactory.LocalDeclarationStatement(
-                                    SyntaxFactory.VariableDeclaration(
-                                        VarNameIdentifier,
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.VariableDeclarator(
-                                                identifier,
-                                                argumentList: null,
-                                                SyntaxFactory.EqualsValueClause(
-                                                    SyntaxFactory.MemberAccessExpression(
-                                                        SyntaxKind.SimpleMemberAccessExpression,
-                                                        SyntaxFactory.IdentifierName(freeName),
-                                                        SyntaxFactory.Token(SyntaxKind.DotToken),
-                                                        SyntaxFactory.IdentifierName(identifier)))))));
-                            block = AddToBlockTop(localDeclaration, block);
-                        }
+                    var block = WrapWithBlockIfNecessary(lastStatements.Select(statement => statement.WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticEndOfLine(Environment.NewLine))));
 
-                        editor.ReplaceNode(_forEachStatement, SyntaxFactory.ForEachStatement(VarNameIdentifier, freeName, queryExpression, block));
-                    }
+                    editor.ReplaceNode(_forEachStatement, SyntaxFactory.ForEachVariableStatement(declaration, queryExpression, block));
+
                 }
 
                 return editor;
             }
 
-            // TODO unit tests
-            private bool CanReplaceExpressions(IEnumerable<StatementSyntax> statements, IEnumerable<SyntaxToken> identifiers, out IEnumerable<ExpressionSyntax> expressions)
-            {
-                // TODO there is a problem: Console.WriteLine is also an expression
-                // instead of this, we should find all identifiers and find the smallest expression covering all identifiers.
-                // then, need to copmare all such expressions
-                // this could be essential for the perofrmance
-                var allExpressions = statements.SelectMany(statement => statement.DescendantNodes(node => !(node is ExpressionSyntax))).OfType<ExpressionSyntax>();
-                var identifierNamesHashset = new HashSet<string>(identifiers.Select(identifier => identifier.ValueText));
-                var list = new List<ExpressionSyntax>();
-
-                foreach (var expression in allExpressions)
-                {
-                    var variablesRead = _semanticModel.AnalyzeDataFlow(expression).ReadInside;
-
-                    if (!variablesRead.Any(variable => identifierNamesHashset.Contains(variable.Name)))
-                    {
-                        continue;
-                    }
-
-                    var descendantNodes = expression.DescendantNodes();
-                    if (descendantNodes.OfType<InvocationExpressionSyntax>().Any() || descendantNodes.OfType<MemberAccessExpressionSyntax>().Any())
-                    {
-                        expressions = default;
-                        return false;
-                    }
-
-                    list.Add(expression);
-                }
-
-                // TODO 0, 1 or many expressions
-                if (list.Count > 1)
-                {
-                    var firstExpression = list.First();
-                    var firstExpressionSymbol = _semanticModel.GetSymbolInfo(firstExpression, _cancellationToken).Symbol;
-
-                    foreach (var expression in list)
-                    {
-                        var symbol = _semanticModel.GetSymbolInfo(expression, _cancellationToken).Symbol;
-                        if (!(SymbolEquivalenceComparer.Instance.Equals(firstExpressionSymbol, symbol)))
-                        {
-                            expressions = default;
-                            return false;
-                        }
-                    }
-                }
-
-                expressions = list;
-                return true;
-            }
 
             private QueryExpressionSyntax CreateQueryExpression(
                 IEnumerable<QueryClauseSyntax> queryClauses,
@@ -384,19 +303,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     forEachStatement.Type is IdentifierNameSyntax identifierName && identifierName.Identifier.ValueText == "var" ? null : forEachStatement.Type,
                     forEachStatement.Identifier,
                     forEachStatement.Expression);
-
-            // TODO copied from CSharpConvertLinqQueryToForEachProvider. Share?
-            private static BlockSyntax AddToBlockTop(StatementSyntax newStatement, StatementSyntax statement)
-            {
-                if (statement is BlockSyntax block)
-                {
-                    return block.WithStatements(block.Statements.Insert(0, newStatement));
-                }
-                else
-                {
-                    return SyntaxFactory.Block(newStatement, statement);
-                }
-            }
 
             private static BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
                 => (statements.Count() == 1 && statements.Single() is BlockSyntax block) ? block : SyntaxFactory.Block(statements);
