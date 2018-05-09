@@ -492,10 +492,10 @@ i: default
 j: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'False''
 k: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '2', fromEnd: 'False''
 l: default
-m: value: 'value: '1', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''
-n: value: 'value: '2', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''
+m: value: 'value: '1', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''
+n: value: 'value: '2', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''
 o: default
-p: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''");
+p: value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''");
         }
 
         [Fact]
@@ -525,8 +525,8 @@ class Program
 
             CompileAndVerify(compilation, expectedOutput: @"
 value: '1', fromEnd: 'True'
-value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''
-value: 'value: '2', fromEnd: 'False'', fromEnd: 'value: '1', fromEnd: 'True''
+value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''
+value: 'value: '2', fromEnd: 'False'', fromEnd: 'value: '0', fromEnd: 'True''
 value: 'value: '0', fromEnd: 'False'', fromEnd: 'value: '3', fromEnd: 'False''
 value: 'value: '4', fromEnd: 'False'', fromEnd: 'value: '5', fromEnd: 'False''");
         }
@@ -581,8 +581,8 @@ public static class Program
 {
     public static string get_IndexerExtension(this string foo, Range range)
     {
-        int start = range.Start.FromEnd ? (foo.Length - range.Start.Value) : range.Start.Value;
-        int end = range.End.FromEnd ? (foo.Length - range.End.Value) : range.End.Value;
+        int start = range.Start.FromEnd ? (foo.Length - Math.Max(range.Start.Value, 1)) : range.Start.Value;
+        int end = range.End.FromEnd ? (foo.Length - Math.Max(range.End.Value, 1)) : range.End.Value;
         return foo.Substring(start, end - start + 1);
     }
     public static void Main()
@@ -629,8 +629,8 @@ public static class Program
 {
     public static string get_IndexerExtension(this Span<int> foo, Range range)
     {
-        int start = range.Start.FromEnd ? (foo.Length - range.Start.Value) : range.Start.Value;
-        int end = range.End.FromEnd ? (foo.Length - range.End.Value) : range.End.Value;
+        int start = range.Start.FromEnd ? (foo.Length - Math.Max(range.Start.Value, 1)) : range.Start.Value;
+        int end = range.End.FromEnd ? (foo.Length - Math.Max(range.End.Value, 1)) : range.End.Value;
 
         int[] ar = new int[end - start + 1];
         for(var i = start; i <= end; i++)
@@ -684,8 +684,8 @@ public static class Program
 {
     public static string get_IndexerExtension(this int[] foo, Range range)
     {
-        int start = range.Start.FromEnd ? (foo.Length - range.Start.Value) : range.Start.Value;
-        int end = range.End.FromEnd ? (foo.Length - range.End.Value) : range.End.Value;
+        int start = range.Start.FromEnd ? (foo.Length - Math.Max(range.Start.Value, 1)) : range.Start.Value;
+        int end = range.End.FromEnd ? (foo.Length - Math.Max(range.End.Value, 1)) : range.End.Value;
 
         int[] ar = new int[end - start + 1];
         for(var i = start; i <= end; i++)

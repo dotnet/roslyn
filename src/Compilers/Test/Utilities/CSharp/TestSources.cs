@@ -212,19 +212,22 @@ namespace System
 {
     public readonly struct Index
     {
-        public int Value { get; }
-        public bool FromEnd { get; }
+        private readonly int _value;
+
+        public int Value => _value < 0 ? ~_value : _value;
+        public bool FromEnd => _value < 0;
 
         public Index(int value, bool fromEnd)
         {
-            this.Value = value;
-            this.FromEnd = fromEnd;
+            if (value < 0)
+            {
+                throw new ArgumentException(""Index must not be negative."", nameof(value));
+            }
+
+            _value = fromEnd? ~value : value;
         }
 
-        public static implicit operator Index(int value)
-        {
-            return new Index(value, fromEnd: false);
-        }
+        public static implicit operator Index(int value) => new Index(value, fromEnd: false);
     }
 }";
 
@@ -243,9 +246,9 @@ namespace System
         }
 
         public static Range Create(Index start, Index end) => new Range(start, end);
-        public static Range FromStart(Index start) => new Range(start, new Index(1, fromEnd: true));
+        public static Range FromStart(Index start) => new Range(start, new Index(0, fromEnd: true));
         public static Range ToEnd(Index end) => new Range(new Index(0, fromEnd: false), end);
-        public static Range All() => new Range(new Index(0, fromEnd: false), new Index(1, fromEnd: true));
+        public static Range All() => new Range(new Index(0, fromEnd: false), new Index(0, fromEnd: true));
     }
 }";
     }
