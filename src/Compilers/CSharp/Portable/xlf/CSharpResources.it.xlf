@@ -379,7 +379,7 @@
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFoundToRemove">
         <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
-        <target state="needs-review-translation">Non è stato trovato nessun elemento SyntaxTree '{0}' da rimuovere</target>
+        <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
